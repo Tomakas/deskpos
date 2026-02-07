@@ -1,0 +1,1461 @@
+# EPOS Desktop App — Project Documentation
+
+> Konsolidovaná dokumentace projektu EPOS Desktop App.
+>
+> **Poslední aktualizace:** 2026-02-07
+
+---
+
+## Obsah
+
+1. [Přehled](#přehled)
+2. [Roadmap](#roadmap)
+3. [Technologický Stack](#technologický-stack)
+4. [Architektura](#architektura)
+5. [Struktura Projektu](#struktura-projektu)
+6. [Databáze](#databáze)
+7. [Synchronizace](#synchronizace)
+8. [Obchodní model — Účty a objednávky](#obchodní-model--účty-a-objednávky)
+9. [Autentizace](#autentizace)
+10. [Oprávnění](#oprávnění)
+11. [UI/UX Design](#uiux-design)
+12. [Možná rozšíření v budoucnu](#možná-rozšíření-v-budoucnu)
+13. [Development Guide](#development-guide)
+
+---
+
+## Přehled
+
+**EPOS Desktop App** je moderní pokladní systém (Point of Sale) pro desktopová i mobilní prostředí (Windows, macOS, Linux, Android, iOS). Aplikace klade důraz na robustnost, rychlost a schopnost fungovat bez závislosti na stálém internetovém připojení.
+
+### Klíčové vlastnosti
+
+| Vlastnost | Popis |
+|-----------|-------|
+| **Offline-first** | Lokální databáze je zdroj pravdy. Plná funkčnost bez internetu. |
+| **Hybridní architektura** | Centralizovaná datová vrstva (`core/`) + feature-first UI (`features/`). |
+| **Reaktivita** | UI automaticky reaguje na změny stavu a databáze pomocí Riverpodu a Streams. |
+| **Outbox Pattern + LWW** | Sync engine pro multi-device provoz (od Etapy 3). |
+
+---
+
+## Roadmap
+
+4 etapy, každá s milníky a tasky. Schéma začíná s **17 tabulkami** (aktivní). Dalších 19 tabulek se přidá s příslušnými rozšířeními. Sync se řeší až v Etapě 3 — do té doby funguje aplikace offline na jednom zařízení.
+
+---
+
+### Etapa 1 — Core (offline, single-device)
+
+Admin vytvoří firmu, nastaví uživatele, stoly a produkty. Více uživatelů se může přihlásit a přepínat. Žádný prodej, žádný sync.
+
+#### Milník 1.1 — Projekt a databáze
+
+- **Task1.1** Flutter projekt — desktop + mobile targets, build funguje
+- **Task1.2** Drift databáze — 17 tabulek, code generation
+- **Task1.3** Lokalizace — i18n infrastruktura, ARB soubory, čeština
+- **Výsledek:** Aplikace se spustí, zkompiluje na všech platformách, DB je připravena.
+
+#### Milník 1.2 — Onboarding
+
+- **Task1.4** ScreenOnboarding — výběr "Založit firmu" / "Připojit se k firmě"
+- **Task1.5** ScreenOnboarding wizard — vytvoření firmy + admin uživatele (lokálně)
+- **Task1.6** Seed dat — výchozí měna, daňové sazby, platební metody (viz [Platební metody](#platební-metody)), permissions, role, výchozí registr
+- **Výsledek:** Při prvním spuštění uživatel vytvoří firmu a admin účet. V DB jsou výchozí data.
+
+#### Milník 1.3 — Autentizace (single-user)
+
+- **Task1.7** ScreenLogin — zadání PINu, ověření proti lokální DB
+- **Task1.8** Brute-force ochrana — progresivní lockout, countdown v UI
+- **Task1.9** SessionManager — volatile session v RAM
+- **Výsledek:** Admin se přihlásí PINem. Nesprávné pokusy jsou blokovány progresivním lockoutem.
+
+#### Milník 1.4 — Oprávnění (engine)
+
+- **Task1.10** Permission engine — 14 permissions, O(1) check přes in-memory Set
+- **Task1.11** Role šablony — helper (5), operator (10), admin (14)
+- **Výsledek:** Permission engine a role šablony jsou připraveny. Admin má všech 14 oprávnění.
+
+#### Milník 1.5 — Hlavní obrazovka
+
+- **Task1.12** ScreenBills — prázdný stav, layout, navigační shell
+- **Task1.13** AppBar — odhlášení
+- **Výsledek:** Po přihlášení admin vidí hlavní obrazovku s prázdným seznamem účtů a může se odhlásit.
+
+#### Milník 1.6 — Settings
+
+- **Task1.14** Správa uživatelů — CRUD pro users, přiřazení role (applyRoleToUser)
+- **Task1.15** Správa stolů — CRUD pro tables
+- **Task1.16** Správa produktů — CRUD pro items, categories
+- **Task1.17** Správa daňových sazeb — CRUD pro tax_rates
+- **Task1.18** Správa platebních metod — CRUD pro payment_methods (viz [Platební metody](#platební-metody))
+- **Výsledek:** Admin může vytvořit další uživatele, stoly, produkty, daňové sazby a platební metody.
+
+#### Milník 1.7 — Multi-user
+
+- **Task1.19** Přepínání uživatelů — výběr uživatele v AppBar, rychlý switch přes PIN
+- **Task1.20** UI enforcement — hasPermissionProvider, skrývání/blokování akcí podle oprávnění
+- **Výsledek:** Více uživatelů se může přihlašovat a přepínat. Každý vidí pouze akce, na které má oprávnění.
+
+---
+
+### Etapa 2 — Základní prodej
+
+Uživatel může vytvořit účet, přidat položky a zaplatit. Bez slev, tisku, pokročilých funkcí.
+
+#### Milník 2.1 — Vytvoření účtu
+
+- **Task2.1** DialogNewBill — vytvoření účtu (takeaway / stůl / bez stolu)
+- **Task2.2** DialogBillDetail — detail účtu, informace, stav, prázdný stav
+- **Task2.3** Bill CRUD v repository — createBill, updateStatus, cancelBill
+- **Výsledek:** Obsluha může otevřít nový účet (včetně přiřazení ke stolu), zobrazit jeho detail a stornovat ho.
+
+#### Milník 2.2 — Objednávky
+
+- **Task2.4** ScreenSell — produktový grid/seznam, výběr položek a množství
+- **Task2.5** createOrderWithItems — INSERT order + order_items, batch operace
+- **Task2.6** Seznam objednávek na účtu — zobrazení orders a items v DialogBillDetail
+- **Task2.7** PrepStatus flow — created → inPrep → ready → delivered (ruční změna)
+- **Výsledek:** Obsluha může přidávat položky na účet a sledovat stav přípravy objednávek.
+
+#### Milník 2.3 — Platba
+
+- **Task2.8** DialogPayment — výběr platební metody, zadání částky
+- **Task2.9** recordPayment — INSERT payment + UPDATE bill (paidAmount, status)
+- **Task2.10** Plná platba — bill status → paid, closedAt se nastaví
+- **Task2.11** ScreenBills filtry — filtrování podle stavu (opened, paid, cancelled)
+- **Výsledek:** Obsluha může zaplatit účet, účet se uzavře. Na hlavní obrazovce lze filtrovat podle stavu.
+
+---
+
+### Etapa 3 — Pokročilé funkce
+
+Funkce, které nejsou nezbytné pro základní prodej, ale rozšiřují možnosti systému.
+
+#### Milník 3.1 — Sync + multi-device
+
+- **Task3.1** Supabase backend — Auth, RLS policies, triggery
+- **Task3.2** Outbox pattern — sync_queue, auto-retry, status tracking
+- **Task3.3** LWW conflict resolution — updated_at porovnání, merge logika
+- **Task3.4** ConnectCompanyScreen — připojení k existující firmě, InitialSync
+- **Task3.5** SyncAuthScreen — admin credentials pro Supabase session
+- **Task3.6** SQLCipher šifrování — migrace plain SQLite → šifrovaná DB, klíč ve secure storage
+- **Výsledek:** Data se synchronizují mezi zařízeními. Nové zařízení se připojí k firmě a stáhne data. Lokální DB je šifrovaná.
+
+#### Milník 3.2 — Pokročilý prodej
+
+- **Task3.7** Slevy na položku — discount na OrderItem, UI pro zadání slevy
+- **Task3.8** Slevy na účet — discount_amount na Bill, UI pro zadání slevy
+- **Task3.9** Poznámky k objednávce — UI pro notes na Order a OrderItem (sloupce již ve schématu)
+- **Task3.10** Částečná platba — platba menší než celkem, status → partiallyPaid
+- **Výsledek:** Obsluha může aplikovat slevy, platit částečně.
+
+#### Milník 3.3 — Provoz
+
+- **Task3.11** Register session — otevření/zavření pokladny, počáteční vklad
+- **Task3.12** Cash movements — vklady, výběry, výdaje
+- **Task3.13** Z-report — denní uzávěrka
+- **Výsledek:** Pokladna má otevírací/zavírací proceduru, evidenci hotovostních pohybů a denní uzávěrku.
+
+#### Milník 3.4 — Tisk
+
+- **Task3.14** Náhled účtenky — dialog s náhledem (firma, položky, DPH, celkem)
+- **Task3.15** Tisk účtenky — napojení na tiskárnu (POS printer / PDF export)
+- **Task3.16** Tisk Z-reportu — denní uzávěrka
+- **Task3.17** Tisk reportů — tržby, prodeje dle kategorií/zaměstnanců
+- **Výsledek:** Lze tisknout účtenky, denní uzávěrky a reporty na POS tiskárnu nebo do PDF.
+
+---
+
+### Etapa 4 — Statistiky a reporty
+
+Přehledy a reporty pro majitele a manažery.
+
+#### Milník 4.1 — Dashboard
+
+- **Task4.1** Sales dashboard — denní/týdenní/měsíční tržby, graf
+- **Task4.2** Živý přehled — aktuální otevřené účty, obsazenost stolů
+- **Výsledek:** Majitel vidí přehled tržeb a aktuální stav provozu na dashboardu.
+
+#### Milník 4.2 — Reporty
+
+- **Task4.3** Prodeje dle kategorií — tržby per kategorie, top produkty
+- **Task4.4** Prodeje dle zaměstnanců — tržby per obsluha
+- **Task4.5** Prodeje dle času — hodinový/denní breakdown, peak hours
+- **Task4.6** Platební metody — rozložení plateb (hotovost vs karta vs ostatní)
+- **Výsledek:** Manažer může analyzovat prodeje podle kategorií, zaměstnanců, času a platebních metod.
+
+#### Milník 4.3 — Export
+
+- **Task4.7** PDF export — generování PDF reportů
+- **Task4.8** Excel export — tabulkový export dat
+- **Task4.9** Účetní export — formát pro účetní software
+- **Výsledek:** Reporty a data lze exportovat do PDF, Excelu a formátu pro účetní software.
+
+---
+
+## Technologický Stack
+
+- **Flutter / Dart** — UI toolkit, multiplatformní (desktop + mobile)
+- **Riverpod** — state management a dependency injection
+- **Freezed** — code generation pro immutable modely a union types
+- **Drift** — reaktivní persistence nad SQLite
+- **SQLCipher** — šifrování lokální databáze (od Etapy 3)
+- **Supabase** — backend: Auth, Realtime, Database, Storage (od Etapy 3)
+- **flutter_secure_storage** — bezpečné úložiště klíčů: Keychain / libsecret / Credential Manager (od Etapy 3)
+- **uuid** — generování unikátních identifikátorů (v7 — chronologické řazení, lepší výkon B-tree)
+- **intl** — formátování dat, časů, měn, lokalizace
+
+---
+
+## Architektura
+
+### Diagram vrstev
+
+```mermaid
+graph TD
+    UI[UI Layer] --> BL[Business Logic]
+    BL --> DATA[Data Layer]
+    DATA --> LOCAL[(Local DB - Drift)]
+    DATA --> REMOTE((Remote API - Supabase))
+```
+
+### Popis vrstev
+
+#### 1. UI Layer (Presentation)
+
+- **Komponenty:** Ekrany (`Screen`), Widgety, Dialogy
+- **Odpovědnost:** Vykreslování stavu a zachytávání vstupů uživatele
+- **Pravidlo:** Žádná business logika v UI. UI pouze volá metody z controllerů/notifierů
+- **Bez notifikací:** Žádné snackbary, toasty ani jiné popup notifikace. Stav se zobrazuje přímo v UI komponentách.
+- **Implementace:** `ConsumerWidget` pro přístup k Riverpod providerům
+
+#### 2. Business Logic Layer (Application)
+
+- **Komponenty:** Riverpod `Notifier`, `AsyncNotifier`
+- **Odpovědnost:**
+    - Držení a transformace stavu UI (např. aktuální košík, filtr seznamu)
+    - Validace uživatelských vstupů
+    - Volání metod z Data Layer
+    - Error handling pro UI pomocí typu `Result<T>`
+- **State:** Preferujeme immutable state pomocí `Freezed`
+
+#### 3. Data Layer (Domain/Data)
+
+- **Komponenty:** Repositories, Data Sources (Local/Remote), Models
+- **Odpovědnost:**
+    - Abstrahovat zdroj dat od zbytku aplikace
+    - Implementace "Offline-first" logiky (nejdříve zapsat lokálně, pak sync)
+    - Mapování mezi DB entitami a doménovými modely
+- **Result Pattern:** Veškeré návratové typy z repozitářů jsou obaleny v `Result<T>` (sealed class: `Success` nebo `Failure`)
+
+### Hybridní architektura
+
+Projekt kombinuje **centralizovanou datovou vrstvu** s **feature-first přístupem pro UI**:
+
+- **Core Data Layer (`lib/core/data/`)**: Centralizovaná definice dat, repozitářů a synchronizace. Zabraňuje cyklickým závislostem v relačně provázaném datovém modelu.
+- **Feature Layer (`lib/features/`)**: Distribuovaná prezentační vrstva. Obsahuje pouze UI (Screens, Widgets) a aplikační logiku (Providers/View Models).
+
+---
+
+## Struktura Projektu
+
+```text
+lib/
+├── main.dart
+├── core/                              # Globální infrastruktura a sdílené jádro
+│   ├── auth/                          # Autentizace (PIN, session)
+│   ├── data/                          # Globální datová vrstva
+│   │   ├── datasources/
+│   │   │   ├── local/                 # Drift (SQLite) implementace
+│   │   │   └── remote/                # Supabase implementace (od Etapy 3)
+│   │   ├── interfaces/                # Abstraktní kontrakty
+│   │   ├── models/                    # Doménové modely
+│   │   ├── providers/                 # DI registrace
+│   │   ├── repositories/              # Repozitáře
+│   │   └── services/                  # Sync, outbox (od Etapy 3)
+│   ├── database/                      # Drift databáze
+│   │   └── tables/                    # Definice tabulek
+│   ├── network/                       # Síťová vrstva (od Etapy 3)
+│   ├── logging/                       # AppLogger
+│   └── l10n/                          # Extension context.l10n
+├── features/                          # Funkční moduly (UI only)
+│   ├── orders/                        # Správa objednávek a účtů
+│   ├── products/                      # Katalog produktů
+│   ├── settings/                      # Nastavení aplikace
+│   ├── users/                         # Správa uživatelů a rolí
+│   └── sales/                         # Hlavní prodejní obrazovka
+└── l10n/                              # ARB soubory + generovaný kód
+```
+
+### Core Data Layer konvence
+
+Každá entita v `core/data/` se skládá z následujících souborů:
+
+**Etapa 1–2 (bez sync):**
+
+| Soubor | Vzor |
+|--------|------|
+| `models/<entity>_model.dart` | Doménový model |
+| `datasources/local/<entity>_local_data_source.dart` | Implements `LocalDataSource<T>` |
+| `repositories/<entity>_repository.dart` | Lokální repository |
+
+**Etapa 3+ (se sync):** ke každé entitě přibude:
+
+| Soubor | Vzor |
+|--------|------|
+| `datasources/remote/<entity>_remote_data_source.dart` | Implements `RemoteDataSource<T>` |
+
+Repository se rozšíří o sync registraci (`syncService.registerRepository` + `outboxProcessor.registerEntityType`).
+
+---
+
+## Databáze
+
+### Local-First Pattern
+
+```mermaid
+graph TD
+    UI[UI Layer - Widgets] --> REPO[Repository Layer]
+    REPO --> LOCAL[(LocalDataSource - Drift/SQLite)]
+    REPO --> REMOTE((RemoteDataSource - Supabase))
+```
+
+**Principy:**
+- **Drift (SQLite)** = primární zdroj pravdy na zařízení
+- **Supabase** = cloud backup + multi-device sync
+- Operace jsou vždy nejdřív lokální, pak se asynchronně synchronizují
+
+### Šifrování databáze (Etapa 3)
+
+Šifrování se zavádí až v Etapě 3 (Milník 3.1) společně se sync. Během vývoje běží DB jako plain SQLite pro snadnější debugging.
+
+- **Technologie:** SQLCipher (`sqlcipher_flutter_libs`)
+- **Šifrovací klíč:** 32-byte náhodný hex řetězec, generován při prvním spuštění
+- **Úložiště klíče:** `flutter_secure_storage` (macOS: Keychain, Linux: libsecret, Windows: Credential Manager)
+- **Migrace:** Automatická detekce plain SQLite a migrace přes `sqlcipher_export`
+
+### Umístění lokální databáze
+
+Databáze se ukládá přímo v adresáři projektu:
+
+```
+<projekt>/epos_database.sqlite
+```
+
+Soubor je v `.gitignore`. Jedna cesta pro všechny platformy — nezávisí na OS.
+
+### Mazání lokálních dat (Clean Install)
+
+Pro simulaci čisté instalace (např. testování onboardingu):
+
+```bash
+rm -f epos_database.sqlite
+```
+
+Po smazání databáze a restartu aplikace se zobrazí **ScreenOnboarding** — onboarding wizard pro vytvoření firmy a admin účtu.
+
+### Schema — Drift (SQLite)
+
+> **Development mode:** Žádné migrace. Při změně schématu stačí smazat lokální DB soubor a spustit aplikaci znovu. Migrace budou přidány až pro produkční nasazení.
+
+#### SyncColumnsMixin
+
+> Sync sloupce jsou předpřipravené ve schématu od Etapy 1. V Etapě 1–2 zůstávají prázdné (nullable). Využijí se až v Etapě 3 při aktivaci sync.
+
+Všechny aktivní tabulky používají mixin pro sync metadata (tabulka `sync_queue` z rozšíření ho nepoužívá):
+
+```dart
+mixin SyncColumnsMixin on Table {
+  DateTimeColumn get lastSyncedAt => dateTime().nullable()();
+  IntColumn get version => integer().withDefault(const Constant(1))();
+  DateTimeColumn get serverCreatedAt => dateTime().nullable()();
+  DateTimeColumn get serverUpdatedAt => dateTime().nullable()();
+}
+```
+
+Navíc každá tabulka definuje: `createdAt`, `updatedAt`, `deletedAt` (soft delete).
+
+> **Konvence:** Drift automaticky konvertuje camelCase na snake_case (`createdAt` → `created_at`, `companyId` → `company_id`). Používáme `.named()` **pouze** když potřebujeme jiný název než automatická konverze (např. `layoutMap` → `.named('map')` pro zkrácení názvu, nebo `name` → `.named('table_name')` pro vyhnutí se konfliktu s klíčovým slovem).
+
+#### Přehled tabulek
+
+##### Aktivní tabulky (17) — Etapa 1–2
+
+| SQL tabulka | Drift Table | Drift Entity | Model |
+|-------------|-------------|--------------|-------|
+| `bills` | `Bills` | `Bill` | `BillModel` |
+| `categories` | `Categories` | `Category` | `CategoryModel` |
+| `companies` | `Companies` | `Company` | `CompanyModel` |
+| `currencies` | `Currencies` | `Currency` | `CurrencyModel` |
+| `items` | `Items` | `Item` | `ItemModel` |
+| `order_items` | `OrderItems` | `OrderItem` | `OrderItemModel` |
+| `orders` | `Orders` | `Order` | `OrderModel` |
+| `payment_methods` | `PaymentMethods` | `PaymentMethod` | `PaymentMethodModel` |
+| `payments` | `Payments` | `Payment` | `PaymentModel` |
+| `permissions` | `Permissions` | `Permission` | `PermissionModel` |
+| `registers` | `Registers` | `Register` | `RegisterModel` |
+| `role_permissions` | `RolePermissions` | `RolePermission` | `RolePermissionModel` |
+| `roles` | `Roles` | `Role` | `RoleModel` |
+| `tables` | `Tables` | `TableEntity` | `TableModel` |
+| `tax_rates` | `TaxRates` | `TaxRate` | `TaxRateModel` |
+| `user_permissions` | `UserPermissions` | `UserPermission` | `UserPermissionModel` |
+| `users` | `Users` | `User` | `UserModel` |
+
+> **Poznámka:** `TableEntity` používá `@DataClassName` anotaci (konflikt s Drift `Table`).
+
+##### Tabulky rozšíření (19) — přidají se podle potřeby
+
+| SQL tabulka | Drift Table | Kdy |
+|-------------|-------------|-----|
+| `sync_queue` | `SyncQueue` | Sync (Etapa 3) |
+| `register_sessions` | `RegisterSessions` | Provoz (Etapa 3) |
+| `shifts` | `Shifts` | Provoz (Etapa 3) |
+| `cash_movements` | `CashMovements` | Provoz (Etapa 3) |
+| `company_settings` | `CompanySettings` | CRM rozšíření |
+| `customers` | `Customers` | CRM rozšíření |
+| `customer_transactions` | `CustomerTransactions` | CRM rozšíření |
+| `vouchers` | `Vouchers` | CRM rozšíření |
+| `item_modifiers` | `ItemModifiers` | Gastro rozšíření |
+| `order_item_modifiers` | `OrderItemModifiers` | Gastro rozšíření |
+| `sections` | `Sections` | Gastro rozšíření |
+| `reservations` | `Reservations` | Gastro rozšíření |
+| `product_recipes` | `ProductRecipes` | Sklad rozšíření |
+| `manufacturers` | `Manufacturers` | Sklad rozšíření |
+| `suppliers` | `Suppliers` | Sklad rozšíření |
+| `warehouses` | `Warehouses` | Sklad rozšíření |
+| `stock_levels` | `StockLevels` | Sklad rozšíření |
+| `stock_documents` | `StockDocuments` | Sklad rozšíření |
+| `stock_movements` | `StockMovements` | Sklad rozšíření |
+
+#### Sloupce tabulek
+
+Všechny aktivní tabulky obsahují společné sync sloupce (viz [SyncColumnsMixin](#synccolumnsmixin)).
+
+> Typy: **T** = TEXT, **I** = INT, **R** = REAL, **B** = BOOL, **D** = DATETIME
+> FK sloupce jsou označeny → cílová tabulka
+
+##### Prodej (bills, orders, payments)
+
+| Tabulka | Sloupce |
+|---------|---------|
+| **bills** | id (T), company_id →companies, table_id →tables, opened_by_user_id →users, bill_number (T), number_of_guests (I), is_takeaway (B), status (T), currency_id →currencies, subtotal_gross (I), subtotal_net (I), discount_amount (I), tax_total (I), total_gross (I), rounding_amount (I), paid_amount (I), opened_at (D), closed_at (D) |
+| **orders** | id (T), company_id →companies, bill_id →bills, order_number (T), notes (T), status (T), item_count (I), subtotal_gross (I), subtotal_net (I), tax_total (I) |
+| **order_items** | id (T), company_id →companies, order_id →orders, item_id →items, item_name (T), quantity (R), sale_price_att (I), sale_tax_rate_att (I), sale_tax_amount (I), discount (I), notes (T), status (T) |
+| **payments** | id (T), company_id →companies, bill_id →bills, payment_method_id →payment_methods, amount (I), paid_at (D), currency_id →currencies, tip_included_amount (I), notes (T), transaction_id (T), payment_provider (T), card_last4 (T), authorization_code (T) |
+| **payment_methods** | id (T), company_id →companies, name (T), type (T), is_active (B) |
+
+##### Katalog (items, categories, tax)
+
+| Tabulka | Sloupce |
+|---------|---------|
+| **items** | id (T), company_id →companies, category_id →categories, name (T), description (T), item_type (T), sku (T), unit_price (I), sale_tax_rate_id →tax_rates, is_sellable (B), unit (T) |
+| **categories** | id (T), company_id →companies, name (T), is_active (B) |
+| **tax_rates** | id (T), company_id →companies, label (T), type (T), rate (I), is_default (B) |
+| **currencies** | id (T), code (T), symbol (T), name (T), decimal_places (I), symbol_position (T) |
+
+##### Firma, uživatelé, oprávnění
+
+| Tabulka | Sloupce |
+|---------|---------|
+| **companies** | id (T), name (T), status (T), business_id (T), address (T), phone (T), email (T), vat_number (T), country (T), city (T), postal_code (T), timezone (T), business_type (T), default_currency_id →currencies |
+| **users** | id (T), company_id →companies, auth_user_id (T), username (T), full_name (T), email (T), phone (T), pin_hash (T), pin_enabled (B), role_id →roles, is_active (B) |
+| **roles** | id (T), name (T) |
+| **permissions** | id (T), code (T), name (T), description (T), category (T) |
+| **role_permissions** | id (T), role_id →roles, permission_id →permissions |
+| **user_permissions** | id (T), company_id →companies, user_id →users, permission_id →permissions, granted_by →users |
+
+##### Pokladna
+
+| Tabulka | Sloupce |
+|---------|---------|
+| **registers** | id (T), company_id →companies, code (T), is_active (B), type (T), allow_cash (B), allow_card (B), allow_transfer (B), allow_refunds (B) |
+
+##### Stoly
+
+| Tabulka | Sloupce |
+|---------|---------|
+| **tables** | id (T), company_id →companies, table_name (T), capacity (I) |
+
+#### Indexy
+
+- Indexy na `company_id` + `updated_at` pro tabulky s definovanou `@TableIndex` anotací
+- Definovány přes `@TableIndex` anotace v Drift tabulkách (automaticky vytvořeny při `createAll()`)
+
+> **Rozšíření (Etapa 3):** `sync_queue` přidá indexy na `company_id + status`, `entity_type + entity_id`, `created_at` a **unique** `idempotency_key`.
+
+### Schema — Supabase (PostgreSQL) — od Etapy 3
+
+> Celá Supabase schema se implementuje až v Etapě 3 (Milník 3.1 — Sync + multi-device).
+
+#### Server-only tabulky
+
+| Tabulka | Důvod |
+|---------|-------|
+| activity_logs | Audit trail, write-only |
+| company_transactions | Billing, admin-only |
+
+#### Timestamp konvence
+
+| Sloupec | Popis | Kdo nastavuje |
+|---------|-------|---------------|
+| `created_at` | Čas vytvoření na serveru | Trigger (Supabase) |
+| `updated_at` | Čas poslední změny na serveru | Trigger (Supabase) |
+| `client_created_at` | Čas vytvoření na klientovi | Aplikace (Flutter) |
+| `client_updated_at` | Čas změny na klientovi | Aplikace (Flutter) |
+| `deleted_at` | Čas soft delete | Aplikace (Flutter) |
+
+Klientské timestampy se ukládají v **UTC**.
+
+> **Mapování Drift → Supabase:** Drift `createdAt`/`updatedAt` = Supabase `client_created_at`/`client_updated_at`. Serverové `created_at`/`updated_at` nastavuje trigger a v Drift schématu odpovídají SyncColumnsMixin sloupkům `serverCreatedAt`/`serverUpdatedAt`.
+
+#### RLS a přístupová politika
+
+- **Anon přístup** povolen pouze pro `global_currencies` (read-only)
+- `roles`, `permissions`, `role_permissions` jsou **read-only pro authenticated**
+- Sync tabulky vyžadují authenticated + company-scope policy
+
+#### ENUMs
+
+##### Aktivní ENUMs (Etapa 1–2)
+
+| Dart Enum | Model | Hodnoty |
+|-----------|-------|---------|
+| `CompanyStatus` | `CompanyModel` | trial, subscribed, deleted |
+| `ItemType` | `ItemModel` | product, service, counter |
+| `UnitType` | `ItemModel` | ks, g, ml, m |
+| `BillStatus` | `BillModel` | opened, paid, cancelled |
+| `PrepStatus` | `OrderModel`, `OrderItemModel` | created, inPrep, ready, delivered, cancelled, voided |
+| `PaymentType` | `PaymentMethodModel` | cash, card, bank, other |
+| `RoleName` | `RoleModel` | helper, operator, admin |
+| `TaxCalcType` | `TaxRateModel` | regular, noTax, constant, mixed |
+| `HardwareType` | `RegisterModel` | local, mobile, virtual |
+
+##### ENUMs rozšíření (přidají se s příslušnými tabulkami)
+
+| Dart Enum | Kdy | Hodnoty |
+|-----------|-----|---------|
+| `SubscriptionPlan` | Sync (Etapa 3) | free, basic, advance, pro, enterprise, tech |
+| `MovementType` | Provoz (Etapa 3) | sale, refund, expense, cashIn, cashOut |
+| `StockDocumentType` | Sklad rozšíření | transfer, waste, inventory, receipt, correction |
+| `PurchasePriceChange` | Sklad rozšíření | average, override, weightedAvg |
+| `VoucherType` | CRM rozšíření | fixedAmount, percentage, product |
+| `VoucherStatus` | CRM rozšíření | valid, used, cancelled, expired |
+| `ReservationStatus` | Gastro rozšíření | created, confirmed, cancelled, seated |
+| `TableShape` | Gastro rozšíření | rectangle, circle, square |
+
+Hodnoty ENUM jsou uloženy jako `TEXT` v lokální SQLite databázi. Drift `textEnum<T>()` automaticky zajišťuje konverzi mezi enum typy a string hodnotami.
+
+> **Poznámka:** `BillStatus` v Etapě 1–2 neobsahuje `partiallyPaid` a `refunded` — ty se přidají v Etapě 3.2 (pokročilý prodej). `ItemType` v Etapě 1–2 neobsahuje `recipe`, `ingredient`, `variant`, `modifier` — ty se přidají s příslušnými rozšířeními. `PaymentType` neobsahuje `voucher`, `points` — ty se přidají s CRM rozšířením.
+
+---
+
+## Synchronizace (od Etapy 3)
+
+> Celá tato sekce se implementuje až v Etapě 3 (Milník 3.1). Do té doby funguje aplikace offline na jednom zařízení bez sync.
+
+### Outbox Pattern
+
+```mermaid
+graph LR
+    OPS[CREATE / UPDATE / DELETE] --> QUEUE[(SyncQueue - FIFO)]
+    QUEUE --> SUPA((Supabase Remote))
+```
+
+**Výhody:**
+- Garantované pořadí operací
+- Crash resilience (operace se neztratí)
+- Auditovatelnost
+- Retry s postupným backoff (1s, 5s, 10s, 50s)
+
+### Sync Lifecycle
+
+```mermaid
+graph TD
+    START[App Start] --> INIT[appInitializationProvider]
+    INIT --> |crash recovery| AUTH{Authenticated?}
+    AUTH --> |No| LOGIN[ScreenLogin / ScreenOnboarding]
+    AUTH --> |Yes| SYNC[syncLifecycleProvider]
+    LOGIN --> |login| SYNC
+    SYNC --> OUT[OutboxProcessor.start - 5s interval]
+    SYNC --> AUTO[SyncService.startAutoSync - 5min interval]
+    LOGOUT[Logout] --> |stop| SYNC
+    ONLINE[Connectivity restored] --> |restart + forceSyncNow| SYNC
+```
+
+**Klíčové vlastnosti:**
+- Sync se **nespouští** dokud se uživatel nepřihlásí
+- Při logoutu se sync zastaví
+- Crash recovery probíhá při startu aplikace
+
+### Data Flow
+
+**Write (Create/Update/Delete):**
+1. UI volá `repository.create(item)`
+2. Repository uloží do **LocalDataSource** (Drift)
+3. **Atomicky** se vytvoří záznam v `sync_queue` (ve stejné transakci)
+4. Repository vrátí úspěch UI (okamžitě)
+5. **Asynchronně** OutboxProcessor zpracuje frontu
+
+**Read:**
+1. UI volá `repository.getAll()`
+2. Repository čte z **LocalDataSource** (Drift)
+3. **Pozadí**: SyncService pravidelně pulluje změny ze Supabase
+
+### Conflict Resolution — Last Write Wins (LWW)
+
+#### 1. Server-side trigger (`enforce_lww`)
+
+PostgreSQL BEFORE UPDATE trigger porovnává `client_updated_at`. Pokud je příchozí timestamp starší → vyhodí výjimku `LWW_CONFLICT`.
+
+#### 2. Pull-side LWW
+
+Při stahování změn:
+- Entita neexistuje lokálně → vloží se
+- Entita existuje, nemá neodeslané změny → přijme se remote verze
+- Entita má neodeslané změny → porovnají se `updatedAt` timestamps, novější vyhrává
+
+#### 3. Outbox LWW rejection handling
+
+Když server odmítne push (`LWW_CONFLICT`), outbox processor označí entry jako `completed`. Příští pull přinese správnou verzi ze serveru.
+
+### Retry strategie
+
+- **Transient chyby** (síť, timeout, auth): retry s backoffem (1s → 5s → 10s → 50s)
+- **Permanent chyby** (data/constraint/permission): označí se jako `failed` hned
+- FIFO je zachováno
+- Stuck záznamy (processing > 5 min): automatický reset na `pending`
+
+### Globální reference data (read-only)
+
+`roles` (3), `permissions` (14), `role_permissions`, `currencies` jsou **read-only**:
+- V Etapě 1–2: seedovány lokálně při onboardingu, CRUD vrací `Failure`
+- Od Etapy 3: sync pouze **pull** ze Supabase, žádný push/outbox
+
+> **Pozn.:** `payment_methods` nejsou read-only — mají plný CRUD od Etapy 1 (viz [Platební metody](#platební-metody)).
+
+---
+
+## Obchodní model — Účty a objednávky
+
+### Přehled architektury Bill/Order
+
+POS systém odděluje **platební/účetní jednotku** (Bill) od **kuchyňské dispečerské jednotky** (Order):
+
+```mermaid
+graph TD
+    BILL[Bill - Účet] --> ORDER1[Order 1]
+    BILL --> ORDER2[Order 2]
+    BILL --> ORDER3[Order N]
+    ORDER1 --> ITEMS1[Order Items]
+    ORDER2 --> ITEMS2[Order Items]
+    ORDER3 --> ITEMS3[Order Items]
+    BILL --> PAYMENTS[Payments]
+```
+
+| Entita | Český název | Účel | Vztah |
+|--------|-------------|------|-------|
+| **Bill** | Účet | Platební/účetní jednotka, seskupuje objednávky | 1:N s Orders, 1:N s Payments |
+| **Order** | Objednávka | Kuchyňská dispečerská jednotka, seskupuje položky | N:1 s Bill, 1:N s OrderItems |
+| **OrderItem** | Položka | Jednotlivá položka objednávky s cenou a stavem přípravy | N:1 s Order |
+| **Payment** | Platba | Záznam o platbě | N:1 s Bill |
+
+> **Rozšíření:** OrderItemModifier (modifikátory položek) a Voucher (poukazy vázané na bill) se přidají s gastro/CRM rozšířením.
+
+### Slevy (od Etapy 3.2)
+
+Slevy nejsou součástí základního prodeje (Etapa 2). Sloupce `order_items.discount` a `bills.discount_amount` jsou ve schématu připraveny, ale UI a logika se implementují až v Etapě 3.2.
+
+Systém podporuje slevy na **2 úrovních**:
+
+| Úroveň | Sloupec | Popis |
+|---------|---------|-------|
+| **Položka** (OrderItem) | `order_items.discount` | Sleva na konkrétní položku (akce, manuální sleva) |
+| **Účet** (Bill) | `bills.discount_amount` | Sleva na celý účet (VIP, slevový kód) |
+
+**Výpočet:**
+1. `item_subtotal = sale_price_att × quantity - item_discount`
+2. `bill_subtotal = Σ(item_subtotals)` přes všechny objednávky
+3. `bill_total = bill_subtotal - bill_discount + rounding`
+
+> **Pozn.:** Slevy na úrovni objednávky (Order) neexistují. Sleva se aplikuje buď na položku, nebo na celý účet.
+
+### Platební metody
+
+Při vytvoření firmy (onboarding) se seedují **3 výchozí platební metody**:
+
+| Seed název | PaymentType | Popis |
+|------------|-------------|-------|
+| Hotovost | `cash` | Platba v hotovosti |
+| Karta | `card` | Platba kartou |
+| Převod | `bank` | Bankovní převod |
+
+**Pravidla:**
+- Plný **CRUD** je dostupný od Etapy 1 (Settings → Správa platebních metod)
+- Uživatel může přidat novou platební metodu (name + PaymentType)
+- Uživatel může deaktivovat platební metodu (`is_active = false`, soft-delete)
+- Seedované metody lze deaktivovat, ale nelze je smazat z DB
+- Každá platební metoda odkazuje na `PaymentType` enum (`cash`, `card`, `bank`, `other`)
+- Při přidání vlastní metody uživatel vybere typ z PaymentType
+
+> **Pozn.:** Tabulka `payment_methods` je per-company (filtruje se přes `company_id`). Na rozdíl od `roles`/`permissions` není read-only.
+
+### Co vlastní Bill (účet)
+
+Bill je **platební jednotka** — reprezentuje otevřený/uzavřený účet zákazníka:
+
+| Vlastnost | Typ | Popis |
+|-----------|-----|-------|
+| `table_id` | FK | Stůl, u kterého zákazník sedí |
+| `opened_by_user_id` | FK | Obsluha, která účet otevřela |
+| `number_of_guests` | int | Počet hostů |
+| `is_takeaway` | bool | Jídlo s sebou |
+| `status` | BillStatus | Stav účtu (opened, paid, cancelled) |
+| `currency_id` | FK | Měna účtu |
+| `subtotal_gross` | int | Mezisoučet vč. DPH (v centech) |
+| `subtotal_net` | int | Mezisoučet bez DPH (v centech) |
+| `discount_amount` | int | Sleva na úrovni účtu (v centech) |
+| `tax_total` | int | Celková DPH (v centech) |
+| `total_gross` | int | Celková částka k platbě (v centech) |
+| `rounding_amount` | int | Zaokrouhlení (v centech) |
+| `paid_amount` | int | Již zaplacená částka (v centech) |
+| `opened_at` | DateTime | Čas otevření účtu |
+| `closed_at` | DateTime | Čas uzavření účtu (null = otevřený) |
+
+### Co vlastní Order (objednávka)
+
+Order je **kuchyňská dispečerská jednotka** — reprezentuje jednu dávku položek odeslanou do kuchyně:
+
+| Vlastnost | Typ | Popis |
+|-----------|-----|-------|
+| `bill_id` | FK | Účet, ke kterému objednávka patří |
+| `order_number` | string | Číslo objednávky (pro kuchyň) |
+| `notes` | string | Poznámky k objednávce |
+| `status` | PrepStatus | Stav přípravy (created, inPrep, ready, delivered, cancelled, voided) |
+| `item_count` | int | Počet položek |
+| `subtotal_gross` | int | Mezisoučet objednávky vč. DPH (v centech) |
+| `subtotal_net` | int | Mezisoučet objednávky bez DPH (v centech) |
+| `tax_total` | int | DPH objednávky (v centech) |
+
+### Statusy
+
+#### BillStatus (stav účtu)
+
+```mermaid
+stateDiagram-v2
+    [*] --> opened: createBill()
+    opened --> paid: recordPayment() — plná platba
+    opened --> cancelled: cancelBill()
+    paid --> [*]
+    cancelled --> [*]
+```
+
+| Status | Podmínka | closedAt |
+|--------|----------|----------|
+| `opened` | `paid_amount = 0` | null |
+| `paid` | `paid_amount >= total_gross` | set |
+| `cancelled` | Manuální storno (pouze z `opened`) | set |
+
+> **Rozšíření (Etapa 3.2):** `partiallyPaid` (`0 < paid_amount < total_gross`, closedAt = null), `refunded` (vrácení peněz po `paid`, closedAt = set). Přechody: `opened → partiallyPaid → paid`, `paid → refunded`.
+
+#### PrepStatus (stav přípravy objednávky a položky)
+
+```mermaid
+stateDiagram-v2
+    [*] --> created: createOrderWithItems()
+    created --> inPrep: startPreparation()
+    created --> cancelled: cancelOrder()
+    inPrep --> ready: markReady()
+    inPrep --> voided: voidOrder()
+    ready --> delivered: markDelivered()
+    ready --> voided: voidOrder()
+    delivered --> [*]
+    cancelled --> [*]
+    voided --> [*]
+```
+
+| Status | Popis | Lze změnit na |
+|--------|-------|---------------|
+| `created` | Objednávka vytvořena | `inPrep`, `cancelled` |
+| `inPrep` | Kuchyň začala připravovat | `ready`, `voided` |
+| `ready` | Připraveno k výdeji | `delivered`, `voided` |
+| `delivered` | Doručeno zákazníkovi | (finální stav) |
+| `cancelled` | Zrušeno před přípravou | (finální stav) |
+| `voided` | Stornováno po přípravě | (finální stav) |
+
+#### Agregace Order.status z OrderItem.status
+
+Order.status se odvozuje z položek:
+- Všechny items `delivered` → Order je `delivered`
+- Všechny items `ready` nebo `delivered` → Order je `ready`
+- Jakýkoliv item `inPrep` → Order je `inPrep`
+- Všechny items `cancelled` → Order je `cancelled`
+- Všechny items `voided` → Order je `voided`
+- Mix `cancelled` + `voided` → Order je `voided`
+- Jinak → `created`
+
+### Klíčová rozhodnutí
+
+| Aspekt | Rozhodnutí |
+|--------|------------|
+| **Bill číslo** | Per-day reset (každý den od 1) |
+| **Order číslo** | Globální sekvenční |
+| **Prázdný bill** | Povolen (placeholder pro stůl) |
+| **Po zrušení všech items** | Bill zůstane otevřený |
+| **Slevy** | 2 úrovně — bill, item (od Etapy 3.2) |
+| **Zaokrouhlení** | Pouze na bill level |
+| **Payment** | Pouze na bill |
+| **Permissions** | Oddělené `bills.*` |
+
+### Workflow — Quick Sale (rychlý prodej)
+
+Rychlý prodej je zjednodušený flow pro prodej bez stolů (takeaway):
+
+```mermaid
+sequenceDiagram
+    participant UI as ScreenSell
+    participant BR as BillRepository
+    participant OR as OrderRepository
+    participant DB as Local DB
+
+    UI->>BR: createBill(companyId, userId, isTakeaway: true)
+    BR->>DB: INSERT bills
+    DB-->>BR: BillModel
+    BR-->>UI: Success(bill)
+
+    UI->>OR: createOrderWithItems(companyId, billId, items)
+    OR->>DB: INSERT orders
+    OR->>DB: INSERT order_items (batch)
+    DB-->>OR: OrderModel
+    OR-->>UI: Success(order)
+
+    UI->>BR: updateTotals(billId, subtotal, tax)
+    BR->>DB: UPDATE bills
+    DB-->>BR: BillModel
+
+    UI->>BR: recordPayment(billId, amount, paymentMethodId)
+    BR->>DB: INSERT payments
+    BR->>DB: UPDATE bills (paidAmount, status)
+    Note right of BR: status → paid if fully paid
+    DB-->>BR: BillModel
+    BR-->>UI: Success(bill)
+```
+
+### Workflow — Stolový prodej
+
+Pro restaurační provoz s více objednávkami na jeden účet:
+
+```mermaid
+sequenceDiagram
+    participant W as Obsluha
+    participant UI as DialogBillDetail
+    participant BR as BillRepository
+    participant OR as OrderRepository
+    participant K as Kuchyň
+
+    W->>UI: Vytvořit účet pro stůl 5
+    UI->>BR: createBill(tableId: "5", guests: 4)
+    BR-->>UI: Bill (opened)
+
+    W->>UI: Přidat první objednávku
+    UI->>OR: createOrderWithItems(billId, items)
+    OR-->>UI: Order (created)
+    OR-->>K: 🔔 Nová objednávka
+
+    K->>OR: updateStatus(orderId, inPrep)
+    K->>OR: updateStatus(orderId, ready)
+    K-->>W: 🔔 Objednávka připravena
+
+    W->>OR: updateStatus(orderId, delivered)
+
+    W->>UI: Přidat další objednávku (dezert)
+    UI->>OR: createOrderWithItems(billId, items)
+    OR-->>UI: Order (created)
+
+    W->>UI: Zaplatit účet
+    UI->>BR: recordPayment(billId, totalAmount, paymentMethodId)
+    BR-->>UI: Bill (paid, closedAt set)
+```
+
+### Workflow — Vytvoření účtu (DialogNewBill)
+
+Obsluha vytváří účet v jednom ze tří režimů:
+
+```mermaid
+stateDiagram-v2
+    [*] --> DialogNewBill
+    DialogNewBill --> Takeaway: Jídlo s sebou
+    DialogNewBill --> Stůl: Přiřadit ke stolu
+    DialogNewBill --> BezStolu: Bez stolu
+
+    Takeaway --> createBill: is_takeaway=true, table_id=null
+    Stůl --> VýběrStolu: Seznam volných stolů
+    VýběrStolu --> createBill: is_takeaway=false, table_id=selected
+    BezStolu --> createBill: is_takeaway=false, table_id=null
+
+    createBill --> ScreenSell: Takeaway → přímý prodej
+    createBill --> DialogBillDetail: Stůl / Bez stolu → detail účtu
+```
+
+| Pole | Takeaway | Stůl | Bez stolu |
+|------|----------|------|-----------|
+| `is_takeaway` | true | false | false |
+| `table_id` | null | vybraný | null |
+| `number_of_guests` | 0 | vstup | vstup |
+| `currency_id` | default | default | default |
+| `opened_by_user_id` | current | current | current |
+
+**Pravidla:**
+- `is_takeaway=true` + `table_id!=null` → zakázáno
+- Prázdný bill je povolen (placeholder pro stůl)
+- Bill se vytvoří se statusem `opened` a `opened_at = now`
+
+### Workflow — Storno
+
+Systém rozlišuje **2 typy storna** podle fáze přípravy:
+
+| Typ | Kdy | Přechod |
+|-----|-----|---------|
+| **Cancel** | Před začátkem přípravy | `created` → `cancelled` |
+| **Void** | Po začátku přípravy | `inPrep`/`ready` → `voided` |
+
+#### Storno účtu (cancelBill)
+
+```mermaid
+sequenceDiagram
+    participant UI as DialogBillDetail
+    participant BR as BillRepository
+    participant OR as OrderRepository
+    participant DB as Local DB
+
+    UI->>BR: cancelBill(billId)
+    Note right of BR: Verify bill.status == opened
+
+    BR->>OR: getByBill(billId)
+    OR-->>BR: List<OrderModel>
+
+    loop Pro každou order
+        alt status == created
+            BR->>OR: cancelOrder(orderId)
+        else status in [inPrep, ready]
+            BR->>OR: voidOrder(orderId)
+        else status == delivered
+            Note right of BR: Přeskočit (finální stav)
+        end
+    end
+
+    BR->>DB: UPDATE bills (status: cancelled, closed_at: now)
+    BR-->>UI: Success(bill)
+```
+
+**Pravidla pro cancelBill:**
+- Lze stornovat pouze `opened` bill (ne `paid`)
+- Payment záznamy se neruší — zůstávají jako audit trail
+- V E3.2+: zaplacený bill → refund (ne cancel)
+
+#### Storno objednávky (cancelOrder / voidOrder)
+
+- **cancelOrder:** `status` musí být `created` → všechny items → `cancelled`, order → `cancelled`
+- **voidOrder:** `status` musí být `inPrep` nebo `ready` → všechny items → `voided`, order → `voided`
+- **delivered** order nelze stornovat (finální stav)
+- Po stornování se **Bill totals přepočítají** (odečtou se cancelled/voided items)
+
+| Akce | Bill.status | Bill.totals |
+|------|-------------|-------------|
+| Cancel/void jedné order | Zůstává `opened` | Přepočítají se |
+| Cancel/void všech orders | Zůstává `opened` (prázdný bill povolen) | 0 |
+| cancelBill | → `cancelled` | Všechny orders cancel/void dle stavu |
+
+### Repository API
+
+#### BillRepository
+
+- **CRUD:** zděděno z `BaseCompanyScopedRepository` (create, getById, update, delete)
+- **Query:** getByStatus, watchByStatus, getOpenBills, watchOpenBills, getByTable, watchByTable, getRecentByCompany, watchRecentByCompany
+- **Business:** createBill, updateStatus, updateTotals, recordPayment (vytvoří Payment + aktualizuje Bill.paidAmount a status), cancelBill
+
+#### OrderRepository
+
+- **CRUD:** zděděno z `BaseCompanyScopedRepository`
+- **Query:** getByBill, watchByBill, getByStatus, watchByStatus, getRecentByCompany, watchRecentByCompany
+- **Business:** createOrderWithItems, updateStatus, startPreparation, markReady, markDelivered, cancelOrder, voidOrder
+- **Order Items:** getOrderItems, watchOrderItems
+
+#### PaymentRepository
+
+- **Vazba:** Payments jsou vázány na Bill (ne Order)
+- **Query:** getByBill, watchByBill
+- **Pozn.:** Vytváření plateb řídí `BillRepository.recordPayment` — PaymentRepository má pouze query metody
+
+### UI Screens
+
+#### ScreenBills
+
+Hlavní obrazovka zobrazující seznam účtů (Bills):
+
+- **Data source:** `billRepositoryProvider.watchRecentByCompany()`
+- **Filtrování:** podle `BillStatus` (opened, paid, cancelled)
+- **Řazení:** podle času nebo částky
+- **Akce:** navigace na `DialogBillDetail`
+
+#### DialogBillDetail
+
+Detail účtu s možností přidávat objednávky a platit:
+
+- **Data source:** `BillModel` předaný z overview
+- **Zobrazuje:** informace o účtu, stůl, obsluhu, hosty, stav, částky
+- **Akce:** přidání objednávky, platba, storno
+
+#### ScreenSell
+
+Prodej (přidávání položek na účet / objednávku):
+
+- **Workflow:** vytvoří Bill → Order → Payment v jednom flow
+- **Data source:** `billRepositoryProvider`, `orderRepositoryProvider`
+- **Nastavení:** `isTakeaway: true` pro rychlý prodej
+
+---
+
+## Autentizace
+
+### PIN Flow
+
+1. **Hashování:** PINy jsou ukládány jako solený hash (Salted SHA-256 + 128-bit `Random.secure()` salt)
+2. **Ověření:** Hash se porovná s uloženým hashem v lokální DB (`users` tabulka)
+3. **Session:** Úspěšné přihlášení aktivuje `SessionManager`. Session je "volatile" (pouze v RAM)
+
+### Brute-Force ochrana
+
+Progresivní lockout chrání proti hádání PIN kódu:
+
+| Neúspěšný pokus | Lockout |
+|-----------------|---------|
+| 1–3 | Žádný (tolerance překlepů) |
+| 4 | 5 sekund |
+| 5 | 30 sekund |
+| 6 | 5 minut |
+| 7+ | 60 minut (cap) |
+
+**Implementace:**
+- Stav se drží v paměti (`AuthService`) — reset při restartu aplikace
+- `AuthLocked` result obsahuje `remainingSeconds` pro UI countdown
+- Úspěšné přihlášení resetuje počítadlo
+
+**Efektivita:** Bez ochrany lze 4-místný PIN (10 000 kombinací) prolomit za minuty. S lockoutem trvá útok **dny**.
+
+### Cloud Sync Auth (od Etapy 3)
+
+> Celá tato sekce se implementuje až v Etapě 3 (Milník 3.1 — Sync + multi-device).
+
+- Každé zařízení musí mít uložené **admin email + password** (Supabase Auth)
+- Onboarding **vytvoří** admin účet (signUp) a credentials uloží do Secure Storage
+- Pokud credentials chybí, aplikace zobrazí `SyncAuthScreen` a vyžádá admin přihlášení
+- Synchronizace se spustí až po validním Supabase session (RLS vyžaduje auth)
+
+> **Supabase Auth konfigurace:** Funkce **Leaked Password Protection** (HaveIBeenPwned integrace) je v projektu záměrně **vypnutá**. Důvod: POS systém používá jednoduché admin heslo primárně pro sync mezi zařízeními, nikoliv pro přímé přihlašování uživatelů. Uživatelé se přihlašují pomocí PIN kódu.
+
+### Navigace
+
+#### Etapa 1–2 (bez sync)
+
+```mermaid
+graph TD
+    BOOT[Bootstrap - main.dart] --> INIT[AppInitialization]
+    INIT --> |Nové zařízení| ONBOARD[ScreenOnboarding]
+    INIT --> |Firma existuje| PIN[ScreenLogin]
+    INIT --> |Authenticated| BILLS[ScreenBills]
+    ONBOARD --> |Vytvořit firmu| PIN
+    PIN --> BILLS
+```
+
+#### Etapa 3+ (se sync)
+
+```mermaid
+graph TD
+    BOOT[Bootstrap - main.dart] --> INIT[AppInitialization]
+    INIT --> |Nové zařízení| ONBOARD[ScreenOnboarding]
+    INIT --> |Needs Sync Auth?| SYNCAUTH[SyncAuthScreen]
+    INIT --> |Firma existuje| PIN[ScreenLogin]
+    INIT --> |Authenticated| BILLS[ScreenBills]
+    ONBOARD --> |Vytvořit firmu| PIN
+    ONBOARD --> |Připojit se k firmě| CONNECT[ConnectCompanyScreen]
+    CONNECT --> PIN
+    SYNCAUTH --> PIN
+    PIN --> BILLS
+```
+
+#### ScreenOnboarding Flow
+
+Při prvním spuštění aplikace (bez lokálních dat) se zobrazí **ScreenOnboarding**.
+
+##### Etapa 1–2 — Vytvoření firmy (wizard)
+
+Pouze možnost „Vytvořit novou firmu":
+
+**Krok 1 — Firma:**
+- Název firmy (povinné)
+- IČO, adresa, email, telefon (volitelné)
+
+**Krok 2 — Admin uživatel:**
+- Celé jméno, username (povinné)
+- PIN 4–6 číslic + potvrzení (povinné)
+
+**Krok 3 — Automatický seed:**
+
+Po odeslání formuláře se v jedné transakci vytvoří:
+
+| Entita | Počet | Detail |
+|--------|-------|--------|
+| Company | 1 | Dle formuláře |
+| Currency | 1 | CZK (Kč, 2 des. místa) |
+| TaxRate | 3 | Základní 21%, Snížená 12%, Nulová 0% |
+| Permission | 14 | Viz [Katalog oprávnění](#katalog-oprávnění-14) |
+| Role | 3 | helper, operator, admin |
+| RolePermission | 29 | helper: 5, operator: 10, admin: 14 |
+| PaymentMethod | 3 | Viz [Platební metody](#platební-metody) |
+| Register | 1 | Hlavní pokladna (type: `local`) |
+| User | 1 | Admin s PIN hashem |
+| UserPermission | 14 | Všech 14 oprávnění (applyRoleToUser) |
+
+**Pořadí seedu (respektuje FK závislosti):**
+1. Company → Currency (`default_currency_id`)
+2. TaxRates, Permissions, Roles, RolePermissions
+3. PaymentMethods, Register
+4. User → UserPermissions
+
+Po dokončení se zobrazí `ScreenLogin`.
+
+##### Etapa 3+ — Připojit se k firmě
+
+Přibude druhá možnost „Připojit se k firmě" (ConnectCompanyScreen):
+
+1. Uživatel zadá email + heslo (Supabase admin credentials)
+2. Aplikace ověří přihlášení a najde uživatele podle `auth_user_id`
+3. Z uživatelského záznamu získá `company_id`
+4. `InitialSyncService` stáhne data firmy v pořadí FK závislostí:
+   1. Company, Currency, TaxRates
+   2. Permissions, Roles, RolePermissions, PaymentMethods, Registers
+   3. Users, UserPermissions, Categories, Tables
+   4. Items
+   5. Bills, Orders, OrderItems, Payments
+5. Po dokončení se zobrazí `ScreenLogin`
+
+---
+
+## Oprávnění
+
+Systém oprávnění funguje **offline-first**. Veškerá data jsou uložena lokálně v Drift (SQLite). V Etapě 1–2 jsou `roles`, `permissions` a `role_permissions` seedovány lokálně. Od Etapy 3 se synchronizují se Supabase (read-only pull).
+
+### Klíčové principy
+
+- `user_permissions` = **zdroj pravdy** pro autorizaci (ne role)
+- Role = **šablony** pro hromadné přiřazení oprávnění
+- Runtime check = **O(1)** lookup v in-memory `Set<String>`
+- Po přiřazení role se oprávnění zkopírují do `user_permissions` — změna role šablony neovlivní stávající uživatele
+
+### Architektura oprávnění
+
+```
+┌─────────────────────────────────────────────────┐
+│  permissions (katalog)                          │
+│  14 položek, read-only, seed lokálně (sync od E3)│
+└─────────────────────┬───────────────────────────┘
+                      │
+┌─────────────────────▼───────────────────────────┐
+│  role_permissions (šablony)                     │
+│  Vazba role → permission, read-only             │
+│  admin: 14, operator: 10, helper: 5             │
+└─────────────────────┬───────────────────────────┘
+                      │  "Přiřadit roli" = zkopírovat permission_ids
+                      ▼
+┌─────────────────────────────────────────────────┐
+│  user_permissions (zdroj pravdy)                │
+│  Vazba user → permission, full CRUD + outbox    │
+└─────────────────────┬───────────────────────────┘
+                      │
+┌─────────────────────▼───────────────────────────┐
+│  userPermissionCodesProvider                    │
+│  Reaktivní Set<String> kódů přihlášeného user   │
+└─────────────────────┬───────────────────────────┘
+                      │
+┌─────────────────────▼───────────────────────────┐
+│  hasPermissionProvider('orders.void')           │
+│  → true / false (O(1) contains)                 │
+└─────────────────────────────────────────────────┘
+```
+
+### Katalog oprávnění (14)
+
+| Kategorie | Kód | Popis |
+|-----------|-----|-------|
+| **bills** | `bills.create` | Vytvořit účet |
+| | `bills.view` | Zobrazit účty |
+| | `bills.void` | Stornovat účet |
+| | `bills.discount` | Aplikovat slevu na účet |
+| **orders** | `orders.create` | Vytvořit objednávku |
+| | `orders.view` | Zobrazit objednávky |
+| | `orders.void` | Stornovat objednávku |
+| | `orders.discount` | Aplikovat slevu na položku |
+| **products** | `products.view` | Zobrazit produkty |
+| | `products.manage` | Spravovat produkty |
+| **tables** | `tables.manage` | Spravovat stoly |
+| **users** | `users.view` | Zobrazit uživatele |
+| | `users.manage` | Spravovat uživatele |
+| **settings** | `settings.manage` | Upravovat nastavení |
+
+> **Pozn.:** `bills.discount` a `orders.discount` jsou seedované od E1, ale UI pro slevy se implementuje až v Etapě 3.2.
+
+> **Rozšíření:** Nové permissions se přidají s příslušnými funkcemi: `bills.split` (gastro), `register.open_close`, `register.cash_movement` (provoz), `inventory.view`, `inventory.manage` (sklad), `customers.view`, `customers.manage` (CRM), `reports.view` (reporty).
+
+### Role (šablony)
+
+| Oprávnění | helper | operator | admin |
+|-----------|:------:|:--------:|:-----:|
+| `bills.create` | ✓ | ✓ | ✓ |
+| `bills.view` | ✓ | ✓ | ✓ |
+| `bills.void` | | ✓ | ✓ |
+| `bills.discount` | | ✓ | ✓ |
+| `orders.create` | ✓ | ✓ | ✓ |
+| `orders.view` | ✓ | ✓ | ✓ |
+| `orders.void` | | ✓ | ✓ |
+| `orders.discount` | | ✓ | ✓ |
+| `products.view` | ✓ | ✓ | ✓ |
+| `products.manage` | | | ✓ |
+| `tables.manage` | | ✓ | ✓ |
+| `users.view` | | | ✓ |
+| `users.manage` | | | ✓ |
+| `settings.manage` | | | ✓ |
+| **Celkem** | **5** | **10** | **14** |
+
+### Přiřazení role uživateli
+
+Metoda `applyRoleToUser`:
+1. Soft-delete všech stávajících `user_permissions` pro daného uživatele a firmu
+2. Vytvoření nových `user_permissions` pro každé oprávnění z role
+3. Od Etapy 3: každá operace se zařadí do `sync_queue` (Outbox Pattern)
+
+---
+
+## UI/UX Design
+
+POS aplikace je **pracovní nástroj**, ne marketingový produkt. Design optimalizuje pro minimalizaci chyb obsluhy a podporu svalové paměti.
+
+### Základní principy
+
+- Uživatel **nečte**, reaguje vizuálně
+- Barva = **význam / role**, ne dekorace
+- Touch-first (hover se nepoužívá)
+- Konzistentní napříč obrazovkami
+
+### Typy akcí
+
+| Typ | Význam | Barva | Příklady |
+|-----|--------|-------|----------|
+| **Primární pracovní** | Flow pokračuje, účet zůstává otevřený | Modrá | Objednat, Vytvořit účet |
+| **Primární finální** | Flow končí, účet se uzavírá | Zelená | Zaplatit, Uzavřít |
+| **Sekundární** | Doplňkové, podpůrné | Neutrální (outlined) | Filtrovat, Hledat |
+| **Systémové** | Práce s identitou | Šedá | Přepnout obsluhu |
+| **Kritické** | Destruktivní | Červená (outlined) | Zrušit, Storno, Odhlásit |
+
+### Barevný systém
+
+| Role | Barva | Význam |
+|------|-------|--------|
+| Primary | Modrá | Pokračuji v práci |
+| Success | Zelená | Uzavírám / dokončuji |
+| Neutral | Šedá | Navigace, doplněk |
+| Error | Červená | Ruším / končím |
+
+> **Jemné rozlišení:** Pokud jsou dvě primární akce blízko sebe (např. "Vytvořit účet" × "Rychlý účet"), použije se **stejná barva, ale jiná tonalita** (plná vs tónovaná).
+
+### Specifikace tlačítek
+
+| Vlastnost | Hodnota |
+|-----------|---------|
+| Výška | 52 px |
+| Min. šířka | 160 px |
+| Padding | 16 px horizontálně |
+| Border radius | 8 px |
+| Font | Inter / Roboto, 15 px, weight 600 |
+| Pressed stav | Ztmavení + posun 1px / scale 0.98, 80-120ms |
+
+### Příklady podle obrazovek
+
+**Hlavní obrazovka (přehled účtů):**
+- Vytvořit účet → primární pracovní (modrá plná)
+- Rychlý účet → primární pracovní (modrá tónovaná)
+- Přehled prodeje → sekundární
+- Přepnout obsluhu → systémová
+- Odhlásit → kritická
+
+**Detail účtu:**
+- Objednat → primární pracovní (modrá)
+- Zaplatit → primární finální (zelená)
+- Storno → kritická
+
+### Zakázáno
+
+- Používat hover efekty
+- Přidávat nové barvy bez role
+- Více než 2 primární tlačítka stejné barvy vedle sebe
+- Měnit význam barvy mezi obrazovkami
+
+---
+
+## Možná rozšíření v budoucnu
+
+Funkce, které nejsou součástí aktuálního plánu. Mohou se přidat kdykoli později bez zásadního dopadu na existující architekturu.
+
+### Sklad a zásobování
+
+- Skladové hospodářství — tabulky `warehouses`, `stock_levels`, `stock_documents`, `stock_movements`
+- Receptury a ingredience — tabulka `product_recipes`, item_type: recipe, ingredient
+- Automatické odečítání skladu při prodeji
+- Inventury a inventurní předlohy (tisk)
+- Dodavatelé a výrobci — tabulky `suppliers`, `manufacturers`, FK na items
+
+### CRM a zákazníci
+
+- Evidence zákazníků — tabulka `customers`, FK na bills
+- Věrnostní program — body, credit, tabulka `customer_transactions`
+- Vouchery — tabulka `vouchers`, vazba na bill (purchased_in_bill_id, used_in_bill_id)
+- Zákaznický tier systém
+- Nastavení firmy — tabulka `company_settings` (loyalty_enabled, credit_enabled, tier_system_enabled, vouchers_enabled, table_reservations_enabled)
+
+### Gastro rozšíření
+
+- Sekce prostorů — tabulka `sections`, vizuální mapa stolů (pos_x, pos_y, shape)
+- Rezervace — tabulka `reservations`, propojení se stolem a zákazníkem
+- Split bill — rozdělení účtu na úrovni items
+- Modifikátory položek — tabulky `item_modifiers`, `order_item_modifiers` (extra sýr, bez cibule apod.)
+
+### Pokročilé produkty
+
+- Varianty produktů — parent_id ve items, item_type: variant
+- Hierarchické kategorie — parent_id v categories (stromová struktura)
+- Alternativní SKU (alt_sku)
+
+### Pokladna a směny
+
+- Register sessions — tabulka `register_sessions`, otevírání/zavírání pokladny
+- Směny — tabulka `shifts`, evidence pracovní doby
+- Hotovostní pohyby — tabulka `cash_movements`, vklady/výběry/výdaje
+- Detailní konfigurace registru — grid_columns, grid_rows, auto_print, auto_logout
+
+### Další
+
+- Multi-currency operace (přepočty, více měn na jednom účtu)
+- KDS (Kitchen Display System) — samostatná kuchyňská obrazovka
+- Offline split bill
+- Tisk inventurních předloh
+
+---
+
+## Development Guide
+
+### Build příkazy
+
+```bash
+# Spuštění v Debug módu
+flutter run
+
+# Build pro produkci
+flutter build macos --release    # macOS
+flutter build linux --release    # Linux
+flutter build windows --release  # Windows
+
+# Code generation (po změně Drift tabulek nebo Freezed modelů)
+dart run build_runner build --delete-conflicting-outputs
+
+# Instalace závislostí
+flutter pub get
+```
+
+### Konfigurace prostředí (od Etapy 3)
+
+> V Etapě 1–2 aplikace nepotřebuje žádnou konfiguraci prostředí — běží čistě lokálně.
+
+Od Etapy 3 se konfigurace řeší přes `--dart-define`:
+
+| Klíč | Popis |
+|------|-------|
+| `SUPABASE_URL` | URL Supabase projektu |
+| `SUPABASE_ANON_KEY` | Anon klíč pro SDK inicializaci |
+| `ENV` | Prostředí: `development` (default), `staging`, `production` |
+
+### Logování
+
+Používej `lib/core/logging/app_logger.dart`. `print()` se nepoužívá.
+
+Pravidla:
+1. `AppLogger.debug` a `AppLogger.info` se v release buildu nevypisují
+2. `AppLogger.warn` a `AppLogger.error` se logují vždy
+3. Nevypisovat citlivá data (tokens, payloady, credentials)
+4. Logovací zprávy jsou pouze v angličtině
+
+### Coding Standards
+
+#### Obecná pravidla
+
+- **KISS** — Keep It Simple, Stupid
+- **DRY** — Don't Repeat Yourself
+- **Separation of Concerns** — UI ≠ Logic ≠ Data
+
+#### Jazyková pravidla
+
+| Oblast | Jazyk | Příklad |
+|--------|-------|---------|
+| **Identifikátory** (proměnné, funkce, třídy) | Angličtina | `getUserById`, `AuthService`, `isActive` |
+| **Komentáře a docstringy** | Angličtina | `/// Authentication service for PIN-based login` |
+| **TODO/FIXME/NOTE** | Angličtina | `// TODO: Implement order completion` |
+| **Log zprávy** (`AppLogger`) | Angličtina | `AppLogger.info('Sync completed')` |
+| **Technické chybové zprávy** | Angličtina | `AuthFailure('Invalid PIN format')` |
+| **UI texty** | **Lokalizované** | `context.l10n.companyNameRequired` |
+| **ARB klíče** | Angličtina (camelCase) | `companyNameRequired`, `syncStatusSyncing` |
+
+**Lokalizace (i18n):**
+- UI texty se **NIKDY** nepíší přímo do kódu (`'Přihlásit'`)
+- Vždy použij `context.l10n.xxx` z vygenerovaných lokalizací
+- Template ARB soubor: `lib/l10n/app_cs.arb` (čeština je primární jazyk UI)
+- Generování: `flutter gen-l10n`
+- Extension pro snadný přístup: `import '../../../core/l10n/app_localizations_ext.dart'`
+
+#### Naming Conventions
+
+| Typ | Styl | Příklad |
+|-----|------|---------|
+| Třídy | `PascalCase` | `ProductProvider` |
+| Soubory | `snake_case.dart` | `product_provider.dart` |
+| Proměnné | `camelCase` | `totalAmount` |
+| Konstanty | `UPPER_SNAKE_CASE` | `MAX_RETRY_COUNT` |
+
+### Dependency Injection
+
+Projekt využívá **Riverpod** jako Service Locator a DI kontejner.
+
+**Klíčové Globální Providery:**
+- `appDatabaseProvider` — Single instance Drift databáze
+- `defaultCurrencyProvider` — Výchozí měna firmy
+- `hasPermissionProvider` — O(1) kontrola oprávnění
+- `supabaseProvider` — Supabase klient (od Etapy 3)
+- `syncServiceProvider` — Řízení synchronizace (od Etapy 3)
+- `outboxProcessorProvider` — Zpracování offline fronty (od Etapy 3)
+
+### Git Workflow
+
+1. **Branch:** `feature/nazev-feature` nebo `fix/popis-chyby`
+2. **Commit:** Conventional Commits (`feat: ...`, `fix: ...`, `docs: ...`)
+3. **PR:** Code review vyžadováno před merge do main
+
+### Definition of Done
+
+Pro každou feature:
+
+- [ ] Funkcionalita odpovídá zadání
+- [ ] Funguje v offline režimu
+- [ ] Kód neobsahuje hardcoded stringy (lokalizace přes `context.l10n`)
+- [ ] Žádné chyby v konzoli / linteru
+
+### Flutter SDK Channel
+
+Preferujeme **stable** channel. Master channel použijeme pouze pokud to vyžadují závislosti.
