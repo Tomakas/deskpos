@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -104,7 +103,21 @@ class _ScreenLoginState extends ConsumerState<ScreenLogin> {
     );
   }
 
+  void _numpadTap(String digit) {
+    if (_pinCtrl.text.length >= 6 || _lockSeconds != null) return;
+    _pinCtrl.text += digit;
+    _onPinChanged();
+  }
+
+  void _numpadBackspace() {
+    if (_pinCtrl.text.isEmpty) return;
+    _pinCtrl.text = _pinCtrl.text.substring(0, _pinCtrl.text.length - 1);
+    setState(() => _error = null);
+  }
+
   Widget _buildPinEntry(dynamic l) {
+    final pinLength = _pinCtrl.text.length;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -112,39 +125,99 @@ class _ScreenLoginState extends ConsumerState<ScreenLogin> {
           _selectedUser!.fullName,
           style: Theme.of(context).textTheme.headlineMedium,
         ),
-        const SizedBox(height: 32),
-        TextField(
-          controller: _pinCtrl,
-          decoration: InputDecoration(
-            labelText: l.loginPinLabel,
-            errorText: _lockSeconds != null
-                ? l.loginLockedOut(_lockSeconds!)
-                : _error,
-          ),
-          obscureText: true,
-          keyboardType: TextInputType.number,
-          inputFormatters: [
-            FilteringTextInputFormatter.digitsOnly,
-            LengthLimitingTextInputFormatter(6),
-          ],
-          enabled: _lockSeconds == null,
-          onChanged: (_) => _onPinChanged(),
-          autofocus: true,
-        ),
         const SizedBox(height: 24),
+        // PIN dots
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(6, (i) => Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Icon(
+              i < pinLength ? Icons.circle : Icons.circle_outlined,
+              size: 16,
+              color: i < pinLength
+                  ? Theme.of(context).colorScheme.primary
+                  : Theme.of(context).colorScheme.outline,
+            ),
+          )),
+        ),
+        const SizedBox(height: 8),
+        // Error / lockout text
+        if (_lockSeconds != null)
+          Text(
+            l.loginLockedOut(_lockSeconds!),
+            style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 13),
+          )
+        else if (_error != null)
+          Text(
+            _error!,
+            style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 13),
+          ),
+        const SizedBox(height: 16),
+        // Numpad
         SizedBox(
-          width: double.infinity,
-          height: 52,
-          child: OutlinedButton(
-            onPressed: () => setState(() {
-              _selectedUser = null;
-              _error = null;
-              _pinCtrl.clear();
-            }),
-            child: Text(l.wizardBack),
+          width: 280,
+          child: Column(
+            children: [
+              _numpadRow(['1', '2', '3']),
+              const SizedBox(height: 8),
+              _numpadRow(['4', '5', '6']),
+              const SizedBox(height: 8),
+              _numpadRow(['7', '8', '9']),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  _numpadButton(
+                    child: const Icon(Icons.arrow_back),
+                    onTap: () => setState(() {
+                      _selectedUser = null;
+                      _error = null;
+                      _pinCtrl.clear();
+                    }),
+                  ),
+                  const SizedBox(width: 8),
+                  _numpadButton(child: const Text('0', style: TextStyle(fontSize: 24)), onTap: () => _numpadTap('0')),
+                  const SizedBox(width: 8),
+                  _numpadButton(
+                    child: const Icon(Icons.backspace_outlined),
+                    onTap: _numpadBackspace,
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       ],
+    );
+  }
+
+  Widget _numpadRow(List<String> digits) {
+    return Row(
+      children: digits.asMap().entries.map((e) {
+        final widget = _numpadButton(
+          child: Text(e.value, style: const TextStyle(fontSize: 24)),
+          onTap: () => _numpadTap(e.value),
+        );
+        if (e.key < digits.length - 1) {
+          return Expanded(child: Padding(padding: const EdgeInsets.only(right: 8), child: widget));
+        }
+        return Expanded(child: widget);
+      }).toList(),
+    );
+  }
+
+  Widget _numpadButton({required Widget child, required VoidCallback onTap}) {
+    return Expanded(
+      child: SizedBox(
+        height: 64,
+        child: OutlinedButton(
+          onPressed: _lockSeconds != null ? null : onTap,
+          style: OutlinedButton.styleFrom(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            padding: EdgeInsets.zero,
+          ),
+          child: child,
+        ),
+      ),
     );
   }
 

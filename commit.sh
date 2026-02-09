@@ -174,3 +174,10 @@ echo ""
 
 git add -A
 git commit -m "$COMMIT_MSG"
+
+echo ""
+printf "Push to origin? [Y/n] "
+read -r push_choice
+if [ -z "$push_choice" ] || [[ "$push_choice" =~ ^[Yy]$ ]]; then
+  git push
+fi
