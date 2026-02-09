@@ -56,6 +56,18 @@ class TaxRateRepository {
     }
   }
 
+  Future<void> clearDefault(String companyId, {String? exceptId}) async {
+    final query = _db.update(_db.taxRates)
+      ..where((t) => t.companyId.equals(companyId) & t.isDefault.equals(true) & t.deletedAt.isNull());
+    if (exceptId != null) {
+      query.where((t) => t.id.equals(exceptId).not());
+    }
+    await query.write(TaxRatesCompanion(
+      isDefault: const Value(false),
+      updatedAt: Value(DateTime.now()),
+    ));
+  }
+
   Stream<List<TaxRateModel>> watchAll(String companyId) {
     return (_db.select(_db.taxRates)
           ..where((t) => t.companyId.equals(companyId) & t.deletedAt.isNull())

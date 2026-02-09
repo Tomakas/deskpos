@@ -105,14 +105,19 @@ class _ScreenLoginState extends ConsumerState<ScreenLogin> {
 
   void _numpadTap(String digit) {
     if (_pinCtrl.text.length >= 6 || _lockSeconds != null) return;
-    _pinCtrl.text += digit;
+    setState(() {
+      _pinCtrl.text += digit;
+      _error = null;
+    });
     _onPinChanged();
   }
 
   void _numpadBackspace() {
     if (_pinCtrl.text.isEmpty) return;
-    _pinCtrl.text = _pinCtrl.text.substring(0, _pinCtrl.text.length - 1);
-    setState(() => _error = null);
+    setState(() {
+      _pinCtrl.text = _pinCtrl.text.substring(0, _pinCtrl.text.length - 1);
+      _error = null;
+    });
   }
 
   Widget _buildPinEntry(dynamic l) {
@@ -126,19 +131,17 @@ class _ScreenLoginState extends ConsumerState<ScreenLogin> {
           style: Theme.of(context).textTheme.headlineMedium,
         ),
         const SizedBox(height: 24),
-        // PIN dots
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(6, (i) => Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Icon(
-              i < pinLength ? Icons.circle : Icons.circle_outlined,
-              size: 16,
-              color: i < pinLength
-                  ? Theme.of(context).colorScheme.primary
-                  : Theme.of(context).colorScheme.outline,
+        // PIN stars
+        SizedBox(
+          height: 32,
+          child: Text(
+            '*' * pinLength,
+            style: TextStyle(
+              fontSize: 28,
+              letterSpacing: 12,
+              color: Theme.of(context).colorScheme.primary,
             ),
-          )),
+          ),
         ),
         const SizedBox(height: 8),
         // Error / lockout text

@@ -253,9 +253,10 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
 
     switch (result) {
       case Success():
-        // Invalidate init provider to re-check state
         ref.invalidate(appInitProvider);
-        context.go('/login');
+        // Wait for provider to re-resolve before navigating
+        await ref.read(appInitProvider.future);
+        if (mounted) context.go('/login');
       case Failure(message: final msg):
         AppLogger.error('Onboarding failed: $msg');
         setState(() => _isSubmitting = false);

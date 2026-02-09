@@ -155,6 +155,7 @@ class TaxRatesTab extends ConsumerWidget {
     final rateInBps = ((int.tryParse(rateCtrl.text) ?? 0) * 100);
 
     if (existing != null) {
+      if (isDefault) await repo.clearDefault(company.id, exceptId: existing.id);
       await repo.update(existing.copyWith(
         label: labelCtrl.text.trim(),
         type: type,
@@ -162,8 +163,10 @@ class TaxRatesTab extends ConsumerWidget {
         isDefault: isDefault,
       ));
     } else {
+      final id = const Uuid().v7();
+      if (isDefault) await repo.clearDefault(company.id, exceptId: id);
       await repo.create(TaxRateModel(
-        id: const Uuid().v7(),
+        id: id,
         companyId: company.id,
         label: labelCtrl.text.trim(),
         type: type,

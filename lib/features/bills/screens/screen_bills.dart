@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/auth/auth_service.dart';
+import '../../../core/data/models/section_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/permission_providers.dart';
+import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 
 class ScreenBills extends ConsumerWidget {
@@ -70,28 +72,56 @@ class ScreenBills extends ConsumerWidget {
   }
 }
 
-class _SectionTabBar extends StatelessWidget {
+class _SectionTabBar extends ConsumerStatefulWidget {
   const _SectionTabBar({required this.l});
   final dynamic l;
 
   @override
+  ConsumerState<_SectionTabBar> createState() => _SectionTabBarState();
+}
+
+class _SectionTabBarState extends ConsumerState<_SectionTabBar> {
+  String? _selectedSectionId;
+
+  @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 48,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      alignment: Alignment.centerLeft,
-      decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor)),
-      ),
-      child: Row(
-        children: [
-          FilterChip(
-            label: Text(l.billsSectionAll),
-            selected: true,
-            onSelected: (_) {},
+    final company = ref.watch(currentCompanyProvider);
+    if (company == null) return const SizedBox.shrink();
+
+    return StreamBuilder<List<SectionModel>>(
+      stream: ref.watch(sectionRepositoryProvider).watchAll(company.id),
+      builder: (context, snap) {
+        final sections = snap.data ?? [];
+
+        return Container(
+          height: 48,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          alignment: Alignment.centerLeft,
+          decoration: BoxDecoration(
+            border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor)),
           ),
-        ],
-      ),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                FilterChip(
+                  label: Text(widget.l.billsSectionAll),
+                  selected: _selectedSectionId == null,
+                  onSelected: (_) => setState(() => _selectedSectionId = null),
+                ),
+                for (final section in sections) ...[
+                  const SizedBox(width: 8),
+                  FilterChip(
+                    label: Text(section.name),
+                    selected: _selectedSectionId == section.id,
+                    onSelected: (_) => setState(() => _selectedSectionId = section.id),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -145,12 +175,22 @@ class _HeaderCell extends StatelessWidget {
   }
 }
 
-class _StatusFilterBar extends StatelessWidget {
+class _StatusFilterBar extends StatefulWidget {
   const _StatusFilterBar({required this.l});
   final dynamic l;
 
   @override
+  State<_StatusFilterBar> createState() => _StatusFilterBarState();
+}
+
+class _StatusFilterBarState extends State<_StatusFilterBar> {
+  int _selected = 0;
+
+  @override
   Widget build(BuildContext context) {
+    final l = widget.l;
+    final labels = [l.billsFilterOpened, l.billsFilterPaid, l.billsFilterCancelled];
+
     return Container(
       height: 48,
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -159,23 +199,14 @@ class _StatusFilterBar extends StatelessWidget {
       ),
       child: Row(
         children: [
-          FilterChip(
-            label: Text(l.billsFilterOpened),
-            selected: true,
-            onSelected: (_) {},
-          ),
-          const SizedBox(width: 8),
-          FilterChip(
-            label: Text(l.billsFilterPaid),
-            selected: false,
-            onSelected: (_) {},
-          ),
-          const SizedBox(width: 8),
-          FilterChip(
-            label: Text(l.billsFilterCancelled),
-            selected: false,
-            onSelected: (_) {},
-          ),
+          for (var i = 0; i < labels.length; i++) ...[
+            if (i > 0) const SizedBox(width: 8),
+            FilterChip(
+              label: Text(labels[i]),
+              selected: _selected == i,
+              onSelected: (_) => setState(() => _selected = i),
+            ),
+          ],
         ],
       ),
     );

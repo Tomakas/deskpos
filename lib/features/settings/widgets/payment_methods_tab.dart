@@ -93,7 +93,7 @@ class PaymentMethodsTab extends ConsumerWidget {
     final l = context.l10n;
     final nameCtrl = TextEditingController(text: existing?.name ?? '');
     var type = existing?.type ?? PaymentType.cash;
-    var isActive = existing?.isActive ?? true;
+    var isActive = existing?.isActive ?? false;
 
     final result = await showDialog<bool>(
       context: context,
