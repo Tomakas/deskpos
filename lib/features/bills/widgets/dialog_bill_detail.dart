@@ -30,8 +30,8 @@ class DialogBillDetail extends ConsumerWidget {
         if (bill == null) {
           return const Dialog(
             child: SizedBox(
-              width: 600,
-              height: 400,
+              width: 700,
+              height: 500,
               child: Center(child: CircularProgressIndicator()),
             ),
           );
@@ -39,13 +39,26 @@ class DialogBillDetail extends ConsumerWidget {
 
         return Dialog(
           child: SizedBox(
-            width: 700,
-            height: 500,
+            width: 750,
+            height: 520,
             child: Column(
               children: [
                 _buildHeader(context, ref, bill, l),
                 const Divider(height: 1),
-                Expanded(child: _buildOrderList(context, ref, bill, l)),
+                Expanded(
+                  child: Row(
+                    children: [
+                      // Left icon strip
+                      _buildLeftIcons(context, ref, bill, l),
+                      const VerticalDivider(width: 1),
+                      // Center: order history
+                      Expanded(child: _buildOrderList(context, ref, bill, l)),
+                      const VerticalDivider(width: 1),
+                      // Right action buttons
+                      _buildRightButtons(context, l),
+                    ],
+                  ),
+                ),
                 const Divider(height: 1),
                 _buildFooter(context, ref, bill, l),
               ],
@@ -57,44 +70,68 @@ class DialogBillDetail extends ConsumerWidget {
   }
 
   Widget _buildHeader(BuildContext context, WidgetRef ref, BillModel bill, dynamic l) {
-    final timeFormat = DateFormat('HH:mm', 'cs');
+    final dateFormat = DateFormat('d.M.yyyy  HH:mm', 'cs');
 
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Bill title (table name or takeaway)
           Expanded(
+            flex: 2,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                _buildBillTitle(context, ref, bill, l),
+                const SizedBox(height: 2),
                 Text(
-                  l.billDetailBillNumber(bill.billNumber),
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 4),
-                _buildBillLocation(context, ref, bill, l),
-                Text(
-                  l.billDetailCreated(timeFormat.format(bill.openedAt)),
-                  style: Theme.of(context).textTheme.bodySmall,
+                  l.billDetailTotalSpent('${bill.totalGross ~/ 100},- Kč'),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ],
             ),
           ),
-          Text(
-            '${bill.totalGross ~/ 100} Kč',
-            style: Theme.of(context).textTheme.headlineSmall,
+          // Dates
+          Expanded(
+            flex: 3,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  l.billDetailCreatedAt(dateFormat.format(bill.openedAt)),
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+                const SizedBox(height: 2),
+                StreamBuilder<List<OrderModel>>(
+                  stream: ref.watch(orderRepositoryProvider).watchByBill(bill.id),
+                  builder: (context, snap) {
+                    final orders = snap.data ?? [];
+                    if (orders.isEmpty) return const SizedBox.shrink();
+                    final lastOrder = orders.reduce((a, b) => a.createdAt.isAfter(b.createdAt) ? a : b);
+                    return Text(
+                      l.billDetailLastOrderAt(dateFormat.format(lastOrder.createdAt)),
+                      style: Theme.of(context).textTheme.bodySmall,
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildBillLocation(BuildContext context, WidgetRef ref, BillModel bill, dynamic l) {
+  Widget _buildBillTitle(BuildContext context, WidgetRef ref, BillModel bill, dynamic l) {
     if (bill.isTakeaway) {
-      return Text(l.billDetailTakeaway, style: Theme.of(context).textTheme.bodyMedium);
+      return Text(l.billsQuickBill, style: Theme.of(context).textTheme.titleLarge);
     }
     if (bill.tableId == null) {
-      return Text(l.billDetailNoTable, style: Theme.of(context).textTheme.bodyMedium);
+      return Text(
+        '${l.billDetailBillNumber(bill.billNumber)} - ${l.billDetailNoTable}',
+        style: Theme.of(context).textTheme.titleLarge,
+      );
     }
     final company = ref.watch(currentCompanyProvider);
     if (company == null) return const SizedBox.shrink();
@@ -105,33 +142,129 @@ class DialogBillDetail extends ConsumerWidget {
         final tables = snap.data ?? [];
         final table = tables.where((t) => t.id == bill.tableId).firstOrNull;
         return Text(
-          table != null ? l.billDetailTable(table.name) : '',
-          style: Theme.of(context).textTheme.bodyMedium,
+          table?.name ?? bill.billNumber,
+          style: Theme.of(context).textTheme.titleLarge,
         );
       },
     );
   }
 
-  Widget _buildOrderList(BuildContext context, WidgetRef ref, BillModel bill, dynamic l) {
-    return StreamBuilder<List<OrderModel>>(
-      stream: ref.watch(orderRepositoryProvider).watchByBill(bill.id),
-      builder: (context, snap) {
-        final orders = snap.data ?? [];
-        if (orders.isEmpty) {
-          return Center(
-            child: Text(l.billDetailNoOrders,
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    )),
-          );
-        }
+  Widget _buildLeftIcons(BuildContext context, WidgetRef ref, BillModel bill, dynamic l) {
+    final isClosed = bill.status != BillStatus.opened;
 
-        return ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: orders.length,
-          itemBuilder: (context, index) => _OrderCard(order: orders[index]),
-        );
-      },
+    return SizedBox(
+      width: 52,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Up arrow (disabled)
+          IconButton(
+            icon: const Icon(Icons.arrow_upward),
+            color: Colors.blue,
+            onPressed: null,
+            tooltip: null,
+          ),
+          // Down arrow (disabled)
+          IconButton(
+            icon: const Icon(Icons.arrow_downward),
+            color: Colors.blue,
+            onPressed: null,
+            tooltip: null,
+          ),
+          const SizedBox(height: 8),
+          // Cancel (X)
+          IconButton(
+            icon: const Icon(Icons.close, size: 28),
+            color: Colors.red,
+            onPressed: isClosed ? null : () => _cancelBill(context, ref, bill, l),
+          ),
+          const SizedBox(height: 8),
+          // Add order (+)
+          IconButton(
+            icon: const Icon(Icons.add, size: 28),
+            color: Colors.teal,
+            onPressed: isClosed
+                ? null
+                : () {
+                    Navigator.pop(context);
+                    context.push('/sell/${bill.id}');
+                  },
+          ),
+          const SizedBox(height: 8),
+          // Menu (disabled)
+          IconButton(
+            icon: const Icon(Icons.more_vert),
+            onPressed: null,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOrderList(BuildContext context, WidgetRef ref, BillModel bill, dynamic l) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Header
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          child: Text(
+            l.billDetailOrderHistory,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
+        ),
+        // Order items
+        Expanded(
+          child: StreamBuilder<List<OrderModel>>(
+            stream: ref.watch(orderRepositoryProvider).watchByBill(bill.id),
+            builder: (context, snap) {
+              final orders = snap.data ?? [];
+              if (orders.isEmpty) {
+                return Center(
+                  child: Text(
+                    l.billDetailNoOrders,
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                  ),
+                );
+              }
+
+              return ListView.builder(
+                padding: const EdgeInsets.all(8),
+                itemCount: orders.length,
+                itemBuilder: (context, index) => _OrderSection(order: orders[index]),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRightButtons(BuildContext context, dynamic l) {
+    return SizedBox(
+      width: 100,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+        child: Column(
+          children: [
+            _SideButton(label: l.billDetailCustomer, onPressed: null),
+            const SizedBox(height: 4),
+            _SideButton(label: l.billDetailMove, onPressed: null),
+            const SizedBox(height: 4),
+            _SideButton(label: l.billDetailMerge, onPressed: null),
+            const SizedBox(height: 4),
+            _SideButton(label: l.billDetailSplit, onPressed: null),
+            const SizedBox(height: 4),
+            _SideButton(label: l.billDetailSummary, onPressed: null),
+            const Spacer(),
+            _SideButton(label: l.billDetailPrint, onPressed: null, color: Colors.blue),
+          ],
+        ),
+      ),
     );
   }
 
@@ -139,44 +272,41 @@ class DialogBillDetail extends ConsumerWidget {
     final isClosed = bill.status != BillStatus.opened;
 
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Cancel
-          if (!isClosed) ...[
-            SizedBox(
-              height: 44,
-              child: OutlinedButton(
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Theme.of(context).colorScheme.error,
-                  side: BorderSide(color: Theme.of(context).colorScheme.error),
-                ),
-                onPressed: () => _cancelBill(context, ref, bill, l),
-                child: Text(l.billDetailCancel),
+          // Close
+          SizedBox(
+            height: 44,
+            width: 130,
+            child: FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: isClosed ? null : Colors.red.shade400,
               ),
+              onPressed: () => Navigator.pop(context),
+              child: Text(l.actionClose),
             ),
-            const Spacer(),
-          ],
-          if (isClosed) const Spacer(),
-          // Pay
+          ),
           if (!isClosed && bill.totalGross > 0) ...[
+            const SizedBox(width: 12),
+            // Pay
             SizedBox(
               height: 44,
+              width: 130,
               child: FilledButton(
-                style: FilledButton.styleFrom(
-                  backgroundColor: Colors.green,
-                ),
+                style: FilledButton.styleFrom(backgroundColor: Colors.green),
                 onPressed: () => _payBill(context, ref, bill),
                 child: Text(l.billDetailPay),
               ),
             ),
-            const SizedBox(width: 8),
           ],
-          // Order
           if (!isClosed) ...[
+            const SizedBox(width: 12),
+            // Order
             SizedBox(
               height: 44,
+              width: 130,
               child: FilledButton(
                 onPressed: () {
                   Navigator.pop(context);
@@ -186,14 +316,6 @@ class DialogBillDetail extends ConsumerWidget {
               ),
             ),
           ],
-          if (isClosed)
-            SizedBox(
-              height: 44,
-              child: FilledButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(l.actionClose),
-              ),
-            ),
         ],
       ),
     );
@@ -216,93 +338,126 @@ class DialogBillDetail extends ConsumerWidget {
     final result = await repo.cancelBill(bill.id);
     if (result is Success) {
       await repo.updateTotals(bill.id);
+      if (context.mounted) Navigator.pop(context);
     }
   }
 
   Future<void> _payBill(BuildContext context, WidgetRef ref, BillModel bill) async {
-    await showDialog(
+    final paid = await showDialog<bool>(
       context: context,
       builder: (_) => DialogPayment(bill: bill),
+    );
+    if (paid == true && context.mounted) {
+      Navigator.pop(context);
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Side button for right panel
+// ---------------------------------------------------------------------------
+class _SideButton extends StatelessWidget {
+  const _SideButton({required this.label, required this.onPressed, this.color});
+  final String label;
+  final VoidCallback? onPressed;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: 40,
+      child: FilledButton.tonal(
+        onPressed: onPressed,
+        style: color != null
+            ? FilledButton.styleFrom(backgroundColor: color!.withValues(alpha: 0.2))
+            : null,
+        child: Text(label, style: const TextStyle(fontSize: 11), textAlign: TextAlign.center),
+      ),
     );
   }
 }
 
-class _OrderCard extends ConsumerWidget {
-  const _OrderCard({required this.order});
+// ---------------------------------------------------------------------------
+// Order section (shows items inline, with status)
+// ---------------------------------------------------------------------------
+class _OrderSection extends ConsumerWidget {
+  const _OrderSection({required this.order});
   final OrderModel order;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
     final timeFormat = DateFormat('HH:mm', 'cs');
-    final statusColor = _statusColor(order.status, context);
+    final statusColor = _statusColor(order.status);
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    return StreamBuilder<List<OrderItemModel>>(
+      stream: ref.watch(orderRepositoryProvider).watchOrderItems(order.id),
+      builder: (context, snap) {
+        final items = snap.data ?? [];
+        return Column(
           children: [
-            Row(
-              children: [
-                Text(
-                  '${order.orderNumber}  ${timeFormat.format(order.createdAt)}',
-                  style: Theme.of(context).textTheme.titleSmall,
-                ),
-                const Spacer(),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: statusColor.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    _statusLabel(order.status, l),
-                    style: TextStyle(color: statusColor, fontSize: 12),
+            for (final item in items)
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(color: Theme.of(context).dividerColor.withValues(alpha: 0.2)),
                   ),
                 ),
-                if (order.status == PrepStatus.created ||
-                    order.status == PrepStatus.inPrep ||
-                    order.status == PrepStatus.ready) ...[
-                  const SizedBox(width: 4),
-                  PopupMenuButton<PrepStatus>(
-                    iconSize: 20,
-                    padding: EdgeInsets.zero,
-                    onSelected: (status) => _changeStatus(ref, status),
-                    itemBuilder: (_) => _availableTransitions(order.status, l),
-                  ),
-                ],
-              ],
-            ),
-            const SizedBox(height: 8),
-            StreamBuilder<List<OrderItemModel>>(
-              stream: ref.watch(orderRepositoryProvider).watchOrderItems(order.id),
-              builder: (context, snap) {
-                final items = snap.data ?? [];
-                return Column(
-                  children: items.map((item) => Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 2),
-                    child: Row(
-                      children: [
-                        SizedBox(
-                          width: 40,
-                          child: Text(
-                            '${item.quantity.toStringAsFixed(item.quantity == item.quantity.roundToDouble() ? 0 : 1)}×',
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                        ),
-                        Expanded(child: Text(item.itemName)),
-                        Text('${(item.salePriceAtt * item.quantity).round() ~/ 100} Kč'),
-                      ],
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 44,
+                      child: Text(
+                        timeFormat.format(order.createdAt),
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
                     ),
-                  )).toList(),
-                );
-              },
-            ),
+                    SizedBox(
+                      width: 36,
+                      child: Text(
+                        '${item.quantity.toStringAsFixed(item.quantity == item.quantity.roundToDouble() ? 0 : 1)} ks',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ),
+                    Expanded(child: Text(item.itemName, style: Theme.of(context).textTheme.bodyMedium)),
+                    SizedBox(
+                      width: 70,
+                      child: Text(
+                        '${(item.salePriceAtt * item.quantity).round() ~/ 100} Kč',
+                        textAlign: TextAlign.right,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    // Status indicator
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: statusColor,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    // Status change popup
+                    if (order.status == PrepStatus.created ||
+                        order.status == PrepStatus.inPrep ||
+                        order.status == PrepStatus.ready)
+                      PopupMenuButton<PrepStatus>(
+                        iconSize: 16,
+                        padding: EdgeInsets.zero,
+                        onSelected: (status) => _changeStatus(ref, status),
+                        itemBuilder: (_) => _availableTransitions(order.status, l),
+                      )
+                    else
+                      const SizedBox(width: 32),
+                  ],
+                ),
+              ),
           ],
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -346,7 +501,7 @@ class _OrderCard extends ConsumerWidget {
     }
   }
 
-  Color _statusColor(PrepStatus status, BuildContext context) {
+  Color _statusColor(PrepStatus status) {
     return switch (status) {
       PrepStatus.created => Colors.blue,
       PrepStatus.inPrep => Colors.orange,
@@ -354,17 +509,6 @@ class _OrderCard extends ConsumerWidget {
       PrepStatus.delivered => Colors.grey,
       PrepStatus.cancelled => Colors.red,
       PrepStatus.voided => Colors.red,
-    };
-  }
-
-  String _statusLabel(PrepStatus status, dynamic l) {
-    return switch (status) {
-      PrepStatus.created => l.prepStatusCreated,
-      PrepStatus.inPrep => l.prepStatusInPrep,
-      PrepStatus.ready => l.prepStatusReady,
-      PrepStatus.delivered => l.prepStatusDelivered,
-      PrepStatus.cancelled => l.prepStatusCancelled,
-      PrepStatus.voided => l.prepStatusVoided,
     };
   }
 }

@@ -694,28 +694,10 @@ abstract class AppLocalizations {
   /// **'Nový účet'**
   String get newBillTitle;
 
-  /// No description provided for @newBillTakeaway.
-  ///
-  /// In cs, this message translates to:
-  /// **'Jídlo s sebou'**
-  String get newBillTakeaway;
-
-  /// No description provided for @newBillTable.
-  ///
-  /// In cs, this message translates to:
-  /// **'Přiřadit ke stolu'**
-  String get newBillTable;
-
-  /// No description provided for @newBillNoTable.
-  ///
-  /// In cs, this message translates to:
-  /// **'Bez stolu'**
-  String get newBillNoTable;
-
   /// No description provided for @newBillSelectTable.
   ///
   /// In cs, this message translates to:
-  /// **'Vyberte stůl'**
+  /// **'Stůl (volitelný)'**
   String get newBillSelectTable;
 
   /// No description provided for @newBillGuests.
@@ -1065,6 +1047,198 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Směna aktivní'**
   String get registerSessionActive;
+
+  /// No description provided for @billsSorting.
+  ///
+  /// In cs, this message translates to:
+  /// **'Řazení'**
+  String get billsSorting;
+
+  /// No description provided for @billsCashJournal.
+  ///
+  /// In cs, this message translates to:
+  /// **'Pokladní deník'**
+  String get billsCashJournal;
+
+  /// No description provided for @billsSalesOverview.
+  ///
+  /// In cs, this message translates to:
+  /// **'Přehled prodeje'**
+  String get billsSalesOverview;
+
+  /// No description provided for @billsInventory.
+  ///
+  /// In cs, this message translates to:
+  /// **'Sklad'**
+  String get billsInventory;
+
+  /// No description provided for @billsMore.
+  ///
+  /// In cs, this message translates to:
+  /// **'Další'**
+  String get billsMore;
+
+  /// No description provided for @billsTableMap.
+  ///
+  /// In cs, this message translates to:
+  /// **'Mapa'**
+  String get billsTableMap;
+
+  /// No description provided for @infoPanelRegisterTotal.
+  ///
+  /// In cs, this message translates to:
+  /// **'Pokladna'**
+  String get infoPanelRegisterTotal;
+
+  /// No description provided for @sellCartSummary.
+  ///
+  /// In cs, this message translates to:
+  /// **'Souhrn položek'**
+  String get sellCartSummary;
+
+  /// No description provided for @sellScan.
+  ///
+  /// In cs, this message translates to:
+  /// **'Skenovat'**
+  String get sellScan;
+
+  /// No description provided for @sellCustomer.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zákazník'**
+  String get sellCustomer;
+
+  /// No description provided for @sellNote.
+  ///
+  /// In cs, this message translates to:
+  /// **'Poznámka'**
+  String get sellNote;
+
+  /// No description provided for @sellActions.
+  ///
+  /// In cs, this message translates to:
+  /// **'Akce'**
+  String get sellActions;
+
+  /// No description provided for @billDetailCustomer.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zákazník'**
+  String get billDetailCustomer;
+
+  /// No description provided for @billDetailMove.
+  ///
+  /// In cs, this message translates to:
+  /// **'Přesunout'**
+  String get billDetailMove;
+
+  /// No description provided for @billDetailMerge.
+  ///
+  /// In cs, this message translates to:
+  /// **'Sloučit'**
+  String get billDetailMerge;
+
+  /// No description provided for @billDetailSplit.
+  ///
+  /// In cs, this message translates to:
+  /// **'Rozdělit'**
+  String get billDetailSplit;
+
+  /// No description provided for @billDetailSummary.
+  ///
+  /// In cs, this message translates to:
+  /// **'Sumář'**
+  String get billDetailSummary;
+
+  /// No description provided for @billDetailPrint.
+  ///
+  /// In cs, this message translates to:
+  /// **'Tisk'**
+  String get billDetailPrint;
+
+  /// No description provided for @billDetailOrderHistory.
+  ///
+  /// In cs, this message translates to:
+  /// **'Historie objednávek'**
+  String get billDetailOrderHistory;
+
+  /// No description provided for @billDetailTotalSpent.
+  ///
+  /// In cs, this message translates to:
+  /// **'Celková útrata: {amount}'**
+  String billDetailTotalSpent(String amount);
+
+  /// No description provided for @billDetailCreatedAt.
+  ///
+  /// In cs, this message translates to:
+  /// **'Účet vytvořen: {date}'**
+  String billDetailCreatedAt(String date);
+
+  /// No description provided for @billDetailLastOrderAt.
+  ///
+  /// In cs, this message translates to:
+  /// **'Poslední objednávka: {date}'**
+  String billDetailLastOrderAt(String date);
+
+  /// No description provided for @itemTypeProduct.
+  ///
+  /// In cs, this message translates to:
+  /// **'Produkt'**
+  String get itemTypeProduct;
+
+  /// No description provided for @itemTypeService.
+  ///
+  /// In cs, this message translates to:
+  /// **'Služba'**
+  String get itemTypeService;
+
+  /// No description provided for @itemTypeCounter.
+  ///
+  /// In cs, this message translates to:
+  /// **'Počítadlo'**
+  String get itemTypeCounter;
+
+  /// No description provided for @moreReports.
+  ///
+  /// In cs, this message translates to:
+  /// **'Reporty'**
+  String get moreReports;
+
+  /// No description provided for @moreStatistics.
+  ///
+  /// In cs, this message translates to:
+  /// **'Statistiky'**
+  String get moreStatistics;
+
+  /// No description provided for @moreReservations.
+  ///
+  /// In cs, this message translates to:
+  /// **'Rezervace'**
+  String get moreReservations;
+
+  /// No description provided for @moreSettings.
+  ///
+  /// In cs, this message translates to:
+  /// **'Nastavení'**
+  String get moreSettings;
+
+  /// No description provided for @moreDev.
+  ///
+  /// In cs, this message translates to:
+  /// **'Dev'**
+  String get moreDev;
+
+  /// No description provided for @settingsTabSecurity.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zabezpečení'**
+  String get settingsTabSecurity;
+
+  /// No description provided for @settingsTabSales.
+  ///
+  /// In cs, this message translates to:
+  /// **'Prodej'**
+  String get settingsTabSales;
 }
 
 class _AppLocalizationsDelegate

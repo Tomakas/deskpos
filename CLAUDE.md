@@ -251,7 +251,54 @@ Instead, Claude MUST provide a ready-to-copy commit message:
 
 ---
 
-## 16. Database Guidelines (Drift)
+## 16. UI Patterns
+
+### Responsive Chip/Button Bars (Default)
+
+Horizontal rows of buttons, filters, or tabs MUST fill the full available width by default.
+
+**Pattern:**
+
+```dart
+Row(
+  children: [
+    for (final item in items) ...[
+      if (notFirst) const SizedBox(width: 8),
+      Expanded(
+        child: SizedBox(
+          height: 40,
+          child: FilterChip(
+            label: SizedBox(
+              width: double.infinity,
+              child: Text(item.label, textAlign: TextAlign.center),
+            ),
+            selected: item.isSelected,
+            onSelected: ...,
+          ),
+        ),
+      ),
+    ],
+  ],
+)
+```
+
+**Rules:**
+
+- Each chip/button wrapped in `Expanded` so they share width equally.
+- Label uses `SizedBox(width: double.infinity)` for full-width text.
+- Text is centered (`textAlign: TextAlign.center`).
+- When text overflows, it clips naturally (no ellipsis) — the chip's rounded edge creates a soft fade effect.
+- Fixed `SizedBox(height: ...)` ensures uniform height.
+- Applies to: toolbar buttons, filter bars, section tabs, grid tiles, category buttons.
+
+### Touch-First
+
+- PIN entry uses numpad (not TextField).
+- Buttons must be large enough for touch interaction (minimum 40px height).
+
+---
+
+## 17. Database Guidelines (Drift)
 
 ### Development Mode
 

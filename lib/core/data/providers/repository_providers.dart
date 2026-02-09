@@ -7,6 +7,7 @@ import '../repositories/item_repository.dart';
 import '../repositories/layout_item_repository.dart';
 import '../repositories/order_repository.dart';
 import '../repositories/payment_method_repository.dart';
+import '../repositories/payment_repository.dart';
 import '../repositories/permission_repository.dart';
 import '../repositories/register_repository.dart';
 import '../repositories/register_session_repository.dart';
@@ -71,6 +72,10 @@ final registerRepositoryProvider = Provider<RegisterRepository>((ref) {
 
 final registerSessionRepositoryProvider = Provider<RegisterSessionRepository>((ref) {
   return RegisterSessionRepository(ref.watch(appDatabaseProvider));
+});
+
+final paymentRepositoryProvider = Provider<PaymentRepository>((ref) {
+  return PaymentRepository(ref.watch(appDatabaseProvider));
 });
 
 final layoutItemRepositoryProvider = Provider<LayoutItemRepository>((ref) {

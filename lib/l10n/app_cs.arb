@@ -129,10 +129,7 @@
   "noPermission": "Nemáte oprávnění pro tuto akci",
 
   "newBillTitle": "Nový účet",
-  "newBillTakeaway": "Jídlo s sebou",
-  "newBillTable": "Přiřadit ke stolu",
-  "newBillNoTable": "Bez stolu",
-  "newBillSelectTable": "Vyberte stůl",
+  "newBillSelectTable": "Stůl (volitelný)",
   "newBillGuests": "Počet hostů",
   "newBillCreate": "Vytvořit",
 
@@ -216,5 +213,52 @@
   "registerSessionNoSession": "Žádná aktivní směna",
   "registerSessionConfirmClose": "Opravdu chcete uzavřít směnu?",
   "registerSessionRequired": "Pro prodej musíte nejdříve zahájit směnu",
-  "registerSessionActive": "Směna aktivní"
+  "registerSessionActive": "Směna aktivní",
+
+  "billsSorting": "Řazení",
+  "billsCashJournal": "Pokladní deník",
+  "billsSalesOverview": "Přehled prodeje",
+  "billsInventory": "Sklad",
+  "billsMore": "Další",
+  "billsTableMap": "Mapa",
+  "infoPanelRegisterTotal": "Pokladna",
+
+  "sellCartSummary": "Souhrn položek",
+  "sellScan": "Skenovat",
+  "sellCustomer": "Zákazník",
+  "sellNote": "Poznámka",
+  "sellActions": "Akce",
+
+  "billDetailCustomer": "Zákazník",
+  "billDetailMove": "Přesunout",
+  "billDetailMerge": "Sloučit",
+  "billDetailSplit": "Rozdělit",
+  "billDetailSummary": "Sumář",
+  "billDetailPrint": "Tisk",
+  "billDetailOrderHistory": "Historie objednávek",
+  "billDetailTotalSpent": "Celková útrata: {amount}",
+  "@billDetailTotalSpent": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
+  "billDetailCreatedAt": "Účet vytvořen: {date}",
+  "@billDetailCreatedAt": {
+    "placeholders": { "date": { "type": "String" } }
+  },
+  "billDetailLastOrderAt": "Poslední objednávka: {date}",
+  "@billDetailLastOrderAt": {
+    "placeholders": { "date": { "type": "String" } }
+  },
+
+  "itemTypeProduct": "Produkt",
+  "itemTypeService": "Služba",
+  "itemTypeCounter": "Počítadlo",
+
+  "moreReports": "Reporty",
+  "moreStatistics": "Statistiky",
+  "moreReservations": "Rezervace",
+  "moreSettings": "Nastavení",
+  "moreDev": "Dev",
+
+  "settingsTabSecurity": "Zabezpečení",
+  "settingsTabSales": "Prodej"
 }

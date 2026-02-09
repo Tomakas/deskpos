@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/data/enums/layout_item_type.dart';
+import '../../../core/data/models/bill_model.dart';
 import '../../../core/data/models/category_model.dart';
 import '../../../core/data/models/item_model.dart';
 import '../../../core/data/models/layout_item_model.dart';
@@ -12,10 +13,13 @@ import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/repositories/order_repository.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../bills/widgets/dialog_payment.dart';
 
 class ScreenSell extends ConsumerStatefulWidget {
-  const ScreenSell({super.key, required this.billId});
-  final String billId;
+  const ScreenSell({super.key, this.billId});
+  final String? billId;
+
+  bool get isQuickSale => billId == null;
 
   @override
   ConsumerState<ScreenSell> createState() => _ScreenSellState();
@@ -42,13 +46,64 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
                 width: 280,
                 child: _buildCart(context, l),
               ),
-              // Right panel - Grid (80%)
-              Expanded(child: _buildGrid(context, ref, reg, l)),
+              // Right panel - Toolbar + Grid (80%)
+              Expanded(
+                child: Column(
+                  children: [
+                    _buildToolbar(context, l),
+                    const Divider(height: 1),
+                    Expanded(child: _buildGrid(context, ref, reg, l)),
+                  ],
+                ),
+              ),
             ],
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (_, _) => const Center(child: CircularProgressIndicator()),
+      ),
+    );
+  }
+
+  Widget _buildToolbar(BuildContext context, dynamic l) {
+    return Container(
+      height: 52,
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Row(
+        children: [
+          _toolbarChip(l.sellSearch, selected: true, onSelected: () => setState(() => _categoryFilterId = null)),
+          const SizedBox(width: 8),
+          _toolbarChip(l.sellScan, onSelected: null),
+          const SizedBox(width: 8),
+          _toolbarChip(l.sellCustomer, onSelected: null),
+          const SizedBox(width: 8),
+          _toolbarChip(l.sellNote, onSelected: null),
+          const SizedBox(width: 8),
+          _toolbarChip(l.sellActions, onSelected: null),
+          const SizedBox(width: 8),
+          if (_categoryFilterId != null && !_editMode) ...[
+            _toolbarChip(l.sellBackToCategories, selected: true, onSelected: () => setState(() => _categoryFilterId = null)),
+            const SizedBox(width: 8),
+          ],
+          _toolbarChip(_editMode ? l.sellExitEdit : l.sellEditGrid, selected: _editMode, onSelected: () => setState(() => _editMode = !_editMode)),
+        ],
+      ),
+    );
+  }
+
+  Widget _toolbarChip(String label, {bool selected = false, VoidCallback? onSelected}) {
+    return Expanded(
+      child: SizedBox(
+        height: 40,
+        child: FilterChip(
+          showCheckmark: false,
+          label: SizedBox(
+            width: double.infinity,
+            child: Text(label, textAlign: TextAlign.center),
+          ),
+          selected: selected,
+          onSelected: onSelected != null ? (_) => onSelected() : null,
+        ),
       ),
     );
   }
@@ -72,7 +127,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
             height: 48,
             padding: const EdgeInsets.symmetric(horizontal: 16),
             alignment: Alignment.centerLeft,
-            child: Text(l.sellCart, style: theme.textTheme.titleMedium),
+            child: Text(l.sellCartSummary, style: theme.textTheme.titleMedium),
           ),
           const Divider(height: 1),
           // Items
@@ -147,8 +202,12 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
                     height: 44,
                     child: FilledButton(
                       style: FilledButton.styleFrom(backgroundColor: Colors.green),
-                      onPressed: _cart.isEmpty ? null : () => _submitOrder(context, ref),
-                      child: Text(l.sellSubmitOrder),
+                      onPressed: _cart.isEmpty
+                          ? null
+                          : widget.isQuickSale
+                              ? () => _submitQuickSale(context, ref)
+                              : () => _submitOrder(context, ref),
+                      child: Text(widget.isQuickSale ? l.paymentConfirm : l.sellSubmitOrder),
                     ),
                   ),
                 ),
@@ -164,43 +223,14 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     final company = ref.watch(currentCompanyProvider);
     if (company == null) return const SizedBox.shrink();
 
-    return Column(
-      children: [
-        // Toolbar
-        Container(
-          height: 48,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            children: [
-              if (_categoryFilterId != null)
-                TextButton.icon(
-                  icon: const Icon(Icons.arrow_back, size: 18),
-                  label: Text(l.sellBackToCategories),
-                  onPressed: () => setState(() => _categoryFilterId = null),
-                ),
-              const Spacer(),
-              TextButton.icon(
-                icon: Icon(_editMode ? Icons.check : Icons.edit, size: 18),
-                label: Text(_editMode ? l.sellExitEdit : l.sellEditGrid),
-                onPressed: () => setState(() => _editMode = !_editMode),
-              ),
-            ],
-          ),
-        ),
-        const Divider(height: 1),
-        // Grid
-        Expanded(
-          child: StreamBuilder<List<LayoutItemModel>>(
-            stream: ref.watch(layoutItemRepositoryProvider).watchByRegister(register.id),
-            builder: (context, snap) {
-              final layoutItems = snap.data ?? [];
-              return _buildGridContent(
-                context, ref, register, layoutItems, company.id, l,
-              );
-            },
-          ),
-        ),
-      ],
+    return StreamBuilder<List<LayoutItemModel>>(
+      stream: ref.watch(layoutItemRepositoryProvider).watchByRegister(register.id),
+      builder: (context, snap) {
+        final layoutItems = snap.data ?? [];
+        return _buildGridContent(
+          context, ref, register, layoutItems, company.id, l,
+        );
+      },
     );
   }
 
@@ -357,20 +387,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     });
   }
 
-  Future<void> _submitOrder(BuildContext context, WidgetRef ref) async {
-    final company = ref.read(currentCompanyProvider);
-    final user = ref.read(activeUserProvider);
-    final session = ref.read(activeRegisterSessionProvider).value;
-    if (company == null || user == null || session == null) return;
-
-    // Increment order counter
-    final sessionRepo = ref.read(registerSessionRepositoryProvider);
-    final counterResult = await sessionRepo.incrementOrderCounter(session.id);
-    if (counterResult is! Success<int>) return;
-    final counter = counterResult.value;
-    final orderNumber = 'O-${counter.toString().padLeft(4, '0')}';
-
-    // Build order items with resolved tax rates
+  Future<List<OrderItemInput>> _buildOrderItems(WidgetRef ref) async {
     final taxRateRepo = ref.read(taxRateRepositoryProvider);
     final orderItems = <OrderItemInput>[];
     for (final cartItem in _cart) {
@@ -381,7 +398,6 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
         final taxRate = await taxRateRepo.getById(cartItem.saleTaxRateId!);
         if (taxRate != null) {
           taxRateBps = taxRate.rate;
-          // ATT price: tax_amount = unit_price * tax_rate / (10000 + tax_rate)
           taxAmount = (cartItem.unitPrice * taxRateBps / (10000 + taxRateBps)).round();
         }
       }
@@ -395,19 +411,91 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
         saleTaxAmount: taxAmount,
       ));
     }
+    return orderItems;
+  }
+
+  Future<String> _nextOrderNumber(WidgetRef ref) async {
+    final session = ref.read(activeRegisterSessionProvider).value;
+    if (session == null) return 'O-0000';
+    final sessionRepo = ref.read(registerSessionRepositoryProvider);
+    final counterResult = await sessionRepo.incrementOrderCounter(session.id);
+    if (counterResult is! Success<int>) return 'O-0000';
+    return 'O-${counterResult.value.toString().padLeft(4, '0')}';
+  }
+
+  Future<void> _submitOrder(BuildContext context, WidgetRef ref) async {
+    final company = ref.read(currentCompanyProvider);
+    final user = ref.read(activeUserProvider);
+    if (company == null || user == null) return;
+
+    final orderNumber = await _nextOrderNumber(ref);
+    final orderItems = await _buildOrderItems(ref);
 
     final orderRepo = ref.read(orderRepositoryProvider);
     final result = await orderRepo.createOrderWithItems(
       companyId: company.id,
-      billId: widget.billId,
+      billId: widget.billId!,
       userId: user.id,
       orderNumber: orderNumber,
       items: orderItems,
     );
 
     if (result is Success) {
-      await ref.read(billRepositoryProvider).updateTotals(widget.billId);
+      await ref.read(billRepositoryProvider).updateTotals(widget.billId!);
       if (mounted) context.pop();
+    }
+  }
+
+  Future<void> _submitQuickSale(BuildContext context, WidgetRef ref) async {
+    final company = ref.read(currentCompanyProvider);
+    final user = ref.read(activeUserProvider);
+    if (company == null || user == null) return;
+
+    final billRepo = ref.read(billRepositoryProvider);
+    final billNumber = await billRepo.generateBillNumber(company.id);
+
+    // Create bill
+    final billResult = await billRepo.createBill(
+      companyId: company.id,
+      userId: user.id,
+      currencyId: company.defaultCurrencyId,
+      billNumber: billNumber,
+      isTakeaway: true,
+    );
+    if (billResult is! Success<BillModel>) return;
+    final bill = billResult.value;
+
+    // Create order
+    final orderNumber = await _nextOrderNumber(ref);
+    final orderItems = await _buildOrderItems(ref);
+    final orderRepo = ref.read(orderRepositoryProvider);
+    await orderRepo.createOrderWithItems(
+      companyId: company.id,
+      billId: bill.id,
+      userId: user.id,
+      orderNumber: orderNumber,
+      items: orderItems,
+    );
+    await billRepo.updateTotals(bill.id);
+
+    if (!mounted) return;
+
+    // Fetch updated bill with totals
+    final updatedBillResult = await billRepo.getById(bill.id);
+    if (updatedBillResult is! Success<BillModel>) return;
+
+    // Show payment dialog
+    final paid = await showDialog<bool>(
+      context: context,
+      builder: (_) => DialogPayment(bill: updatedBillResult.value),
+    );
+
+    if (paid == true && mounted) {
+      context.pop();
+    } else {
+      // User cancelled payment — cancel the bill
+      await billRepo.cancelBill(bill.id);
+      await billRepo.updateTotals(bill.id);
     }
   }
 }
@@ -440,18 +528,29 @@ class _ItemButton extends StatelessWidget {
       child: Material(
         color: color,
         borderRadius: BorderRadius.circular(8),
+        clipBehavior: Clip.hardEdge,
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(8),
           child: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(4),
-              child: Text(
-                label,
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+            child: ShaderMask(
+              shaderCallback: (rect) {
+                return const LinearGradient(
+                  colors: [Colors.transparent, Colors.black, Colors.black, Colors.transparent],
+                  stops: [0.0, 0.1, 0.9, 1.0],
+                ).createShader(rect);
+              },
+              blendMode: BlendMode.dstIn,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  softWrap: false,
+                  overflow: TextOverflow.clip,
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                ),
               ),
             ),
           ),
@@ -702,3 +801,4 @@ class _GridEditDialog extends StatelessWidget {
     }
   }
 }
+

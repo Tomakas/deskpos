@@ -7,7 +7,6 @@ import '../enums/bill_status.dart';
 import '../enums/prep_status.dart';
 import '../mappers/entity_mappers.dart';
 import '../models/bill_model.dart';
-import '../models/payment_model.dart';
 import '../result.dart';
 
 class BillRepository {
@@ -278,14 +277,6 @@ class BillRepository {
       status: const Value(PrepStatus.voided),
       updatedAt: Value(now),
     ));
-  }
-
-  Stream<List<PaymentModel>> watchPayments(String billId) {
-    return (_db.select(_db.payments)
-          ..where((t) => t.billId.equals(billId) & t.deletedAt.isNull())
-          ..orderBy([(t) => OrderingTerm.asc(t.paidAt)]))
-        .watch()
-        .map((rows) => rows.map(paymentFromEntity).toList());
   }
 
   Future<String> generateBillNumber(String companyId) async {

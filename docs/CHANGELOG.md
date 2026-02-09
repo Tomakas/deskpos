@@ -30,3 +30,49 @@
 
 - Added `/sell/:billId` route to app_router.dart
 
+## 2026-02-09 (evening)
+
+### Fixes — Phase 2 review
+
+- **Host column**: Removed billNumber display, column is empty in E1-2 (CRM feature)
+- **Empty state**: Removed placeholder text from bills table
+- **Default filters**: Changed default to "Otevřené" only (was all three)
+- **Last order column**: Shows relative time (< 1min, Xmin, Xh Ym) via reactive stream
+- **Logout**: Fixed auto-promote — `logoutActive()` now sets `_activeUser = null`, router redirects to `/login`
+- **Create bill flow**: DialogNewBill → creates bill → opens DialogBillDetail (not ScreenSell)
+
+### Features
+
+- **Quick sale workflow**: New `/sell` route (no billId) for quick sale. Creates bill+order at payment time, cancels bill if payment cancelled. `isTakeaway` repurposed from "takeaway" to "quick sale" — displays as "Rychlý účet"
+- **DialogNewBill**: Removed takeaway option, only "Stůl" and "Bez stolu" remain
+- **ShaderMask fade**: Grid item buttons use ShaderMask with LinearGradient for smooth text fade at edges
+
+### Repositories
+
+- Added: PaymentRepository (extracted from BillRepository) — `watchByBill`, `getByBill`
+- Added: `watchLastOrderTimesByCompany` to OrderRepository
+- Added: paymentRepositoryProvider
+
+### Documentation
+
+- Updated PROJECT.md: routing, quick sale workflow, DialogNewBill (no takeaway), logout behavior, ScreenBills UI details (FilterChip colors, default filters, host column, relative time), ScreenSell dual mode, ShaderMask fade, Order.status aggregation note for E3, feature folder structure corrected
+
+## 2026-02-09 (E3 prep review)
+
+### Architecture decisions
+
+- Sync logic will live directly in repositories (no DataSource abstraction layer)
+- `BaseCompanyScopedRepository<T>` to be created before E3 (standardize CRUD + outbox)
+- `partiallyPaid` status removed — payments must always cover full amount
+- Split payment (multiple methods) replaces partial payment (Task3.10)
+- `refunded` status (E3.2) will show under "Zaplacené" filter in ScreenBills
+
+### Code
+
+- **DialogNewBill**: Simplified from 3-step wizard to single-step dialog (guests + optional table selection). Removed `_BillType` enum, removed dead takeaway code. Selected table now toggleable (click to select/deselect).
+- Removed unused l10n keys: `newBillTakeaway`, `newBillTable`, `newBillNoTable`
+
+### Documentation
+
+- PROJECT.md: removed DataSource pattern, updated folder structure (enums, mappers), updated Core Data Layer conventions, updated BillStatus (removed partiallyPaid, added refunded E3.2), updated BillRepository/OrderRepository API to match reality, updated DialogNewBill workflow (single step), updated Task3.10 (split payment), added Task3.11b (refund)
+

@@ -2,7 +2,7 @@
 
 > Konsolidovaná dokumentace projektu EPOS Desktop App.
 >
-> **Poslední aktualizace:** 2026-02-07
+> **Poslední aktualizace:** 2026-02-09
 
 ---
 
@@ -106,10 +106,10 @@ Uživatel může vytvořit účet, přidat položky a zaplatit. Register session
 
 #### Milník 2.1 — Vytvoření účtu
 
-- **Task2.1** DialogNewBill — vytvoření účtu (takeaway / stůl / bez stolu)
+- **Task2.1** DialogNewBill — vytvoření účtu (stůl / bez stolu), rychlý prodej jako samostatný flow
 - **Task2.2** DialogBillDetail — detail účtu, informace, stav, prázdný stav
 - **Task2.3** Bill CRUD v repository — createBill, updateStatus, cancelBill
-- **Výsledek:** Obsluha může otevřít nový účet (včetně přiřazení ke stolu), zobrazit jeho detail a stornovat ho.
+- **Výsledek:** Obsluha může otevřít nový účet (přiřazení ke stolu nebo bez stolu), zobrazit jeho detail a stornovat ho. Rychlý prodej je samostatný flow bez předchozího vytvoření účtu.
 
 #### Milník 2.2 — Objednávky
 
@@ -160,8 +160,9 @@ Funkce, které nejsou nezbytné pro základní prodej, ale rozšiřují možnost
 - **Task3.7** Slevy na položku — discount na OrderItem, UI pro zadání slevy
 - **Task3.8** Slevy na účet — discount_amount na Bill, UI pro zadání slevy
 - **Task3.9** Poznámky k objednávce — UI pro notes na Order a OrderItem (sloupce již ve schématu)
-- **Task3.10** Částečná platba — platba menší než celkem, status → partiallyPaid
-- **Výsledek:** Obsluha může aplikovat slevy, platit částečně.
+- **Task3.10** Split payment — rozdělení platby mezi více platebních metod (celá částka musí být vždy uhrazena)
+- **Task3.11b** Refund — vrácení peněz po zaplacení, bill status → `refunded` (ve filtru se řadí pod "Zaplacené")
+- **Výsledek:** Obsluha může aplikovat slevy, rozdělit platbu mezi metody, provést refund.
 
 #### Milník 3.3 — Provoz (rozšíření register session)
 
@@ -305,8 +306,10 @@ Deklarativní routing s auth guardem:
 /login               → ScreenLogin (výběr uživatele → PIN)
 /bills               → ScreenBills (hlavní obrazovka)
 /bills/:id           → DialogBillDetail
-/sell/:billId        → ScreenSell
+/sell                → ScreenSell (rychlý prodej — bez billId)
+/sell/:billId        → ScreenSell (objednávka na existující účet)
 /settings            → Settings (taby: Uživatelé, Stoly, Sekce, Kategorie, Produkty, Daň. sazby, Plat. metody)
+/dev                 → ScreenDev (vývojářské nástroje — pouze development)
 ```
 
 **Auth guard:** Nepřihlášený uživatel je přesměrován na `/login`. Pokud neexistuje firma, přesměrování na `/onboarding`.
@@ -321,25 +324,23 @@ lib/
 ├── core/                              # Globální infrastruktura a sdílené jádro
 │   ├── auth/                          # Autentizace (PIN, session)
 │   ├── data/                          # Globální datová vrstva
-│   │   ├── datasources/
-│   │   │   ├── local/                 # Drift (SQLite) implementace
-│   │   │   └── remote/                # Supabase implementace (od Etapy 3)
-│   │   ├── interfaces/                # Abstraktní kontrakty
-│   │   ├── models/                    # Doménové modely
-│   │   ├── providers/                 # DI registrace
-│   │   ├── repositories/              # Repozitáře
-│   │   └── services/                  # Sync, outbox (od Etapy 3)
+│   │   ├── enums/                     # Dart enum definice
+│   │   ├── mappers/                   # Entity ↔ Model mapování
+│   │   ├── models/                    # Doménové modely (Freezed)
+│   │   ├── providers/                 # DI registrace (Riverpod)
+│   │   ├── repositories/              # Repozitáře (přímý přístup k DB)
+│   │   └── services/                  # Seed, sync (od Etapy 3)
 │   ├── database/                      # Drift databáze
 │   │   └── tables/                    # Definice tabulek
 │   ├── network/                       # Síťová vrstva (od Etapy 3)
 │   ├── logging/                       # AppLogger
 │   └── l10n/                          # Extension context.l10n
 ├── features/                          # Funkční moduly (UI only)
-│   ├── orders/                        # Správa objednávek a účtů
-│   ├── products/                      # Katalog produktů
-│   ├── settings/                      # Nastavení aplikace
-│   ├── users/                         # Správa uživatelů a rolí
-│   └── sales/                         # Hlavní prodejní obrazovka
+│   ├── auth/                          # Přihlášení (ScreenLogin)
+│   ├── bills/                         # Přehled účtů (ScreenBills, DialogBillDetail, DialogNewBill, DialogPayment)
+│   ├── onboarding/                    # Onboarding wizard (ScreenOnboarding)
+│   ├── sell/                          # Prodejní obrazovka (ScreenSell)
+│   └── settings/                      # Nastavení aplikace (ScreenSettings, ScreenDev)
 └── l10n/                              # ARB soubory + generovaný kód
 ```
 
@@ -347,21 +348,14 @@ lib/
 
 Každá entita v `core/data/` se skládá z následujících souborů:
 
-**Etapa 1–2 (bez sync):**
-
 | Soubor | Vzor |
 |--------|------|
-| `models/<entity>_model.dart` | Doménový model |
-| `datasources/local/<entity>_local_data_source.dart` | Implements `LocalDataSource<T>` |
-| `repositories/<entity>_repository.dart` | Lokální repository |
+| `models/<entity>_model.dart` | Doménový model (Freezed) |
+| `repositories/<entity>_repository.dart` | Repository — přímý přístup k AppDatabase |
 
-**Etapa 3+ (se sync):** ke každé entitě přibude:
+**Architektura:** Repozitáře pracují přímo s `AppDatabase` (Drift) bez DataSource abstrakce. Od Etapy 3 se sync logika (outbox zápis, pull merge) přidá přímo do repozitářů pomocí `BaseCompanyScopedRepository<T>`.
 
-| Soubor | Vzor |
-|--------|------|
-| `datasources/remote/<entity>_remote_data_source.dart` | Implements `RemoteDataSource<T>` |
-
-Repository se rozšíří o sync registraci (`syncService.registerRepository` + `outboxProcessor.registerEntityType`).
+**Etapa 3+ (se sync):** Repository zdědí z `BaseCompanyScopedRepository<T>`, který poskytuje standardní CRUD + automatický outbox zápis ve stejné transakci.
 
 ---
 
@@ -604,7 +598,7 @@ Klientské timestampy se ukládají v **UTC**.
 
 Hodnoty ENUM jsou uloženy jako `TEXT` v lokální SQLite databázi. Drift `textEnum<T>()` automaticky zajišťuje konverzi mezi enum typy a string hodnotami.
 
-> **Poznámka:** `BillStatus` v Etapě 1–2 neobsahuje `partiallyPaid` a `refunded` — ty se přidají v Etapě 3.2 (pokročilý prodej). `ItemType` v Etapě 1–2 neobsahuje `recipe`, `ingredient`, `variant`, `modifier` — ty se přidají s příslušnými rozšířeními. `PaymentType` neobsahuje `voucher`, `points` — ty se přidají s CRM rozšířením.
+> **Poznámka:** `BillStatus` v Etapě 1–2 neobsahuje `refunded` — přidá se v Etapě 3.2 (pokročilý prodej). `ItemType` v Etapě 1–2 neobsahuje `recipe`, `ingredient`, `variant`, `modifier` — ty se přidají s příslušnými rozšířeními. `PaymentType` neobsahuje `voucher`, `points` — ty se přidají s CRM rozšířením.
 
 ---
 
@@ -763,17 +757,19 @@ stateDiagram-v2
     [*] --> opened: createBill()
     opened --> paid: recordPayment() — plná platba
     opened --> cancelled: cancelBill()
+    paid --> refunded: refundBill() (E3.2)
     paid --> [*]
+    refunded --> [*]
     cancelled --> [*]
 ```
 
 | Status | Podmínka | closedAt |
 |--------|----------|----------|
-| `opened` | `paid_amount = 0` | null |
+| `opened` | `paid_amount < total_gross` | null |
 | `paid` | `paid_amount >= total_gross` | set |
 | `cancelled` | Manuální storno (pouze z `opened`) | set |
 
-> **Rozšíření (Etapa 3.2):** `partiallyPaid` (`0 < paid_amount < total_gross`, closedAt = null), `refunded` (vrácení peněz po `paid`, closedAt = set). Přechody: `opened → partiallyPaid → paid`, `paid → refunded`.
+> **Rozšíření (Etapa 3.2):** `refunded` (vrácení peněz po `paid`, closedAt = set). Přechod: `paid → refunded`. Ve filtru ScreenBills se `refunded` řadí pod "Zaplacené". Status `partiallyPaid` neexistuje — platba musí vždy pokrýt celou částku (lze rozdělit mezi více platebních metod).
 
 #### PrepStatus (stav přípravy objednávky a položky)
 
@@ -802,6 +798,10 @@ stateDiagram-v2
 
 #### Agregace Order.status z OrderItem.status
 
+> **E2:** Status se nastavuje na úrovni celé objednávky (Order) — všechny items mají stejný status. Agregace z individuálních item statusů se implementuje v Etapě 3.
+
+Cílové chování (od E3):
+
 Order.status se odvozuje z položek:
 - Všechny items `delivered` → Order je `delivered`
 - Všechny items `ready` nebo `delivered` → Order je `ready`
@@ -827,14 +827,20 @@ Order.status se odvozuje z položek:
 
 ### Workflow — Quick Sale (rychlý prodej)
 
-Rychlý prodej je zjednodušený flow pro prodej bez stolů (takeaway):
+Rychlý prodej je zjednodušený flow pro prodej bez stolů. Spouští se tlačítkem **Rychlý účet** na ScreenBills, naviguje na `/sell` (bez billId). Účet se vytvoří až při potvrzení platby.
+
+**Příznak:** `is_takeaway = true` v tabulce bills. V UI se zobrazuje jako "Rychlý účet".
 
 ```mermaid
 sequenceDiagram
-    participant UI as ScreenSell
+    participant UI as ScreenSell (billId=null)
     participant BR as BillRepository
     participant OR as OrderRepository
+    participant PAY as DialogPayment
     participant DB as Local DB
+
+    Note over UI: Obsluha vybere položky do košíku
+    Note over UI: Tlačítko "Zaplatit" (místo "Objednat")
 
     UI->>BR: createBill(companyId, userId, isTakeaway: true)
     BR->>DB: INSERT bills
@@ -842,22 +848,28 @@ sequenceDiagram
     BR-->>UI: Success(bill)
 
     UI->>OR: createOrderWithItems(companyId, billId, items)
-    OR->>DB: INSERT orders
-    OR->>DB: INSERT order_items (batch)
-    DB-->>OR: OrderModel
+    OR->>DB: INSERT orders + order_items
     OR-->>UI: Success(order)
 
-    UI->>BR: updateTotals(billId, subtotal, tax)
-    BR->>DB: UPDATE bills
-    DB-->>BR: BillModel
+    UI->>BR: updateTotals(billId)
+    BR->>DB: UPDATE bills (totals)
 
-    UI->>BR: recordPayment(billId, amount, paymentMethodId)
-    BR->>DB: INSERT payments
-    BR->>DB: UPDATE bills (paidAmount, status)
-    Note right of BR: status → paid if fully paid
-    DB-->>BR: BillModel
-    BR-->>UI: Success(bill)
+    UI->>PAY: DialogPayment(bill)
+    alt Platba úspěšná
+        PAY-->>UI: true
+        Note over UI: Navigace zpět na /bills
+    else Platba zrušena
+        PAY-->>UI: false/null
+        UI->>BR: cancelBill(billId)
+        Note over UI: Účet stornován, zůstává na ScreenSell
+    end
 ```
+
+**Rozdíl oproti stolovému prodeji:**
+- Účet se vytvoří **až při potvrzení** (ne předem)
+- Namísto "Objednat" je tlačítko **"Zaplatit"**
+- Po zrušení platby se účet automaticky stornuje
+- V přehledu účtů se zobrazuje jako "Rychlý účet"
 
 ### Workflow — Stolový prodej
 
@@ -897,36 +909,30 @@ sequenceDiagram
 
 ### Workflow — Vytvoření účtu (DialogNewBill)
 
-Obsluha vytváří účet v jednom ze tří režimů:
+Jednokrokový dialog. Obsluha zadá počet hostů a volitelně vybere stůl. Rychlý prodej je **samostatný flow** (viz [Quick Sale](#workflow--quick-sale-rychlý-prodej)) — nespouští se přes DialogNewBill.
 
 ```mermaid
 stateDiagram-v2
-    [*] --> DialogNewBill
-    DialogNewBill --> Takeaway: Jídlo s sebou
-    DialogNewBill --> Stůl: Přiřadit ke stolu
-    DialogNewBill --> BezStolu: Bez stolu
+    [*] --> DialogNewBill: Jeden krok
+    DialogNewBill --> createBill: Počet hostů + volitelný stůl
 
-    Takeaway --> createBill: is_takeaway=true, table_id=null
-    Stůl --> VýběrStolu: Seznam volných stolů
-    VýběrStolu --> createBill: is_takeaway=false, table_id=selected
-    BezStolu --> createBill: is_takeaway=false, table_id=null
-
-    createBill --> ScreenSell: Takeaway → přímý prodej
-    createBill --> DialogBillDetail: Stůl / Bez stolu → detail účtu
+    createBill --> DialogBillDetail: Otevře detail účtu
 ```
 
-| Pole | Takeaway | Stůl | Bez stolu |
-|------|----------|------|-----------|
-| `is_takeaway` | true | false | false |
-| `table_id` | null | vybraný | null |
-| `number_of_guests` | 0 | vstup | vstup |
-| `currency_id` | default | default | default |
-| `opened_by_user_id` | current | current | current |
+| Pole | Hodnota |
+|------|---------|
+| `is_takeaway` | false (vždy) |
+| `table_id` | vybraný stůl nebo null |
+| `number_of_guests` | vstup (výchozí 0) |
+| `currency_id` | default |
+| `opened_by_user_id` | current |
 
 **Pravidla:**
-- `is_takeaway=true` + `table_id!=null` → zakázáno
+- `is_takeaway=true` se nastavuje **pouze** při rychlém prodeji (automaticky)
+- Stůl je volitelný — účet může existovat bez přiřazení ke stolu
 - Prázdný bill je povolen (placeholder pro stůl)
 - Bill se vytvoří se statusem `opened` a `opened_at = now`
+- Po vytvoření se otevře **DialogBillDetail** (ne ScreenSell)
 
 ### Workflow — Storno
 
@@ -1013,16 +1019,16 @@ stateDiagram-v2
 
 #### BillRepository
 
-- **CRUD:** zděděno z `BaseCompanyScopedRepository` (create, getById, update, delete)
-- **Query:** getByStatus, watchByStatus, getOpenBills, watchOpenBills, getByTable, watchByTable, getRecentByCompany, watchRecentByCompany
-- **Business:** createBill, updateStatus, updateTotals, recordPayment (vytvoří Payment + aktualizuje Bill.paidAmount a status), cancelBill
+- **CRUD:** create, getById, update, delete (E3: zděděno z `BaseCompanyScopedRepository`)
+- **Query:** watchByCompany (s filtry status/section), watchById, generateBillNumber
+- **Business:** createBill, updateTotals, recordPayment (vytvoří Payment + aktualizuje Bill.paidAmount a status), cancelBill
+- **E3.2:** přibude updateStatus (pro refunded)
 
 #### OrderRepository
 
-- **CRUD:** zděděno z `BaseCompanyScopedRepository`
-- **Query:** getByBill, watchByBill, getByStatus, watchByStatus, getRecentByCompany, watchRecentByCompany
+- **CRUD:** create, getById, update, delete (E3: zděděno z `BaseCompanyScopedRepository`)
+- **Query:** watchByBill, watchOrderItems, watchLastOrderTimesByCompany
 - **Business:** createOrderWithItems, updateStatus, startPreparation, markReady, markDelivered, cancelOrder, voidOrder
-- **Order Items:** getOrderItems, watchOrderItems
 
 #### PaymentRepository
 
@@ -1049,8 +1055,8 @@ Na jednom zařízení může být současně **více uživatelů přihlášeno**
 
 - **Aktivní uživatel:** Právě pracující obsluha. Všechny akce se přiřadí tomuto uživateli.
 - **Přihlášení uživatelé:** Ostatní uživatelé s ověřeným PINem. Zobrazeni v info panelu.
-- **Přepnutí obsluhy:** Dialog se seznamem přihlášených uživatelů → výběr → PIN (v E1-2 vždy vyžadován, nastavitelné v budoucnu).
-- **Odhlášení:** Odhlásí pouze aktivního uživatele. Ostatní zůstávají přihlášeni.
+- **Přepnutí obsluhy:** Dialog se seznamem přihlášených uživatelů → výběr → PIN (v E1-2 vždy vyžadován, nastavitelné v budoucnu). Dialog má 3 stavy: výběr uživatele → PIN → chyba/lockout.
+- **Odhlášení:** Odhlásí pouze aktivního uživatele. Ostatní zůstávají přihlášeni. Po odhlášení se **nenastavuje** žádný další aktivní uživatel (`_activeUser = null`) — router přesměruje na `/login`, kde se další uživatel musí přihlásit PINem.
 - **Reset:** Při restartu aplikace se všechny sessions vymaží (volatile, RAM only).
 
 ### Brute-Force ochrana
@@ -1352,15 +1358,20 @@ Layout: **80/20 horizontální split**
 - **Tabulka:** Stůl, Host, Počet hostů, Celkem, Poslední objednávka (relativní čas), Obsluha
 - **Barva řádku** = status účtu (opened, paid, cancelled — dle barevného systému)
 - **Sloupec Host:** Prázdný v E1-2 (zobrazí se až s CRM rozšířením)
-- **Bottom bar:** Checkboxy pro filtrování podle statusu (Otevřené, Zaplacené, Stornované)
+- **Sloupec Poslední objednávka:** Relativní čas (< 1min, Xmin, Xh Ym) — aktualizuje se reaktivně ze streamu
+- **Bottom bar:** FilterChip pro filtrování podle statusu (Otevřené, Zaplacené, Stornované)
+  - **Výchozí stav:** Pouze "Otevřené" vybrané
+  - **Barvy chipů:** Modrá (otevřené), Zelená (zaplacené), Růžová (stornované)
+  - **Responsivní layout:** FilterChip se automaticky zalamují pomocí `Wrap` widgetu
 - **Prázdný stav:** Tabulka s hlavičkou, bez řádků, žádný placeholder text
+- **Sloupec Stůl:** Pro `isTakeaway` účty zobrazuje lokalizovaný text "Rychlý účet"
 
 **Pravý panel (20%):**
-- **Akční tlačítka:** Rychlý účet, Vytvořit účet
+- **Akční tlačítka:** Rychlý účet (naviguje na `/sell`), Vytvořit účet (otevře DialogNewBill → po vytvoření DialogBillDetail)
 - **Info panel:** Datum/čas, stav pokladny (E1-2: vždy "offline", E3+: online/offline sync stav), aktivní obsluha (jméno + doba aktivity), přihlášení uživatelé, stav pokladny v Kč
 - **Bottom:** Přepnout obsluhu, Odhlásit
 - **Etapa 2:** Dynamické tlačítko — "Zahájit prodej" (žádná aktivní register session) / "Uzávěrka" (aktivní session)
-- **Etapa 3+:** Pokladní deník, Přehled prodeje, Sklad, Mapa, Další
+- **Etapa 3+:** Pokladní deník, Přehled prodeje, Sklad, Mapa, **Další** (PopupMenuButton s budoucími akcemi)
 
 #### DialogBillDetail (detail účtu)
 
@@ -1382,7 +1393,7 @@ Dialog (overlay) s informacemi o účtu a historií objednávek.
 └──────────────────────────────────────────────────────────┘
 ```
 
-**Header:** Stůl, zákazník, celková útrata, čas vytvoření, poslední objednávka
+**Header:** Stůl (nebo "Rychlý účet" pro isTakeaway), zákazník, celková útrata, čas vytvoření, poslední objednávka
 **Centrum:** Historie objednávek — čas, množství, položka, poznámka, cena, obsluha
 **Levý sloupec:** Navigace (↑↓ scroll, ✕ storno položky, + přidat, ⋮ více)
 **Pravý sloupec:** Akční tlačítka
@@ -1429,7 +1440,9 @@ Layout: **20/80 horizontální split**
 **Levý panel (20%) — Košík:**
 - Header: Souhrn položek
 - Seznam: množství × název, cena
-- Bottom: Celkem, Zrušit (červená), Objednat (zelená)
+- Bottom: Celkem, Zrušit (červená), akční tlačítko:
+  - **Rychlý prodej** (`billId = null`): **"Zaplatit"** (zelená) — vytvoří bill + order + otevře DialogPayment
+  - **Stolový prodej** (`billId` zadáno): **"Objednat"** (modrá) — vytvoří order na existující bill
 
 **Pravý panel (80%) — Konfigurovatelný grid:**
 - **Top toolbar:** Vyhledat, Skenovat, Zákazník, Poznámka, Akce (všechny disabled v E2, funkční od E3+)
@@ -1437,6 +1450,7 @@ Layout: **20/80 horizontální split**
 - **Každé tlačítko** = položka (item), kategorie, nebo prázdné
 - **Klik na položku:** Přidá do košíku (quantity +1)
 - **Klik na kategorii:** Zobrazí podstránku s položkami dané kategorie ve stejném gridu
+- **Text na tlačítku:** Jednořádkový, s `ShaderMask` fade efektem na okrajích (plynulé zeslabení textu místo ořezu)
 - **Editační režim:** V nastavení lze každému tlačítku přiřadit položku nebo kategorii
 - **Auto-layout:** Budoucí funkce — automatické rozmístění produktů do gridu
 - **Rozměry gridu:** Uloženy v tabulce `registers` (`grid_rows`, `grid_cols`). Výchozí 5×8 (seed).

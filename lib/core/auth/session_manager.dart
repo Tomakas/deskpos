@@ -25,7 +25,7 @@ class SessionManager {
   void logoutActive() {
     if (_activeUser != null) {
       _loggedInUsers.remove(_activeUser!.id);
-      _activeUser = _loggedInUsers.values.isNotEmpty ? _loggedInUsers.values.first : null;
+      _activeUser = null;
     }
   }
 

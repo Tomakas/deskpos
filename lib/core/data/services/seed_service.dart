@@ -5,12 +5,16 @@ import '../../database/app_database.dart';
 import '../../logging/app_logger.dart';
 import '../enums/company_status.dart';
 import '../enums/hardware_type.dart';
+import '../enums/item_type.dart';
 import '../enums/payment_type.dart';
 import '../enums/role_name.dart';
 import '../enums/tax_calc_type.dart';
+import '../enums/unit_type.dart';
 import '../mappers/entity_mappers.dart';
+import '../models/category_model.dart';
 import '../models/company_model.dart';
 import '../models/currency_model.dart';
+import '../models/item_model.dart';
 import '../models/payment_method_model.dart';
 import '../models/permission_model.dart';
 import '../models/register_model.dart';
@@ -79,9 +83,11 @@ class SeedService {
         await _db.into(_db.companies).insert(companyToCompanion(company));
 
         // 3. Tax rates
+        final taxRate21Id = _id();
+        final taxRate12Id = _id();
         final taxRates = [
           TaxRateModel(
-            id: _id(),
+            id: taxRate21Id,
             companyId: companyId,
             label: 'Základní 21%',
             type: TaxCalcType.regular,
@@ -91,7 +97,7 @@ class SeedService {
             updatedAt: now,
           ),
           TaxRateModel(
-            id: _id(),
+            id: taxRate12Id,
             companyId: companyId,
             label: 'Snížená 12%',
             type: TaxCalcType.regular,
@@ -242,7 +248,89 @@ class SeedService {
           await _db.into(_db.tables).insert(tableToCompanion(t));
         }
 
-        // 10. Register
+        // 10. Categories & Items
+        final catNapoje = _id();
+        final catPivo = _id();
+        final catHlavniJidla = _id();
+        final catPredkrmy = _id();
+        final catDeserty = _id();
+        final categories = [
+          CategoryModel(id: catNapoje, companyId: companyId, name: 'Nápoje', createdAt: now, updatedAt: now),
+          CategoryModel(id: catPivo, companyId: companyId, name: 'Pivo', createdAt: now, updatedAt: now),
+          CategoryModel(id: catHlavniJidla, companyId: companyId, name: 'Hlavní jídla', createdAt: now, updatedAt: now),
+          CategoryModel(id: catPredkrmy, companyId: companyId, name: 'Předkrmy', createdAt: now, updatedAt: now),
+          CategoryModel(id: catDeserty, companyId: companyId, name: 'Dezerty', createdAt: now, updatedAt: now),
+        ];
+        for (final c in categories) {
+          await _db.into(_db.categories).insert(categoryToCompanion(c));
+        }
+
+        // Nápoje (12% tax - food/beverage)
+        final napojeItems = [
+          ('Coca-Cola 0.33l', 4900),
+          ('Minerální voda 0.33l', 3900),
+          ('Džus pomerančový 0.2l', 4500),
+          ('Espresso', 5500),
+          ('Čaj', 4500),
+        ];
+        for (final (name, price) in napojeItems) {
+          final item = ItemModel(id: _id(), companyId: companyId, categoryId: catNapoje, name: name, itemType: ItemType.product, unitPrice: price, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now);
+          await _db.into(_db.items).insert(itemToCompanion(item));
+        }
+
+        // Pivo (21% tax - alcohol)
+        final pivoItems = [
+          ('Pilsner Urquell 0.5l', 5900),
+          ('Kozel 11° 0.5l', 4900),
+          ('Staropramen 0.5l', 4500),
+          ('Bernard 12° 0.5l', 5500),
+          ('Nealkoholické pivo 0.5l', 4500),
+        ];
+        for (final (name, price) in pivoItems) {
+          final item = ItemModel(id: _id(), companyId: companyId, categoryId: catPivo, name: name, itemType: ItemType.product, unitPrice: price, saleTaxRateId: taxRate21Id, unit: UnitType.ks, createdAt: now, updatedAt: now);
+          await _db.into(_db.items).insert(itemToCompanion(item));
+        }
+
+        // Hlavní jídla (12% tax)
+        final hlavniItems = [
+          ('Svíčková na smetaně', 22900),
+          ('Řízek s bramborovým salátem', 19900),
+          ('Grilovaný losos', 27900),
+          ('Hovězí burger', 21900),
+          ('Kuřecí steak s hranolky', 18900),
+        ];
+        for (final (name, price) in hlavniItems) {
+          final item = ItemModel(id: _id(), companyId: companyId, categoryId: catHlavniJidla, name: name, itemType: ItemType.product, unitPrice: price, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now);
+          await _db.into(_db.items).insert(itemToCompanion(item));
+        }
+
+        // Předkrmy (12% tax)
+        final predkrmyItems = [
+          ('Tatarský biftek', 18900),
+          ('Carpaccio z hovězího', 16900),
+          ('Bruschetta', 12900),
+          ('Polévka dne', 6900),
+          ('Caesar salát', 14900),
+        ];
+        for (final (name, price) in predkrmyItems) {
+          final item = ItemModel(id: _id(), companyId: companyId, categoryId: catPredkrmy, name: name, itemType: ItemType.product, unitPrice: price, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now);
+          await _db.into(_db.items).insert(itemToCompanion(item));
+        }
+
+        // Dezerty (12% tax)
+        final desertyItems = [
+          ('Tiramisu', 11900),
+          ('Čokoládový fondant', 13900),
+          ('Palačinky s Nutellou', 10900),
+          ('Zmrzlinový pohár', 9900),
+          ('Jablečný štrúdl', 8900),
+        ];
+        for (final (name, price) in desertyItems) {
+          final item = ItemModel(id: _id(), companyId: companyId, categoryId: catDeserty, name: name, itemType: ItemType.product, unitPrice: price, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now);
+          await _db.into(_db.items).insert(itemToCompanion(item));
+        }
+
+        // 11. Register
         final register = RegisterModel(
           id: registerId,
           companyId: companyId,

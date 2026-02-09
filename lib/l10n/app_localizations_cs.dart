@@ -313,16 +313,7 @@ class AppLocalizationsCs extends AppLocalizations {
   String get newBillTitle => 'Nový účet';
 
   @override
-  String get newBillTakeaway => 'Jídlo s sebou';
-
-  @override
-  String get newBillTable => 'Přiřadit ke stolu';
-
-  @override
-  String get newBillNoTable => 'Bez stolu';
-
-  @override
-  String get newBillSelectTable => 'Vyberte stůl';
+  String get newBillSelectTable => 'Stůl (volitelný)';
 
   @override
   String get newBillGuests => 'Počet hostů';
@@ -510,4 +501,106 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get registerSessionActive => 'Směna aktivní';
+
+  @override
+  String get billsSorting => 'Řazení';
+
+  @override
+  String get billsCashJournal => 'Pokladní deník';
+
+  @override
+  String get billsSalesOverview => 'Přehled prodeje';
+
+  @override
+  String get billsInventory => 'Sklad';
+
+  @override
+  String get billsMore => 'Další';
+
+  @override
+  String get billsTableMap => 'Mapa';
+
+  @override
+  String get infoPanelRegisterTotal => 'Pokladna';
+
+  @override
+  String get sellCartSummary => 'Souhrn položek';
+
+  @override
+  String get sellScan => 'Skenovat';
+
+  @override
+  String get sellCustomer => 'Zákazník';
+
+  @override
+  String get sellNote => 'Poznámka';
+
+  @override
+  String get sellActions => 'Akce';
+
+  @override
+  String get billDetailCustomer => 'Zákazník';
+
+  @override
+  String get billDetailMove => 'Přesunout';
+
+  @override
+  String get billDetailMerge => 'Sloučit';
+
+  @override
+  String get billDetailSplit => 'Rozdělit';
+
+  @override
+  String get billDetailSummary => 'Sumář';
+
+  @override
+  String get billDetailPrint => 'Tisk';
+
+  @override
+  String get billDetailOrderHistory => 'Historie objednávek';
+
+  @override
+  String billDetailTotalSpent(String amount) {
+    return 'Celková útrata: $amount';
+  }
+
+  @override
+  String billDetailCreatedAt(String date) {
+    return 'Účet vytvořen: $date';
+  }
+
+  @override
+  String billDetailLastOrderAt(String date) {
+    return 'Poslední objednávka: $date';
+  }
+
+  @override
+  String get itemTypeProduct => 'Produkt';
+
+  @override
+  String get itemTypeService => 'Služba';
+
+  @override
+  String get itemTypeCounter => 'Počítadlo';
+
+  @override
+  String get moreReports => 'Reporty';
+
+  @override
+  String get moreStatistics => 'Statistiky';
+
+  @override
+  String get moreReservations => 'Rezervace';
+
+  @override
+  String get moreSettings => 'Nastavení';
+
+  @override
+  String get moreDev => 'Dev';
+
+  @override
+  String get settingsTabSecurity => 'Zabezpečení';
+
+  @override
+  String get settingsTabSales => 'Prodej';
 }

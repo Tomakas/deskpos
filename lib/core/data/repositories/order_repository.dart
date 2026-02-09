@@ -106,6 +106,23 @@ class OrderRepository {
     return entities.map(orderItemFromEntity).toList();
   }
 
+  Stream<Map<String, DateTime>> watchLastOrderTimesByCompany(String companyId) {
+    return (_db.select(_db.orders)
+          ..where((t) => t.companyId.equals(companyId) & t.deletedAt.isNull()))
+        .watch()
+        .map((rows) {
+      final map = <String, DateTime>{};
+      for (final row in rows) {
+        final billId = row.billId;
+        final createdAt = row.createdAt;
+        if (!map.containsKey(billId) || createdAt.isAfter(map[billId]!)) {
+          map[billId] = createdAt;
+        }
+      }
+      return map;
+    });
+  }
+
   Future<Result<OrderModel>> updateStatus(String orderId, PrepStatus status) async {
     try {
       final now = DateTime.now();
