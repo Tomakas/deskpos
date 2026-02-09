@@ -41,7 +41,7 @@
 
 ## Roadmap
 
-4 etapy, každá s milníky a tasky. Schéma začíná s **17 tabulkami** (aktivní). Dalších 19 tabulek se přidá s příslušnými rozšířeními. Sync se řeší až v Etapě 3 — do té doby funguje aplikace offline na jednom zařízení.
+4 etapy, každá s milníky a tasky. Schéma začíná s **20 tabulkami** (aktivní). Dalších 17 tabulek se přidá s příslušnými rozšířeními. Sync se řeší až v Etapě 3 — do té doby funguje aplikace offline na jednom zařízení.
 
 ---
 
@@ -52,7 +52,7 @@ Admin vytvoří firmu, nastaví uživatele, stoly a produkty. Více uživatelů 
 #### Milník 1.1 — Projekt a databáze
 
 - **Task1.1** Flutter projekt — desktop + mobile targets, build funguje
-- **Task1.2** Drift databáze — 17 tabulek, code generation
+- **Task1.2** Drift databáze — 20 tabulek, code generation
 - **Task1.3** Lokalizace — i18n infrastruktura, ARB soubory, čeština
 - **Výsledek:** Aplikace se spustí, zkompiluje na všech platformách, DB je připravena.
 
@@ -65,10 +65,10 @@ Admin vytvoří firmu, nastaví uživatele, stoly a produkty. Více uživatelů 
 
 #### Milník 1.3 — Autentizace (single-user)
 
-- **Task1.7** ScreenLogin — zadání PINu, ověření proti lokální DB
+- **Task1.7** ScreenLogin — výběr uživatele ze seznamu → zadání PINu → ověření proti lokální DB
 - **Task1.8** Brute-force ochrana — progresivní lockout, countdown v UI
 - **Task1.9** SessionManager — volatile session v RAM
-- **Výsledek:** Admin se přihlásí PINem. Nesprávné pokusy jsou blokovány progresivním lockoutem.
+- **Výsledek:** Uživatel vybere svůj účet ze seznamu a přihlásí se PINem. Nesprávné pokusy jsou blokovány progresivním lockoutem.
 
 #### Milník 1.4 — Oprávnění (engine)
 
@@ -86,6 +86,7 @@ Admin vytvoří firmu, nastaví uživatele, stoly a produkty. Více uživatelů 
 
 - **Task1.14** Správa uživatelů — CRUD pro users, přiřazení role (applyRoleToUser)
 - **Task1.15** Správa stolů — CRUD pro tables
+- **Task1.15b** Správa sekcí — CRUD pro sections
 - **Task1.16** Správa produktů — CRUD pro items, categories
 - **Task1.17** Správa daňových sazeb — CRUD pro tax_rates
 - **Task1.18** Správa platebních metod — CRUD pro payment_methods (viz [Platební metody](#platební-metody))
@@ -93,7 +94,7 @@ Admin vytvoří firmu, nastaví uživatele, stoly a produkty. Více uživatelů 
 
 #### Milník 1.7 — Multi-user
 
-- **Task1.19** Přepínání uživatelů — výběr uživatele v AppBar, rychlý switch přes PIN
+- **Task1.19** Přepínání uživatelů — tlačítko PŘEPNOUT OBSLUHU → dialog se seznamem aktivních uživatelů → výběr → zadání PINu
 - **Task1.20** UI enforcement — hasPermissionProvider, skrývání/blokování akcí podle oprávnění
 - **Výsledek:** Více uživatelů se může přihlašovat a přepínat. Každý vidí pouze akce, na které má oprávnění.
 
@@ -101,7 +102,7 @@ Admin vytvoří firmu, nastaví uživatele, stoly a produkty. Více uživatelů 
 
 ### Etapa 2 — Základní prodej
 
-Uživatel může vytvořit účet, přidat položky a zaplatit. Bez slev, tisku, pokročilých funkcí.
+Uživatel může vytvořit účet, přidat položky a zaplatit. Register session řídí kdy je prodej aktivní. Bez slev, tisku, pokročilých funkcí.
 
 #### Milník 2.1 — Vytvoření účtu
 
@@ -125,6 +126,18 @@ Uživatel může vytvořit účet, přidat položky a zaplatit. Bez slev, tisku,
 - **Task2.10** Plná platba — bill status → paid, closedAt se nastaví
 - **Task2.11** ScreenBills filtry — filtrování podle stavu (opened, paid, cancelled)
 - **Výsledek:** Obsluha může zaplatit účet, účet se uzavře. Na hlavní obrazovce lze filtrovat podle stavu.
+
+#### Milník 2.4 — Grid editor
+
+- **Task2.12** Grid editor — editační režim pro přiřazení položek/kategorií tlačítkům v ScreenSell gridu (layout_items CRUD)
+- **Výsledek:** Obsluha může v editačním režimu nastavit, co každé tlačítko v prodejním gridu zobrazuje (produkt, kategorie, nebo prázdné).
+
+#### Milník 2.5 — Register session (lightweight)
+
+- **Task2.13** RegisterSession — otevření/zavření prodejní session
+- **Task2.14** Dynamické tlačítko — "Zahájit prodej" (žádná aktivní session) / "Uzávěrka" (aktivní session)
+- **Task2.15** Order numbering — O-0001 reset per session, counter v register_sessions
+- **Výsledek:** Při přihlášení se kontroluje aktivní session. Bez session nelze prodávat. Uzávěrka session uzavře (nastaví closed_at). Order čísla se resetují s novou session.
 
 ---
 
@@ -150,12 +163,14 @@ Funkce, které nejsou nezbytné pro základní prodej, ale rozšiřují možnost
 - **Task3.10** Částečná platba — platba menší než celkem, status → partiallyPaid
 - **Výsledek:** Obsluha může aplikovat slevy, platit částečně.
 
-#### Milník 3.3 — Provoz
+#### Milník 3.3 — Provoz (rozšíření register session)
 
-- **Task3.11** Register session — otevření/zavření pokladny, počáteční vklad
+- **Task3.11** Register session rozšíření — počáteční/koncový stav hotovosti (opening_cash, closing_cash, expected_cash, difference)
 - **Task3.12** Cash movements — vklady, výběry, výdaje
-- **Task3.13** Z-report — denní uzávěrka
-- **Výsledek:** Pokladna má otevírací/zavírací proceduru, evidenci hotovostních pohybů a denní uzávěrku.
+- **Task3.13** Z-report — denní uzávěrka s detailním souhrnem
+- **Výsledek:** Pokladna má plnou otevírací/zavírací proceduru s kontrolou hotovosti, evidenci hotovostních pohybů a denní uzávěrku.
+
+> **Pozn.:** Základní register session (otevření/zavření bez hotovosti) je již v Etapě 2 (Milník 2.5).
 
 #### Milník 3.4 — Tisk
 
@@ -204,6 +219,7 @@ Přehledy a reporty pro majitele a manažery.
 - **Supabase** — backend: Auth, Realtime, Database, Storage (od Etapy 3)
 - **flutter_secure_storage** — bezpečné úložiště klíčů: Keychain / libsecret / Credential Manager (od Etapy 3)
 - **uuid** — generování unikátních identifikátorů (v7 — chronologické řazení, lepší výkon B-tree)
+- **go_router** — deklarativní routing, auth guard, redirect
 - **intl** — formátování dat, časů, měn, lokalizace
 
 ---
@@ -247,7 +263,7 @@ graph TD
     - Abstrahovat zdroj dat od zbytku aplikace
     - Implementace "Offline-first" logiky (nejdříve zapsat lokálně, pak sync)
     - Mapování mezi DB entitami a doménovými modely
-- **Result Pattern:** Veškeré návratové typy z repozitářů jsou obaleny v `Result<T>` (sealed class: `Success` nebo `Failure`)
+- **Result Pattern:** Veškeré návratové typy z repozitářů jsou obaleny v `Result<T>` (sealed class: `Success` nebo `Failure`). Viz [Result Pattern](#result-pattern).
 
 ### Hybridní architektura
 
@@ -255,6 +271,45 @@ Projekt kombinuje **centralizovanou datovou vrstvu** s **feature-first přístup
 
 - **Core Data Layer (`lib/core/data/`)**: Centralizovaná definice dat, repozitářů a synchronizace. Zabraňuje cyklickým závislostem v relačně provázaném datovém modelu.
 - **Feature Layer (`lib/features/`)**: Distribuovaná prezentační vrstva. Obsahuje pouze UI (Screens, Widgets) a aplikační logiku (Providers/View Models).
+
+### Result Pattern
+
+Všechny repozitáře vracejí `Result<T>` místo throwování výjimek. Sealed class se dvěma variantami:
+
+- **`Success(T value)`** — úspěšný výsledek s hodnotou
+- **`Failure(String message)`** — chyba s textovou zprávou
+
+Repozitář obalí operaci v try/catch a vrátí `Success` nebo `Failure`. UI/Notifier zpracuje výsledek přes pattern matching (`switch`).
+
+### BaseCompanyScopedRepository
+
+Všechny entity-specific repozitáře dědí z `BaseCompanyScopedRepository<T>`, který poskytuje standardní CRUD + watch metody s automatickým company scope:
+
+| Metoda | Návratový typ | Popis |
+|--------|---------------|-------|
+| `create(T entity)` | `Future<Result<T>>` | Vytvoření entity |
+| `getById(String id)` | `Future<Result<T>>` | Načtení podle ID |
+| `update(T entity)` | `Future<Result<T>>` | Aktualizace entity |
+| `delete(String id)` | `Future<Result<void>>` | Soft delete (nastaví `deletedAt`) |
+| `watchAll(String companyId)` | `Stream<List<T>>` | Reaktivní stream všech entit firmy |
+| `watchById(String id)` | `Stream<T?>` | Reaktivní stream jedné entity |
+
+Specifické query a business metody (např. `getByStatus`, `createOrderWithItems`) si definuje každý repozitář sám.
+
+### Navigace (GoRouter)
+
+Deklarativní routing s auth guardem:
+
+```
+/onboarding          → ScreenOnboarding (nové zařízení)
+/login               → ScreenLogin (výběr uživatele → PIN)
+/bills               → ScreenBills (hlavní obrazovka)
+/bills/:id           → DialogBillDetail
+/sell/:billId        → ScreenSell
+/settings            → Settings (taby: Uživatelé, Stoly, Sekce, Kategorie, Produkty, Daň. sazby, Plat. metody)
+```
+
+**Auth guard:** Nepřihlášený uživatel je přesměrován na `/login`. Pokud neexistuje firma, přesměrování na `/onboarding`.
 
 ---
 
@@ -312,20 +367,6 @@ Repository se rozšíří o sync registraci (`syncService.registerRepository` + 
 
 ## Databáze
 
-### Local-First Pattern
-
-```mermaid
-graph TD
-    UI[UI Layer - Widgets] --> REPO[Repository Layer]
-    REPO --> LOCAL[(LocalDataSource - Drift/SQLite)]
-    REPO --> REMOTE((RemoteDataSource - Supabase))
-```
-
-**Principy:**
-- **Drift (SQLite)** = primární zdroj pravdy na zařízení
-- **Supabase** = cloud backup + multi-device sync
-- Operace jsou vždy nejdřív lokální, pak se asynchronně synchronizují
-
 ### Šifrování databáze (Etapa 3)
 
 Šifrování se zavádí až v Etapě 3 (Milník 3.1) společně se sync. Během vývoje běží DB jako plain SQLite pro snadnější debugging.
@@ -363,16 +404,7 @@ Po smazání databáze a restartu aplikace se zobrazí **ScreenOnboarding** — 
 
 > Sync sloupce jsou předpřipravené ve schématu od Etapy 1. V Etapě 1–2 zůstávají prázdné (nullable). Využijí se až v Etapě 3 při aktivaci sync.
 
-Všechny aktivní tabulky používají mixin pro sync metadata (tabulka `sync_queue` z rozšíření ho nepoužívá):
-
-```dart
-mixin SyncColumnsMixin on Table {
-  DateTimeColumn get lastSyncedAt => dateTime().nullable()();
-  IntColumn get version => integer().withDefault(const Constant(1))();
-  DateTimeColumn get serverCreatedAt => dateTime().nullable()();
-  DateTimeColumn get serverUpdatedAt => dateTime().nullable()();
-}
-```
+Všechny aktivní tabulky používají mixin `SyncColumnsMixin` se sloupci: `lastSyncedAt` (D), `version` (I, default 1), `serverCreatedAt` (D), `serverUpdatedAt` (D). Tabulka `sync_queue` z rozšíření mixin nepoužívá.
 
 Navíc každá tabulka definuje: `createdAt`, `updatedAt`, `deletedAt` (soft delete).
 
@@ -380,7 +412,7 @@ Navíc každá tabulka definuje: `createdAt`, `updatedAt`, `deletedAt` (soft del
 
 #### Přehled tabulek
 
-##### Aktivní tabulky (17) — Etapa 1–2
+##### Aktivní tabulky (20) — Etapa 1–2
 
 | SQL tabulka | Drift Table | Drift Entity | Model |
 |-------------|-------------|--------------|-------|
@@ -397,19 +429,21 @@ Navíc každá tabulka definuje: `createdAt`, `updatedAt`, `deletedAt` (soft del
 | `registers` | `Registers` | `Register` | `RegisterModel` |
 | `role_permissions` | `RolePermissions` | `RolePermission` | `RolePermissionModel` |
 | `roles` | `Roles` | `Role` | `RoleModel` |
+| `sections` | `Sections` | `Section` | `SectionModel` |
 | `tables` | `Tables` | `TableEntity` | `TableModel` |
 | `tax_rates` | `TaxRates` | `TaxRate` | `TaxRateModel` |
 | `user_permissions` | `UserPermissions` | `UserPermission` | `UserPermissionModel` |
 | `users` | `Users` | `User` | `UserModel` |
+| `layout_items` | `LayoutItems` | `LayoutItem` | `LayoutItemModel` |
+| `register_sessions` | `RegisterSessions` | `RegisterSession` | `RegisterSessionModel` |
 
 > **Poznámka:** `TableEntity` používá `@DataClassName` anotaci (konflikt s Drift `Table`).
 
-##### Tabulky rozšíření (19) — přidají se podle potřeby
+##### Tabulky rozšíření (17) — přidají se podle potřeby
 
 | SQL tabulka | Drift Table | Kdy |
 |-------------|-------------|-----|
 | `sync_queue` | `SyncQueue` | Sync (Etapa 3) |
-| `register_sessions` | `RegisterSessions` | Provoz (Etapa 3) |
 | `shifts` | `Shifts` | Provoz (Etapa 3) |
 | `cash_movements` | `CashMovements` | Provoz (Etapa 3) |
 | `company_settings` | `CompanySettings` | CRM rozšíření |
@@ -418,7 +452,6 @@ Navíc každá tabulka definuje: `createdAt`, `updatedAt`, `deletedAt` (soft del
 | `vouchers` | `Vouchers` | CRM rozšíření |
 | `item_modifiers` | `ItemModifiers` | Gastro rozšíření |
 | `order_item_modifiers` | `OrderItemModifiers` | Gastro rozšíření |
-| `sections` | `Sections` | Gastro rozšíření |
 | `reservations` | `Reservations` | Gastro rozšíření |
 | `product_recipes` | `ProductRecipes` | Sklad rozšíření |
 | `manufacturers` | `Manufacturers` | Sklad rozšíření |
@@ -440,7 +473,7 @@ Všechny aktivní tabulky obsahují společné sync sloupce (viz [SyncColumnsMix
 | Tabulka | Sloupce |
 |---------|---------|
 | **bills** | id (T), company_id →companies, table_id →tables, opened_by_user_id →users, bill_number (T), number_of_guests (I), is_takeaway (B), status (T), currency_id →currencies, subtotal_gross (I), subtotal_net (I), discount_amount (I), tax_total (I), total_gross (I), rounding_amount (I), paid_amount (I), opened_at (D), closed_at (D) |
-| **orders** | id (T), company_id →companies, bill_id →bills, order_number (T), notes (T), status (T), item_count (I), subtotal_gross (I), subtotal_net (I), tax_total (I) |
+| **orders** | id (T), company_id →companies, bill_id →bills, created_by_user_id →users, order_number (T), notes (T), status (T), item_count (I), subtotal_gross (I), subtotal_net (I), tax_total (I) |
 | **order_items** | id (T), company_id →companies, order_id →orders, item_id →items, item_name (T), quantity (R), sale_price_att (I), sale_tax_rate_att (I), sale_tax_amount (I), discount (I), notes (T), status (T) |
 | **payments** | id (T), company_id →companies, bill_id →bills, payment_method_id →payment_methods, amount (I), paid_at (D), currency_id →currencies, tip_included_amount (I), notes (T), transaction_id (T), payment_provider (T), card_last4 (T), authorization_code (T) |
 | **payment_methods** | id (T), company_id →companies, name (T), type (T), is_active (B) |
@@ -449,10 +482,10 @@ Všechny aktivní tabulky obsahují společné sync sloupce (viz [SyncColumnsMix
 
 | Tabulka | Sloupce |
 |---------|---------|
-| **items** | id (T), company_id →companies, category_id →categories, name (T), description (T), item_type (T), sku (T), unit_price (I), sale_tax_rate_id →tax_rates, is_sellable (B), unit (T) |
+| **items** | id (T), company_id →companies, category_id →categories, name (T), description (T), item_type (T), sku (T), unit_price (I), sale_tax_rate_id →tax_rates, is_sellable (B), is_active (B), unit (T) |
 | **categories** | id (T), company_id →companies, name (T), is_active (B) |
 | **tax_rates** | id (T), company_id →companies, label (T), type (T), rate (I), is_default (B) |
-| **currencies** | id (T), code (T), symbol (T), name (T), decimal_places (I), symbol_position (T) |
+| **currencies** | id (T), code (T), symbol (T), name (T), decimal_places (I) |
 
 ##### Firma, uživatelé, oprávnění
 
@@ -469,13 +502,37 @@ Všechny aktivní tabulky obsahují společné sync sloupce (viz [SyncColumnsMix
 
 | Tabulka | Sloupce |
 |---------|---------|
-| **registers** | id (T), company_id →companies, code (T), is_active (B), type (T), allow_cash (B), allow_card (B), allow_transfer (B), allow_refunds (B) |
+| **registers** | id (T), company_id →companies, code (T), is_active (B), type (T), allow_cash (B), allow_card (B), allow_transfer (B), allow_refunds (B), grid_rows (I), grid_cols (I) |
+| **register_sessions** | id (T), company_id →companies, register_id →registers, opened_by_user_id →users, opened_at (D), closed_at (D), order_counter (I) |
 
 ##### Stoly
 
 | Tabulka | Sloupce |
 |---------|---------|
-| **tables** | id (T), company_id →companies, table_name (T), capacity (I) |
+| **tables** | id (T), company_id →companies, section_id →sections, table_name (T), capacity (I), is_active (B) |
+
+##### Sekce
+
+| Tabulka | Sloupce |
+|---------|---------|
+| **sections** | id (T), company_id →companies, name (T), color (T), is_active (B) |
+
+##### Layout grid
+
+| Tabulka | Sloupce |
+|---------|---------|
+| **layout_items** | id (T), company_id →companies, register_id →registers, page (I), row (I), col (I), type (T), item_id →items, category_id →categories, label (T), color (T) |
+
+**Pravidla:**
+- `register_id` — FK na registers (každá pokladna má svůj grid layout)
+- `page` — číslo stránky gridu (výchozí 0, pro budoucí multi-page)
+- `row`, `col` — pozice v gridu (0-based)
+- `type` — `item` nebo `category`
+- `item_id` — nastaveno když `type = item` (nullable)
+- `category_id` — nastaveno když `type = category` (nullable)
+- `label` — volitelný custom popis tlačítka (nullable, jinak se použije název item/category)
+- `color` — volitelná custom barva tlačítka (nullable)
+- Grid rozměry (`grid_rows`, `grid_cols`) — minimum 5×8, tlačítka se automaticky přizpůsobí velikosti gridu. Uloženy na tabulce `registers` (per-pokladna).
 
 #### Indexy
 
@@ -530,6 +587,7 @@ Klientské timestampy se ukládají v **UTC**.
 | `RoleName` | `RoleModel` | helper, operator, admin |
 | `TaxCalcType` | `TaxRateModel` | regular, noTax, constant, mixed |
 | `HardwareType` | `RegisterModel` | local, mobile, virtual |
+| `LayoutItemType` | `LayoutItemModel` | item, category |
 
 ##### ENUMs rozšíření (přidají se s příslušnými tabulkami)
 
@@ -662,23 +720,19 @@ graph TD
 
 > **Rozšíření:** OrderItemModifier (modifikátory položek) a Voucher (poukazy vázané na bill) se přidají s gastro/CRM rozšířením.
 
-### Slevy (od Etapy 3.2)
+### Přepočet Bill totalů a slevy
 
-Slevy nejsou součástí základního prodeje (Etapa 2). Sloupce `order_items.discount` a `bills.discount_amount` jsou ve schématu připraveny, ale UI a logika se implementují až v Etapě 3.2.
+Bill totaly se přepočítávají **po každé změně** (createOrder, cancelOrder, voidOrder). Výpočet zahrnuje pouze aktivní položky (ne cancelled/voided):
 
-Systém podporuje slevy na **2 úrovních**:
+1. `item_subtotal = sale_price_att × quantity - discount` (discount = 0 v E2)
+2. `bill.subtotal_gross = Σ(item_subtotals)` přes všechny aktivní orders
+3. `bill.tax_total = Σ(sale_tax_amount × quantity)` přes aktivní items
+4. `bill.subtotal_net = subtotal_gross - tax_total`
+5. `bill.total_gross = subtotal_gross - discount_amount + rounding_amount`
 
-| Úroveň | Sloupec | Popis |
-|---------|---------|-------|
-| **Položka** (OrderItem) | `order_items.discount` | Sleva na konkrétní položku (akce, manuální sleva) |
-| **Účet** (Bill) | `bills.discount_amount` | Sleva na celý účet (VIP, slevový kód) |
+> **E2:** `discount_amount`, `rounding_amount` a `order_items.discount` jsou vždy 0. Zjednodušení: `total_gross = subtotal_gross`.
 
-**Výpočet:**
-1. `item_subtotal = sale_price_att × quantity - item_discount`
-2. `bill_subtotal = Σ(item_subtotals)` přes všechny objednávky
-3. `bill_total = bill_subtotal - bill_discount + rounding`
-
-> **Pozn.:** Slevy na úrovni objednávky (Order) neexistují. Sleva se aplikuje buď na položku, nebo na celý účet.
+**Slevy (od Etapy 3.2):** 2 úrovně — položka (`order_items.discount`) a účet (`bills.discount_amount`). Sloupce jsou ve schématu připraveny, UI a logika se implementují v E3.2. Slevy na úrovni objednávky (Order) neexistují.
 
 ### Platební metody
 
@@ -699,43 +753,6 @@ Při vytvoření firmy (onboarding) se seedují **3 výchozí platební metody**
 - Při přidání vlastní metody uživatel vybere typ z PaymentType
 
 > **Pozn.:** Tabulka `payment_methods` je per-company (filtruje se přes `company_id`). Na rozdíl od `roles`/`permissions` není read-only.
-
-### Co vlastní Bill (účet)
-
-Bill je **platební jednotka** — reprezentuje otevřený/uzavřený účet zákazníka:
-
-| Vlastnost | Typ | Popis |
-|-----------|-----|-------|
-| `table_id` | FK | Stůl, u kterého zákazník sedí |
-| `opened_by_user_id` | FK | Obsluha, která účet otevřela |
-| `number_of_guests` | int | Počet hostů |
-| `is_takeaway` | bool | Jídlo s sebou |
-| `status` | BillStatus | Stav účtu (opened, paid, cancelled) |
-| `currency_id` | FK | Měna účtu |
-| `subtotal_gross` | int | Mezisoučet vč. DPH (v centech) |
-| `subtotal_net` | int | Mezisoučet bez DPH (v centech) |
-| `discount_amount` | int | Sleva na úrovni účtu (v centech) |
-| `tax_total` | int | Celková DPH (v centech) |
-| `total_gross` | int | Celková částka k platbě (v centech) |
-| `rounding_amount` | int | Zaokrouhlení (v centech) |
-| `paid_amount` | int | Již zaplacená částka (v centech) |
-| `opened_at` | DateTime | Čas otevření účtu |
-| `closed_at` | DateTime | Čas uzavření účtu (null = otevřený) |
-
-### Co vlastní Order (objednávka)
-
-Order je **kuchyňská dispečerská jednotka** — reprezentuje jednu dávku položek odeslanou do kuchyně:
-
-| Vlastnost | Typ | Popis |
-|-----------|-----|-------|
-| `bill_id` | FK | Účet, ke kterému objednávka patří |
-| `order_number` | string | Číslo objednávky (pro kuchyň) |
-| `notes` | string | Poznámky k objednávce |
-| `status` | PrepStatus | Stav přípravy (created, inPrep, ready, delivered, cancelled, voided) |
-| `item_count` | int | Počet položek |
-| `subtotal_gross` | int | Mezisoučet objednávky vč. DPH (v centech) |
-| `subtotal_net` | int | Mezisoučet objednávky bez DPH (v centech) |
-| `tax_total` | int | DPH objednávky (v centech) |
 
 ### Statusy
 
@@ -798,11 +815,12 @@ Order.status se odvozuje z položek:
 
 | Aspekt | Rozhodnutí |
 |--------|------------|
-| **Bill číslo** | Per-day reset (každý den od 1) |
-| **Order číslo** | Globální sekvenční |
+| **Bill číslo** | `B-001` — per-day reset, 3 cifry s prefixem |
+| **Order číslo** | `O-0001` — per register session, reset při nové session, 4 cifry s prefixem |
 | **Prázdný bill** | Povolen (placeholder pro stůl) |
 | **Po zrušení všech items** | Bill zůstane otevřený |
 | **Slevy** | 2 úrovně — bill, item (od Etapy 3.2) |
+| **Přepočet totalů** | Po každé změně (createOrder, cancelOrder, voidOrder) |
 | **Zaokrouhlení** | Pouze na bill level |
 | **Payment** | Pouze na bill |
 | **Permissions** | Oddělené `bills.*` |
@@ -966,6 +984,31 @@ sequenceDiagram
 | Cancel/void všech orders | Zůstává `opened` (prázdný bill povolen) | 0 |
 | cancelBill | → `cancelled` | Všechny orders cancel/void dle stavu |
 
+### Workflow — Register Session (od Etapy 2)
+
+```mermaid
+stateDiagram-v2
+    [*] --> Login: PIN ověřen
+    Login --> CheckSession: Kontrola aktivní session
+    CheckSession --> ActiveSession: Session existuje (closed_at = null)
+    CheckSession --> NoSession: Žádná aktivní session
+    NoSession --> ScreenBills: Tlačítko "Zahájit prodej" viditelné
+    ScreenBills --> OpenSession: Klik "Zahájit prodej"
+    OpenSession --> ActiveSession: INSERT register_sessions (order_counter=0)
+    ActiveSession --> ScreenBills: Tlačítko "Uzávěrka" viditelné, prodej povolen
+    ScreenBills --> CloseSession: Klik "Uzávěrka"
+    CloseSession --> NoSession: UPDATE closed_at = now
+```
+
+**Pravidla:**
+- Bez aktivní register session **nelze vytvářet účty ani objednávky**
+- Tlačítko v pravém panelu ScreenBills se mění dynamicky:
+  - Žádná aktivní session → **"Zahájit prodej"** (zelená)
+  - Aktivní session → **"Uzávěrka"** (neutrální)
+- Order counter (`O-0001`) se resetuje při otevření nové session
+- E2: Jednoduché otevření/zavření (bez cash count)
+- E3+: Rozšíření o počáteční/koncový stav hotovosti, Z-report
+
 ### Repository API
 
 #### BillRepository
@@ -987,42 +1030,27 @@ sequenceDiagram
 - **Query:** getByBill, watchByBill
 - **Pozn.:** Vytváření plateb řídí `BillRepository.recordPayment` — PaymentRepository má pouze query metody
 
-### UI Screens
-
-#### ScreenBills
-
-Hlavní obrazovka zobrazující seznam účtů (Bills):
-
-- **Data source:** `billRepositoryProvider.watchRecentByCompany()`
-- **Filtrování:** podle `BillStatus` (opened, paid, cancelled)
-- **Řazení:** podle času nebo částky
-- **Akce:** navigace na `DialogBillDetail`
-
-#### DialogBillDetail
-
-Detail účtu s možností přidávat objednávky a platit:
-
-- **Data source:** `BillModel` předaný z overview
-- **Zobrazuje:** informace o účtu, stůl, obsluhu, hosty, stav, částky
-- **Akce:** přidání objednávky, platba, storno
-
-#### ScreenSell
-
-Prodej (přidávání položek na účet / objednávku):
-
-- **Workflow:** vytvoří Bill → Order → Payment v jednom flow
-- **Data source:** `billRepositoryProvider`, `orderRepositoryProvider`
-- **Nastavení:** `isTakeaway: true` pro rychlý prodej
-
 ---
 
 ## Autentizace
 
 ### PIN Flow
 
-1. **Hashování:** PINy jsou ukládány jako solený hash (Salted SHA-256 + 128-bit `Random.secure()` salt)
-2. **Ověření:** Hash se porovná s uloženým hashem v lokální DB (`users` tabulka)
-3. **Session:** Úspěšné přihlášení aktivuje `SessionManager`. Session je "volatile" (pouze v RAM)
+1. **Výběr uživatele:** ScreenLogin zobrazí seznam aktivních uživatelů (jméno). Uživatel vybere svůj účet.
+2. **Hashování:** PINy jsou ukládány jako solený hash (Salted SHA-256 + 128-bit `Random.secure()` salt)
+   - **Formát `pin_hash`:** `"hex_salt:hex_hash"` — salt a hash uloženy v jednom sloupci, oddělené dvojtečkou
+3. **Ověření:** Zadaný PIN se hashuje a porovná s uloženým hashem vybraného uživatele v lokální DB (`users` tabulka)
+4. **Session:** Úspěšné přihlášení aktivuje `SessionManager`. Session je "volatile" (pouze v RAM)
+
+### Multi-session model
+
+Na jednom zařízení může být současně **více uživatelů přihlášeno** (PIN ověřený), ale **aktivně pracuje jen jeden**:
+
+- **Aktivní uživatel:** Právě pracující obsluha. Všechny akce se přiřadí tomuto uživateli.
+- **Přihlášení uživatelé:** Ostatní uživatelé s ověřeným PINem. Zobrazeni v info panelu.
+- **Přepnutí obsluhy:** Dialog se seznamem přihlášených uživatelů → výběr → PIN (v E1-2 vždy vyžadován, nastavitelné v budoucnu).
+- **Odhlášení:** Odhlásí pouze aktivního uživatele. Ostatní zůstávají přihlášeni.
+- **Reset:** Při restartu aplikace se všechny sessions vymaží (volatile, RAM only).
 
 ### Brute-Force ochrana
 
@@ -1037,6 +1065,7 @@ Progresivní lockout chrání proti hádání PIN kódu:
 | 7+ | 60 minut (cap) |
 
 **Implementace:**
+- **Scope:** Per-device (globální počítadlo pro celé zařízení, ne per-user)
 - Stav se drží v paměti (`AuthService`) — reset při restartu aplikace
 - `AuthLocked` result obsahuje `remainingSeconds` pro UI countdown
 - Úspěšné přihlášení resetuje počítadlo
@@ -1056,33 +1085,21 @@ Progresivní lockout chrání proti hádání PIN kódu:
 
 ### Navigace
 
-#### Etapa 1–2 (bez sync)
-
 ```mermaid
 graph TD
     BOOT[Bootstrap - main.dart] --> INIT[AppInitialization]
     INIT --> |Nové zařízení| ONBOARD[ScreenOnboarding]
+    INIT --> |Needs Sync Auth?| SYNCAUTH[SyncAuthScreen — E3+]
     INIT --> |Firma existuje| PIN[ScreenLogin]
     INIT --> |Authenticated| BILLS[ScreenBills]
     ONBOARD --> |Vytvořit firmu| PIN
-    PIN --> BILLS
-```
-
-#### Etapa 3+ (se sync)
-
-```mermaid
-graph TD
-    BOOT[Bootstrap - main.dart] --> INIT[AppInitialization]
-    INIT --> |Nové zařízení| ONBOARD[ScreenOnboarding]
-    INIT --> |Needs Sync Auth?| SYNCAUTH[SyncAuthScreen]
-    INIT --> |Firma existuje| PIN[ScreenLogin]
-    INIT --> |Authenticated| BILLS[ScreenBills]
-    ONBOARD --> |Vytvořit firmu| PIN
-    ONBOARD --> |Připojit se k firmě| CONNECT[ConnectCompanyScreen]
+    ONBOARD --> |Připojit se k firmě — E3+| CONNECT[ConnectCompanyScreen]
     CONNECT --> PIN
     SYNCAUTH --> PIN
     PIN --> BILLS
 ```
+
+> **E1-2:** Pouze cesta Nové zařízení → Vytvořit firmu → PIN → Bills. SyncAuthScreen a ConnectCompanyScreen se aktivují v E3.
 
 #### ScreenOnboarding Flow
 
@@ -1091,6 +1108,7 @@ Při prvním spuštění aplikace (bez lokálních dat) se zobrazí **ScreenOnbo
 ##### Etapa 1–2 — Vytvoření firmy (wizard)
 
 Pouze možnost „Vytvořit novou firmu":
+Tlačítko „Připojit se k firmě" je zobrazeno jako disabled (aktivuje se v Etapě 3).
 
 **Krok 1 — Firma:**
 - Název firmy (povinné)
@@ -1106,16 +1124,16 @@ Po odeslání formuláře se v jedné transakci vytvoří:
 
 | Entita | Počet | Detail |
 |--------|-------|--------|
-| Company | 1 | Dle formuláře |
-| Currency | 1 | CZK (Kč, 2 des. místa) |
-| TaxRate | 3 | Základní 21%, Snížená 12%, Nulová 0% |
+| Company | 1 | Dle formuláře, status: `trial` |
+| Currency | 1 | CZK (Kč, 2 des. místa). Formátování řídí `intl` package dle locale. |
+| TaxRate | 3 | Základní 21% (`regular`), Snížená 12% (`regular`), Nulová 0% (`noTax`), is_default: Základní=true |
 | Permission | 14 | Viz [Katalog oprávnění](#katalog-oprávnění-14) |
 | Role | 3 | helper, operator, admin |
 | RolePermission | 29 | helper: 5, operator: 10, admin: 14 |
 | PaymentMethod | 3 | Viz [Platební metody](#platební-metody) |
-| Register | 1 | Hlavní pokladna (type: `local`) |
-| User | 1 | Admin s PIN hashem |
-| UserPermission | 14 | Všech 14 oprávnění (applyRoleToUser) |
+| Register | 1 | code: `REG-1`, type: `local`, is_active: true, allow_cash/card/transfer: true, allow_refunds: false, grid: 5×8 |
+| User | 1 | Admin s PIN hashem, role_id: admin |
+| UserPermission | 14 | Všech 14 oprávnění, granted_by: admin user ID (self-grant při onboardingu) |
 
 **Pořadí seedu (respektuje FK závislosti):**
 1. Company → Currency (`default_currency_id`)
@@ -1300,6 +1318,161 @@ POS aplikace je **pracovní nástroj**, ne marketingový produkt. Design optimal
 - Více než 2 primární tlačítka stejné barvy vedle sebe
 - Měnit význam barvy mezi obrazovkami
 
+### Layouty obrazovek
+
+#### ScreenBills (hlavní obrazovka)
+
+Layout: **80/20 horizontální split**
+
+```
+┌──────────────────────────────────────────┬──────────────┐
+│ [Vše] [Hl.sál] [Zahrádka]    [ŘAZENÍ]   │ RYCHLÝ ÚČET  │
+│                                          │ VYTVOŘIT ÚČET│
+│  Stůl │Host│Hostů│Celkem│Posl.obj│Obsluha│              │
+│ ─────┼────┼─────┼──────┼────────┼───────│ (E3+ tlač.)  │
+│Stůl 1│Novák│  2 │212,- │ 15min  │Karel │              │
+│Stůl 2│Darek│    │ 89,- │  1min  │Martin│──────────────│
+│Zahr.1│     │    │  0,- │ 2h 30m │      │ Datum, čas   │
+│      │ Tom │    │765,- │ 10min  │      │ Stav pokladny│
+│                                          │ Aktivní user │
+│                                          │ Přihlášení   │
+│                                          │ Pokladna: Kč │
+│──────────────────────────────────────────│──────────────│
+│ [✓ OTEVŘENÉ] [✓ ZAPLACENÉ] [✓ STORNO]   │ PŘEPNOUT OBS.│
+│                                          │ ODHLÁSIT     │
+└──────────────────────────────────────────┴──────────────┘
+```
+
+**Levý panel (80%):**
+- **Top bar:** Sekce jako taby/chipy (radio — vždy jeden aktivní, první tab „Vše"), tlačítko Řazení
+- **Tabulka:** Stůl, Host, Počet hostů, Celkem, Poslední objednávka (relativní čas), Obsluha
+- **Barva řádku** = status účtu (opened, paid, cancelled — dle barevného systému)
+- **Sloupec Host:** Prázdný v E1-2 (zobrazí se až s CRM rozšířením)
+- **Bottom bar:** Checkboxy pro filtrování podle statusu (Otevřené, Zaplacené, Stornované)
+- **Prázdný stav:** Tabulka s hlavičkou, bez řádků, žádný placeholder text
+
+**Pravý panel (20%):**
+- **Akční tlačítka:** Rychlý účet, Vytvořit účet
+- **Info panel:** Datum/čas, stav pokladny (E1-2: vždy "offline", E3+: online/offline sync stav), aktivní obsluha (jméno + doba aktivity), přihlášení uživatelé, stav pokladny v Kč
+- **Bottom:** Přepnout obsluhu, Odhlásit
+- **Etapa 2:** Dynamické tlačítko — "Zahájit prodej" (žádná aktivní register session) / "Uzávěrka" (aktivní session)
+- **Etapa 3+:** Pokladní deník, Přehled prodeje, Sklad, Mapa, Další
+
+#### DialogBillDetail (detail účtu)
+
+Dialog (overlay) s informacemi o účtu a historií objednávek.
+
+```
+┌──────────────────────────────────────────────────────────┐
+│  Stůl 01    Zákazník: Novák    305 Kč                    │
+│             Vytvořen: 1.12. 11:21  Posl.obj: 11:35       │
+│┌──┬──────────────────────────────────────┬──────────────┐│
+││ ↑│    Historie objednávek               │  ZÁKAZNÍK    ││
+││ ↓│ 12:21  2ks Pivo 0,5l    110 Kč Karel│  PŘESUNOUT   ││
+││  │ 12:21  1ks Cappuccino    65 Kč Pepa │  SLOUČIT     ││
+││ ✕│ 12:41  2ks Zákusek      130 Kč Pepa │  ROZDĚLIT    ││
+││ +│                                      │  SUMÁŘ       ││
+││ ⋮│                                      │  TISK        ││
+│└──┴──────────────────────────────────────┴──────────────┘│
+│          [ZAVŘÍT]  [ZAPLATIT]  [OBJEDNAT]                │
+└──────────────────────────────────────────────────────────┘
+```
+
+**Header:** Stůl, zákazník, celková útrata, čas vytvoření, poslední objednávka
+**Centrum:** Historie objednávek — čas, množství, položka, poznámka, cena, obsluha
+**Levý sloupec:** Navigace (↑↓ scroll, ✕ storno položky, + přidat, ⋮ více)
+**Pravý sloupec:** Akční tlačítka
+**Bottom:** Zavřít (červená), Zaplatit (zelená), Objednat (modrá)
+
+**Dostupnost tlačítek podle etapy:**
+
+| Tlačítko | Etapa | Popis |
+|----------|-------|-------|
+| OBJEDNAT | E2 | Navigace na ScreenSell |
+| ZAPLATIT | E2 | Otevře DialogPayment |
+| ZAVŘÍT | E2 | Storno účtu (cancelBill) |
+| ZÁKAZNÍK | E3+ | Přiřazení zákazníka (CRM) |
+| PŘESUNOUT | E3+ | Přesun na jiný stůl |
+| SLOUČIT | E3+ | Sloučení účtů |
+| ROZDĚLIT | E3+ | Split bill |
+| SUMÁŘ | E3+ | Souhrn účtu |
+| TISK | E3+ | Tisk účtenky |
+
+#### ScreenSell (prodejní obrazovka)
+
+Layout: **20/80 horizontální split**
+
+```
+┌──────────────┬───────────────────────────────────────────┐
+│              │ [VYHLEDAT] [SKENOVAT] [ZÁKAZNÍK] [POZNÁM.]│
+│ Souhrn polož.│                                           │
+│──────────────│ ┌────────┬────────┬────────┬────────┐     │
+│ 3x Cappucino │ │NÁPOJE  │Cappuc. │ Pivo   │ Limo   │     │
+│       160,-  │ ├────────┼────────┼────────┼────────┤     │
+│ 1x Lízátko   │ │JÍDLO   │Jídlo 1 │Jídlo 2 │        │     │
+│        12,-  │ ├────────┼────────┼────────┼────────┤     │
+│ 1x Pivo 0,5l │ │DEZERTY │Dezert 1│        │        │     │
+│        45,-  │ ├────────┼────────┼────────┼────────┤     │
+│              │ │OBALY   │ Box    │ Taška  │        │     │
+│              │ ├────────┼────────┼────────┼────────┤     │
+│              │ │OSTATNÍ │Billiard│Doprava │Voucher │     │
+│──────────────│ └────────┴────────┴────────┴────────┘     │
+│ Celkem 217,- │                                           │
+│[ZRUŠIT][OBJ.]│                                           │
+└──────────────┴───────────────────────────────────────────┘
+```
+
+**Levý panel (20%) — Košík:**
+- Header: Souhrn položek
+- Seznam: množství × název, cena
+- Bottom: Celkem, Zrušit (červená), Objednat (zelená)
+
+**Pravý panel (80%) — Konfigurovatelný grid:**
+- **Top toolbar:** Vyhledat, Skenovat, Zákazník, Poznámka, Akce (všechny disabled v E2, funkční od E3+)
+- **Grid:** N×M konfigurovatelných tlačítek (minimum 5×8, tlačítka se velikostí automaticky přizpůsobí)
+- **Každé tlačítko** = položka (item), kategorie, nebo prázdné
+- **Klik na položku:** Přidá do košíku (quantity +1)
+- **Klik na kategorii:** Zobrazí podstránku s položkami dané kategorie ve stejném gridu
+- **Editační režim:** V nastavení lze každému tlačítku přiřadit položku nebo kategorii
+- **Auto-layout:** Budoucí funkce — automatické rozmístění produktů do gridu
+- **Rozměry gridu:** Uloženy v tabulce `registers` (`grid_rows`, `grid_cols`). Výchozí 5×8 (seed).
+
+Grid konfigurace je uložena v tabulce `layout_items` (viz [Schéma](#layout-grid)).
+
+#### Settings (nastavení)
+
+Layout: **Taby + inline editace**
+
+```
+┌──────────────────────────────────────────────────────────┐
+│ [Uživatelé] [Sekce] [Stoly] [Kategorie] [Produkty] [Daň.sazby] [Plat.met.] │
+│──────────────────────────────────────────────────────────│
+│                                          [+ Přidat]      │
+│  Jméno        │ Username │ Role     │ Aktivní │ Akce     │
+│ ──────────────┼──────────┼──────────┼─────────┼────────  │
+│  Karel Novák  │ karel    │ admin    │   ✓     │ ✏ 🗑    │
+│  Martin Darek │ martin   │ operator │   ✓     │ ✏ 🗑    │
+│  Pepa Svoboda │ pepa     │ helper   │   ✓     │ ✏ 🗑    │
+│                                                          │
+└──────────────────────────────────────────────────────────┘
+```
+
+**Navigace:** Horizontální taby — Uživatelé, Sekce, Stoly, Kategorie, Produkty, Daňové sazby, Platební metody
+**Obsah:** Datová tabulka s inline editací
+**Akce:** Přidat řádek (tlačítko nahoře), editace přímo v řádku, soft delete
+
+**Sloupce per tab:**
+
+| Tab | Sloupce |
+|-----|---------|
+| Uživatelé | Jméno, Username, Role (dropdown), PIN (skrytý), Aktivní, Akce |
+| Sekce | Název, Barva, Aktivní, Akce |
+| Stoly | Název stolu, Sekce (dropdown), Kapacita, Aktivní, Akce |
+| Kategorie | Název, Aktivní, Akce |
+| Produkty | Název, Kategorie (dropdown), Cena, Daňová sazba (dropdown), Typ, Aktivní, Akce |
+| Daňové sazby | Název, Typ, Sazba (%), Výchozí, Akce |
+| Platební metody | Název, Typ (dropdown), Aktivní, Akce |
+
 ---
 
 ## Možná rozšíření v budoucnu
@@ -1324,7 +1497,7 @@ Funkce, které nejsou součástí aktuálního plánu. Mohou se přidat kdykoli 
 
 ### Gastro rozšíření
 
-- Sekce prostorů — tabulka `sections`, vizuální mapa stolů (pos_x, pos_y, shape)
+- Vizuální mapa stolů — rozšíření `sections` o pos_x, pos_y, shape (základní sekce jsou v E1)
 - Rezervace — tabulka `reservations`, propojení se stolem a zákazníkem
 - Split bill — rozdělení účtu na úrovni items
 - Modifikátory položek — tabulky `item_modifiers`, `order_item_modifiers` (extra sýr, bez cibule apod.)
@@ -1337,10 +1510,10 @@ Funkce, které nejsou součástí aktuálního plánu. Mohou se přidat kdykoli 
 
 ### Pokladna a směny
 
-- Register sessions — tabulka `register_sessions`, otevírání/zavírání pokladny
+- Register session rozšíření — cash count, Z-report (základní session je v E2)
 - Směny — tabulka `shifts`, evidence pracovní doby
 - Hotovostní pohyby — tabulka `cash_movements`, vklady/výběry/výdaje
-- Detailní konfigurace registru — grid_columns, grid_rows, auto_print, auto_logout
+- Detailní konfigurace registru — auto_print, auto_logout
 
 ### Další
 

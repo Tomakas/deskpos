@@ -1,0 +1,4 @@
+enum LayoutItemType {
+  item,
+  category,
+}

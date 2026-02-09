@@ -1,0 +1,264 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../core/auth/pin_helper.dart';
+import '../../../core/data/providers/auth_providers.dart';
+import '../../../core/data/result.dart';
+import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/logging/app_logger.dart';
+
+class ScreenOnboarding extends ConsumerStatefulWidget {
+  const ScreenOnboarding({super.key});
+
+  @override
+  ConsumerState<ScreenOnboarding> createState() => _ScreenOnboardingState();
+}
+
+class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
+  bool _showWizard = false;
+  int _step = 0;
+  bool _isSubmitting = false;
+
+  // Step 1: Company
+  final _companyNameCtrl = TextEditingController();
+  final _businessIdCtrl = TextEditingController();
+  final _addressCtrl = TextEditingController();
+  final _emailCtrl = TextEditingController();
+  final _phoneCtrl = TextEditingController();
+
+  // Step 2: Admin
+  final _fullNameCtrl = TextEditingController();
+  final _usernameCtrl = TextEditingController();
+  final _pinCtrl = TextEditingController();
+  final _pinConfirmCtrl = TextEditingController();
+
+  final _formKey = GlobalKey<FormState>();
+
+  @override
+  void dispose() {
+    _companyNameCtrl.dispose();
+    _businessIdCtrl.dispose();
+    _addressCtrl.dispose();
+    _emailCtrl.dispose();
+    _phoneCtrl.dispose();
+    _fullNameCtrl.dispose();
+    _usernameCtrl.dispose();
+    _pinCtrl.dispose();
+    _pinConfirmCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+
+    if (!_showWizard) {
+      return Scaffold(
+        body: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 400),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(l.onboardingTitle, style: Theme.of(context).textTheme.headlineMedium),
+                const SizedBox(height: 48),
+                SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: FilledButton(
+                    onPressed: () => setState(() => _showWizard = true),
+                    child: Text(l.onboardingCreateCompany),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: OutlinedButton(
+                    onPressed: null,
+                    child: Text(l.onboardingJoinCompany),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  l.onboardingJoinCompanyDisabled,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Scaffold(
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 480),
+          child: Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(32),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    _step == 0 ? l.wizardStepCompany : l.wizardStepAdmin,
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  const SizedBox(height: 32),
+                  if (_step == 0) ..._buildCompanyStep(l),
+                  if (_step == 1) ..._buildAdminStep(l),
+                  const SizedBox(height: 32),
+                  Row(
+                    children: [
+                      if (_step > 0)
+                        OutlinedButton(
+                          onPressed: () => setState(() => _step--),
+                          child: Text(l.wizardBack),
+                        ),
+                      const Spacer(),
+                      if (_step == 0)
+                        FilledButton(
+                          onPressed: _nextStep,
+                          child: Text(l.wizardNext),
+                        ),
+                      if (_step == 1)
+                        FilledButton(
+                          onPressed: _isSubmitting ? null : _finish,
+                          child: _isSubmitting
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              : Text(l.wizardFinish),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  List<Widget> _buildCompanyStep(dynamic l) {
+    return [
+      TextFormField(
+        controller: _companyNameCtrl,
+        decoration: InputDecoration(labelText: l.wizardCompanyName),
+        validator: (v) => (v == null || v.trim().isEmpty) ? l.wizardCompanyNameRequired : null,
+        textInputAction: TextInputAction.next,
+      ),
+      const SizedBox(height: 16),
+      TextFormField(
+        controller: _businessIdCtrl,
+        decoration: InputDecoration(labelText: l.wizardBusinessId),
+        textInputAction: TextInputAction.next,
+      ),
+      const SizedBox(height: 16),
+      TextFormField(
+        controller: _addressCtrl,
+        decoration: InputDecoration(labelText: l.wizardAddress),
+        textInputAction: TextInputAction.next,
+      ),
+      const SizedBox(height: 16),
+      TextFormField(
+        controller: _emailCtrl,
+        decoration: InputDecoration(labelText: l.wizardEmail),
+        keyboardType: TextInputType.emailAddress,
+        textInputAction: TextInputAction.next,
+      ),
+      const SizedBox(height: 16),
+      TextFormField(
+        controller: _phoneCtrl,
+        decoration: InputDecoration(labelText: l.wizardPhone),
+        keyboardType: TextInputType.phone,
+      ),
+    ];
+  }
+
+  List<Widget> _buildAdminStep(dynamic l) {
+    return [
+      TextFormField(
+        controller: _fullNameCtrl,
+        decoration: InputDecoration(labelText: l.wizardFullName),
+        validator: (v) => (v == null || v.trim().isEmpty) ? l.wizardFullNameRequired : null,
+        textInputAction: TextInputAction.next,
+      ),
+      const SizedBox(height: 16),
+      TextFormField(
+        controller: _usernameCtrl,
+        decoration: InputDecoration(labelText: l.wizardUsername),
+        validator: (v) => (v == null || v.trim().isEmpty) ? l.wizardUsernameRequired : null,
+        textInputAction: TextInputAction.next,
+      ),
+      const SizedBox(height: 16),
+      TextFormField(
+        controller: _pinCtrl,
+        decoration: InputDecoration(labelText: l.wizardPin),
+        obscureText: true,
+        keyboardType: TextInputType.number,
+        inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(6)],
+        validator: (v) {
+          if (v == null || v.isEmpty) return l.wizardPinRequired;
+          if (!PinHelper.isValidPin(v)) return l.wizardPinLength;
+          return null;
+        },
+        textInputAction: TextInputAction.next,
+      ),
+      const SizedBox(height: 16),
+      TextFormField(
+        controller: _pinConfirmCtrl,
+        decoration: InputDecoration(labelText: l.wizardPinConfirm),
+        obscureText: true,
+        keyboardType: TextInputType.number,
+        inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(6)],
+        validator: (v) {
+          if (v != _pinCtrl.text) return l.wizardPinMismatch;
+          return null;
+        },
+      ),
+    ];
+  }
+
+  void _nextStep() {
+    if (_formKey.currentState!.validate()) {
+      setState(() => _step++);
+    }
+  }
+
+  Future<void> _finish() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() => _isSubmitting = true);
+
+    final seedService = ref.read(seedServiceProvider);
+    final result = await seedService.seedOnboarding(
+      companyName: _companyNameCtrl.text.trim(),
+      businessId: _businessIdCtrl.text.trim().isEmpty ? null : _businessIdCtrl.text.trim(),
+      address: _addressCtrl.text.trim().isEmpty ? null : _addressCtrl.text.trim(),
+      email: _emailCtrl.text.trim().isEmpty ? null : _emailCtrl.text.trim(),
+      phone: _phoneCtrl.text.trim().isEmpty ? null : _phoneCtrl.text.trim(),
+      adminFullName: _fullNameCtrl.text.trim(),
+      adminUsername: _usernameCtrl.text.trim(),
+      adminPin: _pinCtrl.text,
+    );
+
+    if (!mounted) return;
+
+    switch (result) {
+      case Success():
+        // Invalidate init provider to re-check state
+        ref.invalidate(appInitProvider);
+        context.go('/login');
+      case Failure(message: final msg):
+        AppLogger.error('Onboarding failed: $msg');
+        setState(() => _isSubmitting = false);
+    }
+  }
+}

@@ -1,0 +1,130 @@
+{
+  "@@locale": "cs",
+
+  "appTitle": "EPOS",
+
+  "onboardingTitle": "Vítejte v EPOS",
+  "onboardingCreateCompany": "Založit novou firmu",
+  "onboardingJoinCompany": "Připojit se k firmě",
+  "onboardingJoinCompanyDisabled": "Dostupné od verze 3.0",
+
+  "wizardStepCompany": "Firma",
+  "wizardStepAdmin": "Administrátor",
+  "wizardCompanyName": "Název firmy",
+  "wizardCompanyNameRequired": "Název firmy je povinný",
+  "wizardBusinessId": "IČO",
+  "wizardAddress": "Adresa",
+  "wizardEmail": "E-mail",
+  "wizardPhone": "Telefon",
+  "wizardNext": "Pokračovat",
+  "wizardBack": "Zpět",
+  "wizardFinish": "Dokončit",
+
+  "wizardFullName": "Celé jméno",
+  "wizardFullNameRequired": "Celé jméno je povinné",
+  "wizardUsername": "Uživatelské jméno",
+  "wizardUsernameRequired": "Uživatelské jméno je povinné",
+  "wizardPin": "PIN (4–6 číslic)",
+  "wizardPinConfirm": "Potvrzení PINu",
+  "wizardPinRequired": "PIN je povinný",
+  "wizardPinLength": "PIN musí mít 4–6 číslic",
+  "wizardPinMismatch": "PINy se neshodují",
+  "wizardPinDigitsOnly": "PIN smí obsahovat pouze číslice",
+
+  "loginTitle": "Přihlášení",
+  "loginPinLabel": "Zadejte PIN",
+  "loginButton": "Přihlásit",
+  "loginFailed": "Neplatný PIN",
+  "loginLockedOut": "Příliš mnoho pokusů. Zkuste znovu za {seconds} s.",
+  "@loginLockedOut": {
+    "placeholders": {
+      "seconds": { "type": "int" }
+    }
+  },
+
+  "billsTitle": "Účty",
+  "billsEmpty": "Žádné účty",
+  "billsFilterOpened": "Otevřené",
+  "billsFilterPaid": "Zaplacené",
+  "billsFilterCancelled": "Stornované",
+  "billsQuickBill": "Rychlý účet",
+  "billsNewBill": "Vytvořit účet",
+  "billsSectionAll": "Vše",
+
+  "columnTable": "Stůl",
+  "columnGuest": "Host",
+  "columnGuests": "Hostů",
+  "columnTotal": "Celkem",
+  "columnLastOrder": "Posl. obj.",
+  "columnStaff": "Obsluha",
+
+  "infoPanelDate": "Datum",
+  "infoPanelStatus": "Stav pokladny",
+  "infoPanelStatusOffline": "Offline",
+  "infoPanelActiveUser": "Aktivní obsluha",
+  "infoPanelLoggedIn": "Přihlášení",
+
+  "actionSwitchUser": "Přepnout obsluhu",
+  "actionLogout": "Odhlásit",
+
+  "switchUserTitle": "Přepnout obsluhu",
+  "switchUserSelectUser": "Vyberte uživatele",
+  "switchUserEnterPin": "Zadejte PIN pro {name}",
+  "@switchUserEnterPin": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+
+  "settingsTitle": "Nastavení",
+  "settingsUsers": "Uživatelé",
+  "settingsSections": "Sekce",
+  "settingsTables": "Stoly",
+  "settingsCategories": "Kategorie",
+  "settingsProducts": "Produkty",
+  "settingsTaxRates": "Daň. sazby",
+  "settingsPaymentMethods": "Plat. metody",
+
+  "actionAdd": "Přidat",
+  "actionEdit": "Upravit",
+  "actionSave": "Uložit",
+  "actionCancel": "Zrušit",
+  "actionDelete": "Smazat",
+  "actionClose": "Zavřít",
+
+  "fieldName": "Název",
+  "fieldUsername": "Username",
+  "fieldRole": "Role",
+  "fieldPin": "PIN",
+  "fieldActive": "Aktivní",
+  "fieldActions": "Akce",
+  "fieldSection": "Sekce",
+  "fieldCapacity": "Kapacita",
+  "fieldColor": "Barva",
+  "fieldCategory": "Kategorie",
+  "fieldPrice": "Cena",
+  "fieldTaxRate": "Daň. sazba",
+  "fieldType": "Typ",
+  "fieldRate": "Sazba (%)",
+  "fieldDefault": "Výchozí",
+
+  "roleHelper": "Pomocník",
+  "roleOperator": "Obsluha",
+  "roleAdmin": "Administrátor",
+
+  "paymentTypeCash": "Hotovost",
+  "paymentTypeCard": "Karta",
+  "paymentTypeBank": "Převod",
+  "paymentTypeOther": "Ostatní",
+
+  "taxTypeRegular": "Běžná",
+  "taxTypeNoTax": "Bez DPH",
+  "taxTypeConstant": "Konstantní",
+  "taxTypeMixed": "Smíšená",
+
+  "confirmDelete": "Opravdu chcete smazat tuto položku?",
+  "yes": "Ano",
+  "no": "Ne",
+
+  "noPermission": "Nemáte oprávnění pro tuto akci"
+}
