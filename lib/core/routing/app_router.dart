@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../features/auth/screens/screen_login.dart';
 import '../../features/bills/screens/screen_bills.dart';
 import '../../features/onboarding/screens/screen_onboarding.dart';
+import '../../features/sell/screens/screen_sell.dart';
 import '../../features/settings/screens/screen_settings.dart';
 import '../data/providers/auth_providers.dart';
 
@@ -55,6 +56,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/bills',
         builder: (context, state) => const ScreenBills(),
+      ),
+      GoRoute(
+        path: '/sell/:billId',
+        builder: (context, state) => ScreenSell(billId: state.pathParameters['billId']!),
       ),
       GoRoute(
         path: '/settings',

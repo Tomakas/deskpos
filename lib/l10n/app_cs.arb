@@ -126,5 +126,95 @@
   "yes": "Ano",
   "no": "Ne",
 
-  "noPermission": "Nemáte oprávnění pro tuto akci"
+  "noPermission": "Nemáte oprávnění pro tuto akci",
+
+  "newBillTitle": "Nový účet",
+  "newBillTakeaway": "Jídlo s sebou",
+  "newBillTable": "Přiřadit ke stolu",
+  "newBillNoTable": "Bez stolu",
+  "newBillSelectTable": "Vyberte stůl",
+  "newBillGuests": "Počet hostů",
+  "newBillCreate": "Vytvořit",
+
+  "billDetailTitle": "Detail účtu",
+  "billDetailTable": "Stůl: {name}",
+  "@billDetailTable": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "billDetailTakeaway": "Jídlo s sebou",
+  "billDetailNoTable": "Bez stolu",
+  "billDetailCreated": "Vytvořen: {time}",
+  "@billDetailCreated": {
+    "placeholders": { "time": { "type": "String" } }
+  },
+  "billDetailLastOrder": "Posl. obj.: {time}",
+  "@billDetailLastOrder": {
+    "placeholders": { "time": { "type": "String" } }
+  },
+  "billDetailNoOrders": "Zatím žádné objednávky",
+  "billDetailOrder": "Objednat",
+  "billDetailPay": "Zaplatit",
+  "billDetailCancel": "Storno účtu",
+  "billDetailConfirmCancel": "Opravdu chcete stornovat tento účet?",
+  "billDetailBillNumber": "Účet {number}",
+  "@billDetailBillNumber": {
+    "placeholders": { "number": { "type": "String" } }
+  },
+
+  "billStatusOpened": "Otevřený",
+  "billStatusPaid": "Zaplacený",
+  "billStatusCancelled": "Stornovaný",
+
+  "sellTitle": "Prodej",
+  "sellCart": "Košík",
+  "sellCartEmpty": "Košík je prázdný",
+  "sellTotal": "Celkem",
+  "sellCancelOrder": "Zrušit",
+  "sellSubmitOrder": "Objednat",
+  "sellSearch": "Vyhledat",
+  "sellEditGrid": "Upravit grid",
+  "sellExitEdit": "Ukončit úpravy",
+  "sellEmptySlot": "Prázdné",
+  "sellBackToCategories": "Zpět",
+  "sellQuantity": "{count}×",
+  "@sellQuantity": {
+    "placeholders": { "count": { "type": "String" } }
+  },
+
+  "prepStatusCreated": "Vytvořeno",
+  "prepStatusInPrep": "Připravuje se",
+  "prepStatusReady": "Připraveno",
+  "prepStatusDelivered": "Doručeno",
+  "prepStatusCancelled": "Zrušeno",
+  "prepStatusVoided": "Stornováno",
+
+  "orderStatusChange": "Změnit stav",
+  "orderCancel": "Zrušit objednávku",
+  "orderVoid": "Stornovat objednávku",
+  "orderConfirmCancel": "Opravdu chcete zrušit tuto objednávku?",
+  "orderConfirmVoid": "Opravdu chcete stornovat tuto objednávku?",
+
+  "paymentTitle": "Platba",
+  "paymentMethod": "Platební metoda",
+  "paymentAmount": "Částka",
+  "paymentTotalDue": "K úhradě: {amount}",
+  "@paymentTotalDue": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
+  "paymentConfirm": "Zaplatit",
+
+  "gridEditorTitle": "Editor gridu",
+  "gridEditorSelectType": "Vyberte typ",
+  "gridEditorItem": "Produkt",
+  "gridEditorCategory": "Kategorie",
+  "gridEditorClear": "Vymazat",
+  "gridEditorSelectItem": "Vyberte produkt",
+  "gridEditorSelectCategory": "Vyberte kategorii",
+
+  "registerSessionStart": "Zahájit prodej",
+  "registerSessionClose": "Uzávěrka",
+  "registerSessionNoSession": "Žádná aktivní směna",
+  "registerSessionConfirmClose": "Opravdu chcete uzavřít směnu?",
+  "registerSessionRequired": "Pro prodej musíte nejdříve zahájit směnu",
+  "registerSessionActive": "Směna aktivní"
 }

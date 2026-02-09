@@ -308,4 +308,206 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get noPermission => 'Nemáte oprávnění pro tuto akci';
+
+  @override
+  String get newBillTitle => 'Nový účet';
+
+  @override
+  String get newBillTakeaway => 'Jídlo s sebou';
+
+  @override
+  String get newBillTable => 'Přiřadit ke stolu';
+
+  @override
+  String get newBillNoTable => 'Bez stolu';
+
+  @override
+  String get newBillSelectTable => 'Vyberte stůl';
+
+  @override
+  String get newBillGuests => 'Počet hostů';
+
+  @override
+  String get newBillCreate => 'Vytvořit';
+
+  @override
+  String get billDetailTitle => 'Detail účtu';
+
+  @override
+  String billDetailTable(String name) {
+    return 'Stůl: $name';
+  }
+
+  @override
+  String get billDetailTakeaway => 'Jídlo s sebou';
+
+  @override
+  String get billDetailNoTable => 'Bez stolu';
+
+  @override
+  String billDetailCreated(String time) {
+    return 'Vytvořen: $time';
+  }
+
+  @override
+  String billDetailLastOrder(String time) {
+    return 'Posl. obj.: $time';
+  }
+
+  @override
+  String get billDetailNoOrders => 'Zatím žádné objednávky';
+
+  @override
+  String get billDetailOrder => 'Objednat';
+
+  @override
+  String get billDetailPay => 'Zaplatit';
+
+  @override
+  String get billDetailCancel => 'Storno účtu';
+
+  @override
+  String get billDetailConfirmCancel => 'Opravdu chcete stornovat tento účet?';
+
+  @override
+  String billDetailBillNumber(String number) {
+    return 'Účet $number';
+  }
+
+  @override
+  String get billStatusOpened => 'Otevřený';
+
+  @override
+  String get billStatusPaid => 'Zaplacený';
+
+  @override
+  String get billStatusCancelled => 'Stornovaný';
+
+  @override
+  String get sellTitle => 'Prodej';
+
+  @override
+  String get sellCart => 'Košík';
+
+  @override
+  String get sellCartEmpty => 'Košík je prázdný';
+
+  @override
+  String get sellTotal => 'Celkem';
+
+  @override
+  String get sellCancelOrder => 'Zrušit';
+
+  @override
+  String get sellSubmitOrder => 'Objednat';
+
+  @override
+  String get sellSearch => 'Vyhledat';
+
+  @override
+  String get sellEditGrid => 'Upravit grid';
+
+  @override
+  String get sellExitEdit => 'Ukončit úpravy';
+
+  @override
+  String get sellEmptySlot => 'Prázdné';
+
+  @override
+  String get sellBackToCategories => 'Zpět';
+
+  @override
+  String sellQuantity(String count) {
+    return '$count×';
+  }
+
+  @override
+  String get prepStatusCreated => 'Vytvořeno';
+
+  @override
+  String get prepStatusInPrep => 'Připravuje se';
+
+  @override
+  String get prepStatusReady => 'Připraveno';
+
+  @override
+  String get prepStatusDelivered => 'Doručeno';
+
+  @override
+  String get prepStatusCancelled => 'Zrušeno';
+
+  @override
+  String get prepStatusVoided => 'Stornováno';
+
+  @override
+  String get orderStatusChange => 'Změnit stav';
+
+  @override
+  String get orderCancel => 'Zrušit objednávku';
+
+  @override
+  String get orderVoid => 'Stornovat objednávku';
+
+  @override
+  String get orderConfirmCancel => 'Opravdu chcete zrušit tuto objednávku?';
+
+  @override
+  String get orderConfirmVoid => 'Opravdu chcete stornovat tuto objednávku?';
+
+  @override
+  String get paymentTitle => 'Platba';
+
+  @override
+  String get paymentMethod => 'Platební metoda';
+
+  @override
+  String get paymentAmount => 'Částka';
+
+  @override
+  String paymentTotalDue(String amount) {
+    return 'K úhradě: $amount';
+  }
+
+  @override
+  String get paymentConfirm => 'Zaplatit';
+
+  @override
+  String get gridEditorTitle => 'Editor gridu';
+
+  @override
+  String get gridEditorSelectType => 'Vyberte typ';
+
+  @override
+  String get gridEditorItem => 'Produkt';
+
+  @override
+  String get gridEditorCategory => 'Kategorie';
+
+  @override
+  String get gridEditorClear => 'Vymazat';
+
+  @override
+  String get gridEditorSelectItem => 'Vyberte produkt';
+
+  @override
+  String get gridEditorSelectCategory => 'Vyberte kategorii';
+
+  @override
+  String get registerSessionStart => 'Zahájit prodej';
+
+  @override
+  String get registerSessionClose => 'Uzávěrka';
+
+  @override
+  String get registerSessionNoSession => 'Žádná aktivní směna';
+
+  @override
+  String get registerSessionConfirmClose => 'Opravdu chcete uzavřít směnu?';
+
+  @override
+  String get registerSessionRequired =>
+      'Pro prodej musíte nejdříve zahájit směnu';
+
+  @override
+  String get registerSessionActive => 'Směna aktivní';
 }

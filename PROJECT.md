@@ -484,7 +484,7 @@ Všechny aktivní tabulky obsahují společné sync sloupce (viz [SyncColumnsMix
 |---------|---------|
 | **items** | id (T), company_id →companies, category_id →categories, name (T), description (T), item_type (T), sku (T), unit_price (I), sale_tax_rate_id →tax_rates, is_sellable (B), is_active (B), unit (T) |
 | **categories** | id (T), company_id →companies, name (T), is_active (B) |
-| **tax_rates** | id (T), company_id →companies, label (T), type (T), rate (I), is_default (B) |
+| **tax_rates** | id (T), company_id →companies, label (T), type (T), rate (I), is_default (B — max 1 per company) |
 | **currencies** | id (T), code (T), symbol (T), name (T), decimal_places (I) |
 
 ##### Firma, uživatelé, oprávnění
@@ -1037,10 +1037,11 @@ stateDiagram-v2
 ### PIN Flow
 
 1. **Výběr uživatele:** ScreenLogin zobrazí seznam aktivních uživatelů (jméno). Uživatel vybere svůj účet.
-2. **Hashování:** PINy jsou ukládány jako solený hash (Salted SHA-256 + 128-bit `Random.secure()` salt)
+v průběhu 2. **Zadání PINu:** Dotyková číselná klávesnice (numpad) + podpora fyzické klávesnice. Zadané znaky zobrazeny jako hvězdičky (`*`).
+3. **Průběžné ověření:** PIN se ověřuje automaticky od 4. číslice (bez potvrzovacího tlačítka). Shoda = okamžité přihlášení. Při 6 číslicích bez shody se počítá neúspěšný pokus.
+4. **Hashování:** PINy jsou ukládány jako solený hash (Salted SHA-256 + 128-bit `Random.secure()` salt)
    - **Formát `pin_hash`:** `"hex_salt:hex_hash"` — salt a hash uloženy v jednom sloupci, oddělené dvojtečkou
-3. **Ověření:** Zadaný PIN se hashuje a porovná s uloženým hashem vybraného uživatele v lokální DB (`users` tabulka)
-4. **Session:** Úspěšné přihlášení aktivuje `SessionManager`. Session je "volatile" (pouze v RAM)
+5. **Session:** Úspěšné přihlášení aktivuje `SessionManager`. Session je "volatile" (pouze v RAM)
 
 ### Multi-session model
 
@@ -1131,6 +1132,8 @@ Po odeslání formuláře se v jedné transakci vytvoří:
 | Role | 3 | helper, operator, admin |
 | RolePermission | 29 | helper: 5, operator: 10, admin: 14 |
 | PaymentMethod | 3 | Viz [Platební metody](#platební-metody) |
+| Section | 3 | Hlavní (zelená), Zahrádka (oranžová), Interní (šedá) |
+| Table | 13 | Hlavní: Stůl 1–5 (kap. 4), Zahrádka: Stolek 1–5 (kap. 2), Interní: Majitel, Repre, Odpisy (kap. 0) |
 | Register | 1 | code: `REG-1`, type: `local`, is_active: true, allow_cash/card/transfer: true, allow_refunds: false, grid: 5×8 |
 | User | 1 | Admin s PIN hashem, role_id: admin |
 | UserPermission | 14 | Všech 14 oprávnění, granted_by: admin user ID (self-grant při onboardingu) |
@@ -1138,8 +1141,9 @@ Po odeslání formuláře se v jedné transakci vytvoří:
 **Pořadí seedu (respektuje FK závislosti):**
 1. Company → Currency (`default_currency_id`)
 2. TaxRates, Permissions, Roles, RolePermissions
-3. PaymentMethods, Register
-4. User → UserPermissions
+3. PaymentMethods, Sections, Tables
+4. Register
+5. User → UserPermissions
 
 Po dokončení se zobrazí `ScreenLogin`.
 

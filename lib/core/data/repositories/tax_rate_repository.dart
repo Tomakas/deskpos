@@ -68,6 +68,13 @@ class TaxRateRepository {
     ));
   }
 
+  Future<TaxRateModel?> getById(String id) async {
+    final entity = await (_db.select(_db.taxRates)
+          ..where((t) => t.id.equals(id) & t.deletedAt.isNull()))
+        .getSingleOrNull();
+    return entity == null ? null : taxRateFromEntity(entity);
+  }
+
   Stream<List<TaxRateModel>> watchAll(String companyId) {
     return (_db.select(_db.taxRates)
           ..where((t) => t.companyId.equals(companyId) & t.deletedAt.isNull())

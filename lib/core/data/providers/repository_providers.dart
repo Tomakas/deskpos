@@ -1,10 +1,15 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../repositories/bill_repository.dart';
 import '../repositories/category_repository.dart';
 import '../repositories/company_repository.dart';
 import '../repositories/item_repository.dart';
+import '../repositories/layout_item_repository.dart';
+import '../repositories/order_repository.dart';
 import '../repositories/payment_method_repository.dart';
 import '../repositories/permission_repository.dart';
+import '../repositories/register_repository.dart';
+import '../repositories/register_session_repository.dart';
 import '../repositories/role_repository.dart';
 import '../repositories/section_repository.dart';
 import '../repositories/table_repository.dart';
@@ -50,4 +55,24 @@ final taxRateRepositoryProvider = Provider<TaxRateRepository>((ref) {
 
 final paymentMethodRepositoryProvider = Provider<PaymentMethodRepository>((ref) {
   return PaymentMethodRepository(ref.watch(appDatabaseProvider));
+});
+
+final billRepositoryProvider = Provider<BillRepository>((ref) {
+  return BillRepository(ref.watch(appDatabaseProvider));
+});
+
+final orderRepositoryProvider = Provider<OrderRepository>((ref) {
+  return OrderRepository(ref.watch(appDatabaseProvider));
+});
+
+final registerRepositoryProvider = Provider<RegisterRepository>((ref) {
+  return RegisterRepository(ref.watch(appDatabaseProvider));
+});
+
+final registerSessionRepositoryProvider = Provider<RegisterSessionRepository>((ref) {
+  return RegisterSessionRepository(ref.watch(appDatabaseProvider));
+});
+
+final layoutItemRepositoryProvider = Provider<LayoutItemRepository>((ref) {
+  return LayoutItemRepository(ref.watch(appDatabaseProvider));
 });

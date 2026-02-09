@@ -1,23 +1,41 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import '../../../core/auth/auth_service.dart';
+import '../../../core/data/enums/bill_status.dart';
+import '../../../core/data/models/bill_model.dart';
 import '../../../core/data/models/section_model.dart';
+import '../../../core/data/models/table_model.dart';
+import '../../../core/data/models/user_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/permission_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
+import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../widgets/dialog_bill_detail.dart';
+import '../widgets/dialog_new_bill.dart';
 
-class ScreenBills extends ConsumerWidget {
+class ScreenBills extends ConsumerStatefulWidget {
   const ScreenBills({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ScreenBills> createState() => _ScreenBillsState();
+}
+
+class _ScreenBillsState extends ConsumerState<ScreenBills> {
+  BillStatus _statusFilter = BillStatus.opened;
+  String? _sectionFilter;
+
+  @override
+  Widget build(BuildContext context) {
     final l = context.l10n;
     final activeUser = ref.watch(activeUserProvider);
     final loggedIn = ref.watch(loggedInUsersProvider);
     final canManageSettings = ref.watch(hasPermissionProvider('settings.manage'));
+    final sessionAsync = ref.watch(activeRegisterSessionProvider);
+    final hasSession = sessionAsync.valueOrNull != null;
 
     return Scaffold(
       body: Row(
@@ -28,11 +46,23 @@ class ScreenBills extends ConsumerWidget {
             child: Column(
               children: [
                 // Section tabs
-                _SectionTabBar(l: l),
+                _SectionTabBar(
+                  selectedSectionId: _sectionFilter,
+                  onChanged: (id) => setState(() => _sectionFilter = id),
+                ),
                 // Bills table
-                Expanded(child: _BillsTable(l: l)),
+                Expanded(
+                  child: _BillsTable(
+                    statusFilter: _statusFilter,
+                    sectionFilter: _sectionFilter,
+                    onBillTap: (bill) => _openBillDetail(context, bill),
+                  ),
+                ),
                 // Status filter bar
-                _StatusFilterBar(l: l),
+                _StatusFilterBar(
+                  selected: _statusFilter,
+                  onChanged: (status) => setState(() => _statusFilter = status),
+                ),
               ],
             ),
           ),
@@ -44,9 +74,13 @@ class ScreenBills extends ConsumerWidget {
               activeUser: activeUser,
               loggedInUsers: loggedIn,
               canManageSettings: canManageSettings,
-              onLogout: () => _logout(context, ref),
-              onSwitchUser: () => _showSwitchUserDialog(context, ref),
+              hasSession: hasSession,
+              onLogout: () => _logout(context),
+              onSwitchUser: () => _showSwitchUserDialog(context),
               onSettings: canManageSettings ? () => context.push('/settings') : null,
+              onNewBill: hasSession ? () => _createNewBill(context) : null,
+              onQuickBill: hasSession ? () => _createQuickBill(context) : null,
+              onToggleSession: () => _toggleSession(context, hasSession),
             ),
           ),
         ],
@@ -54,7 +88,7 @@ class ScreenBills extends ConsumerWidget {
     );
   }
 
-  void _logout(BuildContext context, WidgetRef ref) {
+  void _logout(BuildContext context) {
     final session = ref.read(sessionManagerProvider);
     session.logoutActive();
     ref.read(activeUserProvider.notifier).state = session.activeUser;
@@ -64,27 +98,110 @@ class ScreenBills extends ConsumerWidget {
     }
   }
 
-  void _showSwitchUserDialog(BuildContext context, WidgetRef ref) {
+  void _showSwitchUserDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (_) => _SwitchUserDialog(ref: ref),
     );
   }
+
+  void _openBillDetail(BuildContext context, BillModel bill) {
+    showDialog(
+      context: context,
+      builder: (_) => DialogBillDetail(billId: bill.id),
+    );
+  }
+
+  Future<void> _createNewBill(BuildContext context) async {
+    final result = await showDialog<NewBillResult>(
+      context: context,
+      builder: (_) => const DialogNewBill(),
+    );
+    if (result == null || !mounted) return;
+
+    await _createBillFromResult(context, result);
+  }
+
+  Future<void> _createQuickBill(BuildContext context) async {
+    await _createBillFromResult(
+      context,
+      const NewBillResult(isTakeaway: true),
+    );
+  }
+
+  Future<void> _createBillFromResult(BuildContext context, NewBillResult result) async {
+    final company = ref.read(currentCompanyProvider);
+    final user = ref.read(activeUserProvider);
+    if (company == null || user == null) return;
+
+    final billRepo = ref.read(billRepositoryProvider);
+    final billNumber = await billRepo.generateBillNumber(company.id);
+
+    final createResult = await billRepo.createBill(
+      companyId: company.id,
+      userId: user.id,
+      currencyId: company.defaultCurrencyId,
+      billNumber: billNumber,
+      tableId: result.tableId,
+      isTakeaway: result.isTakeaway,
+      numberOfGuests: result.numberOfGuests,
+    );
+
+    if (createResult is Success<BillModel> && mounted) {
+      context.push('/sell/${createResult.value.id}');
+    }
+  }
+
+  Future<void> _toggleSession(BuildContext context, bool hasSession) async {
+    final company = ref.read(currentCompanyProvider);
+    final user = ref.read(activeUserProvider);
+    if (company == null || user == null) return;
+
+    if (hasSession) {
+      // Close session
+      final l = context.l10n;
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (_) => AlertDialog(
+          content: Text(l.registerSessionConfirmClose),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
+            TextButton(onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
+          ],
+        ),
+      );
+      if (confirmed != true) return;
+
+      final sessionAsync = ref.read(activeRegisterSessionProvider);
+      final session = sessionAsync.valueOrNull;
+      if (session != null) {
+        await ref.read(registerSessionRepositoryProvider).closeSession(session.id);
+      }
+    } else {
+      // Open session
+      final register = await ref.read(activeRegisterProvider.future);
+      if (register == null) return;
+
+      await ref.read(registerSessionRepositoryProvider).openSession(
+        companyId: company.id,
+        registerId: register.id,
+        userId: user.id,
+      );
+    }
+  }
 }
 
-class _SectionTabBar extends ConsumerStatefulWidget {
-  const _SectionTabBar({required this.l});
-  final dynamic l;
+class _SectionTabBar extends ConsumerWidget {
+  const _SectionTabBar({
+    required this.selectedSectionId,
+    required this.onChanged,
+  });
+  final String? selectedSectionId;
+  final ValueChanged<String?> onChanged;
 
   @override
-  ConsumerState<_SectionTabBar> createState() => _SectionTabBarState();
-}
-
-class _SectionTabBarState extends ConsumerState<_SectionTabBar> {
-  String? _selectedSectionId;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = context.l10n;
     final company = ref.watch(currentCompanyProvider);
     if (company == null) return const SizedBox.shrink();
 
@@ -105,16 +222,16 @@ class _SectionTabBarState extends ConsumerState<_SectionTabBar> {
             child: Row(
               children: [
                 FilterChip(
-                  label: Text(widget.l.billsSectionAll),
-                  selected: _selectedSectionId == null,
-                  onSelected: (_) => setState(() => _selectedSectionId = null),
+                  label: Text(l.billsSectionAll),
+                  selected: selectedSectionId == null,
+                  onSelected: (_) => onChanged(null),
                 ),
                 for (final section in sections) ...[
                   const SizedBox(width: 8),
                   FilterChip(
                     label: Text(section.name),
-                    selected: _selectedSectionId == section.id,
-                    onSelected: (_) => setState(() => _selectedSectionId = section.id),
+                    selected: selectedSectionId == section.id,
+                    onSelected: (_) => onChanged(section.id),
                   ),
                 ],
               ],
@@ -126,34 +243,167 @@ class _SectionTabBarState extends ConsumerState<_SectionTabBar> {
   }
 }
 
-class _BillsTable extends StatelessWidget {
-  const _BillsTable({required this.l});
-  final dynamic l;
+class _BillsTable extends ConsumerWidget {
+  const _BillsTable({
+    required this.statusFilter,
+    this.sectionFilter,
+    required this.onBillTap,
+  });
+  final BillStatus statusFilter;
+  final String? sectionFilter;
+  final ValueChanged<BillModel> onBillTap;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = context.l10n;
+    final company = ref.watch(currentCompanyProvider);
+    if (company == null) return const SizedBox.shrink();
+
+    return StreamBuilder<List<BillModel>>(
+      stream: ref.watch(billRepositoryProvider).watchByCompany(
+        company.id,
+        status: statusFilter,
+        sectionId: sectionFilter,
+      ),
+      builder: (context, billSnap) {
+        final bills = billSnap.data ?? [];
+
+        // Load lookup data for tables and users
+        return StreamBuilder<List<TableModel>>(
+          stream: ref.watch(tableRepositoryProvider).watchAll(company.id),
+          builder: (context, tableSnap) {
+            final tableMap = <String, TableModel>{};
+            for (final t in (tableSnap.data ?? [])) {
+              tableMap[t.id] = t;
+            }
+
+            return StreamBuilder<List<UserModel>>(
+              stream: ref.watch(userRepositoryProvider).watchAll(company.id),
+              builder: (context, userSnap) {
+                final userMap = <String, UserModel>{};
+                for (final u in (userSnap.data ?? [])) {
+                  userMap[u.id] = u;
+                }
+
+                return Column(
+                  children: [
+                    // Header
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                      ),
+                      child: Row(
+                        children: [
+                          _HeaderCell(l.columnTable, flex: 2),
+                          _HeaderCell(l.columnGuest, flex: 2),
+                          _HeaderCell(l.columnGuests, flex: 1),
+                          _HeaderCell(l.columnTotal, flex: 2),
+                          _HeaderCell(l.columnLastOrder, flex: 2),
+                          _HeaderCell(l.columnStaff, flex: 2),
+                        ],
+                      ),
+                    ),
+                    // Bill rows
+                    Expanded(
+                      child: bills.isEmpty
+                          ? Center(
+                              child: Text(
+                                l.billsEmpty,
+                                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                    ),
+                              ),
+                            )
+                          : ListView.builder(
+                              itemCount: bills.length,
+                              itemBuilder: (context, index) {
+                                final bill = bills[index];
+                                return _BillRow(
+                                  bill: bill,
+                                  tableName: _resolveTableName(bill, tableMap, l),
+                                  staffName: userMap[bill.openedByUserId]?.fullName ?? '-',
+                                  onTap: () => onBillTap(bill),
+                                );
+                              },
+                            ),
+                    ),
+                  ],
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
+  String _resolveTableName(BillModel bill, Map<String, TableModel> tableMap, dynamic l) {
+    if (bill.isTakeaway) return l.billDetailTakeaway;
+    if (bill.tableId == null) return l.billDetailNoTable;
+    final table = tableMap[bill.tableId];
+    return table?.name ?? '-';
+  }
+}
+
+class _BillRow extends StatelessWidget {
+  const _BillRow({
+    required this.bill,
+    required this.tableName,
+    required this.staffName,
+    required this.onTap,
+  });
+  final BillModel bill;
+  final String tableName;
+  final String staffName;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // Header
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surfaceContainerHighest,
-          ),
-          child: Row(
-            children: [
-              _HeaderCell(l.columnTable, flex: 2),
-              _HeaderCell(l.columnGuest, flex: 2),
-              _HeaderCell(l.columnGuests, flex: 1),
-              _HeaderCell(l.columnTotal, flex: 2),
-              _HeaderCell(l.columnLastOrder, flex: 2),
-              _HeaderCell(l.columnStaff, flex: 2),
-            ],
-          ),
+    final timeFormat = DateFormat('HH:mm', 'cs');
+
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor.withValues(alpha: 0.3))),
         ),
-        // Empty state
-        const Expanded(child: SizedBox.shrink()),
-      ],
+        child: Row(
+          children: [
+            // Table
+            Expanded(
+              flex: 2,
+              child: Text(tableName),
+            ),
+            // Bill number
+            Expanded(
+              flex: 2,
+              child: Text(bill.billNumber),
+            ),
+            // Guests
+            Expanded(
+              flex: 1,
+              child: Text(bill.numberOfGuests > 0 ? '${bill.numberOfGuests}' : '-'),
+            ),
+            // Total
+            Expanded(
+              flex: 2,
+              child: Text(bill.totalGross > 0 ? '${bill.totalGross ~/ 100} Kč' : '-'),
+            ),
+            // Time
+            Expanded(
+              flex: 2,
+              child: Text(timeFormat.format(bill.openedAt)),
+            ),
+            // Staff
+            Expanded(
+              flex: 2,
+              child: Text(staffName),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -175,21 +425,22 @@ class _HeaderCell extends StatelessWidget {
   }
 }
 
-class _StatusFilterBar extends StatefulWidget {
-  const _StatusFilterBar({required this.l});
-  final dynamic l;
-
-  @override
-  State<_StatusFilterBar> createState() => _StatusFilterBarState();
-}
-
-class _StatusFilterBarState extends State<_StatusFilterBar> {
-  int _selected = 0;
+class _StatusFilterBar extends StatelessWidget {
+  const _StatusFilterBar({
+    required this.selected,
+    required this.onChanged,
+  });
+  final BillStatus selected;
+  final ValueChanged<BillStatus> onChanged;
 
   @override
   Widget build(BuildContext context) {
-    final l = widget.l;
-    final labels = [l.billsFilterOpened, l.billsFilterPaid, l.billsFilterCancelled];
+    final l = context.l10n;
+    final filters = [
+      (BillStatus.opened, l.billsFilterOpened),
+      (BillStatus.paid, l.billsFilterPaid),
+      (BillStatus.cancelled, l.billsFilterCancelled),
+    ];
 
     return Container(
       height: 48,
@@ -199,12 +450,12 @@ class _StatusFilterBarState extends State<_StatusFilterBar> {
       ),
       child: Row(
         children: [
-          for (var i = 0; i < labels.length; i++) ...[
+          for (var i = 0; i < filters.length; i++) ...[
             if (i > 0) const SizedBox(width: 8),
             FilterChip(
-              label: Text(labels[i]),
-              selected: _selected == i,
-              onSelected: (_) => setState(() => _selected = i),
+              label: Text(filters[i].$2),
+              selected: selected == filters[i].$1,
+              onSelected: (_) => onChanged(filters[i].$1),
             ),
           ],
         ],
@@ -219,18 +470,26 @@ class _RightPanel extends StatelessWidget {
     required this.activeUser,
     required this.loggedInUsers,
     required this.canManageSettings,
+    required this.hasSession,
     required this.onLogout,
     required this.onSwitchUser,
     required this.onSettings,
+    required this.onNewBill,
+    required this.onQuickBill,
+    required this.onToggleSession,
   });
 
   final dynamic l;
   final dynamic activeUser;
   final List loggedInUsers;
   final bool canManageSettings;
+  final bool hasSession;
   final VoidCallback onLogout;
   final VoidCallback onSwitchUser;
   final VoidCallback? onSettings;
+  final VoidCallback? onNewBill;
+  final VoidCallback? onQuickBill;
+  final VoidCallback onToggleSession;
 
   @override
   Widget build(BuildContext context) {
@@ -250,10 +509,25 @@ class _RightPanel extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                // Register session toggle
+                SizedBox(
+                  height: 44,
+                  child: hasSession
+                      ? OutlinedButton(
+                          onPressed: onToggleSession,
+                          child: Text(l.registerSessionClose),
+                        )
+                      : FilledButton(
+                          style: FilledButton.styleFrom(backgroundColor: Colors.green),
+                          onPressed: onToggleSession,
+                          child: Text(l.registerSessionStart),
+                        ),
+                ),
+                const SizedBox(height: 12),
                 SizedBox(
                   height: 44,
                   child: FilledButton.tonal(
-                    onPressed: null,
+                    onPressed: onQuickBill,
                     child: Text(l.billsQuickBill),
                   ),
                 ),
@@ -261,7 +535,7 @@ class _RightPanel extends StatelessWidget {
                 SizedBox(
                   height: 44,
                   child: FilledButton(
-                    onPressed: null,
+                    onPressed: onNewBill,
                     child: Text(l.billsNewBill),
                   ),
                 ),
@@ -285,7 +559,10 @@ class _RightPanel extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _InfoRow(l.infoPanelStatus, l.infoPanelStatusOffline),
+                _InfoRow(
+                  l.infoPanelStatus,
+                  hasSession ? l.registerSessionActive : l.infoPanelStatusOffline,
+                ),
                 const SizedBox(height: 4),
                 _InfoRow(
                   l.infoPanelActiveUser,

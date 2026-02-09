@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../auth/auth_service.dart';
 import '../../auth/session_manager.dart';
 import '../models/company_model.dart';
+import '../models/register_model.dart';
+import '../models/register_session_model.dart';
 import '../models/user_model.dart';
 import '../result.dart';
 import '../services/seed_service.dart';
@@ -55,3 +57,17 @@ enum _AppInitState { needsOnboarding, needsLogin }
 
 /// Re-export for use in routing
 typedef AppInitState = _AppInitState;
+
+/// Provides the active register for the current company
+final activeRegisterProvider = FutureProvider<RegisterModel?>((ref) async {
+  final company = ref.watch(currentCompanyProvider);
+  if (company == null) return null;
+  return ref.watch(registerRepositoryProvider).getFirstActive(company.id);
+});
+
+/// Watches the active register session (open, not closed)
+final activeRegisterSessionProvider = StreamProvider<RegisterSessionModel?>((ref) {
+  final company = ref.watch(currentCompanyProvider);
+  if (company == null) return Stream.value(null);
+  return ref.watch(registerSessionRepositoryProvider).watchActiveSession(company.id);
+});

@@ -687,6 +687,384 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Nemáte oprávnění pro tuto akci'**
   String get noPermission;
+
+  /// No description provided for @newBillTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Nový účet'**
+  String get newBillTitle;
+
+  /// No description provided for @newBillTakeaway.
+  ///
+  /// In cs, this message translates to:
+  /// **'Jídlo s sebou'**
+  String get newBillTakeaway;
+
+  /// No description provided for @newBillTable.
+  ///
+  /// In cs, this message translates to:
+  /// **'Přiřadit ke stolu'**
+  String get newBillTable;
+
+  /// No description provided for @newBillNoTable.
+  ///
+  /// In cs, this message translates to:
+  /// **'Bez stolu'**
+  String get newBillNoTable;
+
+  /// No description provided for @newBillSelectTable.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vyberte stůl'**
+  String get newBillSelectTable;
+
+  /// No description provided for @newBillGuests.
+  ///
+  /// In cs, this message translates to:
+  /// **'Počet hostů'**
+  String get newBillGuests;
+
+  /// No description provided for @newBillCreate.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vytvořit'**
+  String get newBillCreate;
+
+  /// No description provided for @billDetailTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Detail účtu'**
+  String get billDetailTitle;
+
+  /// No description provided for @billDetailTable.
+  ///
+  /// In cs, this message translates to:
+  /// **'Stůl: {name}'**
+  String billDetailTable(String name);
+
+  /// No description provided for @billDetailTakeaway.
+  ///
+  /// In cs, this message translates to:
+  /// **'Jídlo s sebou'**
+  String get billDetailTakeaway;
+
+  /// No description provided for @billDetailNoTable.
+  ///
+  /// In cs, this message translates to:
+  /// **'Bez stolu'**
+  String get billDetailNoTable;
+
+  /// No description provided for @billDetailCreated.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vytvořen: {time}'**
+  String billDetailCreated(String time);
+
+  /// No description provided for @billDetailLastOrder.
+  ///
+  /// In cs, this message translates to:
+  /// **'Posl. obj.: {time}'**
+  String billDetailLastOrder(String time);
+
+  /// No description provided for @billDetailNoOrders.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zatím žádné objednávky'**
+  String get billDetailNoOrders;
+
+  /// No description provided for @billDetailOrder.
+  ///
+  /// In cs, this message translates to:
+  /// **'Objednat'**
+  String get billDetailOrder;
+
+  /// No description provided for @billDetailPay.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zaplatit'**
+  String get billDetailPay;
+
+  /// No description provided for @billDetailCancel.
+  ///
+  /// In cs, this message translates to:
+  /// **'Storno účtu'**
+  String get billDetailCancel;
+
+  /// No description provided for @billDetailConfirmCancel.
+  ///
+  /// In cs, this message translates to:
+  /// **'Opravdu chcete stornovat tento účet?'**
+  String get billDetailConfirmCancel;
+
+  /// No description provided for @billDetailBillNumber.
+  ///
+  /// In cs, this message translates to:
+  /// **'Účet {number}'**
+  String billDetailBillNumber(String number);
+
+  /// No description provided for @billStatusOpened.
+  ///
+  /// In cs, this message translates to:
+  /// **'Otevřený'**
+  String get billStatusOpened;
+
+  /// No description provided for @billStatusPaid.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zaplacený'**
+  String get billStatusPaid;
+
+  /// No description provided for @billStatusCancelled.
+  ///
+  /// In cs, this message translates to:
+  /// **'Stornovaný'**
+  String get billStatusCancelled;
+
+  /// No description provided for @sellTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Prodej'**
+  String get sellTitle;
+
+  /// No description provided for @sellCart.
+  ///
+  /// In cs, this message translates to:
+  /// **'Košík'**
+  String get sellCart;
+
+  /// No description provided for @sellCartEmpty.
+  ///
+  /// In cs, this message translates to:
+  /// **'Košík je prázdný'**
+  String get sellCartEmpty;
+
+  /// No description provided for @sellTotal.
+  ///
+  /// In cs, this message translates to:
+  /// **'Celkem'**
+  String get sellTotal;
+
+  /// No description provided for @sellCancelOrder.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zrušit'**
+  String get sellCancelOrder;
+
+  /// No description provided for @sellSubmitOrder.
+  ///
+  /// In cs, this message translates to:
+  /// **'Objednat'**
+  String get sellSubmitOrder;
+
+  /// No description provided for @sellSearch.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vyhledat'**
+  String get sellSearch;
+
+  /// No description provided for @sellEditGrid.
+  ///
+  /// In cs, this message translates to:
+  /// **'Upravit grid'**
+  String get sellEditGrid;
+
+  /// No description provided for @sellExitEdit.
+  ///
+  /// In cs, this message translates to:
+  /// **'Ukončit úpravy'**
+  String get sellExitEdit;
+
+  /// No description provided for @sellEmptySlot.
+  ///
+  /// In cs, this message translates to:
+  /// **'Prázdné'**
+  String get sellEmptySlot;
+
+  /// No description provided for @sellBackToCategories.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zpět'**
+  String get sellBackToCategories;
+
+  /// No description provided for @sellQuantity.
+  ///
+  /// In cs, this message translates to:
+  /// **'{count}×'**
+  String sellQuantity(String count);
+
+  /// No description provided for @prepStatusCreated.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vytvořeno'**
+  String get prepStatusCreated;
+
+  /// No description provided for @prepStatusInPrep.
+  ///
+  /// In cs, this message translates to:
+  /// **'Připravuje se'**
+  String get prepStatusInPrep;
+
+  /// No description provided for @prepStatusReady.
+  ///
+  /// In cs, this message translates to:
+  /// **'Připraveno'**
+  String get prepStatusReady;
+
+  /// No description provided for @prepStatusDelivered.
+  ///
+  /// In cs, this message translates to:
+  /// **'Doručeno'**
+  String get prepStatusDelivered;
+
+  /// No description provided for @prepStatusCancelled.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zrušeno'**
+  String get prepStatusCancelled;
+
+  /// No description provided for @prepStatusVoided.
+  ///
+  /// In cs, this message translates to:
+  /// **'Stornováno'**
+  String get prepStatusVoided;
+
+  /// No description provided for @orderStatusChange.
+  ///
+  /// In cs, this message translates to:
+  /// **'Změnit stav'**
+  String get orderStatusChange;
+
+  /// No description provided for @orderCancel.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zrušit objednávku'**
+  String get orderCancel;
+
+  /// No description provided for @orderVoid.
+  ///
+  /// In cs, this message translates to:
+  /// **'Stornovat objednávku'**
+  String get orderVoid;
+
+  /// No description provided for @orderConfirmCancel.
+  ///
+  /// In cs, this message translates to:
+  /// **'Opravdu chcete zrušit tuto objednávku?'**
+  String get orderConfirmCancel;
+
+  /// No description provided for @orderConfirmVoid.
+  ///
+  /// In cs, this message translates to:
+  /// **'Opravdu chcete stornovat tuto objednávku?'**
+  String get orderConfirmVoid;
+
+  /// No description provided for @paymentTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Platba'**
+  String get paymentTitle;
+
+  /// No description provided for @paymentMethod.
+  ///
+  /// In cs, this message translates to:
+  /// **'Platební metoda'**
+  String get paymentMethod;
+
+  /// No description provided for @paymentAmount.
+  ///
+  /// In cs, this message translates to:
+  /// **'Částka'**
+  String get paymentAmount;
+
+  /// No description provided for @paymentTotalDue.
+  ///
+  /// In cs, this message translates to:
+  /// **'K úhradě: {amount}'**
+  String paymentTotalDue(String amount);
+
+  /// No description provided for @paymentConfirm.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zaplatit'**
+  String get paymentConfirm;
+
+  /// No description provided for @gridEditorTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Editor gridu'**
+  String get gridEditorTitle;
+
+  /// No description provided for @gridEditorSelectType.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vyberte typ'**
+  String get gridEditorSelectType;
+
+  /// No description provided for @gridEditorItem.
+  ///
+  /// In cs, this message translates to:
+  /// **'Produkt'**
+  String get gridEditorItem;
+
+  /// No description provided for @gridEditorCategory.
+  ///
+  /// In cs, this message translates to:
+  /// **'Kategorie'**
+  String get gridEditorCategory;
+
+  /// No description provided for @gridEditorClear.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vymazat'**
+  String get gridEditorClear;
+
+  /// No description provided for @gridEditorSelectItem.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vyberte produkt'**
+  String get gridEditorSelectItem;
+
+  /// No description provided for @gridEditorSelectCategory.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vyberte kategorii'**
+  String get gridEditorSelectCategory;
+
+  /// No description provided for @registerSessionStart.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zahájit prodej'**
+  String get registerSessionStart;
+
+  /// No description provided for @registerSessionClose.
+  ///
+  /// In cs, this message translates to:
+  /// **'Uzávěrka'**
+  String get registerSessionClose;
+
+  /// No description provided for @registerSessionNoSession.
+  ///
+  /// In cs, this message translates to:
+  /// **'Žádná aktivní směna'**
+  String get registerSessionNoSession;
+
+  /// No description provided for @registerSessionConfirmClose.
+  ///
+  /// In cs, this message translates to:
+  /// **'Opravdu chcete uzavřít směnu?'**
+  String get registerSessionConfirmClose;
+
+  /// No description provided for @registerSessionRequired.
+  ///
+  /// In cs, this message translates to:
+  /// **'Pro prodej musíte nejdříve zahájit směnu'**
+  String get registerSessionRequired;
+
+  /// No description provided for @registerSessionActive.
+  ///
+  /// In cs, this message translates to:
+  /// **'Směna aktivní'**
+  String get registerSessionActive;
 }
 
 class _AppLocalizationsDelegate
