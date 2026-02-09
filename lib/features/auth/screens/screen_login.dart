@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/auth/auth_service.dart';
+import '../../../core/auth/pin_helper.dart';
 import '../../../core/data/models/user_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
@@ -127,69 +128,67 @@ class _ScreenLoginState extends ConsumerState<ScreenLogin> {
             LengthLimitingTextInputFormatter(6),
           ],
           enabled: _lockSeconds == null,
-          onSubmitted: (_) => _login(),
+          onChanged: (_) => _onPinChanged(),
           autofocus: true,
         ),
         const SizedBox(height: 24),
-        Row(
-          children: [
-            Expanded(
-              child: SizedBox(
-                height: 52,
-                child: OutlinedButton(
-                  onPressed: () => setState(() {
-                    _selectedUser = null;
-                    _error = null;
-                    _pinCtrl.clear();
-                  }),
-                  child: Text(l.wizardBack),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: SizedBox(
-                height: 52,
-                child: FilledButton(
-                  onPressed: _lockSeconds != null ? null : _login,
-                  child: Text(l.loginButton),
-                ),
-              ),
-            ),
-          ],
+        SizedBox(
+          width: double.infinity,
+          height: 52,
+          child: OutlinedButton(
+            onPressed: () => setState(() {
+              _selectedUser = null;
+              _error = null;
+              _pinCtrl.clear();
+            }),
+            child: Text(l.wizardBack),
+          ),
         ),
       ],
     );
   }
 
-  Future<void> _login() async {
+  void _onPinChanged() {
     final pin = _pinCtrl.text;
-    if (pin.isEmpty || _selectedUser == null) return;
+    if (pin.length < 4 || _selectedUser == null || _lockSeconds != null) return;
 
-    final authService = ref.read(authServiceProvider);
-    final session = ref.read(sessionManagerProvider);
-
-    final result = authService.authenticate(pin, _selectedUser!.pinHash);
-    switch (result) {
-      case AuthSuccess():
-        session.login(_selectedUser!);
-        ref.read(activeUserProvider.notifier).state = _selectedUser;
-        ref.read(loggedInUsersProvider.notifier).state = session.loggedInUsers;
-        // Load company into provider
-        final companyRepo = ref.read(companyRepositoryProvider);
-        final companyResult = await companyRepo.getFirst();
-        if (companyResult case Success(value: final company?)) {
-          ref.read(currentCompanyProvider.notifier).state = company;
-        }
-        if (mounted) context.go('/bills');
-      case AuthLocked(remainingSeconds: final secs):
-        _startLockTimer(secs);
-      case AuthFailure(message: final msg):
-        setState(() {
-          _error = msg;
-          _pinCtrl.clear();
-        });
+    // Silent check — no brute-force counting
+    if (PinHelper.verifyPin(pin, _selectedUser!.pinHash)) {
+      _loginSuccess();
+      return;
     }
+
+    // At max length (6) and still wrong — count as failed attempt
+    if (pin.length == 6) {
+      final authService = ref.read(authServiceProvider);
+      final result = authService.authenticate(pin, _selectedUser!.pinHash);
+      switch (result) {
+        case AuthSuccess():
+          _loginSuccess();
+        case AuthLocked(remainingSeconds: final secs):
+          _startLockTimer(secs);
+        case AuthFailure(message: final msg):
+          setState(() {
+            _error = msg;
+            _pinCtrl.clear();
+          });
+      }
+    }
+  }
+
+  Future<void> _loginSuccess() async {
+    final session = ref.read(sessionManagerProvider);
+    final authService = ref.read(authServiceProvider);
+    authService.resetAttempts();
+    session.login(_selectedUser!);
+    ref.read(activeUserProvider.notifier).state = _selectedUser;
+    ref.read(loggedInUsersProvider.notifier).state = session.loggedInUsers;
+    final companyRepo = ref.read(companyRepositoryProvider);
+    final companyResult = await companyRepo.getFirst();
+    if (companyResult case Success(value: final company?)) {
+      ref.read(currentCompanyProvider.notifier).state = company;
+    }
+    if (mounted) context.go('/bills');
   }
 
   void _startLockTimer(int seconds) {
