@@ -2,11 +2,12 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../enums/item_type.dart';
 import '../enums/unit_type.dart';
+import 'company_scoped_model.dart';
 
 part 'item_model.freezed.dart';
 
 @freezed
-class ItemModel with _$ItemModel {
+class ItemModel with _$ItemModel implements CompanyScopedModel {
   const factory ItemModel({
     required String id,
     required String companyId,

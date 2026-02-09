@@ -5,27 +5,57 @@ import '../../logging/app_logger.dart';
 import '../mappers/entity_mappers.dart';
 import '../models/user_model.dart';
 import '../result.dart';
+import 'base_company_scoped_repository.dart';
 
-class UserRepository {
-  UserRepository(this._db);
-  final AppDatabase _db;
+class UserRepository
+    extends BaseCompanyScopedRepository<$UsersTable, User, UserModel> {
+  UserRepository(super.db);
 
-  Future<Result<UserModel>> create(UserModel model) async {
+  @override
+  TableInfo<$UsersTable, User> get table => db.users;
+
+  @override
+  String get entityName => 'user';
+
+  @override
+  UserModel fromEntity(User e) => userFromEntity(e);
+
+  @override
+  Insertable<User> toCompanion(UserModel m) => userToCompanion(m);
+
+  @override
+  Expression<bool> whereId($UsersTable t, String id) => t.id.equals(id);
+
+  @override
+  Expression<bool> whereCompanyScope($UsersTable t, String companyId) =>
+      t.companyId.equals(companyId) & t.deletedAt.isNull();
+
+  @override
+  List<OrderingTerm Function($UsersTable)> get defaultOrderBy =>
+      [(t) => OrderingTerm.asc(t.fullName)];
+
+  @override
+  Insertable<User> toUpdateCompanion(UserModel m) => UsersCompanion(
+        username: Value(m.username),
+        fullName: Value(m.fullName),
+        email: Value(m.email),
+        phone: Value(m.phone),
+        pinHash: Value(m.pinHash),
+        pinEnabled: Value(m.pinEnabled),
+        roleId: Value(m.roleId),
+        isActive: Value(m.isActive),
+        updatedAt: Value(DateTime.now()),
+      );
+
+  @override
+  Insertable<User> toDeleteCompanion(DateTime now) => UsersCompanion(
+        deletedAt: Value(now),
+        updatedAt: Value(now),
+      );
+
+  Future<Result<UserModel>> getByIdResult(String id) async {
     try {
-      await _db.into(_db.users).insert(userToCompanion(model));
-      final entity = await (_db.select(_db.users)
-            ..where((t) => t.id.equals(model.id)))
-          .getSingle();
-      return Success(userFromEntity(entity));
-    } catch (e, s) {
-      AppLogger.error('Failed to create user', error: e, stackTrace: s);
-      return Failure('Failed to create user: $e');
-    }
-  }
-
-  Future<Result<UserModel>> getById(String id) async {
-    try {
-      final entity = await (_db.select(_db.users)
+      final entity = await (db.select(db.users)
             ..where((t) => t.id.equals(id)))
           .getSingleOrNull();
       if (entity == null) return const Failure('User not found');
@@ -36,53 +66,8 @@ class UserRepository {
     }
   }
 
-  Future<Result<UserModel>> update(UserModel model) async {
-    try {
-      await (_db.update(_db.users)..where((t) => t.id.equals(model.id))).write(
-        UsersCompanion(
-          username: Value(model.username),
-          fullName: Value(model.fullName),
-          email: Value(model.email),
-          phone: Value(model.phone),
-          pinHash: Value(model.pinHash),
-          pinEnabled: Value(model.pinEnabled),
-          roleId: Value(model.roleId),
-          isActive: Value(model.isActive),
-          updatedAt: Value(DateTime.now()),
-        ),
-      );
-      final entity = await (_db.select(_db.users)
-            ..where((t) => t.id.equals(model.id)))
-          .getSingle();
-      return Success(userFromEntity(entity));
-    } catch (e, s) {
-      AppLogger.error('Failed to update user', error: e, stackTrace: s);
-      return Failure('Failed to update user: $e');
-    }
-  }
-
-  Future<Result<void>> delete(String id) async {
-    try {
-      await (_db.update(_db.users)..where((t) => t.id.equals(id))).write(
-        UsersCompanion(deletedAt: Value(DateTime.now()), updatedAt: Value(DateTime.now())),
-      );
-      return const Success(null);
-    } catch (e, s) {
-      AppLogger.error('Failed to delete user', error: e, stackTrace: s);
-      return Failure('Failed to delete user: $e');
-    }
-  }
-
-  Stream<List<UserModel>> watchAll(String companyId) {
-    return (_db.select(_db.users)
-          ..where((t) => t.companyId.equals(companyId) & t.deletedAt.isNull())
-          ..orderBy([(t) => OrderingTerm.asc(t.fullName)]))
-        .watch()
-        .map((rows) => rows.map(userFromEntity).toList());
-  }
-
   Future<List<UserModel>> getActiveUsers(String companyId) async {
-    final entities = await (_db.select(_db.users)
+    final entities = await (db.select(db.users)
           ..where(
               (t) => t.companyId.equals(companyId) & t.deletedAt.isNull() & t.isActive.equals(true))
           ..orderBy([(t) => OrderingTerm.asc(t.fullName)]))
@@ -91,7 +76,7 @@ class UserRepository {
   }
 
   Future<UserModel?> getByUsername(String companyId, String username) async {
-    final entity = await (_db.select(_db.users)
+    final entity = await (db.select(db.users)
           ..where((t) =>
               t.companyId.equals(companyId) &
               t.username.equals(username) &

@@ -1,9 +1,11 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'company_scoped_model.dart';
+
 part 'section_model.freezed.dart';
 
 @freezed
-class SectionModel with _$SectionModel {
+class SectionModel with _$SectionModel implements CompanyScopedModel {
   const factory SectionModel({
     required String id,
     required String companyId,

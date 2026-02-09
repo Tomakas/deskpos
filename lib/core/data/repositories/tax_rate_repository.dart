@@ -1,63 +1,54 @@
 import 'package:drift/drift.dart';
 
 import '../../database/app_database.dart';
-import '../../logging/app_logger.dart';
 import '../mappers/entity_mappers.dart';
 import '../models/tax_rate_model.dart';
-import '../result.dart';
+import 'base_company_scoped_repository.dart';
 
-class TaxRateRepository {
-  TaxRateRepository(this._db);
-  final AppDatabase _db;
+class TaxRateRepository
+    extends BaseCompanyScopedRepository<$TaxRatesTable, TaxRate, TaxRateModel> {
+  TaxRateRepository(super.db);
 
-  Future<Result<TaxRateModel>> create(TaxRateModel model) async {
-    try {
-      await _db.into(_db.taxRates).insert(taxRateToCompanion(model));
-      final entity = await (_db.select(_db.taxRates)
-            ..where((t) => t.id.equals(model.id)))
-          .getSingle();
-      return Success(taxRateFromEntity(entity));
-    } catch (e, s) {
-      AppLogger.error('Failed to create tax rate', error: e, stackTrace: s);
-      return Failure('Failed to create tax rate: $e');
-    }
-  }
+  @override
+  TableInfo<$TaxRatesTable, TaxRate> get table => db.taxRates;
 
-  Future<Result<TaxRateModel>> update(TaxRateModel model) async {
-    try {
-      await (_db.update(_db.taxRates)..where((t) => t.id.equals(model.id))).write(
-        TaxRatesCompanion(
-          label: Value(model.label),
-          type: Value(model.type),
-          rate: Value(model.rate),
-          isDefault: Value(model.isDefault),
-          updatedAt: Value(DateTime.now()),
-        ),
+  @override
+  String get entityName => 'tax rate';
+
+  @override
+  TaxRateModel fromEntity(TaxRate e) => taxRateFromEntity(e);
+
+  @override
+  Insertable<TaxRate> toCompanion(TaxRateModel m) => taxRateToCompanion(m);
+
+  @override
+  Expression<bool> whereId($TaxRatesTable t, String id) => t.id.equals(id);
+
+  @override
+  Expression<bool> whereCompanyScope($TaxRatesTable t, String companyId) =>
+      t.companyId.equals(companyId) & t.deletedAt.isNull();
+
+  @override
+  List<OrderingTerm Function($TaxRatesTable)> get defaultOrderBy =>
+      [(t) => OrderingTerm.desc(t.isDefault)];
+
+  @override
+  Insertable<TaxRate> toUpdateCompanion(TaxRateModel m) => TaxRatesCompanion(
+        label: Value(m.label),
+        type: Value(m.type),
+        rate: Value(m.rate),
+        isDefault: Value(m.isDefault),
+        updatedAt: Value(DateTime.now()),
       );
-      final entity = await (_db.select(_db.taxRates)
-            ..where((t) => t.id.equals(model.id)))
-          .getSingle();
-      return Success(taxRateFromEntity(entity));
-    } catch (e, s) {
-      AppLogger.error('Failed to update tax rate', error: e, stackTrace: s);
-      return Failure('Failed to update tax rate: $e');
-    }
-  }
 
-  Future<Result<void>> delete(String id) async {
-    try {
-      await (_db.update(_db.taxRates)..where((t) => t.id.equals(id))).write(
-        TaxRatesCompanion(deletedAt: Value(DateTime.now()), updatedAt: Value(DateTime.now())),
+  @override
+  Insertable<TaxRate> toDeleteCompanion(DateTime now) => TaxRatesCompanion(
+        deletedAt: Value(now),
+        updatedAt: Value(now),
       );
-      return const Success(null);
-    } catch (e, s) {
-      AppLogger.error('Failed to delete tax rate', error: e, stackTrace: s);
-      return Failure('Failed to delete tax rate: $e');
-    }
-  }
 
   Future<void> clearDefault(String companyId, {String? exceptId}) async {
-    final query = _db.update(_db.taxRates)
+    final query = db.update(db.taxRates)
       ..where((t) => t.companyId.equals(companyId) & t.isDefault.equals(true) & t.deletedAt.isNull());
     if (exceptId != null) {
       query.where((t) => t.id.equals(exceptId).not());
@@ -68,18 +59,11 @@ class TaxRateRepository {
     ));
   }
 
+  @override
   Future<TaxRateModel?> getById(String id) async {
-    final entity = await (_db.select(_db.taxRates)
+    final entity = await (db.select(db.taxRates)
           ..where((t) => t.id.equals(id) & t.deletedAt.isNull()))
         .getSingleOrNull();
     return entity == null ? null : taxRateFromEntity(entity);
-  }
-
-  Stream<List<TaxRateModel>> watchAll(String companyId) {
-    return (_db.select(_db.taxRates)
-          ..where((t) => t.companyId.equals(companyId) & t.deletedAt.isNull())
-          ..orderBy([(t) => OrderingTerm.desc(t.isDefault)]))
-        .watch()
-        .map((rows) => rows.map(taxRateFromEntity).toList());
   }
 }

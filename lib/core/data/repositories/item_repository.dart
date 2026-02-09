@@ -1,72 +1,55 @@
 import 'package:drift/drift.dart';
 
 import '../../database/app_database.dart';
-import '../../logging/app_logger.dart';
 import '../mappers/entity_mappers.dart';
 import '../models/item_model.dart';
-import '../result.dart';
+import 'base_company_scoped_repository.dart';
 
-class ItemRepository {
-  ItemRepository(this._db);
-  final AppDatabase _db;
+class ItemRepository
+    extends BaseCompanyScopedRepository<$ItemsTable, Item, ItemModel> {
+  ItemRepository(super.db);
 
-  Future<Result<ItemModel>> create(ItemModel model) async {
-    try {
-      await _db.into(_db.items).insert(itemToCompanion(model));
-      final entity = await (_db.select(_db.items)
-            ..where((t) => t.id.equals(model.id)))
-          .getSingle();
-      return Success(itemFromEntity(entity));
-    } catch (e, s) {
-      AppLogger.error('Failed to create item', error: e, stackTrace: s);
-      return Failure('Failed to create item: $e');
-    }
-  }
+  @override
+  TableInfo<$ItemsTable, Item> get table => db.items;
 
-  Future<Result<ItemModel>> update(ItemModel model) async {
-    try {
-      await (_db.update(_db.items)..where((t) => t.id.equals(model.id))).write(
-        ItemsCompanion(
-          categoryId: Value(model.categoryId),
-          name: Value(model.name),
-          description: Value(model.description),
-          itemType: Value(model.itemType),
-          sku: Value(model.sku),
-          unitPrice: Value(model.unitPrice),
-          saleTaxRateId: Value(model.saleTaxRateId),
-          isSellable: Value(model.isSellable),
-          isActive: Value(model.isActive),
-          unit: Value(model.unit),
-          updatedAt: Value(DateTime.now()),
-        ),
+  @override
+  String get entityName => 'item';
+
+  @override
+  ItemModel fromEntity(Item e) => itemFromEntity(e);
+
+  @override
+  Insertable<Item> toCompanion(ItemModel m) => itemToCompanion(m);
+
+  @override
+  Expression<bool> whereId($ItemsTable t, String id) => t.id.equals(id);
+
+  @override
+  Expression<bool> whereCompanyScope($ItemsTable t, String companyId) =>
+      t.companyId.equals(companyId) & t.deletedAt.isNull();
+
+  @override
+  List<OrderingTerm Function($ItemsTable)> get defaultOrderBy =>
+      [(t) => OrderingTerm.asc(t.name)];
+
+  @override
+  Insertable<Item> toUpdateCompanion(ItemModel m) => ItemsCompanion(
+        categoryId: Value(m.categoryId),
+        name: Value(m.name),
+        description: Value(m.description),
+        itemType: Value(m.itemType),
+        sku: Value(m.sku),
+        unitPrice: Value(m.unitPrice),
+        saleTaxRateId: Value(m.saleTaxRateId),
+        isSellable: Value(m.isSellable),
+        isActive: Value(m.isActive),
+        unit: Value(m.unit),
+        updatedAt: Value(DateTime.now()),
       );
-      final entity = await (_db.select(_db.items)
-            ..where((t) => t.id.equals(model.id)))
-          .getSingle();
-      return Success(itemFromEntity(entity));
-    } catch (e, s) {
-      AppLogger.error('Failed to update item', error: e, stackTrace: s);
-      return Failure('Failed to update item: $e');
-    }
-  }
 
-  Future<Result<void>> delete(String id) async {
-    try {
-      await (_db.update(_db.items)..where((t) => t.id.equals(id))).write(
-        ItemsCompanion(deletedAt: Value(DateTime.now()), updatedAt: Value(DateTime.now())),
+  @override
+  Insertable<Item> toDeleteCompanion(DateTime now) => ItemsCompanion(
+        deletedAt: Value(now),
+        updatedAt: Value(now),
       );
-      return const Success(null);
-    } catch (e, s) {
-      AppLogger.error('Failed to delete item', error: e, stackTrace: s);
-      return Failure('Failed to delete item: $e');
-    }
-  }
-
-  Stream<List<ItemModel>> watchAll(String companyId) {
-    return (_db.select(_db.items)
-          ..where((t) => t.companyId.equals(companyId) & t.deletedAt.isNull())
-          ..orderBy([(t) => OrderingTerm.asc(t.name)]))
-        .watch()
-        .map((rows) => rows.map(itemFromEntity).toList());
-  }
 }
