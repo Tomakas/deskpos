@@ -15,6 +15,8 @@ import '../models/payment_method_model.dart';
 import '../models/permission_model.dart';
 import '../models/register_model.dart';
 import '../models/role_model.dart';
+import '../models/section_model.dart';
+import '../models/table_model.dart';
 import '../models/role_permission_model.dart';
 import '../models/tax_rate_model.dart';
 import '../models/user_model.dart';
@@ -213,7 +215,34 @@ class SeedService {
           await _db.into(_db.paymentMethods).insert(paymentMethodToCompanion(pm));
         }
 
-        // 8. Register
+        // 8. Sections
+        final hlavniId = _id();
+        final zahradkaId = _id();
+        final interniId = _id();
+        final sections = [
+          SectionModel(id: hlavniId, companyId: companyId, name: 'Hlavní', color: '#4CAF50', createdAt: now, updatedAt: now),
+          SectionModel(id: zahradkaId, companyId: companyId, name: 'Zahrádka', color: '#FF9800', createdAt: now, updatedAt: now),
+          SectionModel(id: interniId, companyId: companyId, name: 'Interní', color: '#9E9E9E', createdAt: now, updatedAt: now),
+        ];
+        for (final s in sections) {
+          await _db.into(_db.sections).insert(sectionToCompanion(s));
+        }
+
+        // 9. Tables
+        final tables = [
+          for (var i = 1; i <= 5; i++)
+            TableModel(id: _id(), companyId: companyId, name: 'Stůl $i', sectionId: hlavniId, capacity: 4, createdAt: now, updatedAt: now),
+          for (var i = 1; i <= 5; i++)
+            TableModel(id: _id(), companyId: companyId, name: 'Stolek $i', sectionId: zahradkaId, capacity: 2, createdAt: now, updatedAt: now),
+          TableModel(id: _id(), companyId: companyId, name: 'Majitel', sectionId: interniId, capacity: 0, createdAt: now, updatedAt: now),
+          TableModel(id: _id(), companyId: companyId, name: 'Repre', sectionId: interniId, capacity: 0, createdAt: now, updatedAt: now),
+          TableModel(id: _id(), companyId: companyId, name: 'Odpisy', sectionId: interniId, capacity: 0, createdAt: now, updatedAt: now),
+        ];
+        for (final t in tables) {
+          await _db.into(_db.tables).insert(tableToCompanion(t));
+        }
+
+        // 10. Register
         final register = RegisterModel(
           id: registerId,
           companyId: companyId,
