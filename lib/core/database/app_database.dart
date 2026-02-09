@@ -59,7 +59,7 @@ class AppDatabase extends _$AppDatabase {
 
   static LazyDatabase _openConnection() {
     return LazyDatabase(() async {
-      final file = File('epos_database.sqlite');
+      final file = File('/Users/tom/DEV/POS/epos_database.sqlite');
       return NativeDatabase.createInBackground(file);
     });
   }
