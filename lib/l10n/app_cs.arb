@@ -232,6 +232,7 @@
 
   "billDetailCustomer": "Zákazník",
   "billDetailMove": "Přesunout",
+  "billDetailMoveTitle": "Přesunout účet",
   "billDetailMerge": "Sloučit",
   "billDetailSplit": "Rozdělit",
   "billDetailSummary": "Sumář",

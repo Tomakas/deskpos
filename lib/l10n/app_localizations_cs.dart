@@ -548,6 +548,9 @@ class AppLocalizationsCs extends AppLocalizations {
   String get billDetailMove => 'Přesunout';
 
   @override
+  String get billDetailMoveTitle => 'Přesunout účet';
+
+  @override
   String get billDetailMerge => 'Sloučit';
 
   @override

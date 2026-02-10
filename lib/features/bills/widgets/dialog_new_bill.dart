@@ -10,10 +10,12 @@ import '../../../core/l10n/app_localizations_ext.dart';
 class DialogNewBill extends ConsumerStatefulWidget {
   const DialogNewBill({
     super.key,
+    this.title,
     this.initialTableId,
     this.initialNumberOfGuests = 0,
   });
 
+  final String? title;
   final String? initialTableId;
   final int initialNumberOfGuests;
 
@@ -88,7 +90,7 @@ class _DialogNewBillState extends ConsumerState<DialogNewBill> {
                     children: [
                       // Title
                       Text(
-                        '${l.newBillTitle}:',
+                        '${widget.title ?? l.newBillTitle}:',
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
@@ -256,25 +258,27 @@ class _DialogNewBillState extends ConsumerState<DialogNewBill> {
                               ),
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: SizedBox(
-                              height: 44,
-                              child: FilledButton(
-                                style: FilledButton.styleFrom(
-                                  backgroundColor: Colors.green.shade700,
+                          if (widget.title == null) ...[
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: SizedBox(
+                                height: 44,
+                                child: FilledButton(
+                                  style: FilledButton.styleFrom(
+                                    backgroundColor: Colors.green.shade700,
+                                  ),
+                                  onPressed: () {
+                                    Navigator.pop(context, NewBillResult(
+                                      tableId: _selectedTableId,
+                                      numberOfGuests: _guestCount,
+                                      navigateToSell: true,
+                                    ));
+                                  },
+                                  child: Text(l.newBillOrder.toUpperCase()),
                                 ),
-                                onPressed: () {
-                                  Navigator.pop(context, NewBillResult(
-                                    tableId: _selectedTableId,
-                                    numberOfGuests: _guestCount,
-                                    navigateToSell: true,
-                                  ));
-                                },
-                                child: Text(l.newBillOrder.toUpperCase()),
                               ),
                             ),
-                          ),
+                          ],
                         ],
                       ),
                     ],

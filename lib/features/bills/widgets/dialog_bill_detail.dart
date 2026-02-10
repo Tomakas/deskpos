@@ -405,9 +405,11 @@ class DialogBillDetail extends ConsumerWidget {
   }
 
   Future<void> _moveBill(BuildContext context, WidgetRef ref, BillModel bill) async {
+    final l = context.l10n;
     final result = await showDialog<NewBillResult>(
       context: context,
       builder: (_) => DialogNewBill(
+        title: l.billDetailMoveTitle,
         initialTableId: bill.tableId,
         initialNumberOfGuests: bill.numberOfGuests,
       ),

@@ -1138,6 +1138,12 @@ abstract class AppLocalizations {
   /// **'Přesunout'**
   String get billDetailMove;
 
+  /// No description provided for @billDetailMoveTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Přesunout účet'**
+  String get billDetailMoveTitle;
+
   /// No description provided for @billDetailMerge.
   ///
   /// In cs, this message translates to:

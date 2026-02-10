@@ -1146,7 +1146,7 @@ stateDiagram-v2
 #### BillRepository
 
 - **Query:** watchByCompany (s filtry status/section), watchById, watchByStatus, getById
-- **Business:** createBill (atomická transakce: `_generateBillNumber` + INSERT), updateTotals (s discount kalkulací), recordPayment (v transakci: vytvoří Payment + aktualizuje Bill, podpora tipAmount pro přeplatky), cancelBill (v transakci: cascade cancel/void všech orders a items), updateDiscount (bill-level sleva), refundBill (záporné platby za každou orig. platbu + auto CashMovement), refundItem (záporná platba za položku + void item + auto CashMovement)
+- **Business:** createBill (atomická transakce: `_generateBillNumber` + INSERT), updateTotals (s discount kalkulací), recordPayment (v transakci: vytvoří Payment + aktualizuje Bill, podpora tipAmount pro přeplatky), cancelBill (v transakci: cascade cancel/void všech orders a items), updateDiscount (bill-level sleva), moveBill (přesun účtu na jiný stůl/sekci — nastaví tableId, numberOfGuests, isTakeaway=false), refundBill (záporné platby za každou orig. platbu + auto CashMovement), refundItem (záporná platba za položku + void item + auto CashMovement)
 - **Sync:** Injektovaný `SyncQueueRepository`, ruční enqueue — `_enqueueBill`, `_enqueueOrder`, `_enqueueOrderItem`, `_enqueuePayment`, `_enqueueCashMovement`. Každá mutace po sobě enqueueuje všechny dotčené entity. DB operace v transakcích, enqueue vždy mimo transakci.
 
 #### OrderRepository
@@ -1574,7 +1574,7 @@ Dialog (750×520px) s informacemi o účtu a historií objednávek. 3-řádkový
 | REFUND | E3.2 | Refund celého účtu (jen pro paid bill, s potvrzením) |
 | SLEVA | E3.2 | Sleva na účet (DialogDiscount, jen pro opened bill) |
 | ZÁKAZNÍK | E3+ | Přiřazení zákazníka (CRM) |
-| PŘESUNOUT | E3+ | Přesun na jiný stůl |
+| PŘESUNOUT | E3.2 | Přesun na jiný stůl (DialogNewBill s předvyplněnými hodnotami → moveBill) |
 | SLOUČIT | E3+ | Sloučení účtů |
 | ROZDĚLIT | E3+ | Split bill |
 | SUMÁŘ | E3+ | Souhrn účtu |
