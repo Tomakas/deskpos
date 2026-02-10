@@ -9989,6 +9989,15 @@ class $PaymentsTable extends Payments with TableInfo<$PaymentsTable, Payment> {
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _paymentMethodIdMeta = const VerificationMeta(
     'paymentMethodId',
   );
@@ -10107,6 +10116,7 @@ class $PaymentsTable extends Payments with TableInfo<$PaymentsTable, Payment> {
     id,
     companyId,
     billId,
+    userId,
     paymentMethodId,
     amount,
     paidAt,
@@ -10201,6 +10211,12 @@ class $PaymentsTable extends Payments with TableInfo<$PaymentsTable, Payment> {
       );
     } else if (isInserting) {
       context.missing(_billIdMeta);
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
     }
     if (data.containsKey('payment_method_id')) {
       context.handle(
@@ -10334,6 +10350,10 @@ class $PaymentsTable extends Payments with TableInfo<$PaymentsTable, Payment> {
         DriftSqlType.string,
         data['${effectivePrefix}bill_id'],
       )!,
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_id'],
+      ),
       paymentMethodId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}payment_method_id'],
@@ -10394,6 +10414,7 @@ class Payment extends DataClass implements Insertable<Payment> {
   final String id;
   final String companyId;
   final String billId;
+  final String? userId;
   final String paymentMethodId;
   final int amount;
   final DateTime paidAt;
@@ -10415,6 +10436,7 @@ class Payment extends DataClass implements Insertable<Payment> {
     required this.id,
     required this.companyId,
     required this.billId,
+    this.userId,
     required this.paymentMethodId,
     required this.amount,
     required this.paidAt,
@@ -10447,6 +10469,9 @@ class Payment extends DataClass implements Insertable<Payment> {
     map['id'] = Variable<String>(id);
     map['company_id'] = Variable<String>(companyId);
     map['bill_id'] = Variable<String>(billId);
+    if (!nullToAbsent || userId != null) {
+      map['user_id'] = Variable<String>(userId);
+    }
     map['payment_method_id'] = Variable<String>(paymentMethodId);
     map['amount'] = Variable<int>(amount);
     map['paid_at'] = Variable<DateTime>(paidAt);
@@ -10490,6 +10515,9 @@ class Payment extends DataClass implements Insertable<Payment> {
       id: Value(id),
       companyId: Value(companyId),
       billId: Value(billId),
+      userId: userId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(userId),
       paymentMethodId: Value(paymentMethodId),
       amount: Value(amount),
       paidAt: Value(paidAt),
@@ -10529,6 +10557,7 @@ class Payment extends DataClass implements Insertable<Payment> {
       id: serializer.fromJson<String>(json['id']),
       companyId: serializer.fromJson<String>(json['companyId']),
       billId: serializer.fromJson<String>(json['billId']),
+      userId: serializer.fromJson<String?>(json['userId']),
       paymentMethodId: serializer.fromJson<String>(json['paymentMethodId']),
       amount: serializer.fromJson<int>(json['amount']),
       paidAt: serializer.fromJson<DateTime>(json['paidAt']),
@@ -10557,6 +10586,7 @@ class Payment extends DataClass implements Insertable<Payment> {
       'id': serializer.toJson<String>(id),
       'companyId': serializer.toJson<String>(companyId),
       'billId': serializer.toJson<String>(billId),
+      'userId': serializer.toJson<String?>(userId),
       'paymentMethodId': serializer.toJson<String>(paymentMethodId),
       'amount': serializer.toJson<int>(amount),
       'paidAt': serializer.toJson<DateTime>(paidAt),
@@ -10581,6 +10611,7 @@ class Payment extends DataClass implements Insertable<Payment> {
     String? id,
     String? companyId,
     String? billId,
+    Value<String?> userId = const Value.absent(),
     String? paymentMethodId,
     int? amount,
     DateTime? paidAt,
@@ -10606,6 +10637,7 @@ class Payment extends DataClass implements Insertable<Payment> {
     id: id ?? this.id,
     companyId: companyId ?? this.companyId,
     billId: billId ?? this.billId,
+    userId: userId.present ? userId.value : this.userId,
     paymentMethodId: paymentMethodId ?? this.paymentMethodId,
     amount: amount ?? this.amount,
     paidAt: paidAt ?? this.paidAt,
@@ -10641,6 +10673,7 @@ class Payment extends DataClass implements Insertable<Payment> {
       id: data.id.present ? data.id.value : this.id,
       companyId: data.companyId.present ? data.companyId.value : this.companyId,
       billId: data.billId.present ? data.billId.value : this.billId,
+      userId: data.userId.present ? data.userId.value : this.userId,
       paymentMethodId: data.paymentMethodId.present
           ? data.paymentMethodId.value
           : this.paymentMethodId,
@@ -10679,6 +10712,7 @@ class Payment extends DataClass implements Insertable<Payment> {
           ..write('id: $id, ')
           ..write('companyId: $companyId, ')
           ..write('billId: $billId, ')
+          ..write('userId: $userId, ')
           ..write('paymentMethodId: $paymentMethodId, ')
           ..write('amount: $amount, ')
           ..write('paidAt: $paidAt, ')
@@ -10694,7 +10728,7 @@ class Payment extends DataClass implements Insertable<Payment> {
   }
 
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     lastSyncedAt,
     version,
     serverCreatedAt,
@@ -10705,6 +10739,7 @@ class Payment extends DataClass implements Insertable<Payment> {
     id,
     companyId,
     billId,
+    userId,
     paymentMethodId,
     amount,
     paidAt,
@@ -10715,7 +10750,7 @@ class Payment extends DataClass implements Insertable<Payment> {
     paymentProvider,
     cardLast4,
     authorizationCode,
-  );
+  ]);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -10730,6 +10765,7 @@ class Payment extends DataClass implements Insertable<Payment> {
           other.id == this.id &&
           other.companyId == this.companyId &&
           other.billId == this.billId &&
+          other.userId == this.userId &&
           other.paymentMethodId == this.paymentMethodId &&
           other.amount == this.amount &&
           other.paidAt == this.paidAt &&
@@ -10753,6 +10789,7 @@ class PaymentsCompanion extends UpdateCompanion<Payment> {
   final Value<String> id;
   final Value<String> companyId;
   final Value<String> billId;
+  final Value<String?> userId;
   final Value<String> paymentMethodId;
   final Value<int> amount;
   final Value<DateTime> paidAt;
@@ -10775,6 +10812,7 @@ class PaymentsCompanion extends UpdateCompanion<Payment> {
     this.id = const Value.absent(),
     this.companyId = const Value.absent(),
     this.billId = const Value.absent(),
+    this.userId = const Value.absent(),
     this.paymentMethodId = const Value.absent(),
     this.amount = const Value.absent(),
     this.paidAt = const Value.absent(),
@@ -10798,6 +10836,7 @@ class PaymentsCompanion extends UpdateCompanion<Payment> {
     required String id,
     required String companyId,
     required String billId,
+    this.userId = const Value.absent(),
     required String paymentMethodId,
     required int amount,
     required DateTime paidAt,
@@ -10827,6 +10866,7 @@ class PaymentsCompanion extends UpdateCompanion<Payment> {
     Expression<String>? id,
     Expression<String>? companyId,
     Expression<String>? billId,
+    Expression<String>? userId,
     Expression<String>? paymentMethodId,
     Expression<int>? amount,
     Expression<DateTime>? paidAt,
@@ -10850,6 +10890,7 @@ class PaymentsCompanion extends UpdateCompanion<Payment> {
       if (id != null) 'id': id,
       if (companyId != null) 'company_id': companyId,
       if (billId != null) 'bill_id': billId,
+      if (userId != null) 'user_id': userId,
       if (paymentMethodId != null) 'payment_method_id': paymentMethodId,
       if (amount != null) 'amount': amount,
       if (paidAt != null) 'paid_at': paidAt,
@@ -10875,6 +10916,7 @@ class PaymentsCompanion extends UpdateCompanion<Payment> {
     Value<String>? id,
     Value<String>? companyId,
     Value<String>? billId,
+    Value<String?>? userId,
     Value<String>? paymentMethodId,
     Value<int>? amount,
     Value<DateTime>? paidAt,
@@ -10898,6 +10940,7 @@ class PaymentsCompanion extends UpdateCompanion<Payment> {
       id: id ?? this.id,
       companyId: companyId ?? this.companyId,
       billId: billId ?? this.billId,
+      userId: userId ?? this.userId,
       paymentMethodId: paymentMethodId ?? this.paymentMethodId,
       amount: amount ?? this.amount,
       paidAt: paidAt ?? this.paidAt,
@@ -10944,6 +10987,9 @@ class PaymentsCompanion extends UpdateCompanion<Payment> {
     }
     if (billId.present) {
       map['bill_id'] = Variable<String>(billId.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
     }
     if (paymentMethodId.present) {
       map['payment_method_id'] = Variable<String>(paymentMethodId.value);
@@ -10994,6 +11040,7 @@ class PaymentsCompanion extends UpdateCompanion<Payment> {
           ..write('id: $id, ')
           ..write('companyId: $companyId, ')
           ..write('billId: $billId, ')
+          ..write('userId: $userId, ')
           ..write('paymentMethodId: $paymentMethodId, ')
           ..write('amount: $amount, ')
           ..write('paidAt: $paidAt, ')
@@ -15783,6 +15830,781 @@ class SectionsCompanion extends UpdateCompanion<Section> {
   }
 }
 
+class $ShiftsTable extends Shifts with TableInfo<$ShiftsTable, Shift> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ShiftsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _lastSyncedAtMeta = const VerificationMeta(
+    'lastSyncedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> lastSyncedAt = GeneratedColumn<DateTime>(
+    'last_synced_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _versionMeta = const VerificationMeta(
+    'version',
+  );
+  @override
+  late final GeneratedColumn<int> version = GeneratedColumn<int>(
+    'version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _serverCreatedAtMeta = const VerificationMeta(
+    'serverCreatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> serverCreatedAt =
+      GeneratedColumn<DateTime>(
+        'server_created_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _serverUpdatedAtMeta = const VerificationMeta(
+    'serverUpdatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> serverUpdatedAt =
+      GeneratedColumn<DateTime>(
+        'server_updated_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _companyIdMeta = const VerificationMeta(
+    'companyId',
+  );
+  @override
+  late final GeneratedColumn<String> companyId = GeneratedColumn<String>(
+    'company_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _registerSessionIdMeta = const VerificationMeta(
+    'registerSessionId',
+  );
+  @override
+  late final GeneratedColumn<String> registerSessionId =
+      GeneratedColumn<String>(
+        'register_session_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _loginAtMeta = const VerificationMeta(
+    'loginAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> loginAt = GeneratedColumn<DateTime>(
+    'login_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _logoutAtMeta = const VerificationMeta(
+    'logoutAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> logoutAt = GeneratedColumn<DateTime>(
+    'logout_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    lastSyncedAt,
+    version,
+    serverCreatedAt,
+    serverUpdatedAt,
+    createdAt,
+    updatedAt,
+    deletedAt,
+    id,
+    companyId,
+    registerSessionId,
+    userId,
+    loginAt,
+    logoutAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'shifts';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Shift> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('last_synced_at')) {
+      context.handle(
+        _lastSyncedAtMeta,
+        lastSyncedAt.isAcceptableOrUnknown(
+          data['last_synced_at']!,
+          _lastSyncedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('version')) {
+      context.handle(
+        _versionMeta,
+        version.isAcceptableOrUnknown(data['version']!, _versionMeta),
+      );
+    }
+    if (data.containsKey('server_created_at')) {
+      context.handle(
+        _serverCreatedAtMeta,
+        serverCreatedAt.isAcceptableOrUnknown(
+          data['server_created_at']!,
+          _serverCreatedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('server_updated_at')) {
+      context.handle(
+        _serverUpdatedAtMeta,
+        serverUpdatedAt.isAcceptableOrUnknown(
+          data['server_updated_at']!,
+          _serverUpdatedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('company_id')) {
+      context.handle(
+        _companyIdMeta,
+        companyId.isAcceptableOrUnknown(data['company_id']!, _companyIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_companyIdMeta);
+    }
+    if (data.containsKey('register_session_id')) {
+      context.handle(
+        _registerSessionIdMeta,
+        registerSessionId.isAcceptableOrUnknown(
+          data['register_session_id']!,
+          _registerSessionIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_registerSessionIdMeta);
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('login_at')) {
+      context.handle(
+        _loginAtMeta,
+        loginAt.isAcceptableOrUnknown(data['login_at']!, _loginAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_loginAtMeta);
+    }
+    if (data.containsKey('logout_at')) {
+      context.handle(
+        _logoutAtMeta,
+        logoutAt.isAcceptableOrUnknown(data['logout_at']!, _logoutAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Shift map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Shift(
+      lastSyncedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_synced_at'],
+      ),
+      version: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}version'],
+      )!,
+      serverCreatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}server_created_at'],
+      ),
+      serverUpdatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}server_updated_at'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      companyId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}company_id'],
+      )!,
+      registerSessionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}register_session_id'],
+      )!,
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_id'],
+      )!,
+      loginAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}login_at'],
+      )!,
+      logoutAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}logout_at'],
+      ),
+    );
+  }
+
+  @override
+  $ShiftsTable createAlias(String alias) {
+    return $ShiftsTable(attachedDatabase, alias);
+  }
+}
+
+class Shift extends DataClass implements Insertable<Shift> {
+  final DateTime? lastSyncedAt;
+  final int version;
+  final DateTime? serverCreatedAt;
+  final DateTime? serverUpdatedAt;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  final String id;
+  final String companyId;
+  final String registerSessionId;
+  final String userId;
+  final DateTime loginAt;
+  final DateTime? logoutAt;
+  const Shift({
+    this.lastSyncedAt,
+    required this.version,
+    this.serverCreatedAt,
+    this.serverUpdatedAt,
+    required this.createdAt,
+    required this.updatedAt,
+    this.deletedAt,
+    required this.id,
+    required this.companyId,
+    required this.registerSessionId,
+    required this.userId,
+    required this.loginAt,
+    this.logoutAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (!nullToAbsent || lastSyncedAt != null) {
+      map['last_synced_at'] = Variable<DateTime>(lastSyncedAt);
+    }
+    map['version'] = Variable<int>(version);
+    if (!nullToAbsent || serverCreatedAt != null) {
+      map['server_created_at'] = Variable<DateTime>(serverCreatedAt);
+    }
+    if (!nullToAbsent || serverUpdatedAt != null) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    map['id'] = Variable<String>(id);
+    map['company_id'] = Variable<String>(companyId);
+    map['register_session_id'] = Variable<String>(registerSessionId);
+    map['user_id'] = Variable<String>(userId);
+    map['login_at'] = Variable<DateTime>(loginAt);
+    if (!nullToAbsent || logoutAt != null) {
+      map['logout_at'] = Variable<DateTime>(logoutAt);
+    }
+    return map;
+  }
+
+  ShiftsCompanion toCompanion(bool nullToAbsent) {
+    return ShiftsCompanion(
+      lastSyncedAt: lastSyncedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastSyncedAt),
+      version: Value(version),
+      serverCreatedAt: serverCreatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(serverCreatedAt),
+      serverUpdatedAt: serverUpdatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(serverUpdatedAt),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+      id: Value(id),
+      companyId: Value(companyId),
+      registerSessionId: Value(registerSessionId),
+      userId: Value(userId),
+      loginAt: Value(loginAt),
+      logoutAt: logoutAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(logoutAt),
+    );
+  }
+
+  factory Shift.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Shift(
+      lastSyncedAt: serializer.fromJson<DateTime?>(json['lastSyncedAt']),
+      version: serializer.fromJson<int>(json['version']),
+      serverCreatedAt: serializer.fromJson<DateTime?>(json['serverCreatedAt']),
+      serverUpdatedAt: serializer.fromJson<DateTime?>(json['serverUpdatedAt']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      id: serializer.fromJson<String>(json['id']),
+      companyId: serializer.fromJson<String>(json['companyId']),
+      registerSessionId: serializer.fromJson<String>(json['registerSessionId']),
+      userId: serializer.fromJson<String>(json['userId']),
+      loginAt: serializer.fromJson<DateTime>(json['loginAt']),
+      logoutAt: serializer.fromJson<DateTime?>(json['logoutAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'lastSyncedAt': serializer.toJson<DateTime?>(lastSyncedAt),
+      'version': serializer.toJson<int>(version),
+      'serverCreatedAt': serializer.toJson<DateTime?>(serverCreatedAt),
+      'serverUpdatedAt': serializer.toJson<DateTime?>(serverUpdatedAt),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'id': serializer.toJson<String>(id),
+      'companyId': serializer.toJson<String>(companyId),
+      'registerSessionId': serializer.toJson<String>(registerSessionId),
+      'userId': serializer.toJson<String>(userId),
+      'loginAt': serializer.toJson<DateTime>(loginAt),
+      'logoutAt': serializer.toJson<DateTime?>(logoutAt),
+    };
+  }
+
+  Shift copyWith({
+    Value<DateTime?> lastSyncedAt = const Value.absent(),
+    int? version,
+    Value<DateTime?> serverCreatedAt = const Value.absent(),
+    Value<DateTime?> serverUpdatedAt = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+    String? id,
+    String? companyId,
+    String? registerSessionId,
+    String? userId,
+    DateTime? loginAt,
+    Value<DateTime?> logoutAt = const Value.absent(),
+  }) => Shift(
+    lastSyncedAt: lastSyncedAt.present ? lastSyncedAt.value : this.lastSyncedAt,
+    version: version ?? this.version,
+    serverCreatedAt: serverCreatedAt.present
+        ? serverCreatedAt.value
+        : this.serverCreatedAt,
+    serverUpdatedAt: serverUpdatedAt.present
+        ? serverUpdatedAt.value
+        : this.serverUpdatedAt,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+    id: id ?? this.id,
+    companyId: companyId ?? this.companyId,
+    registerSessionId: registerSessionId ?? this.registerSessionId,
+    userId: userId ?? this.userId,
+    loginAt: loginAt ?? this.loginAt,
+    logoutAt: logoutAt.present ? logoutAt.value : this.logoutAt,
+  );
+  Shift copyWithCompanion(ShiftsCompanion data) {
+    return Shift(
+      lastSyncedAt: data.lastSyncedAt.present
+          ? data.lastSyncedAt.value
+          : this.lastSyncedAt,
+      version: data.version.present ? data.version.value : this.version,
+      serverCreatedAt: data.serverCreatedAt.present
+          ? data.serverCreatedAt.value
+          : this.serverCreatedAt,
+      serverUpdatedAt: data.serverUpdatedAt.present
+          ? data.serverUpdatedAt.value
+          : this.serverUpdatedAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      id: data.id.present ? data.id.value : this.id,
+      companyId: data.companyId.present ? data.companyId.value : this.companyId,
+      registerSessionId: data.registerSessionId.present
+          ? data.registerSessionId.value
+          : this.registerSessionId,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      loginAt: data.loginAt.present ? data.loginAt.value : this.loginAt,
+      logoutAt: data.logoutAt.present ? data.logoutAt.value : this.logoutAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Shift(')
+          ..write('lastSyncedAt: $lastSyncedAt, ')
+          ..write('version: $version, ')
+          ..write('serverCreatedAt: $serverCreatedAt, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('id: $id, ')
+          ..write('companyId: $companyId, ')
+          ..write('registerSessionId: $registerSessionId, ')
+          ..write('userId: $userId, ')
+          ..write('loginAt: $loginAt, ')
+          ..write('logoutAt: $logoutAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    lastSyncedAt,
+    version,
+    serverCreatedAt,
+    serverUpdatedAt,
+    createdAt,
+    updatedAt,
+    deletedAt,
+    id,
+    companyId,
+    registerSessionId,
+    userId,
+    loginAt,
+    logoutAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Shift &&
+          other.lastSyncedAt == this.lastSyncedAt &&
+          other.version == this.version &&
+          other.serverCreatedAt == this.serverCreatedAt &&
+          other.serverUpdatedAt == this.serverUpdatedAt &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt &&
+          other.id == this.id &&
+          other.companyId == this.companyId &&
+          other.registerSessionId == this.registerSessionId &&
+          other.userId == this.userId &&
+          other.loginAt == this.loginAt &&
+          other.logoutAt == this.logoutAt);
+}
+
+class ShiftsCompanion extends UpdateCompanion<Shift> {
+  final Value<DateTime?> lastSyncedAt;
+  final Value<int> version;
+  final Value<DateTime?> serverCreatedAt;
+  final Value<DateTime?> serverUpdatedAt;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<String> id;
+  final Value<String> companyId;
+  final Value<String> registerSessionId;
+  final Value<String> userId;
+  final Value<DateTime> loginAt;
+  final Value<DateTime?> logoutAt;
+  final Value<int> rowid;
+  const ShiftsCompanion({
+    this.lastSyncedAt = const Value.absent(),
+    this.version = const Value.absent(),
+    this.serverCreatedAt = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.id = const Value.absent(),
+    this.companyId = const Value.absent(),
+    this.registerSessionId = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.loginAt = const Value.absent(),
+    this.logoutAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ShiftsCompanion.insert({
+    this.lastSyncedAt = const Value.absent(),
+    this.version = const Value.absent(),
+    this.serverCreatedAt = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    required String id,
+    required String companyId,
+    required String registerSessionId,
+    required String userId,
+    required DateTime loginAt,
+    this.logoutAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       companyId = Value(companyId),
+       registerSessionId = Value(registerSessionId),
+       userId = Value(userId),
+       loginAt = Value(loginAt);
+  static Insertable<Shift> custom({
+    Expression<DateTime>? lastSyncedAt,
+    Expression<int>? version,
+    Expression<DateTime>? serverCreatedAt,
+    Expression<DateTime>? serverUpdatedAt,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<String>? id,
+    Expression<String>? companyId,
+    Expression<String>? registerSessionId,
+    Expression<String>? userId,
+    Expression<DateTime>? loginAt,
+    Expression<DateTime>? logoutAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (lastSyncedAt != null) 'last_synced_at': lastSyncedAt,
+      if (version != null) 'version': version,
+      if (serverCreatedAt != null) 'server_created_at': serverCreatedAt,
+      if (serverUpdatedAt != null) 'server_updated_at': serverUpdatedAt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (id != null) 'id': id,
+      if (companyId != null) 'company_id': companyId,
+      if (registerSessionId != null) 'register_session_id': registerSessionId,
+      if (userId != null) 'user_id': userId,
+      if (loginAt != null) 'login_at': loginAt,
+      if (logoutAt != null) 'logout_at': logoutAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ShiftsCompanion copyWith({
+    Value<DateTime?>? lastSyncedAt,
+    Value<int>? version,
+    Value<DateTime?>? serverCreatedAt,
+    Value<DateTime?>? serverUpdatedAt,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? deletedAt,
+    Value<String>? id,
+    Value<String>? companyId,
+    Value<String>? registerSessionId,
+    Value<String>? userId,
+    Value<DateTime>? loginAt,
+    Value<DateTime?>? logoutAt,
+    Value<int>? rowid,
+  }) {
+    return ShiftsCompanion(
+      lastSyncedAt: lastSyncedAt ?? this.lastSyncedAt,
+      version: version ?? this.version,
+      serverCreatedAt: serverCreatedAt ?? this.serverCreatedAt,
+      serverUpdatedAt: serverUpdatedAt ?? this.serverUpdatedAt,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      id: id ?? this.id,
+      companyId: companyId ?? this.companyId,
+      registerSessionId: registerSessionId ?? this.registerSessionId,
+      userId: userId ?? this.userId,
+      loginAt: loginAt ?? this.loginAt,
+      logoutAt: logoutAt ?? this.logoutAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (lastSyncedAt.present) {
+      map['last_synced_at'] = Variable<DateTime>(lastSyncedAt.value);
+    }
+    if (version.present) {
+      map['version'] = Variable<int>(version.value);
+    }
+    if (serverCreatedAt.present) {
+      map['server_created_at'] = Variable<DateTime>(serverCreatedAt.value);
+    }
+    if (serverUpdatedAt.present) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (companyId.present) {
+      map['company_id'] = Variable<String>(companyId.value);
+    }
+    if (registerSessionId.present) {
+      map['register_session_id'] = Variable<String>(registerSessionId.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (loginAt.present) {
+      map['login_at'] = Variable<DateTime>(loginAt.value);
+    }
+    if (logoutAt.present) {
+      map['logout_at'] = Variable<DateTime>(logoutAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ShiftsCompanion(')
+          ..write('lastSyncedAt: $lastSyncedAt, ')
+          ..write('version: $version, ')
+          ..write('serverCreatedAt: $serverCreatedAt, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('id: $id, ')
+          ..write('companyId: $companyId, ')
+          ..write('registerSessionId: $registerSessionId, ')
+          ..write('userId: $userId, ')
+          ..write('loginAt: $loginAt, ')
+          ..write('logoutAt: $logoutAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $SyncMetadataTable extends SyncMetadata
     with TableInfo<$SyncMetadataTable, SyncMetadataData> {
   @override
@@ -20178,6 +21000,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   );
   late final $RolesTable roles = $RolesTable(this);
   late final $SectionsTable sections = $SectionsTable(this);
+  late final $ShiftsTable shifts = $ShiftsTable(this);
   late final $SyncMetadataTable syncMetadata = $SyncMetadataTable(this);
   late final $SyncQueueTable syncQueue = $SyncQueueTable(this);
   late final $TablesTable tables = $TablesTable(this);
@@ -20238,6 +21061,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     'idx_sections_company_updated',
     'CREATE INDEX idx_sections_company_updated ON sections (company_id, updated_at)',
   );
+  late final Index idxShiftsCompanyUpdated = Index(
+    'idx_shifts_company_updated',
+    'CREATE INDEX idx_shifts_company_updated ON shifts (company_id, updated_at)',
+  );
   late final Index idxSyncQueueCompanyStatus = Index(
     'idx_sync_queue_company_status',
     'CREATE INDEX idx_sync_queue_company_status ON sync_queue (company_id, status)',
@@ -20288,6 +21115,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     rolePermissions,
     roles,
     sections,
+    shifts,
     syncMetadata,
     syncQueue,
     tables,
@@ -20307,6 +21135,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     idxRegisterSessionsCompanyUpdated,
     idxRegistersCompanyUpdated,
     idxSectionsCompanyUpdated,
+    idxShiftsCompanyUpdated,
     idxSyncQueueCompanyStatus,
     idxSyncQueueEntity,
     idxSyncQueueCreated,
@@ -24747,6 +25576,7 @@ typedef $$PaymentsTableCreateCompanionBuilder =
       required String id,
       required String companyId,
       required String billId,
+      Value<String?> userId,
       required String paymentMethodId,
       required int amount,
       required DateTime paidAt,
@@ -24771,6 +25601,7 @@ typedef $$PaymentsTableUpdateCompanionBuilder =
       Value<String> id,
       Value<String> companyId,
       Value<String> billId,
+      Value<String?> userId,
       Value<String> paymentMethodId,
       Value<int> amount,
       Value<DateTime> paidAt,
@@ -24840,6 +25671,11 @@ class $$PaymentsTableFilterComposer
 
   ColumnFilters<String> get billId => $composableBuilder(
     column: $table.billId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get userId => $composableBuilder(
+    column: $table.userId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -24953,6 +25789,11 @@ class $$PaymentsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get paymentMethodId => $composableBuilder(
     column: $table.paymentMethodId,
     builder: (column) => ColumnOrderings(column),
@@ -25049,6 +25890,9 @@ class $$PaymentsTableAnnotationComposer
   GeneratedColumn<String> get billId =>
       $composableBuilder(column: $table.billId, builder: (column) => column);
 
+  GeneratedColumn<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
+
   GeneratedColumn<String> get paymentMethodId => $composableBuilder(
     column: $table.paymentMethodId,
     builder: (column) => column,
@@ -25130,6 +25974,7 @@ class $$PaymentsTableTableManager
                 Value<String> id = const Value.absent(),
                 Value<String> companyId = const Value.absent(),
                 Value<String> billId = const Value.absent(),
+                Value<String?> userId = const Value.absent(),
                 Value<String> paymentMethodId = const Value.absent(),
                 Value<int> amount = const Value.absent(),
                 Value<DateTime> paidAt = const Value.absent(),
@@ -25152,6 +25997,7 @@ class $$PaymentsTableTableManager
                 id: id,
                 companyId: companyId,
                 billId: billId,
+                userId: userId,
                 paymentMethodId: paymentMethodId,
                 amount: amount,
                 paidAt: paidAt,
@@ -25176,6 +26022,7 @@ class $$PaymentsTableTableManager
                 required String id,
                 required String companyId,
                 required String billId,
+                Value<String?> userId = const Value.absent(),
                 required String paymentMethodId,
                 required int amount,
                 required DateTime paidAt,
@@ -25198,6 +26045,7 @@ class $$PaymentsTableTableManager
                 id: id,
                 companyId: companyId,
                 billId: billId,
+                userId: userId,
                 paymentMethodId: paymentMethodId,
                 amount: amount,
                 paidAt: paidAt,
@@ -27435,6 +28283,360 @@ typedef $$SectionsTableProcessedTableManager =
       Section,
       PrefetchHooks Function()
     >;
+typedef $$ShiftsTableCreateCompanionBuilder =
+    ShiftsCompanion Function({
+      Value<DateTime?> lastSyncedAt,
+      Value<int> version,
+      Value<DateTime?> serverCreatedAt,
+      Value<DateTime?> serverUpdatedAt,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      required String id,
+      required String companyId,
+      required String registerSessionId,
+      required String userId,
+      required DateTime loginAt,
+      Value<DateTime?> logoutAt,
+      Value<int> rowid,
+    });
+typedef $$ShiftsTableUpdateCompanionBuilder =
+    ShiftsCompanion Function({
+      Value<DateTime?> lastSyncedAt,
+      Value<int> version,
+      Value<DateTime?> serverCreatedAt,
+      Value<DateTime?> serverUpdatedAt,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<String> id,
+      Value<String> companyId,
+      Value<String> registerSessionId,
+      Value<String> userId,
+      Value<DateTime> loginAt,
+      Value<DateTime?> logoutAt,
+      Value<int> rowid,
+    });
+
+class $$ShiftsTableFilterComposer
+    extends Composer<_$AppDatabase, $ShiftsTable> {
+  $$ShiftsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<DateTime> get lastSyncedAt => $composableBuilder(
+    column: $table.lastSyncedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get version => $composableBuilder(
+    column: $table.version,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get serverCreatedAt => $composableBuilder(
+    column: $table.serverCreatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get companyId => $composableBuilder(
+    column: $table.companyId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get registerSessionId => $composableBuilder(
+    column: $table.registerSessionId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get loginAt => $composableBuilder(
+    column: $table.loginAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get logoutAt => $composableBuilder(
+    column: $table.logoutAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$ShiftsTableOrderingComposer
+    extends Composer<_$AppDatabase, $ShiftsTable> {
+  $$ShiftsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<DateTime> get lastSyncedAt => $composableBuilder(
+    column: $table.lastSyncedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get version => $composableBuilder(
+    column: $table.version,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get serverCreatedAt => $composableBuilder(
+    column: $table.serverCreatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get companyId => $composableBuilder(
+    column: $table.companyId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get registerSessionId => $composableBuilder(
+    column: $table.registerSessionId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get loginAt => $composableBuilder(
+    column: $table.loginAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get logoutAt => $composableBuilder(
+    column: $table.logoutAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$ShiftsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ShiftsTable> {
+  $$ShiftsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<DateTime> get lastSyncedAt => $composableBuilder(
+    column: $table.lastSyncedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get version =>
+      $composableBuilder(column: $table.version, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get serverCreatedAt => $composableBuilder(
+    column: $table.serverCreatedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get companyId =>
+      $composableBuilder(column: $table.companyId, builder: (column) => column);
+
+  GeneratedColumn<String> get registerSessionId => $composableBuilder(
+    column: $table.registerSessionId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get loginAt =>
+      $composableBuilder(column: $table.loginAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get logoutAt =>
+      $composableBuilder(column: $table.logoutAt, builder: (column) => column);
+}
+
+class $$ShiftsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ShiftsTable,
+          Shift,
+          $$ShiftsTableFilterComposer,
+          $$ShiftsTableOrderingComposer,
+          $$ShiftsTableAnnotationComposer,
+          $$ShiftsTableCreateCompanionBuilder,
+          $$ShiftsTableUpdateCompanionBuilder,
+          (Shift, BaseReferences<_$AppDatabase, $ShiftsTable, Shift>),
+          Shift,
+          PrefetchHooks Function()
+        > {
+  $$ShiftsTableTableManager(_$AppDatabase db, $ShiftsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ShiftsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ShiftsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ShiftsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<DateTime?> lastSyncedAt = const Value.absent(),
+                Value<int> version = const Value.absent(),
+                Value<DateTime?> serverCreatedAt = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<String> id = const Value.absent(),
+                Value<String> companyId = const Value.absent(),
+                Value<String> registerSessionId = const Value.absent(),
+                Value<String> userId = const Value.absent(),
+                Value<DateTime> loginAt = const Value.absent(),
+                Value<DateTime?> logoutAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ShiftsCompanion(
+                lastSyncedAt: lastSyncedAt,
+                version: version,
+                serverCreatedAt: serverCreatedAt,
+                serverUpdatedAt: serverUpdatedAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                id: id,
+                companyId: companyId,
+                registerSessionId: registerSessionId,
+                userId: userId,
+                loginAt: loginAt,
+                logoutAt: logoutAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                Value<DateTime?> lastSyncedAt = const Value.absent(),
+                Value<int> version = const Value.absent(),
+                Value<DateTime?> serverCreatedAt = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                required String id,
+                required String companyId,
+                required String registerSessionId,
+                required String userId,
+                required DateTime loginAt,
+                Value<DateTime?> logoutAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ShiftsCompanion.insert(
+                lastSyncedAt: lastSyncedAt,
+                version: version,
+                serverCreatedAt: serverCreatedAt,
+                serverUpdatedAt: serverUpdatedAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                id: id,
+                companyId: companyId,
+                registerSessionId: registerSessionId,
+                userId: userId,
+                loginAt: loginAt,
+                logoutAt: logoutAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$ShiftsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ShiftsTable,
+      Shift,
+      $$ShiftsTableFilterComposer,
+      $$ShiftsTableOrderingComposer,
+      $$ShiftsTableAnnotationComposer,
+      $$ShiftsTableCreateCompanionBuilder,
+      $$ShiftsTableUpdateCompanionBuilder,
+      (Shift, BaseReferences<_$AppDatabase, $ShiftsTable, Shift>),
+      Shift,
+      PrefetchHooks Function()
+    >;
 typedef $$SyncMetadataTableCreateCompanionBuilder =
     SyncMetadataCompanion Function({
       required String id,
@@ -29525,6 +30727,8 @@ class $AppDatabaseManager {
       $$RolesTableTableManager(_db, _db.roles);
   $$SectionsTableTableManager get sections =>
       $$SectionsTableTableManager(_db, _db.sections);
+  $$ShiftsTableTableManager get shifts =>
+      $$ShiftsTableTableManager(_db, _db.shifts);
   $$SyncMetadataTableTableManager get syncMetadata =>
       $$SyncMetadataTableTableManager(_db, _db.syncMetadata);
   $$SyncQueueTableTableManager get syncQueue =>

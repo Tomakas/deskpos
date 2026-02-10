@@ -119,6 +119,18 @@ class OrderRepository {
         .map((rows) => rows.map(orderItemFromEntity).toList());
   }
 
+  Future<List<OrderItemModel>> getOrderItemsByBill(String billId) async {
+    final orders = await (_db.select(_db.orders)
+          ..where((t) => t.billId.equals(billId) & t.deletedAt.isNull()))
+        .get();
+    final items = <OrderItemModel>[];
+    for (final order in orders) {
+      final orderItems = await getOrderItems(order.id);
+      items.addAll(orderItems);
+    }
+    return items;
+  }
+
   Future<List<OrderItemModel>> getOrderItems(String orderId) async {
     final entities = await (_db.select(_db.orderItems)
           ..where((t) => t.orderId.equals(orderId) & t.deletedAt.isNull()))

@@ -265,6 +265,19 @@ class _ScreenLoginState extends ConsumerState<ScreenLogin> {
     final companyResult = await companyRepo.getFirst();
     if (companyResult case Success(value: final company?)) {
       ref.read(currentCompanyProvider.notifier).state = company;
+      // Create shift if register session is active
+      final regSession = await ref.read(registerSessionRepositoryProvider).getActiveSession(company.id);
+      if (regSession != null) {
+        final shiftRepo = ref.read(shiftRepositoryProvider);
+        final existing = await shiftRepo.getActiveShiftForUser(_selectedUser!.id, regSession.id);
+        if (existing == null) {
+          await shiftRepo.create(
+            companyId: company.id,
+            registerSessionId: regSession.id,
+            userId: _selectedUser!.id,
+          );
+        }
+      }
     }
     if (mounted) context.go('/bills');
   }

@@ -1797,6 +1797,228 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Bez stolu'**
   String get newBillNoTable;
+
+  /// No description provided for @zReportListTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Přehled uzávěrek'**
+  String get zReportListTitle;
+
+  /// No description provided for @zReportListEmpty.
+  ///
+  /// In cs, this message translates to:
+  /// **'Žádné uzávěrky'**
+  String get zReportListEmpty;
+
+  /// No description provided for @zReportColumnDate.
+  ///
+  /// In cs, this message translates to:
+  /// **'Datum'**
+  String get zReportColumnDate;
+
+  /// No description provided for @zReportColumnTime.
+  ///
+  /// In cs, this message translates to:
+  /// **'Čas'**
+  String get zReportColumnTime;
+
+  /// No description provided for @zReportColumnUser.
+  ///
+  /// In cs, this message translates to:
+  /// **'Uživatel'**
+  String get zReportColumnUser;
+
+  /// No description provided for @zReportColumnRevenue.
+  ///
+  /// In cs, this message translates to:
+  /// **'Tržba'**
+  String get zReportColumnRevenue;
+
+  /// No description provided for @zReportColumnDifference.
+  ///
+  /// In cs, this message translates to:
+  /// **'Rozdíl'**
+  String get zReportColumnDifference;
+
+  /// No description provided for @zReportTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Z-Report'**
+  String get zReportTitle;
+
+  /// No description provided for @zReportSessionInfo.
+  ///
+  /// In cs, this message translates to:
+  /// **'Informace o směně'**
+  String get zReportSessionInfo;
+
+  /// No description provided for @zReportOpenedAt.
+  ///
+  /// In cs, this message translates to:
+  /// **'Začátek'**
+  String get zReportOpenedAt;
+
+  /// No description provided for @zReportClosedAt.
+  ///
+  /// In cs, this message translates to:
+  /// **'Konec'**
+  String get zReportClosedAt;
+
+  /// No description provided for @zReportDuration.
+  ///
+  /// In cs, this message translates to:
+  /// **'Trvání'**
+  String get zReportDuration;
+
+  /// No description provided for @zReportOpenedBy.
+  ///
+  /// In cs, this message translates to:
+  /// **'Otevřel'**
+  String get zReportOpenedBy;
+
+  /// No description provided for @zReportRevenueByPayment.
+  ///
+  /// In cs, this message translates to:
+  /// **'Tržba dle plateb'**
+  String get zReportRevenueByPayment;
+
+  /// No description provided for @zReportRevenueTotal.
+  ///
+  /// In cs, this message translates to:
+  /// **'Celkem'**
+  String get zReportRevenueTotal;
+
+  /// No description provided for @zReportTaxTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'DPH'**
+  String get zReportTaxTitle;
+
+  /// No description provided for @zReportTaxRate.
+  ///
+  /// In cs, this message translates to:
+  /// **'Sazba'**
+  String get zReportTaxRate;
+
+  /// No description provided for @zReportTaxNet.
+  ///
+  /// In cs, this message translates to:
+  /// **'Základ'**
+  String get zReportTaxNet;
+
+  /// No description provided for @zReportTaxAmount.
+  ///
+  /// In cs, this message translates to:
+  /// **'DPH'**
+  String get zReportTaxAmount;
+
+  /// No description provided for @zReportTaxGross.
+  ///
+  /// In cs, this message translates to:
+  /// **'Celkem'**
+  String get zReportTaxGross;
+
+  /// No description provided for @zReportTipsTotal.
+  ///
+  /// In cs, this message translates to:
+  /// **'Spropitné celkem'**
+  String get zReportTipsTotal;
+
+  /// No description provided for @zReportTipsByUser.
+  ///
+  /// In cs, this message translates to:
+  /// **'Spropitné dle obsluhy'**
+  String get zReportTipsByUser;
+
+  /// No description provided for @zReportDiscounts.
+  ///
+  /// In cs, this message translates to:
+  /// **'Slevy celkem'**
+  String get zReportDiscounts;
+
+  /// No description provided for @zReportBillsPaid.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zaplacené účty'**
+  String get zReportBillsPaid;
+
+  /// No description provided for @zReportBillsCancelled.
+  ///
+  /// In cs, this message translates to:
+  /// **'Stornované účty'**
+  String get zReportBillsCancelled;
+
+  /// No description provided for @zReportBillsRefunded.
+  ///
+  /// In cs, this message translates to:
+  /// **'Refundované účty'**
+  String get zReportBillsRefunded;
+
+  /// No description provided for @zReportCashTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Stav hotovosti'**
+  String get zReportCashTitle;
+
+  /// No description provided for @zReportCashOpening.
+  ///
+  /// In cs, this message translates to:
+  /// **'Počáteční hotovost'**
+  String get zReportCashOpening;
+
+  /// No description provided for @zReportCashRevenue.
+  ///
+  /// In cs, this message translates to:
+  /// **'Tržba hotovost'**
+  String get zReportCashRevenue;
+
+  /// No description provided for @zReportCashDeposits.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vklady'**
+  String get zReportCashDeposits;
+
+  /// No description provided for @zReportCashWithdrawals.
+  ///
+  /// In cs, this message translates to:
+  /// **'Výběry'**
+  String get zReportCashWithdrawals;
+
+  /// No description provided for @zReportCashExpected.
+  ///
+  /// In cs, this message translates to:
+  /// **'Očekávaná hotovost'**
+  String get zReportCashExpected;
+
+  /// No description provided for @zReportCashClosing.
+  ///
+  /// In cs, this message translates to:
+  /// **'Konečný stav'**
+  String get zReportCashClosing;
+
+  /// No description provided for @zReportCashDifference.
+  ///
+  /// In cs, this message translates to:
+  /// **'Rozdíl'**
+  String get zReportCashDifference;
+
+  /// No description provided for @zReportShiftsTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Směny'**
+  String get zReportShiftsTitle;
+
+  /// No description provided for @zReportPrint.
+  ///
+  /// In cs, this message translates to:
+  /// **'Tisk'**
+  String get zReportPrint;
+
+  /// No description provided for @zReportClose.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zavřít'**
+  String get zReportClose;
 }
 
 class _AppLocalizationsDelegate

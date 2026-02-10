@@ -18,6 +18,7 @@ import '../models/register_session_model.dart';
 import '../models/role_model.dart';
 import '../models/role_permission_model.dart';
 import '../models/section_model.dart';
+import '../models/shift_model.dart';
 import '../models/table_model.dart';
 import '../models/tax_rate_model.dart';
 import '../models/user_model.dart';
@@ -330,6 +331,7 @@ PaymentModel paymentFromEntity(Payment e) => PaymentModel(
       id: e.id,
       companyId: e.companyId,
       billId: e.billId,
+      userId: e.userId,
       paymentMethodId: e.paymentMethodId,
       amount: e.amount,
       paidAt: e.paidAt,
@@ -458,6 +460,19 @@ SectionsCompanion sectionToCompanion(SectionModel m) => SectionsCompanion.insert
       color: Value(m.color),
       isActive: Value(m.isActive),
       isDefault: Value(m.isDefault),
+    );
+
+// --- Shift ---
+ShiftModel shiftFromEntity(Shift e) => ShiftModel(
+      id: e.id,
+      companyId: e.companyId,
+      registerSessionId: e.registerSessionId,
+      userId: e.userId,
+      loginAt: e.loginAt,
+      logoutAt: e.logoutAt,
+      createdAt: e.createdAt,
+      updatedAt: e.updatedAt,
+      deletedAt: e.deletedAt,
     );
 
 // --- LayoutItem ---

@@ -60,6 +60,7 @@ class SyncService {
     'payments',
     'register_sessions',
     'cash_movements',
+    'shifts',
   ];
 
   void startAutoSync(String companyId) {
@@ -226,6 +227,8 @@ class SyncService {
         return _db.payments;
       case 'cash_movements':
         return _db.cashMovements;
+      case 'shifts':
+        return _db.shifts;
       default:
         throw ArgumentError('Unknown Drift table: $tableName');
     }

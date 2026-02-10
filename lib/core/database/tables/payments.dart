@@ -7,6 +7,7 @@ class Payments extends Table with SyncColumnsMixin {
   TextColumn get id => text()();
   TextColumn get companyId => text()();
   TextColumn get billId => text()();
+  TextColumn get userId => text().nullable()();
   TextColumn get paymentMethodId => text()();
   IntColumn get amount => integer()();
   DateTimeColumn get paidAt => dateTime()();

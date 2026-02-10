@@ -225,6 +225,7 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
         id: Value(json['id'] as String),
         companyId: Value(json['company_id'] as String),
         billId: Value(json['bill_id'] as String),
+        userId: Value(json['user_id'] as String?),
         paymentMethodId: Value(json['payment_method_id'] as String),
         amount: Value(json['amount'] as int),
         paidAt: Value(_requireDateTime(json['paid_at'])),
@@ -399,6 +400,22 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
         categoryId: Value(json['category_id'] as String?),
         label: Value(json['label'] as String?),
         color: Value(json['color'] as String?),
+        createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
+        updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
+        deletedAt: Value(_parseDateTime(json['deleted_at'])),
+        serverCreatedAt: Value(_parseDateTime(json['created_at'])),
+        serverUpdatedAt: Value(_parseDateTime(json['updated_at'])),
+        lastSyncedAt: Value(now),
+      );
+
+    case 'shifts':
+      return ShiftsCompanion(
+        id: Value(json['id'] as String),
+        companyId: Value(json['company_id'] as String),
+        registerSessionId: Value(json['register_session_id'] as String),
+        userId: Value(json['user_id'] as String),
+        loginAt: Value(_requireDateTime(json['login_at'])),
+        logoutAt: Value(_parseDateTime(json['logout_at'])),
         createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
         updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
         deletedAt: Value(_parseDateTime(json['deleted_at'])),

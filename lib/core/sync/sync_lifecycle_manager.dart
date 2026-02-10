@@ -157,6 +157,14 @@ class SyncLifecycleManager {
       (e) => cashMovementToSupabaseJson(cashMovementFromEntity(e as CashMovement)),
     );
 
+    // Push shifts (depends on register_sessions)
+    await _enqueueCompanyTable(
+      companyId,
+      'shifts',
+      _db.shifts,
+      (e) => shiftToSupabaseJson(shiftFromEntity(e as Shift)),
+    );
+
     // Push layout_items
     await _enqueueCompanyTable(
       companyId,

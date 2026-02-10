@@ -888,4 +888,115 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get newBillNoTable => 'Bez stolu';
+
+  @override
+  String get zReportListTitle => 'Přehled uzávěrek';
+
+  @override
+  String get zReportListEmpty => 'Žádné uzávěrky';
+
+  @override
+  String get zReportColumnDate => 'Datum';
+
+  @override
+  String get zReportColumnTime => 'Čas';
+
+  @override
+  String get zReportColumnUser => 'Uživatel';
+
+  @override
+  String get zReportColumnRevenue => 'Tržba';
+
+  @override
+  String get zReportColumnDifference => 'Rozdíl';
+
+  @override
+  String get zReportTitle => 'Z-Report';
+
+  @override
+  String get zReportSessionInfo => 'Informace o směně';
+
+  @override
+  String get zReportOpenedAt => 'Začátek';
+
+  @override
+  String get zReportClosedAt => 'Konec';
+
+  @override
+  String get zReportDuration => 'Trvání';
+
+  @override
+  String get zReportOpenedBy => 'Otevřel';
+
+  @override
+  String get zReportRevenueByPayment => 'Tržba dle plateb';
+
+  @override
+  String get zReportRevenueTotal => 'Celkem';
+
+  @override
+  String get zReportTaxTitle => 'DPH';
+
+  @override
+  String get zReportTaxRate => 'Sazba';
+
+  @override
+  String get zReportTaxNet => 'Základ';
+
+  @override
+  String get zReportTaxAmount => 'DPH';
+
+  @override
+  String get zReportTaxGross => 'Celkem';
+
+  @override
+  String get zReportTipsTotal => 'Spropitné celkem';
+
+  @override
+  String get zReportTipsByUser => 'Spropitné dle obsluhy';
+
+  @override
+  String get zReportDiscounts => 'Slevy celkem';
+
+  @override
+  String get zReportBillsPaid => 'Zaplacené účty';
+
+  @override
+  String get zReportBillsCancelled => 'Stornované účty';
+
+  @override
+  String get zReportBillsRefunded => 'Refundované účty';
+
+  @override
+  String get zReportCashTitle => 'Stav hotovosti';
+
+  @override
+  String get zReportCashOpening => 'Počáteční hotovost';
+
+  @override
+  String get zReportCashRevenue => 'Tržba hotovost';
+
+  @override
+  String get zReportCashDeposits => 'Vklady';
+
+  @override
+  String get zReportCashWithdrawals => 'Výběry';
+
+  @override
+  String get zReportCashExpected => 'Očekávaná hotovost';
+
+  @override
+  String get zReportCashClosing => 'Konečný stav';
+
+  @override
+  String get zReportCashDifference => 'Rozdíl';
+
+  @override
+  String get zReportShiftsTitle => 'Směny';
+
+  @override
+  String get zReportPrint => 'Tisk';
+
+  @override
+  String get zReportClose => 'Zavřít';
 }

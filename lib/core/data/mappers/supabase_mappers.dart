@@ -17,6 +17,7 @@ import '../models/register_session_model.dart';
 import '../models/role_model.dart';
 import '../models/role_permission_model.dart';
 import '../models/section_model.dart';
+import '../models/shift_model.dart';
 import '../models/table_model.dart';
 import '../models/tax_rate_model.dart';
 import '../models/user_model.dart';
@@ -244,6 +245,7 @@ Map<String, dynamic> paymentToSupabaseJson(PaymentModel m) => {
         deletedAt: m.deletedAt,
       ),
       'bill_id': m.billId,
+      'user_id': m.userId,
       'payment_method_id': m.paymentMethodId,
       'amount': m.amount,
       'paid_at': toIso8601Utc(m.paidAt),
@@ -398,6 +400,20 @@ Map<String, dynamic> layoutItemToSupabaseJson(LayoutItemModel m) => {
       'category_id': m.categoryId,
       'label': m.label,
       'color': m.color,
+    };
+
+Map<String, dynamic> shiftToSupabaseJson(ShiftModel m) => {
+      ..._baseSyncFields(
+        id: m.id,
+        companyId: m.companyId,
+        createdAt: m.createdAt,
+        updatedAt: m.updatedAt,
+        deletedAt: m.deletedAt,
+      ),
+      'register_session_id': m.registerSessionId,
+      'user_id': m.userId,
+      'login_at': toIso8601Utc(m.loginAt),
+      'logout_at': toIso8601Utc(m.logoutAt),
     };
 
 Map<String, dynamic> userPermissionToSupabaseJson(UserPermissionModel m) => {

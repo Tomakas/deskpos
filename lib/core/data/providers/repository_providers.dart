@@ -12,6 +12,7 @@ import '../repositories/payment_repository.dart';
 import '../repositories/permission_repository.dart';
 import '../repositories/register_repository.dart';
 import '../repositories/register_session_repository.dart';
+import '../repositories/shift_repository.dart';
 import '../repositories/role_repository.dart';
 import '../repositories/section_repository.dart';
 import '../repositories/sync_metadata_repository.dart';
@@ -120,6 +121,13 @@ final registerRepositoryProvider = Provider<RegisterRepository>((ref) {
 
 final registerSessionRepositoryProvider = Provider<RegisterSessionRepository>((ref) {
   return RegisterSessionRepository(
+    ref.watch(appDatabaseProvider),
+    syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
+  );
+});
+
+final shiftRepositoryProvider = Provider<ShiftRepository>((ref) {
+  return ShiftRepository(
     ref.watch(appDatabaseProvider),
     syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
   );

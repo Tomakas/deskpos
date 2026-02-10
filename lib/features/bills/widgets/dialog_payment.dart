@@ -264,6 +264,7 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
       currencyId: _bill.currencyId,
       amount: effectiveAmount,
       tipAmount: tipAmount,
+      userId: ref.read(activeUserProvider)?.id,
     );
 
     if (!mounted) return;

@@ -224,6 +224,7 @@ class BillRepository {
     required String currencyId,
     required int amount,
     int tipAmount = 0,
+    String? userId,
   }) async {
     try {
       final now = DateTime.now();
@@ -235,6 +236,7 @@ class BillRepository {
           id: paymentId,
           companyId: companyId,
           billId: billId,
+          userId: Value(userId),
           paymentMethodId: paymentMethodId,
           amount: amount,
           paidAt: now,

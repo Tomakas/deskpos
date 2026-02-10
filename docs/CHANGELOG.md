@@ -1,5 +1,41 @@
 # Changelog
 
+## 2026-02-10 (Task 3.13 — Z-Report)
+
+### Schema
+- **payments.userId**: New nullable `TextColumn` — tracks which user made each payment (for tips-per-user in Z-Report)
+- **shifts table**: New table with `registerSessionId`, `userId`, `loginAt`, `logoutAt` — tracks user login/logout durations per register session
+
+### Features
+- **Z-Report**: Daily closing summary accessible via "Další" dropdown → "Reporty" (requires `settings.manage` permission)
+  - Session list dialog with date range filter, showing all closed sessions
+  - Detail dialog showing: revenue by payment type, DPH breakdown, tips (total + per user), discounts, bill counts, cash reconciliation, shift durations
+- **Shift tracking**: Automatic shift creation on login / user switch; shift closure on logout / session close
+
+### New files
+- `lib/core/database/tables/shifts.dart` — Drift table definition
+- `lib/core/data/models/shift_model.dart` — Freezed model
+- `lib/core/data/repositories/shift_repository.dart` — CRUD + sync enqueue
+- `lib/features/bills/models/z_report_data.dart` — Data classes for Z-Report
+- `lib/features/bills/services/z_report_service.dart` — Aggregation service
+- `lib/features/bills/providers/z_report_providers.dart` — Riverpod provider
+- `lib/features/bills/widgets/dialog_z_report_list.dart` — Session list dialog
+- `lib/features/bills/widgets/dialog_z_report.dart` — Z-Report detail dialog
+
+### Modified
+- `BillRepository.recordPayment()` — accepts optional `userId` parameter
+- `RegisterSessionRepository` — added `getClosedSessions()`, `getById()`
+- `OrderRepository` — added `getOrderItemsByBill()`
+- `screen_login.dart` — creates shift on login
+- `screen_bills.dart` — shift hooks (login/logout/switch/session open/close), Z-Report menu integration
+- `dialog_payment.dart` — passes `activeUserProvider.id` as `userId` to `recordPayment()`
+- Sync: `shifts` added to `_pullTables`, `_getDriftTable()`, `_initialPush()`
+
+### Localization
+- Added 30+ Z-Report Czech localization keys to `app_cs.arb`
+
+---
+
 ## 2026-02-10 (Post-M3.2 Audit — 2nd pass)
 
 ### Transactions

@@ -20,12 +20,15 @@ import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/providers/sync_providers.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../providers/z_report_providers.dart';
 import '../widgets/dialog_bill_detail.dart';
 import '../widgets/dialog_cash_journal.dart';
 import '../widgets/dialog_cash_movement.dart';
 import '../widgets/dialog_closing_session.dart';
 import '../widgets/dialog_new_bill.dart';
 import '../widgets/dialog_opening_cash.dart';
+import '../widgets/dialog_z_report.dart';
+import '../widgets/dialog_z_report_list.dart';
 
 class ScreenBills extends ConsumerStatefulWidget {
   const ScreenBills({super.key});
@@ -87,6 +90,7 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
               onQuickBill: hasSession ? () => _createQuickBill(context) : null,
               onToggleSession: () => _toggleSession(context, hasSession),
               onCashMovement: hasSession ? () => _showCashMovement(context) : null,
+              onZReports: () => _showZReports(context),
             ),
           ),
         ],
@@ -94,12 +98,27 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
     );
   }
 
-  void _logout(BuildContext context) {
+  Future<void> _logout(BuildContext context) async {
     final session = ref.read(sessionManagerProvider);
+    final activeUser = session.activeUser;
+    // Close active shift before logout
+    if (activeUser != null) {
+      final company = ref.read(currentCompanyProvider);
+      if (company != null) {
+        final regSession = await ref.read(registerSessionRepositoryProvider).getActiveSession(company.id);
+        if (regSession != null) {
+          final shiftRepo = ref.read(shiftRepositoryProvider);
+          final activeShift = await shiftRepo.getActiveShiftForUser(activeUser.id, regSession.id);
+          if (activeShift != null) {
+            await shiftRepo.closeShift(activeShift.id);
+          }
+        }
+      }
+    }
     session.logoutActive();
     ref.read(activeUserProvider.notifier).state = null;
     ref.read(loggedInUsersProvider.notifier).state = session.loggedInUsers;
-    context.go('/login');
+    if (mounted) context.go('/login');
   }
 
   void _showSwitchUserDialog(BuildContext context) {
@@ -247,6 +266,9 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
       );
       if (result == null || !mounted) return;
 
+      // Close all shifts for this session
+      await ref.read(shiftRepositoryProvider).closeAllForSession(session.id);
+
       final difference = result.closingCash - expectedCash;
       await ref.read(registerSessionRepositoryProvider).closeSession(
         session.id,
@@ -288,6 +310,16 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
           type: diff > 0 ? CashMovementType.deposit : CashMovementType.withdrawal,
           amount: diff.abs(),
           reason: 'Auto-correction: opening cash differs from previous closing',
+        );
+      }
+
+      // Create shift for current user after opening session
+      if (openResult is Success) {
+        final newSession = (openResult as Success).value;
+        await ref.read(shiftRepositoryProvider).create(
+          companyId: company.id,
+          registerSessionId: newSession.id,
+          userId: user.id,
         );
       }
     }
@@ -365,6 +397,33 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
       type: result.type,
       amount: result.amount,
       reason: result.reason,
+    );
+  }
+
+  Future<void> _showZReports(BuildContext context) async {
+    final company = ref.read(currentCompanyProvider);
+    if (company == null) return;
+
+    final zReportService = ref.read(zReportServiceProvider);
+    final summaries = await zReportService.getSessionSummaries(company.id);
+
+    if (!mounted) return;
+
+    await showDialog(
+      context: context,
+      builder: (_) => DialogZReportList(
+        sessions: summaries,
+        onSessionSelected: (sessionId) async {
+          Navigator.pop(context);
+          final zReport = await zReportService.buildZReport(sessionId);
+          if (zReport != null && mounted) {
+            showDialog(
+              context: context,
+              builder: (_) => DialogZReport(data: zReport),
+            );
+          }
+        },
+      ),
     );
   }
 }
@@ -703,6 +762,7 @@ class _RightPanel extends ConsumerWidget {
     required this.onQuickBill,
     required this.onToggleSession,
     required this.onCashMovement,
+    required this.onZReports,
   });
 
   final dynamic activeUser;
@@ -716,6 +776,7 @@ class _RightPanel extends ConsumerWidget {
   final VoidCallback? onQuickBill;
   final VoidCallback onToggleSession;
   final VoidCallback? onCashMovement;
+  final VoidCallback onZReports;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -764,7 +825,11 @@ class _RightPanel extends ConsumerWidget {
                     height: 54,
                     child: Builder(builder: (btnContext) {
                       return FilledButton.tonal(
-                        onPressed: () => _showMoreMenu(btnContext, canManageSettings),
+                        onPressed: () => _showMoreMenu(
+                          btnContext,
+                          canManageSettings,
+                          onZReports: onZReports,
+                        ),
                         child: Text(l.billsMore, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12)),
                       );
                     }),
@@ -874,7 +939,7 @@ class _ButtonRow extends StatelessWidget {
   }
 }
 
-void _showMoreMenu(BuildContext btnContext, bool canManageSettings) {
+void _showMoreMenu(BuildContext btnContext, bool canManageSettings, {VoidCallback? onZReports}) {
   final l = btnContext.l10n;
   final button = btnContext.findRenderObject()! as RenderBox;
   final overlay = Overlay.of(btnContext).context.findRenderObject()! as RenderBox;
@@ -890,7 +955,10 @@ void _showMoreMenu(BuildContext btnContext, bool canManageSettings) {
     context: btnContext,
     position: position,
     items: [
-      PopupMenuItem(enabled: false, height: 48, child: Text(l.moreReports)),
+      if (canManageSettings)
+        PopupMenuItem(value: 'z-reports', height: 48, child: Text(l.moreReports)),
+      if (!canManageSettings)
+        PopupMenuItem(enabled: false, height: 48, child: Text(l.moreReports)),
       PopupMenuItem(enabled: false, height: 48, child: Text(l.moreStatistics)),
       PopupMenuItem(enabled: false, height: 48, child: Text(l.moreReservations)),
       PopupMenuItem(value: 'settings', height: 48, child: Text(l.moreSettings)),
@@ -904,6 +972,8 @@ void _showMoreMenu(BuildContext btnContext, bool canManageSettings) {
         btnContext.push('/settings');
       case 'dev':
         btnContext.push('/dev');
+      case 'z-reports':
+        onZReports?.call();
     }
   });
 }
@@ -1351,7 +1421,7 @@ class _SwitchUserDialogState extends State<_SwitchUserDialog> {
     }
   }
 
-  void _onSuccess() {
+  Future<void> _onSuccess() async {
     final session = widget.ref.read(sessionManagerProvider);
     final authService = widget.ref.read(authServiceProvider);
     authService.resetAttempts();
@@ -1363,6 +1433,24 @@ class _SwitchUserDialogState extends State<_SwitchUserDialog> {
     }
     widget.ref.read(activeUserProvider.notifier).state = session.activeUser;
     widget.ref.read(loggedInUsersProvider.notifier).state = session.loggedInUsers;
+
+    // Create shift if register session is active and user has no open shift
+    final company = widget.ref.read(currentCompanyProvider);
+    if (company != null) {
+      final regSession = await widget.ref.read(registerSessionRepositoryProvider).getActiveSession(company.id);
+      if (regSession != null) {
+        final shiftRepo = widget.ref.read(shiftRepositoryProvider);
+        final existing = await shiftRepo.getActiveShiftForUser(_selectedUser!.id, regSession.id);
+        if (existing == null) {
+          await shiftRepo.create(
+            companyId: company.id,
+            registerSessionId: regSession.id,
+            userId: _selectedUser!.id,
+          );
+        }
+      }
+    }
+
     if (mounted) Navigator.of(context).pop();
   }
 

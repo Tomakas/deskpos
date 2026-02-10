@@ -136,6 +136,24 @@ class RegisterSessionRepository {
     }
   }
 
+  Future<List<RegisterSessionModel>> getClosedSessions(String companyId) async {
+    final entities = await (_db.select(_db.registerSessions)
+          ..where((t) =>
+              t.companyId.equals(companyId) &
+              t.closedAt.isNotNull() &
+              t.deletedAt.isNull())
+          ..orderBy([(t) => OrderingTerm.desc(t.closedAt)]))
+        .get();
+    return entities.map(registerSessionFromEntity).toList();
+  }
+
+  Future<RegisterSessionModel?> getById(String sessionId) async {
+    final entity = await (_db.select(_db.registerSessions)
+          ..where((t) => t.id.equals(sessionId)))
+        .getSingleOrNull();
+    return entity == null ? null : registerSessionFromEntity(entity);
+  }
+
   Future<void> _enqueueSession(String operation, RegisterSessionModel model) async {
     if (syncQueueRepo == null) return;
     final json = registerSessionToSupabaseJson(model);
