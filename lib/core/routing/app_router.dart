@@ -8,7 +8,6 @@ import '../../features/catalog/screens/screen_catalog.dart';
 import '../../features/onboarding/screens/screen_connect_company.dart';
 import '../../features/onboarding/screens/screen_onboarding.dart';
 import '../../features/sell/screens/screen_sell.dart';
-import '../../features/settings/screens/screen_dev.dart';
 import '../../features/settings/screens/screen_register_settings.dart';
 import '../../features/settings/screens/screen_settings.dart';
 import '../data/providers/auth_providers.dart';
@@ -95,15 +94,6 @@ final routerProvider = Provider<GoRouter>((ref) {
           return null;
         },
         builder: (context, state) => const ScreenRegisterSettings(),
-      ),
-      GoRoute(
-        path: '/dev',
-        redirect: (context, state) {
-          final hasPermission = ref.read(hasPermissionProvider('settings.manage'));
-          if (!hasPermission) return '/bills';
-          return null;
-        },
-        builder: (context, state) => const ScreenDev(),
       ),
       GoRoute(
         path: '/catalog',

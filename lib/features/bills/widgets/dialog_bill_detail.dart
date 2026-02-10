@@ -18,16 +18,23 @@ import 'dialog_discount.dart';
 import 'dialog_new_bill.dart';
 import 'dialog_payment.dart';
 
-class DialogBillDetail extends ConsumerWidget {
+class DialogBillDetail extends ConsumerStatefulWidget {
   const DialogBillDetail({super.key, required this.billId});
   final String billId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DialogBillDetail> createState() => _DialogBillDetailState();
+}
+
+class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
+  bool _showSummary = false;
+
+  @override
+  Widget build(BuildContext context) {
     final l = context.l10n;
 
     return StreamBuilder<BillModel?>(
-      stream: ref.watch(billRepositoryProvider).watchById(billId),
+      stream: ref.watch(billRepositoryProvider).watchById(widget.billId),
       builder: (context, billSnap) {
         final bill = billSnap.data;
         if (bill == null) {
@@ -202,7 +209,7 @@ class DialogBillDetail extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           color: Theme.of(context).colorScheme.surfaceContainerHighest,
           child: Text(
-            l.billDetailOrderHistory,
+            _showSummary ? l.billDetailSummary : l.billDetailOrderHistory,
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.titleSmall,
           ),
@@ -224,6 +231,10 @@ class DialogBillDetail extends ConsumerWidget {
                 );
               }
 
+              if (_showSummary) {
+                return _buildSummaryList(context, ref, orders, bill);
+              }
+
               return ListView.builder(
                 padding: const EdgeInsets.all(8),
                 itemCount: orders.length,
@@ -237,6 +248,89 @@ class DialogBillDetail extends ConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildSummaryList(BuildContext context, WidgetRef ref, List<OrderModel> orders, BillModel bill) {
+    final activeOrders = orders.where((o) =>
+        o.status != PrepStatus.cancelled && o.status != PrepStatus.voided).toList();
+
+    if (activeOrders.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final orderRepo = ref.watch(orderRepositoryProvider);
+
+    return FutureBuilder<List<OrderItemModel>>(
+      future: Future.wait(activeOrders.map((o) => orderRepo.getOrderItems(o.id)))
+          .then((lists) => lists.expand((l) => l).toList()),
+      builder: (context, snap) {
+        final allItems = (snap.data ?? []).where((item) =>
+            item.status != PrepStatus.cancelled && item.status != PrepStatus.voided).toList();
+
+        if (allItems.isEmpty) return const SizedBox.shrink();
+
+        // Group by itemName + salePriceAtt
+        final grouped = <String, _SummaryItem>{};
+        for (final item in allItems) {
+          final key = '${item.itemName}|${item.salePriceAtt}';
+          final existing = grouped[key];
+          if (existing != null) {
+            grouped[key] = _SummaryItem(
+              name: item.itemName,
+              unitPrice: item.salePriceAtt,
+              quantity: existing.quantity + item.quantity,
+              totalGross: existing.totalGross + (item.salePriceAtt * item.quantity).round(),
+            );
+          } else {
+            grouped[key] = _SummaryItem(
+              name: item.itemName,
+              unitPrice: item.salePriceAtt,
+              quantity: item.quantity,
+              totalGross: (item.salePriceAtt * item.quantity).round(),
+            );
+          }
+        }
+
+        final summaryItems = grouped.values.toList()
+          ..sort((a, b) => a.name.compareTo(b.name));
+
+        return ListView.builder(
+          padding: const EdgeInsets.all(8),
+          itemCount: summaryItems.length,
+          itemBuilder: (context, index) {
+            final item = summaryItems[index];
+            return Container(
+              padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(color: Theme.of(context).dividerColor.withValues(alpha: 0.2)),
+                ),
+              ),
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 44,
+                    child: Text(
+                      '${item.quantity.toStringAsFixed(item.quantity == item.quantity.roundToDouble() ? 0 : 1)} ks',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ),
+                  Expanded(child: Text(item.name, style: Theme.of(context).textTheme.bodyMedium)),
+                  SizedBox(
+                    width: 100,
+                    child: Text(
+                      '${item.totalGross ~/ 100} Kč',
+                      textAlign: TextAlign.right,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
@@ -259,7 +353,10 @@ class DialogBillDetail extends ConsumerWidget {
             const SizedBox(height: 4),
             _SideButton(label: l.billDetailSplit, onPressed: null),
             const SizedBox(height: 4),
-            _SideButton(label: l.billDetailSummary, onPressed: null),
+            _SideButton(
+              label: _showSummary ? l.billDetailItemList : l.billDetailSummary,
+              onPressed: () => setState(() => _showSummary = !_showSummary),
+            ),
             const SizedBox(height: 4),
             _SideButton(
               label: l.billDetailDiscount,
@@ -837,4 +934,17 @@ class _OrderSection extends ConsumerWidget {
       PrepStatus.voided => Colors.red,
     };
   }
+}
+
+class _SummaryItem {
+  const _SummaryItem({
+    required this.name,
+    required this.unitPrice,
+    required this.quantity,
+    required this.totalGross,
+  });
+  final String name;
+  final int unitPrice;
+  final double quantity;
+  final int totalGross;
 }

@@ -572,6 +572,9 @@ class AppLocalizationsCs extends AppLocalizations {
   String get billDetailSummary => 'Sumář';
 
   @override
+  String get billDetailItemList => 'Historie';
+
+  @override
   String get billDetailPrint => 'Tisk';
 
   @override
@@ -630,9 +633,6 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get moreRegisterSettings => 'Nastavení pokladny';
-
-  @override
-  String get moreDev => 'Dev';
 
   @override
   String get settingsCompanyTitle => 'Nastavení firmy';

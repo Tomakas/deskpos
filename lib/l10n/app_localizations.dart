@@ -1186,6 +1186,12 @@ abstract class AppLocalizations {
   /// **'Sumář'**
   String get billDetailSummary;
 
+  /// No description provided for @billDetailItemList.
+  ///
+  /// In cs, this message translates to:
+  /// **'Historie'**
+  String get billDetailItemList;
+
   /// No description provided for @billDetailPrint.
   ///
   /// In cs, this message translates to:
@@ -1293,12 +1299,6 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Nastavení pokladny'**
   String get moreRegisterSettings;
-
-  /// No description provided for @moreDev.
-  ///
-  /// In cs, this message translates to:
-  /// **'Dev'**
-  String get moreDev;
 
   /// No description provided for @settingsCompanyTitle.
   ///

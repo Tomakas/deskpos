@@ -240,6 +240,7 @@
   "billDetailMerge": "Sloučit",
   "billDetailSplit": "Rozdělit",
   "billDetailSummary": "Sumář",
+  "billDetailItemList": "Historie",
   "billDetailPrint": "Tisk",
   "billDetailOrderHistory": "Historie objednávek",
   "billDetailTotalSpent": "Celková útrata: {amount}",
@@ -269,8 +270,6 @@
   "moreSettings": "Nastavení",
   "moreCompanySettings": "Nastavení firmy",
   "moreRegisterSettings": "Nastavení pokladny",
-  "moreDev": "Dev",
-
   "settingsCompanyTitle": "Nastavení firmy",
   "settingsRegisterTitle": "Nastavení pokladny",
   "settingsTabCompany": "Firma",
