@@ -62,7 +62,7 @@
   "infoPanelStatus": "Stav pokladny",
   "infoPanelStatusOffline": "Offline",
   "infoPanelActiveUser": "Aktivní obsluha",
-  "infoPanelLoggedIn": "Přihlášení",
+  "infoPanelLoggedIn": "Další přihlášení",
 
   "actionSwitchUser": "Přepnout obsluhu",
   "actionLogout": "Odhlásit",

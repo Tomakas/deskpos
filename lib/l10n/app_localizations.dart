@@ -391,7 +391,7 @@ abstract class AppLocalizations {
   /// No description provided for @infoPanelLoggedIn.
   ///
   /// In cs, this message translates to:
-  /// **'Přihlášení'**
+  /// **'Další přihlášení'**
   String get infoPanelLoggedIn;
 
   /// No description provided for @actionSwitchUser.

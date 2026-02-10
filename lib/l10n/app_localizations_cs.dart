@@ -158,7 +158,7 @@ class AppLocalizationsCs extends AppLocalizations {
   String get infoPanelActiveUser => 'Aktivní obsluha';
 
   @override
-  String get infoPanelLoggedIn => 'Přihlášení';
+  String get infoPanelLoggedIn => 'Další přihlášení';
 
   @override
   String get actionSwitchUser => 'Přepnout obsluhu';

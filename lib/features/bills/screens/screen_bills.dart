@@ -759,7 +759,7 @@ class _InfoPanel extends ConsumerWidget {
           // Active user
           _InfoRow(l.infoPanelActiveUser, activeUser?.username ?? '-'),
           const SizedBox(height: 2),
-          _InfoRow(l.infoPanelLoggedIn, loggedInUsers.map((u) => u.fullName).join(', ')),
+          _InfoRow(l.infoPanelLoggedIn, loggedInUsers.where((u) => u.id != activeUser?.id).map((u) => u.username).join(', ')),
           const Divider(),
           // Register total
           _InfoRow(l.infoPanelRegisterTotal, '-'),
@@ -782,7 +782,7 @@ class _InfoRow extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 90,
+            width: 120,
             child: Text(label, style: Theme.of(context).textTheme.bodySmall),
           ),
           Expanded(

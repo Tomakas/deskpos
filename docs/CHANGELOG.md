@@ -2,16 +2,16 @@
 
 ## 2026-02-10
 
-### Etapa 3.1 — Sync infrastructure (partial)
+### Etapa 3.1 — Sync infrastructure
 
 - **BaseCompanyScopedRepository**: Extracted from 7 company-scoped repos — provides CRUD + automatic outbox enqueue in same transaction
 - **Outbox pattern**: SyncQueue table, SyncQueueRepository, OutboxProcessor (5s interval, FIFO, retry with backoff)
-- **Pull sync**: SyncService with 5-min auto-pull for 8 tables (companies, sections, categories, items, tables, payment_methods, tax_rates, users)
+- **Pull sync**: SyncService with 5-min auto-pull for 12 tables (companies, sections, categories, items, tables, payment_methods, tax_rates, users, bills, orders, order_items, payments)
 - **LWW conflict resolution**: Server-side `enforce_lww` trigger + pull-side merge with `client_updated_at` comparison
 - **SyncLifecycleManager**: Orchestrates sync start/stop, initial push, crash recovery
 - **ScreenCloudAuth**: Admin email/password for Supabase session
 - **SupabaseAuthService**: SignIn/SignUp, session management
-- **Supabase mappers**: Push (supabase_mappers.dart) and pull (supabase_pull_mappers.dart) for config entities
+- **Supabase mappers**: Push (supabase_mappers.dart) and pull (supabase_pull_mappers.dart) for all entities
 - **Companies**: Added `auth_user_id` column for Supabase Auth binding
 
 ### Fixes
@@ -19,13 +19,19 @@
 - **Supabase mappers**: Changed all mapper function parameters from `dynamic` to typed models (SectionModel, CategoryModel, etc.) — prevents runtime dispatch errors on enum `.name` access
 - **Numpad double Expanded**: Removed nested `Expanded` from `_numpadButton()` in screen_login.dart and screen_bills.dart — bottom row now wraps at call-site
 
-### Sync — not yet implemented
+### Sync — sales entities
 
-- Bills, orders, order_items, payments: no outbox enqueue, no mappers, not in pull tables
+- **Push mappers** (supabase_mappers.dart): Added `billToSupabaseJson`, `orderToSupabaseJson`, `orderItemToSupabaseJson`, `paymentToSupabaseJson`
+- **Pull mappers** (supabase_pull_mappers.dart): Added 4 case branches (`bills`, `orders`, `order_items`, `payments`) with all fields, enum parsing, DateTime handling
+- **BillRepository**: Injected `SyncQueueRepository`, added `_enqueueBill`, `_enqueueOrder`, `_enqueueOrderItem`, `_enqueuePayment` helpers. Enqueue in: createBill, updateTotals, recordPayment (payment insert + bill update), cancelBill cascade (orders + items + bill)
+- **OrderRepository**: Injected `SyncQueueRepository`, added `_enqueueOrder`, `_enqueueOrderItem` helpers. Enqueue in: createOrderWithItems (order + items), updateStatus (order + items — covers all delegating methods)
+- **SyncService**: Added `bills`, `orders`, `order_items`, `payments` to `_pullTables` (after items, FK order) and `_getDriftTable()`
+- **Provider wiring**: `billRepositoryProvider` and `orderRepositoryProvider` now receive `syncQueueRepo`
+- **Pattern**: Manual enqueue (not BaseCompanyScopedRepository) — sales repos have complex business methods that don't fit CRUD pattern
 
 ### Documentation
 
-- Updated PROJECT.md: sync section status (partial), Milník 3.1 progress, companies.auth_user_id, sync file structure, typed mapper convention, BaseCompanyScopedRepository status
+- Updated PROJECT.md: sync section status, Milník 3.1 progress (Task3.2b ✅), two outbox patterns (auto vs manual enqueue), Data Flow updated, BillRepository/OrderRepository API updated with sync details, companies.auth_user_id, sync file structure, typed mapper convention, BaseCompanyScopedRepository status
 
 ## 2026-02-09
 

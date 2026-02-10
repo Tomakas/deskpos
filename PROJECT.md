@@ -148,9 +148,9 @@ Funkce, které nejsou nezbytné pro základní prodej, ale rozšiřují možnost
 #### Milník 3.1 — Sync + multi-device (rozpracováno)
 
 - **Task3.1** Supabase backend — Auth, RLS policies, triggery ✅
-- **Task3.2** Outbox pattern — sync_queue, auto-retry, status tracking ✅ (konfigurační entity)
-- **Task3.3** LWW conflict resolution — updated_at porovnání, merge logika ✅ (konfigurační entity)
-- **Task3.2b** Sync pro bills, orders, order_items, payments — mappers, outbox registrace, pull tables ⬜
+- **Task3.2** Outbox pattern — sync_queue, auto-retry, status tracking ✅
+- **Task3.3** LWW conflict resolution — updated_at porovnání, merge logika ✅
+- **Task3.2b** Sync pro bills, orders, order_items, payments — mappers, outbox registrace, pull tables ✅
 - **Task3.4** ConnectCompanyScreen — připojení k existující firmě, InitialSync ⬜
 - **Task3.5** SyncAuthScreen — admin credentials pro Supabase session ✅ (ScreenCloudAuth)
 - **Task3.6** SQLCipher šifrování — migrace plain SQLite → šifrovaná DB, klíč ve secure storage ⬜
@@ -357,9 +357,11 @@ Každá entita v `core/data/` se skládá z následujících souborů:
 | `mappers/supabase_mappers.dart` | Push: Model → Supabase JSON (typované parametry) |
 | `mappers/supabase_pull_mappers.dart` | Pull: Supabase JSON → Drift Companion |
 
-**Architektura:** Repozitáře pracují přímo s `AppDatabase` (Drift) bez DataSource abstrakce. Od Etapy 3 se sync logika (outbox zápis, pull merge) přidá přímo do repozitářů pomocí `BaseCompanyScopedRepository<T>`.
+**Architektura:** Repozitáře pracují přímo s `AppDatabase` (Drift) bez DataSource abstrakce. Sync logika (outbox zápis, pull merge) žije přímo v repozitářích.
 
-**Aktuální stav:** Konfigurační entity (sections, categories, items, tables, payment_methods, tax_rates, users) dědí z `BaseCompanyScopedRepository<T>` s automatickým outbox zápisem. Bills, orders, order_items a payments mají vlastní repozitáře bez sync integrace — budou rozšířeny v další fázi E3.
+**Dva vzory outbox zápisu:**
+- **Konfigurační entity** (sections, categories, items, tables, payment_methods, tax_rates, users): Dědí z `BaseCompanyScopedRepository<T>` — automatický outbox zápis v transakci s CRUD operací.
+- **Prodejní entity** (bills, orders, order_items, payments): Vlastní repozitáře (`BillRepository`, `OrderRepository`) s injektovaným `SyncQueueRepository` a explicitním `_enqueue*` voláním po každé mutaci. Ruční přístup — business metody (createOrderWithItems, recordPayment, cancelBill cascade) nepasují do CRUD patternu base repository.
 
 ---
 
@@ -609,7 +611,7 @@ Hodnoty ENUM jsou uloženy jako `TEXT` v lokální SQLite databázi. Drift `text
 
 ## Synchronizace (Etapa 3 — částečně implementováno)
 
-> **Stav implementace:** Sync infrastruktura je funkční pro konfigurační entity (sections, categories, items, tables, payment_methods, tax_rates, users, companies). Bills, orders, order_items a payments zatím sync nepodporují — chybí mappers, registrace v outbox a pull tables.
+> **Stav implementace:** Sync infrastruktura je funkční pro všechny entity. Konfigurační entity (sections, categories, items, tables, payment_methods, tax_rates, users) dědí z `BaseCompanyScopedRepository` s automatickým outbox zápisem v transakci. Prodejní entity (bills, orders, order_items, payments) používají ruční enqueue — `BillRepository` a `OrderRepository` mají injektovaný `SyncQueueRepository` a explicitní `_enqueue*` volání po každé mutaci. SyncService pulluje všech 12 tabulek (8 konfiguračních + 4 prodejní).
 
 ### Outbox Pattern
 
@@ -648,9 +650,11 @@ graph TD
 ### Data Flow
 
 **Write (Create/Update/Delete):**
-1. UI volá `repository.create(item)`
-2. Repository uloží do **LocalDataSource** (Drift)
-3. **Atomicky** se vytvoří záznam v `sync_queue` (ve stejné transakci)
+1. UI volá `repository.create(item)` / `repository.recordPayment(...)` apod.
+2. Repository uloží do lokální DB (Drift)
+3. Vytvoří se záznam v `sync_queue`:
+   - **Konfigurační entity:** Atomicky ve stejné transakci (BaseCompanyScopedRepository)
+   - **Prodejní entity:** Explicitní `_enqueue*` volání po mutaci (BillRepository, OrderRepository)
 4. Repository vrátí úspěch UI (okamžitě)
 5. **Asynchronně** OutboxProcessor zpracuje frontu
 
@@ -1024,16 +1028,16 @@ stateDiagram-v2
 
 #### BillRepository
 
-- **CRUD:** create, getById, update, delete (E3: zděděno z `BaseCompanyScopedRepository`)
-- **Query:** watchByCompany (s filtry status/section), watchById, generateBillNumber
-- **Business:** createBill, updateTotals, recordPayment (vytvoří Payment + aktualizuje Bill.paidAmount a status), cancelBill
+- **Query:** watchByCompany (s filtry status/section), watchById, watchByStatus, getById, generateBillNumber
+- **Business:** createBill, updateTotals, recordPayment (vytvoří Payment + aktualizuje Bill.paidAmount a status), cancelBill (cascade — cancel/void všech orders a items)
+- **Sync:** Injektovaný `SyncQueueRepository`, ruční enqueue — `_enqueueBill`, `_enqueueOrder`, `_enqueueOrderItem`, `_enqueuePayment`. Každá mutace (createBill, updateTotals, recordPayment, cancelBill vč. cascade) po sobě enqueueuje všechny dotčené entity.
 - **E3.2:** přibude updateStatus (pro refunded)
 
 #### OrderRepository
 
-- **CRUD:** create, getById, update, delete (E3: zděděno z `BaseCompanyScopedRepository`)
-- **Query:** watchByBill, watchOrderItems, watchLastOrderTimesByCompany
+- **Query:** watchByBill, watchOrderItems, getOrderItems, watchLastOrderTimesByCompany
 - **Business:** createOrderWithItems, updateStatus, startPreparation, markReady, markDelivered, cancelOrder, voidOrder
+- **Sync:** Injektovaný `SyncQueueRepository`, ruční enqueue — `_enqueueOrder`, `_enqueueOrderItem`. createOrderWithItems enqueueuje order + všechny items. updateStatus enqueueuje order + všechny items (delegující metody cancelOrder, voidOrder, startPreparation, markReady, markDelivered automaticky pokryty přes updateStatus).
 
 #### PaymentRepository
 
