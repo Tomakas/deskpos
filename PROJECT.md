@@ -151,7 +151,7 @@ Funkce, které nejsou nezbytné pro základní prodej, ale rozšiřují možnost
 - **Task3.2** Outbox pattern — sync_queue, auto-retry, status tracking ✅
 - **Task3.3** LWW conflict resolution — updated_at porovnání, merge logika ✅
 - **Task3.2b** Sync pro bills, orders, order_items, payments — mappers, outbox registrace, pull tables ✅
-- **Task3.4** ConnectCompanyScreen — připojení k existující firmě, InitialSync ⬜
+- **Task3.4** ConnectCompanyScreen — připojení k existující firmě, InitialSync, sync pro 20 tabulek ✅
 - **Task3.5** SyncAuthScreen — admin credentials pro Supabase session ✅ (ScreenCloudAuth)
 - **Task3.6** SQLCipher šifrování — migrace plain SQLite → šifrovaná DB, klíč ve secure storage ⬜
 - **Výsledek:** Data se synchronizují mezi zařízeními. Nové zařízení se připojí k firmě a stáhne data. Lokální DB je šifrovaná.
@@ -611,7 +611,7 @@ Hodnoty ENUM jsou uloženy jako `TEXT` v lokální SQLite databázi. Drift `text
 
 ## Synchronizace (Etapa 3 — částečně implementováno)
 
-> **Stav implementace:** Sync infrastruktura je funkční pro všechny entity. Konfigurační entity (sections, categories, items, tables, payment_methods, tax_rates, users) dědí z `BaseCompanyScopedRepository` s automatickým outbox zápisem v transakci. Prodejní entity (bills, orders, order_items, payments) používají ruční enqueue — `BillRepository` a `OrderRepository` mají injektovaný `SyncQueueRepository` a explicitní `_enqueue*` volání po každé mutaci. SyncService pulluje všech 12 tabulek (8 konfiguračních + 4 prodejní).
+> **Stav implementace:** Sync infrastruktura je funkční pro všech 20 tabulek. Konfigurační entity (sections, categories, items, tables, payment_methods, tax_rates, users) dědí z `BaseCompanyScopedRepository` s automatickým outbox zápisem v transakci. Prodejní entity (bills, orders, order_items, payments) používají ruční enqueue — `BillRepository` a `OrderRepository` mají injektovaný `SyncQueueRepository` a explicitní `_enqueue*` volání po každé mutaci. Globální tabulky (currencies, roles, permissions, role_permissions) se pullují bez company_id filtru a pushují při initial sync. Company-scoped entity bez BaseCompanyScopedRepository (registers, register_sessions, layout_items, user_permissions) mají vlastní enqueue. SyncService pulluje všech 20 tabulek v FK-respektujícím pořadí. ConnectCompanyScreen umožňuje připojení nového zařízení k existující firmě stažením dat přes InitialSync (pullAll).
 
 ### Outbox Pattern
 
@@ -687,13 +687,30 @@ Když server odmítne push (`LWW_CONFLICT`), outbox processor označí entry jak
 - FIFO je zachováno
 - Stuck záznamy (processing > 5 min): automatický reset na `pending`
 
-### Globální reference data (read-only)
+### Globální reference data
 
-`roles` (3), `permissions` (14), `role_permissions`, `currencies` jsou **read-only**:
-- V Etapě 1–2: seedovány lokálně při onboardingu, CRUD vrací `Failure`
-- Od Etapy 3: sync pouze **pull** ze Supabase, žádný push/outbox
+`roles` (3), `permissions` (14), `role_permissions`, `currencies` jsou **globální** (bez `company_id`):
+- V Etapě 1–2: seedovány lokálně při onboardingu
+- Od Etapy 3: pull ze Supabase (bez company_id filtru), push při initial sync
+- Aktuální design předpokládá 1 firma = 1 Supabase projekt
 
 > **Pozn.:** `payment_methods` nejsou read-only — mají plný CRUD od Etapy 1 (viz [Platební metody](#platební-metody)).
+
+### ConnectCompanyScreen — připojení k existující firmě
+
+Flow pro nové zařízení:
+1. ScreenOnboarding → "Připojit se k firmě"
+2. Formulář: email + heslo → `supabaseAuthService.signIn()`
+3. Po přihlášení: fetch company z Supabase (`companies.auth_user_id = userId`)
+4. Zobrazí název firmy + tlačítko "Připojit"
+5. InitialSync: `syncService.pullAll(companyId)` — stáhne všech 20 tabulek
+6. Po dokončení → navigace na `/login`
+
+### Known Issues / Limitations
+
+- **Company switching**: Nepodporováno. Jedno zařízení = jedna firma. Přepnutí na jinou firmu vyžaduje smazání lokální DB.
+- **Globální tabulky vs multi-company**: roles/permissions/role_permissions/currencies jsou globální (bez company_id). Při více firmách na jednom Supabase projektu by došlo ke kolizím. Aktuální design předpokládá 1 firma = 1 Supabase projekt.
+- **InitialSync recovery**: Pokud InitialSync selže uprostřed, data jsou neúplná. Další auto-pull (5min) doplní chybějící data.
 
 ---
 

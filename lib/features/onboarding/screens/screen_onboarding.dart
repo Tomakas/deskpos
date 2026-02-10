@@ -77,14 +77,9 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
                   width: double.infinity,
                   height: 52,
                   child: OutlinedButton(
-                    onPressed: null,
+                    onPressed: () => context.go('/connect-company'),
                     child: Text(l.onboardingJoinCompany),
                   ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  l.onboardingJoinCompanyDisabled,
-                  style: Theme.of(context).textTheme.bodySmall,
                 ),
               ],
             ),

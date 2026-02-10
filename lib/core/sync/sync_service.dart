@@ -28,20 +28,36 @@ class SyncService {
   Timer? _pullTimer;
   static const _pullInterval = Duration(minutes: 5);
 
+  // Global tables have no company_id — pull all rows without filter
+  static const _globalTables = {
+    'currencies',
+    'roles',
+    'permissions',
+    'role_permissions',
+  };
+
   // Pull order respects FK dependencies
   static const _pullTables = [
+    'currencies',
     'companies',
+    'roles',
+    'permissions',
+    'role_permissions',
     'sections',
     'tax_rates',
     'payment_methods',
     'categories',
     'users',
+    'user_permissions',
     'tables',
     'items',
+    'registers',
+    'layout_items',
     'bills',
     'orders',
     'order_items',
     'payments',
+    'register_sessions',
   ];
 
   void startAutoSync(String companyId) {
@@ -76,12 +92,13 @@ class SyncService {
   Future<void> pullTable(String companyId, String tableName) async {
     final lastPulledAt = await _syncMetadataRepo.getLastPulledAt(companyId, tableName);
 
-    // companies uses 'id', all others use 'company_id'
-    final idColumn = tableName == 'companies' ? 'id' : 'company_id';
-    var query = _supabase
-        .from(tableName)
-        .select()
-        .eq(idColumn, companyId);
+    // Global tables: no company filter. Companies: filter by id. Others: filter by company_id.
+    var query = _supabase.from(tableName).select();
+    if (tableName == 'companies') {
+      query = query.eq('id', companyId);
+    } else if (!_globalTables.contains(tableName)) {
+      query = query.eq('company_id', companyId);
+    }
 
     if (lastPulledAt != null) {
       query = query.gt('updated_at', lastPulledAt.toUtc().toIso8601String());
@@ -159,8 +176,16 @@ class SyncService {
 
   TableInfo _getDriftTable(String tableName) {
     switch (tableName) {
+      case 'currencies':
+        return _db.currencies;
       case 'companies':
         return _db.companies;
+      case 'roles':
+        return _db.roles;
+      case 'permissions':
+        return _db.permissions;
+      case 'role_permissions':
+        return _db.rolePermissions;
       case 'sections':
         return _db.sections;
       case 'categories':
@@ -175,6 +200,14 @@ class SyncService {
         return _db.taxRates;
       case 'users':
         return _db.users;
+      case 'user_permissions':
+        return _db.userPermissions;
+      case 'registers':
+        return _db.registers;
+      case 'register_sessions':
+        return _db.registerSessions;
+      case 'layout_items':
+        return _db.layoutItems;
       case 'bills':
         return _db.bills;
       case 'orders':

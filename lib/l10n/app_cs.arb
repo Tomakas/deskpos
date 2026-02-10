@@ -277,5 +277,23 @@
 
   "infoPanelSync": "Synchronizace",
   "infoPanelSyncConnected": "Připojeno",
-  "infoPanelSyncDisconnected": "Nepřipojeno"
+  "infoPanelSyncDisconnected": "Nepřipojeno",
+
+  "connectCompanyTitle": "Připojit se k firmě",
+  "connectCompanySubtitle": "Přihlaste se pomocí administrátorského účtu",
+  "connectCompanySearching": "Hledání firmy...",
+  "connectCompanyFound": "Nalezená firma",
+  "connectCompanyNotFound": "Žádná firma nenalezena pro tento účet",
+  "connectCompanyConnect": "Připojit",
+  "connectCompanySyncing": "Synchronizace dat...",
+  "connectCompanySyncComplete": "Synchronizace dokončena",
+  "connectCompanySyncFailed": "Synchronizace selhala",
+
+  "cashMovementTitle": "Změna stavu hotovosti",
+  "cashMovementAmount": "Částka:",
+  "cashMovementDeposit": "Vklad",
+  "cashMovementWithdrawal": "Výběr",
+  "cashMovementNote": "Poznámka",
+  "cashMovementNoteTitle": "Poznámka ke změně hotovosti",
+  "cashMovementNoteHint": "Důvod pohybu..."
 }

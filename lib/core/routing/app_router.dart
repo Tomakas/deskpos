@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/auth/screens/screen_login.dart';
 import '../../features/bills/screens/screen_bills.dart';
+import '../../features/onboarding/screens/screen_connect_company.dart';
 import '../../features/onboarding/screens/screen_onboarding.dart';
 import '../../features/sell/screens/screen_sell.dart';
 import '../../features/settings/screens/screen_dev.dart';
@@ -26,16 +27,20 @@ final routerProvider = Provider<GoRouter>((ref) {
           initAsync.value == AppInitState.needsOnboarding;
       final isAuthenticated = session.isAuthenticated;
 
-      // Needs onboarding
-      if (needsOnboarding && path != '/onboarding') return '/onboarding';
+      // Needs onboarding — allow both /onboarding and /connect-company
+      if (needsOnboarding && path != '/onboarding' && path != '/connect-company') {
+        return '/onboarding';
+      }
 
       // Not authenticated (but has company)
-      if (!needsOnboarding && !isAuthenticated && path != '/login' && path != '/onboarding') {
+      if (!needsOnboarding && !isAuthenticated &&
+          path != '/login' && path != '/onboarding' && path != '/connect-company') {
         return '/login';
       }
 
       // Authenticated but on login/onboarding — go to bills
-      if (isAuthenticated && (path == '/login' || path == '/onboarding' || path == '/loading')) {
+      if (isAuthenticated &&
+          (path == '/login' || path == '/onboarding' || path == '/loading' || path == '/connect-company')) {
         return '/bills';
       }
 
@@ -49,6 +54,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/onboarding',
         builder: (context, state) => const ScreenOnboarding(),
+      ),
+      GoRoute(
+        path: '/connect-company',
+        builder: (context, state) => const ScreenConnectCompany(),
       ),
       GoRoute(
         path: '/login',

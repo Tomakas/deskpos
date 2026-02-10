@@ -58,6 +58,7 @@ final syncLifecycleManagerProvider = Provider<SyncLifecycleManager>((ref) {
       ref.watch(taxRateRepositoryProvider),
       ref.watch(userRepositoryProvider),
     ],
+    db: ref.watch(appDatabaseProvider),
   );
   ref.onDispose(() => manager.stop());
   return manager;

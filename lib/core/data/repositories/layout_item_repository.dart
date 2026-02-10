@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
@@ -5,12 +7,15 @@ import '../../database/app_database.dart';
 import '../../logging/app_logger.dart';
 import '../enums/layout_item_type.dart';
 import '../mappers/entity_mappers.dart';
+import '../mappers/supabase_mappers.dart';
 import '../models/layout_item_model.dart';
 import '../result.dart';
+import 'sync_queue_repository.dart';
 
 class LayoutItemRepository {
-  LayoutItemRepository(this._db);
+  LayoutItemRepository(this._db, {this.syncQueueRepo});
   final AppDatabase _db;
+  final SyncQueueRepository? syncQueueRepo;
 
   Stream<List<LayoutItemModel>> watchByRegister(String registerId, {int page = 0}) {
     return (_db.select(_db.layoutItems)
@@ -54,6 +59,11 @@ class LayoutItemRepository {
             updatedAt: Value(now),
           ),
         );
+        // Re-read deleted entity for sync payload
+        final deletedEntity = await (_db.select(_db.layoutItems)
+              ..where((t) => t.id.equals(existing.id)))
+            .getSingle();
+        await _enqueueLayoutItem('delete', layoutItemFromEntity(deletedEntity));
       }
 
       // Insert new cell
@@ -75,7 +85,9 @@ class LayoutItemRepository {
       final entity = await (_db.select(_db.layoutItems)
             ..where((t) => t.id.equals(id)))
           .getSingle();
-      return Success(layoutItemFromEntity(entity));
+      final model = layoutItemFromEntity(entity);
+      await _enqueueLayoutItem('insert', model);
+      return Success(model);
     } catch (e, s) {
       AppLogger.error('Failed to set layout cell', error: e, stackTrace: s);
       return Failure('Failed to set layout cell: $e');
@@ -106,11 +118,28 @@ class LayoutItemRepository {
             updatedAt: Value(now),
           ),
         );
+        // Re-read deleted entity for sync payload
+        final deletedEntity = await (_db.select(_db.layoutItems)
+              ..where((t) => t.id.equals(existing.id)))
+            .getSingle();
+        await _enqueueLayoutItem('delete', layoutItemFromEntity(deletedEntity));
       }
       return const Success(null);
     } catch (e, s) {
       AppLogger.error('Failed to clear layout cell', error: e, stackTrace: s);
       return Failure('Failed to clear layout cell: $e');
     }
+  }
+
+  Future<void> _enqueueLayoutItem(String operation, LayoutItemModel model) async {
+    if (syncQueueRepo == null) return;
+    final json = layoutItemToSupabaseJson(model);
+    await syncQueueRepo!.enqueue(
+      companyId: model.companyId,
+      entityType: 'layout_items',
+      entityId: model.id,
+      operation: operation,
+      payload: jsonEncode(json),
+    );
   }
 }

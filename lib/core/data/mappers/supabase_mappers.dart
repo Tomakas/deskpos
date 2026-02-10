@@ -3,15 +3,23 @@
 import '../models/bill_model.dart';
 import '../models/category_model.dart';
 import '../models/company_model.dart';
+import '../models/currency_model.dart';
 import '../models/item_model.dart';
+import '../models/layout_item_model.dart';
 import '../models/order_item_model.dart';
 import '../models/order_model.dart';
 import '../models/payment_method_model.dart';
 import '../models/payment_model.dart';
+import '../models/permission_model.dart';
+import '../models/register_model.dart';
+import '../models/register_session_model.dart';
+import '../models/role_model.dart';
+import '../models/role_permission_model.dart';
 import '../models/section_model.dart';
 import '../models/table_model.dart';
 import '../models/tax_rate_model.dart';
 import '../models/user_model.dart';
+import '../models/user_permission_model.dart';
 
 String? toIso8601Utc(DateTime? dt) => dt?.toUtc().toIso8601String();
 
@@ -21,6 +29,20 @@ String? toIso8601Utc(DateTime? dt) => dt?.toUtc().toIso8601String();
 //   Drift deletedAt  -> deleted_at
 // Never send created_at / updated_at (server trigger manages these)
 
+Map<String, dynamic> _baseGlobalSyncFields({
+  required String id,
+  required DateTime createdAt,
+  required DateTime updatedAt,
+  DateTime? deletedAt,
+}) {
+  return {
+    'id': id,
+    'client_created_at': toIso8601Utc(createdAt),
+    'client_updated_at': toIso8601Utc(updatedAt),
+    'deleted_at': toIso8601Utc(deletedAt),
+  };
+}
+
 Map<String, dynamic> _baseSyncFields({
   required String id,
   required String companyId,
@@ -29,11 +51,13 @@ Map<String, dynamic> _baseSyncFields({
   DateTime? deletedAt,
 }) {
   return {
-    'id': id,
+    ..._baseGlobalSyncFields(
+      id: id,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+      deletedAt: deletedAt,
+    ),
     'company_id': companyId,
-    'client_created_at': toIso8601Utc(createdAt),
-    'client_updated_at': toIso8601Utc(updatedAt),
-    'deleted_at': toIso8601Utc(deletedAt),
   };
 }
 
@@ -247,4 +271,121 @@ Map<String, dynamic> companyToSupabaseJson(CompanyModel m) => {
       'client_created_at': toIso8601Utc(m.createdAt),
       'client_updated_at': toIso8601Utc(m.updatedAt),
       'deleted_at': toIso8601Utc(m.deletedAt),
+    };
+
+// --- Global tables (no company_id) ---
+
+Map<String, dynamic> currencyToSupabaseJson(CurrencyModel m) => {
+      ..._baseGlobalSyncFields(
+        id: m.id,
+        createdAt: m.createdAt,
+        updatedAt: m.updatedAt,
+        deletedAt: m.deletedAt,
+      ),
+      'code': m.code,
+      'symbol': m.symbol,
+      'name': m.name,
+      'decimal_places': m.decimalPlaces,
+    };
+
+Map<String, dynamic> roleToSupabaseJson(RoleModel m) => {
+      ..._baseGlobalSyncFields(
+        id: m.id,
+        createdAt: m.createdAt,
+        updatedAt: m.updatedAt,
+        deletedAt: m.deletedAt,
+      ),
+      'name': m.name.name,
+    };
+
+Map<String, dynamic> permissionToSupabaseJson(PermissionModel m) => {
+      ..._baseGlobalSyncFields(
+        id: m.id,
+        createdAt: m.createdAt,
+        updatedAt: m.updatedAt,
+        deletedAt: m.deletedAt,
+      ),
+      'code': m.code,
+      'name': m.name,
+      'description': m.description,
+      'category': m.category,
+    };
+
+Map<String, dynamic> rolePermissionToSupabaseJson(RolePermissionModel m) => {
+      ..._baseGlobalSyncFields(
+        id: m.id,
+        createdAt: m.createdAt,
+        updatedAt: m.updatedAt,
+        deletedAt: m.deletedAt,
+      ),
+      'role_id': m.roleId,
+      'permission_id': m.permissionId,
+    };
+
+// --- Company-scoped tables (new) ---
+
+Map<String, dynamic> registerToSupabaseJson(RegisterModel m) => {
+      ..._baseSyncFields(
+        id: m.id,
+        companyId: m.companyId,
+        createdAt: m.createdAt,
+        updatedAt: m.updatedAt,
+        deletedAt: m.deletedAt,
+      ),
+      'code': m.code,
+      'is_active': m.isActive,
+      'type': m.type.name,
+      'allow_cash': m.allowCash,
+      'allow_card': m.allowCard,
+      'allow_transfer': m.allowTransfer,
+      'allow_refunds': m.allowRefunds,
+      'grid_rows': m.gridRows,
+      'grid_cols': m.gridCols,
+    };
+
+Map<String, dynamic> registerSessionToSupabaseJson(RegisterSessionModel m) => {
+      ..._baseSyncFields(
+        id: m.id,
+        companyId: m.companyId,
+        createdAt: m.createdAt,
+        updatedAt: m.updatedAt,
+        deletedAt: m.deletedAt,
+      ),
+      'register_id': m.registerId,
+      'opened_by_user_id': m.openedByUserId,
+      'opened_at': toIso8601Utc(m.openedAt),
+      'closed_at': toIso8601Utc(m.closedAt),
+      'order_counter': m.orderCounter,
+    };
+
+Map<String, dynamic> layoutItemToSupabaseJson(LayoutItemModel m) => {
+      ..._baseSyncFields(
+        id: m.id,
+        companyId: m.companyId,
+        createdAt: m.createdAt,
+        updatedAt: m.updatedAt,
+        deletedAt: m.deletedAt,
+      ),
+      'register_id': m.registerId,
+      'page': m.page,
+      'grid_row': m.gridRow,
+      'grid_col': m.gridCol,
+      'type': m.type.name,
+      'item_id': m.itemId,
+      'category_id': m.categoryId,
+      'label': m.label,
+      'color': m.color,
+    };
+
+Map<String, dynamic> userPermissionToSupabaseJson(UserPermissionModel m) => {
+      ..._baseSyncFields(
+        id: m.id,
+        companyId: m.companyId,
+        createdAt: m.createdAt,
+        updatedAt: m.updatedAt,
+        deletedAt: m.deletedAt,
+      ),
+      'user_id': m.userId,
+      'permission_id': m.permissionId,
+      'granted_by': m.grantedBy,
     };

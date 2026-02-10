@@ -48,7 +48,10 @@ final roleRepositoryProvider = Provider<RoleRepository>((ref) {
 });
 
 final permissionRepositoryProvider = Provider<PermissionRepository>((ref) {
-  return PermissionRepository(ref.watch(appDatabaseProvider));
+  return PermissionRepository(
+    ref.watch(appDatabaseProvider),
+    syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
+  );
 });
 
 final sectionRepositoryProvider = Provider<SectionRepository>((ref) {
@@ -112,7 +115,10 @@ final registerRepositoryProvider = Provider<RegisterRepository>((ref) {
 });
 
 final registerSessionRepositoryProvider = Provider<RegisterSessionRepository>((ref) {
-  return RegisterSessionRepository(ref.watch(appDatabaseProvider));
+  return RegisterSessionRepository(
+    ref.watch(appDatabaseProvider),
+    syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
+  );
 });
 
 final paymentRepositoryProvider = Provider<PaymentRepository>((ref) {
@@ -120,5 +126,8 @@ final paymentRepositoryProvider = Provider<PaymentRepository>((ref) {
 });
 
 final layoutItemRepositoryProvider = Provider<LayoutItemRepository>((ref) {
-  return LayoutItemRepository(ref.watch(appDatabaseProvider));
+  return LayoutItemRepository(
+    ref.watch(appDatabaseProvider),
+    syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
+  );
 });

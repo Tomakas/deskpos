@@ -1329,6 +1329,102 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Nepřipojeno'**
   String get infoPanelSyncDisconnected;
+
+  /// No description provided for @connectCompanyTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Připojit se k firmě'**
+  String get connectCompanyTitle;
+
+  /// No description provided for @connectCompanySubtitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Přihlaste se pomocí administrátorského účtu'**
+  String get connectCompanySubtitle;
+
+  /// No description provided for @connectCompanySearching.
+  ///
+  /// In cs, this message translates to:
+  /// **'Hledání firmy...'**
+  String get connectCompanySearching;
+
+  /// No description provided for @connectCompanyFound.
+  ///
+  /// In cs, this message translates to:
+  /// **'Nalezená firma'**
+  String get connectCompanyFound;
+
+  /// No description provided for @connectCompanyNotFound.
+  ///
+  /// In cs, this message translates to:
+  /// **'Žádná firma nenalezena pro tento účet'**
+  String get connectCompanyNotFound;
+
+  /// No description provided for @connectCompanyConnect.
+  ///
+  /// In cs, this message translates to:
+  /// **'Připojit'**
+  String get connectCompanyConnect;
+
+  /// No description provided for @connectCompanySyncing.
+  ///
+  /// In cs, this message translates to:
+  /// **'Synchronizace dat...'**
+  String get connectCompanySyncing;
+
+  /// No description provided for @connectCompanySyncComplete.
+  ///
+  /// In cs, this message translates to:
+  /// **'Synchronizace dokončena'**
+  String get connectCompanySyncComplete;
+
+  /// No description provided for @connectCompanySyncFailed.
+  ///
+  /// In cs, this message translates to:
+  /// **'Synchronizace selhala'**
+  String get connectCompanySyncFailed;
+
+  /// No description provided for @cashMovementTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Změna stavu hotovosti'**
+  String get cashMovementTitle;
+
+  /// No description provided for @cashMovementAmount.
+  ///
+  /// In cs, this message translates to:
+  /// **'Částka:'**
+  String get cashMovementAmount;
+
+  /// No description provided for @cashMovementDeposit.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vklad'**
+  String get cashMovementDeposit;
+
+  /// No description provided for @cashMovementWithdrawal.
+  ///
+  /// In cs, this message translates to:
+  /// **'Výběr'**
+  String get cashMovementWithdrawal;
+
+  /// No description provided for @cashMovementNote.
+  ///
+  /// In cs, this message translates to:
+  /// **'Poznámka'**
+  String get cashMovementNote;
+
+  /// No description provided for @cashMovementNoteTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Poznámka ke změně hotovosti'**
+  String get cashMovementNoteTitle;
+
+  /// No description provided for @cashMovementNoteHint.
+  ///
+  /// In cs, this message translates to:
+  /// **'Důvod pohybu...'**
+  String get cashMovementNoteHint;
 }
 
 class _AppLocalizationsDelegate

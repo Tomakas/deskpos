@@ -1,5 +1,39 @@
 # Changelog
 
+## 2026-02-10 (evening)
+
+### Task3.4 — ConnectCompanyScreen + sync pro 20 tabulek
+
+#### Sync — 8 new tables
+
+- **Push mappers** (supabase_mappers.dart): Added `currencyToSupabaseJson`, `roleToSupabaseJson`, `permissionToSupabaseJson`, `rolePermissionToSupabaseJson`, `registerToSupabaseJson`, `registerSessionToSupabaseJson`, `layoutItemToSupabaseJson`, `userPermissionToSupabaseJson`. Added `_baseGlobalSyncFields` helper for global tables (no company_id).
+- **Pull mappers** (supabase_pull_mappers.dart): Added 8 case branches (`currencies`, `roles`, `permissions`, `role_permissions`, `registers`, `register_sessions`, `layout_items`, `user_permissions`)
+- **SyncService**: Extended `_pullTables` from 12 → 20 tables in FK-respecting order. Added `_globalTables` set. `pullTable()` now distinguishes 3 types: companies (id filter), global (no filter), company-scoped (company_id filter). Added 8 `_getDriftTable` cases.
+- **SyncLifecycleManager**: Added `AppDatabase` dependency. `_initialPush()` now enqueues global tables (currencies, roles, permissions, role_permissions) + registers + user_permissions before company repos.
+
+#### Outbox — 3 repositories
+
+- **RegisterSessionRepository**: Added `syncQueueRepo`, enqueue in `openSession()` (insert), `closeSession()` (update), `incrementOrderCounter()` (update)
+- **LayoutItemRepository**: Added `syncQueueRepo`, enqueue in `setCell()` (delete old + insert new), `clearCell()` (delete)
+- **PermissionRepository**: Added `syncQueueRepo`, enqueue in `applyRoleToUser()` (delete old + insert new user_permissions)
+- **Provider wiring**: `registerSessionRepositoryProvider`, `layoutItemRepositoryProvider`, `permissionRepositoryProvider` now receive `syncQueueRepo`
+
+#### ConnectCompanyScreen
+
+- **New screen**: `screen_connect_company.dart` — multi-step flow (credentials → searching → company preview → syncing → done)
+- **InitialSync**: Uses `syncService.pullAll(companyId)` to download all 20 tables. Inserts completed marker in sync_queue to prevent initial push.
+- **Routing**: Added `/connect-company` route, updated redirect logic to allow access during onboarding
+- **ScreenOnboarding**: Enabled "Připojit se k firmě" button (was disabled with `onPressed: null`)
+
+#### Localization
+
+- Added 10 Czech l10n keys: `connectCompanyTitle`, `connectCompanySubtitle`, `connectCompanySearching`, `connectCompanyFound`, `connectCompanyNotFound`, `connectCompanyConnect`, `connectCompanySyncing`, `connectCompanySyncComplete`, `connectCompanySyncFailed`
+
+#### Documentation
+
+- **PROJECT.md**: Task3.4 ⬜ → ✅, updated sync status (20 tables), added ConnectCompanyScreen flow, added Known Issues section
+- Removed `onboardingJoinCompanyDisabled` text from onboarding screen
+
 ## 2026-02-10
 
 ### Etapa 3.1 — Sync infrastructure

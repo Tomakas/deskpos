@@ -648,4 +648,53 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get infoPanelSyncDisconnected => 'Nepřipojeno';
+
+  @override
+  String get connectCompanyTitle => 'Připojit se k firmě';
+
+  @override
+  String get connectCompanySubtitle =>
+      'Přihlaste se pomocí administrátorského účtu';
+
+  @override
+  String get connectCompanySearching => 'Hledání firmy...';
+
+  @override
+  String get connectCompanyFound => 'Nalezená firma';
+
+  @override
+  String get connectCompanyNotFound => 'Žádná firma nenalezena pro tento účet';
+
+  @override
+  String get connectCompanyConnect => 'Připojit';
+
+  @override
+  String get connectCompanySyncing => 'Synchronizace dat...';
+
+  @override
+  String get connectCompanySyncComplete => 'Synchronizace dokončena';
+
+  @override
+  String get connectCompanySyncFailed => 'Synchronizace selhala';
+
+  @override
+  String get cashMovementTitle => 'Změna stavu hotovosti';
+
+  @override
+  String get cashMovementAmount => 'Částka:';
+
+  @override
+  String get cashMovementDeposit => 'Vklad';
+
+  @override
+  String get cashMovementWithdrawal => 'Výběr';
+
+  @override
+  String get cashMovementNote => 'Poznámka';
+
+  @override
+  String get cashMovementNoteTitle => 'Poznámka ke změně hotovosti';
+
+  @override
+  String get cashMovementNoteHint => 'Důvod pohybu...';
 }

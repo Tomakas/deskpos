@@ -1,16 +1,21 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 
 import '../../database/app_database.dart';
 import '../../logging/app_logger.dart';
 import '../mappers/entity_mappers.dart';
+import '../mappers/supabase_mappers.dart';
 import '../models/permission_model.dart';
 import '../models/role_permission_model.dart';
 import '../models/user_permission_model.dart';
 import '../result.dart';
+import 'sync_queue_repository.dart';
 
 class PermissionRepository {
-  PermissionRepository(this._db);
+  PermissionRepository(this._db, {this.syncQueueRepo});
   final AppDatabase _db;
+  final SyncQueueRepository? syncQueueRepo;
 
   Future<Result<List<PermissionModel>>> getAll() async {
     try {
@@ -79,16 +84,33 @@ class PermissionRepository {
   }) async {
     try {
       await _db.transaction(() async {
+        // Get existing user permissions before soft-delete (for sync)
+        final existingPerms = await (_db.select(_db.userPermissions)
+              ..where((t) =>
+                  t.companyId.equals(companyId) &
+                  t.userId.equals(userId) &
+                  t.deletedAt.isNull()))
+            .get();
+
         // Soft-delete existing user permissions
+        final now = DateTime.now();
         await (_db.update(_db.userPermissions)
               ..where((t) =>
                   t.companyId.equals(companyId) &
                   t.userId.equals(userId) &
                   t.deletedAt.isNull()))
             .write(UserPermissionsCompanion(
-          deletedAt: Value(DateTime.now()),
-          updatedAt: Value(DateTime.now()),
+          deletedAt: Value(now),
+          updatedAt: Value(now),
         ));
+
+        // Enqueue deletes for existing permissions
+        for (final ep in existingPerms) {
+          final deletedEntity = await (_db.select(_db.userPermissions)
+                ..where((t) => t.id.equals(ep.id)))
+              .getSingle();
+          await _enqueueUserPermission('delete', userPermissionFromEntity(deletedEntity));
+        }
 
         // Get permissions for the role
         final rolePerms = await (_db.select(_db.rolePermissions)
@@ -97,15 +119,20 @@ class PermissionRepository {
 
         // Create new user permissions
         for (final rp in rolePerms) {
+          final newId = generateId();
           await _db.into(_db.userPermissions).insert(
                 UserPermissionsCompanion.insert(
-                  id: generateId(),
+                  id: newId,
                   companyId: companyId,
                   userId: userId,
                   permissionId: rp.permissionId,
                   grantedBy: grantedBy,
                 ),
               );
+          final newEntity = await (_db.select(_db.userPermissions)
+                ..where((t) => t.id.equals(newId)))
+              .getSingle();
+          await _enqueueUserPermission('insert', userPermissionFromEntity(newEntity));
         }
       });
       return const Success(null);
@@ -113,5 +140,17 @@ class PermissionRepository {
       AppLogger.error('Failed to apply role to user', error: e, stackTrace: s);
       return Failure('Failed to apply role to user: $e');
     }
+  }
+
+  Future<void> _enqueueUserPermission(String operation, UserPermissionModel model) async {
+    if (syncQueueRepo == null) return;
+    final json = userPermissionToSupabaseJson(model);
+    await syncQueueRepo!.enqueue(
+      companyId: model.companyId,
+      entityType: 'user_permissions',
+      entityId: model.id,
+      operation: operation,
+      payload: jsonEncode(json),
+    );
   }
 }

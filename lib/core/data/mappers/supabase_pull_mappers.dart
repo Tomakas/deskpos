@@ -260,6 +260,139 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
         lastSyncedAt: Value(now),
       );
 
+    // --- Global tables (no company_id) ---
+
+    case 'currencies':
+      return CurrenciesCompanion(
+        id: Value(json['id'] as String),
+        code: Value(json['code'] as String),
+        symbol: Value(json['symbol'] as String),
+        name: Value(json['name'] as String),
+        decimalPlaces: Value(json['decimal_places'] as int),
+        createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
+        updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
+        deletedAt: Value(_parseDateTime(json['deleted_at'])),
+        serverCreatedAt: Value(_parseDateTime(json['created_at'])),
+        serverUpdatedAt: Value(_parseDateTime(json['updated_at'])),
+        lastSyncedAt: Value(now),
+      );
+
+    case 'roles':
+      return RolesCompanion(
+        id: Value(json['id'] as String),
+        name: Value(_enumFromName(RoleName.values, json['name'])),
+        createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
+        updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
+        deletedAt: Value(_parseDateTime(json['deleted_at'])),
+        serverCreatedAt: Value(_parseDateTime(json['created_at'])),
+        serverUpdatedAt: Value(_parseDateTime(json['updated_at'])),
+        lastSyncedAt: Value(now),
+      );
+
+    case 'permissions':
+      return PermissionsCompanion(
+        id: Value(json['id'] as String),
+        code: Value(json['code'] as String),
+        name: Value(json['name'] as String),
+        description: Value(json['description'] as String?),
+        category: Value(json['category'] as String),
+        createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
+        updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
+        deletedAt: Value(_parseDateTime(json['deleted_at'])),
+        serverCreatedAt: Value(_parseDateTime(json['created_at'])),
+        serverUpdatedAt: Value(_parseDateTime(json['updated_at'])),
+        lastSyncedAt: Value(now),
+      );
+
+    case 'role_permissions':
+      return RolePermissionsCompanion(
+        id: Value(json['id'] as String),
+        roleId: Value(json['role_id'] as String),
+        permissionId: Value(json['permission_id'] as String),
+        createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
+        updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
+        deletedAt: Value(_parseDateTime(json['deleted_at'])),
+        serverCreatedAt: Value(_parseDateTime(json['created_at'])),
+        serverUpdatedAt: Value(_parseDateTime(json['updated_at'])),
+        lastSyncedAt: Value(now),
+      );
+
+    // --- Company-scoped tables (new) ---
+
+    case 'registers':
+      return RegistersCompanion(
+        id: Value(json['id'] as String),
+        companyId: Value(json['company_id'] as String),
+        code: Value(json['code'] as String),
+        isActive: Value(json['is_active'] as bool? ?? true),
+        type: Value(_enumFromName(HardwareType.values, json['type'])),
+        allowCash: Value(json['allow_cash'] as bool? ?? true),
+        allowCard: Value(json['allow_card'] as bool? ?? true),
+        allowTransfer: Value(json['allow_transfer'] as bool? ?? true),
+        allowRefunds: Value(json['allow_refunds'] as bool? ?? false),
+        gridRows: Value(json['grid_rows'] as int? ?? 5),
+        gridCols: Value(json['grid_cols'] as int? ?? 8),
+        createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
+        updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
+        deletedAt: Value(_parseDateTime(json['deleted_at'])),
+        serverCreatedAt: Value(_parseDateTime(json['created_at'])),
+        serverUpdatedAt: Value(_parseDateTime(json['updated_at'])),
+        lastSyncedAt: Value(now),
+      );
+
+    case 'register_sessions':
+      return RegisterSessionsCompanion(
+        id: Value(json['id'] as String),
+        companyId: Value(json['company_id'] as String),
+        registerId: Value(json['register_id'] as String),
+        openedByUserId: Value(json['opened_by_user_id'] as String),
+        openedAt: Value(_requireDateTime(json['opened_at'])),
+        closedAt: Value(_parseDateTime(json['closed_at'])),
+        orderCounter: Value(json['order_counter'] as int? ?? 0),
+        createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
+        updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
+        deletedAt: Value(_parseDateTime(json['deleted_at'])),
+        serverCreatedAt: Value(_parseDateTime(json['created_at'])),
+        serverUpdatedAt: Value(_parseDateTime(json['updated_at'])),
+        lastSyncedAt: Value(now),
+      );
+
+    case 'layout_items':
+      return LayoutItemsCompanion(
+        id: Value(json['id'] as String),
+        companyId: Value(json['company_id'] as String),
+        registerId: Value(json['register_id'] as String),
+        page: Value(json['page'] as int? ?? 0),
+        gridRow: Value(json['grid_row'] as int),
+        gridCol: Value(json['grid_col'] as int),
+        type: Value(_enumFromName(LayoutItemType.values, json['type'])),
+        itemId: Value(json['item_id'] as String?),
+        categoryId: Value(json['category_id'] as String?),
+        label: Value(json['label'] as String?),
+        color: Value(json['color'] as String?),
+        createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
+        updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
+        deletedAt: Value(_parseDateTime(json['deleted_at'])),
+        serverCreatedAt: Value(_parseDateTime(json['created_at'])),
+        serverUpdatedAt: Value(_parseDateTime(json['updated_at'])),
+        lastSyncedAt: Value(now),
+      );
+
+    case 'user_permissions':
+      return UserPermissionsCompanion(
+        id: Value(json['id'] as String),
+        companyId: Value(json['company_id'] as String),
+        userId: Value(json['user_id'] as String),
+        permissionId: Value(json['permission_id'] as String),
+        grantedBy: Value(json['granted_by'] as String),
+        createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
+        updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
+        deletedAt: Value(_parseDateTime(json['deleted_at'])),
+        serverCreatedAt: Value(_parseDateTime(json['created_at'])),
+        serverUpdatedAt: Value(_parseDateTime(json['updated_at'])),
+        lastSyncedAt: Value(now),
+      );
+
     default:
       throw ArgumentError('Unknown table for pull: $tableName');
   }
