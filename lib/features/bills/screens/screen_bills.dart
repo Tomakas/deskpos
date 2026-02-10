@@ -261,7 +261,7 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
       // Resolve who opened the session
       final userRepo = ref.read(userRepositoryProvider);
       final openedByUser = await userRepo.getById(session.openedByUserId);
-      final openedByName = openedByUser?.fullName ?? '-';
+      final openedByName = openedByUser?.username ?? '-';
 
       if (!mounted) return;
 
@@ -669,7 +669,7 @@ class _BillsTable extends ConsumerWidget {
                                     return _BillRow(
                                       bill: bill,
                                       tableName: _resolveTableName(bill, tableMap, l),
-                                      staffName: userMap[bill.openedByUserId]?.fullName ?? '-',
+                                      staffName: userMap[bill.openedByUserId]?.username ?? '-',
                                       lastOrderTime: lastOrderTimes[bill.id],
                                       onTap: () => onBillTap(bill),
                                     );
@@ -1263,7 +1263,7 @@ class _SwitchUserDialogState extends State<_SwitchUserDialog> {
                         height: 52,
                         child: OutlinedButton(
                           onPressed: () => _selectUser(user, isNew: false),
-                          child: Text(user.fullName),
+                          child: Text(user.username),
                         ),
                       ),
                     )),
@@ -1336,7 +1336,7 @@ class _SwitchUserDialogState extends State<_SwitchUserDialog> {
                         height: 52,
                         child: OutlinedButton(
                           onPressed: () => _selectUser(user, isNew: true),
-                          child: Text(user.fullName),
+                          child: Text(user.username),
                         ),
                       ),
                     )),
@@ -1363,7 +1363,7 @@ class _SwitchUserDialogState extends State<_SwitchUserDialog> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            _selectedUser!.fullName,
+            _selectedUser!.username,
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 20),
