@@ -21,7 +21,6 @@ class ScreenCatalog extends ConsumerWidget {
         appBar: AppBar(
           title: Text(l.catalogTitle),
           bottom: TabBar(
-            isScrollable: true,
             tabs: [
               Tab(text: l.catalogTabProducts),
               Tab(text: l.catalogTabCategories),

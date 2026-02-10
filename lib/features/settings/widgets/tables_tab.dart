@@ -44,9 +44,12 @@ class TablesTab extends ConsumerWidget {
                   ),
                 ),
                 Expanded(
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: DataTable(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return SingleChildScrollView(
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(minWidth: constraints.maxWidth),
+                          child: DataTable(
                       columns: [
                         DataColumn(label: Text(l.fieldName)),
                         DataColumn(label: Text(l.fieldSection)),
@@ -86,7 +89,10 @@ class TablesTab extends ConsumerWidget {
                                 )),
                               ]))
                           .toList(),
-                    ),
+                        ),
+                      ),
+                    );
+                    },
                   ),
                 ),
               ],

@@ -24,7 +24,6 @@ class ScreenCompanySettings extends ConsumerWidget {
         appBar: AppBar(
           title: Text(l.settingsCompanyTitle),
           bottom: TabBar(
-            isScrollable: true,
             tabs: [
               Tab(text: l.settingsTabCompany),
               Tab(text: l.settingsTabUsers),

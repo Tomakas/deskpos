@@ -274,20 +274,30 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
         final grouped = <String, _SummaryItem>{};
         for (final item in allItems) {
           final key = '${item.itemName}|${item.salePriceAtt}';
+          final itemSubtotal = (item.salePriceAtt * item.quantity).round();
+          int itemDiscount = 0;
+          if (item.discount > 0) {
+            if (item.discountType == DiscountType.percent) {
+              itemDiscount = (itemSubtotal * item.discount / 10000).round();
+            } else {
+              itemDiscount = item.discount;
+            }
+          }
+          final itemTotal = itemSubtotal - itemDiscount;
           final existing = grouped[key];
           if (existing != null) {
             grouped[key] = _SummaryItem(
               name: item.itemName,
               unitPrice: item.salePriceAtt,
               quantity: existing.quantity + item.quantity,
-              totalGross: existing.totalGross + (item.salePriceAtt * item.quantity).round(),
+              totalGross: existing.totalGross + itemTotal,
             );
           } else {
             grouped[key] = _SummaryItem(
               name: item.itemName,
               unitPrice: item.salePriceAtt,
               quantity: item.quantity,
-              totalGross: (item.salePriceAtt * item.quantity).round(),
+              totalGross: itemTotal,
             );
           }
         }
