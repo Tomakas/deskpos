@@ -2,12 +2,13 @@ import 'package:drift/drift.dart';
 
 import '../../database/app_database.dart';
 import '../mappers/entity_mappers.dart';
+import '../mappers/supabase_mappers.dart';
 import '../models/table_model.dart';
 import 'base_company_scoped_repository.dart';
 
 class TableRepository
     extends BaseCompanyScopedRepository<$TablesTable, TableEntity, TableModel> {
-  TableRepository(super.db);
+  TableRepository(super.db, {super.syncQueueRepo});
 
   @override
   TableInfo<$TablesTable, TableEntity> get table => db.tables;
@@ -16,10 +17,16 @@ class TableRepository
   String get entityName => 'table';
 
   @override
+  String get supabaseTableName => 'tables';
+
+  @override
   TableModel fromEntity(TableEntity e) => tableFromEntity(e);
 
   @override
   Insertable<TableEntity> toCompanion(TableModel m) => tableToCompanion(m);
+
+  @override
+  Map<String, dynamic> toSupabaseJson(TableModel m) => tableToSupabaseJson(m);
 
   @override
   Expression<bool> whereId($TablesTable t, String id) => t.id.equals(id);

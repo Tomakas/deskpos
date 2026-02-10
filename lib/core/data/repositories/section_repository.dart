@@ -2,12 +2,13 @@ import 'package:drift/drift.dart';
 
 import '../../database/app_database.dart';
 import '../mappers/entity_mappers.dart';
+import '../mappers/supabase_mappers.dart';
 import '../models/section_model.dart';
 import 'base_company_scoped_repository.dart';
 
 class SectionRepository
     extends BaseCompanyScopedRepository<$SectionsTable, Section, SectionModel> {
-  SectionRepository(super.db);
+  SectionRepository(super.db, {super.syncQueueRepo});
 
   @override
   TableInfo<$SectionsTable, Section> get table => db.sections;
@@ -16,10 +17,16 @@ class SectionRepository
   String get entityName => 'section';
 
   @override
+  String get supabaseTableName => 'sections';
+
+  @override
   SectionModel fromEntity(Section e) => sectionFromEntity(e);
 
   @override
   Insertable<Section> toCompanion(SectionModel m) => sectionToCompanion(m);
+
+  @override
+  Map<String, dynamic> toSupabaseJson(SectionModel m) => sectionToSupabaseJson(m);
 
   @override
   Expression<bool> whereId($SectionsTable t, String id) => t.id.equals(id);

@@ -3,13 +3,14 @@ import 'package:drift/drift.dart';
 import '../../database/app_database.dart';
 import '../../logging/app_logger.dart';
 import '../mappers/entity_mappers.dart';
+import '../mappers/supabase_mappers.dart';
 import '../models/user_model.dart';
 import '../result.dart';
 import 'base_company_scoped_repository.dart';
 
 class UserRepository
     extends BaseCompanyScopedRepository<$UsersTable, User, UserModel> {
-  UserRepository(super.db);
+  UserRepository(super.db, {super.syncQueueRepo});
 
   @override
   TableInfo<$UsersTable, User> get table => db.users;
@@ -18,10 +19,16 @@ class UserRepository
   String get entityName => 'user';
 
   @override
+  String get supabaseTableName => 'users';
+
+  @override
   UserModel fromEntity(User e) => userFromEntity(e);
 
   @override
   Insertable<User> toCompanion(UserModel m) => userToCompanion(m);
+
+  @override
+  Map<String, dynamic> toSupabaseJson(UserModel m) => userToSupabaseJson(m);
 
   @override
   Expression<bool> whereId($UsersTable t, String id) => t.id.equals(id);

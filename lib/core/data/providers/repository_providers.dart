@@ -13,17 +13,34 @@ import '../repositories/register_repository.dart';
 import '../repositories/register_session_repository.dart';
 import '../repositories/role_repository.dart';
 import '../repositories/section_repository.dart';
+import '../repositories/sync_metadata_repository.dart';
+import '../repositories/sync_queue_repository.dart';
 import '../repositories/table_repository.dart';
 import '../repositories/tax_rate_repository.dart';
 import '../repositories/user_repository.dart';
 import 'database_provider.dart';
+
+// --- Sync repositories ---
+
+final syncQueueRepositoryProvider = Provider<SyncQueueRepository>((ref) {
+  return SyncQueueRepository(ref.watch(appDatabaseProvider));
+});
+
+final syncMetadataRepositoryProvider = Provider<SyncMetadataRepository>((ref) {
+  return SyncMetadataRepository(ref.watch(appDatabaseProvider));
+});
+
+// --- Domain repositories ---
 
 final companyRepositoryProvider = Provider<CompanyRepository>((ref) {
   return CompanyRepository(ref.watch(appDatabaseProvider));
 });
 
 final userRepositoryProvider = Provider<UserRepository>((ref) {
-  return UserRepository(ref.watch(appDatabaseProvider));
+  return UserRepository(
+    ref.watch(appDatabaseProvider),
+    syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
+  );
 });
 
 final roleRepositoryProvider = Provider<RoleRepository>((ref) {
@@ -35,35 +52,59 @@ final permissionRepositoryProvider = Provider<PermissionRepository>((ref) {
 });
 
 final sectionRepositoryProvider = Provider<SectionRepository>((ref) {
-  return SectionRepository(ref.watch(appDatabaseProvider));
+  return SectionRepository(
+    ref.watch(appDatabaseProvider),
+    syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
+  );
 });
 
 final tableRepositoryProvider = Provider<TableRepository>((ref) {
-  return TableRepository(ref.watch(appDatabaseProvider));
+  return TableRepository(
+    ref.watch(appDatabaseProvider),
+    syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
+  );
 });
 
 final categoryRepositoryProvider = Provider<CategoryRepository>((ref) {
-  return CategoryRepository(ref.watch(appDatabaseProvider));
+  return CategoryRepository(
+    ref.watch(appDatabaseProvider),
+    syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
+  );
 });
 
 final itemRepositoryProvider = Provider<ItemRepository>((ref) {
-  return ItemRepository(ref.watch(appDatabaseProvider));
+  return ItemRepository(
+    ref.watch(appDatabaseProvider),
+    syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
+  );
 });
 
 final taxRateRepositoryProvider = Provider<TaxRateRepository>((ref) {
-  return TaxRateRepository(ref.watch(appDatabaseProvider));
+  return TaxRateRepository(
+    ref.watch(appDatabaseProvider),
+    syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
+  );
 });
 
 final paymentMethodRepositoryProvider = Provider<PaymentMethodRepository>((ref) {
-  return PaymentMethodRepository(ref.watch(appDatabaseProvider));
+  return PaymentMethodRepository(
+    ref.watch(appDatabaseProvider),
+    syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
+  );
 });
 
 final billRepositoryProvider = Provider<BillRepository>((ref) {
-  return BillRepository(ref.watch(appDatabaseProvider));
+  return BillRepository(
+    ref.watch(appDatabaseProvider),
+    syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
+  );
 });
 
 final orderRepositoryProvider = Provider<OrderRepository>((ref) {
-  return OrderRepository(ref.watch(appDatabaseProvider));
+  return OrderRepository(
+    ref.watch(appDatabaseProvider),
+    syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
+  );
 });
 
 final registerRepositoryProvider = Provider<RegisterRepository>((ref) {

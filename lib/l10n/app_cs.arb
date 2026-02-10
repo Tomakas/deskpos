@@ -260,5 +260,22 @@
   "moreDev": "Dev",
 
   "settingsTabSecurity": "Zabezpečení",
-  "settingsTabSales": "Prodej"
+  "settingsTabSales": "Prodej",
+  "settingsTabCloud": "Cloud",
+
+  "cloudTitle": "Cloudová synchronizace",
+  "cloudEmail": "E-mail",
+  "cloudPassword": "Heslo",
+  "cloudSignUp": "Registrovat",
+  "cloudSignIn": "Přihlásit",
+  "cloudSignOut": "Odpojit",
+  "cloudConnected": "Připojeno",
+  "cloudDisconnected": "Nepřipojeno",
+  "cloudEmailRequired": "E-mail je povinný",
+  "cloudPasswordRequired": "Heslo je povinné",
+  "cloudPasswordLength": "Heslo musí mít alespoň 6 znaků",
+
+  "infoPanelSync": "Synchronizace",
+  "infoPanelSyncConnected": "Připojeno",
+  "infoPanelSyncDisconnected": "Nepřipojeno"
 }

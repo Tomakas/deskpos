@@ -79,6 +79,20 @@ class CompanyRepository {
     }
   }
 
+  Future<Result<void>> updateAuthUserId(String companyId, String authUserId) async {
+    try {
+      await (_db.update(_db.companies)..where((t) => t.id.equals(companyId)))
+          .write(CompaniesCompanion(
+        authUserId: Value(authUserId),
+        updatedAt: Value(DateTime.now()),
+      ));
+      return const Success(null);
+    } catch (e, s) {
+      AppLogger.error('Failed to update authUserId', error: e, stackTrace: s);
+      return Failure('Failed to update authUserId: $e');
+    }
+  }
+
   Stream<CompanyModel?> watchFirst() {
     return (_db.select(_db.companies)
           ..where((t) => t.deletedAt.isNull())

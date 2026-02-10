@@ -2,12 +2,13 @@ import 'package:drift/drift.dart';
 
 import '../../database/app_database.dart';
 import '../mappers/entity_mappers.dart';
+import '../mappers/supabase_mappers.dart';
 import '../models/tax_rate_model.dart';
 import 'base_company_scoped_repository.dart';
 
 class TaxRateRepository
     extends BaseCompanyScopedRepository<$TaxRatesTable, TaxRate, TaxRateModel> {
-  TaxRateRepository(super.db);
+  TaxRateRepository(super.db, {super.syncQueueRepo});
 
   @override
   TableInfo<$TaxRatesTable, TaxRate> get table => db.taxRates;
@@ -16,10 +17,16 @@ class TaxRateRepository
   String get entityName => 'tax rate';
 
   @override
+  String get supabaseTableName => 'tax_rates';
+
+  @override
   TaxRateModel fromEntity(TaxRate e) => taxRateFromEntity(e);
 
   @override
   Insertable<TaxRate> toCompanion(TaxRateModel m) => taxRateToCompanion(m);
+
+  @override
+  Map<String, dynamic> toSupabaseJson(TaxRateModel m) => taxRateToSupabaseJson(m);
 
   @override
   Expression<bool> whereId($TaxRatesTable t, String id) => t.id.equals(id);

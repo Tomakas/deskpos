@@ -20,6 +20,8 @@ import 'tables/registers.dart';
 import 'tables/role_permissions.dart';
 import 'tables/roles.dart';
 import 'tables/sections.dart';
+import 'tables/sync_metadata.dart';
+import 'tables/sync_queue.dart';
 import 'tables/table_entities.dart';
 import 'tables/tax_rates.dart';
 import 'tables/user_permissions.dart';
@@ -44,6 +46,8 @@ part 'app_database.g.dart';
   RolePermissions,
   Roles,
   Sections,
+  SyncMetadata,
+  SyncQueue,
   Tables,
   TaxRates,
   UserPermissions,

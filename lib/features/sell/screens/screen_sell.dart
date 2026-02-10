@@ -328,7 +328,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     String companyId,
     dynamic l,
   ) {
-    final layoutItem = layoutItems.where((li) => li.row == row && li.col == col && li.page == 0).firstOrNull;
+    final layoutItem = layoutItems.where((li) => li.gridRow == row && li.gridCol == col && li.page == 0).firstOrNull;
 
     if (_editMode) {
       return _EditableCell(
@@ -648,14 +648,14 @@ class _EditableCell extends ConsumerWidget {
     final repo = ref.read(layoutItemRepositoryProvider);
 
     if (result.clear) {
-      await repo.clearCell(registerId: registerId, page: 0, row: row, col: col);
+      await repo.clearCell(registerId: registerId, page: 0, gridRow: row, gridCol: col);
     } else {
       await repo.setCell(
         companyId: companyId,
         registerId: registerId,
         page: 0,
-        row: row,
-        col: col,
+        gridRow: row,
+        gridCol: col,
         type: result.type!,
         itemId: result.itemId,
         categoryId: result.categoryId,

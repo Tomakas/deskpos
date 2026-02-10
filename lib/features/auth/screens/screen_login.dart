@@ -169,20 +169,24 @@ class _ScreenLoginState extends ConsumerState<ScreenLogin> {
               const SizedBox(height: 8),
               Row(
                 children: [
-                  _numpadButton(
-                    child: const Icon(Icons.arrow_back),
-                    onTap: () => setState(() {
-                      _selectedUser = null;
-                      _error = null;
-                      _pinCtrl.clear();
-                    }),
+                  Expanded(
+                    child: _numpadButton(
+                      child: const Icon(Icons.arrow_back),
+                      onTap: () => setState(() {
+                        _selectedUser = null;
+                        _error = null;
+                        _pinCtrl.clear();
+                      }),
+                    ),
                   ),
                   const SizedBox(width: 8),
-                  _numpadButton(child: const Text('0', style: TextStyle(fontSize: 24)), onTap: () => _numpadTap('0')),
+                  Expanded(child: _numpadButton(child: const Text('0', style: TextStyle(fontSize: 24)), onTap: () => _numpadTap('0'))),
                   const SizedBox(width: 8),
-                  _numpadButton(
-                    child: const Icon(Icons.backspace_outlined),
-                    onTap: _numpadBackspace,
+                  Expanded(
+                    child: _numpadButton(
+                      child: const Icon(Icons.backspace_outlined),
+                      onTap: _numpadBackspace,
+                    ),
                   ),
                 ],
               ),
@@ -209,17 +213,15 @@ class _ScreenLoginState extends ConsumerState<ScreenLogin> {
   }
 
   Widget _numpadButton({required Widget child, required VoidCallback onTap}) {
-    return Expanded(
-      child: SizedBox(
-        height: 64,
-        child: OutlinedButton(
-          onPressed: _lockSeconds != null ? null : onTap,
-          style: OutlinedButton.styleFrom(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            padding: EdgeInsets.zero,
-          ),
-          child: child,
+    return SizedBox(
+      height: 64,
+      child: OutlinedButton(
+        onPressed: _lockSeconds != null ? null : onTap,
+        style: OutlinedButton.styleFrom(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          padding: EdgeInsets.zero,
         ),
+        child: child,
       ),
     );
   }

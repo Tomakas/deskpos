@@ -2,12 +2,13 @@ import 'package:drift/drift.dart';
 
 import '../../database/app_database.dart';
 import '../mappers/entity_mappers.dart';
+import '../mappers/supabase_mappers.dart';
 import '../models/payment_method_model.dart';
 import 'base_company_scoped_repository.dart';
 
 class PaymentMethodRepository
     extends BaseCompanyScopedRepository<$PaymentMethodsTable, PaymentMethod, PaymentMethodModel> {
-  PaymentMethodRepository(super.db);
+  PaymentMethodRepository(super.db, {super.syncQueueRepo});
 
   @override
   TableInfo<$PaymentMethodsTable, PaymentMethod> get table => db.paymentMethods;
@@ -16,11 +17,18 @@ class PaymentMethodRepository
   String get entityName => 'payment method';
 
   @override
+  String get supabaseTableName => 'payment_methods';
+
+  @override
   PaymentMethodModel fromEntity(PaymentMethod e) => paymentMethodFromEntity(e);
 
   @override
   Insertable<PaymentMethod> toCompanion(PaymentMethodModel m) =>
       paymentMethodToCompanion(m);
+
+  @override
+  Map<String, dynamic> toSupabaseJson(PaymentMethodModel m) =>
+      paymentMethodToSupabaseJson(m);
 
   @override
   Expression<bool> whereId($PaymentMethodsTable t, String id) => t.id.equals(id);

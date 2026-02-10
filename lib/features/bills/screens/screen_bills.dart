@@ -15,6 +15,7 @@ import '../../../core/data/models/user_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/permission_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
+import '../../../core/data/providers/sync_providers.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../widgets/dialog_bill_detail.dart';
@@ -552,11 +553,34 @@ class _RightPanel extends ConsumerWidget {
             onLeft: null,
             onRight: null,
           ),
-          // Row 3: SKLAD | DALŠÍ (→ popup menu)
-          _MoreButtonRow(
-            left: l.billsInventory,
-            rightLabel: l.billsMore,
-            canManageSettings: canManageSettings,
+          // Row 3: SKLAD | DALŠÍ (→ menu near button)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            child: Row(
+              children: [
+                Expanded(
+                  child: SizedBox(
+                    height: 54,
+                    child: FilledButton.tonal(
+                      onPressed: null,
+                      child: Text(l.billsInventory, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12)),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: SizedBox(
+                    height: 54,
+                    child: Builder(builder: (btnContext) {
+                      return FilledButton.tonal(
+                        onPressed: () => _showMoreMenu(btnContext, canManageSettings),
+                        child: Text(l.billsMore, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12)),
+                      );
+                    }),
+                  ),
+                ),
+              ],
+            ),
           ),
           // Row 4: MAPA (disabled) | UZÁVĚRKA
           _ButtonRow(
@@ -659,69 +683,41 @@ class _ButtonRow extends StatelessWidget {
   }
 }
 
-class _MoreButtonRow extends StatelessWidget {
-  const _MoreButtonRow({
-    required this.left,
-    required this.rightLabel,
-    required this.canManageSettings,
+void _showMoreMenu(BuildContext btnContext, bool canManageSettings) {
+  final l = btnContext.l10n;
+  final button = btnContext.findRenderObject()! as RenderBox;
+  final overlay = Overlay.of(btnContext).context.findRenderObject()! as RenderBox;
+  final position = RelativeRect.fromRect(
+    Rect.fromPoints(
+      button.localToGlobal(Offset.zero, ancestor: overlay),
+      button.localToGlobal(button.size.bottomRight(Offset.zero), ancestor: overlay),
+    ),
+    Offset.zero & overlay.size,
+  );
+
+  showMenu<String>(
+    context: btnContext,
+    position: position,
+    items: [
+      PopupMenuItem(enabled: false, height: 48, child: Text(l.moreReports)),
+      PopupMenuItem(enabled: false, height: 48, child: Text(l.moreStatistics)),
+      PopupMenuItem(enabled: false, height: 48, child: Text(l.moreReservations)),
+      PopupMenuItem(value: 'settings', height: 48, child: Text(l.moreSettings)),
+      if (canManageSettings)
+        PopupMenuItem(value: 'dev', height: 48, child: Text(l.moreDev)),
+    ],
+  ).then((value) {
+    if (value == null || !btnContext.mounted) return;
+    switch (value) {
+      case 'settings':
+        btnContext.push('/settings');
+      case 'dev':
+        btnContext.push('/dev');
+    }
   });
-  final String left;
-  final String rightLabel;
-  final bool canManageSettings;
-
-  @override
-  Widget build(BuildContext context) {
-    final l = context.l10n;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: Row(
-        children: [
-          Expanded(
-            child: SizedBox(
-              height: 54,
-              child: FilledButton.tonal(
-                onPressed: null,
-                child: Text(left, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12)),
-              ),
-            ),
-          ),
-          const SizedBox(width: 6),
-          Expanded(
-            child: SizedBox(
-              height: 54,
-              child: PopupMenuButton<String>(
-                onSelected: (value) {
-                  switch (value) {
-                    case 'settings':
-                      context.push('/settings');
-                    case 'dev':
-                      context.push('/dev');
-                  }
-                },
-                itemBuilder: (_) => [
-                  PopupMenuItem(value: 'reports', enabled: false, height: 54, child: Text(l.moreReports)),
-                  PopupMenuItem(value: 'statistics', enabled: false, height: 54, child: Text(l.moreStatistics)),
-                  PopupMenuItem(value: 'reservations', enabled: false, height: 54, child: Text(l.moreReservations)),
-                  PopupMenuItem(value: 'settings', height: 54, child: Text(l.moreSettings)),
-                  if (canManageSettings)
-                    PopupMenuItem(value: 'dev', height: 54, child: Text(l.moreDev)),
-                ],
-                constraints: const BoxConstraints(minWidth: 130),
-                child: FilledButton.tonal(
-                  onPressed: null,
-                  child: Text(rightLabel, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12)),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
-class _InfoPanel extends StatelessWidget {
+class _InfoPanel extends ConsumerWidget {
   const _InfoPanel({
     required this.activeUser,
     required this.loggedInUsers,
@@ -732,12 +728,13 @@ class _InfoPanel extends StatelessWidget {
   final bool hasSession;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
     final theme = Theme.of(context);
     final now = DateTime.now();
     final dateFormat = DateFormat('EEEE d.M.yyyy', 'cs');
     final timeFormat = DateFormat('HH:mm:ss', 'cs');
+    final isSyncConnected = ref.watch(isSupabaseAuthenticatedProvider);
 
     return Container(
       padding: const EdgeInsets.all(10),
@@ -756,9 +753,11 @@ class _InfoPanel extends StatelessWidget {
           const Divider(),
           // Status
           _InfoRow(l.infoPanelStatus, hasSession ? l.registerSessionActive : l.infoPanelStatusOffline),
+          const SizedBox(height: 2),
+          _InfoRow(l.infoPanelSync, isSyncConnected ? l.infoPanelSyncConnected : l.infoPanelSyncDisconnected),
           const Divider(),
           // Active user
-          _InfoRow(l.infoPanelActiveUser, activeUser?.fullName ?? '-'),
+          _InfoRow(l.infoPanelActiveUser, activeUser?.username ?? '-'),
           const SizedBox(height: 2),
           _InfoRow(l.infoPanelLoggedIn, loggedInUsers.map((u) => u.fullName).join(', ')),
           const Divider(),
@@ -1025,19 +1024,25 @@ class _SwitchUserDialogState extends State<_SwitchUserDialog> {
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    _numpadButton(
-                      child: const Icon(Icons.arrow_back),
-                      onTap: _goBack,
+                    Expanded(
+                      child: _numpadButton(
+                        child: const Icon(Icons.arrow_back),
+                        onTap: _goBack,
+                      ),
                     ),
                     const SizedBox(width: 8),
-                    _numpadButton(
-                      child: const Text('0', style: TextStyle(fontSize: 24)),
-                      onTap: () => _numpadTap('0'),
+                    Expanded(
+                      child: _numpadButton(
+                        child: const Text('0', style: TextStyle(fontSize: 24)),
+                        onTap: () => _numpadTap('0'),
+                      ),
                     ),
                     const SizedBox(width: 8),
-                    _numpadButton(
-                      child: const Icon(Icons.backspace_outlined),
-                      onTap: _numpadBackspace,
+                    Expanded(
+                      child: _numpadButton(
+                        child: const Icon(Icons.backspace_outlined),
+                        onTap: _numpadBackspace,
+                      ),
                     ),
                   ],
                 ),
@@ -1067,17 +1072,15 @@ class _SwitchUserDialogState extends State<_SwitchUserDialog> {
   }
 
   Widget _numpadButton({required Widget child, required VoidCallback onTap}) {
-    return Expanded(
-      child: SizedBox(
-        height: 64,
-        child: OutlinedButton(
-          onPressed: _lockSeconds != null ? null : onTap,
-          style: OutlinedButton.styleFrom(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            padding: EdgeInsets.zero,
-          ),
-          child: child,
+    return SizedBox(
+      height: 64,
+      child: OutlinedButton(
+        onPressed: _lockSeconds != null ? null : onTap,
+        style: OutlinedButton.styleFrom(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          padding: EdgeInsets.zero,
         ),
+        child: child,
       ),
     );
   }

@@ -38,6 +38,7 @@ CompanyModel companyFromEntity(Company e) => CompanyModel(
       timezone: e.timezone,
       businessType: e.businessType,
       defaultCurrencyId: e.defaultCurrencyId,
+      authUserId: e.authUserId,
       createdAt: e.createdAt,
       updatedAt: e.updatedAt,
       deletedAt: e.deletedAt,
@@ -58,6 +59,7 @@ CompaniesCompanion companyToCompanion(CompanyModel m) => CompaniesCompanion.inse
       timezone: Value(m.timezone),
       businessType: Value(m.businessType),
       defaultCurrencyId: m.defaultCurrencyId,
+      authUserId: Value(m.authUserId),
     );
 
 // --- Currency ---
@@ -441,8 +443,8 @@ LayoutItemModel layoutItemFromEntity(LayoutItem e) => LayoutItemModel(
       companyId: e.companyId,
       registerId: e.registerId,
       page: e.page,
-      row: e.row,
-      col: e.col,
+      gridRow: e.gridRow,
+      gridCol: e.gridCol,
       type: e.type,
       itemId: e.itemId,
       categoryId: e.categoryId,

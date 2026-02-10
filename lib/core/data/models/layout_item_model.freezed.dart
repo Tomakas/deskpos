@@ -21,8 +21,8 @@ mixin _$LayoutItemModel {
   String get companyId => throw _privateConstructorUsedError;
   String get registerId => throw _privateConstructorUsedError;
   int get page => throw _privateConstructorUsedError;
-  int get row => throw _privateConstructorUsedError;
-  int get col => throw _privateConstructorUsedError;
+  int get gridRow => throw _privateConstructorUsedError;
+  int get gridCol => throw _privateConstructorUsedError;
   LayoutItemType get type => throw _privateConstructorUsedError;
   String? get itemId => throw _privateConstructorUsedError;
   String? get categoryId => throw _privateConstructorUsedError;
@@ -51,8 +51,8 @@ abstract class $LayoutItemModelCopyWith<$Res> {
     String companyId,
     String registerId,
     int page,
-    int row,
-    int col,
+    int gridRow,
+    int gridCol,
     LayoutItemType type,
     String? itemId,
     String? categoryId,
@@ -83,8 +83,8 @@ class _$LayoutItemModelCopyWithImpl<$Res, $Val extends LayoutItemModel>
     Object? companyId = null,
     Object? registerId = null,
     Object? page = null,
-    Object? row = null,
-    Object? col = null,
+    Object? gridRow = null,
+    Object? gridCol = null,
     Object? type = null,
     Object? itemId = freezed,
     Object? categoryId = freezed,
@@ -112,13 +112,13 @@ class _$LayoutItemModelCopyWithImpl<$Res, $Val extends LayoutItemModel>
                 ? _value.page
                 : page // ignore: cast_nullable_to_non_nullable
                       as int,
-            row: null == row
-                ? _value.row
-                : row // ignore: cast_nullable_to_non_nullable
+            gridRow: null == gridRow
+                ? _value.gridRow
+                : gridRow // ignore: cast_nullable_to_non_nullable
                       as int,
-            col: null == col
-                ? _value.col
-                : col // ignore: cast_nullable_to_non_nullable
+            gridCol: null == gridCol
+                ? _value.gridCol
+                : gridCol // ignore: cast_nullable_to_non_nullable
                       as int,
             type: null == type
                 ? _value.type
@@ -172,8 +172,8 @@ abstract class _$$LayoutItemModelImplCopyWith<$Res>
     String companyId,
     String registerId,
     int page,
-    int row,
-    int col,
+    int gridRow,
+    int gridCol,
     LayoutItemType type,
     String? itemId,
     String? categoryId,
@@ -203,8 +203,8 @@ class __$$LayoutItemModelImplCopyWithImpl<$Res>
     Object? companyId = null,
     Object? registerId = null,
     Object? page = null,
-    Object? row = null,
-    Object? col = null,
+    Object? gridRow = null,
+    Object? gridCol = null,
     Object? type = null,
     Object? itemId = freezed,
     Object? categoryId = freezed,
@@ -232,13 +232,13 @@ class __$$LayoutItemModelImplCopyWithImpl<$Res>
             ? _value.page
             : page // ignore: cast_nullable_to_non_nullable
                   as int,
-        row: null == row
-            ? _value.row
-            : row // ignore: cast_nullable_to_non_nullable
+        gridRow: null == gridRow
+            ? _value.gridRow
+            : gridRow // ignore: cast_nullable_to_non_nullable
                   as int,
-        col: null == col
-            ? _value.col
-            : col // ignore: cast_nullable_to_non_nullable
+        gridCol: null == gridCol
+            ? _value.gridCol
+            : gridCol // ignore: cast_nullable_to_non_nullable
                   as int,
         type: null == type
             ? _value.type
@@ -285,8 +285,8 @@ class _$LayoutItemModelImpl implements _LayoutItemModel {
     required this.companyId,
     required this.registerId,
     this.page = 0,
-    required this.row,
-    required this.col,
+    required this.gridRow,
+    required this.gridCol,
     required this.type,
     this.itemId,
     this.categoryId,
@@ -307,9 +307,9 @@ class _$LayoutItemModelImpl implements _LayoutItemModel {
   @JsonKey()
   final int page;
   @override
-  final int row;
+  final int gridRow;
   @override
-  final int col;
+  final int gridCol;
   @override
   final LayoutItemType type;
   @override
@@ -329,7 +329,7 @@ class _$LayoutItemModelImpl implements _LayoutItemModel {
 
   @override
   String toString() {
-    return 'LayoutItemModel(id: $id, companyId: $companyId, registerId: $registerId, page: $page, row: $row, col: $col, type: $type, itemId: $itemId, categoryId: $categoryId, label: $label, color: $color, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+    return 'LayoutItemModel(id: $id, companyId: $companyId, registerId: $registerId, page: $page, gridRow: $gridRow, gridCol: $gridCol, type: $type, itemId: $itemId, categoryId: $categoryId, label: $label, color: $color, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
   }
 
   @override
@@ -343,8 +343,8 @@ class _$LayoutItemModelImpl implements _LayoutItemModel {
             (identical(other.registerId, registerId) ||
                 other.registerId == registerId) &&
             (identical(other.page, page) || other.page == page) &&
-            (identical(other.row, row) || other.row == row) &&
-            (identical(other.col, col) || other.col == col) &&
+            (identical(other.gridRow, gridRow) || other.gridRow == gridRow) &&
+            (identical(other.gridCol, gridCol) || other.gridCol == gridCol) &&
             (identical(other.type, type) || other.type == type) &&
             (identical(other.itemId, itemId) || other.itemId == itemId) &&
             (identical(other.categoryId, categoryId) ||
@@ -366,8 +366,8 @@ class _$LayoutItemModelImpl implements _LayoutItemModel {
     companyId,
     registerId,
     page,
-    row,
-    col,
+    gridRow,
+    gridCol,
     type,
     itemId,
     categoryId,
@@ -396,8 +396,8 @@ abstract class _LayoutItemModel implements LayoutItemModel {
     required final String companyId,
     required final String registerId,
     final int page,
-    required final int row,
-    required final int col,
+    required final int gridRow,
+    required final int gridCol,
     required final LayoutItemType type,
     final String? itemId,
     final String? categoryId,
@@ -417,9 +417,9 @@ abstract class _LayoutItemModel implements LayoutItemModel {
   @override
   int get page;
   @override
-  int get row;
+  int get gridRow;
   @override
-  int get col;
+  int get gridCol;
   @override
   LayoutItemType get type;
   @override

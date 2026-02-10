@@ -1239,6 +1239,96 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Prodej'**
   String get settingsTabSales;
+
+  /// No description provided for @settingsTabCloud.
+  ///
+  /// In cs, this message translates to:
+  /// **'Cloud'**
+  String get settingsTabCloud;
+
+  /// No description provided for @cloudTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Cloudová synchronizace'**
+  String get cloudTitle;
+
+  /// No description provided for @cloudEmail.
+  ///
+  /// In cs, this message translates to:
+  /// **'E-mail'**
+  String get cloudEmail;
+
+  /// No description provided for @cloudPassword.
+  ///
+  /// In cs, this message translates to:
+  /// **'Heslo'**
+  String get cloudPassword;
+
+  /// No description provided for @cloudSignUp.
+  ///
+  /// In cs, this message translates to:
+  /// **'Registrovat'**
+  String get cloudSignUp;
+
+  /// No description provided for @cloudSignIn.
+  ///
+  /// In cs, this message translates to:
+  /// **'Přihlásit'**
+  String get cloudSignIn;
+
+  /// No description provided for @cloudSignOut.
+  ///
+  /// In cs, this message translates to:
+  /// **'Odpojit'**
+  String get cloudSignOut;
+
+  /// No description provided for @cloudConnected.
+  ///
+  /// In cs, this message translates to:
+  /// **'Připojeno'**
+  String get cloudConnected;
+
+  /// No description provided for @cloudDisconnected.
+  ///
+  /// In cs, this message translates to:
+  /// **'Nepřipojeno'**
+  String get cloudDisconnected;
+
+  /// No description provided for @cloudEmailRequired.
+  ///
+  /// In cs, this message translates to:
+  /// **'E-mail je povinný'**
+  String get cloudEmailRequired;
+
+  /// No description provided for @cloudPasswordRequired.
+  ///
+  /// In cs, this message translates to:
+  /// **'Heslo je povinné'**
+  String get cloudPasswordRequired;
+
+  /// No description provided for @cloudPasswordLength.
+  ///
+  /// In cs, this message translates to:
+  /// **'Heslo musí mít alespoň 6 znaků'**
+  String get cloudPasswordLength;
+
+  /// No description provided for @infoPanelSync.
+  ///
+  /// In cs, this message translates to:
+  /// **'Synchronizace'**
+  String get infoPanelSync;
+
+  /// No description provided for @infoPanelSyncConnected.
+  ///
+  /// In cs, this message translates to:
+  /// **'Připojeno'**
+  String get infoPanelSyncConnected;
+
+  /// No description provided for @infoPanelSyncDisconnected.
+  ///
+  /// In cs, this message translates to:
+  /// **'Nepřipojeno'**
+  String get infoPanelSyncDisconnected;
 }
 
 class _AppLocalizationsDelegate

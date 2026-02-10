@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
@@ -5,13 +7,16 @@ import '../../database/app_database.dart';
 import '../../logging/app_logger.dart';
 import '../enums/prep_status.dart';
 import '../mappers/entity_mappers.dart';
+import '../mappers/supabase_mappers.dart';
 import '../models/order_item_model.dart';
 import '../models/order_model.dart';
 import '../result.dart';
+import 'sync_queue_repository.dart';
 
 class OrderRepository {
-  OrderRepository(this._db);
+  OrderRepository(this._db, {this.syncQueueRepo});
   final AppDatabase _db;
+  final SyncQueueRepository? syncQueueRepo;
 
   Future<Result<OrderModel>> createOrderWithItems({
     required String companyId,
@@ -76,7 +81,18 @@ class OrderRepository {
       final entity = await (_db.select(_db.orders)
             ..where((t) => t.id.equals(orderId)))
           .getSingle();
-      return Success(orderFromEntity(entity));
+      final order = orderFromEntity(entity);
+      await _enqueueOrder('insert', order);
+
+      // Enqueue all order items
+      final itemEntities = await (_db.select(_db.orderItems)
+            ..where((t) => t.orderId.equals(orderId)))
+          .get();
+      for (final item in itemEntities) {
+        await _enqueueOrderItem('insert', orderItemFromEntity(item));
+      }
+
+      return Success(order);
     } catch (e, s) {
       AppLogger.error('Failed to create order', error: e, stackTrace: s);
       return Failure('Failed to create order: $e');
@@ -141,7 +157,18 @@ class OrderRepository {
       final entity = await (_db.select(_db.orders)
             ..where((t) => t.id.equals(orderId)))
           .getSingle();
-      return Success(orderFromEntity(entity));
+      final order = orderFromEntity(entity);
+      await _enqueueOrder('update', order);
+
+      // Enqueue all order items (status changed in bulk)
+      final itemEntities = await (_db.select(_db.orderItems)
+            ..where((t) => t.orderId.equals(orderId)))
+          .get();
+      for (final item in itemEntities) {
+        await _enqueueOrderItem('update', orderItemFromEntity(item));
+      }
+
+      return Success(order);
     } catch (e, s) {
       AppLogger.error('Failed to update order status', error: e, stackTrace: s);
       return Failure('Failed to update order status: $e');
@@ -186,6 +213,28 @@ class OrderRepository {
 
   Future<Result<OrderModel>> markDelivered(String orderId) =>
       updateStatus(orderId, PrepStatus.delivered);
+
+  Future<void> _enqueueOrder(String operation, OrderModel m) async {
+    if (syncQueueRepo == null) return;
+    await syncQueueRepo!.enqueue(
+      companyId: m.companyId,
+      entityType: 'orders',
+      entityId: m.id,
+      operation: operation,
+      payload: jsonEncode(orderToSupabaseJson(m)),
+    );
+  }
+
+  Future<void> _enqueueOrderItem(String operation, OrderItemModel m) async {
+    if (syncQueueRepo == null) return;
+    await syncQueueRepo!.enqueue(
+      companyId: m.companyId,
+      entityType: 'order_items',
+      entityId: m.id,
+      operation: operation,
+      payload: jsonEncode(orderItemToSupabaseJson(m)),
+    );
+  }
 }
 
 class OrderItemInput {

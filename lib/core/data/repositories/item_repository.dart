@@ -2,12 +2,13 @@ import 'package:drift/drift.dart';
 
 import '../../database/app_database.dart';
 import '../mappers/entity_mappers.dart';
+import '../mappers/supabase_mappers.dart';
 import '../models/item_model.dart';
 import 'base_company_scoped_repository.dart';
 
 class ItemRepository
     extends BaseCompanyScopedRepository<$ItemsTable, Item, ItemModel> {
-  ItemRepository(super.db);
+  ItemRepository(super.db, {super.syncQueueRepo});
 
   @override
   TableInfo<$ItemsTable, Item> get table => db.items;
@@ -16,10 +17,16 @@ class ItemRepository
   String get entityName => 'item';
 
   @override
+  String get supabaseTableName => 'items';
+
+  @override
   ItemModel fromEntity(Item e) => itemFromEntity(e);
 
   @override
   Insertable<Item> toCompanion(ItemModel m) => itemToCompanion(m);
+
+  @override
+  Map<String, dynamic> toSupabaseJson(ItemModel m) => itemToSupabaseJson(m);
 
   @override
   Expression<bool> whereId($ItemsTable t, String id) => t.id.equals(id);

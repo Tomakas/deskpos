@@ -26,8 +26,8 @@ class LayoutItemRepository {
     required String companyId,
     required String registerId,
     required int page,
-    required int row,
-    required int col,
+    required int gridRow,
+    required int gridCol,
     required LayoutItemType type,
     String? itemId,
     String? categoryId,
@@ -42,8 +42,8 @@ class LayoutItemRepository {
             ..where((t) =>
                 t.registerId.equals(registerId) &
                 t.page.equals(page) &
-                t.row.equals(row) &
-                t.col.equals(col) &
+                t.gridRow.equals(gridRow) &
+                t.gridCol.equals(gridCol) &
                 t.deletedAt.isNull()))
           .getSingleOrNull();
 
@@ -63,8 +63,8 @@ class LayoutItemRepository {
         companyId: companyId,
         registerId: registerId,
         page: Value(page),
-        row: row,
-        col: col,
+        gridRow: gridRow,
+        gridCol: gridCol,
         type: type,
         itemId: Value(itemId),
         categoryId: Value(categoryId),
@@ -85,8 +85,8 @@ class LayoutItemRepository {
   Future<Result<void>> clearCell({
     required String registerId,
     required int page,
-    required int row,
-    required int col,
+    required int gridRow,
+    required int gridCol,
   }) async {
     try {
       final now = DateTime.now();
@@ -94,8 +94,8 @@ class LayoutItemRepository {
             ..where((t) =>
                 t.registerId.equals(registerId) &
                 t.page.equals(page) &
-                t.row.equals(row) &
-                t.col.equals(col) &
+                t.gridRow.equals(gridRow) &
+                t.gridCol.equals(gridCol) &
                 t.deletedAt.isNull()))
           .getSingleOrNull();
 

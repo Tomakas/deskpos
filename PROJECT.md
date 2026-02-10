@@ -2,7 +2,7 @@
 
 > Konsolidovaná dokumentace projektu EPOS Desktop App.
 >
-> **Poslední aktualizace:** 2026-02-09
+> **Poslední aktualizace:** 2026-02-10
 
 ---
 
@@ -145,14 +145,15 @@ Uživatel může vytvořit účet, přidat položky a zaplatit. Register session
 
 Funkce, které nejsou nezbytné pro základní prodej, ale rozšiřují možnosti systému.
 
-#### Milník 3.1 — Sync + multi-device
+#### Milník 3.1 — Sync + multi-device (rozpracováno)
 
-- **Task3.1** Supabase backend — Auth, RLS policies, triggery
-- **Task3.2** Outbox pattern — sync_queue, auto-retry, status tracking
-- **Task3.3** LWW conflict resolution — updated_at porovnání, merge logika
-- **Task3.4** ConnectCompanyScreen — připojení k existující firmě, InitialSync
-- **Task3.5** SyncAuthScreen — admin credentials pro Supabase session
-- **Task3.6** SQLCipher šifrování — migrace plain SQLite → šifrovaná DB, klíč ve secure storage
+- **Task3.1** Supabase backend — Auth, RLS policies, triggery ✅
+- **Task3.2** Outbox pattern — sync_queue, auto-retry, status tracking ✅ (konfigurační entity)
+- **Task3.3** LWW conflict resolution — updated_at porovnání, merge logika ✅ (konfigurační entity)
+- **Task3.2b** Sync pro bills, orders, order_items, payments — mappers, outbox registrace, pull tables ⬜
+- **Task3.4** ConnectCompanyScreen — připojení k existující firmě, InitialSync ⬜
+- **Task3.5** SyncAuthScreen — admin credentials pro Supabase session ✅ (ScreenCloudAuth)
+- **Task3.6** SQLCipher šifrování — migrace plain SQLite → šifrovaná DB, klíč ve secure storage ⬜
 - **Výsledek:** Data se synchronizují mezi zařízeními. Nové zařízení se připojí k firmě a stáhne data. Lokální DB je šifrovaná.
 
 #### Milník 3.2 — Pokročilý prodej
@@ -329,10 +330,11 @@ lib/
 │   │   ├── models/                    # Doménové modely (Freezed)
 │   │   ├── providers/                 # DI registrace (Riverpod)
 │   │   ├── repositories/              # Repozitáře (přímý přístup k DB)
-│   │   └── services/                  # Seed, sync (od Etapy 3)
+│   │   └── services/                  # Seed, sync
 │   ├── database/                      # Drift databáze
 │   │   └── tables/                    # Definice tabulek
-│   ├── network/                       # Síťová vrstva (od Etapy 3)
+│   ├── network/                       # Supabase konfigurace
+│   ├── sync/                          # Sync engine (outbox, pull, lifecycle)
 │   ├── logging/                       # AppLogger
 │   └── l10n/                          # Extension context.l10n
 ├── features/                          # Funkční moduly (UI only)
@@ -352,10 +354,12 @@ Každá entita v `core/data/` se skládá z následujících souborů:
 |--------|------|
 | `models/<entity>_model.dart` | Doménový model (Freezed) |
 | `repositories/<entity>_repository.dart` | Repository — přímý přístup k AppDatabase |
+| `mappers/supabase_mappers.dart` | Push: Model → Supabase JSON (typované parametry) |
+| `mappers/supabase_pull_mappers.dart` | Pull: Supabase JSON → Drift Companion |
 
 **Architektura:** Repozitáře pracují přímo s `AppDatabase` (Drift) bez DataSource abstrakce. Od Etapy 3 se sync logika (outbox zápis, pull merge) přidá přímo do repozitářů pomocí `BaseCompanyScopedRepository<T>`.
 
-**Etapa 3+ (se sync):** Repository zdědí z `BaseCompanyScopedRepository<T>`, který poskytuje standardní CRUD + automatický outbox zápis ve stejné transakci.
+**Aktuální stav:** Konfigurační entity (sections, categories, items, tables, payment_methods, tax_rates, users) dědí z `BaseCompanyScopedRepository<T>` s automatickým outbox zápisem. Bills, orders, order_items a payments mají vlastní repozitáře bez sync integrace — budou rozšířeny v další fázi E3.
 
 ---
 
@@ -433,27 +437,28 @@ Navíc každá tabulka definuje: `createdAt`, `updatedAt`, `deletedAt` (soft del
 
 > **Poznámka:** `TableEntity` používá `@DataClassName` anotaci (konflikt s Drift `Table`).
 
-##### Tabulky rozšíření (17) — přidají se podle potřeby
+##### Tabulky rozšíření (aktivní sync + budoucí)
 
-| SQL tabulka | Drift Table | Kdy |
-|-------------|-------------|-----|
-| `sync_queue` | `SyncQueue` | Sync (Etapa 3) |
-| `shifts` | `Shifts` | Provoz (Etapa 3) |
-| `cash_movements` | `CashMovements` | Provoz (Etapa 3) |
-| `company_settings` | `CompanySettings` | CRM rozšíření |
-| `customers` | `Customers` | CRM rozšíření |
-| `customer_transactions` | `CustomerTransactions` | CRM rozšíření |
-| `vouchers` | `Vouchers` | CRM rozšíření |
-| `item_modifiers` | `ItemModifiers` | Gastro rozšíření |
-| `order_item_modifiers` | `OrderItemModifiers` | Gastro rozšíření |
-| `reservations` | `Reservations` | Gastro rozšíření |
-| `product_recipes` | `ProductRecipes` | Sklad rozšíření |
-| `manufacturers` | `Manufacturers` | Sklad rozšíření |
-| `suppliers` | `Suppliers` | Sklad rozšíření |
-| `warehouses` | `Warehouses` | Sklad rozšíření |
-| `stock_levels` | `StockLevels` | Sklad rozšíření |
-| `stock_documents` | `StockDocuments` | Sklad rozšíření |
-| `stock_movements` | `StockMovements` | Sklad rozšíření |
+| SQL tabulka | Drift Table | Kdy | Stav |
+|-------------|-------------|-----|------|
+| `sync_queue` | `SyncQueue` | Sync (Etapa 3) | **Aktivní** |
+| `sync_metadata` | `SyncMetadata` | Sync (Etapa 3) | **Aktivní** |
+| `shifts` | `Shifts` | Provoz (Etapa 3) | Plánovaná |
+| `cash_movements` | `CashMovements` | Provoz (Etapa 3) | Plánovaná |
+| `company_settings` | `CompanySettings` | CRM rozšíření | Plánovaná |
+| `customers` | `Customers` | CRM rozšíření | Plánovaná |
+| `customer_transactions` | `CustomerTransactions` | CRM rozšíření | Plánovaná |
+| `vouchers` | `Vouchers` | CRM rozšíření | Plánovaná |
+| `item_modifiers` | `ItemModifiers` | Gastro rozšíření | Plánovaná |
+| `order_item_modifiers` | `OrderItemModifiers` | Gastro rozšíření | Plánovaná |
+| `reservations` | `Reservations` | Gastro rozšíření | Plánovaná |
+| `product_recipes` | `ProductRecipes` | Sklad rozšíření | Plánovaná |
+| `manufacturers` | `Manufacturers` | Sklad rozšíření | Plánovaná |
+| `suppliers` | `Suppliers` | Sklad rozšíření | Plánovaná |
+| `warehouses` | `Warehouses` | Sklad rozšíření | Plánovaná |
+| `stock_levels` | `StockLevels` | Sklad rozšíření | Plánovaná |
+| `stock_documents` | `StockDocuments` | Sklad rozšíření | Plánovaná |
+| `stock_movements` | `StockMovements` | Sklad rozšíření | Plánovaná |
 
 #### Sloupce tabulek
 
@@ -485,7 +490,7 @@ Všechny aktivní tabulky obsahují společné sync sloupce (viz [SyncColumnsMix
 
 | Tabulka | Sloupce |
 |---------|---------|
-| **companies** | id (T), name (T), status (T), business_id (T), address (T), phone (T), email (T), vat_number (T), country (T), city (T), postal_code (T), timezone (T), business_type (T), default_currency_id →currencies |
+| **companies** | id (T), name (T), status (T), business_id (T), address (T), phone (T), email (T), vat_number (T), country (T), city (T), postal_code (T), timezone (T), business_type (T), default_currency_id →currencies, auth_user_id (T) |
 | **users** | id (T), company_id →companies, auth_user_id (T), username (T), full_name (T), email (T), phone (T), pin_hash (T), pin_enabled (B), role_id →roles, is_active (B) |
 | **roles** | id (T), name (T) |
 | **permissions** | id (T), code (T), name (T), description (T), category (T) |
@@ -515,12 +520,12 @@ Všechny aktivní tabulky obsahují společné sync sloupce (viz [SyncColumnsMix
 
 | Tabulka | Sloupce |
 |---------|---------|
-| **layout_items** | id (T), company_id →companies, register_id →registers, page (I), row (I), col (I), type (T), item_id →items, category_id →categories, label (T), color (T) |
+| **layout_items** | id (T), company_id →companies, register_id →registers, page (I), grid_row (I), grid_col (I), type (T), item_id →items, category_id →categories, label (T), color (T) |
 
 **Pravidla:**
 - `register_id` — FK na registers (každá pokladna má svůj grid layout)
 - `page` — číslo stránky gridu (výchozí 0, pro budoucí multi-page)
-- `row`, `col` — pozice v gridu (0-based)
+- `grid_row`, `grid_col` — pozice v gridu (0-based)
 - `type` — `item` nebo `category`
 - `item_id` — nastaveno když `type = item` (nullable)
 - `category_id` — nastaveno když `type = category` (nullable)
@@ -602,9 +607,9 @@ Hodnoty ENUM jsou uloženy jako `TEXT` v lokální SQLite databázi. Drift `text
 
 ---
 
-## Synchronizace (od Etapy 3)
+## Synchronizace (Etapa 3 — částečně implementováno)
 
-> Celá tato sekce se implementuje až v Etapě 3 (Milník 3.1). Do té doby funguje aplikace offline na jednom zařízení bez sync.
+> **Stav implementace:** Sync infrastruktura je funkční pro konfigurační entity (sections, categories, items, tables, payment_methods, tax_rates, users, companies). Bills, orders, order_items a payments zatím sync nepodporují — chybí mappers, registrace v outbox a pull tables.
 
 ### Outbox Pattern
 
@@ -1079,14 +1084,12 @@ Progresivní lockout chrání proti hádání PIN kódu:
 
 **Efektivita:** Bez ochrany lze 4-místný PIN (10 000 kombinací) prolomit za minuty. S lockoutem trvá útok **dny**.
 
-### Cloud Sync Auth (od Etapy 3)
-
-> Celá tato sekce se implementuje až v Etapě 3 (Milník 3.1 — Sync + multi-device).
+### Cloud Sync Auth (implementováno)
 
 - Každé zařízení musí mít uložené **admin email + password** (Supabase Auth)
-- Onboarding **vytvoří** admin účet (signUp) a credentials uloží do Secure Storage
-- Pokud credentials chybí, aplikace zobrazí `SyncAuthScreen` a vyžádá admin přihlášení
+- Pokud credentials chybí, aplikace zobrazí `ScreenCloudAuth` a vyžádá admin přihlášení
 - Synchronizace se spustí až po validním Supabase session (RLS vyžaduje auth)
+- `SupabaseAuthService` zajišťuje signIn/signUp a session management
 
 > **Supabase Auth konfigurace:** Funkce **Leaked Password Protection** (HaveIBeenPwned integrace) je v projektu záměrně **vypnutá**. Důvod: POS systém používá jednoduché admin heslo primárně pro sync mezi zařízeními, nikoliv pro přímé přihlašování uživatelů. Uživatelé se přihlašují pomocí PIN kódu.
 
@@ -1628,9 +1631,10 @@ Projekt využívá **Riverpod** jako Service Locator a DI kontejner.
 - `appDatabaseProvider` — Single instance Drift databáze
 - `defaultCurrencyProvider` — Výchozí měna firmy
 - `hasPermissionProvider` — O(1) kontrola oprávnění
-- `supabaseProvider` — Supabase klient (od Etapy 3)
-- `syncServiceProvider` — Řízení synchronizace (od Etapy 3)
-- `outboxProcessorProvider` — Zpracování offline fronty (od Etapy 3)
+- `supabaseProvider` — Supabase klient
+- `syncServiceProvider` — Řízení synchronizace (pull)
+- `outboxProcessorProvider` — Zpracování offline fronty (push)
+- `syncLifecycleProvider` — Orchestrace sync lifecycle (start/stop/initial push)
 
 ### Git Workflow
 

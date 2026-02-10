@@ -2,12 +2,13 @@ import 'package:drift/drift.dart';
 
 import '../../database/app_database.dart';
 import '../mappers/entity_mappers.dart';
+import '../mappers/supabase_mappers.dart';
 import '../models/category_model.dart';
 import 'base_company_scoped_repository.dart';
 
 class CategoryRepository
     extends BaseCompanyScopedRepository<$CategoriesTable, Category, CategoryModel> {
-  CategoryRepository(super.db);
+  CategoryRepository(super.db, {super.syncQueueRepo});
 
   @override
   TableInfo<$CategoriesTable, Category> get table => db.categories;
@@ -16,10 +17,16 @@ class CategoryRepository
   String get entityName => 'category';
 
   @override
+  String get supabaseTableName => 'categories';
+
+  @override
   CategoryModel fromEntity(Category e) => categoryFromEntity(e);
 
   @override
   Insertable<Category> toCompanion(CategoryModel m) => categoryToCompanion(m);
+
+  @override
+  Map<String, dynamic> toSupabaseJson(CategoryModel m) => categoryToSupabaseJson(m);
 
   @override
   Expression<bool> whereId($CategoriesTable t, String id) => t.id.equals(id);

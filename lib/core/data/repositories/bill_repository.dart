@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
@@ -6,12 +8,18 @@ import '../../logging/app_logger.dart';
 import '../enums/bill_status.dart';
 import '../enums/prep_status.dart';
 import '../mappers/entity_mappers.dart';
+import '../mappers/supabase_mappers.dart';
 import '../models/bill_model.dart';
+import '../models/order_item_model.dart';
+import '../models/order_model.dart';
+import '../models/payment_model.dart';
 import '../result.dart';
+import 'sync_queue_repository.dart';
 
 class BillRepository {
-  BillRepository(this._db);
+  BillRepository(this._db, {this.syncQueueRepo});
   final AppDatabase _db;
+  final SyncQueueRepository? syncQueueRepo;
 
   Future<Result<BillModel>> createBill({
     required String companyId,
@@ -40,7 +48,9 @@ class BillRepository {
       final entity = await (_db.select(_db.bills)
             ..where((t) => t.id.equals(id)))
           .getSingle();
-      return Success(billFromEntity(entity));
+      final bill = billFromEntity(entity);
+      await _enqueueBill('insert', bill);
+      return Success(bill);
     } catch (e, s) {
       AppLogger.error('Failed to create bill', error: e, stackTrace: s);
       return Failure('Failed to create bill: $e');
@@ -153,7 +163,9 @@ class BillRepository {
       final entity = await (_db.select(_db.bills)
             ..where((t) => t.id.equals(billId)))
           .getSingle();
-      return Success(billFromEntity(entity));
+      final bill = billFromEntity(entity);
+      await _enqueueBill('update', bill);
+      return Success(bill);
     } catch (e, s) {
       AppLogger.error('Failed to update bill totals', error: e, stackTrace: s);
       return Failure('Failed to update bill totals: $e');
@@ -181,6 +193,12 @@ class BillRepository {
         currencyId: currencyId,
       ));
 
+      // Enqueue payment
+      final paymentEntity = await (_db.select(_db.payments)
+            ..where((t) => t.id.equals(paymentId)))
+          .getSingle();
+      await _enqueuePayment('insert', paymentFromEntity(paymentEntity));
+
       // Update bill paid amount and status
       final bill = await (_db.select(_db.bills)
             ..where((t) => t.id.equals(billId)))
@@ -200,7 +218,9 @@ class BillRepository {
       final entity = await (_db.select(_db.bills)
             ..where((t) => t.id.equals(billId)))
           .getSingle();
-      return Success(billFromEntity(entity));
+      final updatedBill = billFromEntity(entity);
+      await _enqueueBill('update', updatedBill);
+      return Success(updatedBill);
     } catch (e, s) {
       AppLogger.error('Failed to record payment', error: e, stackTrace: s);
       return Failure('Failed to record payment: $e');
@@ -246,7 +266,9 @@ class BillRepository {
       final entity = await (_db.select(_db.bills)
             ..where((t) => t.id.equals(billId)))
           .getSingle();
-      return Success(billFromEntity(entity));
+      final cancelledBill = billFromEntity(entity);
+      await _enqueueBill('update', cancelledBill);
+      return Success(cancelledBill);
     } catch (e, s) {
       AppLogger.error('Failed to cancel bill', error: e, stackTrace: s);
       return Failure('Failed to cancel bill: $e');
@@ -264,6 +286,18 @@ class BillRepository {
       status: const Value(PrepStatus.cancelled),
       updatedAt: Value(now),
     ));
+
+    // Readback + enqueue order and items
+    final orderEntity = await (_db.select(_db.orders)
+          ..where((t) => t.id.equals(orderId)))
+        .getSingle();
+    await _enqueueOrder('update', orderFromEntity(orderEntity));
+    final itemEntities = await (_db.select(_db.orderItems)
+          ..where((t) => t.orderId.equals(orderId)))
+        .get();
+    for (final item in itemEntities) {
+      await _enqueueOrderItem('update', orderItemFromEntity(item));
+    }
   }
 
   Future<void> _voidOrder(String orderId, DateTime now) async {
@@ -277,6 +311,18 @@ class BillRepository {
       status: const Value(PrepStatus.voided),
       updatedAt: Value(now),
     ));
+
+    // Readback + enqueue order and items
+    final orderEntity = await (_db.select(_db.orders)
+          ..where((t) => t.id.equals(orderId)))
+        .getSingle();
+    await _enqueueOrder('update', orderFromEntity(orderEntity));
+    final itemEntities = await (_db.select(_db.orderItems)
+          ..where((t) => t.orderId.equals(orderId)))
+        .get();
+    for (final item in itemEntities) {
+      await _enqueueOrderItem('update', orderItemFromEntity(item));
+    }
   }
 
   Future<String> generateBillNumber(String companyId) async {
@@ -293,5 +339,49 @@ class BillRepository {
 
     final number = count.length + 1;
     return 'B-${number.toString().padLeft(3, '0')}';
+  }
+
+  Future<void> _enqueueBill(String operation, BillModel m) async {
+    if (syncQueueRepo == null) return;
+    await syncQueueRepo!.enqueue(
+      companyId: m.companyId,
+      entityType: 'bills',
+      entityId: m.id,
+      operation: operation,
+      payload: jsonEncode(billToSupabaseJson(m)),
+    );
+  }
+
+  Future<void> _enqueueOrder(String operation, OrderModel m) async {
+    if (syncQueueRepo == null) return;
+    await syncQueueRepo!.enqueue(
+      companyId: m.companyId,
+      entityType: 'orders',
+      entityId: m.id,
+      operation: operation,
+      payload: jsonEncode(orderToSupabaseJson(m)),
+    );
+  }
+
+  Future<void> _enqueueOrderItem(String operation, OrderItemModel m) async {
+    if (syncQueueRepo == null) return;
+    await syncQueueRepo!.enqueue(
+      companyId: m.companyId,
+      entityType: 'order_items',
+      entityId: m.id,
+      operation: operation,
+      payload: jsonEncode(orderItemToSupabaseJson(m)),
+    );
+  }
+
+  Future<void> _enqueuePayment(String operation, PaymentModel m) async {
+    if (syncQueueRepo == null) return;
+    await syncQueueRepo!.enqueue(
+      companyId: m.companyId,
+      entityType: 'payments',
+      entityId: m.id,
+      operation: operation,
+      payload: jsonEncode(paymentToSupabaseJson(m)),
+    );
   }
 }

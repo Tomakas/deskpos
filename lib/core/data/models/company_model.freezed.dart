@@ -31,6 +31,7 @@ mixin _$CompanyModel {
   String? get timezone => throw _privateConstructorUsedError;
   String? get businessType => throw _privateConstructorUsedError;
   String get defaultCurrencyId => throw _privateConstructorUsedError;
+  String? get authUserId => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
   DateTime get updatedAt => throw _privateConstructorUsedError;
   DateTime? get deletedAt => throw _privateConstructorUsedError;
@@ -64,6 +65,7 @@ abstract class $CompanyModelCopyWith<$Res> {
     String? timezone,
     String? businessType,
     String defaultCurrencyId,
+    String? authUserId,
     DateTime createdAt,
     DateTime updatedAt,
     DateTime? deletedAt,
@@ -99,6 +101,7 @@ class _$CompanyModelCopyWithImpl<$Res, $Val extends CompanyModel>
     Object? timezone = freezed,
     Object? businessType = freezed,
     Object? defaultCurrencyId = null,
+    Object? authUserId = freezed,
     Object? createdAt = null,
     Object? updatedAt = null,
     Object? deletedAt = freezed,
@@ -161,6 +164,10 @@ class _$CompanyModelCopyWithImpl<$Res, $Val extends CompanyModel>
                 ? _value.defaultCurrencyId
                 : defaultCurrencyId // ignore: cast_nullable_to_non_nullable
                       as String,
+            authUserId: freezed == authUserId
+                ? _value.authUserId
+                : authUserId // ignore: cast_nullable_to_non_nullable
+                      as String?,
             createdAt: null == createdAt
                 ? _value.createdAt
                 : createdAt // ignore: cast_nullable_to_non_nullable
@@ -203,6 +210,7 @@ abstract class _$$CompanyModelImplCopyWith<$Res>
     String? timezone,
     String? businessType,
     String defaultCurrencyId,
+    String? authUserId,
     DateTime createdAt,
     DateTime updatedAt,
     DateTime? deletedAt,
@@ -237,6 +245,7 @@ class __$$CompanyModelImplCopyWithImpl<$Res>
     Object? timezone = freezed,
     Object? businessType = freezed,
     Object? defaultCurrencyId = null,
+    Object? authUserId = freezed,
     Object? createdAt = null,
     Object? updatedAt = null,
     Object? deletedAt = freezed,
@@ -299,6 +308,10 @@ class __$$CompanyModelImplCopyWithImpl<$Res>
             ? _value.defaultCurrencyId
             : defaultCurrencyId // ignore: cast_nullable_to_non_nullable
                   as String,
+        authUserId: freezed == authUserId
+            ? _value.authUserId
+            : authUserId // ignore: cast_nullable_to_non_nullable
+                  as String?,
         createdAt: null == createdAt
             ? _value.createdAt
             : createdAt // ignore: cast_nullable_to_non_nullable
@@ -334,6 +347,7 @@ class _$CompanyModelImpl implements _CompanyModel {
     this.timezone,
     this.businessType,
     required this.defaultCurrencyId,
+    this.authUserId,
     required this.createdAt,
     required this.updatedAt,
     this.deletedAt,
@@ -368,6 +382,8 @@ class _$CompanyModelImpl implements _CompanyModel {
   @override
   final String defaultCurrencyId;
   @override
+  final String? authUserId;
+  @override
   final DateTime createdAt;
   @override
   final DateTime updatedAt;
@@ -376,7 +392,7 @@ class _$CompanyModelImpl implements _CompanyModel {
 
   @override
   String toString() {
-    return 'CompanyModel(id: $id, name: $name, status: $status, businessId: $businessId, address: $address, phone: $phone, email: $email, vatNumber: $vatNumber, country: $country, city: $city, postalCode: $postalCode, timezone: $timezone, businessType: $businessType, defaultCurrencyId: $defaultCurrencyId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+    return 'CompanyModel(id: $id, name: $name, status: $status, businessId: $businessId, address: $address, phone: $phone, email: $email, vatNumber: $vatNumber, country: $country, city: $city, postalCode: $postalCode, timezone: $timezone, businessType: $businessType, defaultCurrencyId: $defaultCurrencyId, authUserId: $authUserId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
   }
 
   @override
@@ -404,6 +420,8 @@ class _$CompanyModelImpl implements _CompanyModel {
                 other.businessType == businessType) &&
             (identical(other.defaultCurrencyId, defaultCurrencyId) ||
                 other.defaultCurrencyId == defaultCurrencyId) &&
+            (identical(other.authUserId, authUserId) ||
+                other.authUserId == authUserId) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.updatedAt, updatedAt) ||
@@ -429,6 +447,7 @@ class _$CompanyModelImpl implements _CompanyModel {
     timezone,
     businessType,
     defaultCurrencyId,
+    authUserId,
     createdAt,
     updatedAt,
     deletedAt,
@@ -459,6 +478,7 @@ abstract class _CompanyModel implements CompanyModel {
     final String? timezone,
     final String? businessType,
     required final String defaultCurrencyId,
+    final String? authUserId,
     required final DateTime createdAt,
     required final DateTime updatedAt,
     final DateTime? deletedAt,
@@ -492,6 +512,8 @@ abstract class _CompanyModel implements CompanyModel {
   String? get businessType;
   @override
   String get defaultCurrencyId;
+  @override
+  String? get authUserId;
   @override
   DateTime get createdAt;
   @override

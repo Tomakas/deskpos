@@ -603,4 +603,49 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get settingsTabSales => 'Prodej';
+
+  @override
+  String get settingsTabCloud => 'Cloud';
+
+  @override
+  String get cloudTitle => 'Cloudová synchronizace';
+
+  @override
+  String get cloudEmail => 'E-mail';
+
+  @override
+  String get cloudPassword => 'Heslo';
+
+  @override
+  String get cloudSignUp => 'Registrovat';
+
+  @override
+  String get cloudSignIn => 'Přihlásit';
+
+  @override
+  String get cloudSignOut => 'Odpojit';
+
+  @override
+  String get cloudConnected => 'Připojeno';
+
+  @override
+  String get cloudDisconnected => 'Nepřipojeno';
+
+  @override
+  String get cloudEmailRequired => 'E-mail je povinný';
+
+  @override
+  String get cloudPasswordRequired => 'Heslo je povinné';
+
+  @override
+  String get cloudPasswordLength => 'Heslo musí mít alespoň 6 znaků';
+
+  @override
+  String get infoPanelSync => 'Synchronizace';
+
+  @override
+  String get infoPanelSyncConnected => 'Připojeno';
+
+  @override
+  String get infoPanelSyncDisconnected => 'Nepřipojeno';
 }

@@ -1,5 +1,32 @@
 # Changelog
 
+## 2026-02-10
+
+### Etapa 3.1 — Sync infrastructure (partial)
+
+- **BaseCompanyScopedRepository**: Extracted from 7 company-scoped repos — provides CRUD + automatic outbox enqueue in same transaction
+- **Outbox pattern**: SyncQueue table, SyncQueueRepository, OutboxProcessor (5s interval, FIFO, retry with backoff)
+- **Pull sync**: SyncService with 5-min auto-pull for 8 tables (companies, sections, categories, items, tables, payment_methods, tax_rates, users)
+- **LWW conflict resolution**: Server-side `enforce_lww` trigger + pull-side merge with `client_updated_at` comparison
+- **SyncLifecycleManager**: Orchestrates sync start/stop, initial push, crash recovery
+- **ScreenCloudAuth**: Admin email/password for Supabase session
+- **SupabaseAuthService**: SignIn/SignUp, session management
+- **Supabase mappers**: Push (supabase_mappers.dart) and pull (supabase_pull_mappers.dart) for config entities
+- **Companies**: Added `auth_user_id` column for Supabase Auth binding
+
+### Fixes
+
+- **Supabase mappers**: Changed all mapper function parameters from `dynamic` to typed models (SectionModel, CategoryModel, etc.) — prevents runtime dispatch errors on enum `.name` access
+- **Numpad double Expanded**: Removed nested `Expanded` from `_numpadButton()` in screen_login.dart and screen_bills.dart — bottom row now wraps at call-site
+
+### Sync — not yet implemented
+
+- Bills, orders, order_items, payments: no outbox enqueue, no mappers, not in pull tables
+
+### Documentation
+
+- Updated PROJECT.md: sync section status (partial), Milník 3.1 progress, companies.auth_user_id, sync file structure, typed mapper convention, BaseCompanyScopedRepository status
+
 ## 2026-02-09
 
 ### Features — Etapa 2: Základní prodej

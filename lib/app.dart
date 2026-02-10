@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'core/data/providers/sync_providers.dart';
 import 'core/routing/app_router.dart';
 import 'l10n/app_localizations.dart';
 
@@ -10,6 +11,8 @@ class EposApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
+    // Activate sync lifecycle: auto-starts/stops based on Supabase auth state
+    ref.watch(syncLifecycleWatcherProvider);
 
     return MaterialApp.router(
       title: 'EPOS',

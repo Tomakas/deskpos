@@ -1,0 +1,3 @@
+const supabaseUrl = 'https://rrnvlsguhkelracusofe.supabase.co';
+const supabaseAnonKey =
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJybnZsc2d1aGtlbHJhY3Vzb2ZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2Njk0MjIsImV4cCI6MjA4NjI0NTQyMn0.49ROXUeV1toPGnEkcEuqyfy-nywlrL1abMzB2mhVTJo';

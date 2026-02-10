@@ -9,8 +9,8 @@ class LayoutItems extends Table with SyncColumnsMixin {
   TextColumn get companyId => text()();
   TextColumn get registerId => text()();
   IntColumn get page => integer().withDefault(const Constant(0))();
-  IntColumn get row => integer()();
-  IntColumn get col => integer()();
+  IntColumn get gridRow => integer()();
+  IntColumn get gridCol => integer()();
   TextColumn get type => textEnum<LayoutItemType>()();
   TextColumn get itemId => text().nullable()();
   TextColumn get categoryId => text().nullable()();

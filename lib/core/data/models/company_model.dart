@@ -21,6 +21,7 @@ class CompanyModel with _$CompanyModel {
     String? timezone,
     String? businessType,
     required String defaultCurrencyId,
+    String? authUserId,
     required DateTime createdAt,
     required DateTime updatedAt,
     DateTime? deletedAt,
