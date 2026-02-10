@@ -29,7 +29,6 @@ class BillRepository {
     required String companyId,
     required String userId,
     required String currencyId,
-    required String billNumber,
     String? tableId,
     bool isTakeaway = false,
     int numberOfGuests = 0,
@@ -37,18 +36,24 @@ class BillRepository {
     try {
       final now = DateTime.now();
       final id = const Uuid().v7();
-      await _db.into(_db.bills).insert(BillsCompanion.insert(
-        id: id,
-        companyId: companyId,
-        tableId: Value(tableId),
-        openedByUserId: userId,
-        billNumber: billNumber,
-        numberOfGuests: Value(numberOfGuests),
-        isTakeaway: Value(isTakeaway),
-        status: BillStatus.opened,
-        currencyId: currencyId,
-        openedAt: now,
-      ));
+
+      await _db.transaction(() async {
+        final billNumber = await _generateBillNumber(companyId);
+        await _db.into(_db.bills).insert(BillsCompanion.insert(
+          id: id,
+          companyId: companyId,
+          tableId: Value(tableId),
+          openedByUserId: userId,
+          billNumber: billNumber,
+          numberOfGuests: Value(numberOfGuests),
+          isTakeaway: Value(isTakeaway),
+          status: BillStatus.opened,
+          currencyId: currencyId,
+          openedAt: now,
+        ));
+      });
+
+      // Enqueue outside transaction
       final entity = await (_db.select(_db.bills)
             ..where((t) => t.id.equals(id)))
           .getSingle();
@@ -633,7 +638,7 @@ class BillRepository {
     }
   }
 
-  Future<String> generateBillNumber(String companyId) async {
+  Future<String> _generateBillNumber(String companyId) async {
     final today = DateTime.now();
     final startOfDay = DateTime(today.year, today.month, today.day);
     final endOfDay = startOfDay.add(const Duration(days: 1));

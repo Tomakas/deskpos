@@ -34,7 +34,10 @@ final syncMetadataRepositoryProvider = Provider<SyncMetadataRepository>((ref) {
 // --- Domain repositories ---
 
 final companyRepositoryProvider = Provider<CompanyRepository>((ref) {
-  return CompanyRepository(ref.watch(appDatabaseProvider));
+  return CompanyRepository(
+    ref.watch(appDatabaseProvider),
+    syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
+  );
 });
 
 final userRepositoryProvider = Provider<UserRepository>((ref) {

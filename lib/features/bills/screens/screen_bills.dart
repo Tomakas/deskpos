@@ -135,13 +135,11 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
     if (company == null || user == null) return;
 
     final billRepo = ref.read(billRepositoryProvider);
-    final billNumber = await billRepo.generateBillNumber(company.id);
 
     final createResult = await billRepo.createBill(
       companyId: company.id,
       userId: user.id,
       currencyId: company.defaultCurrencyId,
-      billNumber: billNumber,
       tableId: result.tableId,
       isTakeaway: false,
       numberOfGuests: result.numberOfGuests,

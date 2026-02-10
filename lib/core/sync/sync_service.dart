@@ -26,6 +26,7 @@ class SyncService {
   final AppDatabase _db;
 
   Timer? _pullTimer;
+  bool _isPulling = false;
   static const _pullInterval = Duration(minutes: 5);
 
   // Global tables have no company_id — pull all rows without filter
@@ -75,18 +76,24 @@ class SyncService {
   }
 
   Future<void> pullAll(String companyId) async {
-    AppLogger.debug('SyncService: pulling all tables', tag: 'SYNC');
-    for (final tableName in _pullTables) {
-      try {
-        await pullTable(companyId, tableName);
-      } catch (e, s) {
-        AppLogger.error(
-          'SyncService: failed to pull $tableName',
-          tag: 'SYNC',
-          error: e,
-          stackTrace: s,
-        );
+    if (_isPulling) return;
+    _isPulling = true;
+    try {
+      AppLogger.debug('SyncService: pulling all tables', tag: 'SYNC');
+      for (final tableName in _pullTables) {
+        try {
+          await pullTable(companyId, tableName);
+        } catch (e, s) {
+          AppLogger.error(
+            'SyncService: failed to pull $tableName',
+            tag: 'SYNC',
+            error: e,
+            stackTrace: s,
+          );
+        }
       }
+    } finally {
+      _isPulling = false;
     }
   }
 

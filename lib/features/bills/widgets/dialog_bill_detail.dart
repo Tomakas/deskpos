@@ -84,10 +84,7 @@ class DialogBillDetail extends ConsumerWidget {
               children: [
                 _buildBillTitle(context, ref, bill, l),
                 const SizedBox(height: 2),
-                Text(
-                  l.billDetailTotalSpent('${bill.totalGross ~/ 100},- Kč'),
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
-                ),
+                _buildTotalSpentLine(context, ref, bill, l),
               ],
             ),
           ),
@@ -143,6 +140,53 @@ class DialogBillDetail extends ConsumerWidget {
         return Text(
           table?.name ?? bill.billNumber,
           style: Theme.of(context).textTheme.titleLarge,
+        );
+      },
+    );
+  }
+
+  Widget _buildTotalSpentLine(BuildContext context, WidgetRef ref, BillModel bill, dynamic l) {
+    return StreamBuilder<int>(
+      stream: ref.watch(orderRepositoryProvider).watchByBill(bill.id).asyncMap((orders) async {
+        final activeOrders = orders.where((o) =>
+            o.status != PrepStatus.cancelled && o.status != PrepStatus.voided);
+        int total = 0;
+        for (final order in activeOrders) {
+          final items = await ref.read(orderRepositoryProvider).getOrderItems(order.id);
+          for (final item in items) {
+            if (item.status != PrepStatus.cancelled && item.status != PrepStatus.voided) {
+              total += (item.salePriceAtt * item.quantity).round();
+            }
+          }
+        }
+        return total;
+      }),
+      builder: (context, snap) {
+        final undiscountedSubtotal = snap.data ?? 0;
+        final hasAnyDiscount = undiscountedSubtotal > 0 && undiscountedSubtotal != bill.totalGross;
+
+        return Text.rich(
+          TextSpan(
+            children: [
+              TextSpan(
+                text: l.billDetailTotalSpent(''),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              if (hasAnyDiscount) ...[
+                TextSpan(
+                  text: '${undiscountedSubtotal ~/ 100} ',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    decoration: TextDecoration.lineThrough,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+              TextSpan(
+                text: '${bill.totalGross ~/ 100},- Kč',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
         );
       },
     );
@@ -247,6 +291,16 @@ class DialogBillDetail extends ConsumerWidget {
             ),
           ),
           if (isPaid) ...[
+            const SizedBox(width: 12),
+            // Print receipt
+            SizedBox(
+              height: 44,
+              width: 130,
+              child: FilledButton(
+                onPressed: () {},
+                child: Text(l.paymentPrintReceipt),
+              ),
+            ),
             const SizedBox(width: 12),
             // Refund
             SizedBox(
@@ -496,12 +550,38 @@ class _OrderSection extends ConsumerWidget {
                           ),
                           Expanded(child: Text(item.itemName, style: Theme.of(context).textTheme.bodyMedium)),
                           SizedBox(
-                            width: 70,
-                            child: Text(
-                              '${(item.salePriceAtt * item.quantity).round() ~/ 100} Kč',
-                              textAlign: TextAlign.right,
-                              style: Theme.of(context).textTheme.bodyMedium,
-                            ),
+                            width: 100,
+                            child: () {
+                              final itemSubtotal = (item.salePriceAtt * item.quantity).round();
+                              if (item.discount > 0) {
+                                final itemDiscount = item.discountType == DiscountType.percent
+                                    ? (itemSubtotal * item.discount / 10000).round()
+                                    : item.discount;
+                                final discountedPrice = itemSubtotal - itemDiscount;
+                                return Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    Text(
+                                      '${itemSubtotal ~/ 100}',
+                                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                        decoration: TextDecoration.lineThrough,
+                                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      '${discountedPrice ~/ 100} Kč',
+                                      style: Theme.of(context).textTheme.bodyMedium,
+                                    ),
+                                  ],
+                                );
+                              }
+                              return Text(
+                                '${itemSubtotal ~/ 100} Kč',
+                                textAlign: TextAlign.right,
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              );
+                            }(),
                           ),
                           const SizedBox(width: 8),
                           Container(

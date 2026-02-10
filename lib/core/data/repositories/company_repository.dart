@@ -1,14 +1,19 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 
 import '../../database/app_database.dart';
 import '../../logging/app_logger.dart';
 import '../mappers/entity_mappers.dart';
+import '../mappers/supabase_mappers.dart';
 import '../models/company_model.dart';
 import '../result.dart';
+import 'sync_queue_repository.dart';
 
 class CompanyRepository {
-  CompanyRepository(this._db);
+  CompanyRepository(this._db, {this.syncQueueRepo});
   final AppDatabase _db;
+  final SyncQueueRepository? syncQueueRepo;
 
   Future<Result<CompanyModel>> create(CompanyModel model) async {
     try {
@@ -72,7 +77,9 @@ class CompanyRepository {
       final entity = await (_db.select(_db.companies)
             ..where((t) => t.id.equals(model.id)))
           .getSingle();
-      return Success(companyFromEntity(entity));
+      final updated = companyFromEntity(entity);
+      await _enqueueCompany('update', updated);
+      return Success(updated);
     } catch (e, s) {
       AppLogger.error('Failed to update company', error: e, stackTrace: s);
       return Failure('Failed to update company: $e');
@@ -86,6 +93,10 @@ class CompanyRepository {
         authUserId: Value(authUserId),
         updatedAt: Value(DateTime.now()),
       ));
+      final entity = await (_db.select(_db.companies)
+            ..where((t) => t.id.equals(companyId)))
+          .getSingle();
+      await _enqueueCompany('update', companyFromEntity(entity));
       return const Success(null);
     } catch (e, s) {
       AppLogger.error('Failed to update authUserId', error: e, stackTrace: s);
@@ -99,5 +110,16 @@ class CompanyRepository {
           ..limit(1))
         .watchSingleOrNull()
         .map((e) => e == null ? null : companyFromEntity(e));
+  }
+
+  Future<void> _enqueueCompany(String operation, CompanyModel m) async {
+    if (syncQueueRepo == null) return;
+    await syncQueueRepo!.enqueue(
+      companyId: m.id,
+      entityType: 'companies',
+      entityId: m.id,
+      operation: operation,
+      payload: jsonEncode(companyToSupabaseJson(m)),
+    );
   }
 }

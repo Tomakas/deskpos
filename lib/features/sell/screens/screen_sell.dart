@@ -545,14 +545,12 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     if (company == null || user == null) return;
 
     final billRepo = ref.read(billRepositoryProvider);
-    final billNumber = await billRepo.generateBillNumber(company.id);
 
     // Create bill
     final billResult = await billRepo.createBill(
       companyId: company.id,
       userId: user.id,
       currencyId: company.defaultCurrencyId,
-      billNumber: billNumber,
       isTakeaway: true,
     );
     if (billResult is! Success<BillModel>) return;

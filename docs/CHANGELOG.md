@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-02-10 (Post-M3.2 Audit — 2nd pass)
+
+### Transactions
+- **BillRepository.createBill()**: Bill number generation (`_generateBillNumber`) now runs inside `db.transaction()` together with INSERT — eliminates race condition for duplicate bill numbers
+- **BillRepository.generateBillNumber()**: Made private (`_generateBillNumber`), callers removed from ScreenBills and ScreenSell
+
+### Sync
+- **CompanyRepository**: Added `SyncQueueRepository` injection and `_enqueueCompany()` helper; `update()` and `updateAuthUserId()` now enqueue changes for sync (was local-only)
+- **OutboxProcessor**: Added periodic cleanup of completed entries (hourly interval inside `processQueue()`)
+
+### Robustness
+- **SyncService.pullAll()**: Added `_isPulling` guard to prevent concurrent pull cycles from timer overlap
+
+---
+
 ## 2026-02-10 (Post-M3.2 Audit)
 
 ### Supabase

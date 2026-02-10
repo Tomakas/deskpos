@@ -18,8 +18,10 @@ class OutboxProcessor {
 
   Timer? _timer;
   bool _isProcessing = false;
+  DateTime? _lastCleanup;
 
   static const _interval = Duration(seconds: 5);
+  static const _cleanupInterval = Duration(hours: 1);
   static const _maxRetries = 10;
 
   void start() {
@@ -39,6 +41,13 @@ class OutboxProcessor {
     _isProcessing = true;
 
     try {
+      // Periodic cleanup of completed entries
+      final now = DateTime.now();
+      if (_lastCleanup == null || now.difference(_lastCleanup!) >= _cleanupInterval) {
+        await _syncQueueRepo.deleteCompleted();
+        _lastCleanup = now;
+      }
+
       final entries = await _syncQueueRepo.getPending();
       if (entries.isEmpty) return;
 
