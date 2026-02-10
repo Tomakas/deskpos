@@ -259,9 +259,14 @@
   "moreSettings": "Nastavení",
   "moreDev": "Dev",
 
-  "settingsTabSecurity": "Zabezpečení",
-  "settingsTabSales": "Prodej",
-  "settingsTabCloud": "Cloud",
+  "settingsTabCompany": "Firma",
+  "settingsTabRegister": "Pokladna",
+  "settingsTabUsers": "Uživatelé",
+  "settingsSectionCompanyInfo": "Informace o firmě",
+  "settingsSectionSecurity": "Zabezpečení",
+  "settingsSectionCloud": "Cloud",
+  "settingsSectionGrid": "Zobrazení mřížky",
+  "companyFieldVatNumber": "DIČ",
 
   "cloudTitle": "Cloudová synchronizace",
   "cloudEmail": "E-mail",

@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/l10n/app_localizations_ext.dart';
-import '../widgets/sales_tab.dart';
-import '../widgets/security_tab.dart';
-import 'screen_cloud_auth.dart';
+import '../widgets/company_tab.dart';
+import '../widgets/register_tab.dart';
+import '../widgets/users_tab.dart';
 
 class ScreenSettings extends ConsumerWidget {
   const ScreenSettings({super.key});
@@ -20,17 +20,17 @@ class ScreenSettings extends ConsumerWidget {
           title: Text(l.settingsTitle),
           bottom: TabBar(
             tabs: [
-              Tab(text: l.settingsTabSecurity),
-              Tab(text: l.settingsTabSales),
-              Tab(text: l.settingsTabCloud),
+              Tab(text: l.settingsTabCompany),
+              Tab(text: l.settingsTabRegister),
+              Tab(text: l.settingsTabUsers),
             ],
           ),
         ),
-        body: TabBarView(
+        body: const TabBarView(
           children: [
-            const SecurityTab(),
-            const SalesTab(),
-            const ScreenCloudAuth(),
+            CompanyTab(),
+            RegisterTab(),
+            UsersTab(),
           ],
         ),
       ),

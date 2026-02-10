@@ -599,13 +599,28 @@ class AppLocalizationsCs extends AppLocalizations {
   String get moreDev => 'Dev';
 
   @override
-  String get settingsTabSecurity => 'Zabezpečení';
+  String get settingsTabCompany => 'Firma';
 
   @override
-  String get settingsTabSales => 'Prodej';
+  String get settingsTabRegister => 'Pokladna';
 
   @override
-  String get settingsTabCloud => 'Cloud';
+  String get settingsTabUsers => 'Uživatelé';
+
+  @override
+  String get settingsSectionCompanyInfo => 'Informace o firmě';
+
+  @override
+  String get settingsSectionSecurity => 'Zabezpečení';
+
+  @override
+  String get settingsSectionCloud => 'Cloud';
+
+  @override
+  String get settingsSectionGrid => 'Zobrazení mřížky';
+
+  @override
+  String get companyFieldVatNumber => 'DIČ';
 
   @override
   String get cloudTitle => 'Cloudová synchronizace';

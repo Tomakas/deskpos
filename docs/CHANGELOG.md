@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-02-10 (evening) — Settings restructure: 3 tabs (Firma / Pokladna / Uživatelé)
+
+### Features
+- **ScreenSettings restructure**: Replaced 3 old tabs (Zabezpečení, Prodej, Cloud) with new structure:
+  - **Firma** (`CompanyTab`): Company info form (name, IČO, DIČ, address, phone, email + save), security settings (PIN toggle, auto-lock), cloud auth (embedded `ScreenCloudAuth`)
+  - **Pokladna** (`RegisterTab`): Grid display settings (rows, columns)
+  - **Uživatelé** (`UsersTab`): Moved from ScreenDev — user management (DataTable, add/edit/delete)
+- **ScreenDev**: Reduced from 7 to 6 tabs (Users tab removed, now in Settings)
+- **Company info editing**: New form in Settings allows editing company name, IČO, DIČ, address, phone, email via `CompanyRepository.update()`
+
+### Removed Files
+- `security_tab.dart` — content merged into `CompanyTab`
+- `sales_tab.dart` — content moved to `RegisterTab`
+
+### Localization
+- New keys: `settingsTabCompany`, `settingsTabRegister`, `settingsTabUsers`, `settingsSectionCompanyInfo`, `settingsSectionSecurity`, `settingsSectionCloud`, `settingsSectionGrid`, `companyFieldVatNumber`
+- Removed keys: `settingsTabSecurity`, `settingsTabSales`, `settingsTabCloud`
+
 ## 2026-02-10 (Settings: Security/Sales tabs + PIN-skip + Auto-lock)
 
 ### Features

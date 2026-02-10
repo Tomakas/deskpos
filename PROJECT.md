@@ -181,6 +181,27 @@ Funkce, které nejsou nezbytné pro základní prodej, ale rozšiřují možnost
 - **Task3.17** Tisk reportů — tržby, prodeje dle kategorií/zaměstnanců
 - **Výsledek:** Lze tisknout účtenky, denní uzávěrky a reporty na POS tiskárnu nebo do PDF.
 
+#### Milník 3.5 — Rozšíření produktového katalogu
+
+- **Task3.18** Dodavatelé a výrobci — tabulky `suppliers`, `manufacturers` (CRUD, sync, FK na items)
+- **Task3.19** Rozšíření items — nákupní cena (`purchase_price`), čárový kód (`barcode`), minimální zásoba (`min_stock`), FK na `supplier_id`, `manufacturer_id`
+- **Task3.20** Receptury — tabulka `product_recipes` (parent_item_id → hotový produkt, ingredient_item_id → surovina, quantity, unit); item_type rozšíření o `recipe`, `ingredient`
+- **Task3.21** Varianty produktů — `parent_id` ve items, item_type `variant` (velikost, barva apod.)
+- **Task3.22** Hierarchické kategorie — `parent_id` v categories (stromová struktura, max 3 úrovně)
+- **Task3.23** UI správa — rozšíření ScreenDev o dodavatele, výrobce, receptury; detail produktu s vazbami
+- **Výsledek:** Kompletní produktový katalog s dodavateli, výrobci, recepturami a variantami. Položky mají nákupní cenu a čárový kód.
+
+#### Milník 3.6 — Sklad a zásobování
+
+- **Task3.24** Sklady — tabulka `warehouses` (id, company_id, name, is_default, is_active)
+- **Task3.25** Skladové zásoby — tabulka `stock_levels` (warehouse_id, item_id, quantity, min_quantity)
+- **Task3.26** Skladové doklady — tabulka `stock_documents` (type: receipt/transfer/waste/inventory/correction, supplier_id, warehouse_id, note, total_amount)
+- **Task3.27** Skladové pohyby — tabulka `stock_movements` (stock_document_id, item_id, quantity, purchase_price, direction: in/out)
+- **Task3.28** Automatický odpis — při uzavření objednávky (status delivered) automaticky odečíst ze skladu; u receptur odečíst ingredience
+- **Task3.29** Inventura — dialog pro zadání skutečných zásob, automatická korekce rozdílů
+- **Task3.30** UI Sklad — ScreenInventory (přehled zásob, příjemky, výdejky, inventury); aktivace tlačítka SKLAD na ScreenBills
+- **Výsledek:** Plné skladové hospodářství s evidencí zásob, příjemkami, výdejkami, automatickým odpisem při prodeji a inventurami.
+
 ---
 
 ### Etapa 4 — Statistiky a reporty
@@ -315,11 +336,13 @@ Deklarativní routing s auth guardem:
 /bills               → ScreenBills (hlavní obrazovka)
 /sell                → ScreenSell (rychlý prodej — bez billId)
 /sell/:billId        → ScreenSell (objednávka na existující účet)
-/settings            → ScreenSettings (3 taby: Zabezpečení, Prodej, Cloud)
-/dev                 → ScreenDev (správa dat — 7 tabů: Uživatelé, Sekce, Stoly, Kategorie, Produkty, Daň. sazby, Plat. metody)
+/settings            → ScreenSettings (3 taby: Firma, Pokladna, Uživatelé) — vyžaduje settings.manage
+/dev                 → ScreenDev (správa dat — 6 tabů: Sekce, Stoly, Kategorie, Produkty, Daň. sazby, Plat. metody) — vyžaduje settings.manage
 ```
 
 **Auth guard:** Router čeká na `appInitProvider`. Nepřihlášený uživatel je přesměrován na `/login`. Pokud neexistuje firma, přesměrování na `/onboarding`. Po přihlášení se z auth/onboarding stránek přesměruje na `/bills`.
+
+**Permission guard:** Routy `/settings` a `/dev` vyžadují oprávnění `settings.manage`. Bez něj se uživatel přesměruje na `/bills`.
 
 ---
 
@@ -367,8 +390,8 @@ lib/
 │   │   └── models/                    # ZReportData (model pro Z-report)
 │   ├── onboarding/                    # ScreenOnboarding, ScreenConnectCompany
 │   ├── sell/                          # ScreenSell (grid + košík)
-│   └── settings/                      # ScreenSettings (3 taby), ScreenCloudAuth,
-│                                      # ScreenDev (7 tabů CRUD), 7 tab widgetů
+│   └── settings/                      # ScreenSettings (3 taby: Firma, Pokladna, Uživatelé),
+│                                      # ScreenCloudAuth, ScreenDev (6 tabů CRUD)
 └── l10n/                              # ARB soubory + generovaný kód
 ```
 
@@ -472,7 +495,7 @@ Navíc každá tabulka definuje: `createdAt`, `updatedAt`, `deletedAt` (soft del
 
 | SQL tabulka | Drift Table | Popis |
 |-------------|-------------|-------|
-| `sync_queue` | `SyncQueue` | Outbox fronta (pending → processing → completed/failed) |
+| `sync_queue` | `SyncQueue` | Outbox fronta (pending → processing → completed/failed). Sloupce: id, company_id, entity_type, entity_id, operation, payload, status, idempotency_key, retry_count, error_message, last_error_at, processed_at, created_at. |
 | `sync_metadata` | `SyncMetadata` | Last pull timestamp per tabulka per firma |
 
 > **Poznámky:**
@@ -752,8 +775,6 @@ Flow pro nové zařízení (5 kroků — enum `_Step`):
 - **Company switching**: Nepodporováno. Jedno zařízení = jedna firma. Přepnutí na jinou firmu vyžaduje smazání lokální DB.
 - **Globální tabulky vs multi-company**: roles/permissions/role_permissions/currencies jsou globální (bez company_id). Při více firmách na jednom Supabase projektu by došlo ke kolizím. Aktuální design předpokládá 1 firma = 1 Supabase projekt.
 - **InitialSync recovery**: Pokud InitialSync selže uprostřed, data jsou neúplná. Další auto-pull (5min) doplní chybějící data.
-- **Shifts — chybí Supabase tabulka**: Drift tabulka `shifts` existuje a je registrovaná v sync (pull + push), ale odpovídající tabulka v Supabase dosud nebyla vytvořena. Sync pro shifts selže dokud se tabulka nepřidá.
-- **Payments.user_id — chybí v Supabase**: Drift `payments` tabulka má sloupec `user_id` (nullable FK na users), ale Supabase `payments` tabulka tento sloupec nemá.
 
 ---
 
@@ -1114,7 +1135,7 @@ stateDiagram-v2
 | `DialogOpeningCash` | Numpad pro zadání počáteční hotovosti (haléře), vrací amount nebo null |
 | `DialogClosingSession` | Souhrn session: opening/closing/expected cash, platby dle metody, tržby |
 | `DialogCashMovement` | Nový vklad/výběr: typ (deposit/withdrawal), částka (numpad), důvod (text) |
-| `DialogCashJournal` | Tabulka hotovostních pohybů s filtry, možnost přidat nový pohyb |
+| `DialogCashJournal` | Tabulka hotovostních pohybů s filtry, možnost přidat nový pohyb. Počáteční hotovost se zobrazuje jako syntetický záznam „Počáteční stav" (pokud ≠ 0). |
 
 ### Repository API
 
@@ -1177,6 +1198,7 @@ stateDiagram-v2
 3. **Průběžné ověření:** PIN se ověřuje automaticky od 4. číslice (bez potvrzovacího tlačítka). Shoda = okamžité přihlášení. Při 6 číslicích bez shody se počítá neúspěšný pokus.
 4. **Hashování:** PINy jsou ukládány jako solený hash (Salted SHA-256 + 128-bit `Random.secure()` salt)
    - **Formát `pin_hash`:** `"hex_salt:hex_hash"` — salt a hash uloženy v jednom sloupci, oddělené dvojtečkou
+   - **Bezpečnost sync:** `pin_hash` se **nesynchronizuje** do Supabase — push mapper (`userToSupabaseJson`) tento sloupec vynechává. PIN zůstává výhradně na klientovi.
 5. **Session:** Úspěšné přihlášení aktivuje `SessionManager`. Session je "volatile" (pouze v RAM)
 
 ### Multi-session model
@@ -1626,26 +1648,20 @@ Grid konfigurace je uložena v tabulce `layout_items` (viz [Schéma](#layout-gri
 
 Layout: **3 taby**
 
-| Tab | Obsah |
-|-----|-------|
-| Zabezpečení | `SecurityTab` — toggle PIN při přepínání obsluhy (`require_pin_on_switch`), dropdown auto-lock timeout (`auto_lock_timeout_minutes`: vypnuto / 1–30 min) |
-| Prodej | `SalesTab` — editace grid rows/cols aktivní pokladny |
-| Cloud | `ScreenCloudAuth` — připojení/odpojení Supabase sync (email/heslo, sign in/up/out) |
+| Tab | Widget | Obsah |
+|-----|--------|-------|
+| Firma | `CompanyTab` | Sekce **Informace o firmě** (editační formulář: název, IČO, DIČ, adresa, telefon, e-mail + tlačítko Uložit), sekce **Zabezpečení** (toggle PIN při přepínání obsluhy, dropdown auto-lock timeout), sekce **Cloud** (embedded `ScreenCloudAuth` — připojení/odpojení Supabase sync) |
+| Pokladna | `RegisterTab` | Sekce **Zobrazení mřížky** — editace grid rows/cols aktivní pokladny |
+| Uživatelé | `UsersTab` | DataTable se správou uživatelů (jméno, username, role, aktivní, akce), dialog pro přidání/editaci, soft-delete |
 
 #### ScreenDev (`/dev`) — Správa dat
 
-Layout: **7 tabů + inline editace**
+Layout: **6 tabů + inline editace**
 
 ```
 ┌──────────────────────────────────────────────────────────┐
-│ [Uživatelé] [Sekce] [Stoly] [Kategorie] [Produkty] [Daň.sazby] [Plat.met.] │
+│ [Sekce] [Stoly] [Kategorie] [Produkty] [Daň.sazby] [Plat.met.] │
 │──────────────────────────────────────────────────────────│
-│                                          [+ Přidat]      │
-│  Jméno        │ Username │ Role     │ Aktivní │ Akce     │
-│ ──────────────┼──────────┼──────────┼─────────┼────────  │
-│  Karel Novák  │ karel    │ admin    │   ✓     │ ✏ 🗑    │
-│  Martin Darek │ martin   │ operator │   ✓     │ ✏ 🗑    │
-│  Pepa Svoboda │ pepa     │ helper   │   ✓     │ ✏ 🗑    │
 │                                                          │
 └──────────────────────────────────────────────────────────┘
 ```
@@ -1703,7 +1719,7 @@ Funkce, které nejsou součástí aktuálního plánu. Mohou se přidat kdykoli 
 
 ### Pokladna a směny
 
-- Směny — tabulka `shifts` **implementována** (Drift + model + repository + sync enqueue + pull). UI: `DialogShiftsList` (přehled všech směn s datem, obsluhou, přihlášením/odhlášením, trváním; filtr dle data; probíhající směny zvýrazněny). Přístup přes menu DALŠÍ → Směny. **Pozn.:** Supabase tabulka `shifts` zatím chybí — sync push/pull selže dokud nebude vytvořena.
+- Směny — tabulka `shifts` **implementována** (Drift + model + repository + sync enqueue + pull + Supabase tabulka s RLS). UI: `DialogShiftsList` (přehled všech směn s datem, obsluhou, přihlášením/odhlášením, trváním; filtr dle data; probíhající směny zvýrazněny). Přístup přes menu DALŠÍ → Směny.
 - Z-report — denní uzávěrka s detailním souhrnem. **Implementováno:** `DialogZReportList` + `DialogZReport`.
 - Detailní konfigurace registru — auto_print, auto_logout
 

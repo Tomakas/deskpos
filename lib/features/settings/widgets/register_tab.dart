@@ -5,8 +5,8 @@ import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 
-class SalesTab extends ConsumerWidget {
-  const SalesTab({super.key});
+class RegisterTab extends ConsumerWidget {
+  const RegisterTab({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -22,6 +22,13 @@ class SalesTab extends ConsumerWidget {
         return ListView(
           padding: const EdgeInsets.symmetric(vertical: 8),
           children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Text(
+                l.settingsSectionGrid,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            ),
             ListTile(
               title: Text(l.settingsGridRows),
               trailing: SizedBox(
@@ -30,7 +37,8 @@ class SalesTab extends ConsumerWidget {
                   initialValue: register.gridRows,
                   decoration: const InputDecoration(
                     border: OutlineInputBorder(),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    contentPadding:
+                        EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   ),
                   items: [
                     for (int i = 1; i <= 10; i++)
@@ -56,7 +64,8 @@ class SalesTab extends ConsumerWidget {
                   initialValue: register.gridCols,
                   decoration: const InputDecoration(
                     border: OutlineInputBorder(),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    contentPadding:
+                        EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   ),
                   items: [
                     for (int i = 1; i <= 12; i++)

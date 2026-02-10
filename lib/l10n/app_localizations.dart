@@ -1228,23 +1228,53 @@ abstract class AppLocalizations {
   /// **'Dev'**
   String get moreDev;
 
-  /// No description provided for @settingsTabSecurity.
+  /// No description provided for @settingsTabCompany.
+  ///
+  /// In cs, this message translates to:
+  /// **'Firma'**
+  String get settingsTabCompany;
+
+  /// No description provided for @settingsTabRegister.
+  ///
+  /// In cs, this message translates to:
+  /// **'Pokladna'**
+  String get settingsTabRegister;
+
+  /// No description provided for @settingsTabUsers.
+  ///
+  /// In cs, this message translates to:
+  /// **'Uživatelé'**
+  String get settingsTabUsers;
+
+  /// No description provided for @settingsSectionCompanyInfo.
+  ///
+  /// In cs, this message translates to:
+  /// **'Informace o firmě'**
+  String get settingsSectionCompanyInfo;
+
+  /// No description provided for @settingsSectionSecurity.
   ///
   /// In cs, this message translates to:
   /// **'Zabezpečení'**
-  String get settingsTabSecurity;
+  String get settingsSectionSecurity;
 
-  /// No description provided for @settingsTabSales.
-  ///
-  /// In cs, this message translates to:
-  /// **'Prodej'**
-  String get settingsTabSales;
-
-  /// No description provided for @settingsTabCloud.
+  /// No description provided for @settingsSectionCloud.
   ///
   /// In cs, this message translates to:
   /// **'Cloud'**
-  String get settingsTabCloud;
+  String get settingsSectionCloud;
+
+  /// No description provided for @settingsSectionGrid.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zobrazení mřížky'**
+  String get settingsSectionGrid;
+
+  /// No description provided for @companyFieldVatNumber.
+  ///
+  /// In cs, this message translates to:
+  /// **'DIČ'**
+  String get companyFieldVatNumber;
 
   /// No description provided for @cloudTitle.
   ///

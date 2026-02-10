@@ -169,12 +169,13 @@ class _ScreenCloudAuthState extends ConsumerState<ScreenCloudAuth> {
   }
 
   Widget _buildAuthForm(dynamic l) {
-    return SingleChildScrollView(
+    return Padding(
       padding: const EdgeInsets.all(24),
       child: Form(
         key: _formKey,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Row(
               children: [
