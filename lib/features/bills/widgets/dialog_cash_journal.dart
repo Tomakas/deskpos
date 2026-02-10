@@ -58,6 +58,8 @@ class DialogCashJournal extends StatefulWidget {
     required this.movements,
     required this.sales,
     required this.currentBalance,
+    this.openingCash = 0,
+    this.openedAt,
   });
 
   final List<CashMovementModel> movements;
@@ -65,6 +67,12 @@ class DialogCashJournal extends StatefulWidget {
 
   /// Current cash balance in haléře.
   final int currentBalance;
+
+  /// Opening cash amount in haléře (shown as synthetic entry).
+  final int openingCash;
+
+  /// Session opened at (timestamp for the opening cash entry).
+  final DateTime? openedAt;
 
   @override
   State<DialogCashJournal> createState() => _DialogCashJournalState();
@@ -79,6 +87,17 @@ class _DialogCashJournalState extends State<DialogCashJournal> {
     final entries = <_JournalEntry>[];
 
     if (_showDeposits) {
+      // Synthetic opening cash entry
+      if (widget.openingCash != 0 && widget.openedAt != null) {
+        final l = context.l10n;
+        entries.add(_JournalEntry(
+          createdAt: widget.openedAt!,
+          kind: _EntryKind.deposit,
+          amount: widget.openingCash,
+          note: l.openingCashNote,
+        ));
+      }
+
       for (final m in widget.movements) {
         if (m.type == CashMovementType.deposit) {
           entries.add(_JournalEntry(

@@ -442,6 +442,8 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
         movements: movements,
         sales: sales,
         currentBalance: currentBalance,
+        openingCash: openingCash,
+        openedAt: session.openedAt,
       ),
     );
     if (result == null) return;

@@ -2169,6 +2169,12 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Firma nenalezena'**
   String get errorNoCompanyFound;
+
+  /// No description provided for @openingCashNote.
+  ///
+  /// In cs, this message translates to:
+  /// **'Počáteční stav'**
+  String get openingCashNote;
 }
 
 class _AppLocalizationsDelegate

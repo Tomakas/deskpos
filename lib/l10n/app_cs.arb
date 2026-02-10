@@ -450,5 +450,6 @@
   "lockScreenSubtitle": "Vyberte uživatele pro odemčení",
 
   "autoCorrection": "Automatická korekce: počáteční hotovost se liší od předchozí uzávěrky",
-  "errorNoCompanyFound": "Firma nenalezena"
+  "errorNoCompanyFound": "Firma nenalezena",
+  "openingCashNote": "Počáteční stav"
 }

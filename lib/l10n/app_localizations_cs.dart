@@ -1080,4 +1080,7 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get errorNoCompanyFound => 'Firma nenalezena';
+
+  @override
+  String get openingCashNote => 'Počáteční stav';
 }
