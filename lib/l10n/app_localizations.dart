@@ -364,6 +364,12 @@ abstract class AppLocalizations {
   /// **'Obsluha'**
   String get columnStaff;
 
+  /// No description provided for @billTimeJustNow.
+  ///
+  /// In cs, this message translates to:
+  /// **'právě teď'**
+  String get billTimeJustNow;
+
   /// No description provided for @infoPanelDate.
   ///
   /// In cs, this message translates to:

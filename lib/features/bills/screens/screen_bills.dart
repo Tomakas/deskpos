@@ -696,7 +696,7 @@ class _BillsTable extends ConsumerWidget {
   }
 }
 
-class _BillRow extends StatelessWidget {
+class _BillRow extends StatefulWidget {
   const _BillRow({
     required this.bill,
     required this.tableName,
@@ -710,8 +710,44 @@ class _BillRow extends StatelessWidget {
   final DateTime? lastOrderTime;
   final VoidCallback onTap;
 
+  @override
+  State<_BillRow> createState() => _BillRowState();
+}
+
+class _BillRowState extends State<_BillRow> {
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _startTimerIfNeeded();
+  }
+
+  @override
+  void didUpdateWidget(covariant _BillRow oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.lastOrderTime != widget.lastOrderTime) {
+      _startTimerIfNeeded();
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void _startTimerIfNeeded() {
+    _timer?.cancel();
+    if (widget.lastOrderTime != null && widget.bill.status == BillStatus.opened) {
+      _timer = Timer.periodic(const Duration(seconds: 30), (_) {
+        if (mounted) setState(() {});
+      });
+    }
+  }
+
   Color? _rowColor(BuildContext context) {
-    return switch (bill.status) {
+    return switch (widget.bill.status) {
       BillStatus.opened => Colors.blue.withValues(alpha: 0.08),
       BillStatus.paid => Colors.green.withValues(alpha: 0.08),
       BillStatus.cancelled => Colors.pink.withValues(alpha: 0.08),
@@ -719,9 +755,9 @@ class _BillRow extends StatelessWidget {
     };
   }
 
-  String _formatRelativeTime(DateTime time) {
+  String _formatRelativeTime(BuildContext context, DateTime time) {
     final diff = DateTime.now().difference(time);
-    if (diff.inMinutes < 1) return '<1min';
+    if (diff.inMinutes < 1) return context.l10n.billTimeJustNow;
     if (diff.inMinutes < 60) return '${diff.inMinutes}min';
     final hours = diff.inHours;
     final mins = diff.inMinutes % 60;
@@ -732,7 +768,7 @@ class _BillRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: onTap,
+      onTap: widget.onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
@@ -741,23 +777,23 @@ class _BillRow extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Expanded(flex: 2, child: Text(tableName)),
+            Expanded(flex: 2, child: Text(widget.tableName)),
             const Expanded(flex: 2, child: Text('')),
-            Expanded(flex: 1, child: Text(bill.numberOfGuests > 0 ? '${bill.numberOfGuests}' : '')),
+            Expanded(flex: 1, child: Text(widget.bill.numberOfGuests > 0 ? '${widget.bill.numberOfGuests}' : '')),
             Expanded(
               flex: 2,
-              child: bill.status == BillStatus.refunded
+              child: widget.bill.status == BillStatus.refunded
                   ? Text(
-                      bill.totalGross > 0 ? '${bill.totalGross ~/ 100},-' : '0,-',
+                      widget.bill.totalGross > 0 ? '${widget.bill.totalGross ~/ 100},-' : '0,-',
                       style: TextStyle(
                         decoration: TextDecoration.lineThrough,
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     )
-                  : Text(bill.totalGross > 0 ? '${bill.totalGross ~/ 100},-' : '0,-'),
+                  : Text(widget.bill.totalGross > 0 ? '${widget.bill.totalGross ~/ 100},-' : '0,-'),
             ),
-            Expanded(flex: 2, child: Text(lastOrderTime != null ? _formatRelativeTime(lastOrderTime!) : '')),
-            Expanded(flex: 2, child: Text(staffName)),
+            Expanded(flex: 2, child: Text(widget.lastOrderTime != null ? _formatRelativeTime(context, widget.lastOrderTime!) : '')),
+            Expanded(flex: 2, child: Text(widget.staffName)),
           ],
         ),
       ),

@@ -146,6 +146,9 @@ class AppLocalizationsCs extends AppLocalizations {
   String get columnStaff => 'Obsluha';
 
   @override
+  String get billTimeJustNow => 'právě teď';
+
+  @override
   String get infoPanelDate => 'Datum';
 
   @override

@@ -57,6 +57,7 @@
   "columnTotal": "Celkem",
   "columnLastOrder": "Posl. obj.",
   "columnStaff": "Obsluha",
+  "billTimeJustNow": "právě teď",
 
   "infoPanelDate": "Datum",
   "infoPanelStatus": "Stav pokladny",
