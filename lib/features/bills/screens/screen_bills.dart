@@ -41,6 +41,8 @@ class ScreenBills extends ConsumerStatefulWidget {
 class _ScreenBillsState extends ConsumerState<ScreenBills> {
   Set<BillStatus> _statusFilters = {BillStatus.opened};
   String? _sectionFilter;
+  bool _isProcessing = false;
+  bool _isCreatingBill = false;
 
   @override
   Widget build(BuildContext context) {
@@ -151,29 +153,39 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
   }
 
   Future<void> _createBillFromResult(BuildContext context, NewBillResult result) async {
-    final company = ref.read(currentCompanyProvider);
-    final user = ref.read(activeUserProvider);
-    if (company == null || user == null) return;
+    if (_isCreatingBill) return;
+    setState(() => _isCreatingBill = true);
+    try {
+      final company = ref.read(currentCompanyProvider);
+      final user = ref.read(activeUserProvider);
+      if (company == null || user == null) return;
 
-    final billRepo = ref.read(billRepositoryProvider);
+      final billRepo = ref.read(billRepositoryProvider);
 
-    final createResult = await billRepo.createBill(
-      companyId: company.id,
-      userId: user.id,
-      currencyId: company.defaultCurrencyId,
-      tableId: result.tableId,
-      isTakeaway: false,
-      numberOfGuests: result.numberOfGuests,
-    );
+      final createResult = await billRepo.createBill(
+        companyId: company.id,
+        userId: user.id,
+        currencyId: company.defaultCurrencyId,
+        tableId: result.tableId,
+        isTakeaway: false,
+        numberOfGuests: result.numberOfGuests,
+      );
 
-    if (createResult is Success<BillModel> && mounted) {
-      if (result.navigateToSell) {
-        context.push('/sell/${createResult.value.id}');
+      if (createResult is Success<BillModel> && mounted) {
+        if (result.navigateToSell) {
+          context.push('/sell/${createResult.value.id}');
+        }
       }
+    } finally {
+      if (mounted) setState(() => _isCreatingBill = false);
     }
   }
 
   Future<void> _toggleSession(BuildContext context, bool hasSession) async {
+    if (_isProcessing) return;
+    setState(() => _isProcessing = true);
+    try {
+    final l = context.l10n;
     final company = ref.read(currentCompanyProvider);
     final user = ref.read(activeUserProvider);
     if (company == null || user == null) return;
@@ -350,7 +362,7 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
           userId: user.id,
           type: diff > 0 ? CashMovementType.deposit : CashMovementType.withdrawal,
           amount: diff.abs(),
-          reason: 'Auto-correction: opening cash differs from previous closing',
+          reason: l.autoCorrection,
         );
       }
 
@@ -363,6 +375,9 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
           userId: user.id,
         );
       }
+    }
+    } finally {
+      if (mounted) setState(() => _isProcessing = false);
     }
   }
 
@@ -1451,16 +1466,38 @@ class _SwitchUserDialogState extends State<_SwitchUserDialog> {
 
   // -- Actions ---------------------------------------------------------------
 
-  void _selectUser(UserModel user, {required bool isNew}) {
+  Future<void> _selectUser(UserModel user, {required bool isNew}) async {
+    final previousUser = _selectedUser;
     setState(() {
       _selectedUser = user;
       _isNewLogin = isNew;
       _pin = '';
       _error = null;
       _lockSeconds = null;
-      _step = _SwitchStep.pin;
     });
-    widget.ref.read(authServiceProvider).resetAttempts();
+    if (previousUser?.id != user.id) {
+      widget.ref.read(authServiceProvider).resetAttempts();
+    }
+
+    // New logins always require PIN
+    if (isNew) {
+      setState(() => _step = _SwitchStep.pin);
+      return;
+    }
+
+    // For already-logged-in users, check if PIN can be skipped
+    final company = widget.ref.read(currentCompanyProvider);
+    if (company != null) {
+      final settings = await widget.ref
+          .read(companySettingsRepositoryProvider)
+          .getByCompany(company.id);
+      if (settings != null && !settings.requirePinOnSwitch) {
+        _onSuccess();
+        return;
+      }
+    }
+
+    setState(() => _step = _SwitchStep.pin);
   }
 
   void _goBack() {

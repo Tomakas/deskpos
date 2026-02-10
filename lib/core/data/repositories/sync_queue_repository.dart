@@ -17,6 +17,8 @@ class SyncQueueRepository {
     required String operation,
     required String payload,
   }) async {
+    final idempotencyKey =
+        '${entityType}_${entityId}_${operation}_${DateTime.now().millisecondsSinceEpoch}';
     await _db.into(_db.syncQueue).insert(SyncQueueCompanion.insert(
       id: _uuid.v4(),
       companyId: companyId,
@@ -24,6 +26,7 @@ class SyncQueueRepository {
       entityId: entityId,
       operation: operation,
       payload: payload,
+      idempotencyKey: idempotencyKey,
     ));
     AppLogger.debug(
       'Enqueued sync: $operation $entityType/$entityId',

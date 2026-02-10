@@ -1046,4 +1046,38 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get zReportOpenBillsAtClose => 'Otevřené účty (konec)';
+
+  @override
+  String get settingsRequirePinOnSwitch =>
+      'Vyžadovat PIN při přepínání obsluhy';
+
+  @override
+  String get settingsAutoLockTimeout => 'Automatické zamčení po nečinnosti';
+
+  @override
+  String get settingsAutoLockDisabled => 'Vypnuto';
+
+  @override
+  String settingsAutoLockMinutes(int minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String get settingsGridRows => 'Řádky gridu';
+
+  @override
+  String get settingsGridCols => 'Sloupce gridu';
+
+  @override
+  String get lockScreenTitle => 'Zamčeno';
+
+  @override
+  String get lockScreenSubtitle => 'Vyberte uživatele pro odemčení';
+
+  @override
+  String get autoCorrection =>
+      'Automatická korekce: počáteční hotovost se liší od předchozí uzávěrky';
+
+  @override
+  String get errorNoCompanyFound => 'Firma nenalezena';
 }

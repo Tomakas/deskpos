@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
@@ -64,16 +63,12 @@ class _ScreenConnectCompanyState extends ConsumerState<ScreenConnectCompany> {
 
   Future<void> _fetchCompany(String userId) async {
     try {
-      final supabase = Supabase.instance.client;
-      final rows = await supabase
-          .from('companies')
-          .select('id, name')
-          .eq('auth_user_id', userId)
-          .limit(1) as List<dynamic>;
+      final companyRepo = ref.read(companyRepositoryProvider);
+      final result = await companyRepo.findRemoteByAuthUserId(userId);
 
       if (!mounted) return;
 
-      if (rows.isEmpty) {
+      if (result == null) {
         setState(() {
           _step = _Step.credentials;
           _error = context.l10n.connectCompanyNotFound;
@@ -81,10 +76,9 @@ class _ScreenConnectCompanyState extends ConsumerState<ScreenConnectCompany> {
         return;
       }
 
-      final company = rows.first as Map<String, dynamic>;
       setState(() {
-        _companyId = company['id'] as String;
-        _companyName = company['name'] as String;
+        _companyId = result.id;
+        _companyName = result.name;
         _step = _Step.companyPreview;
       });
     } catch (e, s) {

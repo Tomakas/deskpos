@@ -4,6 +4,7 @@ import '../repositories/bill_repository.dart';
 import '../repositories/cash_movement_repository.dart';
 import '../repositories/category_repository.dart';
 import '../repositories/company_repository.dart';
+import '../repositories/company_settings_repository.dart';
 import '../repositories/item_repository.dart';
 import '../repositories/layout_item_repository.dart';
 import '../repositories/order_repository.dart';
@@ -36,6 +37,13 @@ final syncMetadataRepositoryProvider = Provider<SyncMetadataRepository>((ref) {
 
 final companyRepositoryProvider = Provider<CompanyRepository>((ref) {
   return CompanyRepository(
+    ref.watch(appDatabaseProvider),
+    syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
+  );
+});
+
+final companySettingsRepositoryProvider = Provider<CompanySettingsRepository>((ref) {
+  return CompanySettingsRepository(
     ref.watch(appDatabaseProvider),
     syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
   );
@@ -116,7 +124,10 @@ final orderRepositoryProvider = Provider<OrderRepository>((ref) {
 });
 
 final registerRepositoryProvider = Provider<RegisterRepository>((ref) {
-  return RegisterRepository(ref.watch(appDatabaseProvider));
+  return RegisterRepository(
+    ref.watch(appDatabaseProvider),
+    syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
+  );
 });
 
 final registerSessionRepositoryProvider = Provider<RegisterSessionRepository>((ref) {

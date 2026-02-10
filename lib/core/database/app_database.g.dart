@@ -3179,9 +3179,9 @@ class $CompaniesTable extends Companies
   late final GeneratedColumn<String> authUserId = GeneratedColumn<String>(
     'auth_user_id',
     aliasedName,
-    true,
+    false,
     type: DriftSqlType.string,
-    requiredDuringInsert: false,
+    requiredDuringInsert: true,
   );
   @override
   List<GeneratedColumn> get $columns => [
@@ -3366,6 +3366,8 @@ class $CompaniesTable extends Companies
           _authUserIdMeta,
         ),
       );
+    } else if (isInserting) {
+      context.missing(_authUserIdMeta);
     }
     return context;
   }
@@ -3465,7 +3467,7 @@ class $CompaniesTable extends Companies
       authUserId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}auth_user_id'],
-      ),
+      )!,
     );
   }
 
@@ -3500,7 +3502,7 @@ class Company extends DataClass implements Insertable<Company> {
   final String? timezone;
   final String? businessType;
   final String defaultCurrencyId;
-  final String? authUserId;
+  final String authUserId;
   const Company({
     this.lastSyncedAt,
     required this.version,
@@ -3523,7 +3525,7 @@ class Company extends DataClass implements Insertable<Company> {
     this.timezone,
     this.businessType,
     required this.defaultCurrencyId,
-    this.authUserId,
+    required this.authUserId,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -3581,9 +3583,7 @@ class Company extends DataClass implements Insertable<Company> {
       map['business_type'] = Variable<String>(businessType);
     }
     map['default_currency_id'] = Variable<String>(defaultCurrencyId);
-    if (!nullToAbsent || authUserId != null) {
-      map['auth_user_id'] = Variable<String>(authUserId);
-    }
+    map['auth_user_id'] = Variable<String>(authUserId);
     return map;
   }
 
@@ -3636,9 +3636,7 @@ class Company extends DataClass implements Insertable<Company> {
           ? const Value.absent()
           : Value(businessType),
       defaultCurrencyId: Value(defaultCurrencyId),
-      authUserId: authUserId == null && nullToAbsent
-          ? const Value.absent()
-          : Value(authUserId),
+      authUserId: Value(authUserId),
     );
   }
 
@@ -3671,7 +3669,7 @@ class Company extends DataClass implements Insertable<Company> {
       timezone: serializer.fromJson<String?>(json['timezone']),
       businessType: serializer.fromJson<String?>(json['businessType']),
       defaultCurrencyId: serializer.fromJson<String>(json['defaultCurrencyId']),
-      authUserId: serializer.fromJson<String?>(json['authUserId']),
+      authUserId: serializer.fromJson<String>(json['authUserId']),
     );
   }
   @override
@@ -3701,7 +3699,7 @@ class Company extends DataClass implements Insertable<Company> {
       'timezone': serializer.toJson<String?>(timezone),
       'businessType': serializer.toJson<String?>(businessType),
       'defaultCurrencyId': serializer.toJson<String>(defaultCurrencyId),
-      'authUserId': serializer.toJson<String?>(authUserId),
+      'authUserId': serializer.toJson<String>(authUserId),
     };
   }
 
@@ -3727,7 +3725,7 @@ class Company extends DataClass implements Insertable<Company> {
     Value<String?> timezone = const Value.absent(),
     Value<String?> businessType = const Value.absent(),
     String? defaultCurrencyId,
-    Value<String?> authUserId = const Value.absent(),
+    String? authUserId,
   }) => Company(
     lastSyncedAt: lastSyncedAt.present ? lastSyncedAt.value : this.lastSyncedAt,
     version: version ?? this.version,
@@ -3754,7 +3752,7 @@ class Company extends DataClass implements Insertable<Company> {
     timezone: timezone.present ? timezone.value : this.timezone,
     businessType: businessType.present ? businessType.value : this.businessType,
     defaultCurrencyId: defaultCurrencyId ?? this.defaultCurrencyId,
-    authUserId: authUserId.present ? authUserId.value : this.authUserId,
+    authUserId: authUserId ?? this.authUserId,
   );
   Company copyWithCompanion(CompaniesCompanion data) {
     return Company(
@@ -3903,7 +3901,7 @@ class CompaniesCompanion extends UpdateCompanion<Company> {
   final Value<String?> timezone;
   final Value<String?> businessType;
   final Value<String> defaultCurrencyId;
-  final Value<String?> authUserId;
+  final Value<String> authUserId;
   final Value<int> rowid;
   const CompaniesCompanion({
     this.lastSyncedAt = const Value.absent(),
@@ -3952,12 +3950,13 @@ class CompaniesCompanion extends UpdateCompanion<Company> {
     this.timezone = const Value.absent(),
     this.businessType = const Value.absent(),
     required String defaultCurrencyId,
-    this.authUserId = const Value.absent(),
+    required String authUserId,
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        name = Value(name),
        status = Value(status),
-       defaultCurrencyId = Value(defaultCurrencyId);
+       defaultCurrencyId = Value(defaultCurrencyId),
+       authUserId = Value(authUserId);
   static Insertable<Company> custom({
     Expression<DateTime>? lastSyncedAt,
     Expression<int>? version,
@@ -4032,7 +4031,7 @@ class CompaniesCompanion extends UpdateCompanion<Company> {
     Value<String?>? timezone,
     Value<String?>? businessType,
     Value<String>? defaultCurrencyId,
-    Value<String?>? authUserId,
+    Value<String>? authUserId,
     Value<int>? rowid,
   }) {
     return CompaniesCompanion(
@@ -4164,6 +4163,700 @@ class CompaniesCompanion extends UpdateCompanion<Company> {
           ..write('businessType: $businessType, ')
           ..write('defaultCurrencyId: $defaultCurrencyId, ')
           ..write('authUserId: $authUserId, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $CompanySettingsTable extends CompanySettings
+    with TableInfo<$CompanySettingsTable, CompanySetting> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CompanySettingsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _lastSyncedAtMeta = const VerificationMeta(
+    'lastSyncedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> lastSyncedAt = GeneratedColumn<DateTime>(
+    'last_synced_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _versionMeta = const VerificationMeta(
+    'version',
+  );
+  @override
+  late final GeneratedColumn<int> version = GeneratedColumn<int>(
+    'version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _serverCreatedAtMeta = const VerificationMeta(
+    'serverCreatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> serverCreatedAt =
+      GeneratedColumn<DateTime>(
+        'server_created_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _serverUpdatedAtMeta = const VerificationMeta(
+    'serverUpdatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> serverUpdatedAt =
+      GeneratedColumn<DateTime>(
+        'server_updated_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _companyIdMeta = const VerificationMeta(
+    'companyId',
+  );
+  @override
+  late final GeneratedColumn<String> companyId = GeneratedColumn<String>(
+    'company_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _requirePinOnSwitchMeta =
+      const VerificationMeta('requirePinOnSwitch');
+  @override
+  late final GeneratedColumn<bool> requirePinOnSwitch = GeneratedColumn<bool>(
+    'require_pin_on_switch',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("require_pin_on_switch" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  static const VerificationMeta _autoLockTimeoutMinutesMeta =
+      const VerificationMeta('autoLockTimeoutMinutes');
+  @override
+  late final GeneratedColumn<int> autoLockTimeoutMinutes = GeneratedColumn<int>(
+    'auto_lock_timeout_minutes',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    lastSyncedAt,
+    version,
+    serverCreatedAt,
+    serverUpdatedAt,
+    createdAt,
+    updatedAt,
+    deletedAt,
+    id,
+    companyId,
+    requirePinOnSwitch,
+    autoLockTimeoutMinutes,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'company_settings';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<CompanySetting> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('last_synced_at')) {
+      context.handle(
+        _lastSyncedAtMeta,
+        lastSyncedAt.isAcceptableOrUnknown(
+          data['last_synced_at']!,
+          _lastSyncedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('version')) {
+      context.handle(
+        _versionMeta,
+        version.isAcceptableOrUnknown(data['version']!, _versionMeta),
+      );
+    }
+    if (data.containsKey('server_created_at')) {
+      context.handle(
+        _serverCreatedAtMeta,
+        serverCreatedAt.isAcceptableOrUnknown(
+          data['server_created_at']!,
+          _serverCreatedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('server_updated_at')) {
+      context.handle(
+        _serverUpdatedAtMeta,
+        serverUpdatedAt.isAcceptableOrUnknown(
+          data['server_updated_at']!,
+          _serverUpdatedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('company_id')) {
+      context.handle(
+        _companyIdMeta,
+        companyId.isAcceptableOrUnknown(data['company_id']!, _companyIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_companyIdMeta);
+    }
+    if (data.containsKey('require_pin_on_switch')) {
+      context.handle(
+        _requirePinOnSwitchMeta,
+        requirePinOnSwitch.isAcceptableOrUnknown(
+          data['require_pin_on_switch']!,
+          _requirePinOnSwitchMeta,
+        ),
+      );
+    }
+    if (data.containsKey('auto_lock_timeout_minutes')) {
+      context.handle(
+        _autoLockTimeoutMinutesMeta,
+        autoLockTimeoutMinutes.isAcceptableOrUnknown(
+          data['auto_lock_timeout_minutes']!,
+          _autoLockTimeoutMinutesMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  CompanySetting map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CompanySetting(
+      lastSyncedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_synced_at'],
+      ),
+      version: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}version'],
+      )!,
+      serverCreatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}server_created_at'],
+      ),
+      serverUpdatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}server_updated_at'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      companyId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}company_id'],
+      )!,
+      requirePinOnSwitch: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}require_pin_on_switch'],
+      )!,
+      autoLockTimeoutMinutes: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}auto_lock_timeout_minutes'],
+      ),
+    );
+  }
+
+  @override
+  $CompanySettingsTable createAlias(String alias) {
+    return $CompanySettingsTable(attachedDatabase, alias);
+  }
+}
+
+class CompanySetting extends DataClass implements Insertable<CompanySetting> {
+  final DateTime? lastSyncedAt;
+  final int version;
+  final DateTime? serverCreatedAt;
+  final DateTime? serverUpdatedAt;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  final String id;
+  final String companyId;
+  final bool requirePinOnSwitch;
+  final int? autoLockTimeoutMinutes;
+  const CompanySetting({
+    this.lastSyncedAt,
+    required this.version,
+    this.serverCreatedAt,
+    this.serverUpdatedAt,
+    required this.createdAt,
+    required this.updatedAt,
+    this.deletedAt,
+    required this.id,
+    required this.companyId,
+    required this.requirePinOnSwitch,
+    this.autoLockTimeoutMinutes,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (!nullToAbsent || lastSyncedAt != null) {
+      map['last_synced_at'] = Variable<DateTime>(lastSyncedAt);
+    }
+    map['version'] = Variable<int>(version);
+    if (!nullToAbsent || serverCreatedAt != null) {
+      map['server_created_at'] = Variable<DateTime>(serverCreatedAt);
+    }
+    if (!nullToAbsent || serverUpdatedAt != null) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    map['id'] = Variable<String>(id);
+    map['company_id'] = Variable<String>(companyId);
+    map['require_pin_on_switch'] = Variable<bool>(requirePinOnSwitch);
+    if (!nullToAbsent || autoLockTimeoutMinutes != null) {
+      map['auto_lock_timeout_minutes'] = Variable<int>(autoLockTimeoutMinutes);
+    }
+    return map;
+  }
+
+  CompanySettingsCompanion toCompanion(bool nullToAbsent) {
+    return CompanySettingsCompanion(
+      lastSyncedAt: lastSyncedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastSyncedAt),
+      version: Value(version),
+      serverCreatedAt: serverCreatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(serverCreatedAt),
+      serverUpdatedAt: serverUpdatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(serverUpdatedAt),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+      id: Value(id),
+      companyId: Value(companyId),
+      requirePinOnSwitch: Value(requirePinOnSwitch),
+      autoLockTimeoutMinutes: autoLockTimeoutMinutes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(autoLockTimeoutMinutes),
+    );
+  }
+
+  factory CompanySetting.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CompanySetting(
+      lastSyncedAt: serializer.fromJson<DateTime?>(json['lastSyncedAt']),
+      version: serializer.fromJson<int>(json['version']),
+      serverCreatedAt: serializer.fromJson<DateTime?>(json['serverCreatedAt']),
+      serverUpdatedAt: serializer.fromJson<DateTime?>(json['serverUpdatedAt']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      id: serializer.fromJson<String>(json['id']),
+      companyId: serializer.fromJson<String>(json['companyId']),
+      requirePinOnSwitch: serializer.fromJson<bool>(json['requirePinOnSwitch']),
+      autoLockTimeoutMinutes: serializer.fromJson<int?>(
+        json['autoLockTimeoutMinutes'],
+      ),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'lastSyncedAt': serializer.toJson<DateTime?>(lastSyncedAt),
+      'version': serializer.toJson<int>(version),
+      'serverCreatedAt': serializer.toJson<DateTime?>(serverCreatedAt),
+      'serverUpdatedAt': serializer.toJson<DateTime?>(serverUpdatedAt),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'id': serializer.toJson<String>(id),
+      'companyId': serializer.toJson<String>(companyId),
+      'requirePinOnSwitch': serializer.toJson<bool>(requirePinOnSwitch),
+      'autoLockTimeoutMinutes': serializer.toJson<int?>(autoLockTimeoutMinutes),
+    };
+  }
+
+  CompanySetting copyWith({
+    Value<DateTime?> lastSyncedAt = const Value.absent(),
+    int? version,
+    Value<DateTime?> serverCreatedAt = const Value.absent(),
+    Value<DateTime?> serverUpdatedAt = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+    String? id,
+    String? companyId,
+    bool? requirePinOnSwitch,
+    Value<int?> autoLockTimeoutMinutes = const Value.absent(),
+  }) => CompanySetting(
+    lastSyncedAt: lastSyncedAt.present ? lastSyncedAt.value : this.lastSyncedAt,
+    version: version ?? this.version,
+    serverCreatedAt: serverCreatedAt.present
+        ? serverCreatedAt.value
+        : this.serverCreatedAt,
+    serverUpdatedAt: serverUpdatedAt.present
+        ? serverUpdatedAt.value
+        : this.serverUpdatedAt,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+    id: id ?? this.id,
+    companyId: companyId ?? this.companyId,
+    requirePinOnSwitch: requirePinOnSwitch ?? this.requirePinOnSwitch,
+    autoLockTimeoutMinutes: autoLockTimeoutMinutes.present
+        ? autoLockTimeoutMinutes.value
+        : this.autoLockTimeoutMinutes,
+  );
+  CompanySetting copyWithCompanion(CompanySettingsCompanion data) {
+    return CompanySetting(
+      lastSyncedAt: data.lastSyncedAt.present
+          ? data.lastSyncedAt.value
+          : this.lastSyncedAt,
+      version: data.version.present ? data.version.value : this.version,
+      serverCreatedAt: data.serverCreatedAt.present
+          ? data.serverCreatedAt.value
+          : this.serverCreatedAt,
+      serverUpdatedAt: data.serverUpdatedAt.present
+          ? data.serverUpdatedAt.value
+          : this.serverUpdatedAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      id: data.id.present ? data.id.value : this.id,
+      companyId: data.companyId.present ? data.companyId.value : this.companyId,
+      requirePinOnSwitch: data.requirePinOnSwitch.present
+          ? data.requirePinOnSwitch.value
+          : this.requirePinOnSwitch,
+      autoLockTimeoutMinutes: data.autoLockTimeoutMinutes.present
+          ? data.autoLockTimeoutMinutes.value
+          : this.autoLockTimeoutMinutes,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CompanySetting(')
+          ..write('lastSyncedAt: $lastSyncedAt, ')
+          ..write('version: $version, ')
+          ..write('serverCreatedAt: $serverCreatedAt, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('id: $id, ')
+          ..write('companyId: $companyId, ')
+          ..write('requirePinOnSwitch: $requirePinOnSwitch, ')
+          ..write('autoLockTimeoutMinutes: $autoLockTimeoutMinutes')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    lastSyncedAt,
+    version,
+    serverCreatedAt,
+    serverUpdatedAt,
+    createdAt,
+    updatedAt,
+    deletedAt,
+    id,
+    companyId,
+    requirePinOnSwitch,
+    autoLockTimeoutMinutes,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CompanySetting &&
+          other.lastSyncedAt == this.lastSyncedAt &&
+          other.version == this.version &&
+          other.serverCreatedAt == this.serverCreatedAt &&
+          other.serverUpdatedAt == this.serverUpdatedAt &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt &&
+          other.id == this.id &&
+          other.companyId == this.companyId &&
+          other.requirePinOnSwitch == this.requirePinOnSwitch &&
+          other.autoLockTimeoutMinutes == this.autoLockTimeoutMinutes);
+}
+
+class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
+  final Value<DateTime?> lastSyncedAt;
+  final Value<int> version;
+  final Value<DateTime?> serverCreatedAt;
+  final Value<DateTime?> serverUpdatedAt;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<String> id;
+  final Value<String> companyId;
+  final Value<bool> requirePinOnSwitch;
+  final Value<int?> autoLockTimeoutMinutes;
+  final Value<int> rowid;
+  const CompanySettingsCompanion({
+    this.lastSyncedAt = const Value.absent(),
+    this.version = const Value.absent(),
+    this.serverCreatedAt = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.id = const Value.absent(),
+    this.companyId = const Value.absent(),
+    this.requirePinOnSwitch = const Value.absent(),
+    this.autoLockTimeoutMinutes = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  CompanySettingsCompanion.insert({
+    this.lastSyncedAt = const Value.absent(),
+    this.version = const Value.absent(),
+    this.serverCreatedAt = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    required String id,
+    required String companyId,
+    this.requirePinOnSwitch = const Value.absent(),
+    this.autoLockTimeoutMinutes = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       companyId = Value(companyId);
+  static Insertable<CompanySetting> custom({
+    Expression<DateTime>? lastSyncedAt,
+    Expression<int>? version,
+    Expression<DateTime>? serverCreatedAt,
+    Expression<DateTime>? serverUpdatedAt,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<String>? id,
+    Expression<String>? companyId,
+    Expression<bool>? requirePinOnSwitch,
+    Expression<int>? autoLockTimeoutMinutes,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (lastSyncedAt != null) 'last_synced_at': lastSyncedAt,
+      if (version != null) 'version': version,
+      if (serverCreatedAt != null) 'server_created_at': serverCreatedAt,
+      if (serverUpdatedAt != null) 'server_updated_at': serverUpdatedAt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (id != null) 'id': id,
+      if (companyId != null) 'company_id': companyId,
+      if (requirePinOnSwitch != null)
+        'require_pin_on_switch': requirePinOnSwitch,
+      if (autoLockTimeoutMinutes != null)
+        'auto_lock_timeout_minutes': autoLockTimeoutMinutes,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  CompanySettingsCompanion copyWith({
+    Value<DateTime?>? lastSyncedAt,
+    Value<int>? version,
+    Value<DateTime?>? serverCreatedAt,
+    Value<DateTime?>? serverUpdatedAt,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? deletedAt,
+    Value<String>? id,
+    Value<String>? companyId,
+    Value<bool>? requirePinOnSwitch,
+    Value<int?>? autoLockTimeoutMinutes,
+    Value<int>? rowid,
+  }) {
+    return CompanySettingsCompanion(
+      lastSyncedAt: lastSyncedAt ?? this.lastSyncedAt,
+      version: version ?? this.version,
+      serverCreatedAt: serverCreatedAt ?? this.serverCreatedAt,
+      serverUpdatedAt: serverUpdatedAt ?? this.serverUpdatedAt,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      id: id ?? this.id,
+      companyId: companyId ?? this.companyId,
+      requirePinOnSwitch: requirePinOnSwitch ?? this.requirePinOnSwitch,
+      autoLockTimeoutMinutes:
+          autoLockTimeoutMinutes ?? this.autoLockTimeoutMinutes,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (lastSyncedAt.present) {
+      map['last_synced_at'] = Variable<DateTime>(lastSyncedAt.value);
+    }
+    if (version.present) {
+      map['version'] = Variable<int>(version.value);
+    }
+    if (serverCreatedAt.present) {
+      map['server_created_at'] = Variable<DateTime>(serverCreatedAt.value);
+    }
+    if (serverUpdatedAt.present) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (companyId.present) {
+      map['company_id'] = Variable<String>(companyId.value);
+    }
+    if (requirePinOnSwitch.present) {
+      map['require_pin_on_switch'] = Variable<bool>(requirePinOnSwitch.value);
+    }
+    if (autoLockTimeoutMinutes.present) {
+      map['auto_lock_timeout_minutes'] = Variable<int>(
+        autoLockTimeoutMinutes.value,
+      );
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CompanySettingsCompanion(')
+          ..write('lastSyncedAt: $lastSyncedAt, ')
+          ..write('version: $version, ')
+          ..write('serverCreatedAt: $serverCreatedAt, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('id: $id, ')
+          ..write('companyId: $companyId, ')
+          ..write('requirePinOnSwitch: $requirePinOnSwitch, ')
+          ..write('autoLockTimeoutMinutes: $autoLockTimeoutMinutes, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -17291,6 +17984,17 @@ class $SyncQueueTable extends SyncQueue
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _idempotencyKeyMeta = const VerificationMeta(
+    'idempotencyKey',
+  );
+  @override
+  late final GeneratedColumn<String> idempotencyKey = GeneratedColumn<String>(
+    'idempotency_key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
   static const VerificationMeta _statusMeta = const VerificationMeta('status');
   @override
   late final GeneratedColumn<String> status = GeneratedColumn<String>(
@@ -17366,6 +18070,7 @@ class $SyncQueueTable extends SyncQueue
     entityId,
     operation,
     payload,
+    idempotencyKey,
     status,
     errorMessage,
     retryCount,
@@ -17429,6 +18134,17 @@ class $SyncQueueTable extends SyncQueue
       );
     } else if (isInserting) {
       context.missing(_payloadMeta);
+    }
+    if (data.containsKey('idempotency_key')) {
+      context.handle(
+        _idempotencyKeyMeta,
+        idempotencyKey.isAcceptableOrUnknown(
+          data['idempotency_key']!,
+          _idempotencyKeyMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_idempotencyKeyMeta);
     }
     if (data.containsKey('status')) {
       context.handle(
@@ -17508,6 +18224,10 @@ class $SyncQueueTable extends SyncQueue
         DriftSqlType.string,
         data['${effectivePrefix}payload'],
       )!,
+      idempotencyKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}idempotency_key'],
+      )!,
       status: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}status'],
@@ -17548,6 +18268,7 @@ class SyncQueueData extends DataClass implements Insertable<SyncQueueData> {
   final String entityId;
   final String operation;
   final String payload;
+  final String idempotencyKey;
   final String status;
   final String? errorMessage;
   final int retryCount;
@@ -17561,6 +18282,7 @@ class SyncQueueData extends DataClass implements Insertable<SyncQueueData> {
     required this.entityId,
     required this.operation,
     required this.payload,
+    required this.idempotencyKey,
     required this.status,
     this.errorMessage,
     required this.retryCount,
@@ -17577,6 +18299,7 @@ class SyncQueueData extends DataClass implements Insertable<SyncQueueData> {
     map['entity_id'] = Variable<String>(entityId);
     map['operation'] = Variable<String>(operation);
     map['payload'] = Variable<String>(payload);
+    map['idempotency_key'] = Variable<String>(idempotencyKey);
     map['status'] = Variable<String>(status);
     if (!nullToAbsent || errorMessage != null) {
       map['error_message'] = Variable<String>(errorMessage);
@@ -17600,6 +18323,7 @@ class SyncQueueData extends DataClass implements Insertable<SyncQueueData> {
       entityId: Value(entityId),
       operation: Value(operation),
       payload: Value(payload),
+      idempotencyKey: Value(idempotencyKey),
       status: Value(status),
       errorMessage: errorMessage == null && nullToAbsent
           ? const Value.absent()
@@ -17627,6 +18351,7 @@ class SyncQueueData extends DataClass implements Insertable<SyncQueueData> {
       entityId: serializer.fromJson<String>(json['entityId']),
       operation: serializer.fromJson<String>(json['operation']),
       payload: serializer.fromJson<String>(json['payload']),
+      idempotencyKey: serializer.fromJson<String>(json['idempotencyKey']),
       status: serializer.fromJson<String>(json['status']),
       errorMessage: serializer.fromJson<String?>(json['errorMessage']),
       retryCount: serializer.fromJson<int>(json['retryCount']),
@@ -17645,6 +18370,7 @@ class SyncQueueData extends DataClass implements Insertable<SyncQueueData> {
       'entityId': serializer.toJson<String>(entityId),
       'operation': serializer.toJson<String>(operation),
       'payload': serializer.toJson<String>(payload),
+      'idempotencyKey': serializer.toJson<String>(idempotencyKey),
       'status': serializer.toJson<String>(status),
       'errorMessage': serializer.toJson<String?>(errorMessage),
       'retryCount': serializer.toJson<int>(retryCount),
@@ -17661,6 +18387,7 @@ class SyncQueueData extends DataClass implements Insertable<SyncQueueData> {
     String? entityId,
     String? operation,
     String? payload,
+    String? idempotencyKey,
     String? status,
     Value<String?> errorMessage = const Value.absent(),
     int? retryCount,
@@ -17674,6 +18401,7 @@ class SyncQueueData extends DataClass implements Insertable<SyncQueueData> {
     entityId: entityId ?? this.entityId,
     operation: operation ?? this.operation,
     payload: payload ?? this.payload,
+    idempotencyKey: idempotencyKey ?? this.idempotencyKey,
     status: status ?? this.status,
     errorMessage: errorMessage.present ? errorMessage.value : this.errorMessage,
     retryCount: retryCount ?? this.retryCount,
@@ -17691,6 +18419,9 @@ class SyncQueueData extends DataClass implements Insertable<SyncQueueData> {
       entityId: data.entityId.present ? data.entityId.value : this.entityId,
       operation: data.operation.present ? data.operation.value : this.operation,
       payload: data.payload.present ? data.payload.value : this.payload,
+      idempotencyKey: data.idempotencyKey.present
+          ? data.idempotencyKey.value
+          : this.idempotencyKey,
       status: data.status.present ? data.status.value : this.status,
       errorMessage: data.errorMessage.present
           ? data.errorMessage.value
@@ -17717,6 +18448,7 @@ class SyncQueueData extends DataClass implements Insertable<SyncQueueData> {
           ..write('entityId: $entityId, ')
           ..write('operation: $operation, ')
           ..write('payload: $payload, ')
+          ..write('idempotencyKey: $idempotencyKey, ')
           ..write('status: $status, ')
           ..write('errorMessage: $errorMessage, ')
           ..write('retryCount: $retryCount, ')
@@ -17735,6 +18467,7 @@ class SyncQueueData extends DataClass implements Insertable<SyncQueueData> {
     entityId,
     operation,
     payload,
+    idempotencyKey,
     status,
     errorMessage,
     retryCount,
@@ -17752,6 +18485,7 @@ class SyncQueueData extends DataClass implements Insertable<SyncQueueData> {
           other.entityId == this.entityId &&
           other.operation == this.operation &&
           other.payload == this.payload &&
+          other.idempotencyKey == this.idempotencyKey &&
           other.status == this.status &&
           other.errorMessage == this.errorMessage &&
           other.retryCount == this.retryCount &&
@@ -17767,6 +18501,7 @@ class SyncQueueCompanion extends UpdateCompanion<SyncQueueData> {
   final Value<String> entityId;
   final Value<String> operation;
   final Value<String> payload;
+  final Value<String> idempotencyKey;
   final Value<String> status;
   final Value<String?> errorMessage;
   final Value<int> retryCount;
@@ -17781,6 +18516,7 @@ class SyncQueueCompanion extends UpdateCompanion<SyncQueueData> {
     this.entityId = const Value.absent(),
     this.operation = const Value.absent(),
     this.payload = const Value.absent(),
+    this.idempotencyKey = const Value.absent(),
     this.status = const Value.absent(),
     this.errorMessage = const Value.absent(),
     this.retryCount = const Value.absent(),
@@ -17796,6 +18532,7 @@ class SyncQueueCompanion extends UpdateCompanion<SyncQueueData> {
     required String entityId,
     required String operation,
     required String payload,
+    required String idempotencyKey,
     this.status = const Value.absent(),
     this.errorMessage = const Value.absent(),
     this.retryCount = const Value.absent(),
@@ -17808,7 +18545,8 @@ class SyncQueueCompanion extends UpdateCompanion<SyncQueueData> {
        entityType = Value(entityType),
        entityId = Value(entityId),
        operation = Value(operation),
-       payload = Value(payload);
+       payload = Value(payload),
+       idempotencyKey = Value(idempotencyKey);
   static Insertable<SyncQueueData> custom({
     Expression<String>? id,
     Expression<String>? companyId,
@@ -17816,6 +18554,7 @@ class SyncQueueCompanion extends UpdateCompanion<SyncQueueData> {
     Expression<String>? entityId,
     Expression<String>? operation,
     Expression<String>? payload,
+    Expression<String>? idempotencyKey,
     Expression<String>? status,
     Expression<String>? errorMessage,
     Expression<int>? retryCount,
@@ -17831,6 +18570,7 @@ class SyncQueueCompanion extends UpdateCompanion<SyncQueueData> {
       if (entityId != null) 'entity_id': entityId,
       if (operation != null) 'operation': operation,
       if (payload != null) 'payload': payload,
+      if (idempotencyKey != null) 'idempotency_key': idempotencyKey,
       if (status != null) 'status': status,
       if (errorMessage != null) 'error_message': errorMessage,
       if (retryCount != null) 'retry_count': retryCount,
@@ -17848,6 +18588,7 @@ class SyncQueueCompanion extends UpdateCompanion<SyncQueueData> {
     Value<String>? entityId,
     Value<String>? operation,
     Value<String>? payload,
+    Value<String>? idempotencyKey,
     Value<String>? status,
     Value<String?>? errorMessage,
     Value<int>? retryCount,
@@ -17863,6 +18604,7 @@ class SyncQueueCompanion extends UpdateCompanion<SyncQueueData> {
       entityId: entityId ?? this.entityId,
       operation: operation ?? this.operation,
       payload: payload ?? this.payload,
+      idempotencyKey: idempotencyKey ?? this.idempotencyKey,
       status: status ?? this.status,
       errorMessage: errorMessage ?? this.errorMessage,
       retryCount: retryCount ?? this.retryCount,
@@ -17893,6 +18635,9 @@ class SyncQueueCompanion extends UpdateCompanion<SyncQueueData> {
     }
     if (payload.present) {
       map['payload'] = Variable<String>(payload.value);
+    }
+    if (idempotencyKey.present) {
+      map['idempotency_key'] = Variable<String>(idempotencyKey.value);
     }
     if (status.present) {
       map['status'] = Variable<String>(status.value);
@@ -17927,6 +18672,7 @@ class SyncQueueCompanion extends UpdateCompanion<SyncQueueData> {
           ..write('entityId: $entityId, ')
           ..write('operation: $operation, ')
           ..write('payload: $payload, ')
+          ..write('idempotencyKey: $idempotencyKey, ')
           ..write('status: $status, ')
           ..write('errorMessage: $errorMessage, ')
           ..write('retryCount: $retryCount, ')
@@ -21226,6 +21972,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $CashMovementsTable cashMovements = $CashMovementsTable(this);
   late final $CategoriesTable categories = $CategoriesTable(this);
   late final $CompaniesTable companies = $CompaniesTable(this);
+  late final $CompanySettingsTable companySettings = $CompanySettingsTable(
+    this,
+  );
   late final $CurrenciesTable currencies = $CurrenciesTable(this);
   late final $ItemsTable items = $ItemsTable(this);
   late final $LayoutItemsTable layoutItems = $LayoutItemsTable(this);
@@ -21267,6 +22016,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final Index idxCompaniesUpdatedAt = Index(
     'idx_companies_updated_at',
     'CREATE INDEX idx_companies_updated_at ON companies (updated_at)',
+  );
+  late final Index idxCompanySettingsCompanyUpdated = Index(
+    'idx_company_settings_company_updated',
+    'CREATE INDEX idx_company_settings_company_updated ON company_settings (company_id, updated_at)',
   );
   late final Index idxItemsCompanyUpdated = Index(
     'idx_items_company_updated',
@@ -21345,6 +22098,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     cashMovements,
     categories,
     companies,
+    companySettings,
     currencies,
     items,
     layoutItems,
@@ -21369,6 +22123,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     idxCashMovementsCompanyUpdated,
     idxCategoriesCompanyUpdated,
     idxCompaniesUpdatedAt,
+    idxCompanySettingsCompanyUpdated,
     idxItemsCompanyUpdated,
     idxLayoutItemsCompanyUpdated,
     idxOrderItemsCompanyUpdated,
@@ -22731,7 +23486,7 @@ typedef $$CompaniesTableCreateCompanionBuilder =
       Value<String?> timezone,
       Value<String?> businessType,
       required String defaultCurrencyId,
-      Value<String?> authUserId,
+      required String authUserId,
       Value<int> rowid,
     });
 typedef $$CompaniesTableUpdateCompanionBuilder =
@@ -22757,7 +23512,7 @@ typedef $$CompaniesTableUpdateCompanionBuilder =
       Value<String?> timezone,
       Value<String?> businessType,
       Value<String> defaultCurrencyId,
-      Value<String?> authUserId,
+      Value<String> authUserId,
       Value<int> rowid,
     });
 
@@ -23143,7 +23898,7 @@ class $$CompaniesTableTableManager
                 Value<String?> timezone = const Value.absent(),
                 Value<String?> businessType = const Value.absent(),
                 Value<String> defaultCurrencyId = const Value.absent(),
-                Value<String?> authUserId = const Value.absent(),
+                Value<String> authUserId = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => CompaniesCompanion(
                 lastSyncedAt: lastSyncedAt,
@@ -23193,7 +23948,7 @@ class $$CompaniesTableTableManager
                 Value<String?> timezone = const Value.absent(),
                 Value<String?> businessType = const Value.absent(),
                 required String defaultCurrencyId,
-                Value<String?> authUserId = const Value.absent(),
+                required String authUserId,
                 Value<int> rowid = const Value.absent(),
               }) => CompaniesCompanion.insert(
                 lastSyncedAt: lastSyncedAt,
@@ -23240,6 +23995,336 @@ typedef $$CompaniesTableProcessedTableManager =
       $$CompaniesTableUpdateCompanionBuilder,
       (Company, BaseReferences<_$AppDatabase, $CompaniesTable, Company>),
       Company,
+      PrefetchHooks Function()
+    >;
+typedef $$CompanySettingsTableCreateCompanionBuilder =
+    CompanySettingsCompanion Function({
+      Value<DateTime?> lastSyncedAt,
+      Value<int> version,
+      Value<DateTime?> serverCreatedAt,
+      Value<DateTime?> serverUpdatedAt,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      required String id,
+      required String companyId,
+      Value<bool> requirePinOnSwitch,
+      Value<int?> autoLockTimeoutMinutes,
+      Value<int> rowid,
+    });
+typedef $$CompanySettingsTableUpdateCompanionBuilder =
+    CompanySettingsCompanion Function({
+      Value<DateTime?> lastSyncedAt,
+      Value<int> version,
+      Value<DateTime?> serverCreatedAt,
+      Value<DateTime?> serverUpdatedAt,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<String> id,
+      Value<String> companyId,
+      Value<bool> requirePinOnSwitch,
+      Value<int?> autoLockTimeoutMinutes,
+      Value<int> rowid,
+    });
+
+class $$CompanySettingsTableFilterComposer
+    extends Composer<_$AppDatabase, $CompanySettingsTable> {
+  $$CompanySettingsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<DateTime> get lastSyncedAt => $composableBuilder(
+    column: $table.lastSyncedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get version => $composableBuilder(
+    column: $table.version,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get serverCreatedAt => $composableBuilder(
+    column: $table.serverCreatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get companyId => $composableBuilder(
+    column: $table.companyId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get requirePinOnSwitch => $composableBuilder(
+    column: $table.requirePinOnSwitch,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get autoLockTimeoutMinutes => $composableBuilder(
+    column: $table.autoLockTimeoutMinutes,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$CompanySettingsTableOrderingComposer
+    extends Composer<_$AppDatabase, $CompanySettingsTable> {
+  $$CompanySettingsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<DateTime> get lastSyncedAt => $composableBuilder(
+    column: $table.lastSyncedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get version => $composableBuilder(
+    column: $table.version,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get serverCreatedAt => $composableBuilder(
+    column: $table.serverCreatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get companyId => $composableBuilder(
+    column: $table.companyId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get requirePinOnSwitch => $composableBuilder(
+    column: $table.requirePinOnSwitch,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get autoLockTimeoutMinutes => $composableBuilder(
+    column: $table.autoLockTimeoutMinutes,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$CompanySettingsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CompanySettingsTable> {
+  $$CompanySettingsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<DateTime> get lastSyncedAt => $composableBuilder(
+    column: $table.lastSyncedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get version =>
+      $composableBuilder(column: $table.version, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get serverCreatedAt => $composableBuilder(
+    column: $table.serverCreatedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get companyId =>
+      $composableBuilder(column: $table.companyId, builder: (column) => column);
+
+  GeneratedColumn<bool> get requirePinOnSwitch => $composableBuilder(
+    column: $table.requirePinOnSwitch,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get autoLockTimeoutMinutes => $composableBuilder(
+    column: $table.autoLockTimeoutMinutes,
+    builder: (column) => column,
+  );
+}
+
+class $$CompanySettingsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CompanySettingsTable,
+          CompanySetting,
+          $$CompanySettingsTableFilterComposer,
+          $$CompanySettingsTableOrderingComposer,
+          $$CompanySettingsTableAnnotationComposer,
+          $$CompanySettingsTableCreateCompanionBuilder,
+          $$CompanySettingsTableUpdateCompanionBuilder,
+          (
+            CompanySetting,
+            BaseReferences<
+              _$AppDatabase,
+              $CompanySettingsTable,
+              CompanySetting
+            >,
+          ),
+          CompanySetting,
+          PrefetchHooks Function()
+        > {
+  $$CompanySettingsTableTableManager(
+    _$AppDatabase db,
+    $CompanySettingsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CompanySettingsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CompanySettingsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$CompanySettingsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<DateTime?> lastSyncedAt = const Value.absent(),
+                Value<int> version = const Value.absent(),
+                Value<DateTime?> serverCreatedAt = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<String> id = const Value.absent(),
+                Value<String> companyId = const Value.absent(),
+                Value<bool> requirePinOnSwitch = const Value.absent(),
+                Value<int?> autoLockTimeoutMinutes = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CompanySettingsCompanion(
+                lastSyncedAt: lastSyncedAt,
+                version: version,
+                serverCreatedAt: serverCreatedAt,
+                serverUpdatedAt: serverUpdatedAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                id: id,
+                companyId: companyId,
+                requirePinOnSwitch: requirePinOnSwitch,
+                autoLockTimeoutMinutes: autoLockTimeoutMinutes,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                Value<DateTime?> lastSyncedAt = const Value.absent(),
+                Value<int> version = const Value.absent(),
+                Value<DateTime?> serverCreatedAt = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                required String id,
+                required String companyId,
+                Value<bool> requirePinOnSwitch = const Value.absent(),
+                Value<int?> autoLockTimeoutMinutes = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CompanySettingsCompanion.insert(
+                lastSyncedAt: lastSyncedAt,
+                version: version,
+                serverCreatedAt: serverCreatedAt,
+                serverUpdatedAt: serverUpdatedAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                id: id,
+                companyId: companyId,
+                requirePinOnSwitch: requirePinOnSwitch,
+                autoLockTimeoutMinutes: autoLockTimeoutMinutes,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$CompanySettingsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CompanySettingsTable,
+      CompanySetting,
+      $$CompanySettingsTableFilterComposer,
+      $$CompanySettingsTableOrderingComposer,
+      $$CompanySettingsTableAnnotationComposer,
+      $$CompanySettingsTableCreateCompanionBuilder,
+      $$CompanySettingsTableUpdateCompanionBuilder,
+      (
+        CompanySetting,
+        BaseReferences<_$AppDatabase, $CompanySettingsTable, CompanySetting>,
+      ),
+      CompanySetting,
       PrefetchHooks Function()
     >;
 typedef $$CurrenciesTableCreateCompanionBuilder =
@@ -29176,6 +30261,7 @@ typedef $$SyncQueueTableCreateCompanionBuilder =
       required String entityId,
       required String operation,
       required String payload,
+      required String idempotencyKey,
       Value<String> status,
       Value<String?> errorMessage,
       Value<int> retryCount,
@@ -29192,6 +30278,7 @@ typedef $$SyncQueueTableUpdateCompanionBuilder =
       Value<String> entityId,
       Value<String> operation,
       Value<String> payload,
+      Value<String> idempotencyKey,
       Value<String> status,
       Value<String?> errorMessage,
       Value<int> retryCount,
@@ -29237,6 +30324,11 @@ class $$SyncQueueTableFilterComposer
 
   ColumnFilters<String> get payload => $composableBuilder(
     column: $table.payload,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get idempotencyKey => $composableBuilder(
+    column: $table.idempotencyKey,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -29310,6 +30402,11 @@ class $$SyncQueueTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get idempotencyKey => $composableBuilder(
+    column: $table.idempotencyKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get status => $composableBuilder(
     column: $table.status,
     builder: (column) => ColumnOrderings(column),
@@ -29369,6 +30466,11 @@ class $$SyncQueueTableAnnotationComposer
 
   GeneratedColumn<String> get payload =>
       $composableBuilder(column: $table.payload, builder: (column) => column);
+
+  GeneratedColumn<String> get idempotencyKey => $composableBuilder(
+    column: $table.idempotencyKey,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get status =>
       $composableBuilder(column: $table.status, builder: (column) => column);
@@ -29434,6 +30536,7 @@ class $$SyncQueueTableTableManager
                 Value<String> entityId = const Value.absent(),
                 Value<String> operation = const Value.absent(),
                 Value<String> payload = const Value.absent(),
+                Value<String> idempotencyKey = const Value.absent(),
                 Value<String> status = const Value.absent(),
                 Value<String?> errorMessage = const Value.absent(),
                 Value<int> retryCount = const Value.absent(),
@@ -29448,6 +30551,7 @@ class $$SyncQueueTableTableManager
                 entityId: entityId,
                 operation: operation,
                 payload: payload,
+                idempotencyKey: idempotencyKey,
                 status: status,
                 errorMessage: errorMessage,
                 retryCount: retryCount,
@@ -29464,6 +30568,7 @@ class $$SyncQueueTableTableManager
                 required String entityId,
                 required String operation,
                 required String payload,
+                required String idempotencyKey,
                 Value<String> status = const Value.absent(),
                 Value<String?> errorMessage = const Value.absent(),
                 Value<int> retryCount = const Value.absent(),
@@ -29478,6 +30583,7 @@ class $$SyncQueueTableTableManager
                 entityId: entityId,
                 operation: operation,
                 payload: payload,
+                idempotencyKey: idempotencyKey,
                 status: status,
                 errorMessage: errorMessage,
                 retryCount: retryCount,
@@ -31028,6 +32134,8 @@ class $AppDatabaseManager {
       $$CategoriesTableTableManager(_db, _db.categories);
   $$CompaniesTableTableManager get companies =>
       $$CompaniesTableTableManager(_db, _db.companies);
+  $$CompanySettingsTableTableManager get companySettings =>
+      $$CompanySettingsTableTableManager(_db, _db.companySettings);
   $$CurrenciesTableTableManager get currencies =>
       $$CurrenciesTableTableManager(_db, _db.currencies);
   $$ItemsTableTableManager get items =>

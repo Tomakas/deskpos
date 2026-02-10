@@ -27,6 +27,7 @@ class _ScreenLoginState extends ConsumerState<ScreenLogin> {
   UserModel? _selectedUser;
   List<UserModel> _users = [];
   bool _loaded = false;
+  bool _isLoggingIn = false;
 
   @override
   void initState() {
@@ -216,7 +217,7 @@ class _ScreenLoginState extends ConsumerState<ScreenLogin> {
     return SizedBox(
       height: 64,
       child: OutlinedButton(
-        onPressed: _lockSeconds != null ? null : onTap,
+        onPressed: (_lockSeconds != null || _isLoggingIn) ? null : onTap,
         style: OutlinedButton.styleFrom(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           padding: EdgeInsets.zero,
@@ -255,31 +256,37 @@ class _ScreenLoginState extends ConsumerState<ScreenLogin> {
   }
 
   Future<void> _loginSuccess() async {
-    final session = ref.read(sessionManagerProvider);
-    final authService = ref.read(authServiceProvider);
-    authService.resetAttempts();
-    session.login(_selectedUser!);
-    ref.read(activeUserProvider.notifier).state = _selectedUser;
-    ref.read(loggedInUsersProvider.notifier).state = session.loggedInUsers;
-    final companyRepo = ref.read(companyRepositoryProvider);
-    final companyResult = await companyRepo.getFirst();
-    if (companyResult case Success(value: final company?)) {
-      ref.read(currentCompanyProvider.notifier).state = company;
-      // Create shift if register session is active
-      final regSession = await ref.read(registerSessionRepositoryProvider).getActiveSession(company.id);
-      if (regSession != null) {
-        final shiftRepo = ref.read(shiftRepositoryProvider);
-        final existing = await shiftRepo.getActiveShiftForUser(_selectedUser!.id, regSession.id);
-        if (existing == null) {
-          await shiftRepo.create(
-            companyId: company.id,
-            registerSessionId: regSession.id,
-            userId: _selectedUser!.id,
-          );
+    if (_isLoggingIn) return;
+    setState(() => _isLoggingIn = true);
+    try {
+      final session = ref.read(sessionManagerProvider);
+      final authService = ref.read(authServiceProvider);
+      authService.resetAttempts();
+      session.login(_selectedUser!);
+      ref.read(activeUserProvider.notifier).state = _selectedUser;
+      ref.read(loggedInUsersProvider.notifier).state = session.loggedInUsers;
+      final companyRepo = ref.read(companyRepositoryProvider);
+      final companyResult = await companyRepo.getFirst();
+      if (companyResult case Success(value: final company?)) {
+        ref.read(currentCompanyProvider.notifier).state = company;
+        // Create shift if register session is active
+        final regSession = await ref.read(registerSessionRepositoryProvider).getActiveSession(company.id);
+        if (regSession != null) {
+          final shiftRepo = ref.read(shiftRepositoryProvider);
+          final existing = await shiftRepo.getActiveShiftForUser(_selectedUser!.id, regSession.id);
+          if (existing == null) {
+            await shiftRepo.create(
+              companyId: company.id,
+              registerSessionId: regSession.id,
+              userId: _selectedUser!.id,
+            );
+          }
         }
       }
+      if (mounted) context.go('/bills');
+    } finally {
+      if (mounted) setState(() => _isLoggingIn = false);
     }
-    if (mounted) context.go('/bills');
   }
 
   void _startLockTimer(int seconds) {

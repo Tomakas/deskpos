@@ -2109,6 +2109,66 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Otevřené účty (konec)'**
   String get zReportOpenBillsAtClose;
+
+  /// No description provided for @settingsRequirePinOnSwitch.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vyžadovat PIN při přepínání obsluhy'**
+  String get settingsRequirePinOnSwitch;
+
+  /// No description provided for @settingsAutoLockTimeout.
+  ///
+  /// In cs, this message translates to:
+  /// **'Automatické zamčení po nečinnosti'**
+  String get settingsAutoLockTimeout;
+
+  /// No description provided for @settingsAutoLockDisabled.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vypnuto'**
+  String get settingsAutoLockDisabled;
+
+  /// No description provided for @settingsAutoLockMinutes.
+  ///
+  /// In cs, this message translates to:
+  /// **'{minutes} min'**
+  String settingsAutoLockMinutes(int minutes);
+
+  /// No description provided for @settingsGridRows.
+  ///
+  /// In cs, this message translates to:
+  /// **'Řádky gridu'**
+  String get settingsGridRows;
+
+  /// No description provided for @settingsGridCols.
+  ///
+  /// In cs, this message translates to:
+  /// **'Sloupce gridu'**
+  String get settingsGridCols;
+
+  /// No description provided for @lockScreenTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zamčeno'**
+  String get lockScreenTitle;
+
+  /// No description provided for @lockScreenSubtitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vyberte uživatele pro odemčení'**
+  String get lockScreenSubtitle;
+
+  /// No description provided for @autoCorrection.
+  ///
+  /// In cs, this message translates to:
+  /// **'Automatická korekce: počáteční hotovost se liší od předchozí uzávěrky'**
+  String get autoCorrection;
+
+  /// No description provided for @errorNoCompanyFound.
+  ///
+  /// In cs, this message translates to:
+  /// **'Firma nenalezena'**
+  String get errorNoCompanyFound;
 }
 
 class _AppLocalizationsDelegate

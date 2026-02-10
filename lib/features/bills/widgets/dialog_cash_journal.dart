@@ -173,7 +173,7 @@ class _DialogCashJournalState extends State<DialogCashJournal> {
                   ),
                   const Spacer(),
                   SizedBox(
-                    height: 36,
+                    height: 40,
                     child: FilledButton(
                       style: FilledButton.styleFrom(backgroundColor: Colors.green),
                       onPressed: () => _addMovement(context),
@@ -269,7 +269,7 @@ class _DialogCashJournalState extends State<DialogCashJournal> {
               Align(
                 alignment: Alignment.centerRight,
                 child: SizedBox(
-                  height: 36,
+                  height: 40,
                   child: OutlinedButton(
                     onPressed: () => Navigator.pop(context),
                     child: Text(l.actionClose),

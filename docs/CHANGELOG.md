@@ -1,5 +1,48 @@
 # Changelog
 
+## 2026-02-10 (Settings: Security/Sales tabs + PIN-skip + Auto-lock)
+
+### Features
+- **`company_settings` table**: New table for per-company settings — `require_pin_on_switch` (bool, default true), `auto_lock_timeout_minutes` (int?, nullable = disabled)
+- **Security tab** (`SecurityTab`): Toggle PIN requirement on user switch + auto-lock timeout dropdown (off / 1, 2, 5, 10, 15, 30 min)
+- **Sales tab** (`SalesTab`): Edit grid rows (1–10) and columns (1–12) for the active register
+- **PIN-skip**: When `require_pin_on_switch` is off, switching to already-logged-in user skips PIN entry; new login always requires PIN
+- **Auto-lock**: `InactivityDetector` wraps the app — after configured inactivity timeout, shows `LockOverlay` with user selection + PIN; shifts keep running during lock
+- **Register grid update**: `RegisterRepository.updateGrid()` with sync queue enqueue
+
+### Schema
+- New table: `company_settings` (id, company_id, require_pin_on_switch, auto_lock_timeout_minutes + sync columns)
+
+### New Files
+- `lib/core/database/tables/company_settings.dart` — Drift table definition
+- `lib/core/data/models/company_settings_model.dart` — Freezed model
+- `lib/core/data/repositories/company_settings_repository.dart` — Repository with `watchByCompany`, `getByCompany`, `getOrCreate`
+- `lib/features/settings/widgets/security_tab.dart` — Security settings tab
+- `lib/features/settings/widgets/sales_tab.dart` — Sales settings tab
+- `lib/core/widgets/inactivity_detector.dart` — Inactivity timer + lock trigger
+- `lib/core/widgets/lock_overlay.dart` — Full-screen lock overlay with user selection + PIN
+
+### Modified
+- `lib/core/database/app_database.dart` — registered `CompanySettings` table (24 → 25 tables)
+- `lib/core/data/mappers/entity_mappers.dart` — `companySettingsFromEntity`, `companySettingsToCompanion`
+- `lib/core/data/mappers/supabase_mappers.dart` — `companySettingsToSupabaseJson`
+- `lib/core/data/mappers/supabase_pull_mappers.dart` — `company_settings` pull case
+- `lib/core/data/providers/repository_providers.dart` — `companySettingsRepositoryProvider`, `registerRepositoryProvider` now with syncQueueRepo
+- `lib/core/data/providers/sync_providers.dart` — `companySettingsRepositoryProvider` added to `companyRepos`
+- `lib/core/sync/sync_service.dart` — `company_settings` in pull tables + `_getDriftTable`
+- `lib/core/data/repositories/register_repository.dart` — `updateGrid()` with sync support
+- `lib/features/settings/screens/screen_settings.dart` — wired `SecurityTab` and `SalesTab`
+- `lib/features/bills/screens/screen_bills.dart` — PIN-skip logic in `_selectUser`
+- `lib/app.dart` — wrapped with `InactivityDetector`
+
+### Localization
+- Added 8 Czech keys: `settingsRequirePinOnSwitch`, `settingsAutoLockTimeout`, `settingsAutoLockDisabled`, `settingsAutoLockMinutes`, `settingsGridRows`, `settingsGridCols`, `lockScreenTitle`, `lockScreenSubtitle`
+
+### Documentation
+- `PROJECT.md` — added `company_settings` table, updated table counts (24→25), updated settings screen docs, updated sync table counts (22→23)
+
+---
+
 ## 2026-02-10 (Open Bills Warning + Z-Report Tracking)
 
 ### Features

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:drift/drift.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../database/app_database.dart';
 import '../../logging/app_logger.dart';
@@ -21,7 +22,9 @@ class CompanyRepository {
       final entity = await (_db.select(_db.companies)
             ..where((t) => t.id.equals(model.id)))
           .getSingle();
-      return Success(companyFromEntity(entity));
+      final created = companyFromEntity(entity);
+      await _enqueueCompany('insert', created);
+      return Success(created);
     } catch (e, s) {
       AppLogger.error('Failed to create company', error: e, stackTrace: s);
       return Failure('Failed to create company: $e');
@@ -110,6 +113,24 @@ class CompanyRepository {
           ..limit(1))
         .watchSingleOrNull()
         .map((e) => e == null ? null : companyFromEntity(e));
+  }
+
+  /// Pre-sync remote lookup — used during onboarding before initial sync.
+  Future<({String id, String name})?> findRemoteByAuthUserId(String authUserId) async {
+    try {
+      final supabase = Supabase.instance.client;
+      final rows = await supabase
+          .from('companies')
+          .select('id, name')
+          .eq('auth_user_id', authUserId)
+          .limit(1) as List<dynamic>;
+      if (rows.isEmpty) return null;
+      final row = rows.first as Map<String, dynamic>;
+      return (id: row['id'] as String, name: row['name'] as String);
+    } catch (e, s) {
+      AppLogger.error('Failed to find remote company', error: e, stackTrace: s);
+      return null;
+    }
   }
 
   Future<void> _enqueueCompany(String operation, CompanyModel m) async {

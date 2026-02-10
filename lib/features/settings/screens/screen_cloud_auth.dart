@@ -85,7 +85,7 @@ class _ScreenCloudAuthState extends ConsumerState<ScreenCloudAuth> {
     final company = ref.read(currentCompanyProvider);
     if (company == null) {
       setState(() {
-        _error = 'No company found';
+        _error = context.l10n.errorNoCompanyFound;
         _isLoading = false;
       });
       return;

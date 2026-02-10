@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../widgets/sales_tab.dart';
+import '../widgets/security_tab.dart';
 import 'screen_cloud_auth.dart';
 
 class ScreenSettings extends ConsumerWidget {
@@ -26,8 +28,8 @@ class ScreenSettings extends ConsumerWidget {
         ),
         body: TabBarView(
           children: [
-            Center(child: Text(l.settingsTabSecurity)),
-            Center(child: Text(l.settingsTabSales)),
+            const SecurityTab(),
+            const SalesTab(),
             const ScreenCloudAuth(),
           ],
         ),

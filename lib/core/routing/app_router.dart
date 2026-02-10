@@ -10,6 +10,7 @@ import '../../features/sell/screens/screen_sell.dart';
 import '../../features/settings/screens/screen_dev.dart';
 import '../../features/settings/screens/screen_settings.dart';
 import '../data/providers/auth_providers.dart';
+import '../data/providers/permission_providers.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -77,10 +78,20 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/settings',
+        redirect: (context, state) {
+          final hasPermission = ref.read(hasPermissionProvider('settings.manage'));
+          if (!hasPermission) return '/bills';
+          return null;
+        },
         builder: (context, state) => const ScreenSettings(),
       ),
       GoRoute(
         path: '/dev',
+        redirect: (context, state) {
+          final hasPermission = ref.read(hasPermissionProvider('settings.manage'));
+          if (!hasPermission) return '/bills';
+          return null;
+        },
         builder: (context, state) => const ScreenDev(),
       ),
     ],

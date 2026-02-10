@@ -5,6 +5,7 @@ import '../models/bill_model.dart';
 import '../models/cash_movement_model.dart';
 import '../models/category_model.dart';
 import '../models/company_model.dart';
+import '../models/company_settings_model.dart';
 import '../models/currency_model.dart';
 import '../models/item_model.dart';
 import '../models/layout_item_model.dart';
@@ -61,7 +62,26 @@ CompaniesCompanion companyToCompanion(CompanyModel m) => CompaniesCompanion.inse
       timezone: Value(m.timezone),
       businessType: Value(m.businessType),
       defaultCurrencyId: m.defaultCurrencyId,
-      authUserId: Value(m.authUserId),
+      authUserId: m.authUserId,
+    );
+
+// --- CompanySettings ---
+CompanySettingsModel companySettingsFromEntity(CompanySetting e) => CompanySettingsModel(
+      id: e.id,
+      companyId: e.companyId,
+      requirePinOnSwitch: e.requirePinOnSwitch,
+      autoLockTimeoutMinutes: e.autoLockTimeoutMinutes,
+      createdAt: e.createdAt,
+      updatedAt: e.updatedAt,
+      deletedAt: e.deletedAt,
+    );
+
+CompanySettingsCompanion companySettingsToCompanion(CompanySettingsModel m) =>
+    CompanySettingsCompanion.insert(
+      id: m.id,
+      companyId: m.companyId,
+      requirePinOnSwitch: Value(m.requirePinOnSwitch),
+      autoLockTimeoutMinutes: Value(m.autoLockTimeoutMinutes),
     );
 
 // --- Currency ---

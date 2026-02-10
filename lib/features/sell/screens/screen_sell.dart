@@ -28,6 +28,7 @@ class ScreenSell extends ConsumerStatefulWidget {
 class _ScreenSellState extends ConsumerState<ScreenSell> {
   final List<_CartItem> _cart = [];
   bool _editMode = false;
+  bool _isSubmitting = false;
   String? _categoryFilterId;
   String? _orderNotes;
 
@@ -61,7 +62,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, _) => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(child: Text('Error: $e')),
       ),
     );
   }
@@ -381,7 +382,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
       color: layoutItem.color != null
           ? Color(int.parse(layoutItem.color!.replaceFirst('#', 'FF'), radix: 16))
           : Theme.of(context).colorScheme.primaryContainer,
-      onTap: () => _addToCart(ref, item, companyId),
+      onTap: item.isSellable ? () => _addToCart(ref, item, companyId) : null,
     );
   }
 
@@ -516,30 +517,39 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
   }
 
   Future<void> _submitOrder(BuildContext context, WidgetRef ref) async {
-    final company = ref.read(currentCompanyProvider);
-    final user = ref.read(activeUserProvider);
-    if (company == null || user == null) return;
+    if (_isSubmitting) return;
+    setState(() => _isSubmitting = true);
+    try {
+      final company = ref.read(currentCompanyProvider);
+      final user = ref.read(activeUserProvider);
+      if (company == null || user == null) return;
 
-    final orderNumber = await _nextOrderNumber(ref);
-    final orderItems = await _buildOrderItems(ref);
+      final orderNumber = await _nextOrderNumber(ref);
+      final orderItems = await _buildOrderItems(ref);
 
-    final orderRepo = ref.read(orderRepositoryProvider);
-    final result = await orderRepo.createOrderWithItems(
-      companyId: company.id,
-      billId: widget.billId!,
-      userId: user.id,
-      orderNumber: orderNumber,
-      items: orderItems,
-      orderNotes: _orderNotes,
-    );
+      final orderRepo = ref.read(orderRepositoryProvider);
+      final result = await orderRepo.createOrderWithItems(
+        companyId: company.id,
+        billId: widget.billId!,
+        userId: user.id,
+        orderNumber: orderNumber,
+        items: orderItems,
+        orderNotes: _orderNotes,
+      );
 
-    if (result is Success) {
-      await ref.read(billRepositoryProvider).updateTotals(widget.billId!);
-      if (mounted) context.pop();
+      if (result is Success) {
+        await ref.read(billRepositoryProvider).updateTotals(widget.billId!);
+        if (mounted) context.pop();
+      }
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
     }
   }
 
   Future<void> _submitQuickSale(BuildContext context, WidgetRef ref) async {
+    if (_isSubmitting) return;
+    setState(() => _isSubmitting = true);
+    try {
     final company = ref.read(currentCompanyProvider);
     final user = ref.read(activeUserProvider);
     if (company == null || user == null) return;
@@ -589,6 +599,9 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
       await billRepo.cancelBill(bill.id);
       await billRepo.updateTotals(bill.id);
     }
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
   }
 }
 
@@ -609,10 +622,10 @@ class _CartItem {
 }
 
 class _ItemButton extends StatelessWidget {
-  const _ItemButton({required this.label, required this.color, required this.onTap});
+  const _ItemButton({required this.label, required this.color, this.onTap});
   final String label;
   final Color color;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {

@@ -203,14 +203,18 @@ class ZReportService {
 
   Future<List<ZReportSessionSummary>> getSessionSummaries(String companyId) async {
     final sessions = await registerSessionRepo.getClosedSessions(companyId);
+    final allBills = await billRepo.getByCompany(companyId);
+    final userCache = <String, String>{};
     final summaries = <ZReportSessionSummary>[];
 
     for (final session in sessions) {
-      final user = await userRepo.getById(session.openedByUserId);
-      final userName = user?.username ?? '-';
+      if (!userCache.containsKey(session.openedByUserId)) {
+        final user = await userRepo.getById(session.openedByUserId);
+        userCache[session.openedByUserId] = user?.username ?? '-';
+      }
+      final userName = userCache[session.openedByUserId]!;
 
       // Quick revenue: sum of paid bills totalGross in session range
-      final allBills = await billRepo.getByCompany(companyId);
       final sessionBills = allBills.where((b) =>
           b.closedAt != null && b.closedAt!.isAfter(session.openedAt) &&
           (session.closedAt == null || !b.closedAt!.isAfter(session.closedAt!)) &&

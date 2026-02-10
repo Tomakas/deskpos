@@ -13,7 +13,12 @@ DateTime? _parseDateTime(dynamic v) {
 DateTime _requireDateTime(dynamic v) => DateTime.parse(v as String);
 
 T _enumFromName<T extends Enum>(List<T> values, dynamic name) {
-  return values.firstWhere((e) => e.name == (name as String));
+  final str = name as String?;
+  if (str == null) throw ArgumentError('Null enum name for $T');
+  return values.firstWhere(
+    (e) => e.name == str,
+    orElse: () => throw ArgumentError('Unknown enum value "$str" for $T'),
+  );
 }
 
 /// Maps Supabase snake_case JSON -> Drift companion.
@@ -244,6 +249,20 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
         lastSyncedAt: Value(now),
       );
 
+    case 'company_settings':
+      return CompanySettingsCompanion(
+        id: Value(json['id'] as String),
+        companyId: Value(json['company_id'] as String),
+        requirePinOnSwitch: Value(json['require_pin_on_switch'] as bool? ?? true),
+        autoLockTimeoutMinutes: Value(json['auto_lock_timeout_minutes'] as int?),
+        createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
+        updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
+        deletedAt: Value(_parseDateTime(json['deleted_at'])),
+        serverCreatedAt: Value(_parseDateTime(json['created_at'])),
+        serverUpdatedAt: Value(_parseDateTime(json['updated_at'])),
+        lastSyncedAt: Value(now),
+      );
+
     case 'companies':
       return CompaniesCompanion(
         id: Value(json['id'] as String),
@@ -260,7 +279,7 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
         timezone: Value(json['timezone'] as String?),
         businessType: Value(json['business_type'] as String?),
         defaultCurrencyId: Value(json['default_currency_id'] as String),
-        authUserId: Value(json['auth_user_id'] as String?),
+        authUserId: Value(json['auth_user_id'] as String),
         createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
         updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
         deletedAt: Value(_parseDateTime(json['deleted_at'])),

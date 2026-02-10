@@ -9,16 +9,16 @@ AI-specific working guide for this codebase.
 This file instructs AI agents how to work safely with this codebase.
 
 - `CLAUDE.md` defines boundaries, assumptions, and safe defaults for AI agents.
-- `docs/PROJECT.md` is the authoritative DESIGN reference.
+- `PROJECT.md` is the authoritative DESIGN reference.
 - "Authoritative" means intended behavior, not guaranteed correctness.
 - The current implementation may contain bugs or incomplete features.
-- This file does NOT replace or duplicate `docs/PROJECT.md`.
+- This file does NOT replace or duplicate `PROJECT.md`.
 
 ---
 
 ## 2. Primary Documentation Reference
 
-**Authoritative design document:** `docs/PROJECT.md`
+**Authoritative design document:** `PROJECT.md`
 
 This document represents the intended architecture and behavior.
 
@@ -105,7 +105,7 @@ Read-only operations do NOT require confirmation.
 ### DO
 
 - Respect existing conventions even if verbose.
-- Follow patterns established in `docs/PROJECT.md`.
+- Follow patterns established in `PROJECT.md`.
 - Reference existing implementations before creating new ones.
 
 ---
@@ -214,7 +214,7 @@ After every SUCCESSFUL and MERGED logical change:
 
 If the change affects architecture, data flow, sync, auth, UI flows, or developer workflow:
 
-- Update `docs/PROJECT.md` accordingly.
+- Update `PROJECT.md` accordingly.
 - Keep updates minimal, factual, and consistent in tone.
 
 ### CHANGELOG.md Updates
@@ -246,7 +246,7 @@ Instead, Claude MUST provide a ready-to-copy commit message:
 
 - **Code, comments, logs:** English only.
 - **UI text:** Localization only via `context.l10n`.
-- **Naming conventions:** Follow `docs/PROJECT.md`.
+- **Naming conventions:** Follow `PROJECT.md`.
 - **Logging:** Use `AppLogger`, never `print()`.
 
 ---

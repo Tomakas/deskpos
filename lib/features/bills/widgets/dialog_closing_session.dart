@@ -414,7 +414,7 @@ class _DialogClosingSessionState extends State<DialogClosingSession> {
       children: [
         Expanded(
           child: SizedBox(
-            height: 36,
+            height: 40,
             child: FilledButton.tonal(
               onPressed: _showNoteDialog,
               style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 8)),
@@ -434,7 +434,7 @@ class _DialogClosingSessionState extends State<DialogClosingSession> {
         const SizedBox(width: 6),
         Expanded(
           child: SizedBox(
-            height: 36,
+            height: 40,
             child: OutlinedButton(
               onPressed: null,
               style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 8)),
@@ -445,7 +445,7 @@ class _DialogClosingSessionState extends State<DialogClosingSession> {
         const SizedBox(width: 6),
         Expanded(
           child: SizedBox(
-            height: 36,
+            height: 40,
             child: OutlinedButton(
               onPressed: () => Navigator.pop(context),
               style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 8)),
@@ -456,7 +456,7 @@ class _DialogClosingSessionState extends State<DialogClosingSession> {
         const SizedBox(width: 6),
         Expanded(
           child: SizedBox(
-            height: 36,
+            height: 40,
             child: FilledButton(
               style: FilledButton.styleFrom(
                 backgroundColor: Colors.green,

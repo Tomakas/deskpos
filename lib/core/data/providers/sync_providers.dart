@@ -50,6 +50,7 @@ final syncLifecycleManagerProvider = Provider<SyncLifecycleManager>((ref) {
     syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
     companyRepo: ref.watch(companyRepositoryProvider),
     companyRepos: [
+      ref.watch(companySettingsRepositoryProvider),
       ref.watch(sectionRepositoryProvider),
       ref.watch(categoryRepositoryProvider),
       ref.watch(itemRepositoryProvider),

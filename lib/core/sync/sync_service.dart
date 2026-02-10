@@ -41,6 +41,7 @@ class SyncService {
   static const _pullTables = [
     'currencies',
     'companies',
+    'company_settings',
     'roles',
     'permissions',
     'role_permissions',
@@ -74,6 +75,7 @@ class SyncService {
   void stop() {
     _pullTimer?.cancel();
     _pullTimer = null;
+    _isPulling = false;
   }
 
   Future<void> pullAll(String companyId) async {
@@ -144,7 +146,18 @@ class SyncService {
     String entityId,
     Map<String, dynamic> json,
   ) async {
-    final companion = fromSupabasePull(tableName, json);
+    final Insertable companion;
+    try {
+      companion = fromSupabasePull(tableName, json);
+    } catch (e, s) {
+      AppLogger.error(
+        'SyncService: failed to parse $tableName/$entityId, skipping row',
+        tag: 'SYNC',
+        error: e,
+        stackTrace: s,
+      );
+      return;
+    }
     final driftTable = _getDriftTable(tableName);
 
     // Check if entity exists locally
@@ -189,6 +202,8 @@ class SyncService {
         return _db.currencies;
       case 'companies':
         return _db.companies;
+      case 'company_settings':
+        return _db.companySettings;
       case 'roles':
         return _db.roles;
       case 'permissions':

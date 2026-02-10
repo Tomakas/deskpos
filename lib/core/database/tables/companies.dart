@@ -19,7 +19,7 @@ class Companies extends Table with SyncColumnsMixin {
   TextColumn get timezone => text().nullable()();
   TextColumn get businessType => text().nullable()();
   TextColumn get defaultCurrencyId => text()();
-  TextColumn get authUserId => text().nullable()();
+  TextColumn get authUserId => text()();
 
   @override
   Set<Column> get primaryKey => {id};

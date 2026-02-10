@@ -100,7 +100,7 @@ class OutboxProcessor {
   bool _isPermanentError(PostgrestException e) {
     final code = e.code;
     if (code == null) return false;
-    return code.startsWith('2') ||      // 23xxx constraint violations
+    return code.startsWith('23') ||     // 23xxx constraint violations
         code.startsWith('PGRST') ||     // PostgREST errors (PGRST116, PGRST204...)
         code.startsWith('42');          // syntax/access errors (42501, 42P01...)
   }

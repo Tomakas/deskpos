@@ -4,6 +4,7 @@ import '../models/bill_model.dart';
 import '../models/cash_movement_model.dart';
 import '../models/category_model.dart';
 import '../models/company_model.dart';
+import '../models/company_settings_model.dart';
 import '../models/currency_model.dart';
 import '../models/item_model.dart';
 import '../models/layout_item_model.dart';
@@ -163,7 +164,6 @@ Map<String, dynamic> userToSupabaseJson(UserModel m) => {
       'full_name': m.fullName,
       'email': m.email,
       'phone': m.phone,
-      'pin_hash': m.pinHash,
       'pin_enabled': m.pinEnabled,
       'role_id': m.roleId,
       'is_active': m.isActive,
@@ -256,6 +256,18 @@ Map<String, dynamic> paymentToSupabaseJson(PaymentModel m) => {
       'payment_provider': m.paymentProvider,
       'card_last4': m.cardLast4,
       'authorization_code': m.authorizationCode,
+    };
+
+Map<String, dynamic> companySettingsToSupabaseJson(CompanySettingsModel m) => {
+      ..._baseSyncFields(
+        id: m.id,
+        companyId: m.companyId,
+        createdAt: m.createdAt,
+        updatedAt: m.updatedAt,
+        deletedAt: m.deletedAt,
+      ),
+      'require_pin_on_switch': m.requirePinOnSwitch,
+      'auto_lock_timeout_minutes': m.autoLockTimeoutMinutes,
     };
 
 Map<String, dynamic> companyToSupabaseJson(CompanyModel m) => {

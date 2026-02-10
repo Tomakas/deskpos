@@ -8,6 +8,7 @@ import 'tables/bills.dart';
 import 'tables/cash_movements.dart';
 import 'tables/categories.dart';
 import 'tables/companies.dart';
+import 'tables/company_settings.dart';
 import 'tables/currencies.dart';
 import 'tables/items.dart';
 import 'tables/layout_items.dart';
@@ -36,6 +37,7 @@ part 'app_database.g.dart';
   CashMovements,
   Categories,
   Companies,
+  CompanySettings,
   Currencies,
   Items,
   LayoutItems,

@@ -10,6 +10,7 @@ class SyncQueue extends Table {
   TextColumn get entityId => text()();
   TextColumn get operation => text()();
   TextColumn get payload => text()();
+  TextColumn get idempotencyKey => text()();
   TextColumn get status => text().withDefault(const Constant('pending'))();
   TextColumn get errorMessage => text().nullable()();
   IntColumn get retryCount => integer().withDefault(const Constant(0))();

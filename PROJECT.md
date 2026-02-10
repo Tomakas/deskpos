@@ -338,13 +338,13 @@ lib/
 │   ├── data/                          # Globální datová vrstva
 │   │   ├── enums/                     # Dart enum definice (12 enumů + barrel)
 │   │   ├── mappers/                   # Entity ↔ Model mapování (3 soubory)
-│   │   ├── models/                    # Doménové modely (Freezed, 22 + interface)
+│   │   ├── models/                    # Doménové modely (Freezed, 23 + interface)
 │   │   ├── providers/                 # DI registrace (Riverpod, 5 souborů)
-│   │   ├── repositories/              # Repozitáře (21 souborů)
+│   │   ├── repositories/              # Repozitáře (22 souborů)
 │   │   └── services/                  # SeedService (onboarding seed)
 │   ├── database/                      # Drift databáze
-│   │   ├── app_database.dart          # @DriftDatabase (24 tabulek)
-│   │   └── tables/                    # Definice tabulek (25 souborů: 24 tabulek + mixin)
+│   │   ├── app_database.dart          # @DriftDatabase (25 tabulek)
+│   │   └── tables/                    # Definice tabulek (26 souborů: 25 tabulek + mixin)
 │   ├── routing/                       # GoRouter + auth guard (app_router.dart)
 │   ├── network/                       # Supabase konfigurace (URL, anon key)
 │   ├── sync/                          # Sync engine
@@ -438,9 +438,9 @@ Navíc každá tabulka definuje: `createdAt`, `updatedAt`, `deletedAt` (soft del
 
 #### Přehled tabulek
 
-##### Aktivní tabulky (24) — registrované v @DriftDatabase
+##### Aktivní tabulky (25) — registrované v @DriftDatabase
 
-**Doménové tabulky (22):**
+**Doménové tabulky (23):**
 
 | SQL tabulka | Drift Table | Drift Entity | Model |
 |-------------|-------------|--------------|-------|
@@ -448,6 +448,7 @@ Navíc každá tabulka definuje: `createdAt`, `updatedAt`, `deletedAt` (soft del
 | `cash_movements` | `CashMovements` | `CashMovement` | `CashMovementModel` |
 | `categories` | `Categories` | `Category` | `CategoryModel` |
 | `companies` | `Companies` | `Company` | `CompanyModel` |
+| `company_settings` | `CompanySettings` | `CompanySetting` | `CompanySettingsModel` |
 | `currencies` | `Currencies` | `Currency` | `CurrencyModel` |
 | `items` | `Items` | `Item` | `ItemModel` |
 | `layout_items` | `LayoutItems` | `LayoutItem` | `LayoutItemModel` |
@@ -528,6 +529,7 @@ Všechny aktivní tabulky obsahují společné sync sloupce (viz [SyncColumnsMix
 | Tabulka | Sloupce |
 |---------|---------|
 | **companies** | id (T), name (T), status (T), business_id (T), address (T), phone (T), email (T), vat_number (T), country (T), city (T), postal_code (T), timezone (T), business_type (T), default_currency_id →currencies, auth_user_id (T) |
+| **company_settings** | id (T), company_id →companies, require_pin_on_switch (B, default true), auto_lock_timeout_minutes (I?) |
 | **users** | id (T), company_id →companies, auth_user_id (T), username (T), full_name (T), email (T), phone (T), pin_hash (T), pin_enabled (B), role_id →roles, is_active (B) |
 | **roles** | id (T), name (T) |
 | **permissions** | id (T), code (T), name (T), description (T), category (T) |
@@ -649,7 +651,7 @@ Hodnoty ENUM jsou uloženy jako `TEXT` v lokální SQLite databázi. Drift `text
 
 ## Synchronizace (Etapa 3 — částečně implementováno)
 
-> **Stav implementace:** Sync infrastruktura je funkční pro všech 22 doménových tabulek. Konfigurační entity (sections, categories, items, tables, payment_methods, tax_rates, users) dědí z `BaseCompanyScopedRepository` s automatickým outbox zápisem v transakci. Prodejní a provozní entity (bills, orders, order_items, payments, register_sessions, cash_movements, layout_items, user_permissions, shifts) používají ruční enqueue — vlastní repozitáře s injektovaným `SyncQueueRepository` a explicitním `_enqueue*` voláním po každé mutaci. Globální tabulky (currencies, roles, permissions, role_permissions) se pullují bez company_id filtru a pushují při initial sync. SyncService pulluje všech 22 tabulek v FK-respektujícím pořadí. ConnectCompanyScreen umožňuje připojení nového zařízení k existující firmě stažením dat přes InitialSync (pullAll).
+> **Stav implementace:** Sync infrastruktura je funkční pro všech 23 doménových tabulek. Konfigurační entity (sections, categories, items, tables, payment_methods, tax_rates, users) dědí z `BaseCompanyScopedRepository` s automatickým outbox zápisem v transakci. Prodejní a provozní entity (bills, orders, order_items, payments, register_sessions, cash_movements, layout_items, user_permissions, shifts) používají ruční enqueue — vlastní repozitáře s injektovaným `SyncQueueRepository` a explicitním `_enqueue*` voláním po každé mutaci. Globální tabulky (currencies, roles, permissions, role_permissions) se pullují bez company_id filtru a pushují při initial sync. SyncService pulluje všech 23 tabulek v FK-respektujícím pořadí. ConnectCompanyScreen umožňuje připojení nového zařízení k existující firmě stažením dat přes InitialSync (pullAll).
 
 ### Outbox Pattern
 
@@ -1626,8 +1628,8 @@ Layout: **3 taby**
 
 | Tab | Obsah |
 |-----|-------|
-| Zabezpečení | Placeholder (zatím prázdný) |
-| Prodej | Placeholder (zatím prázdný) |
+| Zabezpečení | `SecurityTab` — toggle PIN při přepínání obsluhy (`require_pin_on_switch`), dropdown auto-lock timeout (`auto_lock_timeout_minutes`: vypnuto / 1–30 min) |
+| Prodej | `SalesTab` — editace grid rows/cols aktivní pokladny |
 | Cloud | `ScreenCloudAuth` — připojení/odpojení Supabase sync (email/heslo, sign in/up/out) |
 
 #### ScreenDev (`/dev`) — Správa dat

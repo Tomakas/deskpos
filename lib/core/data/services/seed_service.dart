@@ -77,6 +77,7 @@ class SeedService {
           email: email,
           phone: phone,
           defaultCurrencyId: currencyId,
+          authUserId: '',
           createdAt: now,
           updatedAt: now,
         );

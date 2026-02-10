@@ -433,5 +433,22 @@
   "closingOpenBillsContinue": "Pokračovat",
   "closingOpenBills": "Otevřené účty",
   "zReportOpenBillsAtOpen": "Otevřené účty (začátek)",
-  "zReportOpenBillsAtClose": "Otevřené účty (konec)"
+  "zReportOpenBillsAtClose": "Otevřené účty (konec)",
+
+  "settingsRequirePinOnSwitch": "Vyžadovat PIN při přepínání obsluhy",
+  "settingsAutoLockTimeout": "Automatické zamčení po nečinnosti",
+  "settingsAutoLockDisabled": "Vypnuto",
+  "settingsAutoLockMinutes": "{minutes} min",
+  "@settingsAutoLockMinutes": {
+    "placeholders": {
+      "minutes": { "type": "int" }
+    }
+  },
+  "settingsGridRows": "Řádky gridu",
+  "settingsGridCols": "Sloupce gridu",
+  "lockScreenTitle": "Zamčeno",
+  "lockScreenSubtitle": "Vyberte uživatele pro odemčení",
+
+  "autoCorrection": "Automatická korekce: počáteční hotovost se liší od předchozí uzávěrky",
+  "errorNoCompanyFound": "Firma nenalezena"
 }
