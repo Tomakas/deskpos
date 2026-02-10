@@ -29,6 +29,7 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
         name: Value(json['name'] as String),
         color: Value(json['color'] as String?),
         isActive: Value(json['is_active'] as bool? ?? true),
+        isDefault: Value(json['is_default'] as bool? ?? false),
         createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
         updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
         deletedAt: Value(_parseDateTime(json['deleted_at'])),

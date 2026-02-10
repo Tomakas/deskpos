@@ -73,6 +73,7 @@ Map<String, dynamic> sectionToSupabaseJson(SectionModel m) => {
       'name': m.name,
       'color': m.color,
       'is_active': m.isActive,
+      'is_default': m.isDefault,
     };
 
 Map<String, dynamic> categoryToSupabaseJson(CategoryModel m) => {

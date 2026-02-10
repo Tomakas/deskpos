@@ -12,6 +12,7 @@ class SectionModel with _$SectionModel implements CompanyScopedModel {
     required String name,
     String? color,
     @Default(true) bool isActive,
+    @Default(false) bool isDefault,
     required DateTime createdAt,
     required DateTime updatedAt,
     DateTime? deletedAt,

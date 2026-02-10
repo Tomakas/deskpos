@@ -1,5 +1,36 @@
 # Changelog
 
+## 2026-02-10 (late night)
+
+### SectionModel.isDefault — výchozí sekce
+
+#### Schema
+- **sections**: Added `is_default` boolean column (default false) — max 1 per company
+
+#### Models & Mappers
+- **SectionModel**: +`isDefault` field (default false)
+- **Entity mappers**: Added `isDefault` to `sectionFromEntity` and `sectionToCompanion`
+- **Push mappers**: Added `'is_default': m.isDefault` to `sectionToSupabaseJson`
+- **Pull mappers**: Added `isDefault: Value(json['is_default'] as bool? ?? false)` to sections case
+
+#### Repository
+- **SectionRepository**: Added `clearDefault(companyId, {exceptId})` — resets all other sections' isDefault to false. Added `isDefault: Value(m.isDefault)` to `toUpdateCompanion`.
+
+#### UI
+- **SectionsTab** (ScreenDev): Added "Výchozí" column to DataTable (icon), added SwitchListTile in edit dialog, clearDefault on save
+- **DialogNewBill**: Pre-selects default section (`isDefault=true`) on dialog open via `addPostFrameCallback`
+
+### Documentation
+- **PROJECT.md**: Comprehensive audit and update of entire document (~30 corrections):
+  - Fixed sync pull count (22→21 tables — matches actual `_pullTables`)
+  - Fixed FilterChip layout description (Wrap→Row with Expanded)
+  - Updated ScreenBills right panel (all 4 button rows, info panel details, session toggle)
+  - Rewrote DialogBillDetail layout (750×520, 3-row structure, status indicator, conditional footer)
+  - Added DialogPayment section (3-column click-to-pay, payment method buttons)
+  - Fixed DialogBillDetail button table (added STORNO, corrected ZAVŘÍT description)
+  - Fixed ConnectCompanyScreen pull order (removed duplicated tables)
+  - Updated sections columns (added is_default)
+
 ## 2026-02-10 (night)
 
 ### Task3.11 + Task3.12 — Cash Management (Milník 3.3)

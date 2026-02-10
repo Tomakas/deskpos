@@ -150,8 +150,6 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
     if (createResult is Success<BillModel> && mounted) {
       if (result.navigateToSell) {
         context.push('/sell/${createResult.value.id}');
-      } else {
-        _openBillDetail(context, createResult.value);
       }
     }
   }

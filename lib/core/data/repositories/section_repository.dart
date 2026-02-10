@@ -44,6 +44,7 @@ class SectionRepository
         name: Value(m.name),
         color: Value(m.color),
         isActive: Value(m.isActive),
+        isDefault: Value(m.isDefault),
         updatedAt: Value(DateTime.now()),
       );
 
@@ -52,4 +53,16 @@ class SectionRepository
         deletedAt: Value(now),
         updatedAt: Value(now),
       );
+
+  Future<void> clearDefault(String companyId, {String? exceptId}) async {
+    final query = db.update(db.sections)
+      ..where((t) => t.companyId.equals(companyId) & t.isDefault.equals(true) & t.deletedAt.isNull());
+    if (exceptId != null) {
+      query.where((t) => t.id.equals(exceptId).not());
+    }
+    await query.write(SectionsCompanion(
+      isDefault: const Value(false),
+      updatedAt: Value(DateTime.now()),
+    ));
+  }
 }

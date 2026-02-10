@@ -34,6 +34,16 @@ class _DialogNewBillState extends ConsumerState<DialogNewBill> {
             stream: ref.watch(sectionRepositoryProvider).watchAll(company.id),
             builder: (context, sectionSnap) {
               final sections = sectionSnap.data ?? [];
+              if (_selectedSectionId == null && sections.isNotEmpty) {
+                final defaultSection = sections.where((s) => s.isDefault).firstOrNull;
+                if (defaultSection != null) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted && _selectedSectionId == null) {
+                      setState(() => _selectedSectionId = defaultSection.id);
+                    }
+                  });
+                }
+              }
               return StreamBuilder<List<TableModel>>(
                 stream: ref.watch(tableRepositoryProvider).watchAll(company.id),
                 builder: (context, tableSnap) {

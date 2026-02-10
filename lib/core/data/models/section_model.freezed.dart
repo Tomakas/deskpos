@@ -22,6 +22,7 @@ mixin _$SectionModel {
   String get name => throw _privateConstructorUsedError;
   String? get color => throw _privateConstructorUsedError;
   bool get isActive => throw _privateConstructorUsedError;
+  bool get isDefault => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
   DateTime get updatedAt => throw _privateConstructorUsedError;
   DateTime? get deletedAt => throw _privateConstructorUsedError;
@@ -46,6 +47,7 @@ abstract class $SectionModelCopyWith<$Res> {
     String name,
     String? color,
     bool isActive,
+    bool isDefault,
     DateTime createdAt,
     DateTime updatedAt,
     DateTime? deletedAt,
@@ -72,6 +74,7 @@ class _$SectionModelCopyWithImpl<$Res, $Val extends SectionModel>
     Object? name = null,
     Object? color = freezed,
     Object? isActive = null,
+    Object? isDefault = null,
     Object? createdAt = null,
     Object? updatedAt = null,
     Object? deletedAt = freezed,
@@ -97,6 +100,10 @@ class _$SectionModelCopyWithImpl<$Res, $Val extends SectionModel>
             isActive: null == isActive
                 ? _value.isActive
                 : isActive // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            isDefault: null == isDefault
+                ? _value.isDefault
+                : isDefault // ignore: cast_nullable_to_non_nullable
                       as bool,
             createdAt: null == createdAt
                 ? _value.createdAt
@@ -131,6 +138,7 @@ abstract class _$$SectionModelImplCopyWith<$Res>
     String name,
     String? color,
     bool isActive,
+    bool isDefault,
     DateTime createdAt,
     DateTime updatedAt,
     DateTime? deletedAt,
@@ -156,6 +164,7 @@ class __$$SectionModelImplCopyWithImpl<$Res>
     Object? name = null,
     Object? color = freezed,
     Object? isActive = null,
+    Object? isDefault = null,
     Object? createdAt = null,
     Object? updatedAt = null,
     Object? deletedAt = freezed,
@@ -181,6 +190,10 @@ class __$$SectionModelImplCopyWithImpl<$Res>
         isActive: null == isActive
             ? _value.isActive
             : isActive // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        isDefault: null == isDefault
+            ? _value.isDefault
+            : isDefault // ignore: cast_nullable_to_non_nullable
                   as bool,
         createdAt: null == createdAt
             ? _value.createdAt
@@ -208,6 +221,7 @@ class _$SectionModelImpl implements _SectionModel {
     required this.name,
     this.color,
     this.isActive = true,
+    this.isDefault = false,
     required this.createdAt,
     required this.updatedAt,
     this.deletedAt,
@@ -225,6 +239,9 @@ class _$SectionModelImpl implements _SectionModel {
   @JsonKey()
   final bool isActive;
   @override
+  @JsonKey()
+  final bool isDefault;
+  @override
   final DateTime createdAt;
   @override
   final DateTime updatedAt;
@@ -233,7 +250,7 @@ class _$SectionModelImpl implements _SectionModel {
 
   @override
   String toString() {
-    return 'SectionModel(id: $id, companyId: $companyId, name: $name, color: $color, isActive: $isActive, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+    return 'SectionModel(id: $id, companyId: $companyId, name: $name, color: $color, isActive: $isActive, isDefault: $isDefault, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
   }
 
   @override
@@ -248,6 +265,8 @@ class _$SectionModelImpl implements _SectionModel {
             (identical(other.color, color) || other.color == color) &&
             (identical(other.isActive, isActive) ||
                 other.isActive == isActive) &&
+            (identical(other.isDefault, isDefault) ||
+                other.isDefault == isDefault) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.updatedAt, updatedAt) ||
@@ -264,6 +283,7 @@ class _$SectionModelImpl implements _SectionModel {
     name,
     color,
     isActive,
+    isDefault,
     createdAt,
     updatedAt,
     deletedAt,
@@ -285,6 +305,7 @@ abstract class _SectionModel implements SectionModel {
     required final String name,
     final String? color,
     final bool isActive,
+    final bool isDefault,
     required final DateTime createdAt,
     required final DateTime updatedAt,
     final DateTime? deletedAt,
@@ -300,6 +321,8 @@ abstract class _SectionModel implements SectionModel {
   String? get color;
   @override
   bool get isActive;
+  @override
+  bool get isDefault;
   @override
   DateTime get createdAt;
   @override

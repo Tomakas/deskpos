@@ -443,6 +443,7 @@ SectionModel sectionFromEntity(Section e) => SectionModel(
       name: e.name,
       color: e.color,
       isActive: e.isActive,
+      isDefault: e.isDefault,
       createdAt: e.createdAt,
       updatedAt: e.updatedAt,
       deletedAt: e.deletedAt,
@@ -454,6 +455,7 @@ SectionsCompanion sectionToCompanion(SectionModel m) => SectionsCompanion.insert
       name: m.name,
       color: Value(m.color),
       isActive: Value(m.isActive),
+      isDefault: Value(m.isDefault),
     );
 
 // --- LayoutItem ---

@@ -43,6 +43,7 @@ class SectionsTab extends ConsumerWidget {
                     DataColumn(label: Text(l.fieldName)),
                     DataColumn(label: Text(l.fieldColor)),
                     DataColumn(label: Text(l.fieldActive)),
+                    DataColumn(label: Text(l.fieldDefault)),
                     DataColumn(label: Text(l.fieldActions)),
                   ],
                   rows: sections
@@ -63,6 +64,11 @@ class SectionsTab extends ConsumerWidget {
                             DataCell(Icon(
                               s.isActive ? Icons.check_circle : Icons.cancel,
                               color: s.isActive ? Colors.green : Colors.grey,
+                              size: 20,
+                            )),
+                            DataCell(Icon(
+                              s.isDefault ? Icons.check_circle : Icons.radio_button_unchecked,
+                              color: s.isDefault ? Colors.green : Colors.grey,
                               size: 20,
                             )),
                             DataCell(Row(
@@ -101,6 +107,7 @@ class SectionsTab extends ConsumerWidget {
     final nameCtrl = TextEditingController(text: existing?.name ?? '');
     final colorCtrl = TextEditingController(text: existing?.color ?? '');
     var isActive = existing?.isActive ?? true;
+    var isDefault = existing?.isDefault ?? false;
 
     final result = await showDialog<bool>(
       context: context,
@@ -127,6 +134,11 @@ class SectionsTab extends ConsumerWidget {
                   value: isActive,
                   onChanged: (v) => setDialogState(() => isActive = v),
                 ),
+                SwitchListTile(
+                  title: Text(l.fieldDefault),
+                  value: isDefault,
+                  onChanged: (v) => setDialogState(() => isDefault = v),
+                ),
               ],
             ),
           ),
@@ -145,18 +157,23 @@ class SectionsTab extends ConsumerWidget {
     final now = DateTime.now();
 
     if (existing != null) {
+      if (isDefault) await repo.clearDefault(company.id, exceptId: existing.id);
       await repo.update(existing.copyWith(
         name: nameCtrl.text.trim(),
         color: colorCtrl.text.trim().isEmpty ? null : colorCtrl.text.trim(),
         isActive: isActive,
+        isDefault: isDefault,
       ));
     } else {
+      final id = const Uuid().v7();
+      if (isDefault) await repo.clearDefault(company.id, exceptId: id);
       await repo.create(SectionModel(
-        id: const Uuid().v7(),
+        id: id,
         companyId: company.id,
         name: nameCtrl.text.trim(),
         color: colorCtrl.text.trim().isEmpty ? null : colorCtrl.text.trim(),
         isActive: isActive,
+        isDefault: isDefault,
         createdAt: now,
         updatedAt: now,
       ));

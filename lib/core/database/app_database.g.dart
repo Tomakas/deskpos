@@ -15032,6 +15032,21 @@ class $SectionsTable extends Sections with TableInfo<$SectionsTable, Section> {
     ),
     defaultValue: const Constant(true),
   );
+  static const VerificationMeta _isDefaultMeta = const VerificationMeta(
+    'isDefault',
+  );
+  @override
+  late final GeneratedColumn<bool> isDefault = GeneratedColumn<bool>(
+    'is_default',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_default" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     lastSyncedAt,
@@ -15046,6 +15061,7 @@ class $SectionsTable extends Sections with TableInfo<$SectionsTable, Section> {
     name,
     color,
     isActive,
+    isDefault,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -15143,6 +15159,12 @@ class $SectionsTable extends Sections with TableInfo<$SectionsTable, Section> {
         isActive.isAcceptableOrUnknown(data['is_active']!, _isActiveMeta),
       );
     }
+    if (data.containsKey('is_default')) {
+      context.handle(
+        _isDefaultMeta,
+        isDefault.isAcceptableOrUnknown(data['is_default']!, _isDefaultMeta),
+      );
+    }
     return context;
   }
 
@@ -15200,6 +15222,10 @@ class $SectionsTable extends Sections with TableInfo<$SectionsTable, Section> {
         DriftSqlType.bool,
         data['${effectivePrefix}is_active'],
       )!,
+      isDefault: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_default'],
+      )!,
     );
   }
 
@@ -15222,6 +15248,7 @@ class Section extends DataClass implements Insertable<Section> {
   final String name;
   final String? color;
   final bool isActive;
+  final bool isDefault;
   const Section({
     this.lastSyncedAt,
     required this.version,
@@ -15235,6 +15262,7 @@ class Section extends DataClass implements Insertable<Section> {
     required this.name,
     this.color,
     required this.isActive,
+    required this.isDefault,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -15261,6 +15289,7 @@ class Section extends DataClass implements Insertable<Section> {
       map['color'] = Variable<String>(color);
     }
     map['is_active'] = Variable<bool>(isActive);
+    map['is_default'] = Variable<bool>(isDefault);
     return map;
   }
 
@@ -15288,6 +15317,7 @@ class Section extends DataClass implements Insertable<Section> {
           ? const Value.absent()
           : Value(color),
       isActive: Value(isActive),
+      isDefault: Value(isDefault),
     );
   }
 
@@ -15309,6 +15339,7 @@ class Section extends DataClass implements Insertable<Section> {
       name: serializer.fromJson<String>(json['name']),
       color: serializer.fromJson<String?>(json['color']),
       isActive: serializer.fromJson<bool>(json['isActive']),
+      isDefault: serializer.fromJson<bool>(json['isDefault']),
     );
   }
   @override
@@ -15327,6 +15358,7 @@ class Section extends DataClass implements Insertable<Section> {
       'name': serializer.toJson<String>(name),
       'color': serializer.toJson<String?>(color),
       'isActive': serializer.toJson<bool>(isActive),
+      'isDefault': serializer.toJson<bool>(isDefault),
     };
   }
 
@@ -15343,6 +15375,7 @@ class Section extends DataClass implements Insertable<Section> {
     String? name,
     Value<String?> color = const Value.absent(),
     bool? isActive,
+    bool? isDefault,
   }) => Section(
     lastSyncedAt: lastSyncedAt.present ? lastSyncedAt.value : this.lastSyncedAt,
     version: version ?? this.version,
@@ -15360,6 +15393,7 @@ class Section extends DataClass implements Insertable<Section> {
     name: name ?? this.name,
     color: color.present ? color.value : this.color,
     isActive: isActive ?? this.isActive,
+    isDefault: isDefault ?? this.isDefault,
   );
   Section copyWithCompanion(SectionsCompanion data) {
     return Section(
@@ -15381,6 +15415,7 @@ class Section extends DataClass implements Insertable<Section> {
       name: data.name.present ? data.name.value : this.name,
       color: data.color.present ? data.color.value : this.color,
       isActive: data.isActive.present ? data.isActive.value : this.isActive,
+      isDefault: data.isDefault.present ? data.isDefault.value : this.isDefault,
     );
   }
 
@@ -15398,7 +15433,8 @@ class Section extends DataClass implements Insertable<Section> {
           ..write('companyId: $companyId, ')
           ..write('name: $name, ')
           ..write('color: $color, ')
-          ..write('isActive: $isActive')
+          ..write('isActive: $isActive, ')
+          ..write('isDefault: $isDefault')
           ..write(')'))
         .toString();
   }
@@ -15417,6 +15453,7 @@ class Section extends DataClass implements Insertable<Section> {
     name,
     color,
     isActive,
+    isDefault,
   );
   @override
   bool operator ==(Object other) =>
@@ -15433,7 +15470,8 @@ class Section extends DataClass implements Insertable<Section> {
           other.companyId == this.companyId &&
           other.name == this.name &&
           other.color == this.color &&
-          other.isActive == this.isActive);
+          other.isActive == this.isActive &&
+          other.isDefault == this.isDefault);
 }
 
 class SectionsCompanion extends UpdateCompanion<Section> {
@@ -15449,6 +15487,7 @@ class SectionsCompanion extends UpdateCompanion<Section> {
   final Value<String> name;
   final Value<String?> color;
   final Value<bool> isActive;
+  final Value<bool> isDefault;
   final Value<int> rowid;
   const SectionsCompanion({
     this.lastSyncedAt = const Value.absent(),
@@ -15463,6 +15502,7 @@ class SectionsCompanion extends UpdateCompanion<Section> {
     this.name = const Value.absent(),
     this.color = const Value.absent(),
     this.isActive = const Value.absent(),
+    this.isDefault = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   SectionsCompanion.insert({
@@ -15478,6 +15518,7 @@ class SectionsCompanion extends UpdateCompanion<Section> {
     required String name,
     this.color = const Value.absent(),
     this.isActive = const Value.absent(),
+    this.isDefault = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        companyId = Value(companyId),
@@ -15495,6 +15536,7 @@ class SectionsCompanion extends UpdateCompanion<Section> {
     Expression<String>? name,
     Expression<String>? color,
     Expression<bool>? isActive,
+    Expression<bool>? isDefault,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -15510,6 +15552,7 @@ class SectionsCompanion extends UpdateCompanion<Section> {
       if (name != null) 'name': name,
       if (color != null) 'color': color,
       if (isActive != null) 'is_active': isActive,
+      if (isDefault != null) 'is_default': isDefault,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -15527,6 +15570,7 @@ class SectionsCompanion extends UpdateCompanion<Section> {
     Value<String>? name,
     Value<String?>? color,
     Value<bool>? isActive,
+    Value<bool>? isDefault,
     Value<int>? rowid,
   }) {
     return SectionsCompanion(
@@ -15542,6 +15586,7 @@ class SectionsCompanion extends UpdateCompanion<Section> {
       name: name ?? this.name,
       color: color ?? this.color,
       isActive: isActive ?? this.isActive,
+      isDefault: isDefault ?? this.isDefault,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -15585,6 +15630,9 @@ class SectionsCompanion extends UpdateCompanion<Section> {
     if (isActive.present) {
       map['is_active'] = Variable<bool>(isActive.value);
     }
+    if (isDefault.present) {
+      map['is_default'] = Variable<bool>(isDefault.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -15606,6 +15654,7 @@ class SectionsCompanion extends UpdateCompanion<Section> {
           ..write('name: $name, ')
           ..write('color: $color, ')
           ..write('isActive: $isActive, ')
+          ..write('isDefault: $isDefault, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -26880,6 +26929,7 @@ typedef $$SectionsTableCreateCompanionBuilder =
       required String name,
       Value<String?> color,
       Value<bool> isActive,
+      Value<bool> isDefault,
       Value<int> rowid,
     });
 typedef $$SectionsTableUpdateCompanionBuilder =
@@ -26896,6 +26946,7 @@ typedef $$SectionsTableUpdateCompanionBuilder =
       Value<String> name,
       Value<String?> color,
       Value<bool> isActive,
+      Value<bool> isDefault,
       Value<int> rowid,
     });
 
@@ -26965,6 +27016,11 @@ class $$SectionsTableFilterComposer
 
   ColumnFilters<bool> get isActive => $composableBuilder(
     column: $table.isActive,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isDefault => $composableBuilder(
+    column: $table.isDefault,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -27037,6 +27093,11 @@ class $$SectionsTableOrderingComposer
     column: $table.isActive,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get isDefault => $composableBuilder(
+    column: $table.isDefault,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$SectionsTableAnnotationComposer
@@ -27089,6 +27150,9 @@ class $$SectionsTableAnnotationComposer
 
   GeneratedColumn<bool> get isActive =>
       $composableBuilder(column: $table.isActive, builder: (column) => column);
+
+  GeneratedColumn<bool> get isDefault =>
+      $composableBuilder(column: $table.isDefault, builder: (column) => column);
 }
 
 class $$SectionsTableTableManager
@@ -27131,6 +27195,7 @@ class $$SectionsTableTableManager
                 Value<String> name = const Value.absent(),
                 Value<String?> color = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
+                Value<bool> isDefault = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => SectionsCompanion(
                 lastSyncedAt: lastSyncedAt,
@@ -27145,6 +27210,7 @@ class $$SectionsTableTableManager
                 name: name,
                 color: color,
                 isActive: isActive,
+                isDefault: isDefault,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -27161,6 +27227,7 @@ class $$SectionsTableTableManager
                 required String name,
                 Value<String?> color = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
+                Value<bool> isDefault = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => SectionsCompanion.insert(
                 lastSyncedAt: lastSyncedAt,
@@ -27175,6 +27242,7 @@ class $$SectionsTableTableManager
                 name: name,
                 color: color,
                 isActive: isActive,
+                isDefault: isDefault,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
