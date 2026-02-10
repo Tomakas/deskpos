@@ -614,7 +614,19 @@ class AppLocalizationsCs extends AppLocalizations {
   String get moreSettings => 'Nastavení';
 
   @override
+  String get moreCompanySettings => 'Nastavení firmy';
+
+  @override
+  String get moreRegisterSettings => 'Nastavení pokladny';
+
+  @override
   String get moreDev => 'Dev';
+
+  @override
+  String get settingsCompanyTitle => 'Nastavení firmy';
+
+  @override
+  String get settingsRegisterTitle => 'Nastavení pokladny';
 
   @override
   String get settingsTabCompany => 'Firma';

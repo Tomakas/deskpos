@@ -3,25 +3,23 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../widgets/company_tab.dart';
-import '../widgets/register_tab.dart';
 import '../widgets/users_tab.dart';
 
-class ScreenSettings extends ConsumerWidget {
-  const ScreenSettings({super.key});
+class ScreenCompanySettings extends ConsumerWidget {
+  const ScreenCompanySettings({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
 
     return DefaultTabController(
-      length: 3,
+      length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: Text(l.settingsTitle),
+          title: Text(l.settingsCompanyTitle),
           bottom: TabBar(
             tabs: [
               Tab(text: l.settingsTabCompany),
-              Tab(text: l.settingsTabRegister),
               Tab(text: l.settingsTabUsers),
             ],
           ),
@@ -29,7 +27,6 @@ class ScreenSettings extends ConsumerWidget {
         body: const TabBarView(
           children: [
             CompanyTab(),
-            RegisterTab(),
             UsersTab(),
           ],
         ),

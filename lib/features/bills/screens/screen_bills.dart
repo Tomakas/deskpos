@@ -1066,15 +1066,18 @@ void _showMoreMenu(BuildContext btnContext, bool canManageSettings, {VoidCallbac
         PopupMenuItem(enabled: false, height: 48, child: Text(l.moreShifts)),
       PopupMenuItem(enabled: false, height: 48, child: Text(l.moreStatistics)),
       PopupMenuItem(enabled: false, height: 48, child: Text(l.moreReservations)),
-      PopupMenuItem(value: 'settings', height: 48, child: Text(l.moreSettings)),
+      PopupMenuItem(value: 'company-settings', height: 48, child: Text(l.moreCompanySettings)),
+      PopupMenuItem(value: 'register-settings', height: 48, child: Text(l.moreRegisterSettings)),
       if (canManageSettings)
         PopupMenuItem(value: 'dev', height: 48, child: Text(l.moreDev)),
     ],
   ).then((value) {
     if (value == null || !btnContext.mounted) return;
     switch (value) {
-      case 'settings':
-        btnContext.push('/settings');
+      case 'company-settings':
+        btnContext.push('/settings/company');
+      case 'register-settings':
+        btnContext.push('/settings/register');
       case 'dev':
         btnContext.push('/dev');
       case 'z-reports':

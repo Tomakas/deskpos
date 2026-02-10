@@ -263,8 +263,12 @@
   "moreStatistics": "Statistiky",
   "moreReservations": "Rezervace",
   "moreSettings": "Nastavení",
+  "moreCompanySettings": "Nastavení firmy",
+  "moreRegisterSettings": "Nastavení pokladny",
   "moreDev": "Dev",
 
+  "settingsCompanyTitle": "Nastavení firmy",
+  "settingsRegisterTitle": "Nastavení pokladny",
   "settingsTabCompany": "Firma",
   "settingsTabRegister": "Pokladna",
   "settingsTabUsers": "Uživatelé",

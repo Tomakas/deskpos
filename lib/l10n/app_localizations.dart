@@ -1258,11 +1258,35 @@ abstract class AppLocalizations {
   /// **'Nastavení'**
   String get moreSettings;
 
+  /// No description provided for @moreCompanySettings.
+  ///
+  /// In cs, this message translates to:
+  /// **'Nastavení firmy'**
+  String get moreCompanySettings;
+
+  /// No description provided for @moreRegisterSettings.
+  ///
+  /// In cs, this message translates to:
+  /// **'Nastavení pokladny'**
+  String get moreRegisterSettings;
+
   /// No description provided for @moreDev.
   ///
   /// In cs, this message translates to:
   /// **'Dev'**
   String get moreDev;
+
+  /// No description provided for @settingsCompanyTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Nastavení firmy'**
+  String get settingsCompanyTitle;
+
+  /// No description provided for @settingsRegisterTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Nastavení pokladny'**
+  String get settingsRegisterTitle;
 
   /// No description provided for @settingsTabCompany.
   ///
