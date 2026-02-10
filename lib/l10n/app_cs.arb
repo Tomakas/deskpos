@@ -289,10 +289,23 @@
   "connectCompanySyncComplete": "Synchronizace dokončena",
   "connectCompanySyncFailed": "Synchronizace selhala",
 
+  "cashJournalTitle": "Pokladní deník",
+  "cashJournalBalance": "Hotovost v pokladně:",
+  "cashJournalFilterDeposits": "Vklady",
+  "cashJournalFilterWithdrawals": "Výběry",
+  "cashJournalFilterSales": "Prodeje",
+  "cashJournalAddMovement": "Zapsat změnu",
+  "cashJournalColumnTime": "Čas",
+  "cashJournalColumnType": "Typ",
+  "cashJournalColumnAmount": "Částka",
+  "cashJournalColumnNote": "Poznámka",
+  "cashJournalEmpty": "Žádné záznamy",
+
   "cashMovementTitle": "Změna stavu hotovosti",
   "cashMovementAmount": "Částka:",
   "cashMovementDeposit": "Vklad",
   "cashMovementWithdrawal": "Výběr",
+  "cashMovementSale": "Prodej",
   "cashMovementNote": "Poznámka",
   "cashMovementNoteTitle": "Poznámka ke změně hotovosti",
   "cashMovementNoteHint": "Důvod pohybu...",
@@ -322,5 +335,30 @@
   "closingPrint": "Tisk",
   "closingConfirm": "Uzavřít směnu",
   "closingNoteTitle": "Poznámka k uzávěrce",
-  "closingNoteHint": "Poznámky k uzávěrce..."
+  "closingNoteHint": "Poznámky k uzávěrce...",
+
+  "paymentOtherCurrency": "Jiná měna",
+  "paymentEet": "EET",
+  "paymentEditAmount": "Upravit částku",
+  "paymentMixPayments": "Mix plateb",
+  "paymentOtherPayment": "Jiná platba",
+  "paymentPrintReceipt": "Tisk dokladu",
+  "paymentPrintYes": "ANO",
+  "paymentTip": "Spropitné: {amount}",
+  "@paymentTip": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
+  "paymentBillSubtitle": "Účet {billNumber} - {tableName}",
+  "@paymentBillSubtitle": {
+    "placeholders": {
+      "billNumber": { "type": "String" },
+      "tableName": { "type": "String" }
+    }
+  },
+
+  "newBillSave": "Uložit",
+  "newBillOrder": "Objednat",
+  "newBillSelectSection": "Výběr sekce",
+  "newBillCustomer": "Zákazník",
+  "newBillNoTable": "Bez stolu"
 }

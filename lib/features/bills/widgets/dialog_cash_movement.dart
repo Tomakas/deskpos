@@ -114,23 +114,26 @@ class _DialogCashMovementState extends State<DialogCashMovement> {
     final theme = Theme.of(context);
 
     return Dialog(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Title
-            Text(l.cashMovementTitle, style: theme.textTheme.titleLarge),
-            const SizedBox(height: 20),
-            // Amount display
-            _buildAmountDisplay(theme, l),
-            const SizedBox(height: 16),
-            // Numpad + action buttons
-            _buildNumpadAndActions(theme, l),
-            const SizedBox(height: 16),
-            // Bottom: Cancel + Note
-            _buildBottomButtons(l, theme),
-          ],
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 420),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Title
+              Text(l.cashMovementTitle, style: theme.textTheme.titleLarge),
+              const SizedBox(height: 20),
+              // Amount display
+              _buildAmountDisplay(theme, l),
+              const SizedBox(height: 16),
+              // Numpad + action buttons
+              _buildNumpadAndActions(theme, l),
+              const SizedBox(height: 16),
+              // Bottom: Cancel + Note
+              _buildBottomButtons(l, theme),
+            ],
+          ),
         ),
       ),
     );

@@ -48,9 +48,6 @@ class DialogBillDetail extends ConsumerWidget {
                 Expanded(
                   child: Row(
                     children: [
-                      // Left icon strip
-                      _buildLeftIcons(context, ref, bill, l),
-                      const VerticalDivider(width: 1),
                       // Center: order history
                       Expanded(child: _buildOrderList(context, ref, bill, l)),
                       const VerticalDivider(width: 1),
@@ -149,58 +146,6 @@ class DialogBillDetail extends ConsumerWidget {
     );
   }
 
-  Widget _buildLeftIcons(BuildContext context, WidgetRef ref, BillModel bill, dynamic l) {
-    final isClosed = bill.status != BillStatus.opened;
-
-    return SizedBox(
-      width: 52,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Up arrow (disabled)
-          IconButton(
-            icon: const Icon(Icons.arrow_upward),
-            color: Colors.blue,
-            onPressed: null,
-            tooltip: null,
-          ),
-          // Down arrow (disabled)
-          IconButton(
-            icon: const Icon(Icons.arrow_downward),
-            color: Colors.blue,
-            onPressed: null,
-            tooltip: null,
-          ),
-          const SizedBox(height: 8),
-          // Cancel (X)
-          IconButton(
-            icon: const Icon(Icons.close, size: 28),
-            color: Colors.red,
-            onPressed: isClosed ? null : () => _cancelBill(context, ref, bill, l),
-          ),
-          const SizedBox(height: 8),
-          // Add order (+)
-          IconButton(
-            icon: const Icon(Icons.add, size: 28),
-            color: Colors.teal,
-            onPressed: isClosed
-                ? null
-                : () {
-                    Navigator.pop(context);
-                    context.push('/sell/${bill.id}');
-                  },
-          ),
-          const SizedBox(height: 8),
-          // Menu (disabled)
-          IconButton(
-            icon: const Icon(Icons.more_vert),
-            onPressed: null,
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildOrderList(BuildContext context, WidgetRef ref, BillModel bill, dynamic l) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -288,6 +233,22 @@ class DialogBillDetail extends ConsumerWidget {
               child: Text(l.actionClose),
             ),
           ),
+          if (!isClosed) ...[
+            const SizedBox(width: 12),
+            // Cancel bill
+            SizedBox(
+              height: 44,
+              width: 130,
+              child: OutlinedButton(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.red,
+                  side: const BorderSide(color: Colors.red),
+                ),
+                onPressed: () => _cancelBill(context, ref, bill, l),
+                child: Text(l.billDetailCancel),
+              ),
+            ),
+          ],
           if (!isClosed && bill.totalGross > 0) ...[
             const SizedBox(width: 12),
             // Pay
@@ -343,9 +304,17 @@ class DialogBillDetail extends ConsumerWidget {
   }
 
   Future<void> _payBill(BuildContext context, WidgetRef ref, BillModel bill) async {
+    String? tableName;
+    if (bill.tableId != null) {
+      final table = await ref.read(tableRepositoryProvider).getById(bill.tableId!);
+      tableName = table?.name;
+    }
+
+    if (!context.mounted) return;
+
     final paid = await showDialog<bool>(
       context: context,
-      builder: (_) => DialogPayment(bill: bill),
+      builder: (_) => DialogPayment(bill: bill, tableName: tableName),
     );
     if (paid == true && context.mounted) {
       Navigator.pop(context);

@@ -197,8 +197,8 @@ class _DialogClosingSessionState extends State<DialogClosingSession> {
     final theme = Theme.of(context);
 
     return Dialog(
-      child: SizedBox(
-        width: 500,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 500),
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: SingleChildScrollView(
@@ -404,45 +404,59 @@ class _DialogClosingSessionState extends State<DialogClosingSession> {
   Widget _buildActions(dynamic l, ThemeData theme) {
     return Row(
       children: [
-        SizedBox(
-          height: 40,
-          child: FilledButton.tonal(
-            onPressed: _showNoteDialog,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(l.cashMovementNote),
-                if (_note != null) ...[
-                  const SizedBox(width: 4),
-                  Icon(Icons.check, size: 16, color: theme.colorScheme.primary),
+        Expanded(
+          child: SizedBox(
+            height: 36,
+            child: FilledButton.tonal(
+              onPressed: _showNoteDialog,
+              style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 8)),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(l.cashMovementNote, style: const TextStyle(fontSize: 12)),
+                  if (_note != null) ...[
+                    const SizedBox(width: 4),
+                    Icon(Icons.check, size: 14, color: theme.colorScheme.primary),
+                  ],
                 ],
-              ],
+              ),
             ),
           ),
         ),
-        const SizedBox(width: 8),
-        SizedBox(
-          height: 40,
-          child: OutlinedButton(
-            onPressed: null,
-            child: Text(l.closingPrint),
+        const SizedBox(width: 6),
+        Expanded(
+          child: SizedBox(
+            height: 36,
+            child: OutlinedButton(
+              onPressed: null,
+              style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 8)),
+              child: Text(l.closingPrint, style: const TextStyle(fontSize: 12)),
+            ),
           ),
         ),
-        const Spacer(),
-        SizedBox(
-          height: 40,
-          child: OutlinedButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l.actionCancel),
+        const SizedBox(width: 6),
+        Expanded(
+          child: SizedBox(
+            height: 36,
+            child: OutlinedButton(
+              onPressed: () => Navigator.pop(context),
+              style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 8)),
+              child: Text(l.actionCancel, style: const TextStyle(fontSize: 12)),
+            ),
           ),
         ),
-        const SizedBox(width: 8),
-        SizedBox(
-          height: 40,
-          child: FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: Colors.green),
-            onPressed: _closingCashHalere != null ? _confirm : null,
-            child: Text(l.closingConfirm),
+        const SizedBox(width: 6),
+        Expanded(
+          child: SizedBox(
+            height: 36,
+            child: FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: Colors.green,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+              ),
+              onPressed: _closingCashHalere != null ? _confirm : null,
+              child: Text(l.closingConfirm, style: const TextStyle(fontSize: 12)),
+            ),
           ),
         ),
       ],

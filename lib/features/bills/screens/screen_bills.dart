@@ -21,6 +21,7 @@ import '../../../core/data/providers/sync_providers.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../widgets/dialog_bill_detail.dart';
+import '../widgets/dialog_cash_journal.dart';
 import '../widgets/dialog_cash_movement.dart';
 import '../widgets/dialog_closing_session.dart';
 import '../widgets/dialog_new_bill.dart';
@@ -147,7 +148,11 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
     );
 
     if (createResult is Success<BillModel> && mounted) {
-      _openBillDetail(context, createResult.value);
+      if (result.navigateToSell) {
+        context.push('/sell/${createResult.value.id}');
+      } else {
+        _openBillDetail(context, createResult.value);
+      }
     }
   }
 
@@ -297,13 +302,65 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
     final session = ref.read(activeRegisterSessionProvider).valueOrNull;
     if (company == null || user == null || session == null) return;
 
+    final cashMovementRepo = ref.read(cashMovementRepositoryProvider);
+    final movements = await cashMovementRepo.getBySession(session.id);
+
+    // Compute current cash balance: opening + deposits - withdrawals + cash revenue
+    final openingCash = session.openingCash ?? 0;
+    final deposits = movements
+        .where((m) => m.type == CashMovementType.deposit)
+        .fold(0, (sum, m) => sum + m.amount);
+    final withdrawals = movements
+        .where((m) => m.type == CashMovementType.withdrawal || m.type == CashMovementType.expense)
+        .fold(0, (sum, m) => sum + m.amount);
+
+    // Cash revenue from sales paid during this session
+    final billRepo = ref.read(billRepositoryProvider);
+    final allBills = await billRepo.getByCompany(company.id);
+    final sessionBills = allBills.where((b) =>
+        b.closedAt != null && b.closedAt!.isAfter(session.openedAt)).toList();
+
+    final paymentRepo = ref.read(paymentRepositoryProvider);
+    final paymentMethodRepo = ref.read(paymentMethodRepositoryProvider);
+    final allMethods = await paymentMethodRepo.getAll(company.id);
+    final cashMethodIds = allMethods
+        .where((m) => m.type == PaymentType.cash)
+        .map((m) => m.id)
+        .toSet();
+
+    int cashRevenue = 0;
+    final sales = <CashJournalSale>[];
+    final billNumberMap = {for (final b in sessionBills) b.id: b.billNumber};
+
+    for (final bill in sessionBills) {
+      final payments = await paymentRepo.getByBill(bill.id);
+      for (final p in payments) {
+        if (cashMethodIds.contains(p.paymentMethodId)) {
+          cashRevenue += p.amount;
+          sales.add(CashJournalSale(
+            createdAt: p.paidAt,
+            amount: p.amount,
+            billNumber: billNumberMap[bill.id],
+          ));
+        }
+      }
+    }
+
+    final currentBalance = openingCash + deposits - withdrawals + cashRevenue;
+
+    if (!mounted) return;
+
     final result = await showDialog<CashMovementResult>(
       context: context,
-      builder: (_) => const DialogCashMovement(),
+      builder: (_) => DialogCashJournal(
+        movements: movements,
+        sales: sales,
+        currentBalance: currentBalance,
+      ),
     );
     if (result == null) return;
 
-    await ref.read(cashMovementRepositoryProvider).create(
+    await cashMovementRepo.create(
       companyId: company.id,
       registerSessionId: session.id,
       userId: user.id,

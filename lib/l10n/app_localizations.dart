@@ -1384,6 +1384,72 @@ abstract class AppLocalizations {
   /// **'Synchronizace selhala'**
   String get connectCompanySyncFailed;
 
+  /// No description provided for @cashJournalTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Pokladní deník'**
+  String get cashJournalTitle;
+
+  /// No description provided for @cashJournalBalance.
+  ///
+  /// In cs, this message translates to:
+  /// **'Hotovost v pokladně:'**
+  String get cashJournalBalance;
+
+  /// No description provided for @cashJournalFilterDeposits.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vklady'**
+  String get cashJournalFilterDeposits;
+
+  /// No description provided for @cashJournalFilterWithdrawals.
+  ///
+  /// In cs, this message translates to:
+  /// **'Výběry'**
+  String get cashJournalFilterWithdrawals;
+
+  /// No description provided for @cashJournalFilterSales.
+  ///
+  /// In cs, this message translates to:
+  /// **'Prodeje'**
+  String get cashJournalFilterSales;
+
+  /// No description provided for @cashJournalAddMovement.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zapsat změnu'**
+  String get cashJournalAddMovement;
+
+  /// No description provided for @cashJournalColumnTime.
+  ///
+  /// In cs, this message translates to:
+  /// **'Čas'**
+  String get cashJournalColumnTime;
+
+  /// No description provided for @cashJournalColumnType.
+  ///
+  /// In cs, this message translates to:
+  /// **'Typ'**
+  String get cashJournalColumnType;
+
+  /// No description provided for @cashJournalColumnAmount.
+  ///
+  /// In cs, this message translates to:
+  /// **'Částka'**
+  String get cashJournalColumnAmount;
+
+  /// No description provided for @cashJournalColumnNote.
+  ///
+  /// In cs, this message translates to:
+  /// **'Poznámka'**
+  String get cashJournalColumnNote;
+
+  /// No description provided for @cashJournalEmpty.
+  ///
+  /// In cs, this message translates to:
+  /// **'Žádné záznamy'**
+  String get cashJournalEmpty;
+
   /// No description provided for @cashMovementTitle.
   ///
   /// In cs, this message translates to:
@@ -1407,6 +1473,12 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Výběr'**
   String get cashMovementWithdrawal;
+
+  /// No description provided for @cashMovementSale.
+  ///
+  /// In cs, this message translates to:
+  /// **'Prodej'**
+  String get cashMovementSale;
 
   /// No description provided for @cashMovementNote.
   ///
@@ -1575,6 +1647,90 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Poznámky k uzávěrce...'**
   String get closingNoteHint;
+
+  /// No description provided for @paymentOtherCurrency.
+  ///
+  /// In cs, this message translates to:
+  /// **'Jiná měna'**
+  String get paymentOtherCurrency;
+
+  /// No description provided for @paymentEet.
+  ///
+  /// In cs, this message translates to:
+  /// **'EET'**
+  String get paymentEet;
+
+  /// No description provided for @paymentEditAmount.
+  ///
+  /// In cs, this message translates to:
+  /// **'Upravit částku'**
+  String get paymentEditAmount;
+
+  /// No description provided for @paymentMixPayments.
+  ///
+  /// In cs, this message translates to:
+  /// **'Mix plateb'**
+  String get paymentMixPayments;
+
+  /// No description provided for @paymentOtherPayment.
+  ///
+  /// In cs, this message translates to:
+  /// **'Jiná platba'**
+  String get paymentOtherPayment;
+
+  /// No description provided for @paymentPrintReceipt.
+  ///
+  /// In cs, this message translates to:
+  /// **'Tisk dokladu'**
+  String get paymentPrintReceipt;
+
+  /// No description provided for @paymentPrintYes.
+  ///
+  /// In cs, this message translates to:
+  /// **'ANO'**
+  String get paymentPrintYes;
+
+  /// No description provided for @paymentTip.
+  ///
+  /// In cs, this message translates to:
+  /// **'Spropitné: {amount}'**
+  String paymentTip(String amount);
+
+  /// No description provided for @paymentBillSubtitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Účet {billNumber} - {tableName}'**
+  String paymentBillSubtitle(String billNumber, String tableName);
+
+  /// No description provided for @newBillSave.
+  ///
+  /// In cs, this message translates to:
+  /// **'Uložit'**
+  String get newBillSave;
+
+  /// No description provided for @newBillOrder.
+  ///
+  /// In cs, this message translates to:
+  /// **'Objednat'**
+  String get newBillOrder;
+
+  /// No description provided for @newBillSelectSection.
+  ///
+  /// In cs, this message translates to:
+  /// **'Výběr sekce'**
+  String get newBillSelectSection;
+
+  /// No description provided for @newBillCustomer.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zákazník'**
+  String get newBillCustomer;
+
+  /// No description provided for @newBillNoTable.
+  ///
+  /// In cs, this message translates to:
+  /// **'Bez stolu'**
+  String get newBillNoTable;
 }
 
 class _AppLocalizationsDelegate

@@ -54,9 +54,11 @@ class _DialogOpeningCashState extends State<DialogOpeningCash> {
     final theme = Theme.of(context);
 
     return Dialog(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 340),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(l.openingCashTitle, style: theme.textTheme.titleLarge),
@@ -132,6 +134,7 @@ class _DialogOpeningCashState extends State<DialogOpeningCash> {
               ),
             ),
           ],
+        ),
         ),
       ),
     );

@@ -678,6 +678,39 @@ class AppLocalizationsCs extends AppLocalizations {
   String get connectCompanySyncFailed => 'Synchronizace selhala';
 
   @override
+  String get cashJournalTitle => 'Pokladní deník';
+
+  @override
+  String get cashJournalBalance => 'Hotovost v pokladně:';
+
+  @override
+  String get cashJournalFilterDeposits => 'Vklady';
+
+  @override
+  String get cashJournalFilterWithdrawals => 'Výběry';
+
+  @override
+  String get cashJournalFilterSales => 'Prodeje';
+
+  @override
+  String get cashJournalAddMovement => 'Zapsat změnu';
+
+  @override
+  String get cashJournalColumnTime => 'Čas';
+
+  @override
+  String get cashJournalColumnType => 'Typ';
+
+  @override
+  String get cashJournalColumnAmount => 'Částka';
+
+  @override
+  String get cashJournalColumnNote => 'Poznámka';
+
+  @override
+  String get cashJournalEmpty => 'Žádné záznamy';
+
+  @override
   String get cashMovementTitle => 'Změna stavu hotovosti';
 
   @override
@@ -688,6 +721,9 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get cashMovementWithdrawal => 'Výběr';
+
+  @override
+  String get cashMovementSale => 'Prodej';
 
   @override
   String get cashMovementNote => 'Poznámka';
@@ -773,4 +809,50 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get closingNoteHint => 'Poznámky k uzávěrce...';
+
+  @override
+  String get paymentOtherCurrency => 'Jiná měna';
+
+  @override
+  String get paymentEet => 'EET';
+
+  @override
+  String get paymentEditAmount => 'Upravit částku';
+
+  @override
+  String get paymentMixPayments => 'Mix plateb';
+
+  @override
+  String get paymentOtherPayment => 'Jiná platba';
+
+  @override
+  String get paymentPrintReceipt => 'Tisk dokladu';
+
+  @override
+  String get paymentPrintYes => 'ANO';
+
+  @override
+  String paymentTip(String amount) {
+    return 'Spropitné: $amount';
+  }
+
+  @override
+  String paymentBillSubtitle(String billNumber, String tableName) {
+    return 'Účet $billNumber - $tableName';
+  }
+
+  @override
+  String get newBillSave => 'Uložit';
+
+  @override
+  String get newBillOrder => 'Objednat';
+
+  @override
+  String get newBillSelectSection => 'Výběr sekce';
+
+  @override
+  String get newBillCustomer => 'Zákazník';
+
+  @override
+  String get newBillNoTable => 'Bez stolu';
 }
