@@ -3,6 +3,8 @@
 import '../models/bill_model.dart';
 import '../models/cash_movement_model.dart';
 import '../models/category_model.dart';
+import '../models/customer_model.dart';
+import '../models/customer_transaction_model.dart';
 import '../models/company_model.dart';
 import '../models/company_settings_model.dart';
 import '../models/currency_model.dart';
@@ -219,6 +221,41 @@ Map<String, dynamic> userToSupabaseJson(UserModel m) => {
       'is_active': m.isActive,
     };
 
+Map<String, dynamic> customerToSupabaseJson(CustomerModel m) => {
+      ..._baseSyncFields(
+        id: m.id,
+        companyId: m.companyId,
+        createdAt: m.createdAt,
+        updatedAt: m.updatedAt,
+        deletedAt: m.deletedAt,
+      ),
+      'first_name': m.firstName,
+      'last_name': m.lastName,
+      'email': m.email,
+      'phone': m.phone,
+      'address': m.address,
+      'points': m.points,
+      'credit': m.credit,
+      'total_spent': m.totalSpent,
+      'last_visit_date': toIso8601Utc(m.lastVisitDate),
+      'birthdate': toIso8601Utc(m.birthdate),
+    };
+
+Map<String, dynamic> customerTransactionToSupabaseJson(CustomerTransactionModel m) => {
+      ..._baseSyncFields(
+        id: m.id,
+        companyId: m.companyId,
+        createdAt: m.createdAt,
+        updatedAt: m.updatedAt,
+        deletedAt: m.deletedAt,
+      ),
+      'customer_id': m.customerId,
+      'points_change': m.pointsChange,
+      'credit_change': m.creditChange,
+      'order_id': m.orderId,
+      'processed_by_user_id': m.processedByUserId,
+    };
+
 Map<String, dynamic> billToSupabaseJson(BillModel m) => {
       ..._baseSyncFields(
         id: m.id,
@@ -227,6 +264,7 @@ Map<String, dynamic> billToSupabaseJson(BillModel m) => {
         updatedAt: m.updatedAt,
         deletedAt: m.deletedAt,
       ),
+      'customer_id': m.customerId,
       'table_id': m.tableId,
       'opened_by_user_id': m.openedByUserId,
       'bill_number': m.billNumber,

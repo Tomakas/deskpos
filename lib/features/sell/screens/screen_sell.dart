@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/data/enums/layout_item_type.dart';
 import '../../../core/data/models/bill_model.dart';
 import '../../../core/data/models/category_model.dart';
+import '../../../core/data/models/customer_model.dart';
 import '../../../core/data/models/item_model.dart';
 import '../../../core/data/models/layout_item_model.dart';
 import '../../../core/data/models/register_model.dart';
@@ -13,6 +14,7 @@ import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/repositories/order_repository.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../bills/widgets/dialog_customer_search.dart';
 import '../../bills/widgets/dialog_payment.dart';
 
 class ScreenSell extends ConsumerStatefulWidget {
@@ -31,6 +33,24 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
   bool _isSubmitting = false;
   String? _categoryFilterId;
   String? _orderNotes;
+  String? _customerName;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCustomerName();
+  }
+
+  Future<void> _loadCustomerName() async {
+    if (widget.billId == null) return;
+    final billResult = await ref.read(billRepositoryProvider).getById(widget.billId!);
+    if (billResult is Success<BillModel> && billResult.value.customerId != null) {
+      final customer = await ref.read(customerRepositoryProvider).getById(billResult.value.customerId!);
+      if (customer != null && mounted) {
+        setState(() => _customerName = '${customer.firstName} ${customer.lastName}');
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -77,7 +97,11 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
           const SizedBox(width: 8),
           _toolbarChip(l.sellScan, onSelected: null),
           const SizedBox(width: 8),
-          _toolbarChip(l.sellCustomer, onSelected: null),
+          _toolbarChip(
+            _customerName ?? l.sellCustomer,
+            selected: _customerName != null,
+            onSelected: widget.billId != null ? () => _selectCustomer(context) : null,
+          ),
           const SizedBox(width: 8),
           _toolbarChip(l.sellNote, selected: _orderNotes != null && _orderNotes!.isNotEmpty, onSelected: () => _showOrderNoteDialog(context)),
           const SizedBox(width: 8),
@@ -471,6 +495,28 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     );
     if (result != null) {
       setState(() => item.notes = result.isEmpty ? null : result);
+    }
+  }
+
+  Future<void> _selectCustomer(BuildContext context) async {
+    if (widget.billId == null) return;
+    final result = await showCustomerSearchDialogRaw(
+      context,
+      ref,
+      showRemoveButton: _customerName != null,
+    );
+    if (result == null) return;
+    if (result is CustomerModel) {
+      await ref.read(billRepositoryProvider).updateCustomer(widget.billId!, result.id);
+      if (mounted) {
+        setState(() => _customerName = '${result.firstName} ${result.lastName}');
+      }
+    } else {
+      // _RemoveCustomer sentinel
+      await ref.read(billRepositoryProvider).updateCustomer(widget.billId!, null);
+      if (mounted) {
+        setState(() => _customerName = null);
+      }
     }
   }
 

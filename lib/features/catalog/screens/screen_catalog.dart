@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../widgets/catalog_categories_tab.dart';
 import '../widgets/catalog_products_tab.dart';
+import '../widgets/customers_tab.dart';
 import '../widgets/manufacturers_tab.dart';
 import '../widgets/recipes_tab.dart';
 import '../widgets/suppliers_tab.dart';
@@ -16,7 +17,7 @@ class ScreenCatalog extends ConsumerWidget {
     final l = context.l10n;
 
     return DefaultTabController(
-      length: 5,
+      length: 6,
       child: Scaffold(
         appBar: AppBar(
           title: Text(l.catalogTitle),
@@ -27,6 +28,7 @@ class ScreenCatalog extends ConsumerWidget {
               Tab(text: l.catalogTabSuppliers),
               Tab(text: l.catalogTabManufacturers),
               Tab(text: l.catalogTabRecipes),
+              Tab(text: l.catalogTabCustomers),
             ],
           ),
         ),
@@ -37,6 +39,7 @@ class ScreenCatalog extends ConsumerWidget {
             SuppliersTab(),
             ManufacturersTab(),
             RecipesTab(),
+            CustomersTab(),
           ],
         ),
       ),

@@ -58,6 +58,7 @@ class SyncService {
     'product_recipes',
     'registers',
     'layout_items',
+    'customers',
     'bills',
     'orders',
     'order_items',
@@ -65,6 +66,7 @@ class SyncService {
     'register_sessions',
     'cash_movements',
     'shifts',
+    'customer_transactions',
   ];
 
   void startAutoSync(String companyId) {
@@ -223,6 +225,10 @@ class SyncService {
         return _db.suppliers;
       case 'manufacturers':
         return _db.manufacturers;
+      case 'customers':
+        return _db.customers;
+      case 'customer_transactions':
+        return _db.customerTransactions;
       case 'product_recipes':
         return _db.productRecipes;
       case 'tables':

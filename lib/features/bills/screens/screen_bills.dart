@@ -179,6 +179,7 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
         userId: user.id,
         currencyId: company.defaultCurrencyId,
         tableId: result.tableId,
+        customerId: result.customerId,
         isTakeaway: false,
         numberOfGuests: result.numberOfGuests,
       );

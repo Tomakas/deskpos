@@ -32,6 +32,7 @@ class BillRepository {
     required String userId,
     required String currencyId,
     String? tableId,
+    String? customerId,
     bool isTakeaway = false,
     int numberOfGuests = 0,
   }) async {
@@ -44,6 +45,7 @@ class BillRepository {
         await _db.into(_db.bills).insert(BillsCompanion.insert(
           id: id,
           companyId: companyId,
+          customerId: Value(customerId),
           tableId: Value(tableId),
           openedByUserId: userId,
           billNumber: billNumber,
@@ -409,6 +411,26 @@ class BillRepository {
     } catch (e, s) {
       AppLogger.error('Failed to move bill', error: e, stackTrace: s);
       return Failure('Failed to move bill: $e');
+    }
+  }
+
+  Future<Result<BillModel>> updateCustomer(String billId, String? customerId) async {
+    try {
+      await (_db.update(_db.bills)..where((t) => t.id.equals(billId))).write(
+        BillsCompanion(
+          customerId: Value(customerId),
+          updatedAt: Value(DateTime.now()),
+        ),
+      );
+      final entity = await (_db.select(_db.bills)
+            ..where((t) => t.id.equals(billId)))
+          .getSingle();
+      final bill = billFromEntity(entity);
+      await _enqueueBill('update', bill);
+      return Success(bill);
+    } catch (e, s) {
+      AppLogger.error('Failed to update bill customer', error: e, stackTrace: s);
+      return Failure('Failed to update bill customer: $e');
     }
   }
 

@@ -7,6 +7,8 @@ import '../data/enums/enums.dart';
 import 'tables/bills.dart';
 import 'tables/cash_movements.dart';
 import 'tables/categories.dart';
+import 'tables/customer_transactions.dart';
+import 'tables/customers.dart';
 import 'tables/companies.dart';
 import 'tables/company_settings.dart';
 import 'tables/currencies.dart';
@@ -40,6 +42,8 @@ part 'app_database.g.dart';
   CashMovements,
   Categories,
   Companies,
+  CustomerTransactions,
+  Customers,
   CompanySettings,
   Currencies,
   Items,

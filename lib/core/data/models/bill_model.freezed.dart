@@ -19,6 +19,7 @@ final _privateConstructorUsedError = UnsupportedError(
 mixin _$BillModel {
   String get id => throw _privateConstructorUsedError;
   String get companyId => throw _privateConstructorUsedError;
+  String? get customerId => throw _privateConstructorUsedError;
   String? get tableId => throw _privateConstructorUsedError;
   String get openedByUserId => throw _privateConstructorUsedError;
   String get billNumber => throw _privateConstructorUsedError;
@@ -55,6 +56,7 @@ abstract class $BillModelCopyWith<$Res> {
   $Res call({
     String id,
     String companyId,
+    String? customerId,
     String? tableId,
     String openedByUserId,
     String billNumber,
@@ -95,6 +97,7 @@ class _$BillModelCopyWithImpl<$Res, $Val extends BillModel>
   $Res call({
     Object? id = null,
     Object? companyId = null,
+    Object? customerId = freezed,
     Object? tableId = freezed,
     Object? openedByUserId = null,
     Object? billNumber = null,
@@ -126,6 +129,10 @@ class _$BillModelCopyWithImpl<$Res, $Val extends BillModel>
                 ? _value.companyId
                 : companyId // ignore: cast_nullable_to_non_nullable
                       as String,
+            customerId: freezed == customerId
+                ? _value.customerId
+                : customerId // ignore: cast_nullable_to_non_nullable
+                      as String?,
             tableId: freezed == tableId
                 ? _value.tableId
                 : tableId // ignore: cast_nullable_to_non_nullable
@@ -224,6 +231,7 @@ abstract class _$$BillModelImplCopyWith<$Res>
   $Res call({
     String id,
     String companyId,
+    String? customerId,
     String? tableId,
     String openedByUserId,
     String billNumber,
@@ -263,6 +271,7 @@ class __$$BillModelImplCopyWithImpl<$Res>
   $Res call({
     Object? id = null,
     Object? companyId = null,
+    Object? customerId = freezed,
     Object? tableId = freezed,
     Object? openedByUserId = null,
     Object? billNumber = null,
@@ -294,6 +303,10 @@ class __$$BillModelImplCopyWithImpl<$Res>
             ? _value.companyId
             : companyId // ignore: cast_nullable_to_non_nullable
                   as String,
+        customerId: freezed == customerId
+            ? _value.customerId
+            : customerId // ignore: cast_nullable_to_non_nullable
+                  as String?,
         tableId: freezed == tableId
             ? _value.tableId
             : tableId // ignore: cast_nullable_to_non_nullable
@@ -385,6 +398,7 @@ class _$BillModelImpl implements _BillModel {
   const _$BillModelImpl({
     required this.id,
     required this.companyId,
+    this.customerId,
     this.tableId,
     required this.openedByUserId,
     required this.billNumber,
@@ -411,6 +425,8 @@ class _$BillModelImpl implements _BillModel {
   final String id;
   @override
   final String companyId;
+  @override
+  final String? customerId;
   @override
   final String? tableId;
   @override
@@ -463,7 +479,7 @@ class _$BillModelImpl implements _BillModel {
 
   @override
   String toString() {
-    return 'BillModel(id: $id, companyId: $companyId, tableId: $tableId, openedByUserId: $openedByUserId, billNumber: $billNumber, numberOfGuests: $numberOfGuests, isTakeaway: $isTakeaway, status: $status, currencyId: $currencyId, subtotalGross: $subtotalGross, subtotalNet: $subtotalNet, discountAmount: $discountAmount, discountType: $discountType, taxTotal: $taxTotal, totalGross: $totalGross, roundingAmount: $roundingAmount, paidAmount: $paidAmount, openedAt: $openedAt, closedAt: $closedAt, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+    return 'BillModel(id: $id, companyId: $companyId, customerId: $customerId, tableId: $tableId, openedByUserId: $openedByUserId, billNumber: $billNumber, numberOfGuests: $numberOfGuests, isTakeaway: $isTakeaway, status: $status, currencyId: $currencyId, subtotalGross: $subtotalGross, subtotalNet: $subtotalNet, discountAmount: $discountAmount, discountType: $discountType, taxTotal: $taxTotal, totalGross: $totalGross, roundingAmount: $roundingAmount, paidAmount: $paidAmount, openedAt: $openedAt, closedAt: $closedAt, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
   }
 
   @override
@@ -474,6 +490,8 @@ class _$BillModelImpl implements _BillModel {
             (identical(other.id, id) || other.id == id) &&
             (identical(other.companyId, companyId) ||
                 other.companyId == companyId) &&
+            (identical(other.customerId, customerId) ||
+                other.customerId == customerId) &&
             (identical(other.tableId, tableId) || other.tableId == tableId) &&
             (identical(other.openedByUserId, openedByUserId) ||
                 other.openedByUserId == openedByUserId) &&
@@ -519,6 +537,7 @@ class _$BillModelImpl implements _BillModel {
     runtimeType,
     id,
     companyId,
+    customerId,
     tableId,
     openedByUserId,
     billNumber,
@@ -554,6 +573,7 @@ abstract class _BillModel implements BillModel {
   const factory _BillModel({
     required final String id,
     required final String companyId,
+    final String? customerId,
     final String? tableId,
     required final String openedByUserId,
     required final String billNumber,
@@ -580,6 +600,8 @@ abstract class _BillModel implements BillModel {
   String get id;
   @override
   String get companyId;
+  @override
+  String? get customerId;
   @override
   String? get tableId;
   @override

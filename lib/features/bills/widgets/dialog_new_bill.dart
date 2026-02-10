@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/data/models/customer_model.dart';
 import '../../../core/data/models/section_model.dart';
 import '../../../core/data/models/table_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import 'dialog_customer_search.dart';
 
 class DialogNewBill extends ConsumerStatefulWidget {
   const DialogNewBill({
@@ -27,6 +29,7 @@ class _DialogNewBillState extends ConsumerState<DialogNewBill> {
   String? _selectedSectionId;
   String? _selectedTableId;
   int _guestCount = 0;
+  CustomerModel? _selectedCustomer;
 
   @override
   void initState() {
@@ -199,7 +202,7 @@ class _DialogNewBillState extends ConsumerState<DialogNewBill> {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      // Customer (disabled)
+                      // Customer
                       _FormRow(
                         label: '${l.newBillCustomer}:',
                         child: Row(
@@ -207,6 +210,11 @@ class _DialogNewBillState extends ConsumerState<DialogNewBill> {
                             Expanded(
                               child: TextField(
                                 enabled: false,
+                                controller: TextEditingController(
+                                  text: _selectedCustomer != null
+                                      ? '${_selectedCustomer!.firstName} ${_selectedCustomer!.lastName}'
+                                      : '',
+                                ),
                                 decoration: const InputDecoration(
                                   isDense: true,
                                   contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -218,7 +226,19 @@ class _DialogNewBillState extends ConsumerState<DialogNewBill> {
                               width: 40,
                               height: 40,
                               child: IconButton(
-                                onPressed: null,
+                                onPressed: () async {
+                                  final result = await showCustomerSearchDialogRaw(
+                                    context,
+                                    ref,
+                                    showRemoveButton: _selectedCustomer != null,
+                                  );
+                                  if (result is CustomerModel) {
+                                    setState(() => _selectedCustomer = result);
+                                  } else if (result != null && result is! CustomerModel) {
+                                    // _RemoveCustomer sentinel
+                                    setState(() => _selectedCustomer = null);
+                                  }
+                                },
                                 icon: const Icon(Icons.search, size: 20),
                               ),
                             ),
@@ -251,6 +271,7 @@ class _DialogNewBillState extends ConsumerState<DialogNewBill> {
                                   Navigator.pop(context, NewBillResult(
                                     tableId: _selectedTableId,
                                     numberOfGuests: _guestCount,
+                                    customerId: _selectedCustomer?.id,
                                     navigateToSell: false,
                                   ));
                                 },
@@ -271,6 +292,7 @@ class _DialogNewBillState extends ConsumerState<DialogNewBill> {
                                     Navigator.pop(context, NewBillResult(
                                       tableId: _selectedTableId,
                                       numberOfGuests: _guestCount,
+                                      customerId: _selectedCustomer?.id,
                                       navigateToSell: true,
                                     ));
                                   },
@@ -315,11 +337,13 @@ class _FormRow extends StatelessWidget {
 class NewBillResult {
   const NewBillResult({
     this.tableId,
+    this.customerId,
     this.numberOfGuests = 0,
     this.navigateToSell = false,
   });
 
   final String? tableId;
+  final String? customerId;
   final int numberOfGuests;
   final bool navigateToSell;
 }

@@ -89,6 +89,45 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
         lastSyncedAt: Value(now),
       );
 
+    case 'customers':
+      return CustomersCompanion(
+        id: Value(json['id'] as String),
+        companyId: Value(json['company_id'] as String),
+        firstName: Value(json['first_name'] as String),
+        lastName: Value(json['last_name'] as String),
+        email: Value(json['email'] as String?),
+        phone: Value(json['phone'] as String?),
+        address: Value(json['address'] as String?),
+        points: Value(json['points'] as int? ?? 0),
+        credit: Value(json['credit'] as int? ?? 0),
+        totalSpent: Value(json['total_spent'] as int? ?? 0),
+        lastVisitDate: Value(_parseDateTime(json['last_visit_date'])),
+        birthdate: Value(_parseDateTime(json['birthdate'])),
+        createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
+        updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
+        deletedAt: Value(_parseDateTime(json['deleted_at'])),
+        serverCreatedAt: Value(_parseDateTime(json['created_at'])),
+        serverUpdatedAt: Value(_parseDateTime(json['updated_at'])),
+        lastSyncedAt: Value(now),
+      );
+
+    case 'customer_transactions':
+      return CustomerTransactionsCompanion(
+        id: Value(json['id'] as String),
+        companyId: Value(json['company_id'] as String),
+        customerId: Value(json['customer_id'] as String),
+        pointsChange: Value(json['points_change'] as int),
+        creditChange: Value(json['credit_change'] as int),
+        orderId: Value(json['order_id'] as String?),
+        processedByUserId: Value(json['processed_by_user_id'] as String),
+        createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
+        updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
+        deletedAt: Value(_parseDateTime(json['deleted_at'])),
+        serverCreatedAt: Value(_parseDateTime(json['created_at'])),
+        serverUpdatedAt: Value(_parseDateTime(json['updated_at'])),
+        lastSyncedAt: Value(now),
+      );
+
     case 'suppliers':
       return SuppliersCompanion(
         id: Value(json['id'] as String),
@@ -205,6 +244,7 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
       return BillsCompanion(
         id: Value(json['id'] as String),
         companyId: Value(json['company_id'] as String),
+        customerId: Value(json['customer_id'] as String?),
         tableId: Value(json['table_id'] as String?),
         openedByUserId: Value(json['opened_by_user_id'] as String),
         billNumber: Value(json['bill_number'] as String),

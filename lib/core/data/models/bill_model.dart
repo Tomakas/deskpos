@@ -10,6 +10,7 @@ class BillModel with _$BillModel {
   const factory BillModel({
     required String id,
     required String companyId,
+    String? customerId,
     String? tableId,
     required String openedByUserId,
     required String billNumber,

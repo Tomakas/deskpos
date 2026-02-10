@@ -1228,4 +1228,46 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get splitBillNewBillButton => 'Rozdělit na nový účet';
+
+  @override
+  String get catalogTabCustomers => 'Zákazníci';
+
+  @override
+  String get customerFirstName => 'Jméno';
+
+  @override
+  String get customerLastName => 'Příjmení';
+
+  @override
+  String get customerEmail => 'E-mail';
+
+  @override
+  String get customerPhone => 'Telefon';
+
+  @override
+  String get customerAddress => 'Adresa';
+
+  @override
+  String get customerPoints => 'Body';
+
+  @override
+  String get customerCredit => 'Kredit';
+
+  @override
+  String get customerTotalSpent => 'Celkem utraceno';
+
+  @override
+  String get customerBirthdate => 'Datum narození';
+
+  @override
+  String get customerLastVisit => 'Poslední návštěva';
+
+  @override
+  String get customerSearch => 'Hledat zákazníka';
+
+  @override
+  String get customerRemove => 'Odebrat zákazníka';
+
+  @override
+  String get customerNone => 'Žádný zákazník';
 }

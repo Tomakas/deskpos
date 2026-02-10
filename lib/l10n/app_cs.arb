@@ -500,5 +500,20 @@
   "splitBillTitle": "Rozdělit účet",
   "splitBillSelectItems": "Vyberte položky k rozdělení",
   "splitBillPayButton": "Rozdělit a zaplatit",
-  "splitBillNewBillButton": "Rozdělit na nový účet"
+  "splitBillNewBillButton": "Rozdělit na nový účet",
+
+  "catalogTabCustomers": "Zákazníci",
+  "customerFirstName": "Jméno",
+  "customerLastName": "Příjmení",
+  "customerEmail": "E-mail",
+  "customerPhone": "Telefon",
+  "customerAddress": "Adresa",
+  "customerPoints": "Body",
+  "customerCredit": "Kredit",
+  "customerTotalSpent": "Celkem utraceno",
+  "customerBirthdate": "Datum narození",
+  "customerLastVisit": "Poslední návštěva",
+  "customerSearch": "Hledat zákazníka",
+  "customerRemove": "Odebrat zákazníka",
+  "customerNone": "Žádný zákazník"
 }

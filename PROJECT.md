@@ -162,7 +162,9 @@ Funkce, které nejsou nezbytné pro základní prodej, ale rozšiřují možnost
 - **Task3.9** ✅ Poznámky k objednávce — UI pro notes na Order a OrderItem (sloupce již ve schématu)
 - **Task3.10** ✅ Split payment — rozdělení platby mezi více platebních metod (celá částka musí být vždy uhrazena)
 - **Task3.11b** ✅ Refund — vrácení peněz po zaplacení, bill status → `refunded` (ve filtru se řadí pod "Zaplacené")
-- **Výsledek:** Obsluha může aplikovat slevy, rozdělit platbu mezi metody, provést refund.
+- **Task3.11c** ✅ Sloučení účtů (merge) — přesun všech objednávek ze zdrojového účtu na cílový, zdrojový účet se zruší (cancelled)
+- **Task3.11d** ✅ Rozdělení účtu (split) — výběr položek k oddělení, dva režimy: "rozdělit a zaplatit" (nový účet + okamžitá platba) a "rozdělit na nový účet" (konfigurace přes DialogNewBill)
+- **Výsledek:** Obsluha může aplikovat slevy, rozdělit platbu mezi metody, provést refund, sloučit a rozdělit účty.
 
 #### Milník 3.3 — Provoz (rozšíření register session)
 
@@ -1146,13 +1148,14 @@ stateDiagram-v2
 #### BillRepository
 
 - **Query:** watchByCompany (s filtry status/section), watchById, watchByStatus, getById
-- **Business:** createBill (atomická transakce: `_generateBillNumber` + INSERT), updateTotals (s discount kalkulací), recordPayment (v transakci: vytvoří Payment + aktualizuje Bill, podpora tipAmount pro přeplatky), cancelBill (v transakci: cascade cancel/void všech orders a items), updateDiscount (bill-level sleva), moveBill (přesun účtu na jiný stůl/sekci — nastaví tableId, numberOfGuests, isTakeaway=false), refundBill (záporné platby za každou orig. platbu + auto CashMovement), refundItem (záporná platba za položku + void item + auto CashMovement)
+- **Business:** createBill (atomická transakce: `_generateBillNumber` + INSERT), updateTotals (s discount kalkulací), recordPayment (v transakci: vytvoří Payment + aktualizuje Bill, podpora tipAmount pro přeplatky), cancelBill (v transakci: cascade cancel/void všech orders a items), updateDiscount (bill-level sleva), moveBill (přesun účtu na jiný stůl/sekci — nastaví tableId, numberOfGuests, isTakeaway=false), refundBill (záporné platby za každou orig. platbu + auto CashMovement), refundItem (záporná platba za položku + void item + auto CashMovement), mergeBill (přesun všech objednávek na cílový účet přes OrderRepository, zdrojový účet → cancelled), splitBill (přesun vybraných položek na cílový účet přes OrderRepository, přepočet totalů obou účtů)
+- **Závislosti:** Injektovaný `OrderRepository` (pro merge/split operace)
 - **Sync:** Injektovaný `SyncQueueRepository`, ruční enqueue — `_enqueueBill`, `_enqueueOrder`, `_enqueueOrderItem`, `_enqueuePayment`, `_enqueueCashMovement`. Každá mutace po sobě enqueueuje všechny dotčené entity. DB operace v transakcích, enqueue vždy mimo transakci.
 
 #### OrderRepository
 
-- **Query:** watchByBill, watchOrderItems, getOrderItems, watchLastOrderTimesByCompany
-- **Business:** createOrderWithItems (s orderNotes a item notes), updateStatus, startPreparation, markReady, markDelivered, cancelOrder, voidOrder, updateOrderNotes, updateItemNotes, updateItemDiscount
+- **Query:** watchByBill, watchOrderItems, getOrderItems, getOrderItemsByBill, watchLastOrderTimesByCompany
+- **Business:** createOrderWithItems (s orderNotes a item notes), updateStatus, startPreparation, markReady, markDelivered, cancelOrder, voidOrder, updateOrderNotes, updateItemNotes, updateItemDiscount, reassignOrdersToBill (přesun všech objednávek mezi účty — pro merge), splitItemsToNewOrder (vytvoření nové objednávky na cílovém účtu a přesun vybraných položek — pro split; automaticky zruší zdrojové objednávky bez zbývajících položek)
 - **Sync:** Injektovaný `SyncQueueRepository`, ruční enqueue — `_enqueueOrder`, `_enqueueOrderItem`. createOrderWithItems enqueueuje order + všechny items. updateStatus enqueueuje order + všechny items (delegující metody cancelOrder, voidOrder, startPreparation, markReady, markDelivered automaticky pokryty přes updateStatus).
 
 #### PaymentRepository
@@ -1557,7 +1560,7 @@ Dialog (750×520px) s informacemi o účtu a historií objednávek. 3-řádkový
 
 **Header:** Název stolu (nebo "Rychlý účet" pro isTakeaway), celková útrata v Kč, čas vytvoření (d.M.yyyy HH:mm), čas poslední objednávky (streamováno)
 **Centrum:** Historie objednávek — čas (HH:mm), množství (N ks), položka, cena, barevný status indikátor (● — modrá/oranžová/zelená/šedá/červená dle PrepStatus), PopupMenu pro změnu stavu (⋮)
-**Pravý sloupec (100px):** 6 tlačítek — Zákazník, Přesunout, Sloučit, Rozdělit, Sumář, Tisk (všechny disabled, E3+). Tisk má modrou tónovanou barvu.
+**Pravý sloupec (100px):** 7 tlačítek — Zákazník (disabled), Přesunout, Sloučit, Rozdělit, Sumář/Historie (toggle), Sleva, Tisk (disabled). Tisk má modrou tónovanou barvu. Sloučit/Rozdělit/Přesunout/Sleva aktivní jen pro otevřené účty.
 **Bottom:** Podmíněný footer dle stavu účtu:
   - Otevřený bill: ZAVŘÍT (červená), STORNO (outlined červená, s potvrzením → cancelBill), ZAPLATIT (zelená, jen pokud totalGross > 0 → DialogPayment), OBJEDNAT (modrá → `/sell/{billId}`)
   - Zaplacený bill: ZAVŘÍT + REFUND (oranžová, s potvrzením → refundBill). Klik na položku → refund per-item (s potvrzením).
@@ -1575,9 +1578,9 @@ Dialog (750×520px) s informacemi o účtu a historií objednávek. 3-řádkový
 | SLEVA | E3.2 | Sleva na účet (DialogDiscount, jen pro opened bill) |
 | ZÁKAZNÍK | E3+ | Přiřazení zákazníka (CRM) |
 | PŘESUNOUT | E3.2 | Přesun na jiný stůl (DialogNewBill s předvyplněnými hodnotami → moveBill) |
-| SLOUČIT | E3+ | Sloučení účtů |
-| ROZDĚLIT | E3+ | Split bill |
-| SUMÁŘ | E3+ | Souhrn účtu |
+| SLOUČIT | E3.2 | Sloučení účtů — DialogMergeBill (výběr cílového otevřeného účtu → mergeBill, zdrojový účet cancelled, otevře se detail cílového) |
+| ROZDĚLIT | E3.2 | Rozdělení účtu — DialogSplitBill (výběr položek, dva režimy: "rozdělit a zaplatit" → nový účet + DialogPayment, "rozdělit na nový účet" → DialogNewBill + nový účet) |
+| SUMÁŘ | E3.2 | Toggle sumář/historie objednávek (seskupené položky dle názvu a ceny) |
 | TISK | E3+ | Tisk účtenky |
 
 #### DialogPayment (platba účtu)
@@ -1735,7 +1738,6 @@ Funkce, které nejsou součástí aktuálního plánu. Mohou se přidat kdykoli 
 
 - Vizuální mapa stolů — rozšíření `sections` o pos_x, pos_y, shape (základní sekce jsou v E1)
 - Rezervace — tabulka `reservations`, propojení se stolem a zákazníkem
-- Split bill — rozdělení účtu na úrovni items
 - Modifikátory položek — tabulky `item_modifiers`, `order_item_modifiers` (extra sýr, bez cibule apod.)
 
 ### Pokročilé produkty
@@ -1757,7 +1759,6 @@ Funkce, které nejsou součástí aktuálního plánu. Mohou se přidat kdykoli 
 
 - Multi-currency operace (přepočty, více měn na jednom účtu)
 - KDS (Kitchen Display System) — samostatná kuchyňská obrazovka
-- Offline split bill
 - Tisk inventurních předloh
 
 ---

@@ -2463,6 +2463,90 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Rozdělit na nový účet'**
   String get splitBillNewBillButton;
+
+  /// No description provided for @catalogTabCustomers.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zákazníci'**
+  String get catalogTabCustomers;
+
+  /// No description provided for @customerFirstName.
+  ///
+  /// In cs, this message translates to:
+  /// **'Jméno'**
+  String get customerFirstName;
+
+  /// No description provided for @customerLastName.
+  ///
+  /// In cs, this message translates to:
+  /// **'Příjmení'**
+  String get customerLastName;
+
+  /// No description provided for @customerEmail.
+  ///
+  /// In cs, this message translates to:
+  /// **'E-mail'**
+  String get customerEmail;
+
+  /// No description provided for @customerPhone.
+  ///
+  /// In cs, this message translates to:
+  /// **'Telefon'**
+  String get customerPhone;
+
+  /// No description provided for @customerAddress.
+  ///
+  /// In cs, this message translates to:
+  /// **'Adresa'**
+  String get customerAddress;
+
+  /// No description provided for @customerPoints.
+  ///
+  /// In cs, this message translates to:
+  /// **'Body'**
+  String get customerPoints;
+
+  /// No description provided for @customerCredit.
+  ///
+  /// In cs, this message translates to:
+  /// **'Kredit'**
+  String get customerCredit;
+
+  /// No description provided for @customerTotalSpent.
+  ///
+  /// In cs, this message translates to:
+  /// **'Celkem utraceno'**
+  String get customerTotalSpent;
+
+  /// No description provided for @customerBirthdate.
+  ///
+  /// In cs, this message translates to:
+  /// **'Datum narození'**
+  String get customerBirthdate;
+
+  /// No description provided for @customerLastVisit.
+  ///
+  /// In cs, this message translates to:
+  /// **'Poslední návštěva'**
+  String get customerLastVisit;
+
+  /// No description provided for @customerSearch.
+  ///
+  /// In cs, this message translates to:
+  /// **'Hledat zákazníka'**
+  String get customerSearch;
+
+  /// No description provided for @customerRemove.
+  ///
+  /// In cs, this message translates to:
+  /// **'Odebrat zákazníka'**
+  String get customerRemove;
+
+  /// No description provided for @customerNone.
+  ///
+  /// In cs, this message translates to:
+  /// **'Žádný zákazník'**
+  String get customerNone;
 }
 
 class _AppLocalizationsDelegate

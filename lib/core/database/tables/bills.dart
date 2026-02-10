@@ -8,6 +8,7 @@ import 'sync_columns_mixin.dart';
 class Bills extends Table with SyncColumnsMixin {
   TextColumn get id => text()();
   TextColumn get companyId => text()();
+  TextColumn get customerId => text().nullable()();
   TextColumn get tableId => text().nullable()();
   TextColumn get openedByUserId => text()();
   TextColumn get billNumber => text()();

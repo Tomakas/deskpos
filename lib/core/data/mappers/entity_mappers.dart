@@ -4,6 +4,8 @@ import '../../database/app_database.dart';
 import '../models/bill_model.dart';
 import '../models/cash_movement_model.dart';
 import '../models/category_model.dart';
+import '../models/customer_model.dart';
+import '../models/customer_transaction_model.dart';
 import '../models/company_model.dart';
 import '../models/company_settings_model.dart';
 import '../models/currency_model.dart';
@@ -303,10 +305,71 @@ TaxRatesCompanion taxRateToCompanion(TaxRateModel m) => TaxRatesCompanion.insert
       isDefault: Value(m.isDefault),
     );
 
+// --- Customer ---
+CustomerModel customerFromEntity(Customer e) => CustomerModel(
+      id: e.id,
+      companyId: e.companyId,
+      firstName: e.firstName,
+      lastName: e.lastName,
+      email: e.email,
+      phone: e.phone,
+      address: e.address,
+      points: e.points,
+      credit: e.credit,
+      totalSpent: e.totalSpent,
+      lastVisitDate: e.lastVisitDate,
+      birthdate: e.birthdate,
+      createdAt: e.createdAt,
+      updatedAt: e.updatedAt,
+      deletedAt: e.deletedAt,
+    );
+
+CustomersCompanion customerToCompanion(CustomerModel m) => CustomersCompanion.insert(
+      id: m.id,
+      companyId: m.companyId,
+      firstName: m.firstName,
+      lastName: m.lastName,
+      email: Value(m.email),
+      phone: Value(m.phone),
+      address: Value(m.address),
+      points: Value(m.points),
+      credit: Value(m.credit),
+      totalSpent: Value(m.totalSpent),
+      lastVisitDate: Value(m.lastVisitDate),
+      birthdate: Value(m.birthdate),
+    );
+
+// --- CustomerTransaction ---
+CustomerTransactionModel customerTransactionFromEntity(CustomerTransaction e) =>
+    CustomerTransactionModel(
+      id: e.id,
+      companyId: e.companyId,
+      customerId: e.customerId,
+      pointsChange: e.pointsChange,
+      creditChange: e.creditChange,
+      orderId: e.orderId,
+      processedByUserId: e.processedByUserId,
+      createdAt: e.createdAt,
+      updatedAt: e.updatedAt,
+      deletedAt: e.deletedAt,
+    );
+
+CustomerTransactionsCompanion customerTransactionToCompanion(CustomerTransactionModel m) =>
+    CustomerTransactionsCompanion.insert(
+      id: m.id,
+      companyId: m.companyId,
+      customerId: m.customerId,
+      pointsChange: m.pointsChange,
+      creditChange: m.creditChange,
+      orderId: Value(m.orderId),
+      processedByUserId: m.processedByUserId,
+    );
+
 // --- Bill ---
 BillModel billFromEntity(Bill e) => BillModel(
       id: e.id,
       companyId: e.companyId,
+      customerId: e.customerId,
       tableId: e.tableId,
       openedByUserId: e.openedByUserId,
       billNumber: e.billNumber,

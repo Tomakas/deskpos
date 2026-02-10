@@ -120,7 +120,7 @@ class SeedService {
           await _db.into(_db.taxRates).insert(taxRateToCompanion(tr));
         }
 
-        // 4. Permissions (14)
+        // 4. Permissions (16)
         final permissionDefs = _getPermissionDefinitions();
         final permissionModels = <PermissionModel>[];
         for (final def in permissionDefs) {
@@ -154,6 +154,7 @@ class SeedService {
           'orders.create',
           'orders.view',
           'products.view',
+          'customers.view',
         };
         final operatorCodes = {
           ...helperCodes,
@@ -169,6 +170,7 @@ class SeedService {
           'users.view',
           'users.manage',
           'settings.manage',
+          'customers.manage',
         };
 
         final roleCodeMap = {
@@ -366,7 +368,7 @@ class SeedService {
         );
         await _db.into(_db.users).insert(userToCompanion(user));
 
-        // 10. User permissions (admin gets all 14)
+        // 10. User permissions (admin gets all 16)
         for (final perm in permissionModels) {
           final up = UserPermissionModel(
             id: _id(),
@@ -407,6 +409,8 @@ class SeedService {
       {'code': 'users.view', 'name': 'View users', 'category': 'users'},
       {'code': 'users.manage', 'name': 'Manage users', 'category': 'users'},
       {'code': 'settings.manage', 'name': 'Manage settings', 'category': 'settings'},
+      {'code': 'customers.view', 'name': 'View customers', 'category': 'customers'},
+      {'code': 'customers.manage', 'name': 'Manage customers', 'category': 'customers'},
     ];
   }
 }

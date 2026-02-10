@@ -7,6 +7,7 @@ import '../../../core/data/enums/bill_status.dart';
 import '../../../core/data/enums/discount_type.dart';
 import '../../../core/data/enums/prep_status.dart';
 import '../../../core/data/models/bill_model.dart';
+import '../../../core/data/models/customer_model.dart';
 import '../../../core/data/models/order_item_model.dart';
 import '../../../core/data/models/order_model.dart';
 import '../../../core/data/models/table_model.dart';
@@ -14,6 +15,7 @@ import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import 'dialog_customer_search.dart';
 import 'dialog_discount.dart';
 import 'dialog_merge_bill.dart';
 import 'dialog_new_bill.dart';
@@ -354,7 +356,10 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
         child: Column(
           children: [
-            _SideButton(label: l.billDetailCustomer, onPressed: null),
+            _SideButton(
+              label: l.billDetailCustomer,
+              onPressed: isOpened ? () => _selectCustomer(context, ref, bill) : null,
+            ),
             const SizedBox(height: 4),
             _SideButton(
               label: l.billDetailMove,
@@ -517,6 +522,21 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
       result.$1,
       result.$2,
     );
+  }
+
+  Future<void> _selectCustomer(BuildContext context, WidgetRef ref, BillModel bill) async {
+    final result = await showCustomerSearchDialogRaw(
+      context,
+      ref,
+      showRemoveButton: bill.customerId != null,
+    );
+    if (result == null) return;
+    if (result is CustomerModel) {
+      await ref.read(billRepositoryProvider).updateCustomer(bill.id, result.id);
+    } else {
+      // _RemoveCustomer sentinel
+      await ref.read(billRepositoryProvider).updateCustomer(bill.id, null);
+    }
   }
 
   Future<void> _moveBill(BuildContext context, WidgetRef ref, BillModel bill) async {

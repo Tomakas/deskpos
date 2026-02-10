@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../repositories/bill_repository.dart';
 import '../repositories/cash_movement_repository.dart';
 import '../repositories/category_repository.dart';
+import '../repositories/customer_repository.dart';
+import '../repositories/customer_transaction_repository.dart';
 import '../repositories/company_repository.dart';
 import '../repositories/company_settings_repository.dart';
 import '../repositories/item_repository.dart';
@@ -161,6 +163,20 @@ final paymentRepositoryProvider = Provider<PaymentRepository>((ref) {
 
 final layoutItemRepositoryProvider = Provider<LayoutItemRepository>((ref) {
   return LayoutItemRepository(
+    ref.watch(appDatabaseProvider),
+    syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
+  );
+});
+
+final customerRepositoryProvider = Provider<CustomerRepository>((ref) {
+  return CustomerRepository(
+    ref.watch(appDatabaseProvider),
+    syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
+  );
+});
+
+final customerTransactionRepositoryProvider = Provider<CustomerTransactionRepository>((ref) {
+  return CustomerTransactionRepository(
     ref.watch(appDatabaseProvider),
     syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
   );
