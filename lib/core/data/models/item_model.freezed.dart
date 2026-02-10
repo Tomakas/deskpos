@@ -29,6 +29,14 @@ mixin _$ItemModel {
   bool get isSellable => throw _privateConstructorUsedError;
   bool get isActive => throw _privateConstructorUsedError;
   UnitType get unit => throw _privateConstructorUsedError;
+  String? get altSku => throw _privateConstructorUsedError;
+  int? get purchasePrice => throw _privateConstructorUsedError;
+  String? get purchaseTaxRateId => throw _privateConstructorUsedError;
+  bool get isOnSale => throw _privateConstructorUsedError;
+  bool get isStockTracked => throw _privateConstructorUsedError;
+  String? get manufacturerId => throw _privateConstructorUsedError;
+  String? get supplierId => throw _privateConstructorUsedError;
+  String? get parentId => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
   DateTime get updatedAt => throw _privateConstructorUsedError;
   DateTime? get deletedAt => throw _privateConstructorUsedError;
@@ -58,6 +66,14 @@ abstract class $ItemModelCopyWith<$Res> {
     bool isSellable,
     bool isActive,
     UnitType unit,
+    String? altSku,
+    int? purchasePrice,
+    String? purchaseTaxRateId,
+    bool isOnSale,
+    bool isStockTracked,
+    String? manufacturerId,
+    String? supplierId,
+    String? parentId,
     DateTime createdAt,
     DateTime updatedAt,
     DateTime? deletedAt,
@@ -91,6 +107,14 @@ class _$ItemModelCopyWithImpl<$Res, $Val extends ItemModel>
     Object? isSellable = null,
     Object? isActive = null,
     Object? unit = null,
+    Object? altSku = freezed,
+    Object? purchasePrice = freezed,
+    Object? purchaseTaxRateId = freezed,
+    Object? isOnSale = null,
+    Object? isStockTracked = null,
+    Object? manufacturerId = freezed,
+    Object? supplierId = freezed,
+    Object? parentId = freezed,
     Object? createdAt = null,
     Object? updatedAt = null,
     Object? deletedAt = freezed,
@@ -145,6 +169,38 @@ class _$ItemModelCopyWithImpl<$Res, $Val extends ItemModel>
                 ? _value.unit
                 : unit // ignore: cast_nullable_to_non_nullable
                       as UnitType,
+            altSku: freezed == altSku
+                ? _value.altSku
+                : altSku // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            purchasePrice: freezed == purchasePrice
+                ? _value.purchasePrice
+                : purchasePrice // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            purchaseTaxRateId: freezed == purchaseTaxRateId
+                ? _value.purchaseTaxRateId
+                : purchaseTaxRateId // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            isOnSale: null == isOnSale
+                ? _value.isOnSale
+                : isOnSale // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            isStockTracked: null == isStockTracked
+                ? _value.isStockTracked
+                : isStockTracked // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            manufacturerId: freezed == manufacturerId
+                ? _value.manufacturerId
+                : manufacturerId // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            supplierId: freezed == supplierId
+                ? _value.supplierId
+                : supplierId // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            parentId: freezed == parentId
+                ? _value.parentId
+                : parentId // ignore: cast_nullable_to_non_nullable
+                      as String?,
             createdAt: null == createdAt
                 ? _value.createdAt
                 : createdAt // ignore: cast_nullable_to_non_nullable
@@ -185,6 +241,14 @@ abstract class _$$ItemModelImplCopyWith<$Res>
     bool isSellable,
     bool isActive,
     UnitType unit,
+    String? altSku,
+    int? purchasePrice,
+    String? purchaseTaxRateId,
+    bool isOnSale,
+    bool isStockTracked,
+    String? manufacturerId,
+    String? supplierId,
+    String? parentId,
     DateTime createdAt,
     DateTime updatedAt,
     DateTime? deletedAt,
@@ -217,6 +281,14 @@ class __$$ItemModelImplCopyWithImpl<$Res>
     Object? isSellable = null,
     Object? isActive = null,
     Object? unit = null,
+    Object? altSku = freezed,
+    Object? purchasePrice = freezed,
+    Object? purchaseTaxRateId = freezed,
+    Object? isOnSale = null,
+    Object? isStockTracked = null,
+    Object? manufacturerId = freezed,
+    Object? supplierId = freezed,
+    Object? parentId = freezed,
     Object? createdAt = null,
     Object? updatedAt = null,
     Object? deletedAt = freezed,
@@ -271,6 +343,38 @@ class __$$ItemModelImplCopyWithImpl<$Res>
             ? _value.unit
             : unit // ignore: cast_nullable_to_non_nullable
                   as UnitType,
+        altSku: freezed == altSku
+            ? _value.altSku
+            : altSku // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        purchasePrice: freezed == purchasePrice
+            ? _value.purchasePrice
+            : purchasePrice // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        purchaseTaxRateId: freezed == purchaseTaxRateId
+            ? _value.purchaseTaxRateId
+            : purchaseTaxRateId // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        isOnSale: null == isOnSale
+            ? _value.isOnSale
+            : isOnSale // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        isStockTracked: null == isStockTracked
+            ? _value.isStockTracked
+            : isStockTracked // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        manufacturerId: freezed == manufacturerId
+            ? _value.manufacturerId
+            : manufacturerId // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        supplierId: freezed == supplierId
+            ? _value.supplierId
+            : supplierId // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        parentId: freezed == parentId
+            ? _value.parentId
+            : parentId // ignore: cast_nullable_to_non_nullable
+                  as String?,
         createdAt: null == createdAt
             ? _value.createdAt
             : createdAt // ignore: cast_nullable_to_non_nullable
@@ -304,6 +408,14 @@ class _$ItemModelImpl implements _ItemModel {
     this.isSellable = true,
     this.isActive = true,
     required this.unit,
+    this.altSku,
+    this.purchasePrice,
+    this.purchaseTaxRateId,
+    this.isOnSale = true,
+    this.isStockTracked = false,
+    this.manufacturerId,
+    this.supplierId,
+    this.parentId,
     required this.createdAt,
     required this.updatedAt,
     this.deletedAt,
@@ -336,6 +448,24 @@ class _$ItemModelImpl implements _ItemModel {
   @override
   final UnitType unit;
   @override
+  final String? altSku;
+  @override
+  final int? purchasePrice;
+  @override
+  final String? purchaseTaxRateId;
+  @override
+  @JsonKey()
+  final bool isOnSale;
+  @override
+  @JsonKey()
+  final bool isStockTracked;
+  @override
+  final String? manufacturerId;
+  @override
+  final String? supplierId;
+  @override
+  final String? parentId;
+  @override
   final DateTime createdAt;
   @override
   final DateTime updatedAt;
@@ -344,7 +474,7 @@ class _$ItemModelImpl implements _ItemModel {
 
   @override
   String toString() {
-    return 'ItemModel(id: $id, companyId: $companyId, categoryId: $categoryId, name: $name, description: $description, itemType: $itemType, sku: $sku, unitPrice: $unitPrice, saleTaxRateId: $saleTaxRateId, isSellable: $isSellable, isActive: $isActive, unit: $unit, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+    return 'ItemModel(id: $id, companyId: $companyId, categoryId: $categoryId, name: $name, description: $description, itemType: $itemType, sku: $sku, unitPrice: $unitPrice, saleTaxRateId: $saleTaxRateId, isSellable: $isSellable, isActive: $isActive, unit: $unit, altSku: $altSku, purchasePrice: $purchasePrice, purchaseTaxRateId: $purchaseTaxRateId, isOnSale: $isOnSale, isStockTracked: $isStockTracked, manufacturerId: $manufacturerId, supplierId: $supplierId, parentId: $parentId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
   }
 
   @override
@@ -372,6 +502,21 @@ class _$ItemModelImpl implements _ItemModel {
             (identical(other.isActive, isActive) ||
                 other.isActive == isActive) &&
             (identical(other.unit, unit) || other.unit == unit) &&
+            (identical(other.altSku, altSku) || other.altSku == altSku) &&
+            (identical(other.purchasePrice, purchasePrice) ||
+                other.purchasePrice == purchasePrice) &&
+            (identical(other.purchaseTaxRateId, purchaseTaxRateId) ||
+                other.purchaseTaxRateId == purchaseTaxRateId) &&
+            (identical(other.isOnSale, isOnSale) ||
+                other.isOnSale == isOnSale) &&
+            (identical(other.isStockTracked, isStockTracked) ||
+                other.isStockTracked == isStockTracked) &&
+            (identical(other.manufacturerId, manufacturerId) ||
+                other.manufacturerId == manufacturerId) &&
+            (identical(other.supplierId, supplierId) ||
+                other.supplierId == supplierId) &&
+            (identical(other.parentId, parentId) ||
+                other.parentId == parentId) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.updatedAt, updatedAt) ||
@@ -381,7 +526,7 @@ class _$ItemModelImpl implements _ItemModel {
   }
 
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     runtimeType,
     id,
     companyId,
@@ -395,10 +540,18 @@ class _$ItemModelImpl implements _ItemModel {
     isSellable,
     isActive,
     unit,
+    altSku,
+    purchasePrice,
+    purchaseTaxRateId,
+    isOnSale,
+    isStockTracked,
+    manufacturerId,
+    supplierId,
+    parentId,
     createdAt,
     updatedAt,
     deletedAt,
-  );
+  ]);
 
   /// Create a copy of ItemModel
   /// with the given fields replaced by the non-null parameter values.
@@ -423,6 +576,14 @@ abstract class _ItemModel implements ItemModel {
     final bool isSellable,
     final bool isActive,
     required final UnitType unit,
+    final String? altSku,
+    final int? purchasePrice,
+    final String? purchaseTaxRateId,
+    final bool isOnSale,
+    final bool isStockTracked,
+    final String? manufacturerId,
+    final String? supplierId,
+    final String? parentId,
     required final DateTime createdAt,
     required final DateTime updatedAt,
     final DateTime? deletedAt,
@@ -452,6 +613,22 @@ abstract class _ItemModel implements ItemModel {
   bool get isActive;
   @override
   UnitType get unit;
+  @override
+  String? get altSku;
+  @override
+  int? get purchasePrice;
+  @override
+  String? get purchaseTaxRateId;
+  @override
+  bool get isOnSale;
+  @override
+  bool get isStockTracked;
+  @override
+  String? get manufacturerId;
+  @override
+  String? get supplierId;
+  @override
+  String? get parentId;
   @override
   DateTime get createdAt;
   @override

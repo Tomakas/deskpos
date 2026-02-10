@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/auth/screens/screen_login.dart';
 import '../../features/bills/screens/screen_bills.dart';
+import '../../features/catalog/screens/screen_catalog.dart';
 import '../../features/onboarding/screens/screen_connect_company.dart';
 import '../../features/onboarding/screens/screen_onboarding.dart';
 import '../../features/sell/screens/screen_sell.dart';
@@ -93,6 +94,15 @@ final routerProvider = Provider<GoRouter>((ref) {
           return null;
         },
         builder: (context, state) => const ScreenDev(),
+      ),
+      GoRoute(
+        path: '/catalog',
+        redirect: (context, state) {
+          final hasPermission = ref.read(hasPermissionProvider('settings.manage'));
+          if (!hasPermission) return '/bills';
+          return null;
+        },
+        builder: (context, state) => const ScreenCatalog(),
       ),
     ],
   );

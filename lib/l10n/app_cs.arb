@@ -167,6 +167,7 @@
   "sellCartEmpty": "Košík je prázdný",
   "sellTotal": "Celkem",
   "sellCancelOrder": "Zrušit",
+  "sellSaveToBill": "Uložit na účet",
   "sellSubmitOrder": "Objednat",
   "sellSearch": "Vyhledat",
   "sellEditGrid": "Upravit grid",
@@ -456,5 +457,28 @@
 
   "autoCorrection": "Automatická korekce: počáteční hotovost se liší od předchozí uzávěrky",
   "errorNoCompanyFound": "Firma nenalezena",
-  "openingCashNote": "Počáteční stav"
+  "openingCashNote": "Počáteční stav",
+
+  "catalogTitle": "Katalog",
+  "catalogTabProducts": "Produkty",
+  "catalogTabCategories": "Kategorie",
+  "catalogTabSuppliers": "Dodavatelé",
+  "catalogTabManufacturers": "Výrobci",
+  "catalogTabRecipes": "Receptury",
+  "fieldSupplierName": "Název dodavatele",
+  "fieldContactPerson": "Kontaktní osoba",
+  "fieldEmail": "E-mail",
+  "fieldPhone": "Telefon",
+  "fieldManufacturer": "Výrobce",
+  "fieldSupplier": "Dodavatel",
+  "fieldParentCategory": "Nadřazená kategorie",
+  "fieldAltSku": "Alternativní SKU",
+  "fieldPurchasePrice": "Nákupní cena",
+  "fieldPurchaseTaxRate": "Nákupní DPH",
+  "fieldOnSale": "V prodeji",
+  "fieldStockTracked": "Sledování skladu",
+  "fieldParentProduct": "Nadřazený produkt",
+  "fieldComponent": "Složka",
+  "fieldQuantityRequired": "Požadované množství",
+  "moreCatalog": "Katalog"
 }

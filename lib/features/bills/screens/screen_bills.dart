@@ -1066,6 +1066,8 @@ void _showMoreMenu(BuildContext btnContext, bool canManageSettings, {VoidCallbac
         PopupMenuItem(enabled: false, height: 48, child: Text(l.moreShifts)),
       PopupMenuItem(enabled: false, height: 48, child: Text(l.moreStatistics)),
       PopupMenuItem(enabled: false, height: 48, child: Text(l.moreReservations)),
+      if (canManageSettings)
+        PopupMenuItem(value: 'catalog', height: 48, child: Text(l.moreCatalog)),
       PopupMenuItem(value: 'settings', height: 48, child: Text(l.moreSettings)),
       if (canManageSettings)
         PopupMenuItem(value: 'dev', height: 48, child: Text(l.moreDev)),
@@ -1073,6 +1075,8 @@ void _showMoreMenu(BuildContext btnContext, bool canManageSettings, {VoidCallbac
   ).then((value) {
     if (value == null || !btnContext.mounted) return;
     switch (value) {
+      case 'catalog':
+        btnContext.push('/catalog');
       case 'settings':
         btnContext.push('/settings');
       case 'dev':

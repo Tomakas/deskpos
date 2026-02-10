@@ -7,15 +7,18 @@ import '../repositories/company_repository.dart';
 import '../repositories/company_settings_repository.dart';
 import '../repositories/item_repository.dart';
 import '../repositories/layout_item_repository.dart';
+import '../repositories/manufacturer_repository.dart';
 import '../repositories/order_repository.dart';
 import '../repositories/payment_method_repository.dart';
 import '../repositories/payment_repository.dart';
 import '../repositories/permission_repository.dart';
+import '../repositories/product_recipe_repository.dart';
 import '../repositories/register_repository.dart';
 import '../repositories/register_session_repository.dart';
 import '../repositories/shift_repository.dart';
 import '../repositories/role_repository.dart';
 import '../repositories/section_repository.dart';
+import '../repositories/supplier_repository.dart';
 import '../repositories/sync_metadata_repository.dart';
 import '../repositories/sync_queue_repository.dart';
 import '../repositories/table_repository.dart';
@@ -157,6 +160,27 @@ final paymentRepositoryProvider = Provider<PaymentRepository>((ref) {
 
 final layoutItemRepositoryProvider = Provider<LayoutItemRepository>((ref) {
   return LayoutItemRepository(
+    ref.watch(appDatabaseProvider),
+    syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
+  );
+});
+
+final supplierRepositoryProvider = Provider<SupplierRepository>((ref) {
+  return SupplierRepository(
+    ref.watch(appDatabaseProvider),
+    syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
+  );
+});
+
+final manufacturerRepositoryProvider = Provider<ManufacturerRepository>((ref) {
+  return ManufacturerRepository(
+    ref.watch(appDatabaseProvider),
+    syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
+  );
+});
+
+final productRecipeRepositoryProvider = Provider<ProductRecipeRepository>((ref) {
+  return ProductRecipeRepository(
     ref.watch(appDatabaseProvider),
     syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
   );

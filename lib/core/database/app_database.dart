@@ -12,17 +12,20 @@ import 'tables/company_settings.dart';
 import 'tables/currencies.dart';
 import 'tables/items.dart';
 import 'tables/layout_items.dart';
+import 'tables/manufacturers.dart';
 import 'tables/order_items.dart';
 import 'tables/orders.dart';
 import 'tables/payment_methods.dart';
 import 'tables/payments.dart';
 import 'tables/permissions.dart';
+import 'tables/product_recipes.dart';
 import 'tables/register_sessions.dart';
 import 'tables/registers.dart';
 import 'tables/role_permissions.dart';
 import 'tables/roles.dart';
 import 'tables/sections.dart';
 import 'tables/shifts.dart';
+import 'tables/suppliers.dart';
 import 'tables/sync_metadata.dart';
 import 'tables/sync_queue.dart';
 import 'tables/table_entities.dart';
@@ -41,17 +44,20 @@ part 'app_database.g.dart';
   Currencies,
   Items,
   LayoutItems,
+  Manufacturers,
   OrderItems,
   Orders,
   PaymentMethods,
   Payments,
   Permissions,
+  ProductRecipes,
   RegisterSessions,
   Registers,
   RolePermissions,
   Roles,
   Sections,
   Shifts,
+  Suppliers,
   SyncMetadata,
   SyncQueue,
   Tables,

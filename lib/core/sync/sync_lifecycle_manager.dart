@@ -263,7 +263,8 @@ class SyncLifecycleManager {
   ) async {
     try {
       final entities = await (_db.select(table)
-            ..where((t) => (t as dynamic).companyId.equals(companyId) & (t as dynamic).deletedAt.isNull()))
+            ..where((t) => (t as dynamic).companyId.equals(companyId))
+            ..where((t) => (t as dynamic).deletedAt.isNull()))
           .get();
       for (final entity in entities) {
         final json = toJson(entity);

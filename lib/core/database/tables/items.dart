@@ -18,6 +18,14 @@ class Items extends Table with SyncColumnsMixin {
   BoolColumn get isSellable => boolean().withDefault(const Constant(true))();
   BoolColumn get isActive => boolean().withDefault(const Constant(true))();
   TextColumn get unit => textEnum<UnitType>().withDefault(Constant(UnitType.ks.name))();
+  TextColumn get altSku => text().nullable()();
+  IntColumn get purchasePrice => integer().nullable()();
+  TextColumn get purchaseTaxRateId => text().nullable()();
+  BoolColumn get isOnSale => boolean().withDefault(const Constant(true))();
+  BoolColumn get isStockTracked => boolean().withDefault(const Constant(false))();
+  TextColumn get manufacturerId => text().nullable()();
+  TextColumn get supplierId => text().nullable()();
+  TextColumn get parentId => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};

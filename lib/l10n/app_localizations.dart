@@ -832,6 +832,12 @@ abstract class AppLocalizations {
   /// **'Zrušit'**
   String get sellCancelOrder;
 
+  /// No description provided for @sellSaveToBill.
+  ///
+  /// In cs, this message translates to:
+  /// **'Uložit na účet'**
+  String get sellSaveToBill;
+
   /// No description provided for @sellSubmitOrder.
   ///
   /// In cs, this message translates to:
@@ -2205,6 +2211,138 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Počáteční stav'**
   String get openingCashNote;
+
+  /// No description provided for @catalogTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Katalog'**
+  String get catalogTitle;
+
+  /// No description provided for @catalogTabProducts.
+  ///
+  /// In cs, this message translates to:
+  /// **'Produkty'**
+  String get catalogTabProducts;
+
+  /// No description provided for @catalogTabCategories.
+  ///
+  /// In cs, this message translates to:
+  /// **'Kategorie'**
+  String get catalogTabCategories;
+
+  /// No description provided for @catalogTabSuppliers.
+  ///
+  /// In cs, this message translates to:
+  /// **'Dodavatelé'**
+  String get catalogTabSuppliers;
+
+  /// No description provided for @catalogTabManufacturers.
+  ///
+  /// In cs, this message translates to:
+  /// **'Výrobci'**
+  String get catalogTabManufacturers;
+
+  /// No description provided for @catalogTabRecipes.
+  ///
+  /// In cs, this message translates to:
+  /// **'Receptury'**
+  String get catalogTabRecipes;
+
+  /// No description provided for @fieldSupplierName.
+  ///
+  /// In cs, this message translates to:
+  /// **'Název dodavatele'**
+  String get fieldSupplierName;
+
+  /// No description provided for @fieldContactPerson.
+  ///
+  /// In cs, this message translates to:
+  /// **'Kontaktní osoba'**
+  String get fieldContactPerson;
+
+  /// No description provided for @fieldEmail.
+  ///
+  /// In cs, this message translates to:
+  /// **'E-mail'**
+  String get fieldEmail;
+
+  /// No description provided for @fieldPhone.
+  ///
+  /// In cs, this message translates to:
+  /// **'Telefon'**
+  String get fieldPhone;
+
+  /// No description provided for @fieldManufacturer.
+  ///
+  /// In cs, this message translates to:
+  /// **'Výrobce'**
+  String get fieldManufacturer;
+
+  /// No description provided for @fieldSupplier.
+  ///
+  /// In cs, this message translates to:
+  /// **'Dodavatel'**
+  String get fieldSupplier;
+
+  /// No description provided for @fieldParentCategory.
+  ///
+  /// In cs, this message translates to:
+  /// **'Nadřazená kategorie'**
+  String get fieldParentCategory;
+
+  /// No description provided for @fieldAltSku.
+  ///
+  /// In cs, this message translates to:
+  /// **'Alternativní SKU'**
+  String get fieldAltSku;
+
+  /// No description provided for @fieldPurchasePrice.
+  ///
+  /// In cs, this message translates to:
+  /// **'Nákupní cena'**
+  String get fieldPurchasePrice;
+
+  /// No description provided for @fieldPurchaseTaxRate.
+  ///
+  /// In cs, this message translates to:
+  /// **'Nákupní DPH'**
+  String get fieldPurchaseTaxRate;
+
+  /// No description provided for @fieldOnSale.
+  ///
+  /// In cs, this message translates to:
+  /// **'V prodeji'**
+  String get fieldOnSale;
+
+  /// No description provided for @fieldStockTracked.
+  ///
+  /// In cs, this message translates to:
+  /// **'Sledování skladu'**
+  String get fieldStockTracked;
+
+  /// No description provided for @fieldParentProduct.
+  ///
+  /// In cs, this message translates to:
+  /// **'Nadřazený produkt'**
+  String get fieldParentProduct;
+
+  /// No description provided for @fieldComponent.
+  ///
+  /// In cs, this message translates to:
+  /// **'Složka'**
+  String get fieldComponent;
+
+  /// No description provided for @fieldQuantityRequired.
+  ///
+  /// In cs, this message translates to:
+  /// **'Požadované množství'**
+  String get fieldQuantityRequired;
+
+  /// No description provided for @moreCatalog.
+  ///
+  /// In cs, this message translates to:
+  /// **'Katalog'**
+  String get moreCatalog;
 }
 
 class _AppLocalizationsDelegate

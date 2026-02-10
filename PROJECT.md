@@ -41,7 +41,7 @@
 
 ## Roadmap
 
-4 etapy, každá s milníky a tasky. Schéma obsahuje **24 tabulek** (22 doménových + 2 sync). Dalších 15 tabulek se přidá s příslušnými rozšířeními. Sync se řeší až v Etapě 3 — do té doby funguje aplikace offline na jednom zařízení.
+4 etapy, každá s milníky a tasky. Schéma obsahuje **30 tabulek** (28 doménových + 2 sync). Dalších 12 tabulek se přidá s příslušnými rozšířeními. Sync se řeší až v Etapě 3 — do té doby funguje aplikace offline na jednom zařízení.
 
 ---
 
@@ -173,34 +173,34 @@ Funkce, které nejsou nezbytné pro základní prodej, ale rozšiřují možnost
 
 > **Pozn.:** Základní register session (otevření/zavření bez hotovosti) je již v Etapě 2 (Milník 2.5).
 
-#### Milník 3.4 — Tisk
+#### Milník 3.4 — Rozšíření produktového katalogu
 
-- **Task3.14** Náhled účtenky — dialog s náhledem (firma, položky, DPH, celkem)
-- **Task3.15** Tisk účtenky — napojení na tiskárnu (POS printer / PDF export)
-- **Task3.16** Tisk Z-reportu — denní uzávěrka
-- **Task3.17** Tisk reportů — tržby, prodeje dle kategorií/zaměstnanců
-- **Výsledek:** Lze tisknout účtenky, denní uzávěrky a reporty na POS tiskárnu nebo do PDF.
+- **Task3.14** ✅ Dodavatelé a výrobci — tabulky `suppliers`, `manufacturers` (CRUD, sync, FK na items)
+- **Task3.15** ✅ Rozšíření items — nákupní cena (`purchase_price`), alt SKU (`alt_sku`), FK na `supplier_id`, `manufacturer_id`, `parent_id`, `purchase_tax_rate_id`, flagy `is_on_sale`, `is_stock_tracked`
+- **Task3.16** ✅ Receptury — tabulka `product_recipes` (parent_product_id → hotový produkt, component_product_id → surovina, quantity_required); item_type rozšíření o `recipe`, `ingredient`
+- **Task3.17** ✅ Varianty produktů — `parent_id` ve items, item_type `variant`, `modifier` (velikost, barva apod.)
+- **Task3.18** ✅ Hierarchické kategorie — `parent_id` v categories (stromová struktura, max 3 úrovně)
+- **Task3.19** ✅ UI správa — nová route `/catalog` s 5 taby (Produkty, Kategorie, Dodavatelé, Výrobci, Receptury); ScreenDev redukován na 4 taby
+- **Výsledek:** Kompletní produktový katalog s dodavateli, výrobci, recepturami a variantami. Položky mají nákupní cenu, alt SKU a vazby na dodavatele/výrobce.
 
-#### Milník 3.5 — Rozšíření produktového katalogu
+#### Milník 3.5 — Sklad a zásobování
 
-- **Task3.18** Dodavatelé a výrobci — tabulky `suppliers`, `manufacturers` (CRUD, sync, FK na items)
-- **Task3.19** Rozšíření items — nákupní cena (`purchase_price`), čárový kód (`barcode`), minimální zásoba (`min_stock`), FK na `supplier_id`, `manufacturer_id`
-- **Task3.20** Receptury — tabulka `product_recipes` (parent_item_id → hotový produkt, ingredient_item_id → surovina, quantity, unit); item_type rozšíření o `recipe`, `ingredient`
-- **Task3.21** Varianty produktů — `parent_id` ve items, item_type `variant` (velikost, barva apod.)
-- **Task3.22** Hierarchické kategorie — `parent_id` v categories (stromová struktura, max 3 úrovně)
-- **Task3.23** UI správa — rozšíření ScreenDev o dodavatele, výrobce, receptury; detail produktu s vazbami
-- **Výsledek:** Kompletní produktový katalog s dodavateli, výrobci, recepturami a variantami. Položky mají nákupní cenu a čárový kód.
-
-#### Milník 3.6 — Sklad a zásobování
-
-- **Task3.24** Sklady — tabulka `warehouses` (id, company_id, name, is_default, is_active)
-- **Task3.25** Skladové zásoby — tabulka `stock_levels` (warehouse_id, item_id, quantity, min_quantity)
-- **Task3.26** Skladové doklady — tabulka `stock_documents` (type: receipt/transfer/waste/inventory/correction, supplier_id, warehouse_id, note, total_amount)
-- **Task3.27** Skladové pohyby — tabulka `stock_movements` (stock_document_id, item_id, quantity, purchase_price, direction: in/out)
-- **Task3.28** Automatický odpis — při uzavření objednávky (status delivered) automaticky odečíst ze skladu; u receptur odečíst ingredience
-- **Task3.29** Inventura — dialog pro zadání skutečných zásob, automatická korekce rozdílů
-- **Task3.30** UI Sklad — ScreenInventory (přehled zásob, příjemky, výdejky, inventury); aktivace tlačítka SKLAD na ScreenBills
+- **Task3.20** Sklady — tabulka `warehouses` (id, company_id, name, is_default, is_active)
+- **Task3.21** Skladové zásoby — tabulka `stock_levels` (warehouse_id, item_id, quantity, min_quantity)
+- **Task3.22** Skladové doklady — tabulka `stock_documents` (type: receipt/transfer/waste/inventory/correction, supplier_id, warehouse_id, note, total_amount)
+- **Task3.23** Skladové pohyby — tabulka `stock_movements` (stock_document_id, item_id, quantity, purchase_price, direction: in/out)
+- **Task3.24** Automatický odpis — při uzavření objednávky (status delivered) automaticky odečíst ze skladu; u receptur odečíst ingredience
+- **Task3.25** Inventura — dialog pro zadání skutečných zásob, automatická korekce rozdílů
+- **Task3.26** UI Sklad — ScreenInventory (přehled zásob, příjemky, výdejky, inventury); aktivace tlačítka SKLAD na ScreenBills
 - **Výsledek:** Plné skladové hospodářství s evidencí zásob, příjemkami, výdejkami, automatickým odpisem při prodeji a inventurami.
+
+#### Milník 3.6 — Tisk
+
+- **Task3.27** Náhled účtenky — dialog s náhledem (firma, položky, DPH, celkem)
+- **Task3.28** Tisk účtenky — napojení na tiskárnu (POS printer / PDF export)
+- **Task3.29** Tisk Z-reportu — denní uzávěrka
+- **Task3.30** Tisk reportů — tržby, prodeje dle kategorií/zaměstnanců
+- **Výsledek:** Lze tisknout účtenky, denní uzávěrky a reporty na POS tiskárnu nebo do PDF.
 
 ---
 

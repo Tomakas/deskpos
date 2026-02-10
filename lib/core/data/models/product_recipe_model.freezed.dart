@@ -3,7 +3,7 @@
 // ignore_for_file: type=lint
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
-part of 'category_model.dart';
+part of 'product_recipe_model.dart';
 
 // **************************************************************************
 // FreezedGenerator
@@ -16,36 +16,36 @@ final _privateConstructorUsedError = UnsupportedError(
 );
 
 /// @nodoc
-mixin _$CategoryModel {
+mixin _$ProductRecipeModel {
   String get id => throw _privateConstructorUsedError;
   String get companyId => throw _privateConstructorUsedError;
-  String get name => throw _privateConstructorUsedError;
-  bool get isActive => throw _privateConstructorUsedError;
-  String? get parentId => throw _privateConstructorUsedError;
+  String get parentProductId => throw _privateConstructorUsedError;
+  String get componentProductId => throw _privateConstructorUsedError;
+  double get quantityRequired => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
   DateTime get updatedAt => throw _privateConstructorUsedError;
   DateTime? get deletedAt => throw _privateConstructorUsedError;
 
-  /// Create a copy of CategoryModel
+  /// Create a copy of ProductRecipeModel
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  $CategoryModelCopyWith<CategoryModel> get copyWith =>
+  $ProductRecipeModelCopyWith<ProductRecipeModel> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class $CategoryModelCopyWith<$Res> {
-  factory $CategoryModelCopyWith(
-    CategoryModel value,
-    $Res Function(CategoryModel) then,
-  ) = _$CategoryModelCopyWithImpl<$Res, CategoryModel>;
+abstract class $ProductRecipeModelCopyWith<$Res> {
+  factory $ProductRecipeModelCopyWith(
+    ProductRecipeModel value,
+    $Res Function(ProductRecipeModel) then,
+  ) = _$ProductRecipeModelCopyWithImpl<$Res, ProductRecipeModel>;
   @useResult
   $Res call({
     String id,
     String companyId,
-    String name,
-    bool isActive,
-    String? parentId,
+    String parentProductId,
+    String componentProductId,
+    double quantityRequired,
     DateTime createdAt,
     DateTime updatedAt,
     DateTime? deletedAt,
@@ -53,25 +53,25 @@ abstract class $CategoryModelCopyWith<$Res> {
 }
 
 /// @nodoc
-class _$CategoryModelCopyWithImpl<$Res, $Val extends CategoryModel>
-    implements $CategoryModelCopyWith<$Res> {
-  _$CategoryModelCopyWithImpl(this._value, this._then);
+class _$ProductRecipeModelCopyWithImpl<$Res, $Val extends ProductRecipeModel>
+    implements $ProductRecipeModelCopyWith<$Res> {
+  _$ProductRecipeModelCopyWithImpl(this._value, this._then);
 
   // ignore: unused_field
   final $Val _value;
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of CategoryModel
+  /// Create a copy of ProductRecipeModel
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
     Object? id = null,
     Object? companyId = null,
-    Object? name = null,
-    Object? isActive = null,
-    Object? parentId = freezed,
+    Object? parentProductId = null,
+    Object? componentProductId = null,
+    Object? quantityRequired = null,
     Object? createdAt = null,
     Object? updatedAt = null,
     Object? deletedAt = freezed,
@@ -86,18 +86,18 @@ class _$CategoryModelCopyWithImpl<$Res, $Val extends CategoryModel>
                 ? _value.companyId
                 : companyId // ignore: cast_nullable_to_non_nullable
                       as String,
-            name: null == name
-                ? _value.name
-                : name // ignore: cast_nullable_to_non_nullable
+            parentProductId: null == parentProductId
+                ? _value.parentProductId
+                : parentProductId // ignore: cast_nullable_to_non_nullable
                       as String,
-            isActive: null == isActive
-                ? _value.isActive
-                : isActive // ignore: cast_nullable_to_non_nullable
-                      as bool,
-            parentId: freezed == parentId
-                ? _value.parentId
-                : parentId // ignore: cast_nullable_to_non_nullable
-                      as String?,
+            componentProductId: null == componentProductId
+                ? _value.componentProductId
+                : componentProductId // ignore: cast_nullable_to_non_nullable
+                      as String,
+            quantityRequired: null == quantityRequired
+                ? _value.quantityRequired
+                : quantityRequired // ignore: cast_nullable_to_non_nullable
+                      as double,
             createdAt: null == createdAt
                 ? _value.createdAt
                 : createdAt // ignore: cast_nullable_to_non_nullable
@@ -117,20 +117,20 @@ class _$CategoryModelCopyWithImpl<$Res, $Val extends CategoryModel>
 }
 
 /// @nodoc
-abstract class _$$CategoryModelImplCopyWith<$Res>
-    implements $CategoryModelCopyWith<$Res> {
-  factory _$$CategoryModelImplCopyWith(
-    _$CategoryModelImpl value,
-    $Res Function(_$CategoryModelImpl) then,
-  ) = __$$CategoryModelImplCopyWithImpl<$Res>;
+abstract class _$$ProductRecipeModelImplCopyWith<$Res>
+    implements $ProductRecipeModelCopyWith<$Res> {
+  factory _$$ProductRecipeModelImplCopyWith(
+    _$ProductRecipeModelImpl value,
+    $Res Function(_$ProductRecipeModelImpl) then,
+  ) = __$$ProductRecipeModelImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({
     String id,
     String companyId,
-    String name,
-    bool isActive,
-    String? parentId,
+    String parentProductId,
+    String componentProductId,
+    double quantityRequired,
     DateTime createdAt,
     DateTime updatedAt,
     DateTime? deletedAt,
@@ -138,30 +138,30 @@ abstract class _$$CategoryModelImplCopyWith<$Res>
 }
 
 /// @nodoc
-class __$$CategoryModelImplCopyWithImpl<$Res>
-    extends _$CategoryModelCopyWithImpl<$Res, _$CategoryModelImpl>
-    implements _$$CategoryModelImplCopyWith<$Res> {
-  __$$CategoryModelImplCopyWithImpl(
-    _$CategoryModelImpl _value,
-    $Res Function(_$CategoryModelImpl) _then,
+class __$$ProductRecipeModelImplCopyWithImpl<$Res>
+    extends _$ProductRecipeModelCopyWithImpl<$Res, _$ProductRecipeModelImpl>
+    implements _$$ProductRecipeModelImplCopyWith<$Res> {
+  __$$ProductRecipeModelImplCopyWithImpl(
+    _$ProductRecipeModelImpl _value,
+    $Res Function(_$ProductRecipeModelImpl) _then,
   ) : super(_value, _then);
 
-  /// Create a copy of CategoryModel
+  /// Create a copy of ProductRecipeModel
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
     Object? id = null,
     Object? companyId = null,
-    Object? name = null,
-    Object? isActive = null,
-    Object? parentId = freezed,
+    Object? parentProductId = null,
+    Object? componentProductId = null,
+    Object? quantityRequired = null,
     Object? createdAt = null,
     Object? updatedAt = null,
     Object? deletedAt = freezed,
   }) {
     return _then(
-      _$CategoryModelImpl(
+      _$ProductRecipeModelImpl(
         id: null == id
             ? _value.id
             : id // ignore: cast_nullable_to_non_nullable
@@ -170,18 +170,18 @@ class __$$CategoryModelImplCopyWithImpl<$Res>
             ? _value.companyId
             : companyId // ignore: cast_nullable_to_non_nullable
                   as String,
-        name: null == name
-            ? _value.name
-            : name // ignore: cast_nullable_to_non_nullable
+        parentProductId: null == parentProductId
+            ? _value.parentProductId
+            : parentProductId // ignore: cast_nullable_to_non_nullable
                   as String,
-        isActive: null == isActive
-            ? _value.isActive
-            : isActive // ignore: cast_nullable_to_non_nullable
-                  as bool,
-        parentId: freezed == parentId
-            ? _value.parentId
-            : parentId // ignore: cast_nullable_to_non_nullable
-                  as String?,
+        componentProductId: null == componentProductId
+            ? _value.componentProductId
+            : componentProductId // ignore: cast_nullable_to_non_nullable
+                  as String,
+        quantityRequired: null == quantityRequired
+            ? _value.quantityRequired
+            : quantityRequired // ignore: cast_nullable_to_non_nullable
+                  as double,
         createdAt: null == createdAt
             ? _value.createdAt
             : createdAt // ignore: cast_nullable_to_non_nullable
@@ -201,13 +201,13 @@ class __$$CategoryModelImplCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$CategoryModelImpl implements _CategoryModel {
-  const _$CategoryModelImpl({
+class _$ProductRecipeModelImpl implements _ProductRecipeModel {
+  const _$ProductRecipeModelImpl({
     required this.id,
     required this.companyId,
-    required this.name,
-    this.isActive = true,
-    this.parentId,
+    required this.parentProductId,
+    required this.componentProductId,
+    required this.quantityRequired,
     required this.createdAt,
     required this.updatedAt,
     this.deletedAt,
@@ -218,12 +218,11 @@ class _$CategoryModelImpl implements _CategoryModel {
   @override
   final String companyId;
   @override
-  final String name;
+  final String parentProductId;
   @override
-  @JsonKey()
-  final bool isActive;
+  final String componentProductId;
   @override
-  final String? parentId;
+  final double quantityRequired;
   @override
   final DateTime createdAt;
   @override
@@ -233,22 +232,23 @@ class _$CategoryModelImpl implements _CategoryModel {
 
   @override
   String toString() {
-    return 'CategoryModel(id: $id, companyId: $companyId, name: $name, isActive: $isActive, parentId: $parentId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+    return 'ProductRecipeModel(id: $id, companyId: $companyId, parentProductId: $parentProductId, componentProductId: $componentProductId, quantityRequired: $quantityRequired, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$CategoryModelImpl &&
+            other is _$ProductRecipeModelImpl &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.companyId, companyId) ||
                 other.companyId == companyId) &&
-            (identical(other.name, name) || other.name == name) &&
-            (identical(other.isActive, isActive) ||
-                other.isActive == isActive) &&
-            (identical(other.parentId, parentId) ||
-                other.parentId == parentId) &&
+            (identical(other.parentProductId, parentProductId) ||
+                other.parentProductId == parentProductId) &&
+            (identical(other.componentProductId, componentProductId) ||
+                other.componentProductId == componentProductId) &&
+            (identical(other.quantityRequired, quantityRequired) ||
+                other.quantityRequired == quantityRequired) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.updatedAt, updatedAt) ||
@@ -262,45 +262,48 @@ class _$CategoryModelImpl implements _CategoryModel {
     runtimeType,
     id,
     companyId,
-    name,
-    isActive,
-    parentId,
+    parentProductId,
+    componentProductId,
+    quantityRequired,
     createdAt,
     updatedAt,
     deletedAt,
   );
 
-  /// Create a copy of CategoryModel
+  /// Create a copy of ProductRecipeModel
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
-  _$$CategoryModelImplCopyWith<_$CategoryModelImpl> get copyWith =>
-      __$$CategoryModelImplCopyWithImpl<_$CategoryModelImpl>(this, _$identity);
+  _$$ProductRecipeModelImplCopyWith<_$ProductRecipeModelImpl> get copyWith =>
+      __$$ProductRecipeModelImplCopyWithImpl<_$ProductRecipeModelImpl>(
+        this,
+        _$identity,
+      );
 }
 
-abstract class _CategoryModel implements CategoryModel {
-  const factory _CategoryModel({
+abstract class _ProductRecipeModel implements ProductRecipeModel {
+  const factory _ProductRecipeModel({
     required final String id,
     required final String companyId,
-    required final String name,
-    final bool isActive,
-    final String? parentId,
+    required final String parentProductId,
+    required final String componentProductId,
+    required final double quantityRequired,
     required final DateTime createdAt,
     required final DateTime updatedAt,
     final DateTime? deletedAt,
-  }) = _$CategoryModelImpl;
+  }) = _$ProductRecipeModelImpl;
 
   @override
   String get id;
   @override
   String get companyId;
   @override
-  String get name;
+  String get parentProductId;
   @override
-  bool get isActive;
+  String get componentProductId;
   @override
-  String? get parentId;
+  double get quantityRequired;
   @override
   DateTime get createdAt;
   @override
@@ -308,10 +311,10 @@ abstract class _CategoryModel implements CategoryModel {
   @override
   DateTime? get deletedAt;
 
-  /// Create a copy of CategoryModel
+  /// Create a copy of ProductRecipeModel
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$CategoryModelImplCopyWith<_$CategoryModelImpl> get copyWith =>
+  _$$ProductRecipeModelImplCopyWith<_$ProductRecipeModelImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

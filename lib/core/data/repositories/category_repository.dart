@@ -43,6 +43,7 @@ class CategoryRepository
   Insertable<Category> toUpdateCompanion(CategoryModel m) => CategoriesCompanion(
         name: Value(m.name),
         isActive: Value(m.isActive),
+        parentId: Value(m.parentId),
         updatedAt: Value(DateTime.now()),
       );
 

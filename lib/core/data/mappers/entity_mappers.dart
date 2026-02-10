@@ -9,17 +9,20 @@ import '../models/company_settings_model.dart';
 import '../models/currency_model.dart';
 import '../models/item_model.dart';
 import '../models/layout_item_model.dart';
+import '../models/manufacturer_model.dart';
 import '../models/order_item_model.dart';
 import '../models/order_model.dart';
 import '../models/payment_method_model.dart';
 import '../models/payment_model.dart';
 import '../models/permission_model.dart';
+import '../models/product_recipe_model.dart';
 import '../models/register_model.dart';
 import '../models/register_session_model.dart';
 import '../models/role_model.dart';
 import '../models/role_permission_model.dart';
 import '../models/section_model.dart';
 import '../models/shift_model.dart';
+import '../models/supplier_model.dart';
 import '../models/table_model.dart';
 import '../models/tax_rate_model.dart';
 import '../models/user_model.dart';
@@ -214,6 +217,7 @@ CategoryModel categoryFromEntity(Category e) => CategoryModel(
       companyId: e.companyId,
       name: e.name,
       isActive: e.isActive,
+      parentId: e.parentId,
       createdAt: e.createdAt,
       updatedAt: e.updatedAt,
       deletedAt: e.deletedAt,
@@ -224,6 +228,7 @@ CategoriesCompanion categoryToCompanion(CategoryModel m) => CategoriesCompanion.
       companyId: m.companyId,
       name: m.name,
       isActive: Value(m.isActive),
+      parentId: Value(m.parentId),
     );
 
 // --- Item ---
@@ -240,6 +245,14 @@ ItemModel itemFromEntity(Item e) => ItemModel(
       isSellable: e.isSellable,
       isActive: e.isActive,
       unit: e.unit,
+      altSku: e.altSku,
+      purchasePrice: e.purchasePrice,
+      purchaseTaxRateId: e.purchaseTaxRateId,
+      isOnSale: e.isOnSale,
+      isStockTracked: e.isStockTracked,
+      manufacturerId: e.manufacturerId,
+      supplierId: e.supplierId,
+      parentId: e.parentId,
       createdAt: e.createdAt,
       updatedAt: e.updatedAt,
       deletedAt: e.deletedAt,
@@ -258,6 +271,14 @@ ItemsCompanion itemToCompanion(ItemModel m) => ItemsCompanion.insert(
       isSellable: Value(m.isSellable),
       isActive: Value(m.isActive),
       unit: Value(m.unit),
+      altSku: Value(m.altSku),
+      purchasePrice: Value(m.purchasePrice),
+      purchaseTaxRateId: Value(m.purchaseTaxRateId),
+      isOnSale: Value(m.isOnSale),
+      isStockTracked: Value(m.isStockTracked),
+      manufacturerId: Value(m.manufacturerId),
+      supplierId: Value(m.supplierId),
+      parentId: Value(m.parentId),
     );
 
 // --- TaxRate ---
@@ -497,6 +518,66 @@ ShiftModel shiftFromEntity(Shift e) => ShiftModel(
       createdAt: e.createdAt,
       updatedAt: e.updatedAt,
       deletedAt: e.deletedAt,
+    );
+
+// --- Supplier ---
+SupplierModel supplierFromEntity(Supplier e) => SupplierModel(
+      id: e.id,
+      companyId: e.companyId,
+      supplierName: e.supplierName,
+      contactPerson: e.contactPerson,
+      email: e.email,
+      phone: e.phone,
+      createdAt: e.createdAt,
+      updatedAt: e.updatedAt,
+      deletedAt: e.deletedAt,
+    );
+
+SuppliersCompanion supplierToCompanion(SupplierModel m) => SuppliersCompanion.insert(
+      id: m.id,
+      companyId: m.companyId,
+      supplierName: m.supplierName,
+      contactPerson: Value(m.contactPerson),
+      email: Value(m.email),
+      phone: Value(m.phone),
+    );
+
+// --- Manufacturer ---
+ManufacturerModel manufacturerFromEntity(Manufacturer e) => ManufacturerModel(
+      id: e.id,
+      companyId: e.companyId,
+      name: e.name,
+      createdAt: e.createdAt,
+      updatedAt: e.updatedAt,
+      deletedAt: e.deletedAt,
+    );
+
+ManufacturersCompanion manufacturerToCompanion(ManufacturerModel m) =>
+    ManufacturersCompanion.insert(
+      id: m.id,
+      companyId: m.companyId,
+      name: m.name,
+    );
+
+// --- ProductRecipe ---
+ProductRecipeModel productRecipeFromEntity(ProductRecipe e) => ProductRecipeModel(
+      id: e.id,
+      companyId: e.companyId,
+      parentProductId: e.parentProductId,
+      componentProductId: e.componentProductId,
+      quantityRequired: e.quantityRequired,
+      createdAt: e.createdAt,
+      updatedAt: e.updatedAt,
+      deletedAt: e.deletedAt,
+    );
+
+ProductRecipesCompanion productRecipeToCompanion(ProductRecipeModel m) =>
+    ProductRecipesCompanion.insert(
+      id: m.id,
+      companyId: m.companyId,
+      parentProductId: m.parentProductId,
+      componentProductId: m.componentProductId,
+      quantityRequired: m.quantityRequired,
     );
 
 // --- LayoutItem ---

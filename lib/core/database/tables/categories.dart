@@ -8,6 +8,7 @@ class Categories extends Table with SyncColumnsMixin {
   TextColumn get companyId => text()();
   TextColumn get name => text()();
   BoolColumn get isActive => boolean().withDefault(const Constant(true))();
+  TextColumn get parentId => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};

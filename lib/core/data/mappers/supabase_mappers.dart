@@ -8,17 +8,20 @@ import '../models/company_settings_model.dart';
 import '../models/currency_model.dart';
 import '../models/item_model.dart';
 import '../models/layout_item_model.dart';
+import '../models/manufacturer_model.dart';
 import '../models/order_item_model.dart';
 import '../models/order_model.dart';
 import '../models/payment_method_model.dart';
 import '../models/payment_model.dart';
 import '../models/permission_model.dart';
+import '../models/product_recipe_model.dart';
 import '../models/register_model.dart';
 import '../models/register_session_model.dart';
 import '../models/role_model.dart';
 import '../models/role_permission_model.dart';
 import '../models/section_model.dart';
 import '../models/shift_model.dart';
+import '../models/supplier_model.dart';
 import '../models/table_model.dart';
 import '../models/tax_rate_model.dart';
 import '../models/user_model.dart';
@@ -88,6 +91,7 @@ Map<String, dynamic> categoryToSupabaseJson(CategoryModel m) => {
       ),
       'name': m.name,
       'is_active': m.isActive,
+      'parent_id': m.parentId,
     };
 
 Map<String, dynamic> itemToSupabaseJson(ItemModel m) => {
@@ -108,6 +112,52 @@ Map<String, dynamic> itemToSupabaseJson(ItemModel m) => {
       'is_sellable': m.isSellable,
       'is_active': m.isActive,
       'unit': m.unit.name,
+      'alt_sku': m.altSku,
+      'purchase_price': m.purchasePrice,
+      'purchase_tax_rate_id': m.purchaseTaxRateId,
+      'is_on_sale': m.isOnSale,
+      'is_stock_tracked': m.isStockTracked,
+      'manufacturer_id': m.manufacturerId,
+      'supplier_id': m.supplierId,
+      'parent_id': m.parentId,
+    };
+
+Map<String, dynamic> supplierToSupabaseJson(SupplierModel m) => {
+      ..._baseSyncFields(
+        id: m.id,
+        companyId: m.companyId,
+        createdAt: m.createdAt,
+        updatedAt: m.updatedAt,
+        deletedAt: m.deletedAt,
+      ),
+      'supplier_name': m.supplierName,
+      'contact_person': m.contactPerson,
+      'email': m.email,
+      'phone': m.phone,
+    };
+
+Map<String, dynamic> manufacturerToSupabaseJson(ManufacturerModel m) => {
+      ..._baseSyncFields(
+        id: m.id,
+        companyId: m.companyId,
+        createdAt: m.createdAt,
+        updatedAt: m.updatedAt,
+        deletedAt: m.deletedAt,
+      ),
+      'name': m.name,
+    };
+
+Map<String, dynamic> productRecipeToSupabaseJson(ProductRecipeModel m) => {
+      ..._baseSyncFields(
+        id: m.id,
+        companyId: m.companyId,
+        createdAt: m.createdAt,
+        updatedAt: m.updatedAt,
+        deletedAt: m.deletedAt,
+      ),
+      'parent_product_id': m.parentProductId,
+      'component_product_id': m.componentProductId,
+      'quantity_required': m.quantityRequired,
     };
 
 Map<String, dynamic> tableToSupabaseJson(TableModel m) => {

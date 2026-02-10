@@ -51,6 +51,14 @@ class ItemRepository
         isSellable: Value(m.isSellable),
         isActive: Value(m.isActive),
         unit: Value(m.unit),
+        altSku: Value(m.altSku),
+        purchasePrice: Value(m.purchasePrice),
+        purchaseTaxRateId: Value(m.purchaseTaxRateId),
+        isOnSale: Value(m.isOnSale),
+        isStockTracked: Value(m.isStockTracked),
+        manufacturerId: Value(m.manufacturerId),
+        supplierId: Value(m.supplierId),
+        parentId: Value(m.parentId),
         updatedAt: Value(DateTime.now()),
       );
 

@@ -13,6 +13,7 @@ import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/repositories/order_repository.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../bills/widgets/dialog_new_bill.dart';
 import '../../bills/widgets/dialog_payment.dart';
 
 class ScreenSell extends ConsumerStatefulWidget {
@@ -198,6 +199,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
             padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
             child: Row(
               children: [
+                // Cancel — always visible
                 Expanded(
                   child: SizedBox(
                     height: 44,
@@ -211,7 +213,23 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
                     ),
                   ),
                 ),
+                // "Uložit na účet" — quick sale only
+                if (widget.isQuickSale) ...[
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: SizedBox(
+                      height: 44,
+                      child: FilledButton(
+                        onPressed: _cart.isEmpty
+                            ? null
+                            : () => _convertToBill(context, ref),
+                        child: Text(l.sellSaveToBill),
+                      ),
+                    ),
+                  ),
+                ],
                 const SizedBox(width: 8),
+                // Submit — always visible
                 Expanded(
                   child: SizedBox(
                     height: 44,
@@ -599,6 +617,56 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
       await billRepo.cancelBill(bill.id);
       await billRepo.updateTotals(bill.id);
     }
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
+  }
+
+  Future<void> _convertToBill(BuildContext context, WidgetRef ref) async {
+    if (_isSubmitting) return;
+
+    // Dialog BEFORE _isSubmitting — user can cancel freely
+    final result = await showDialog<NewBillResult>(
+      context: context,
+      builder: (_) => const DialogNewBill(),
+    );
+    if (result == null || !mounted) return;
+
+    setState(() => _isSubmitting = true);
+    try {
+      final company = ref.read(currentCompanyProvider);
+      final user = ref.read(activeUserProvider);
+      if (company == null || user == null) return;
+
+      final billRepo = ref.read(billRepositoryProvider);
+
+      // Create regular bill (not takeaway)
+      final billResult = await billRepo.createBill(
+        companyId: company.id,
+        userId: user.id,
+        currencyId: company.defaultCurrencyId,
+        tableId: result.tableId,
+        isTakeaway: false,
+        numberOfGuests: result.numberOfGuests,
+      );
+      if (billResult is! Success<BillModel>) return;
+      final bill = billResult.value;
+
+      // Create order with cart items
+      final orderNumber = await _nextOrderNumber(ref);
+      final orderItems = await _buildOrderItems(ref);
+      final orderRepo = ref.read(orderRepositoryProvider);
+      await orderRepo.createOrderWithItems(
+        companyId: company.id,
+        billId: bill.id,
+        userId: user.id,
+        orderNumber: orderNumber,
+        items: orderItems,
+        orderNotes: _orderNotes,
+      );
+      await billRepo.updateTotals(bill.id);
+
+      if (mounted) context.pop();
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }

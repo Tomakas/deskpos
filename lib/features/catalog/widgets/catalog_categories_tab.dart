@@ -7,8 +7,8 @@ import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 
-class CategoriesTab extends ConsumerWidget {
-  const CategoriesTab({super.key});
+class CatalogCategoriesTab extends ConsumerWidget {
+  const CatalogCategoriesTab({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -28,7 +28,7 @@ class CategoriesTab extends ConsumerWidget {
                 children: [
                   const Spacer(),
                   FilledButton.icon(
-                    onPressed: () => _showEditDialog(context, ref, null),
+                    onPressed: () => _showEditDialog(context, ref, categories, null),
                     icon: const Icon(Icons.add),
                     label: Text(l.actionAdd),
                   ),
@@ -41,12 +41,20 @@ class CategoriesTab extends ConsumerWidget {
                 child: DataTable(
                   columns: [
                     DataColumn(label: Text(l.fieldName)),
+                    DataColumn(label: Text(l.fieldParentCategory)),
                     DataColumn(label: Text(l.fieldActive)),
                     DataColumn(label: Text(l.fieldActions)),
                   ],
                   rows: categories
                       .map((c) => DataRow(cells: [
                             DataCell(Text(c.name)),
+                            DataCell(Text(
+                              categories
+                                      .where((p) => p.id == c.parentId)
+                                      .firstOrNull
+                                      ?.name ??
+                                  '-',
+                            )),
                             DataCell(Icon(
                               c.isActive ? Icons.check_circle : Icons.cancel,
                               color: c.isActive ? Colors.green : Colors.grey,
@@ -57,7 +65,7 @@ class CategoriesTab extends ConsumerWidget {
                               children: [
                                 IconButton(
                                   icon: const Icon(Icons.edit, size: 20),
-                                  onPressed: () => _showEditDialog(context, ref, c),
+                                  onPressed: () => _showEditDialog(context, ref, categories, c),
                                 ),
                                 IconButton(
                                   icon: const Icon(Icons.delete, size: 20),
@@ -76,10 +84,19 @@ class CategoriesTab extends ConsumerWidget {
     );
   }
 
-  Future<void> _showEditDialog(BuildContext context, WidgetRef ref, CategoryModel? existing) async {
+  Future<void> _showEditDialog(
+    BuildContext context,
+    WidgetRef ref,
+    List<CategoryModel> allCategories,
+    CategoryModel? existing,
+  ) async {
     final l = context.l10n;
     final nameCtrl = TextEditingController(text: existing?.name ?? '');
     var isActive = existing?.isActive ?? true;
+    var parentId = existing?.parentId;
+
+    // Filter out self-reference for parent dropdown
+    final parentOptions = allCategories.where((c) => c.id != existing?.id).toList();
 
     final result = await showDialog<bool>(
       context: context,
@@ -94,6 +111,17 @@ class CategoriesTab extends ConsumerWidget {
                 TextField(
                   controller: nameCtrl,
                   decoration: InputDecoration(labelText: l.fieldName),
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String?>(
+                  initialValue: parentId,
+                  decoration: InputDecoration(labelText: l.fieldParentCategory),
+                  items: [
+                    const DropdownMenuItem(value: null, child: Text('-')),
+                    ...parentOptions
+                        .map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))),
+                  ],
+                  onChanged: (v) => setDialogState(() => parentId = v),
                 ),
                 const SizedBox(height: 12),
                 SwitchListTile(
@@ -119,13 +147,18 @@ class CategoriesTab extends ConsumerWidget {
     final now = DateTime.now();
 
     if (existing != null) {
-      await repo.update(existing.copyWith(name: nameCtrl.text.trim(), isActive: isActive));
+      await repo.update(existing.copyWith(
+        name: nameCtrl.text.trim(),
+        isActive: isActive,
+        parentId: parentId,
+      ));
     } else {
       await repo.create(CategoryModel(
         id: const Uuid().v7(),
         companyId: company.id,
         name: nameCtrl.text.trim(),
         isActive: isActive,
+        parentId: parentId,
         createdAt: now,
         updatedAt: now,
       ));

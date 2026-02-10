@@ -50,6 +50,7 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
         companyId: Value(json['company_id'] as String),
         name: Value(json['name'] as String),
         isActive: Value(json['is_active'] as bool? ?? true),
+        parentId: Value(json['parent_id'] as String?),
         createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
         updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
         deletedAt: Value(_parseDateTime(json['deleted_at'])),
@@ -72,6 +73,58 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
         isSellable: Value(json['is_sellable'] as bool? ?? true),
         isActive: Value(json['is_active'] as bool? ?? true),
         unit: Value(_enumFromName(UnitType.values, json['unit'])),
+        altSku: Value(json['alt_sku'] as String?),
+        purchasePrice: Value(json['purchase_price'] as int?),
+        purchaseTaxRateId: Value(json['purchase_tax_rate_id'] as String?),
+        isOnSale: Value(json['is_on_sale'] as bool? ?? true),
+        isStockTracked: Value(json['is_stock_tracked'] as bool? ?? false),
+        manufacturerId: Value(json['manufacturer_id'] as String?),
+        supplierId: Value(json['supplier_id'] as String?),
+        parentId: Value(json['parent_id'] as String?),
+        createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
+        updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
+        deletedAt: Value(_parseDateTime(json['deleted_at'])),
+        serverCreatedAt: Value(_parseDateTime(json['created_at'])),
+        serverUpdatedAt: Value(_parseDateTime(json['updated_at'])),
+        lastSyncedAt: Value(now),
+      );
+
+    case 'suppliers':
+      return SuppliersCompanion(
+        id: Value(json['id'] as String),
+        companyId: Value(json['company_id'] as String),
+        supplierName: Value(json['supplier_name'] as String),
+        contactPerson: Value(json['contact_person'] as String?),
+        email: Value(json['email'] as String?),
+        phone: Value(json['phone'] as String?),
+        createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
+        updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
+        deletedAt: Value(_parseDateTime(json['deleted_at'])),
+        serverCreatedAt: Value(_parseDateTime(json['created_at'])),
+        serverUpdatedAt: Value(_parseDateTime(json['updated_at'])),
+        lastSyncedAt: Value(now),
+      );
+
+    case 'manufacturers':
+      return ManufacturersCompanion(
+        id: Value(json['id'] as String),
+        companyId: Value(json['company_id'] as String),
+        name: Value(json['name'] as String),
+        createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
+        updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
+        deletedAt: Value(_parseDateTime(json['deleted_at'])),
+        serverCreatedAt: Value(_parseDateTime(json['created_at'])),
+        serverUpdatedAt: Value(_parseDateTime(json['updated_at'])),
+        lastSyncedAt: Value(now),
+      );
+
+    case 'product_recipes':
+      return ProductRecipesCompanion(
+        id: Value(json['id'] as String),
+        companyId: Value(json['company_id'] as String),
+        parentProductId: Value(json['parent_product_id'] as String),
+        componentProductId: Value(json['component_product_id'] as String),
+        quantityRequired: Value((json['quantity_required'] as num).toDouble()),
         createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
         updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
         deletedAt: Value(_parseDateTime(json['deleted_at'])),

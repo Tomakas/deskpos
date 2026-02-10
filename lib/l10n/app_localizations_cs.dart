@@ -390,6 +390,9 @@ class AppLocalizationsCs extends AppLocalizations {
   String get sellCancelOrder => 'Zrušit';
 
   @override
+  String get sellSaveToBill => 'Uložit na účet';
+
+  @override
   String get sellSubmitOrder => 'Objednat';
 
   @override
@@ -1098,4 +1101,70 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get openingCashNote => 'Počáteční stav';
+
+  @override
+  String get catalogTitle => 'Katalog';
+
+  @override
+  String get catalogTabProducts => 'Produkty';
+
+  @override
+  String get catalogTabCategories => 'Kategorie';
+
+  @override
+  String get catalogTabSuppliers => 'Dodavatelé';
+
+  @override
+  String get catalogTabManufacturers => 'Výrobci';
+
+  @override
+  String get catalogTabRecipes => 'Receptury';
+
+  @override
+  String get fieldSupplierName => 'Název dodavatele';
+
+  @override
+  String get fieldContactPerson => 'Kontaktní osoba';
+
+  @override
+  String get fieldEmail => 'E-mail';
+
+  @override
+  String get fieldPhone => 'Telefon';
+
+  @override
+  String get fieldManufacturer => 'Výrobce';
+
+  @override
+  String get fieldSupplier => 'Dodavatel';
+
+  @override
+  String get fieldParentCategory => 'Nadřazená kategorie';
+
+  @override
+  String get fieldAltSku => 'Alternativní SKU';
+
+  @override
+  String get fieldPurchasePrice => 'Nákupní cena';
+
+  @override
+  String get fieldPurchaseTaxRate => 'Nákupní DPH';
+
+  @override
+  String get fieldOnSale => 'V prodeji';
+
+  @override
+  String get fieldStockTracked => 'Sledování skladu';
+
+  @override
+  String get fieldParentProduct => 'Nadřazený produkt';
+
+  @override
+  String get fieldComponent => 'Složka';
+
+  @override
+  String get fieldQuantityRequired => 'Požadované množství';
+
+  @override
+  String get moreCatalog => 'Katalog';
 }

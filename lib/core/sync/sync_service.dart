@@ -52,7 +52,10 @@ class SyncService {
     'users',
     'user_permissions',
     'tables',
+    'suppliers',
+    'manufacturers',
     'items',
+    'product_recipes',
     'registers',
     'layout_items',
     'bills',
@@ -216,6 +219,12 @@ class SyncService {
         return _db.categories;
       case 'items':
         return _db.items;
+      case 'suppliers':
+        return _db.suppliers;
+      case 'manufacturers':
+        return _db.manufacturers;
+      case 'product_recipes':
+        return _db.productRecipes;
       case 'tables':
         return _db.tables;
       case 'payment_methods':
