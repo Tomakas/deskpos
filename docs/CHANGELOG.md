@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-02-10 (PROJECT.md audit)
+
+### Documentation
+- **PROJECT.md**: Comprehensive audit — fix 12+ discrepancies between docs and code reality
+  - Table counts: 24 (22 domain + 2 sync), not 23 (21 + 2)
+  - Moved `shifts` from "Plánované" to active domain tables
+  - Added `discount_type` column to bills and order_items column docs
+  - Added `user_id` column to payments column docs
+  - Added `shifts` column schema docs (Pokladna section)
+  - Fixed enum count: 12 (not 11), repo count: 21 (not 20), model count: 22 (not 21)
+  - Fixed ScreenBills filter chips: 3 chips (not 4) — refunded under "Zaplacené"
+  - Updated sync table counts: 22 domain tables in pullAll
+  - Added ShiftRepository to Repository API docs
+  - Updated bills/widgets structure (added DialogDiscount, DialogChangeTotalToPay, DialogZReport, DialogZReportList, DialogShiftsList)
+  - Added bills/providers, bills/services, bills/models to project structure
+  - Added 2 Known Issues: shifts Supabase table missing, payments.user_id missing in Supabase
+
+---
+
 ## 2026-02-10 (Shifts List Dialog)
 
 ### Features

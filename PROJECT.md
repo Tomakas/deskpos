@@ -41,7 +41,7 @@
 
 ## Roadmap
 
-4 etapy, každá s milníky a tasky. Schéma obsahuje **23 tabulek** (21 doménových + 2 sync). Dalších 15 tabulek se přidá s příslušnými rozšířeními. Sync se řeší až v Etapě 3 — do té doby funguje aplikace offline na jednom zařízení.
+4 etapy, každá s milníky a tasky. Schéma obsahuje **24 tabulek** (22 doménových + 2 sync). Dalších 15 tabulek se přidá s příslušnými rozšířeními. Sync se řeší až v Etapě 3 — do té doby funguje aplikace offline na jednom zařízení.
 
 ---
 
@@ -151,7 +151,7 @@ Funkce, které nejsou nezbytné pro základní prodej, ale rozšiřují možnost
 - **Task3.2** Outbox pattern — sync_queue, auto-retry, status tracking ✅
 - **Task3.3** LWW conflict resolution — updated_at porovnání, merge logika ✅
 - **Task3.2b** Sync pro bills, orders, order_items, payments — mappers, outbox registrace, pull tables ✅
-- **Task3.4** ConnectCompanyScreen — připojení k existující firmě, InitialSync, sync pro 21 tabulek ✅
+- **Task3.4** ConnectCompanyScreen — připojení k existující firmě, InitialSync, sync pro 22 tabulek ✅
 - **Task3.5** SyncAuthScreen — admin credentials pro Supabase session ✅ (ScreenCloudAuth)
 - **Výsledek:** Data se synchronizují mezi zařízeními. Nové zařízení se připojí k firmě a stáhne data.
 
@@ -336,19 +336,19 @@ lib/
 │   │   ├── supabase_auth_service.dart # Supabase GoTrue (email/password)
 │   │   └── pin_helper.dart            # Hashing (salt + SHA-256)
 │   ├── data/                          # Globální datová vrstva
-│   │   ├── enums/                     # Dart enum definice (11 enumů + barrel)
+│   │   ├── enums/                     # Dart enum definice (12 enumů + barrel)
 │   │   ├── mappers/                   # Entity ↔ Model mapování (3 soubory)
-│   │   ├── models/                    # Doménové modely (Freezed, 21 + interface)
+│   │   ├── models/                    # Doménové modely (Freezed, 22 + interface)
 │   │   ├── providers/                 # DI registrace (Riverpod, 5 souborů)
-│   │   ├── repositories/              # Repozitáře (20 souborů)
+│   │   ├── repositories/              # Repozitáře (21 souborů)
 │   │   └── services/                  # SeedService (onboarding seed)
 │   ├── database/                      # Drift databáze
-│   │   ├── app_database.dart          # @DriftDatabase (23 tabulek)
-│   │   └── tables/                    # Definice tabulek (23 souborů)
+│   │   ├── app_database.dart          # @DriftDatabase (24 tabulek)
+│   │   └── tables/                    # Definice tabulek (25 souborů: 24 tabulek + mixin)
 │   ├── routing/                       # GoRouter + auth guard (app_router.dart)
 │   ├── network/                       # Supabase konfigurace (URL, anon key)
 │   ├── sync/                          # Sync engine
-│   │   ├── sync_service.dart          # Pull (5min interval, 21 tabulek)
+│   │   ├── sync_service.dart          # Pull (5min interval, 22 tabulek)
 │   │   ├── outbox_processor.dart      # Push (5s interval, retry + backoff)
 │   │   └── sync_lifecycle_manager.dart # Orchestrace start/stop/initial push
 │   ├── logging/                       # AppLogger (dart:developer)
@@ -357,9 +357,14 @@ lib/
 │   ├── auth/                          # ScreenLogin (PIN + numpad)
 │   ├── bills/                         # Přehled účtů
 │   │   ├── screens/                   # ScreenBills
-│   │   └── widgets/                   # DialogBillDetail, DialogNewBill, DialogPayment,
-│   │                                  # DialogOpeningCash, DialogClosingSession,
-│   │                                  # DialogCashMovement, DialogCashJournal
+│   │   ├── widgets/                   # DialogBillDetail, DialogNewBill, DialogPayment,
+│   │   │                              # DialogOpeningCash, DialogClosingSession,
+│   │   │                              # DialogCashMovement, DialogCashJournal,
+│   │   │                              # DialogDiscount, DialogChangeTotalToPay,
+│   │   │                              # DialogZReport, DialogZReportList, DialogShiftsList
+│   │   ├── providers/                 # z_report_providers
+│   │   ├── services/                  # ZReportService (výpočet Z-reportu)
+│   │   └── models/                    # ZReportData (model pro Z-report)
 │   ├── onboarding/                    # ScreenOnboarding, ScreenConnectCompany
 │   ├── sell/                          # ScreenSell (grid + košík)
 │   └── settings/                      # ScreenSettings (3 taby), ScreenCloudAuth,
@@ -382,7 +387,7 @@ Každá entita v `core/data/` se skládá z následujících souborů:
 
 **Dva vzory outbox zápisu:**
 - **Konfigurační entity** (sections, categories, items, tables, payment_methods, tax_rates, users): Dědí z `BaseCompanyScopedRepository<T>` — automatický outbox zápis v transakci s CRUD operací.
-- **Prodejní a provozní entity** (bills, orders, order_items, payments, register_sessions, cash_movements, layout_items, user_permissions): Vlastní repozitáře s injektovaným `SyncQueueRepository` a explicitním `_enqueue*` voláním po každé mutaci. Ruční přístup — business metody (createOrderWithItems, recordPayment, cancelBill cascade, openSession, closeSession, applyRoleToUser) nepasují do CRUD patternu base repository.
+- **Prodejní a provozní entity** (bills, orders, order_items, payments, register_sessions, cash_movements, layout_items, user_permissions, shifts): Vlastní repozitáře s injektovaným `SyncQueueRepository` a explicitním `_enqueue*` voláním po každé mutaci. Ruční přístup — business metody (createOrderWithItems, recordPayment, cancelBill cascade, openSession, closeSession, applyRoleToUser) nepasují do CRUD patternu base repository.
 
 ---
 
@@ -425,7 +430,7 @@ Po smazání databáze a restartu aplikace se zobrazí **ScreenOnboarding** — 
 
 > Sync sloupce jsou předpřipravené ve schématu od Etapy 1. V Etapě 1–2 zůstávají prázdné (nullable). Využijí se až v Etapě 3 při aktivaci sync.
 
-Všechny doménové tabulky (21) používají mixin `SyncColumnsMixin` se sloupci: `lastSyncedAt` (D), `version` (I, default 1), `serverCreatedAt` (D), `serverUpdatedAt` (D). Mixin rovněž přidává `createdAt` (D, default now), `updatedAt` (D, default now), `deletedAt` (D, nullable) pro soft delete. Tabulky `sync_queue` a `sync_metadata` mixin nepoužívají (vlastní timestamps).
+Všechny doménové tabulky (22) používají mixin `SyncColumnsMixin` se sloupci: `lastSyncedAt` (D), `version` (I, default 1), `serverCreatedAt` (D), `serverUpdatedAt` (D). Mixin rovněž přidává `createdAt` (D, default now), `updatedAt` (D, default now), `deletedAt` (D, nullable) pro soft delete. Tabulky `sync_queue` a `sync_metadata` mixin nepoužívají (vlastní timestamps).
 
 Navíc každá tabulka definuje: `createdAt`, `updatedAt`, `deletedAt` (soft delete).
 
@@ -433,9 +438,9 @@ Navíc každá tabulka definuje: `createdAt`, `updatedAt`, `deletedAt` (soft del
 
 #### Přehled tabulek
 
-##### Aktivní tabulky (23) — registrované v @DriftDatabase
+##### Aktivní tabulky (24) — registrované v @DriftDatabase
 
-**Doménové tabulky (21):**
+**Doménové tabulky (22):**
 
 | SQL tabulka | Drift Table | Drift Entity | Model |
 |-------------|-------------|--------------|-------|
@@ -456,6 +461,7 @@ Navíc každá tabulka definuje: `createdAt`, `updatedAt`, `deletedAt` (soft del
 | `role_permissions` | `RolePermissions` | `RolePermission` | `RolePermissionModel` |
 | `roles` | `Roles` | `Role` | `RoleModel` |
 | `sections` | `Sections` | `Section` | `SectionModel` |
+| `shifts` | `Shifts` | `Shift` | `ShiftModel` |
 | `tables` | `Tables` | `TableEntity` | `TableModel` |
 | `tax_rates` | `TaxRates` | `TaxRate` | `TaxRateModel` |
 | `user_permissions` | `UserPermissions` | `UserPermission` | `UserPermissionModel` |
@@ -476,7 +482,6 @@ Navíc každá tabulka definuje: `createdAt`, `updatedAt`, `deletedAt` (soft del
 
 | SQL tabulka | Drift Table | Kdy |
 |-------------|-------------|-----|
-| `shifts` | `Shifts` | Provoz rozšíření |
 | `company_settings` | `CompanySettings` | CRM rozšíření |
 | `customers` | `Customers` | CRM rozšíření |
 | `customer_transactions` | `CustomerTransactions` | CRM rozšíření |
@@ -503,10 +508,10 @@ Všechny aktivní tabulky obsahují společné sync sloupce (viz [SyncColumnsMix
 
 | Tabulka | Sloupce |
 |---------|---------|
-| **bills** | id (T), company_id →companies, table_id →tables, opened_by_user_id →users, bill_number (T), number_of_guests (I), is_takeaway (B), status (T), currency_id →currencies, subtotal_gross (I), subtotal_net (I), discount_amount (I), tax_total (I), total_gross (I), rounding_amount (I), paid_amount (I), opened_at (D), closed_at (D) |
+| **bills** | id (T), company_id →companies, table_id →tables, opened_by_user_id →users, bill_number (T), number_of_guests (I), is_takeaway (B), status (T), currency_id →currencies, subtotal_gross (I), subtotal_net (I), discount_amount (I), discount_type (T?), tax_total (I), total_gross (I), rounding_amount (I), paid_amount (I), opened_at (D), closed_at (D) |
 | **orders** | id (T), company_id →companies, bill_id →bills, created_by_user_id →users, order_number (T), notes (T), status (T), item_count (I), subtotal_gross (I), subtotal_net (I), tax_total (I) |
-| **order_items** | id (T), company_id →companies, order_id →orders, item_id →items, item_name (T), quantity (R), sale_price_att (I), sale_tax_rate_att (I), sale_tax_amount (I), discount (I), notes (T), status (T) |
-| **payments** | id (T), company_id →companies, bill_id →bills, payment_method_id →payment_methods, amount (I), paid_at (D), currency_id →currencies, tip_included_amount (I), notes (T), transaction_id (T), payment_provider (T), card_last4 (T), authorization_code (T) |
+| **order_items** | id (T), company_id →companies, order_id →orders, item_id →items, item_name (T), quantity (R), sale_price_att (I), sale_tax_rate_att (I), sale_tax_amount (I), discount (I), discount_type (T?), notes (T), status (T) |
+| **payments** | id (T), company_id →companies, bill_id →bills, payment_method_id →payment_methods, user_id →users?, amount (I), paid_at (D), currency_id →currencies, tip_included_amount (I), notes (T), transaction_id (T), payment_provider (T), card_last4 (T), authorization_code (T) |
 | **payment_methods** | id (T), company_id →companies, name (T), type (T), is_active (B) |
 
 ##### Katalog (items, categories, tax)
@@ -536,6 +541,7 @@ Všechny aktivní tabulky obsahují společné sync sloupce (viz [SyncColumnsMix
 | **registers** | id (T), company_id →companies, code (T), is_active (B), type (T), allow_cash (B), allow_card (B), allow_transfer (B), allow_refunds (B), grid_rows (I), grid_cols (I) |
 | **register_sessions** | id (T), company_id →companies, register_id →registers, opened_by_user_id →users, opened_at (D), closed_at (D), order_counter (I), opening_cash (I?), closing_cash (I?), expected_cash (I?), difference (I?) |
 | **cash_movements** | id (T), company_id →companies, register_session_id →register_sessions, user_id →users, type (T — CashMovementType), amount (I), reason (T?) |
+| **shifts** | id (T), company_id →companies, register_session_id →register_sessions, user_id →users, login_at (D), logout_at (D?) |
 
 ##### Stoly
 
@@ -643,7 +649,7 @@ Hodnoty ENUM jsou uloženy jako `TEXT` v lokální SQLite databázi. Drift `text
 
 ## Synchronizace (Etapa 3 — částečně implementováno)
 
-> **Stav implementace:** Sync infrastruktura je funkční pro všech 21 doménových tabulek. Konfigurační entity (sections, categories, items, tables, payment_methods, tax_rates, users) dědí z `BaseCompanyScopedRepository` s automatickým outbox zápisem v transakci. Prodejní a provozní entity (bills, orders, order_items, payments, register_sessions, cash_movements, layout_items, user_permissions) používají ruční enqueue — vlastní repozitáře s injektovaným `SyncQueueRepository` a explicitním `_enqueue*` voláním po každé mutaci. Globální tabulky (currencies, roles, permissions, role_permissions) se pullují bez company_id filtru a pushují při initial sync. SyncService pulluje všech 21 tabulek v FK-respektujícím pořadí. ConnectCompanyScreen umožňuje připojení nového zařízení k existující firmě stažením dat přes InitialSync (pullAll).
+> **Stav implementace:** Sync infrastruktura je funkční pro všech 22 doménových tabulek. Konfigurační entity (sections, categories, items, tables, payment_methods, tax_rates, users) dědí z `BaseCompanyScopedRepository` s automatickým outbox zápisem v transakci. Prodejní a provozní entity (bills, orders, order_items, payments, register_sessions, cash_movements, layout_items, user_permissions, shifts) používají ruční enqueue — vlastní repozitáře s injektovaným `SyncQueueRepository` a explicitním `_enqueue*` voláním po každé mutaci. Globální tabulky (currencies, roles, permissions, role_permissions) se pullují bez company_id filtru a pushují při initial sync. SyncService pulluje všech 22 tabulek v FK-respektujícím pořadí. ConnectCompanyScreen umožňuje připojení nového zařízení k existující firmě stažením dat přes InitialSync (pullAll).
 
 ### Outbox Pattern
 
@@ -736,7 +742,7 @@ Flow pro nové zařízení (5 kroků — enum `_Step`):
 1. `credentials` — Formulář: email + heslo → `supabaseAuthService.signIn()`
 2. `searching` — Loading: „Hledání firmy..." → fetch company z Supabase (`companies.auth_user_id = userId`)
 3. `companyPreview` — Zobrazí název firmy + tlačítko „Připojit"
-4. `syncing` — Loading: „Synchronizace dat..." → `syncService.pullAll(companyId)` — stáhne všech 21 tabulek
+4. `syncing` — Loading: „Synchronizace dat..." → `syncService.pullAll(companyId)` — stáhne všech 22 tabulek
 5. `done` — „Synchronizace dokončena" → invalidace `appInitProvider` → navigace na `/login`
 
 ### Known Issues / Limitations
@@ -744,6 +750,8 @@ Flow pro nové zařízení (5 kroků — enum `_Step`):
 - **Company switching**: Nepodporováno. Jedno zařízení = jedna firma. Přepnutí na jinou firmu vyžaduje smazání lokální DB.
 - **Globální tabulky vs multi-company**: roles/permissions/role_permissions/currencies jsou globální (bez company_id). Při více firmách na jednom Supabase projektu by došlo ke kolizím. Aktuální design předpokládá 1 firma = 1 Supabase projekt.
 - **InitialSync recovery**: Pokud InitialSync selže uprostřed, data jsou neúplná. Další auto-pull (5min) doplní chybějící data.
+- **Shifts — chybí Supabase tabulka**: Drift tabulka `shifts` existuje a je registrovaná v sync (pull + push), ale odpovídající tabulka v Supabase dosud nebyla vytvořena. Sync pro shifts selže dokud se tabulka nepřidá.
+- **Payments.user_id — chybí v Supabase**: Drift `payments` tabulka má sloupec `user_id` (nullable FK na users), ale Supabase `payments` tabulka tento sloupec nemá.
 
 ---
 
@@ -829,7 +837,7 @@ stateDiagram-v2
 | `cancelled` | Manuální storno (pouze z `opened`) | set |
 | `refunded` | Vrácení peněz po `paid` | set |
 
-> **Poznámka:** Ve filtru ScreenBills má `refunded` vlastní oranžový chip. Status `partiallyPaid` neexistuje — platba musí vždy pokrýt celou částku (lze rozdělit mezi více platebních metod). Refund vytváří záporné platby a automatický CashMovement (withdrawal) pro hotovostní platby.
+> **Poznámka:** Ve filtru ScreenBills se `refunded` účty zobrazují pod filtrem „Zaplacené" (zelený chip) — nemá vlastní chip. Status `partiallyPaid` neexistuje — platba musí vždy pokrýt celou částku (lze rozdělit mezi více platebních metod). Refund vytváří záporné platby a automatický CashMovement (withdrawal) pro hotovostní platby.
 
 #### PrepStatus (stav přípravy objednávky a položky)
 
@@ -1138,6 +1146,12 @@ stateDiagram-v2
 - **Query:** getBySession, watchBySession
 - **Sync:** Injektovaný `SyncQueueRepository`, ruční enqueue `_enqueue` po vytvoření
 
+#### ShiftRepository
+
+- **Business:** create (vytvoří směnu s loginAt=now), closeShift (nastaví logoutAt), closeAllForSession (uzavře všechny otevřené směny pro danou register session)
+- **Query:** getByCompany, getBySession, getActiveShiftForUser
+- **Sync:** Injektovaný `SyncQueueRepository`, ruční enqueue `_enqueue` po vytvoření a uzavření
+
 #### LayoutItemRepository
 
 - **Business:** setCell (nastaví/přepíše buňku gridu — soft-delete starého + insert nového), clearCell (soft-delete buňky)
@@ -1276,12 +1290,12 @@ Implementováno — navigace z ScreenOnboarding na `/connect-company`:
 1. Uživatel zadá email + heslo (Supabase admin credentials)
 2. Aplikace ověří přihlášení a najde firmu podle `companies.auth_user_id = userId`
 3. Zobrazí název firmy + tlačítko „Připojit"
-4. `SyncService.pullAll(companyId)` stáhne data firmy v pořadí FK závislostí (21 tabulek):
+4. `SyncService.pullAll(companyId)` stáhne data firmy v pořadí FK závislostí (22 tabulek):
    1. Currencies, Companies, Roles, Permissions, RolePermissions
    2. Sections, TaxRates, PaymentMethods, Categories, Users, UserPermissions
    3. Tables, Items, Registers, LayoutItems
    4. Bills, Orders, OrderItems, Payments
-   5. RegisterSessions, CashMovements
+   5. RegisterSessions, CashMovements, Shifts
 5. Po dokončení → invalidace `appInitProvider` → navigace na `/login`
 
 ---
@@ -1464,7 +1478,7 @@ Layout: **80/20 horizontální split**
 │                                          │ Přihlášení   │
 │                                          │ Pokladna: Kč │
 │──────────────────────────────────────────│──────────────│
-│ [✓ OTEVŘENÉ] [✓ ZAPLACENÉ] [✓ STORNO]   │ PŘEPNOUT OBS.│
+│ [✓ OTEVŘENÉ] [ZAPLACENÉ] [STORNOVANÉ]    │ PŘEPNOUT OBS.│
 │                                          │ ODHLÁSIT     │
 └──────────────────────────────────────────┴──────────────┘
 ```
@@ -1472,12 +1486,12 @@ Layout: **80/20 horizontální split**
 **Levý panel (80%):**
 - **Top bar:** Sekce jako taby/chipy (radio — vždy jeden aktivní, první tab „Vše"), tlačítko Řazení
 - **Tabulka:** Stůl, Host, Počet hostů, Celkem, Poslední objednávka (relativní čas), Obsluha
-- **Barva řádku** = status účtu (opened=modrá, paid=zelená, cancelled=růžová, refunded=oranžová)
+- **Barva řádku** = status účtu (opened=modrá, paid=zelená, cancelled=růžová, refunded=oranžová v rámci zelené skupiny)
 - **Sloupec Host:** Prázdný v E1-2 (zobrazí se až s CRM rozšířením)
 - **Sloupec Poslední objednávka:** Relativní čas (< 1min, Xmin, Xh Ym) — aktualizuje se reaktivně ze streamu
-- **Bottom bar:** FilterChip pro filtrování podle statusu (Otevřené, Zaplacené, Stornované, Refundované)
+- **Bottom bar:** FilterChip pro filtrování podle statusu (Otevřené, Zaplacené, Stornované) — 3 chipy
   - **Výchozí stav:** Pouze "Otevřené" vybrané
-  - **Barvy chipů:** Modrá (otevřené), Zelená (zaplacené), Růžová (stornované), Oranžová (refundované)
+  - **Barvy chipů:** Modrá (otevřené), Zelená (zaplacené — zahrnuje i refundované), Růžová (stornované)
   - **Responsivní layout:** FilterChipy v `Row` s `Expanded` — rovnoměrné rozložení na celou šířku (viz [UI Patterns v CLAUDE.md](#))
 - **Prázdný stav:** Tabulka s hlavičkou, bez řádků, žádný placeholder text
 - **Sloupec Stůl:** Pro `isTakeaway` účty zobrazuje lokalizovaný text "Rychlý účet"
@@ -1687,7 +1701,7 @@ Funkce, které nejsou součástí aktuálního plánu. Mohou se přidat kdykoli 
 
 ### Pokladna a směny
 
-- Směny — tabulka `shifts`, evidence pracovní doby. **Implementováno:** `DialogShiftsList` (přehled všech směn s datem, obsluhou, přihlášením/odhlášením, trváním; filtr dle data; probíhající směny zvýrazněny). Přístup přes menu DALŠÍ → Směny.
+- Směny — tabulka `shifts` **implementována** (Drift + model + repository + sync enqueue + pull). UI: `DialogShiftsList` (přehled všech směn s datem, obsluhou, přihlášením/odhlášením, trváním; filtr dle data; probíhající směny zvýrazněny). Přístup přes menu DALŠÍ → Směny. **Pozn.:** Supabase tabulka `shifts` zatím chybí — sync push/pull selže dokud nebude vytvořena.
 - Z-report — denní uzávěrka s detailním souhrnem. **Implementováno:** `DialogZReportList` + `DialogZReport`.
 - Detailní konfigurace registru — auto_print, auto_logout
 
@@ -1791,7 +1805,7 @@ Projekt využívá **Riverpod** jako Service Locator a DI kontejner.
 | `database_provider.dart` | `appDatabaseProvider` — singleton Drift DB |
 | `auth_providers.dart` | `sessionManagerProvider`, `authServiceProvider`, `seedServiceProvider`, `activeUserProvider`, `loggedInUsersProvider`, `currentCompanyProvider`, `appInitProvider`, `activeRegisterProvider`, `activeRegisterSessionProvider` |
 | `permission_providers.dart` | `userPermissionCodesProvider` (reaktivní Set\<String\>), `hasPermissionProvider` (O(1) family check) |
-| `repository_providers.dart` | 19 repozitářů — `syncQueueRepositoryProvider`, `companyRepositoryProvider`, `sectionRepositoryProvider`, `billRepositoryProvider` atd. |
+| `repository_providers.dart` | 20 repozitářů — `syncQueueRepositoryProvider`, `companyRepositoryProvider`, `sectionRepositoryProvider`, `billRepositoryProvider`, `shiftRepositoryProvider` atd. |
 | `sync_providers.dart` | `supabaseAuthServiceProvider`, `isSupabaseAuthenticatedProvider`, `outboxProcessorProvider`, `syncServiceProvider`, `syncLifecycleManagerProvider`, `syncLifecycleWatcherProvider` |
 
 ### Git Workflow
