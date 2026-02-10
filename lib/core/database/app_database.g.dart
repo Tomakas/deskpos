@@ -1572,12 +1572,12 @@ class $CashMovementsTable extends CashMovements
     requiredDuringInsert: true,
   );
   @override
-  late final GeneratedColumnWithTypeConverter<CashMovementType, int> type =
-      GeneratedColumn<int>(
+  late final GeneratedColumnWithTypeConverter<CashMovementType, String> type =
+      GeneratedColumn<String>(
         'type',
         aliasedName,
         false,
-        type: DriftSqlType.int,
+        type: DriftSqlType.string,
         requiredDuringInsert: true,
       ).withConverter<CashMovementType>($CashMovementsTable.$convertertype);
   static const VerificationMeta _amountMeta = const VerificationMeta('amount');
@@ -1779,7 +1779,7 @@ class $CashMovementsTable extends CashMovements
       )!,
       type: $CashMovementsTable.$convertertype.fromSql(
         attachedDatabase.typeMapping.read(
-          DriftSqlType.int,
+          DriftSqlType.string,
           data['${effectivePrefix}type'],
         )!,
       ),
@@ -1799,8 +1799,8 @@ class $CashMovementsTable extends CashMovements
     return $CashMovementsTable(attachedDatabase, alias);
   }
 
-  static JsonTypeConverter2<CashMovementType, int, int> $convertertype =
-      const EnumIndexConverter<CashMovementType>(CashMovementType.values);
+  static JsonTypeConverter2<CashMovementType, String, String> $convertertype =
+      const EnumNameConverter<CashMovementType>(CashMovementType.values);
 }
 
 class CashMovement extends DataClass implements Insertable<CashMovement> {
@@ -1857,7 +1857,7 @@ class CashMovement extends DataClass implements Insertable<CashMovement> {
     map['register_session_id'] = Variable<String>(registerSessionId);
     map['user_id'] = Variable<String>(userId);
     {
-      map['type'] = Variable<int>(
+      map['type'] = Variable<String>(
         $CashMovementsTable.$convertertype.toSql(type),
       );
     }
@@ -1915,7 +1915,7 @@ class CashMovement extends DataClass implements Insertable<CashMovement> {
       registerSessionId: serializer.fromJson<String>(json['registerSessionId']),
       userId: serializer.fromJson<String>(json['userId']),
       type: $CashMovementsTable.$convertertype.fromJson(
-        serializer.fromJson<int>(json['type']),
+        serializer.fromJson<String>(json['type']),
       ),
       amount: serializer.fromJson<int>(json['amount']),
       reason: serializer.fromJson<String?>(json['reason']),
@@ -1936,7 +1936,7 @@ class CashMovement extends DataClass implements Insertable<CashMovement> {
       'companyId': serializer.toJson<String>(companyId),
       'registerSessionId': serializer.toJson<String>(registerSessionId),
       'userId': serializer.toJson<String>(userId),
-      'type': serializer.toJson<int>(
+      'type': serializer.toJson<String>(
         $CashMovementsTable.$convertertype.toJson(type),
       ),
       'amount': serializer.toJson<int>(amount),
@@ -2131,7 +2131,7 @@ class CashMovementsCompanion extends UpdateCompanion<CashMovement> {
     Expression<String>? companyId,
     Expression<String>? registerSessionId,
     Expression<String>? userId,
-    Expression<int>? type,
+    Expression<String>? type,
     Expression<int>? amount,
     Expression<String>? reason,
     Expression<int>? rowid,
@@ -2228,7 +2228,7 @@ class CashMovementsCompanion extends UpdateCompanion<CashMovement> {
       map['user_id'] = Variable<String>(userId.value);
     }
     if (type.present) {
-      map['type'] = Variable<int>(
+      map['type'] = Variable<String>(
         $CashMovementsTable.$convertertype.toSql(type.value),
       );
     }
@@ -21043,7 +21043,7 @@ class $$CashMovementsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnWithTypeConverterFilters<CashMovementType, CashMovementType, int>
+  ColumnWithTypeConverterFilters<CashMovementType, CashMovementType, String>
   get type => $composableBuilder(
     column: $table.type,
     builder: (column) => ColumnWithTypeConverterFilters(column),
@@ -21124,7 +21124,7 @@ class $$CashMovementsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get type => $composableBuilder(
+  ColumnOrderings<String> get type => $composableBuilder(
     column: $table.type,
     builder: (column) => ColumnOrderings(column),
   );
@@ -21190,7 +21190,7 @@ class $$CashMovementsTableAnnotationComposer
   GeneratedColumn<String> get userId =>
       $composableBuilder(column: $table.userId, builder: (column) => column);
 
-  GeneratedColumnWithTypeConverter<CashMovementType, int> get type =>
+  GeneratedColumnWithTypeConverter<CashMovementType, String> get type =>
       $composableBuilder(column: $table.type, builder: (column) => column);
 
   GeneratedColumn<int> get amount =>

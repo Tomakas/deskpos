@@ -9,7 +9,7 @@ class CashMovements extends Table with SyncColumnsMixin {
   TextColumn get companyId => text()();
   TextColumn get registerSessionId => text()();
   TextColumn get userId => text()();
-  IntColumn get type => intEnum<CashMovementType>()();
+  TextColumn get type => textEnum<CashMovementType>()();
   IntColumn get amount => integer()();
   TextColumn get reason => text().nullable()();
 

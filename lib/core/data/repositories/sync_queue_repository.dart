@@ -42,7 +42,10 @@ class SyncQueueRepository {
 
   Future<void> markProcessing(String id) async {
     await (_db.update(_db.syncQueue)..where((t) => t.id.equals(id)))
-        .write(const SyncQueueCompanion(status: Value('processing')));
+        .write(SyncQueueCompanion(
+      status: const Value('processing'),
+      processedAt: Value(DateTime.now()),
+    ));
   }
 
   Future<void> markCompleted(String id) async {
@@ -79,7 +82,7 @@ class SyncQueueRepository {
     final cutoff = DateTime.now().subtract(threshold);
     final count = await (_db.update(_db.syncQueue)
           ..where((t) =>
-              t.status.equals('processing') & t.createdAt.isSmallerOrEqualValue(cutoff)))
+              t.status.equals('processing') & t.processedAt.isSmallerOrEqualValue(cutoff)))
         .write(const SyncQueueCompanion(status: Value('pending')));
     if (count > 0) {
       AppLogger.warn('Reset $count stuck sync queue entries', tag: 'SYNC');

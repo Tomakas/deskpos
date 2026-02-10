@@ -416,6 +416,7 @@ class BillRepository {
         for (final payment in payments) {
           final refundId = const Uuid().v7();
           refundPaymentIds.add(refundId);
+          final refundAmount = payment.amount + payment.tipIncludedAmount;
           await _db.into(_db.payments).insert(PaymentsCompanion.insert(
             id: refundId,
             companyId: bill.companyId,
@@ -424,10 +425,11 @@ class BillRepository {
             amount: -payment.amount,
             paidAt: now,
             currencyId: payment.currencyId,
+            tipIncludedAmount: Value(-payment.tipIncludedAmount),
           ));
 
           if (cashMethodIds.contains(payment.paymentMethodId)) {
-            cashRefundTotal += payment.amount;
+            cashRefundTotal += refundAmount;
           }
         }
 

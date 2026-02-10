@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 
 import '../../database/app_database.dart';
@@ -55,15 +57,48 @@ class TaxRateRepository
       );
 
   Future<void> clearDefault(String companyId, {String? exceptId}) async {
-    final query = db.update(db.taxRates)
-      ..where((t) => t.companyId.equals(companyId) & t.isDefault.equals(true) & t.deletedAt.isNull());
+    // 1. Find affected records before update
+    final selectQuery = db.select(db.taxRates)
+      ..where((t) =>
+          t.companyId.equals(companyId) &
+          t.isDefault.equals(true) &
+          t.deletedAt.isNull());
     if (exceptId != null) {
-      query.where((t) => t.id.equals(exceptId).not());
+      selectQuery.where((t) => t.id.equals(exceptId).not());
     }
-    await query.write(TaxRatesCompanion(
+    final affected = await selectQuery.get();
+    if (affected.isEmpty) return;
+
+    // 2. Bulk update
+    final updateQuery = db.update(db.taxRates)
+      ..where((t) =>
+          t.companyId.equals(companyId) &
+          t.isDefault.equals(true) &
+          t.deletedAt.isNull());
+    if (exceptId != null) {
+      updateQuery.where((t) => t.id.equals(exceptId).not());
+    }
+    await updateQuery.write(TaxRatesCompanion(
       isDefault: const Value(false),
       updatedAt: Value(DateTime.now()),
     ));
+
+    // 3. Enqueue each affected record
+    if (syncQueueRepo != null) {
+      for (final entity in affected) {
+        final updated = await (db.select(db.taxRates)
+              ..where((t) => t.id.equals(entity.id)))
+            .getSingle();
+        final model = taxRateFromEntity(updated);
+        await syncQueueRepo!.enqueue(
+          companyId: model.companyId,
+          entityType: supabaseTableName,
+          entityId: model.id,
+          operation: 'update',
+          payload: jsonEncode(taxRateToSupabaseJson(model)),
+        );
+      }
+    }
   }
 
   @override

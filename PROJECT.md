@@ -687,6 +687,7 @@ graph TD
 3. Vytvoří se záznam v `sync_queue`:
    - **Konfigurační entity:** Atomicky ve stejné transakci (BaseCompanyScopedRepository)
    - **Prodejní entity:** Explicitní `_enqueue*` volání po mutaci (BillRepository, OrderRepository)
+   - **Custom metody** (clearDefault, setCell, incrementOrderCounter): Enqueue mimo base CRUD — volá `syncQueueRepo!.enqueue(...)` přímo
 4. Repository vrátí úspěch UI (okamžitě)
 5. **Asynchronně** OutboxProcessor zpracuje frontu
 
@@ -717,7 +718,8 @@ Když server odmítne push (`LWW_CONFLICT`), outbox processor označí entry jak
 - **Transient chyby** (síť, timeout, auth): retry s backoffem (1s → 5s → 10s → 50s)
 - **Permanent chyby** (data/constraint/permission): označí se jako `failed` hned
 - FIFO je zachováno
-- Stuck záznamy (processing > 5 min): automatický reset na `pending`
+- Stuck záznamy (processing > 5 min dle `processedAt` timestampu): automatický reset na `pending`
+- `markProcessing()` nastavuje `processedAt` jako processing-started timestamp → `resetStuck()` měří skutečnou dobu zpracování
 
 ### Globální reference data
 

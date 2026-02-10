@@ -111,16 +111,20 @@ class RegisterSessionRepository {
 
   Future<Result<int>> incrementOrderCounter(String sessionId) async {
     try {
-      final entity = await (_db.select(_db.registerSessions)
-            ..where((t) => t.id.equals(sessionId)))
-          .getSingle();
-      final newCounter = entity.orderCounter + 1;
-      await (_db.update(_db.registerSessions)..where((t) => t.id.equals(sessionId)))
-          .write(RegisterSessionsCompanion(
-        orderCounter: Value(newCounter),
-        updatedAt: Value(DateTime.now()),
-      ));
-      // Re-read for accurate sync payload
+      late int newCounter;
+      await _db.transaction(() async {
+        final entity = await (_db.select(_db.registerSessions)
+              ..where((t) => t.id.equals(sessionId)))
+            .getSingle();
+        newCounter = entity.orderCounter + 1;
+        await (_db.update(_db.registerSessions)..where((t) => t.id.equals(sessionId)))
+            .write(RegisterSessionsCompanion(
+          orderCounter: Value(newCounter),
+          updatedAt: Value(DateTime.now()),
+        ));
+      });
+
+      // Enqueue outside transaction
       final updated = await (_db.select(_db.registerSessions)
             ..where((t) => t.id.equals(sessionId)))
           .getSingle();

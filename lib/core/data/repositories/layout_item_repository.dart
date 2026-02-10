@@ -41,8 +41,9 @@ class LayoutItemRepository {
   }) async {
     try {
       final now = DateTime.now();
+      String? deletedEntityId;
 
-      // Delete existing cell at this position
+      // Check existing cell at this position
       final existing = await (_db.select(_db.layoutItems)
             ..where((t) =>
                 t.registerId.equals(registerId) &
@@ -52,35 +53,41 @@ class LayoutItemRepository {
                 t.deletedAt.isNull()))
           .getSingleOrNull();
 
-      if (existing != null) {
-        await (_db.update(_db.layoutItems)..where((t) => t.id.equals(existing.id))).write(
-          LayoutItemsCompanion(
-            deletedAt: Value(now),
-            updatedAt: Value(now),
-          ),
-        );
-        // Re-read deleted entity for sync payload
+      // Atomic: soft-delete old + insert new
+      final id = const Uuid().v7();
+      await _db.transaction(() async {
+        if (existing != null) {
+          await (_db.update(_db.layoutItems)..where((t) => t.id.equals(existing.id))).write(
+            LayoutItemsCompanion(
+              deletedAt: Value(now),
+              updatedAt: Value(now),
+            ),
+          );
+          deletedEntityId = existing.id;
+        }
+
+        await _db.into(_db.layoutItems).insert(LayoutItemsCompanion.insert(
+          id: id,
+          companyId: companyId,
+          registerId: registerId,
+          page: Value(page),
+          gridRow: gridRow,
+          gridCol: gridCol,
+          type: type,
+          itemId: Value(itemId),
+          categoryId: Value(categoryId),
+          label: Value(label),
+          color: Value(color),
+        ));
+      });
+
+      // Enqueue outside transaction
+      if (deletedEntityId != null) {
         final deletedEntity = await (_db.select(_db.layoutItems)
-              ..where((t) => t.id.equals(existing.id)))
+              ..where((t) => t.id.equals(deletedEntityId!)))
             .getSingle();
         await _enqueueLayoutItem('delete', layoutItemFromEntity(deletedEntity));
       }
-
-      // Insert new cell
-      final id = const Uuid().v7();
-      await _db.into(_db.layoutItems).insert(LayoutItemsCompanion.insert(
-        id: id,
-        companyId: companyId,
-        registerId: registerId,
-        page: Value(page),
-        gridRow: gridRow,
-        gridCol: gridCol,
-        type: type,
-        itemId: Value(itemId),
-        categoryId: Value(categoryId),
-        label: Value(label),
-        color: Value(color),
-      ));
 
       final entity = await (_db.select(_db.layoutItems)
             ..where((t) => t.id.equals(id)))

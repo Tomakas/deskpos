@@ -196,10 +196,11 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
           final method = methodMap[p.paymentMethodId];
           final methodName = method?.name ?? '-';
           final isCash = method?.type == PaymentType.cash;
+          final cashReceived = p.amount + p.tipIncludedAmount;
           final existing = paymentsByMethod[p.paymentMethodId];
           paymentsByMethod[p.paymentMethodId] = (
             methodName,
-            (existing?.$2 ?? 0) + p.amount,
+            (existing?.$2 ?? 0) + cashReceived,
             (existing?.$3 ?? 0) + 1,
             isCash,
           );
@@ -334,10 +335,11 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
       final payments = await paymentRepo.getByBill(bill.id);
       for (final p in payments) {
         if (cashMethodIds.contains(p.paymentMethodId)) {
-          cashRevenue += p.amount;
+          final cashReceived = p.amount + p.tipIncludedAmount;
+          cashRevenue += cashReceived;
           sales.add(CashJournalSale(
             createdAt: p.paidAt,
-            amount: p.amount,
+            amount: cashReceived,
             billNumber: billNumberMap[bill.id],
           ));
         }

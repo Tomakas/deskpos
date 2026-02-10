@@ -1,5 +1,29 @@
 # Changelog
 
+## 2026-02-10 (Post-M3.2 Audit)
+
+### Supabase
+- **cash_movements triggers**: Renamed `enforce_lww` → `trg_cash_movements_lww` (UPDATE only, was INSERT+UPDATE), added missing `trg_cash_movements_timestamps` (INSERT+UPDATE)
+- **cash_movements RLS**: Added `WITH CHECK` to `update_cash_movements` policy (was USING-only)
+
+### Sync
+- **SyncQueue.markProcessing()**: Now sets `processedAt` as processing-started timestamp
+- **SyncQueue.resetStuck()**: Uses `processedAt` instead of `createdAt` — measures actual processing duration
+- **SectionRepository.clearDefault()**: Now enqueues affected records for sync (was local-only update)
+- **TaxRateRepository.clearDefault()**: Now enqueues affected records for sync (was local-only update)
+
+### Transactions
+- **LayoutItemRepository.setCell()**: Wrapped soft-delete + insert in `db.transaction()` (prevents orphaned deletes on insert failure)
+- **RegisterSessionRepository.incrementOrderCounter()**: Wrapped read + write in `db.transaction()` (prevents counter collisions)
+
+### Konzistence
+- **cash_movements.type**: Changed from `intEnum` → `textEnum` (matches all other 13 enum columns in project)
+
+### Documentation
+- **PROJECT.md**: Updated retry strategie (processedAt-based resetStuck), added custom method enqueue pattern
+
+---
+
 ## 2026-02-10 (M3.2 — Pokročilý prodej)
 
 ### Pre-M3.2 Fixy

@@ -20,52 +20,50 @@ class DialogDiscount extends StatefulWidget {
 }
 
 class _DialogDiscountState extends State<DialogDiscount> {
-  late DiscountType _type;
   String _input = '';
 
   @override
   void initState() {
     super.initState();
-    _type = widget.currentDiscountType;
     if (widget.currentDiscount > 0) {
-      if (_type == DiscountType.percent) {
-        // Convert from basis points to percent display
-        _input = (widget.currentDiscount / 100).toStringAsFixed(
-          widget.currentDiscount % 100 == 0 ? 0 : 2,
-        );
-      } else {
-        // Convert from halere to Kc display
-        _input = (widget.currentDiscount / 100).toStringAsFixed(
-          widget.currentDiscount % 100 == 0 ? 0 : 2,
-        );
-      }
+      _input = (widget.currentDiscount / 100).toStringAsFixed(
+        widget.currentDiscount % 100 == 0 ? 0 : 2,
+      );
     }
   }
 
+  /// Raw value: input * 100 (halere for absolute, basis points for percent).
   int get _discountValue {
     final parsed = double.tryParse(_input) ?? 0;
-    if (_type == DiscountType.percent) {
-      // Input is percent (e.g. 10 = 10%), store as basis points (1000)
-      return (parsed * 100).round();
-    } else {
-      // Input is Kc (e.g. 50 = 50 Kc), store as halere (5000)
-      return (parsed * 100).round();
-    }
+    return (parsed * 100).round();
   }
 
-  int get _effectiveDiscount {
-    final val = _discountValue;
-    if (_type == DiscountType.percent) {
-      return (widget.referenceAmount * val / 10000).round();
-    } else {
-      return val;
-    }
+  /// Absolute: capped at referenceAmount (halere).
+  int get _cappedAbsolute =>
+      _discountValue.clamp(0, widget.referenceAmount);
+
+  /// Percent: capped at 10000 (= 100%).
+  int get _cappedPercent =>
+      _discountValue.clamp(0, 10000);
+
+  int get _percentEffective =>
+      (widget.referenceAmount * _cappedPercent / 10000).round();
+
+  String _formatKc(int halere) {
+    if (halere % 100 == 0) return '${halere ~/ 100}';
+    return (halere / 100).toStringAsFixed(2);
+  }
+
+  String _formatPercent(int basisPoints) {
+    if (basisPoints % 100 == 0) return '${basisPoints ~/ 100}';
+    return (basisPoints / 100).toStringAsFixed(2);
   }
 
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
     final theme = Theme.of(context);
+    final hasValue = _discountValue > 0;
 
     return Dialog(
       child: SizedBox(
@@ -78,47 +76,6 @@ class _DialogDiscountState extends State<DialogDiscount> {
               Text(
                 l.billDetailDiscount,
                 style: theme.textTheme.titleLarge,
-              ),
-              const SizedBox(height: 16),
-              // Type toggle
-              Row(
-                children: [
-                  Expanded(
-                    child: SizedBox(
-                      height: 40,
-                      child: FilterChip(
-                        showCheckmark: false,
-                        label: SizedBox(
-                          width: double.infinity,
-                          child: Text('Kč', textAlign: TextAlign.center),
-                        ),
-                        selected: _type == DiscountType.absolute,
-                        onSelected: (_) => setState(() {
-                          _type = DiscountType.absolute;
-                          _input = '';
-                        }),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: SizedBox(
-                      height: 40,
-                      child: FilterChip(
-                        showCheckmark: false,
-                        label: SizedBox(
-                          width: double.infinity,
-                          child: Text('%', textAlign: TextAlign.center),
-                        ),
-                        selected: _type == DiscountType.percent,
-                        onSelected: (_) => setState(() {
-                          _type = DiscountType.percent;
-                          _input = '';
-                        }),
-                      ),
-                    ),
-                  ),
-                ],
               ),
               const SizedBox(height: 16),
               // Display
@@ -135,51 +92,60 @@ class _DialogDiscountState extends State<DialogDiscount> {
                   textAlign: TextAlign.right,
                 ),
               ),
-              const SizedBox(height: 8),
-              // Preview
-              Text(
-                '${l.billDetailDiscount}: -${_effectiveDiscount ~/ 100} Kč',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.error,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
               const SizedBox(height: 12),
               // Numpad
               _buildNumpad(),
               const SizedBox(height: 16),
-              // Actions
+              // Actions: [Kč] [Zpět] [%]
               Row(
                 children: [
                   Expanded(
                     child: SizedBox(
-                      height: 44,
+                      height: 52,
+                      child: FilledButton(
+                        onPressed: () => Navigator.pop(
+                          context,
+                          (DiscountType.absolute, _cappedAbsolute),
+                        ),
+                        child: hasValue
+                            ? Text('-${_formatKc(_cappedAbsolute)} Kč')
+                            : const Text('Kč'),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: SizedBox(
+                      height: 52,
                       child: OutlinedButton(
                         onPressed: () => Navigator.pop(context),
-                        child: Text(l.actionCancel),
+                        child: Text(l.wizardBack),
                       ),
                     ),
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: SizedBox(
-                      height: 44,
-                      child: OutlinedButton(
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: theme.colorScheme.error,
-                        ),
-                        onPressed: () => Navigator.pop(context, (DiscountType.absolute, 0)),
-                        child: Text(l.actionDelete),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: SizedBox(
-                      height: 44,
+                      height: 52,
                       child: FilledButton(
-                        onPressed: () => Navigator.pop(context, (_type, _discountValue)),
-                        child: const Text('OK'),
+                        onPressed: () => Navigator.pop(
+                          context,
+                          (DiscountType.percent, _cappedPercent),
+                        ),
+                        child: hasValue
+                            ? Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text('${_formatPercent(_cappedPercent)} %'),
+                                  Text(
+                                    '-${_formatKc(_percentEffective)} Kč',
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: theme.colorScheme.onPrimary,
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : const Text('%'),
                       ),
                     ),
                   ),
