@@ -36,38 +36,36 @@ class SuppliersTab extends ConsumerWidget {
               ),
             ),
             Expanded(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: DataTable(
-                  columns: [
-                    DataColumn(label: Text(l.fieldSupplierName)),
-                    DataColumn(label: Text(l.fieldContactPerson)),
-                    DataColumn(label: Text(l.fieldEmail)),
-                    DataColumn(label: Text(l.fieldPhone)),
-                    DataColumn(label: Text(l.fieldActions)),
-                  ],
-                  rows: suppliers
-                      .map((s) => DataRow(cells: [
-                            DataCell(Text(s.supplierName)),
-                            DataCell(Text(s.contactPerson ?? '-')),
-                            DataCell(Text(s.email ?? '-')),
-                            DataCell(Text(s.phone ?? '-')),
-                            DataCell(Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(
-                                  icon: const Icon(Icons.edit, size: 20),
-                                  onPressed: () => _showEditDialog(context, ref, s),
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.delete, size: 20),
-                                  onPressed: () => _delete(context, ref, s),
-                                ),
-                              ],
-                            )),
-                          ]))
-                      .toList(),
-                ),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return SingleChildScrollView(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(minWidth: constraints.maxWidth),
+                      child: DataTable(
+                        columnSpacing: 16,
+                        showCheckboxColumn: false,
+                        columns: [
+                          DataColumn(label: Text(l.fieldSupplierName)),
+                          DataColumn(label: Text(l.fieldContactPerson)),
+                          DataColumn(label: Text(l.fieldEmail)),
+                          DataColumn(label: Text(l.fieldPhone)),
+                        ],
+                        rows: suppliers
+                            .map((s) => DataRow(
+                                  onSelectChanged: (_) =>
+                                      _showEditDialog(context, ref, s),
+                                  cells: [
+                                    DataCell(Text(s.supplierName)),
+                                    DataCell(Text(s.contactPerson ?? '-')),
+                                    DataCell(Text(s.email ?? '-')),
+                                    DataCell(Text(s.phone ?? '-')),
+                                  ],
+                                ))
+                            .toList(),
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
           ],
@@ -83,7 +81,8 @@ class SuppliersTab extends ConsumerWidget {
     final emailCtrl = TextEditingController(text: existing?.email ?? '');
     final phoneCtrl = TextEditingController(text: existing?.phone ?? '');
 
-    final result = await showDialog<bool>(
+    final theme = Theme.of(context);
+    final result = await showDialog<Object>(
       context: context,
       builder: (_) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
@@ -117,12 +116,22 @@ class SuppliersTab extends ConsumerWidget {
           ),
           actions: [
             TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.actionCancel)),
+            if (existing != null)
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, 'delete'),
+                child: Text(l.actionDelete, style: TextStyle(color: theme.colorScheme.error)),
+              ),
             FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.actionSave)),
           ],
         ),
       ),
     );
 
+    if (result == 'delete') {
+      if (!context.mounted) return;
+      await _delete(context, ref, existing!);
+      return;
+    }
     if (result != true || nameCtrl.text.trim().isEmpty) return;
 
     final company = ref.read(currentCompanyProvider)!;

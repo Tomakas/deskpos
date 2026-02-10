@@ -36,46 +36,44 @@ class CatalogCategoriesTab extends ConsumerWidget {
               ),
             ),
             Expanded(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: DataTable(
-                  columns: [
-                    DataColumn(label: Text(l.fieldName)),
-                    DataColumn(label: Text(l.fieldParentCategory)),
-                    DataColumn(label: Text(l.fieldActive)),
-                    DataColumn(label: Text(l.fieldActions)),
-                  ],
-                  rows: categories
-                      .map((c) => DataRow(cells: [
-                            DataCell(Text(c.name)),
-                            DataCell(Text(
-                              categories
-                                      .where((p) => p.id == c.parentId)
-                                      .firstOrNull
-                                      ?.name ??
-                                  '-',
-                            )),
-                            DataCell(Icon(
-                              c.isActive ? Icons.check_circle : Icons.cancel,
-                              color: c.isActive ? Colors.green : Colors.grey,
-                              size: 20,
-                            )),
-                            DataCell(Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(
-                                  icon: const Icon(Icons.edit, size: 20),
-                                  onPressed: () => _showEditDialog(context, ref, categories, c),
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.delete, size: 20),
-                                  onPressed: () => _delete(context, ref, c),
-                                ),
-                              ],
-                            )),
-                          ]))
-                      .toList(),
-                ),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return SingleChildScrollView(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(minWidth: constraints.maxWidth),
+                      child: DataTable(
+                        columnSpacing: 16,
+                        showCheckboxColumn: false,
+                        columns: [
+                          DataColumn(label: Text(l.fieldName)),
+                          DataColumn(label: Text(l.fieldParentCategory)),
+                          DataColumn(label: Text(l.fieldActive)),
+                        ],
+                        rows: categories
+                            .map((c) => DataRow(
+                                  onSelectChanged: (_) =>
+                                      _showEditDialog(context, ref, categories, c),
+                                  cells: [
+                                    DataCell(Text(c.name)),
+                                    DataCell(Text(
+                                      categories
+                                              .where((p) => p.id == c.parentId)
+                                              .firstOrNull
+                                              ?.name ??
+                                          '-',
+                                    )),
+                                    DataCell(Icon(
+                                      c.isActive ? Icons.check_circle : Icons.cancel,
+                                      color: c.isActive ? Colors.green : Colors.grey,
+                                      size: 20,
+                                    )),
+                                  ],
+                                ))
+                            .toList(),
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
           ],
@@ -98,7 +96,8 @@ class CatalogCategoriesTab extends ConsumerWidget {
     // Filter out self-reference for parent dropdown
     final parentOptions = allCategories.where((c) => c.id != existing?.id).toList();
 
-    final result = await showDialog<bool>(
+    final theme = Theme.of(context);
+    final result = await showDialog<Object>(
       context: context,
       builder: (_) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
@@ -134,12 +133,22 @@ class CatalogCategoriesTab extends ConsumerWidget {
           ),
           actions: [
             TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.actionCancel)),
+            if (existing != null)
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, 'delete'),
+                child: Text(l.actionDelete, style: TextStyle(color: theme.colorScheme.error)),
+              ),
             FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.actionSave)),
           ],
         ),
       ),
     );
 
+    if (result == 'delete') {
+      if (!context.mounted) return;
+      await _delete(context, ref, existing!);
+      return;
+    }
     if (result != true || nameCtrl.text.trim().isEmpty) return;
 
     final company = ref.read(currentCompanyProvider)!;

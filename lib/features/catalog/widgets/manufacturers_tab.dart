@@ -36,32 +36,30 @@ class ManufacturersTab extends ConsumerWidget {
               ),
             ),
             Expanded(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: DataTable(
-                  columns: [
-                    DataColumn(label: Text(l.fieldName)),
-                    DataColumn(label: Text(l.fieldActions)),
-                  ],
-                  rows: manufacturers
-                      .map((m) => DataRow(cells: [
-                            DataCell(Text(m.name)),
-                            DataCell(Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(
-                                  icon: const Icon(Icons.edit, size: 20),
-                                  onPressed: () => _showEditDialog(context, ref, m),
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.delete, size: 20),
-                                  onPressed: () => _delete(context, ref, m),
-                                ),
-                              ],
-                            )),
-                          ]))
-                      .toList(),
-                ),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return SingleChildScrollView(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(minWidth: constraints.maxWidth),
+                      child: DataTable(
+                        columnSpacing: 16,
+                        showCheckboxColumn: false,
+                        columns: [
+                          DataColumn(label: Text(l.fieldName)),
+                        ],
+                        rows: manufacturers
+                            .map((m) => DataRow(
+                                  onSelectChanged: (_) =>
+                                      _showEditDialog(context, ref, m),
+                                  cells: [
+                                    DataCell(Text(m.name)),
+                                  ],
+                                ))
+                            .toList(),
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
           ],
@@ -75,7 +73,8 @@ class ManufacturersTab extends ConsumerWidget {
     final l = context.l10n;
     final nameCtrl = TextEditingController(text: existing?.name ?? '');
 
-    final result = await showDialog<bool>(
+    final theme = Theme.of(context);
+    final result = await showDialog<Object>(
       context: context,
       builder: (_) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
@@ -94,12 +93,22 @@ class ManufacturersTab extends ConsumerWidget {
           ),
           actions: [
             TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.actionCancel)),
+            if (existing != null)
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, 'delete'),
+                child: Text(l.actionDelete, style: TextStyle(color: theme.colorScheme.error)),
+              ),
             FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.actionSave)),
           ],
         ),
       ),
     );
 
+    if (result == 'delete') {
+      if (!context.mounted) return;
+      await _delete(context, ref, existing!);
+      return;
+    }
     if (result != true || nameCtrl.text.trim().isEmpty) return;
 
     final company = ref.read(currentCompanyProvider)!;

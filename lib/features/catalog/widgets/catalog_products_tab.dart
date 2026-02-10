@@ -79,81 +79,109 @@ class CatalogProductsTab extends ConsumerWidget {
                               ),
                             ),
                             Expanded(
-                              child: SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: DataTable(
-                                  columns: [
-                                    DataColumn(label: Text(l.fieldName)),
-                                    DataColumn(label: Text(l.fieldCategory)),
-                                    DataColumn(label: Text(l.fieldPrice)),
-                                    DataColumn(label: Text(l.fieldTaxRate)),
-                                    DataColumn(label: Text(l.fieldType)),
-                                    DataColumn(label: Text(l.fieldSupplier)),
-                                    DataColumn(label: Text(l.fieldManufacturer)),
-                                    DataColumn(label: Text(l.fieldPurchasePrice)),
-                                    DataColumn(label: Text(l.fieldActive)),
-                                    DataColumn(label: Text(l.fieldActions)),
-                                  ],
-                                  rows: items
-                                      .map((item) => DataRow(cells: [
-                                            DataCell(Text(item.name)),
-                                            DataCell(Text(
-                                              categories
-                                                      .where((c) => c.id == item.categoryId)
-                                                      .firstOrNull
-                                                      ?.name ??
-                                                  '-',
-                                            )),
-                                            DataCell(Text((item.unitPrice / 100).toStringAsFixed(2))),
-                                            DataCell(Text(
-                                              taxRates
-                                                      .where((t) => t.id == item.saleTaxRateId)
-                                                      .firstOrNull
-                                                      ?.label ??
-                                                  '-',
-                                            )),
-                                            DataCell(Text(_localizedItemType(l, item.itemType))),
-                                            DataCell(Text(
-                                              suppliers
-                                                      .where((s) => s.id == item.supplierId)
-                                                      .firstOrNull
-                                                      ?.supplierName ??
-                                                  '-',
-                                            )),
-                                            DataCell(Text(
-                                              manufacturers
-                                                      .where((m) => m.id == item.manufacturerId)
-                                                      .firstOrNull
-                                                      ?.name ??
-                                                  '-',
-                                            )),
-                                            DataCell(Text(
-                                              item.purchasePrice != null
-                                                  ? (item.purchasePrice! / 100).toStringAsFixed(2)
-                                                  : '-',
-                                            )),
-                                            DataCell(Icon(
-                                              item.isActive ? Icons.check_circle : Icons.cancel,
-                                              color: item.isActive ? Colors.green : Colors.grey,
-                                              size: 20,
-                                            )),
-                                            DataCell(Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                IconButton(
-                                                  icon: const Icon(Icons.edit, size: 20),
-                                                  onPressed: () => _showEditDialog(
+                              child: LayoutBuilder(
+                                builder: (context, constraints) {
+                                  return SingleChildScrollView(
+                                    child: ConstrainedBox(
+                                      constraints: BoxConstraints(minWidth: constraints.maxWidth),
+                                      child: DataTable(
+                                        columnSpacing: 16,
+                                        showCheckboxColumn: false,
+                                        columns: [
+                                          DataColumn(label: Text(l.fieldName)),
+                                          DataColumn(label: Text(l.fieldCategory)),
+                                          DataColumn(label: Text(l.fieldPrice)),
+                                          DataColumn(label: Text(l.fieldTaxRate)),
+                                          DataColumn(label: Text(l.fieldType)),
+                                          DataColumn(label: Text(l.fieldSupplier)),
+                                          DataColumn(label: Text(l.fieldManufacturer)),
+                                          DataColumn(label: Text(l.fieldPurchasePrice)),
+                                          DataColumn(label: Text(l.fieldActive)),
+                                        ],
+                                        rows: items
+                                            .map((item) => DataRow(
+                                                  onSelectChanged: (_) => _showEditDialog(
                                                       context, ref, categories, taxRates, suppliers, manufacturers, item),
-                                                ),
-                                                IconButton(
-                                                  icon: const Icon(Icons.delete, size: 20),
-                                                  onPressed: () => _delete(context, ref, item),
-                                                ),
-                                              ],
-                                            )),
-                                          ]))
-                                      .toList(),
-                                ),
+                                                  cells: [
+                                                    DataCell(ConstrainedBox(
+                                                      constraints: const BoxConstraints(maxWidth: 140),
+                                                      child: Text(item.name, overflow: TextOverflow.ellipsis),
+                                                    )),
+                                                    DataCell(ConstrainedBox(
+                                                      constraints: const BoxConstraints(maxWidth: 100),
+                                                      child: Text(
+                                                        categories
+                                                                .where((c) => c.id == item.categoryId)
+                                                                .firstOrNull
+                                                                ?.name ??
+                                                            '-',
+                                                        overflow: TextOverflow.ellipsis,
+                                                      ),
+                                                    )),
+                                                    DataCell(ConstrainedBox(
+                                                      constraints: const BoxConstraints(maxWidth: 70),
+                                                      child: Text((item.unitPrice / 100).toStringAsFixed(2),
+                                                          overflow: TextOverflow.ellipsis),
+                                                    )),
+                                                    DataCell(ConstrainedBox(
+                                                      constraints: const BoxConstraints(maxWidth: 80),
+                                                      child: Text(
+                                                        taxRates
+                                                                .where((t) => t.id == item.saleTaxRateId)
+                                                                .firstOrNull
+                                                                ?.label ??
+                                                            '-',
+                                                        overflow: TextOverflow.ellipsis,
+                                                      ),
+                                                    )),
+                                                    DataCell(ConstrainedBox(
+                                                      constraints: const BoxConstraints(maxWidth: 80),
+                                                      child: Text(_localizedItemType(l, item.itemType),
+                                                          overflow: TextOverflow.ellipsis),
+                                                    )),
+                                                    DataCell(ConstrainedBox(
+                                                      constraints: const BoxConstraints(maxWidth: 100),
+                                                      child: Text(
+                                                        suppliers
+                                                                .where((s) => s.id == item.supplierId)
+                                                                .firstOrNull
+                                                                ?.supplierName ??
+                                                            '-',
+                                                        overflow: TextOverflow.ellipsis,
+                                                      ),
+                                                    )),
+                                                    DataCell(ConstrainedBox(
+                                                      constraints: const BoxConstraints(maxWidth: 100),
+                                                      child: Text(
+                                                        manufacturers
+                                                                .where((m) => m.id == item.manufacturerId)
+                                                                .firstOrNull
+                                                                ?.name ??
+                                                            '-',
+                                                        overflow: TextOverflow.ellipsis,
+                                                      ),
+                                                    )),
+                                                    DataCell(ConstrainedBox(
+                                                      constraints: const BoxConstraints(maxWidth: 70),
+                                                      child: Text(
+                                                        item.purchasePrice != null
+                                                            ? (item.purchasePrice! / 100).toStringAsFixed(2)
+                                                            : '-',
+                                                        overflow: TextOverflow.ellipsis,
+                                                      ),
+                                                    )),
+                                                    DataCell(Icon(
+                                                      item.isActive ? Icons.check_circle : Icons.cancel,
+                                                      color: item.isActive ? Colors.green : Colors.grey,
+                                                      size: 20,
+                                                    )),
+                                                  ],
+                                                ))
+                                            .toList(),
+                                      ),
+                                    ),
+                                  );
+                                },
                               ),
                             ),
                           ],
@@ -200,7 +228,8 @@ class CatalogProductsTab extends ConsumerWidget {
     var purchaseTaxRateId = existing?.purchaseTaxRateId;
     var parentId = existing?.parentId;
 
-    final result = await showDialog<bool>(
+    final theme = Theme.of(context);
+    final result = await showDialog<Object>(
       context: context,
       builder: (_) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
@@ -316,12 +345,22 @@ class CatalogProductsTab extends ConsumerWidget {
           ),
           actions: [
             TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.actionCancel)),
+            if (existing != null)
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, 'delete'),
+                child: Text(l.actionDelete, style: TextStyle(color: theme.colorScheme.error)),
+              ),
             FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.actionSave)),
           ],
         ),
       ),
     );
 
+    if (result == 'delete') {
+      if (!context.mounted) return;
+      await _delete(context, ref, existing!);
+      return;
+    }
     if (result != true || nameCtrl.text.trim().isEmpty) return;
 
     final company = ref.read(currentCompanyProvider)!;

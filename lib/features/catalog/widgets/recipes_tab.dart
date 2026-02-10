@@ -45,49 +45,46 @@ class RecipesTab extends ConsumerWidget {
                   ),
                 ),
                 Expanded(
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: DataTable(
-                      columns: [
-                        DataColumn(label: Text(l.fieldParentProduct)),
-                        DataColumn(label: Text(l.fieldComponent)),
-                        DataColumn(label: Text(l.fieldQuantityRequired)),
-                        DataColumn(label: Text(l.fieldActions)),
-                      ],
-                      rows: recipes
-                          .map((r) => DataRow(cells: [
-                                DataCell(Text(
-                                  items
-                                          .where((i) => i.id == r.parentProductId)
-                                          .firstOrNull
-                                          ?.name ??
-                                      '-',
-                                )),
-                                DataCell(Text(
-                                  items
-                                          .where((i) => i.id == r.componentProductId)
-                                          .firstOrNull
-                                          ?.name ??
-                                      '-',
-                                )),
-                                DataCell(Text(r.quantityRequired.toString())),
-                                DataCell(Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(Icons.edit, size: 20),
-                                      onPressed: () =>
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return SingleChildScrollView(
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(minWidth: constraints.maxWidth),
+                          child: DataTable(
+                            columnSpacing: 16,
+                            showCheckboxColumn: false,
+                            columns: [
+                              DataColumn(label: Text(l.fieldParentProduct)),
+                              DataColumn(label: Text(l.fieldComponent)),
+                              DataColumn(label: Text(l.fieldQuantityRequired)),
+                            ],
+                            rows: recipes
+                                .map((r) => DataRow(
+                                      onSelectChanged: (_) =>
                                           _showEditDialog(context, ref, items, r),
-                                    ),
-                                    IconButton(
-                                      icon: const Icon(Icons.delete, size: 20),
-                                      onPressed: () => _delete(context, ref, r),
-                                    ),
-                                  ],
-                                )),
-                              ]))
-                          .toList(),
-                    ),
+                                      cells: [
+                                        DataCell(Text(
+                                          items
+                                                  .where((i) => i.id == r.parentProductId)
+                                                  .firstOrNull
+                                                  ?.name ??
+                                              '-',
+                                        )),
+                                        DataCell(Text(
+                                          items
+                                                  .where((i) => i.id == r.componentProductId)
+                                                  .firstOrNull
+                                                  ?.name ??
+                                              '-',
+                                        )),
+                                        DataCell(Text(r.quantityRequired.toString())),
+                                      ],
+                                    ))
+                                .toList(),
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
               ],
@@ -110,7 +107,8 @@ class RecipesTab extends ConsumerWidget {
     var parentProductId = existing?.parentProductId;
     var componentProductId = existing?.componentProductId;
 
-    final result = await showDialog<bool>(
+    final theme = Theme.of(context);
+    final result = await showDialog<Object>(
       context: context,
       builder: (_) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
@@ -152,12 +150,22 @@ class RecipesTab extends ConsumerWidget {
           ),
           actions: [
             TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.actionCancel)),
+            if (existing != null)
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, 'delete'),
+                child: Text(l.actionDelete, style: TextStyle(color: theme.colorScheme.error)),
+              ),
             FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.actionSave)),
           ],
         ),
       ),
     );
 
+    if (result == 'delete') {
+      if (!context.mounted) return;
+      await _delete(context, ref, existing!);
+      return;
+    }
     if (result != true || parentProductId == null || componentProductId == null) return;
 
     final company = ref.read(currentCompanyProvider)!;
