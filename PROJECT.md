@@ -187,14 +187,31 @@ Funkce, které nejsou nezbytné pro základní prodej, ale rozšiřují možnost
 
 #### Milník 3.5 — Sklad a zásobování
 
-- **Task3.20** Sklady — tabulka `warehouses` (id, company_id, name, is_default, is_active)
-- **Task3.21** Skladové zásoby — tabulka `stock_levels` (warehouse_id, item_id, quantity, min_quantity)
-- **Task3.22** Skladové doklady — tabulka `stock_documents` (type: receipt/transfer/waste/inventory/correction, supplier_id, warehouse_id, note, total_amount)
-- **Task3.23** Skladové pohyby — tabulka `stock_movements` (stock_document_id, item_id, quantity, purchase_price, direction: in/out)
-- **Task3.24** Automatický odpis — při uzavření objednávky (status delivered) automaticky odečíst ze skladu; u receptur odečíst ingredience
-- **Task3.25** Inventura — dialog pro zadání skutečných zásob, automatická korekce rozdílů
-- **Task3.26** UI Sklad — ScreenInventory (přehled zásob, příjemky, výdejky, inventury); aktivace tlačítka SKLAD na ScreenBills
-- **Výsledek:** Plné skladové hospodářství s evidencí zásob, příjemkami, výdejkami, automatickým odpisem při prodeji a inventurami.
+##### Klíčová rozhodnutí
+
+- **Jeden sklad** per firma (s přípravou na multi-warehouse — tabulka `warehouses` existuje, `warehouseId` na stock_levels/stock_documents)
+- **Odpis při vytvoření objednávky** (`createOrderWithItems`), ne při delivered/paid
+- **Receptury**: rozpad na ingredience přes `product_recipes`, samotná receptura nemá vlastní zásobu
+- **Storno/void**: automatické vrácení zásob (reverzní stock_movement)
+- **Odečítání**: vše s `isStockTracked=true` bez ohledu na `item_type`
+- **Záporné zásoby povoleny** (běžné v gastronomii)
+- **Nákupní cena při příjemce**: volba strategie per doklad s override per položka (přepsat / ponechat / průměr / vážený průměr)
+- **Prodejní odpisy**: jen `stock_movements` bez `stock_document_id` (nullable FK). Doklady jen pro ruční operace (příjemka, výdejka, inventura, oprava).
+- **Min. zásoby**: jen evidence (`min_quantity`), bez upozornění v první verzi
+- **Inventura**: jednoduchá korekce — obsluha zadá skutečný stav, systém vypočítá rozdíl a vytvoří korekční movements
+
+##### Tasky
+
+- **Task3.20** Enumy + Drift tabulky — `StockDocumentType` (receipt, waste, inventory, correction), `PurchasePriceStrategy` (overwrite, keep, average, weightedAverage), `StockMovementDirection` (in, out). Tabulky: `warehouses` (id, company_id, name, is_default, is_active), `stock_levels` (id, company_id, warehouse_id, item_id, quantity real, min_quantity real), `stock_documents` (id, company_id, warehouse_id, supplier_id?, user_id, document_number, type, purchase_price_strategy, note?, total_amount, document_date), `stock_movements` (id, company_id, stock_document_id?, item_id, quantity real, purchase_price?, direction, purchase_price_strategy? override). Modely (freezed): WarehouseModel, StockLevelModel, StockDocumentModel, StockMovementModel.
+- **Task3.21** Mappers + Supabase — entity_mappers, supabase_mappers, supabase_pull_mappers pro všechny 4 tabulky. Supabase migrace: CREATE TABLE + RLS (company_id based) + handle_updated_at triggery + indexy. Outbox registrace v sync provideru.
+- **Task3.22** WarehouseRepository — createDefaultWarehouse (lazy init při prvním přístupu), getDefault, watchAll. Injektovaný SyncQueueRepository.
+- **Task3.23** StockLevelRepository — getOrCreate (lazy init), watchByWarehouse (JOIN s items pro název/unit/purchasePrice), adjustQuantity (delta), setQuantity (absolutní). Injektovaný SyncQueueRepository.
+- **Task3.24** StockDocumentRepository — createDocument (transakce: insert document + movements + adjust stock_levels + update purchase_price dle strategie per položka, enqueue všech dotčených entit). Logika nákupní ceny: per položka zjistí strategii (item override ?? document strategy), aplikuje dle typu (overwrite/keep/average/weightedAverage). watchByWarehouse, generateDocumentNumber (R-001/W-001/I-001/C-001).
+- **Task3.25** Automatický odpis v OrderRepository — modifikace `createOrderWithItems`: po insertu pro každý isStockTracked item vytvořit stock_movement (bez stock_document_id). Receptury: rozpad přes product_recipes, odečtení ingrediencí. Modifikace `updateStatus`: při cancelled/voided reverzní stock_movements. Nové závislosti: StockLevelRepository, ProductRecipeRepository.
+- **Task3.26** ScreenInventory — fullscreen route `/inventory`, DataTable se všemi stock-tracked položkami. Sloupce: Položka, Jednotka, Množství, Min.množství, Nákupní cena, Celková hodnota. Footer: celková hodnota skladu. Tlačítka: Příjemka, Výdejka, Inventura, Oprava. Přístup: tlačítko SKLAD na ScreenBills.
+- **Task3.27** DialogStockDocument — znovupoužitelný dialog pro příjemku/výdejku/opravu. Pole: dodavatel (dropdown, jen receipt), strategie ceny (dropdown + per-item override, jen receipt), seznam položek (search + quantity + price). Validace: ≥1 položka.
+- **Task3.28** DialogInventory — seznam stock-tracked položek s aktuálním stavem + pole pro skutečný stav. Systém vypočítá diff, vytvoří stock_movements a jeden stock_document typu `inventory`.
+- **Výsledek:** Plné skladové hospodářství s evidencí zásob, příjemkami, výdejkami, automatickým odpisem při prodeji (s rozpadem receptur), inventurami a plnou synchronizací přes outbox.
 
 #### Milník 3.6 — Tisk
 
@@ -665,8 +682,9 @@ Klientské timestampy se ukládají v **UTC**.
 | Dart Enum | Kdy | Hodnoty |
 |-----------|-----|---------|
 | `SubscriptionPlan` | Sync (Etapa 3) | free, basic, advance, pro, enterprise, tech |
-| `StockDocumentType` | Sklad rozšíření | transfer, waste, inventory, receipt, correction |
-| `PurchasePriceChange` | Sklad rozšíření | average, override, weightedAvg |
+| `StockDocumentType` | Sklad (Milník 3.5) | receipt, waste, inventory, correction (transfer s multi-warehouse) |
+| `PurchasePriceStrategy` | Sklad (Milník 3.5) | overwrite, keep, average, weightedAverage |
+| `StockMovementDirection` | Sklad (Milník 3.5) | in, out |
 | `VoucherType` | CRM rozšíření | fixedAmount, percentage, product |
 | `VoucherStatus` | CRM rozšíření | valid, used, cancelled, expired |
 | `ReservationStatus` | Gastro rozšíření | created, confirmed, cancelled, seated |
@@ -1720,11 +1738,12 @@ Layout: **5 tabů + inline editace**
 
 Funkce, které nejsou součástí aktuálního plánu. Mohou se přidat kdykoli později bez zásadního dopadu na existující architekturu.
 
-### Sklad a zásobování
+### Sklad a zásobování (rozšíření)
 
-- Skladové hospodářství — tabulky `warehouses`, `stock_levels`, `stock_documents`, `stock_movements`
-- Automatické odečítání skladu při prodeji
-- Inventury a inventurní předlohy (tisk)
+- Multi-warehouse — více skladů per firma, transfery mezi sklady (StockDocumentType.transfer)
+- Historie pohybů per položka — detail view s chronologickým přehledem všech stock_movements
+- Upozornění na nízké zásoby — vizuální indikátor při quantity < min_quantity
+- Inventurní předlohy (tisk)
 
 ### CRM a zákazníci
 

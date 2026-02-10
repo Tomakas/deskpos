@@ -27,8 +27,12 @@ import 'tables/role_permissions.dart';
 import 'tables/roles.dart';
 import 'tables/sections.dart';
 import 'tables/shifts.dart';
+import 'tables/stock_documents.dart';
+import 'tables/stock_levels.dart';
+import 'tables/stock_movements.dart';
 import 'tables/suppliers.dart';
 import 'tables/sync_metadata.dart';
+import 'tables/warehouses.dart';
 import 'tables/sync_queue.dart';
 import 'tables/table_entities.dart';
 import 'tables/tax_rates.dart';
@@ -61,6 +65,9 @@ part 'app_database.g.dart';
   Roles,
   Sections,
   Shifts,
+  StockDocuments,
+  StockLevels,
+  StockMovements,
   Suppliers,
   SyncMetadata,
   SyncQueue,
@@ -68,6 +75,7 @@ part 'app_database.g.dart';
   TaxRates,
   UserPermissions,
   Users,
+  Warehouses,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());

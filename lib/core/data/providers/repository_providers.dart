@@ -20,12 +20,16 @@ import '../repositories/register_session_repository.dart';
 import '../repositories/shift_repository.dart';
 import '../repositories/role_repository.dart';
 import '../repositories/section_repository.dart';
+import '../repositories/stock_document_repository.dart';
+import '../repositories/stock_level_repository.dart';
+import '../repositories/stock_movement_repository.dart';
 import '../repositories/supplier_repository.dart';
 import '../repositories/sync_metadata_repository.dart';
 import '../repositories/sync_queue_repository.dart';
 import '../repositories/table_repository.dart';
 import '../repositories/tax_rate_repository.dart';
 import '../repositories/user_repository.dart';
+import '../repositories/warehouse_repository.dart';
 import 'database_provider.dart';
 
 // --- Sync repositories ---
@@ -126,6 +130,8 @@ final orderRepositoryProvider = Provider<OrderRepository>((ref) {
   return OrderRepository(
     ref.watch(appDatabaseProvider),
     syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
+    stockLevelRepo: ref.watch(stockLevelRepositoryProvider),
+    stockMovementRepo: ref.watch(stockMovementRepositoryProvider),
   );
 });
 
@@ -200,5 +206,37 @@ final productRecipeRepositoryProvider = Provider<ProductRecipeRepository>((ref) 
   return ProductRecipeRepository(
     ref.watch(appDatabaseProvider),
     syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
+  );
+});
+
+// --- Stock repositories ---
+
+final warehouseRepositoryProvider = Provider<WarehouseRepository>((ref) {
+  return WarehouseRepository(
+    ref.watch(appDatabaseProvider),
+    syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
+  );
+});
+
+final stockLevelRepositoryProvider = Provider<StockLevelRepository>((ref) {
+  return StockLevelRepository(
+    ref.watch(appDatabaseProvider),
+    syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
+  );
+});
+
+final stockMovementRepositoryProvider = Provider<StockMovementRepository>((ref) {
+  return StockMovementRepository(
+    ref.watch(appDatabaseProvider),
+    syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
+  );
+});
+
+final stockDocumentRepositoryProvider = Provider<StockDocumentRepository>((ref) {
+  return StockDocumentRepository(
+    ref.watch(appDatabaseProvider),
+    syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
+    stockLevelRepo: ref.watch(stockLevelRepositoryProvider),
+    stockMovementRepo: ref.watch(stockMovementRepositoryProvider),
   );
 });

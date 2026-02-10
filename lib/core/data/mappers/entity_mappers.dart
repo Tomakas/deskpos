@@ -24,11 +24,15 @@ import '../models/role_model.dart';
 import '../models/role_permission_model.dart';
 import '../models/section_model.dart';
 import '../models/shift_model.dart';
+import '../models/stock_document_model.dart';
+import '../models/stock_level_model.dart';
+import '../models/stock_movement_model.dart';
 import '../models/supplier_model.dart';
 import '../models/table_model.dart';
 import '../models/tax_rate_model.dart';
 import '../models/user_model.dart';
 import '../models/user_permission_model.dart';
+import '../models/warehouse_model.dart';
 
 // --- Company ---
 CompanyModel companyFromEntity(Company e) => CompanyModel(
@@ -659,4 +663,106 @@ LayoutItemModel layoutItemFromEntity(LayoutItem e) => LayoutItemModel(
       createdAt: e.createdAt,
       updatedAt: e.updatedAt,
       deletedAt: e.deletedAt,
+    );
+
+// --- Warehouse ---
+WarehouseModel warehouseFromEntity(Warehouse e) => WarehouseModel(
+      id: e.id,
+      companyId: e.companyId,
+      name: e.name,
+      isDefault: e.isDefault,
+      isActive: e.isActive,
+      createdAt: e.createdAt,
+      updatedAt: e.updatedAt,
+      deletedAt: e.deletedAt,
+    );
+
+WarehousesCompanion warehouseToCompanion(WarehouseModel m) => WarehousesCompanion.insert(
+      id: m.id,
+      companyId: m.companyId,
+      name: m.name,
+      isDefault: Value(m.isDefault),
+      isActive: Value(m.isActive),
+    );
+
+// --- StockLevel ---
+StockLevelModel stockLevelFromEntity(StockLevel e) => StockLevelModel(
+      id: e.id,
+      companyId: e.companyId,
+      warehouseId: e.warehouseId,
+      itemId: e.itemId,
+      quantity: e.quantity,
+      minQuantity: e.minQuantity,
+      createdAt: e.createdAt,
+      updatedAt: e.updatedAt,
+      deletedAt: e.deletedAt,
+    );
+
+StockLevelsCompanion stockLevelToCompanion(StockLevelModel m) => StockLevelsCompanion.insert(
+      id: m.id,
+      companyId: m.companyId,
+      warehouseId: m.warehouseId,
+      itemId: m.itemId,
+      quantity: Value(m.quantity),
+      minQuantity: Value(m.minQuantity),
+    );
+
+// --- StockDocument ---
+StockDocumentModel stockDocumentFromEntity(StockDocument e) => StockDocumentModel(
+      id: e.id,
+      companyId: e.companyId,
+      warehouseId: e.warehouseId,
+      supplierId: e.supplierId,
+      userId: e.userId,
+      documentNumber: e.documentNumber,
+      type: e.type,
+      purchasePriceStrategy: e.purchasePriceStrategy,
+      note: e.note,
+      totalAmount: e.totalAmount,
+      documentDate: e.documentDate,
+      createdAt: e.createdAt,
+      updatedAt: e.updatedAt,
+      deletedAt: e.deletedAt,
+    );
+
+StockDocumentsCompanion stockDocumentToCompanion(StockDocumentModel m) =>
+    StockDocumentsCompanion.insert(
+      id: m.id,
+      companyId: m.companyId,
+      warehouseId: m.warehouseId,
+      supplierId: Value(m.supplierId),
+      userId: m.userId,
+      documentNumber: m.documentNumber,
+      type: m.type,
+      purchasePriceStrategy: Value(m.purchasePriceStrategy),
+      note: Value(m.note),
+      totalAmount: Value(m.totalAmount),
+      documentDate: m.documentDate,
+    );
+
+// --- StockMovement ---
+StockMovementModel stockMovementFromEntity(StockMovement e) => StockMovementModel(
+      id: e.id,
+      companyId: e.companyId,
+      stockDocumentId: e.stockDocumentId,
+      itemId: e.itemId,
+      quantity: e.quantity,
+      purchasePrice: e.purchasePrice,
+      direction: e.direction,
+      purchasePriceStrategy: e.purchasePriceStrategy,
+      createdAt: e.createdAt,
+      updatedAt: e.updatedAt,
+      deletedAt: e.deletedAt,
+    );
+
+StockMovementsCompanion stockMovementToCompanion(StockMovementModel m) =>
+    StockMovementsCompanion.insert(
+      id: m.id,
+      companyId: m.companyId,
+      stockDocumentId: Value(m.stockDocumentId),
+      itemId: m.itemId,
+      quantity: m.quantity,
+      purchasePrice: Value(m.purchasePrice),
+      direction: m.direction,
+      purchasePriceStrategy: Value(m.purchasePriceStrategy),
     );

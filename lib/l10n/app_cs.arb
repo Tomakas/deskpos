@@ -515,5 +515,42 @@
   "customerLastVisit": "Poslední návštěva",
   "customerSearch": "Hledat zákazníka",
   "customerRemove": "Odebrat zákazníka",
-  "customerNone": "Žádný zákazník"
+  "customerNone": "Žádný zákazník",
+
+  "inventoryTitle": "Sklad",
+  "inventoryColumnItem": "Položka",
+  "inventoryColumnUnit": "Jednotka",
+  "inventoryColumnQuantity": "Množství",
+  "inventoryColumnMinQuantity": "Min. množství",
+  "inventoryColumnPurchasePrice": "Nákupní cena",
+  "inventoryColumnTotalValue": "Celková hodnota",
+  "inventoryTotalValue": "Celková hodnota skladu",
+  "inventoryReceipt": "Příjemka",
+  "inventoryWaste": "Výdejka",
+  "inventoryCorrection": "Oprava",
+  "inventoryInventory": "Inventura",
+  "inventoryNoItems": "Žádné sledované položky",
+
+  "stockDocumentTitle": "Skladový doklad",
+  "stockDocumentSupplier": "Dodavatel",
+  "stockDocumentPriceStrategy": "Strategie nákupní ceny",
+  "stockDocumentNote": "Poznámka",
+  "stockDocumentAddItem": "Přidat položku",
+  "stockDocumentQuantity": "Množství",
+  "stockDocumentPrice": "Nákupní cena",
+  "stockDocumentSave": "Uložit doklad",
+  "stockDocumentNoItems": "Přidejte alespoň jednu položku",
+  "stockDocumentSearchItem": "Hledat položku",
+  "stockDocumentItemOverrideStrategy": "Override strategie",
+
+  "stockStrategyOverwrite": "Přepsat",
+  "stockStrategyKeep": "Ponechat",
+  "stockStrategyAverage": "Průměr",
+  "stockStrategyWeightedAverage": "Vážený průměr",
+
+  "inventoryDialogTitle": "Inventura",
+  "inventoryDialogActualQuantity": "Skutečný stav",
+  "inventoryDialogDifference": "Rozdíl",
+  "inventoryDialogSave": "Uložit inventuru",
+  "inventoryDialogNoDifferences": "Žádné rozdíly"
 }

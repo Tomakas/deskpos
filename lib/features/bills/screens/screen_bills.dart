@@ -11,6 +11,7 @@ import '../../../core/data/enums/bill_status.dart';
 import '../../../core/data/enums/cash_movement_type.dart';
 import '../../../core/data/enums/payment_type.dart';
 import '../../../core/data/models/bill_model.dart';
+import '../../../core/data/models/customer_model.dart';
 import '../../../core/data/models/section_model.dart';
 import '../../../core/data/models/table_model.dart';
 import '../../../core/data/models/user_model.dart';
@@ -42,7 +43,7 @@ class ScreenBills extends ConsumerStatefulWidget {
 
 class _ScreenBillsState extends ConsumerState<ScreenBills> {
   Set<BillStatus> _statusFilters = {BillStatus.opened};
-  String? _sectionFilter;
+  Set<String> _sectionFilters = {};
   _SortField _sortField = _SortField.table;
   bool _sortAscending = true;
   bool _isProcessing = false;
@@ -65,8 +66,8 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
             child: Column(
               children: [
                 _SectionTabBar(
-                  selectedSectionId: _sectionFilter,
-                  onChanged: (id) => setState(() => _sectionFilter = id),
+                  selectedSectionIds: _sectionFilters,
+                  onChanged: (ids) => setState(() => _sectionFilters = ids),
                   sortField: _sortField,
                   sortAscending: _sortAscending,
                   onSortChanged: (field, ascending) => setState(() {
@@ -77,7 +78,7 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
                 Expanded(
                   child: _BillsTable(
                     statusFilters: _statusFilters,
-                    sectionFilter: _sectionFilter,
+                    sectionFilters: _sectionFilters,
                     sortField: _sortField,
                     sortAscending: _sortAscending,
                     onBillTap: (bill) => _openBillDetail(context, bill),
@@ -529,14 +530,14 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
 // ---------------------------------------------------------------------------
 class _SectionTabBar extends ConsumerWidget {
   const _SectionTabBar({
-    required this.selectedSectionId,
+    required this.selectedSectionIds,
     required this.onChanged,
     required this.sortField,
     required this.sortAscending,
     required this.onSortChanged,
   });
-  final String? selectedSectionId;
-  final ValueChanged<String?> onChanged;
+  final Set<String> selectedSectionIds;
+  final ValueChanged<Set<String>> onChanged;
   final _SortField sortField;
   final bool sortAscending;
   final void Function(_SortField field, bool ascending) onSortChanged;
@@ -561,17 +562,8 @@ class _SectionTabBar extends ConsumerWidget {
           ),
           child: Row(
             children: [
-              SizedBox(
-                height: 40,
-                child: FilterChip(
-                  showCheckmark: true,
-                  label: Text(l.billsSectionAll),
-                  selected: selectedSectionId == null,
-                  onSelected: (_) => onChanged(null),
-                ),
-              ),
-              for (final section in sections) ...[
-                const SizedBox(width: 8),
+              for (var i = 0; i < sections.length; i++) ...[
+                if (i > 0) const SizedBox(width: 8),
                 Expanded(
                   child: SizedBox(
                     height: 40,
@@ -579,10 +571,18 @@ class _SectionTabBar extends ConsumerWidget {
                       showCheckmark: true,
                       label: SizedBox(
                         width: double.infinity,
-                        child: Text(section.name, textAlign: TextAlign.center),
+                        child: Text(sections[i].name, textAlign: TextAlign.center),
                       ),
-                      selected: selectedSectionId == section.id,
-                      onSelected: (_) => onChanged(section.id),
+                      selected: selectedSectionIds.contains(sections[i].id),
+                      onSelected: (on) {
+                        final next = Set<String>.from(selectedSectionIds);
+                        if (on) {
+                          next.add(sections[i].id);
+                        } else {
+                          next.remove(sections[i].id);
+                        }
+                        onChanged(next);
+                      },
                     ),
                   ),
                 ),
@@ -641,13 +641,13 @@ class _SectionTabBar extends ConsumerWidget {
 class _BillsTable extends ConsumerWidget {
   const _BillsTable({
     required this.statusFilters,
-    this.sectionFilter,
+    this.sectionFilters = const {},
     required this.sortField,
     required this.sortAscending,
     required this.onBillTap,
   });
   final Set<BillStatus> statusFilters;
-  final String? sectionFilter;
+  final Set<String> sectionFilters;
   final _SortField sortField;
   final bool sortAscending;
   final ValueChanged<BillModel> onBillTap;
@@ -661,7 +661,7 @@ class _BillsTable extends ConsumerWidget {
     return StreamBuilder<List<BillModel>>(
       stream: ref.watch(billRepositoryProvider).watchByCompany(
         company.id,
-        sectionId: sectionFilter,
+        sectionIds: sectionFilters.isEmpty ? null : sectionFilters,
       ),
       builder: (context, billSnap) {
         final allBills = billSnap.data ?? [];
@@ -687,6 +687,14 @@ class _BillsTable extends ConsumerWidget {
                 for (final u in (userSnap.data ?? [])) {
                   userMap[u.id] = u;
                 }
+
+                return StreamBuilder<List<CustomerModel>>(
+                  stream: ref.watch(customerRepositoryProvider).watchAll(company.id),
+                  builder: (context, customerSnap) {
+                    final customerMap = <String, CustomerModel>{};
+                    for (final c in (customerSnap.data ?? [])) {
+                      customerMap[c.id] = c;
+                    }
 
                 return StreamBuilder<Map<String, DateTime>>(
                   stream: ref.watch(orderRepositoryProvider).watchLastOrderTimesByCompany(company.id),
@@ -730,7 +738,7 @@ class _BillsTable extends ConsumerWidget {
                           child: Row(
                             children: [
                               _HeaderCell(l.columnTable, flex: 2),
-                              _HeaderCell(l.columnGuest, flex: 2),
+                              _HeaderCell(l.sellCustomer, flex: 2),
                               _HeaderCell(l.columnGuests, flex: 1),
                               _HeaderCell(l.columnTotal, flex: 2),
                               _HeaderCell(l.columnLastOrder, flex: 2),
@@ -745,9 +753,11 @@ class _BillsTable extends ConsumerWidget {
                                   itemCount: bills.length,
                                   itemBuilder: (context, index) {
                                     final bill = bills[index];
+                                    final customer = bill.customerId != null ? customerMap[bill.customerId] : null;
                                     return _BillRow(
                                       bill: bill,
                                       tableName: _resolveTableName(bill, tableMap, l),
+                                      customerName: customer != null ? '${customer.firstName} ${customer.lastName}' : '',
                                       staffName: userMap[bill.openedByUserId]?.username ?? '-',
                                       lastOrderTime: lastOrderTimes[bill.id],
                                       onTap: () => onBillTap(bill),
@@ -757,6 +767,8 @@ class _BillsTable extends ConsumerWidget {
                         ),
                       ],
                     );
+                  },
+                );
                   },
                 );
               },
@@ -779,12 +791,14 @@ class _BillRow extends StatefulWidget {
   const _BillRow({
     required this.bill,
     required this.tableName,
+    required this.customerName,
     required this.staffName,
     required this.lastOrderTime,
     required this.onTap,
   });
   final BillModel bill;
   final String tableName;
+  final String customerName;
   final String staffName;
   final DateTime? lastOrderTime;
   final VoidCallback onTap;
@@ -857,7 +871,7 @@ class _BillRowState extends State<_BillRow> {
         child: Row(
           children: [
             Expanded(flex: 2, child: Text(widget.tableName)),
-            const Expanded(flex: 2, child: Text('')),
+            Expanded(flex: 2, child: Text(widget.customerName)),
             Expanded(flex: 1, child: Text(widget.bill.numberOfGuests > 0 ? '${widget.bill.numberOfGuests}' : '')),
             Expanded(
               flex: 2,
@@ -1029,7 +1043,7 @@ class _RightPanel extends ConsumerWidget {
                   child: SizedBox(
                     height: 54,
                     child: FilledButton.tonal(
-                      onPressed: null,
+                      onPressed: () => context.push('/inventory'),
                       child: Text(l.billsInventory, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12)),
                     ),
                   ),

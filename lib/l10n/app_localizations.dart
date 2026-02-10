@@ -2547,6 +2547,204 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Žádný zákazník'**
   String get customerNone;
+
+  /// No description provided for @inventoryTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Sklad'**
+  String get inventoryTitle;
+
+  /// No description provided for @inventoryColumnItem.
+  ///
+  /// In cs, this message translates to:
+  /// **'Položka'**
+  String get inventoryColumnItem;
+
+  /// No description provided for @inventoryColumnUnit.
+  ///
+  /// In cs, this message translates to:
+  /// **'Jednotka'**
+  String get inventoryColumnUnit;
+
+  /// No description provided for @inventoryColumnQuantity.
+  ///
+  /// In cs, this message translates to:
+  /// **'Množství'**
+  String get inventoryColumnQuantity;
+
+  /// No description provided for @inventoryColumnMinQuantity.
+  ///
+  /// In cs, this message translates to:
+  /// **'Min. množství'**
+  String get inventoryColumnMinQuantity;
+
+  /// No description provided for @inventoryColumnPurchasePrice.
+  ///
+  /// In cs, this message translates to:
+  /// **'Nákupní cena'**
+  String get inventoryColumnPurchasePrice;
+
+  /// No description provided for @inventoryColumnTotalValue.
+  ///
+  /// In cs, this message translates to:
+  /// **'Celková hodnota'**
+  String get inventoryColumnTotalValue;
+
+  /// No description provided for @inventoryTotalValue.
+  ///
+  /// In cs, this message translates to:
+  /// **'Celková hodnota skladu'**
+  String get inventoryTotalValue;
+
+  /// No description provided for @inventoryReceipt.
+  ///
+  /// In cs, this message translates to:
+  /// **'Příjemka'**
+  String get inventoryReceipt;
+
+  /// No description provided for @inventoryWaste.
+  ///
+  /// In cs, this message translates to:
+  /// **'Výdejka'**
+  String get inventoryWaste;
+
+  /// No description provided for @inventoryCorrection.
+  ///
+  /// In cs, this message translates to:
+  /// **'Oprava'**
+  String get inventoryCorrection;
+
+  /// No description provided for @inventoryInventory.
+  ///
+  /// In cs, this message translates to:
+  /// **'Inventura'**
+  String get inventoryInventory;
+
+  /// No description provided for @inventoryNoItems.
+  ///
+  /// In cs, this message translates to:
+  /// **'Žádné sledované položky'**
+  String get inventoryNoItems;
+
+  /// No description provided for @stockDocumentTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Skladový doklad'**
+  String get stockDocumentTitle;
+
+  /// No description provided for @stockDocumentSupplier.
+  ///
+  /// In cs, this message translates to:
+  /// **'Dodavatel'**
+  String get stockDocumentSupplier;
+
+  /// No description provided for @stockDocumentPriceStrategy.
+  ///
+  /// In cs, this message translates to:
+  /// **'Strategie nákupní ceny'**
+  String get stockDocumentPriceStrategy;
+
+  /// No description provided for @stockDocumentNote.
+  ///
+  /// In cs, this message translates to:
+  /// **'Poznámka'**
+  String get stockDocumentNote;
+
+  /// No description provided for @stockDocumentAddItem.
+  ///
+  /// In cs, this message translates to:
+  /// **'Přidat položku'**
+  String get stockDocumentAddItem;
+
+  /// No description provided for @stockDocumentQuantity.
+  ///
+  /// In cs, this message translates to:
+  /// **'Množství'**
+  String get stockDocumentQuantity;
+
+  /// No description provided for @stockDocumentPrice.
+  ///
+  /// In cs, this message translates to:
+  /// **'Nákupní cena'**
+  String get stockDocumentPrice;
+
+  /// No description provided for @stockDocumentSave.
+  ///
+  /// In cs, this message translates to:
+  /// **'Uložit doklad'**
+  String get stockDocumentSave;
+
+  /// No description provided for @stockDocumentNoItems.
+  ///
+  /// In cs, this message translates to:
+  /// **'Přidejte alespoň jednu položku'**
+  String get stockDocumentNoItems;
+
+  /// No description provided for @stockDocumentSearchItem.
+  ///
+  /// In cs, this message translates to:
+  /// **'Hledat položku'**
+  String get stockDocumentSearchItem;
+
+  /// No description provided for @stockDocumentItemOverrideStrategy.
+  ///
+  /// In cs, this message translates to:
+  /// **'Override strategie'**
+  String get stockDocumentItemOverrideStrategy;
+
+  /// No description provided for @stockStrategyOverwrite.
+  ///
+  /// In cs, this message translates to:
+  /// **'Přepsat'**
+  String get stockStrategyOverwrite;
+
+  /// No description provided for @stockStrategyKeep.
+  ///
+  /// In cs, this message translates to:
+  /// **'Ponechat'**
+  String get stockStrategyKeep;
+
+  /// No description provided for @stockStrategyAverage.
+  ///
+  /// In cs, this message translates to:
+  /// **'Průměr'**
+  String get stockStrategyAverage;
+
+  /// No description provided for @stockStrategyWeightedAverage.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vážený průměr'**
+  String get stockStrategyWeightedAverage;
+
+  /// No description provided for @inventoryDialogTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Inventura'**
+  String get inventoryDialogTitle;
+
+  /// No description provided for @inventoryDialogActualQuantity.
+  ///
+  /// In cs, this message translates to:
+  /// **'Skutečný stav'**
+  String get inventoryDialogActualQuantity;
+
+  /// No description provided for @inventoryDialogDifference.
+  ///
+  /// In cs, this message translates to:
+  /// **'Rozdíl'**
+  String get inventoryDialogDifference;
+
+  /// No description provided for @inventoryDialogSave.
+  ///
+  /// In cs, this message translates to:
+  /// **'Uložit inventuru'**
+  String get inventoryDialogSave;
+
+  /// No description provided for @inventoryDialogNoDifferences.
+  ///
+  /// In cs, this message translates to:
+  /// **'Žádné rozdíly'**
+  String get inventoryDialogNoDifferences;
 }
 
 class _AppLocalizationsDelegate

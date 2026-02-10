@@ -108,7 +108,7 @@ class BillRepository {
         .map((rows) => rows.map(billFromEntity).toList());
   }
 
-  Stream<List<BillModel>> watchByCompany(String companyId, {BillStatus? status, String? sectionId}) {
+  Stream<List<BillModel>> watchByCompany(String companyId, {BillStatus? status, Set<String>? sectionIds}) {
     return (_db.select(_db.bills)
           ..where((t) {
             var expr = t.companyId.equals(companyId) & t.deletedAt.isNull();
@@ -121,12 +121,12 @@ class BillRepository {
         .watch()
         .asyncMap((rows) async {
       var bills = rows.map(billFromEntity).toList();
-      if (sectionId != null) {
-        // Filter by section: get table IDs in this section
+      if (sectionIds != null && sectionIds.isNotEmpty) {
+        // Filter by sections: get table IDs in these sections
         final tables = await (_db.select(_db.tables)
               ..where((t) =>
                   t.companyId.equals(companyId) &
-                  t.sectionId.equals(sectionId) &
+                  t.sectionId.isIn(sectionIds) &
                   t.deletedAt.isNull()))
             .get();
         final tableIds = tables.map((t) => t.id).toSet();

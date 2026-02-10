@@ -6,18 +6,30 @@ import 'package:uuid/uuid.dart';
 import '../../database/app_database.dart';
 import '../../logging/app_logger.dart';
 import '../enums/discount_type.dart';
+import '../enums/item_type.dart';
 import '../enums/prep_status.dart';
+import '../enums/stock_movement_direction.dart';
 import '../mappers/entity_mappers.dart';
 import '../mappers/supabase_mappers.dart';
 import '../models/order_item_model.dart';
 import '../models/order_model.dart';
+import '../models/stock_movement_model.dart';
 import '../result.dart';
+import 'stock_level_repository.dart';
+import 'stock_movement_repository.dart';
 import 'sync_queue_repository.dart';
 
 class OrderRepository {
-  OrderRepository(this._db, {this.syncQueueRepo});
+  OrderRepository(
+    this._db, {
+    this.syncQueueRepo,
+    this.stockLevelRepo,
+    this.stockMovementRepo,
+  });
   final AppDatabase _db;
   final SyncQueueRepository? syncQueueRepo;
+  final StockLevelRepository? stockLevelRepo;
+  final StockMovementRepository? stockMovementRepo;
 
   Future<Result<OrderModel>> createOrderWithItems({
     required String companyId,
@@ -95,6 +107,9 @@ class OrderRepository {
       for (final item in itemEntities) {
         await _enqueueOrderItem('insert', orderItemFromEntity(item));
       }
+
+      // Stock deduction for stock-tracked items
+      await _deductStockForOrder(companyId, items);
 
       return Success(order);
     } catch (e, s) {
@@ -182,6 +197,11 @@ class OrderRepository {
           .get();
       for (final item in itemEntities) {
         await _enqueueOrderItem('update', orderItemFromEntity(item));
+      }
+
+      // Reverse stock deduction on cancel/void
+      if (status == PrepStatus.cancelled || status == PrepStatus.voided) {
+        await _reverseStockForOrder(order.companyId, itemEntities);
       }
 
       return Success(order);
@@ -420,6 +440,129 @@ class OrderRepository {
         await _enqueueOrder('update', orderFromEntity(entity));
       }
     }
+  }
+
+  /// Deducts stock for each stock-tracked item in the order.
+  /// For recipes: decomposes into ingredients and deducts those.
+  Future<void> _deductStockForOrder(
+    String companyId,
+    List<_OrderItemInput> items,
+  ) async {
+    if (stockLevelRepo == null || stockMovementRepo == null) return;
+
+    // Get default warehouse
+    final warehouse = await (_db.select(_db.warehouses)
+          ..where((t) => t.companyId.equals(companyId) & t.isDefault.equals(true) & t.deletedAt.isNull()))
+        .getSingleOrNull();
+    if (warehouse == null) return; // No warehouse yet, skip deduction
+
+    for (final orderItem in items) {
+      final item = await (_db.select(_db.items)
+            ..where((t) => t.id.equals(orderItem.itemId)))
+          .getSingleOrNull();
+      if (item == null || !item.isStockTracked) continue;
+
+      if (item.itemType == ItemType.recipe) {
+        // Decompose recipe into ingredients
+        final recipes = await (_db.select(_db.productRecipes)
+              ..where((t) => t.parentProductId.equals(item.id) & t.deletedAt.isNull()))
+            .get();
+        for (final recipe in recipes) {
+          final componentQty = recipe.quantityRequired * orderItem.quantity;
+          await _createStockMovement(
+            companyId: companyId,
+            warehouseId: warehouse.id,
+            itemId: recipe.componentProductId,
+            quantity: componentQty,
+            direction: StockMovementDirection.outbound,
+          );
+        }
+      } else {
+        await _createStockMovement(
+          companyId: companyId,
+          warehouseId: warehouse.id,
+          itemId: item.id,
+          quantity: orderItem.quantity,
+          direction: StockMovementDirection.outbound,
+        );
+      }
+    }
+  }
+
+  /// Reverses stock deduction when an order is cancelled or voided.
+  Future<void> _reverseStockForOrder(
+    String companyId,
+    List<OrderItem> orderItemEntities,
+  ) async {
+    if (stockLevelRepo == null || stockMovementRepo == null) return;
+
+    final warehouse = await (_db.select(_db.warehouses)
+          ..where((t) => t.companyId.equals(companyId) & t.isDefault.equals(true) & t.deletedAt.isNull()))
+        .getSingleOrNull();
+    if (warehouse == null) return;
+
+    for (final orderItem in orderItemEntities) {
+      final item = await (_db.select(_db.items)
+            ..where((t) => t.id.equals(orderItem.itemId)))
+          .getSingleOrNull();
+      if (item == null || !item.isStockTracked) continue;
+
+      if (item.itemType == ItemType.recipe) {
+        final recipes = await (_db.select(_db.productRecipes)
+              ..where((t) => t.parentProductId.equals(item.id) & t.deletedAt.isNull()))
+            .get();
+        for (final recipe in recipes) {
+          final componentQty = recipe.quantityRequired * orderItem.quantity;
+          await _createStockMovement(
+            companyId: companyId,
+            warehouseId: warehouse.id,
+            itemId: recipe.componentProductId,
+            quantity: componentQty,
+            direction: StockMovementDirection.inbound, // reverse
+          );
+        }
+      } else {
+        await _createStockMovement(
+          companyId: companyId,
+          warehouseId: warehouse.id,
+          itemId: item.id,
+          quantity: orderItem.quantity,
+          direction: StockMovementDirection.inbound, // reverse
+        );
+      }
+    }
+  }
+
+  /// Creates a stock movement (no document) and adjusts stock level.
+  Future<void> _createStockMovement({
+    required String companyId,
+    required String warehouseId,
+    required String itemId,
+    required double quantity,
+    required StockMovementDirection direction,
+  }) async {
+    final now = DateTime.now();
+    final movementId = const Uuid().v7();
+
+    final movement = StockMovementModel(
+      id: movementId,
+      companyId: companyId,
+      itemId: itemId,
+      quantity: quantity,
+      direction: direction,
+      createdAt: now,
+      updatedAt: now,
+    );
+
+    await stockMovementRepo!.createMovement(movement);
+
+    final delta = direction == StockMovementDirection.inbound ? quantity : -quantity;
+    await stockLevelRepo!.adjustQuantity(
+      companyId: companyId,
+      warehouseId: warehouseId,
+      itemId: itemId,
+      delta: delta,
+    );
   }
 
   Future<void> _enqueueOrder(String operation, OrderModel m) async {

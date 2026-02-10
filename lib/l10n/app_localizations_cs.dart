@@ -1270,4 +1270,103 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get customerNone => 'Žádný zákazník';
+
+  @override
+  String get inventoryTitle => 'Sklad';
+
+  @override
+  String get inventoryColumnItem => 'Položka';
+
+  @override
+  String get inventoryColumnUnit => 'Jednotka';
+
+  @override
+  String get inventoryColumnQuantity => 'Množství';
+
+  @override
+  String get inventoryColumnMinQuantity => 'Min. množství';
+
+  @override
+  String get inventoryColumnPurchasePrice => 'Nákupní cena';
+
+  @override
+  String get inventoryColumnTotalValue => 'Celková hodnota';
+
+  @override
+  String get inventoryTotalValue => 'Celková hodnota skladu';
+
+  @override
+  String get inventoryReceipt => 'Příjemka';
+
+  @override
+  String get inventoryWaste => 'Výdejka';
+
+  @override
+  String get inventoryCorrection => 'Oprava';
+
+  @override
+  String get inventoryInventory => 'Inventura';
+
+  @override
+  String get inventoryNoItems => 'Žádné sledované položky';
+
+  @override
+  String get stockDocumentTitle => 'Skladový doklad';
+
+  @override
+  String get stockDocumentSupplier => 'Dodavatel';
+
+  @override
+  String get stockDocumentPriceStrategy => 'Strategie nákupní ceny';
+
+  @override
+  String get stockDocumentNote => 'Poznámka';
+
+  @override
+  String get stockDocumentAddItem => 'Přidat položku';
+
+  @override
+  String get stockDocumentQuantity => 'Množství';
+
+  @override
+  String get stockDocumentPrice => 'Nákupní cena';
+
+  @override
+  String get stockDocumentSave => 'Uložit doklad';
+
+  @override
+  String get stockDocumentNoItems => 'Přidejte alespoň jednu položku';
+
+  @override
+  String get stockDocumentSearchItem => 'Hledat položku';
+
+  @override
+  String get stockDocumentItemOverrideStrategy => 'Override strategie';
+
+  @override
+  String get stockStrategyOverwrite => 'Přepsat';
+
+  @override
+  String get stockStrategyKeep => 'Ponechat';
+
+  @override
+  String get stockStrategyAverage => 'Průměr';
+
+  @override
+  String get stockStrategyWeightedAverage => 'Vážený průměr';
+
+  @override
+  String get inventoryDialogTitle => 'Inventura';
+
+  @override
+  String get inventoryDialogActualQuantity => 'Skutečný stav';
+
+  @override
+  String get inventoryDialogDifference => 'Rozdíl';
+
+  @override
+  String get inventoryDialogSave => 'Uložit inventuru';
+
+  @override
+  String get inventoryDialogNoDifferences => 'Žádné rozdíly';
 }

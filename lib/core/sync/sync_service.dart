@@ -59,6 +59,7 @@ class SyncService {
     'registers',
     'layout_items',
     'customers',
+    'warehouses',
     'bills',
     'orders',
     'order_items',
@@ -67,6 +68,9 @@ class SyncService {
     'cash_movements',
     'shifts',
     'customer_transactions',
+    'stock_levels',
+    'stock_documents',
+    'stock_movements',
   ];
 
   void startAutoSync(String companyId) {
@@ -259,6 +263,14 @@ class SyncService {
         return _db.cashMovements;
       case 'shifts':
         return _db.shifts;
+      case 'warehouses':
+        return _db.warehouses;
+      case 'stock_levels':
+        return _db.stockLevels;
+      case 'stock_documents':
+        return _db.stockDocuments;
+      case 'stock_movements':
+        return _db.stockMovements;
       default:
         throw ArgumentError('Unknown Drift table: $tableName');
     }

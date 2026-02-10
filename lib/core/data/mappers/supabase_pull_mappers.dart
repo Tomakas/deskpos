@@ -555,6 +555,82 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
         lastSyncedAt: Value(now),
       );
 
+    // --- Stock ---
+
+    case 'warehouses':
+      return WarehousesCompanion(
+        id: Value(json['id'] as String),
+        companyId: Value(json['company_id'] as String),
+        name: Value(json['name'] as String),
+        isDefault: Value(json['is_default'] as bool? ?? false),
+        isActive: Value(json['is_active'] as bool? ?? true),
+        createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
+        updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
+        deletedAt: Value(_parseDateTime(json['deleted_at'])),
+        serverCreatedAt: Value(_parseDateTime(json['created_at'])),
+        serverUpdatedAt: Value(_parseDateTime(json['updated_at'])),
+        lastSyncedAt: Value(now),
+      );
+
+    case 'stock_levels':
+      return StockLevelsCompanion(
+        id: Value(json['id'] as String),
+        companyId: Value(json['company_id'] as String),
+        warehouseId: Value(json['warehouse_id'] as String),
+        itemId: Value(json['item_id'] as String),
+        quantity: Value((json['quantity'] as num).toDouble()),
+        minQuantity: Value(json['min_quantity'] != null ? (json['min_quantity'] as num).toDouble() : null),
+        createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
+        updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
+        deletedAt: Value(_parseDateTime(json['deleted_at'])),
+        serverCreatedAt: Value(_parseDateTime(json['created_at'])),
+        serverUpdatedAt: Value(_parseDateTime(json['updated_at'])),
+        lastSyncedAt: Value(now),
+      );
+
+    case 'stock_documents':
+      return StockDocumentsCompanion(
+        id: Value(json['id'] as String),
+        companyId: Value(json['company_id'] as String),
+        warehouseId: Value(json['warehouse_id'] as String),
+        supplierId: Value(json['supplier_id'] as String?),
+        userId: Value(json['user_id'] as String),
+        documentNumber: Value(json['document_number'] as String),
+        type: Value(_enumFromName(StockDocumentType.values, json['type'])),
+        purchasePriceStrategy: Value(json['purchase_price_strategy'] != null
+            ? _enumFromName(PurchasePriceStrategy.values, json['purchase_price_strategy'])
+            : null),
+        note: Value(json['note'] as String?),
+        totalAmount: Value(json['total_amount'] as int? ?? 0),
+        documentDate: Value(_requireDateTime(json['document_date'])),
+        createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
+        updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
+        deletedAt: Value(_parseDateTime(json['deleted_at'])),
+        serverCreatedAt: Value(_parseDateTime(json['created_at'])),
+        serverUpdatedAt: Value(_parseDateTime(json['updated_at'])),
+        lastSyncedAt: Value(now),
+      );
+
+    case 'stock_movements':
+      return StockMovementsCompanion(
+        id: Value(json['id'] as String),
+        companyId: Value(json['company_id'] as String),
+        stockDocumentId: Value(json['stock_document_id'] as String?),
+        itemId: Value(json['item_id'] as String),
+        quantity: Value((json['quantity'] as num).toDouble()),
+        purchasePrice: Value(json['purchase_price'] as int?),
+        direction: Value(_enumFromName(StockMovementDirection.values, json['direction'])),
+        purchasePriceStrategy: Value(json['purchase_price_strategy'] != null
+            ? _enumFromName(PurchasePriceStrategy.values, json['purchase_price_strategy'])
+            : null),
+        createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
+        updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
+        deletedAt: Value(_parseDateTime(json['deleted_at'])),
+        serverCreatedAt: Value(_parseDateTime(json['created_at'])),
+        serverUpdatedAt: Value(_parseDateTime(json['updated_at'])),
+        lastSyncedAt: Value(now),
+      );
+
     default:
       throw ArgumentError('Unknown table for pull: $tableName');
   }

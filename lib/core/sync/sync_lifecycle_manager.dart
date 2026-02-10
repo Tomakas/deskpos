@@ -173,6 +173,38 @@ class SyncLifecycleManager {
       (e) => layoutItemToSupabaseJson(layoutItemFromEntity(e as LayoutItem)),
     );
 
+    // Push warehouses
+    await _enqueueCompanyTable(
+      companyId,
+      'warehouses',
+      _db.warehouses,
+      (e) => warehouseToSupabaseJson(warehouseFromEntity(e as Warehouse)),
+    );
+
+    // Push stock_levels (depends on warehouses, items)
+    await _enqueueCompanyTable(
+      companyId,
+      'stock_levels',
+      _db.stockLevels,
+      (e) => stockLevelToSupabaseJson(stockLevelFromEntity(e as StockLevel)),
+    );
+
+    // Push stock_documents (depends on warehouses, suppliers)
+    await _enqueueCompanyTable(
+      companyId,
+      'stock_documents',
+      _db.stockDocuments,
+      (e) => stockDocumentToSupabaseJson(stockDocumentFromEntity(e as StockDocument)),
+    );
+
+    // Push stock_movements (depends on stock_documents, items)
+    await _enqueueCompanyTable(
+      companyId,
+      'stock_movements',
+      _db.stockMovements,
+      (e) => stockMovementToSupabaseJson(stockMovementFromEntity(e as StockMovement)),
+    );
+
     // Push bills
     await _enqueueCompanyTable(
       companyId,

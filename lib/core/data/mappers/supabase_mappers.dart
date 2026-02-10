@@ -23,11 +23,15 @@ import '../models/role_model.dart';
 import '../models/role_permission_model.dart';
 import '../models/section_model.dart';
 import '../models/shift_model.dart';
+import '../models/stock_document_model.dart';
+import '../models/stock_level_model.dart';
+import '../models/stock_movement_model.dart';
 import '../models/supplier_model.dart';
 import '../models/table_model.dart';
 import '../models/tax_rate_model.dart';
 import '../models/user_model.dart';
 import '../models/user_permission_model.dart';
+import '../models/warehouse_model.dart';
 
 String? toIso8601Utc(DateTime? dt) => dt?.toUtc().toIso8601String();
 
@@ -531,4 +535,68 @@ Map<String, dynamic> userPermissionToSupabaseJson(UserPermissionModel m) => {
       'user_id': m.userId,
       'permission_id': m.permissionId,
       'granted_by': m.grantedBy,
+    };
+
+// --- Stock ---
+
+Map<String, dynamic> warehouseToSupabaseJson(WarehouseModel m) => {
+      ..._baseSyncFields(
+        id: m.id,
+        companyId: m.companyId,
+        createdAt: m.createdAt,
+        updatedAt: m.updatedAt,
+        deletedAt: m.deletedAt,
+      ),
+      'name': m.name,
+      'is_default': m.isDefault,
+      'is_active': m.isActive,
+    };
+
+Map<String, dynamic> stockLevelToSupabaseJson(StockLevelModel m) => {
+      ..._baseSyncFields(
+        id: m.id,
+        companyId: m.companyId,
+        createdAt: m.createdAt,
+        updatedAt: m.updatedAt,
+        deletedAt: m.deletedAt,
+      ),
+      'warehouse_id': m.warehouseId,
+      'item_id': m.itemId,
+      'quantity': m.quantity,
+      'min_quantity': m.minQuantity,
+    };
+
+Map<String, dynamic> stockDocumentToSupabaseJson(StockDocumentModel m) => {
+      ..._baseSyncFields(
+        id: m.id,
+        companyId: m.companyId,
+        createdAt: m.createdAt,
+        updatedAt: m.updatedAt,
+        deletedAt: m.deletedAt,
+      ),
+      'warehouse_id': m.warehouseId,
+      'supplier_id': m.supplierId,
+      'user_id': m.userId,
+      'document_number': m.documentNumber,
+      'type': m.type.name,
+      'purchase_price_strategy': m.purchasePriceStrategy?.name,
+      'note': m.note,
+      'total_amount': m.totalAmount,
+      'document_date': toIso8601Utc(m.documentDate),
+    };
+
+Map<String, dynamic> stockMovementToSupabaseJson(StockMovementModel m) => {
+      ..._baseSyncFields(
+        id: m.id,
+        companyId: m.companyId,
+        createdAt: m.createdAt,
+        updatedAt: m.updatedAt,
+        deletedAt: m.deletedAt,
+      ),
+      'stock_document_id': m.stockDocumentId,
+      'item_id': m.itemId,
+      'quantity': m.quantity,
+      'purchase_price': m.purchasePrice,
+      'direction': m.direction.name,
+      'purchase_price_strategy': m.purchasePriceStrategy?.name,
     };
