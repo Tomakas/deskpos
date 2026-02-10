@@ -28,6 +28,7 @@ import '../widgets/dialog_closing_session.dart';
 import '../widgets/dialog_new_bill.dart';
 import '../widgets/dialog_opening_cash.dart';
 import '../widgets/dialog_z_report.dart';
+import '../widgets/dialog_shifts_list.dart';
 import '../widgets/dialog_z_report_list.dart';
 
 class ScreenBills extends ConsumerStatefulWidget {
@@ -91,6 +92,7 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
               onToggleSession: () => _toggleSession(context, hasSession),
               onCashMovement: hasSession ? () => _showCashMovement(context) : null,
               onZReports: () => _showZReports(context),
+              onShifts: () => _showShifts(context),
             ),
           ),
         ],
@@ -426,6 +428,31 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
       ),
     );
   }
+
+  Future<void> _showShifts(BuildContext context) async {
+    final company = ref.read(currentCompanyProvider);
+    if (company == null) return;
+
+    final shiftRepo = ref.read(shiftRepositoryProvider);
+    final userRepo = ref.read(userRepositoryProvider);
+    final shifts = await shiftRepo.getByCompany(company.id);
+
+    final rows = <ShiftDisplayRow>[];
+    for (final shift in shifts) {
+      final user = await userRepo.getById(shift.userId);
+      rows.add(ShiftDisplayRow(
+        username: user?.username ?? '-',
+        loginAt: shift.loginAt,
+        logoutAt: shift.logoutAt,
+      ));
+    }
+
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      builder: (_) => DialogShiftsList(shifts: rows),
+    );
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -529,7 +556,12 @@ class _BillsTable extends ConsumerWidget {
       ),
       builder: (context, billSnap) {
         final allBills = billSnap.data ?? [];
-        final bills = allBills.where((b) => statusFilters.contains(b.status)).toList();
+        // Refunded bills are shown under the "paid" filter
+        final effectiveFilters = Set<BillStatus>.from(statusFilters);
+        if (effectiveFilters.contains(BillStatus.paid)) {
+          effectiveFilters.add(BillStatus.refunded);
+        }
+        final bills = allBills.where((b) => effectiveFilters.contains(b.status)).toList();
 
         return StreamBuilder<List<TableModel>>(
           stream: ref.watch(tableRepositoryProvider).watchAll(company.id),
@@ -656,7 +688,18 @@ class _BillRow extends StatelessWidget {
             Expanded(flex: 2, child: Text(tableName)),
             const Expanded(flex: 2, child: Text('')),
             Expanded(flex: 1, child: Text(bill.numberOfGuests > 0 ? '${bill.numberOfGuests}' : '')),
-            Expanded(flex: 2, child: Text(bill.totalGross > 0 ? '${bill.totalGross ~/ 100},-' : '0,-')),
+            Expanded(
+              flex: 2,
+              child: bill.status == BillStatus.refunded
+                  ? Text(
+                      bill.totalGross > 0 ? '${bill.totalGross ~/ 100},-' : '0,-',
+                      style: TextStyle(
+                        decoration: TextDecoration.lineThrough,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    )
+                  : Text(bill.totalGross > 0 ? '${bill.totalGross ~/ 100},-' : '0,-'),
+            ),
             Expanded(flex: 2, child: Text(lastOrderTime != null ? _formatRelativeTime(lastOrderTime!) : '')),
             Expanded(flex: 2, child: Text(staffName)),
           ],
@@ -701,7 +744,6 @@ class _StatusFilterBar extends StatelessWidget {
       (BillStatus.opened, l.billsFilterOpened, Colors.blue),
       (BillStatus.paid, l.billsFilterPaid, Colors.green),
       (BillStatus.cancelled, l.billsFilterCancelled, Colors.pink),
-      (BillStatus.refunded, l.billStatusRefunded, Colors.orange),
     ];
 
     return Container(
@@ -763,6 +805,7 @@ class _RightPanel extends ConsumerWidget {
     required this.onToggleSession,
     required this.onCashMovement,
     required this.onZReports,
+    required this.onShifts,
   });
 
   final dynamic activeUser;
@@ -777,6 +820,7 @@ class _RightPanel extends ConsumerWidget {
   final VoidCallback onToggleSession;
   final VoidCallback? onCashMovement;
   final VoidCallback onZReports;
+  final VoidCallback onShifts;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -829,6 +873,7 @@ class _RightPanel extends ConsumerWidget {
                           btnContext,
                           canManageSettings,
                           onZReports: onZReports,
+                          onShifts: onShifts,
                         ),
                         child: Text(l.billsMore, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12)),
                       );
@@ -939,7 +984,7 @@ class _ButtonRow extends StatelessWidget {
   }
 }
 
-void _showMoreMenu(BuildContext btnContext, bool canManageSettings, {VoidCallback? onZReports}) {
+void _showMoreMenu(BuildContext btnContext, bool canManageSettings, {VoidCallback? onZReports, VoidCallback? onShifts}) {
   final l = btnContext.l10n;
   final button = btnContext.findRenderObject()! as RenderBox;
   final overlay = Overlay.of(btnContext).context.findRenderObject()! as RenderBox;
@@ -959,6 +1004,10 @@ void _showMoreMenu(BuildContext btnContext, bool canManageSettings, {VoidCallbac
         PopupMenuItem(value: 'z-reports', height: 48, child: Text(l.moreReports)),
       if (!canManageSettings)
         PopupMenuItem(enabled: false, height: 48, child: Text(l.moreReports)),
+      if (canManageSettings)
+        PopupMenuItem(value: 'shifts', height: 48, child: Text(l.moreShifts)),
+      if (!canManageSettings)
+        PopupMenuItem(enabled: false, height: 48, child: Text(l.moreShifts)),
       PopupMenuItem(enabled: false, height: 48, child: Text(l.moreStatistics)),
       PopupMenuItem(enabled: false, height: 48, child: Text(l.moreReservations)),
       PopupMenuItem(value: 'settings', height: 48, child: Text(l.moreSettings)),
@@ -974,6 +1023,8 @@ void _showMoreMenu(BuildContext btnContext, bool canManageSettings, {VoidCallbac
         btnContext.push('/dev');
       case 'z-reports':
         onZReports?.call();
+      case 'shifts':
+        onShifts?.call();
     }
   });
 }
@@ -992,7 +1043,6 @@ class _InfoPanel extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
     final theme = Theme.of(context);
-    final now = DateTime.now();
     final dateFormat = DateFormat('EEEE d.M.yyyy', 'cs');
     final timeFormat = DateFormat('HH:mm:ss', 'cs');
     final isSyncConnected = ref.watch(isSupabaseAuthenticatedProvider);
@@ -1014,10 +1064,16 @@ class _InfoPanel extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Date & time
-          Text(
-            '${dateFormat.format(now)}  ${timeFormat.format(now)}',
-            style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
+          // Date & time (ticks every second via Stream.periodic)
+          StreamBuilder<DateTime>(
+            stream: Stream.periodic(const Duration(seconds: 1), (_) => DateTime.now()),
+            builder: (context, snap) {
+              final now = snap.data ?? DateTime.now();
+              return Text(
+                '${dateFormat.format(now)}  ${timeFormat.format(now)}',
+                style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
+              );
+            },
           ),
           const Divider(),
           // Status

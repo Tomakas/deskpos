@@ -410,5 +410,15 @@
   "zReportCashDifference": "Rozdíl",
   "zReportShiftsTitle": "Směny",
   "zReportPrint": "Tisk",
-  "zReportClose": "Zavřít"
+  "zReportClose": "Zavřít",
+
+  "moreShifts": "Směny",
+  "shiftsListTitle": "Přehled směn",
+  "shiftsListEmpty": "Žádné směny v tomto období",
+  "shiftsColumnDate": "Datum",
+  "shiftsColumnUser": "Obsluha",
+  "shiftsColumnLogin": "Přihlášení",
+  "shiftsColumnLogout": "Odhlášení",
+  "shiftsColumnDuration": "Trvání",
+  "shiftsOngoing": "probíhá"
 }

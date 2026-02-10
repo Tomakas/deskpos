@@ -1,5 +1,26 @@
 # Changelog
 
+## 2026-02-10 (Shifts List Dialog)
+
+### Features
+- **Shifts list dialog**: Přehled všech směn přístupný přes DALŠÍ → Směny (vyžaduje `settings.manage`)
+  - Datumový filtr (výchozí: posledních 7 dní)
+  - Sloupce: Datum, Obsluha, Přihlášení, Odhlášení, Trvání
+  - Probíhající směny zvýrazněny primární barvou s textem „probíhá"
+
+### New files
+- `lib/features/bills/widgets/dialog_shifts_list.dart` — Dialog widget + `ShiftDisplayRow` data class
+
+### Modified
+- `ShiftRepository` — added `getByCompany(companyId)` query
+- `screen_bills.dart` — "Směny" item in "Další" dropdown, `_showShifts()` method, `onShifts` callback
+- `PROJECT.md` — updated "Další" menu description, marked shifts/Z-Report as implemented
+
+### Localization
+- Added 9 Czech keys for shifts list (`moreShifts`, `shiftsListTitle`, `shiftsListEmpty`, column headers, `shiftsOngoing`)
+
+---
+
 ## 2026-02-10 (Task 3.13 — Z-Report)
 
 ### Schema

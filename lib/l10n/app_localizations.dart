@@ -2019,6 +2019,60 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Zavřít'**
   String get zReportClose;
+
+  /// No description provided for @moreShifts.
+  ///
+  /// In cs, this message translates to:
+  /// **'Směny'**
+  String get moreShifts;
+
+  /// No description provided for @shiftsListTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Přehled směn'**
+  String get shiftsListTitle;
+
+  /// No description provided for @shiftsListEmpty.
+  ///
+  /// In cs, this message translates to:
+  /// **'Žádné směny v tomto období'**
+  String get shiftsListEmpty;
+
+  /// No description provided for @shiftsColumnDate.
+  ///
+  /// In cs, this message translates to:
+  /// **'Datum'**
+  String get shiftsColumnDate;
+
+  /// No description provided for @shiftsColumnUser.
+  ///
+  /// In cs, this message translates to:
+  /// **'Obsluha'**
+  String get shiftsColumnUser;
+
+  /// No description provided for @shiftsColumnLogin.
+  ///
+  /// In cs, this message translates to:
+  /// **'Přihlášení'**
+  String get shiftsColumnLogin;
+
+  /// No description provided for @shiftsColumnLogout.
+  ///
+  /// In cs, this message translates to:
+  /// **'Odhlášení'**
+  String get shiftsColumnLogout;
+
+  /// No description provided for @shiftsColumnDuration.
+  ///
+  /// In cs, this message translates to:
+  /// **'Trvání'**
+  String get shiftsColumnDuration;
+
+  /// No description provided for @shiftsOngoing.
+  ///
+  /// In cs, this message translates to:
+  /// **'probíhá'**
+  String get shiftsOngoing;
 }
 
 class _AppLocalizationsDelegate

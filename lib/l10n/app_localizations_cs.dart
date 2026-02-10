@@ -999,4 +999,31 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get zReportClose => 'Zavřít';
+
+  @override
+  String get moreShifts => 'Směny';
+
+  @override
+  String get shiftsListTitle => 'Přehled směn';
+
+  @override
+  String get shiftsListEmpty => 'Žádné směny v tomto období';
+
+  @override
+  String get shiftsColumnDate => 'Datum';
+
+  @override
+  String get shiftsColumnUser => 'Obsluha';
+
+  @override
+  String get shiftsColumnLogin => 'Přihlášení';
+
+  @override
+  String get shiftsColumnLogout => 'Odhlášení';
+
+  @override
+  String get shiftsColumnDuration => 'Trvání';
+
+  @override
+  String get shiftsOngoing => 'probíhá';
 }

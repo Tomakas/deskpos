@@ -1485,7 +1485,7 @@ Layout: **80/20 horizontální split**
 **Pravý panel (290px):**
 - **Řada 1:** RYCHLÝ ÚČET (tonal, → `/sell`) + VYTVOŘIT ÚČET (tonal, → DialogNewBill). Oba disabled bez aktivní session.
 - **Řada 2:** POKLADNÍ DENÍK (tonal, → DialogCashJournal, disabled bez session) + PŘEHLED PRODEJE (tonal, disabled — budoucí)
-- **Řada 3:** SKLAD (tonal, disabled — budoucí) + DALŠÍ (tonal, PopupMenuButton: Výkazy, Statistika, Rezervace — disabled; Nastavení → `/settings`; Dev → `/dev` dle oprávnění)
+- **Řada 3:** SKLAD (tonal, disabled — budoucí) + DALŠÍ (tonal, PopupMenuButton: Reporty → DialogZReportList; Směny → DialogShiftsList; Statistika, Rezervace — disabled; Nastavení → `/settings`; Dev → `/dev` dle oprávnění). Reporty a Směny vyžadují `settings.manage`.
 - **Řada 4:** MAPA (tonal, disabled — budoucí) + Session toggle:
   - Žádná aktivní session → **"Otevřít"** (zelená, FilledButton) → DialogOpeningCash
   - Aktivní session → **"Uzavřít"** (tonal) → DialogClosingSession
@@ -1687,8 +1687,8 @@ Funkce, které nejsou součástí aktuálního plánu. Mohou se přidat kdykoli 
 
 ### Pokladna a směny
 
-- Směny — tabulka `shifts`, evidence pracovní doby
-- Z-report — denní uzávěrka s detailním souhrnem
+- Směny — tabulka `shifts`, evidence pracovní doby. **Implementováno:** `DialogShiftsList` (přehled všech směn s datem, obsluhou, přihlášením/odhlášením, trváním; filtr dle data; probíhající směny zvýrazněny). Přístup přes menu DALŠÍ → Směny.
+- Z-report — denní uzávěrka s detailním souhrnem. **Implementováno:** `DialogZReportList` + `DialogZReport`.
 - Detailní konfigurace registru — auto_print, auto_logout
 
 > **Pozn.:** Register session s cash management (opening/closing cash, cash movements) je již implementováno v Etapě 3.3.
