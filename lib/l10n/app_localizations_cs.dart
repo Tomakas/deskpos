@@ -390,7 +390,7 @@ class AppLocalizationsCs extends AppLocalizations {
   String get sellCancelOrder => 'Zrušit';
 
   @override
-  String get sellSaveToBill => 'Uložit na účet';
+  String get sellSaveToBill => 'Uložit';
 
   @override
   String get sellSubmitOrder => 'Objednat';

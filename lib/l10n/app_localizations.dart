@@ -835,7 +835,7 @@ abstract class AppLocalizations {
   /// No description provided for @sellSaveToBill.
   ///
   /// In cs, this message translates to:
-  /// **'Uložit na účet'**
+  /// **'Uložit'**
   String get sellSaveToBill;
 
   /// No description provided for @sellSubmitOrder.

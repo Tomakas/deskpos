@@ -1,5 +1,65 @@
 # Changelog
 
+## 2026-02-10 — Milník 3.4: Product Catalog Expansion (/catalog)
+
+### Schema
+- **3 new tables**: `suppliers` (supplier_name, contact_person, email, phone), `manufacturers` (name), `product_recipes` (parent_product_id, component_product_id, quantity_required)
+- **items**: Added 8 columns — `alt_sku`, `purchase_price`, `purchase_tax_rate_id`, `is_on_sale` (default true), `is_stock_tracked` (default false), `manufacturer_id`, `supplier_id`, `parent_id`
+- **categories**: Added `parent_id` for hierarchical categories (max 3 levels)
+- **ItemType enum**: Extended with `recipe`, `ingredient`, `variant`, `modifier`
+- Table count: 25 → 28 active (26 domain + 2 sync)
+
+### Features
+- **ScreenCatalog** (`/catalog`): New route with 5 tabs — Produkty, Kategorie, Dodavatelé, Výrobci, Receptury
+- **CatalogProductsTab**: Extended product management with supplier/manufacturer dropdowns, purchase price, alt SKU, on-sale/stock-tracked toggles
+- **CatalogCategoriesTab**: Category management with parent category dropdown (self-reference filtered)
+- **SuppliersTab**: CRUD for suppliers (name, contact person, email, phone)
+- **ManufacturersTab**: CRUD for manufacturers (name)
+- **RecipesTab**: CRUD for product recipes with parent/component item dropdowns and quantity
+- **ScreenDev**: Reduced from 6 to 4 tabs (Products + Categories moved to Catalog)
+- **"Další" menu**: Added "Katalog" item → `/catalog`
+
+### Sync
+- 3 new tables added to `_pullTables` (suppliers, manufacturers before items; product_recipes after items)
+- 3 new `_getDriftTable` cases
+- 3 new repositories extend `BaseCompanyScopedRepository` (auto outbox)
+- Pull table count: 22 → 25
+
+### New Files
+- `lib/core/database/tables/suppliers.dart`, `manufacturers.dart`, `product_recipes.dart`
+- `lib/core/data/models/supplier_model.dart`, `manufacturer_model.dart`, `product_recipe_model.dart`
+- `lib/core/data/repositories/supplier_repository.dart`, `manufacturer_repository.dart`, `product_recipe_repository.dart`
+- `lib/features/catalog/screens/screen_catalog.dart`
+- `lib/features/catalog/widgets/catalog_products_tab.dart`, `catalog_categories_tab.dart`, `suppliers_tab.dart`, `manufacturers_tab.dart`, `recipes_tab.dart`
+
+### Modified
+- `lib/core/data/enums/item_type.dart` — 4 new enum values
+- `lib/core/database/tables/items.dart` — 8 new columns
+- `lib/core/database/tables/categories.dart` — parentId column
+- `lib/core/data/models/item_model.dart`, `category_model.dart` — new fields
+- `lib/core/data/mappers/entity_mappers.dart` — 3 new + 2 updated mapper pairs
+- `lib/core/data/mappers/supabase_mappers.dart` — 3 new + 2 updated push mappers
+- `lib/core/data/mappers/supabase_pull_mappers.dart` — 3 new + 2 updated pull cases
+- `lib/core/data/repositories/item_repository.dart`, `category_repository.dart` — new fields in toUpdateCompanion
+- `lib/core/data/providers/repository_providers.dart` — 3 new providers
+- `lib/core/database/app_database.dart` — 3 new tables registered
+- `lib/core/sync/sync_service.dart` — 3 new pull tables + getDriftTable cases
+- `lib/core/routing/app_router.dart` — /catalog route with permission guard
+- `lib/features/bills/screens/screen_bills.dart` — "Katalog" in "Další" menu
+- `lib/features/settings/screens/screen_dev.dart` — reduced to 4 tabs
+
+### Deleted Files
+- `lib/features/settings/widgets/products_tab.dart` — moved to catalog
+- `lib/features/settings/widgets/categories_tab.dart` — moved to catalog
+
+### Localization
+- Added 22 Czech keys: catalogTitle, catalogTabProducts, catalogTabCategories, catalogTabSuppliers, catalogTabManufacturers, catalogTabRecipes, fieldSupplierName, fieldContactPerson, fieldEmail, fieldPhone, fieldManufacturer, fieldSupplier, fieldParentCategory, fieldAltSku, fieldPurchasePrice, fieldPurchaseTaxRate, fieldOnSale, fieldStockTracked, fieldParentProduct, fieldComponent, fieldQuantityRequired, moreCatalog
+
+### Documentation
+- PROJECT.md: Updated table counts (28 active, 26 domain), added /catalog route, updated ScreenDev (4 tabs), added ScreenCatalog section, updated items/categories column docs, updated ItemType enum, updated sync table counts, updated "Další" menu, moved implemented items from "Možná rozšíření"
+
+---
+
 ## 2026-02-10 (evening) — Settings restructure: 3 tabs (Firma / Pokladna / Uživatelé)
 
 ### Features
