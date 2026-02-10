@@ -512,6 +512,15 @@ class AppLocalizationsCs extends AppLocalizations {
   String get billsSorting => 'Řazení';
 
   @override
+  String get sortByTable => 'Stůl';
+
+  @override
+  String get sortByTotal => 'Celkem';
+
+  @override
+  String get sortByLastOrder => 'Posl. objednávka';
+
+  @override
   String get billsCashJournal => 'Pokladní deník';
 
   @override

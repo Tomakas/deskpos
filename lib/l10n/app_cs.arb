@@ -218,6 +218,9 @@
   "registerSessionActive": "Směna aktivní",
 
   "billsSorting": "Řazení",
+  "sortByTable": "Stůl",
+  "sortByTotal": "Celkem",
+  "sortByLastOrder": "Posl. objednávka",
   "billsCashJournal": "Pokladní deník",
   "billsSalesOverview": "Přehled prodeje",
   "billsInventory": "Sklad",

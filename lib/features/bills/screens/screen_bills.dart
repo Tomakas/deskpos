@@ -31,6 +31,8 @@ import '../widgets/dialog_z_report.dart';
 import '../widgets/dialog_shifts_list.dart';
 import '../widgets/dialog_z_report_list.dart';
 
+enum _SortField { table, total, lastOrder }
+
 class ScreenBills extends ConsumerStatefulWidget {
   const ScreenBills({super.key});
 
@@ -41,6 +43,8 @@ class ScreenBills extends ConsumerStatefulWidget {
 class _ScreenBillsState extends ConsumerState<ScreenBills> {
   Set<BillStatus> _statusFilters = {BillStatus.opened};
   String? _sectionFilter;
+  _SortField _sortField = _SortField.table;
+  bool _sortAscending = true;
   bool _isProcessing = false;
   bool _isCreatingBill = false;
 
@@ -63,11 +67,19 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
                 _SectionTabBar(
                   selectedSectionId: _sectionFilter,
                   onChanged: (id) => setState(() => _sectionFilter = id),
+                  sortField: _sortField,
+                  sortAscending: _sortAscending,
+                  onSortChanged: (field, ascending) => setState(() {
+                    _sortField = field;
+                    _sortAscending = ascending;
+                  }),
                 ),
                 Expanded(
                   child: _BillsTable(
                     statusFilters: _statusFilters,
                     sectionFilter: _sectionFilter,
+                    sortField: _sortField,
+                    sortAscending: _sortAscending,
                     onBillTap: (bill) => _openBillDetail(context, bill),
                   ),
                 ),
@@ -518,9 +530,15 @@ class _SectionTabBar extends ConsumerWidget {
   const _SectionTabBar({
     required this.selectedSectionId,
     required this.onChanged,
+    required this.sortField,
+    required this.sortAscending,
+    required this.onSortChanged,
   });
   final String? selectedSectionId;
   final ValueChanged<String?> onChanged;
+  final _SortField sortField;
+  final bool sortAscending;
+  final void Function(_SortField field, bool ascending) onSortChanged;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -571,11 +589,41 @@ class _SectionTabBar extends ConsumerWidget {
               const SizedBox(width: 8),
               SizedBox(
                 height: 40,
-                child: FilterChip(
-                  showCheckmark: true,
-                  label: Text(l.billsSorting),
-                  selected: false,
-                  onSelected: null,
+                child: PopupMenuButton<_SortField>(
+                  onSelected: (field) {
+                    if (field == sortField) {
+                      onSortChanged(field, !sortAscending);
+                    } else {
+                      onSortChanged(field, true);
+                    }
+                  },
+                  itemBuilder: (_) => [
+                    for (final entry in {
+                      _SortField.table: l.sortByTable,
+                      _SortField.total: l.sortByTotal,
+                      _SortField.lastOrder: l.sortByLastOrder,
+                    }.entries)
+                      PopupMenuItem(
+                        value: entry.key,
+                        child: Row(
+                          children: [
+                            Expanded(child: Text(entry.value)),
+                            if (entry.key == sortField)
+                              Icon(
+                                sortAscending ? Icons.arrow_upward : Icons.arrow_downward,
+                                size: 18,
+                              ),
+                          ],
+                        ),
+                      ),
+                  ],
+                  child: Chip(
+                    label: Text(l.billsSorting),
+                    avatar: Icon(
+                      sortAscending ? Icons.arrow_upward : Icons.arrow_downward,
+                      size: 16,
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -593,10 +641,14 @@ class _BillsTable extends ConsumerWidget {
   const _BillsTable({
     required this.statusFilters,
     this.sectionFilter,
+    required this.sortField,
+    required this.sortAscending,
     required this.onBillTap,
   });
   final Set<BillStatus> statusFilters;
   final String? sectionFilter;
+  final _SortField sortField;
+  final bool sortAscending;
   final ValueChanged<BillModel> onBillTap;
 
   @override
@@ -639,6 +691,32 @@ class _BillsTable extends ConsumerWidget {
                   stream: ref.watch(orderRepositoryProvider).watchLastOrderTimesByCompany(company.id),
                   builder: (context, orderTimeSnap) {
                     final lastOrderTimes = orderTimeSnap.data ?? {};
+
+                    // Apply sorting
+                    bills.sort((a, b) {
+                      int cmp;
+                      switch (sortField) {
+                        case _SortField.table:
+                          final nameA = _resolveTableName(a, tableMap, l);
+                          final nameB = _resolveTableName(b, tableMap, l);
+                          cmp = nameA.compareTo(nameB);
+                        case _SortField.total:
+                          cmp = a.totalGross.compareTo(b.totalGross);
+                        case _SortField.lastOrder:
+                          final timeA = lastOrderTimes[a.id];
+                          final timeB = lastOrderTimes[b.id];
+                          if (timeA == null && timeB == null) {
+                            cmp = 0;
+                          } else if (timeA == null) {
+                            cmp = -1;
+                          } else if (timeB == null) {
+                            cmp = 1;
+                          } else {
+                            cmp = timeA.compareTo(timeB);
+                          }
+                      }
+                      return sortAscending ? cmp : -cmp;
+                    });
 
                     return Column(
                       children: [

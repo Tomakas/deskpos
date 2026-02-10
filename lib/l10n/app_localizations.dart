@@ -1066,6 +1066,24 @@ abstract class AppLocalizations {
   /// **'Řazení'**
   String get billsSorting;
 
+  /// No description provided for @sortByTable.
+  ///
+  /// In cs, this message translates to:
+  /// **'Stůl'**
+  String get sortByTable;
+
+  /// No description provided for @sortByTotal.
+  ///
+  /// In cs, this message translates to:
+  /// **'Celkem'**
+  String get sortByTotal;
+
+  /// No description provided for @sortByLastOrder.
+  ///
+  /// In cs, this message translates to:
+  /// **'Posl. objednávka'**
+  String get sortByLastOrder;
+
   /// No description provided for @billsCashJournal.
   ///
   /// In cs, this message translates to:
