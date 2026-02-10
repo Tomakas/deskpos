@@ -587,6 +587,18 @@ class AppLocalizationsCs extends AppLocalizations {
   String get itemTypeCounter => 'Počítadlo';
 
   @override
+  String get itemTypeRecipe => 'Receptura';
+
+  @override
+  String get itemTypeIngredient => 'Ingredience';
+
+  @override
+  String get itemTypeVariant => 'Varianta';
+
+  @override
+  String get itemTypeModifier => 'Modifikátor';
+
+  @override
   String get moreReports => 'Reporty';
 
   @override

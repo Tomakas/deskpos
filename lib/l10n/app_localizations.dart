@@ -1204,6 +1204,30 @@ abstract class AppLocalizations {
   /// **'Počítadlo'**
   String get itemTypeCounter;
 
+  /// No description provided for @itemTypeRecipe.
+  ///
+  /// In cs, this message translates to:
+  /// **'Receptura'**
+  String get itemTypeRecipe;
+
+  /// No description provided for @itemTypeIngredient.
+  ///
+  /// In cs, this message translates to:
+  /// **'Ingredience'**
+  String get itemTypeIngredient;
+
+  /// No description provided for @itemTypeVariant.
+  ///
+  /// In cs, this message translates to:
+  /// **'Varianta'**
+  String get itemTypeVariant;
+
+  /// No description provided for @itemTypeModifier.
+  ///
+  /// In cs, this message translates to:
+  /// **'Modifikátor'**
+  String get itemTypeModifier;
+
   /// No description provided for @moreReports.
   ///
   /// In cs, this message translates to:

@@ -253,6 +253,10 @@
   "itemTypeProduct": "Produkt",
   "itemTypeService": "Služba",
   "itemTypeCounter": "Počítadlo",
+  "itemTypeRecipe": "Receptura",
+  "itemTypeIngredient": "Ingredience",
+  "itemTypeVariant": "Varianta",
+  "itemTypeModifier": "Modifikátor",
 
   "moreReports": "Reporty",
   "moreStatistics": "Statistiky",

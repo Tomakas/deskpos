@@ -195,26 +195,24 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
             ),
           ),
           // Actions
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-            child: Row(
-              children: [
-                // Cancel — always visible
-                Expanded(
-                  child: SizedBox(
-                    height: 44,
-                    child: OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: theme.colorScheme.error,
-                        side: BorderSide(color: theme.colorScheme.error),
+          if (widget.isQuickSale) ...[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: SizedBox(
+                      height: 44,
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: theme.colorScheme.error,
+                          side: BorderSide(color: theme.colorScheme.error),
+                        ),
+                        onPressed: () => context.pop(),
+                        child: Text(l.sellCancelOrder),
                       ),
-                      onPressed: () => context.pop(),
-                      child: Text(l.sellCancelOrder),
                     ),
                   ),
-                ),
-                // "Uložit na účet" — quick sale only
-                if (widget.isQuickSale) ...[
                   const SizedBox(width: 8),
                   Expanded(
                     child: SizedBox(
@@ -228,25 +226,56 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
                     ),
                   ),
                 ],
-                const SizedBox(width: 8),
-                // Submit — always visible
-                Expanded(
-                  child: SizedBox(
-                    height: 44,
-                    child: FilledButton(
-                      style: FilledButton.styleFrom(backgroundColor: Colors.green),
-                      onPressed: _cart.isEmpty
-                          ? null
-                          : widget.isQuickSale
-                              ? () => _submitQuickSale(context, ref)
-                              : () => _submitOrder(context, ref),
-                      child: Text(widget.isQuickSale ? l.paymentConfirm : l.sellSubmitOrder),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+              child: SizedBox(
+                width: double.infinity,
+                height: 44,
+                child: FilledButton(
+                  style: FilledButton.styleFrom(backgroundColor: Colors.green),
+                  onPressed: _cart.isEmpty
+                      ? null
+                      : () => _submitQuickSale(context, ref),
+                  child: Text(l.paymentConfirm),
+                ),
+              ),
+            ),
+          ] else
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: SizedBox(
+                      height: 44,
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: theme.colorScheme.error,
+                          side: BorderSide(color: theme.colorScheme.error),
+                        ),
+                        onPressed: () => context.pop(),
+                        child: Text(l.sellCancelOrder),
+                      ),
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: SizedBox(
+                      height: 44,
+                      child: FilledButton(
+                        style: FilledButton.styleFrom(backgroundColor: Colors.green),
+                        onPressed: _cart.isEmpty
+                            ? null
+                            : () => _submitOrder(context, ref),
+                        child: Text(l.sellSubmitOrder),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
         ],
       ),
     );

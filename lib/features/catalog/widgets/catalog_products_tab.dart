@@ -12,6 +12,19 @@ import '../../../core/data/models/tax_rate_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../l10n/app_localizations.dart';
+
+String _localizedItemType(AppLocalizations l, ItemType type) {
+  return switch (type) {
+    ItemType.product => l.itemTypeProduct,
+    ItemType.service => l.itemTypeService,
+    ItemType.counter => l.itemTypeCounter,
+    ItemType.recipe => l.itemTypeRecipe,
+    ItemType.ingredient => l.itemTypeIngredient,
+    ItemType.variant => l.itemTypeVariant,
+    ItemType.modifier => l.itemTypeModifier,
+  };
+}
 
 class CatalogProductsTab extends ConsumerWidget {
   const CatalogProductsTab({super.key});
@@ -99,7 +112,7 @@ class CatalogProductsTab extends ConsumerWidget {
                                                       ?.label ??
                                                   '-',
                                             )),
-                                            DataCell(Text(item.itemType.name)),
+                                            DataCell(Text(_localizedItemType(l, item.itemType))),
                                             DataCell(Text(
                                               suppliers
                                                       .where((s) => s.id == item.supplierId)
@@ -233,7 +246,7 @@ class CatalogProductsTab extends ConsumerWidget {
                     initialValue: itemType,
                     decoration: InputDecoration(labelText: l.fieldType),
                     items: ItemType.values
-                        .map((t) => DropdownMenuItem(value: t, child: Text(t.name)))
+                        .map((t) => DropdownMenuItem(value: t, child: Text(_localizedItemType(l, t))))
                         .toList(),
                     onChanged: (v) => setDialogState(() => itemType = v!),
                   ),
