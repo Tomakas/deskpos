@@ -295,5 +295,32 @@
   "cashMovementWithdrawal": "Výběr",
   "cashMovementNote": "Poznámka",
   "cashMovementNoteTitle": "Poznámka ke změně hotovosti",
-  "cashMovementNoteHint": "Důvod pohybu..."
+  "cashMovementNoteHint": "Důvod pohybu...",
+
+  "openingCashTitle": "Počáteční hotovost",
+  "openingCashSubtitle": "Zadejte stav hotovosti v pokladně před zahájením prodeje.",
+  "openingCashConfirm": "Potvrdit",
+
+  "closingTitle": "Uzávěrka",
+  "closingSessionTitle": "Přehled směny",
+  "closingOpenedAt": "Začátek",
+  "closingOpenedBy": "Otevřel",
+  "closingDuration": "Trvání",
+  "closingBillsPaid": "Zaplacené účty",
+  "closingBillsCancelled": "Stornované účty",
+  "closingRevenueTitle": "Tržba dle plateb",
+  "closingRevenueTotal": "Celkem",
+  "closingTips": "Spropitné",
+  "closingCashTitle": "Stav hotovosti",
+  "closingOpeningCash": "Počáteční hotovost",
+  "closingCashRevenue": "Tržba hotovost",
+  "closingDeposits": "Vklady",
+  "closingWithdrawals": "Výběry",
+  "closingExpectedCash": "Očekávaná hotovost",
+  "closingActualCash": "Skutečný stav hotovosti",
+  "closingDifference": "Rozdíl",
+  "closingPrint": "Tisk",
+  "closingConfirm": "Uzavřít směnu",
+  "closingNoteTitle": "Poznámka k uzávěrce",
+  "closingNoteHint": "Poznámky k uzávěrce..."
 }

@@ -1,5 +1,49 @@
 # Changelog
 
+## 2026-02-10 (night)
+
+### Task3.11 + Task3.12 — Cash Management (Milník 3.3)
+
+#### Schema
+
+- **register_sessions**: Added 4 nullable int columns (`opening_cash`, `closing_cash`, `expected_cash`, `difference`) — haléře
+- **cash_movements**: New table — id, companyId, registerSessionId, userId, type (deposit/withdrawal/expense), amount, reason + SyncColumnsMixin
+- **CashMovementType** enum: `deposit`, `withdrawal`, `expense`
+- **Supabase migration**: `cash_movement_type` enum, `cash_movements` table with RLS + LWW trigger, `register_sessions` ALTER +4 columns
+
+#### Models & Mappers
+
+- **CashMovementModel** (freezed): New model for cash movements
+- **RegisterSessionModel**: +4 nullable int fields (openingCash, closingCash, expectedCash, difference)
+- **Entity mappers**: `cashMovementFromEntity`, updated `registerSessionFromEntity`
+- **Push mappers**: `cashMovementToSupabaseJson`, updated `registerSessionToSupabaseJson`
+- **Pull mappers**: `cash_movements` case, updated `register_sessions` case
+
+#### Repository
+
+- **CashMovementRepository** (new): `create()`, `getBySession()`, `watchBySession()` with outbox sync
+- **RegisterSessionRepository**: `openSession()` +openingCash param, `closeSession()` +closingCash/expectedCash/difference params, new `getLastClosingCash()`
+- **BillRepository**: Added `getByCompany()` for closing dialog data
+- **PaymentMethodRepository**: Added `getAll()` for closing dialog data
+- **cashMovementRepositoryProvider**: New provider with syncQueueRepo wired
+
+#### Sync
+
+- **SyncService**: Added `cash_movements` to `_pullTables` (21 tables) and `_getDriftTable()`
+- **SyncLifecycleManager**: Added `cash_movements` to `_initialPush()` after register_sessions
+
+#### UI Integration
+
+- **DialogOpeningCash**: Added `initialAmount` parameter for pre-fill from previous session
+- **Opening flow**: Shows DialogOpeningCash, pre-fills from last closing cash, creates correction cash_movement if amounts differ
+- **Closing flow**: Shows DialogClosingSession with full summary (payment breakdown, cash reconciliation, expected vs actual), replaces simple confirm dialog
+- **Cash movement button**: "POKLADNÍ DENÍK" enabled during active session, opens DialogCashMovement
+- **Info panel**: Shows opening cash amount during active session
+
+#### Documentation
+
+- **PROJECT.md**: Task3.11 ✅, Task3.12 ✅, sync table count 20→21, cash_movements Plánovaná→Aktivní
+
 ## 2026-02-10 (evening)
 
 ### Task3.4 — ConnectCompanyScreen + sync pro 20 tabulek

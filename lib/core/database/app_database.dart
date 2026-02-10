@@ -5,6 +5,7 @@ import 'package:drift/native.dart';
 
 import '../data/enums/enums.dart';
 import 'tables/bills.dart';
+import 'tables/cash_movements.dart';
 import 'tables/categories.dart';
 import 'tables/companies.dart';
 import 'tables/currencies.dart';
@@ -31,6 +32,7 @@ part 'app_database.g.dart';
 
 @DriftDatabase(tables: [
   Bills,
+  CashMovements,
   Categories,
   Companies,
   Currencies,

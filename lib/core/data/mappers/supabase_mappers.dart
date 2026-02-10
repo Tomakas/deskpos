@@ -1,6 +1,7 @@
 // Push helpers: Drift model -> Supabase JSON
 
 import '../models/bill_model.dart';
+import '../models/cash_movement_model.dart';
 import '../models/category_model.dart';
 import '../models/company_model.dart';
 import '../models/currency_model.dart';
@@ -356,6 +357,25 @@ Map<String, dynamic> registerSessionToSupabaseJson(RegisterSessionModel m) => {
       'opened_at': toIso8601Utc(m.openedAt),
       'closed_at': toIso8601Utc(m.closedAt),
       'order_counter': m.orderCounter,
+      'opening_cash': m.openingCash,
+      'closing_cash': m.closingCash,
+      'expected_cash': m.expectedCash,
+      'difference': m.difference,
+    };
+
+Map<String, dynamic> cashMovementToSupabaseJson(CashMovementModel m) => {
+      ..._baseSyncFields(
+        id: m.id,
+        companyId: m.companyId,
+        createdAt: m.createdAt,
+        updatedAt: m.updatedAt,
+        deletedAt: m.deletedAt,
+      ),
+      'register_session_id': m.registerSessionId,
+      'user_id': m.userId,
+      'type': m.type.name,
+      'amount': m.amount,
+      'reason': m.reason,
     };
 
 Map<String, dynamic> layoutItemToSupabaseJson(LayoutItemModel m) => {

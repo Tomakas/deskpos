@@ -118,7 +118,7 @@ class _ScreenConnectCompanyState extends ConsumerState<ScreenConnectCompany> {
         companyId: _companyId!,
         entityType: '_initial_sync_marker',
         entityId: _companyId!,
-        operation: 'initial_sync',
+        operation: 'insert',
         payload: '{}',
       );
       // Get the just-inserted marker and mark it completed

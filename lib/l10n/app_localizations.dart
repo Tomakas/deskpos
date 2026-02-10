@@ -1425,6 +1425,156 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Důvod pohybu...'**
   String get cashMovementNoteHint;
+
+  /// No description provided for @openingCashTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Počáteční hotovost'**
+  String get openingCashTitle;
+
+  /// No description provided for @openingCashSubtitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zadejte stav hotovosti v pokladně před zahájením prodeje.'**
+  String get openingCashSubtitle;
+
+  /// No description provided for @openingCashConfirm.
+  ///
+  /// In cs, this message translates to:
+  /// **'Potvrdit'**
+  String get openingCashConfirm;
+
+  /// No description provided for @closingTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Uzávěrka'**
+  String get closingTitle;
+
+  /// No description provided for @closingSessionTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Přehled směny'**
+  String get closingSessionTitle;
+
+  /// No description provided for @closingOpenedAt.
+  ///
+  /// In cs, this message translates to:
+  /// **'Začátek'**
+  String get closingOpenedAt;
+
+  /// No description provided for @closingOpenedBy.
+  ///
+  /// In cs, this message translates to:
+  /// **'Otevřel'**
+  String get closingOpenedBy;
+
+  /// No description provided for @closingDuration.
+  ///
+  /// In cs, this message translates to:
+  /// **'Trvání'**
+  String get closingDuration;
+
+  /// No description provided for @closingBillsPaid.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zaplacené účty'**
+  String get closingBillsPaid;
+
+  /// No description provided for @closingBillsCancelled.
+  ///
+  /// In cs, this message translates to:
+  /// **'Stornované účty'**
+  String get closingBillsCancelled;
+
+  /// No description provided for @closingRevenueTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Tržba dle plateb'**
+  String get closingRevenueTitle;
+
+  /// No description provided for @closingRevenueTotal.
+  ///
+  /// In cs, this message translates to:
+  /// **'Celkem'**
+  String get closingRevenueTotal;
+
+  /// No description provided for @closingTips.
+  ///
+  /// In cs, this message translates to:
+  /// **'Spropitné'**
+  String get closingTips;
+
+  /// No description provided for @closingCashTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Stav hotovosti'**
+  String get closingCashTitle;
+
+  /// No description provided for @closingOpeningCash.
+  ///
+  /// In cs, this message translates to:
+  /// **'Počáteční hotovost'**
+  String get closingOpeningCash;
+
+  /// No description provided for @closingCashRevenue.
+  ///
+  /// In cs, this message translates to:
+  /// **'Tržba hotovost'**
+  String get closingCashRevenue;
+
+  /// No description provided for @closingDeposits.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vklady'**
+  String get closingDeposits;
+
+  /// No description provided for @closingWithdrawals.
+  ///
+  /// In cs, this message translates to:
+  /// **'Výběry'**
+  String get closingWithdrawals;
+
+  /// No description provided for @closingExpectedCash.
+  ///
+  /// In cs, this message translates to:
+  /// **'Očekávaná hotovost'**
+  String get closingExpectedCash;
+
+  /// No description provided for @closingActualCash.
+  ///
+  /// In cs, this message translates to:
+  /// **'Skutečný stav hotovosti'**
+  String get closingActualCash;
+
+  /// No description provided for @closingDifference.
+  ///
+  /// In cs, this message translates to:
+  /// **'Rozdíl'**
+  String get closingDifference;
+
+  /// No description provided for @closingPrint.
+  ///
+  /// In cs, this message translates to:
+  /// **'Tisk'**
+  String get closingPrint;
+
+  /// No description provided for @closingConfirm.
+  ///
+  /// In cs, this message translates to:
+  /// **'Uzavřít směnu'**
+  String get closingConfirm;
+
+  /// No description provided for @closingNoteTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Poznámka k uzávěrce'**
+  String get closingNoteTitle;
+
+  /// No description provided for @closingNoteHint.
+  ///
+  /// In cs, this message translates to:
+  /// **'Poznámky k uzávěrce...'**
+  String get closingNoteHint;
 }
 
 class _AppLocalizationsDelegate

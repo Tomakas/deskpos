@@ -24,6 +24,10 @@ mixin _$RegisterSessionModel {
   DateTime get openedAt => throw _privateConstructorUsedError;
   DateTime? get closedAt => throw _privateConstructorUsedError;
   int get orderCounter => throw _privateConstructorUsedError;
+  int? get openingCash => throw _privateConstructorUsedError;
+  int? get closingCash => throw _privateConstructorUsedError;
+  int? get expectedCash => throw _privateConstructorUsedError;
+  int? get difference => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
   DateTime get updatedAt => throw _privateConstructorUsedError;
   DateTime? get deletedAt => throw _privateConstructorUsedError;
@@ -50,6 +54,10 @@ abstract class $RegisterSessionModelCopyWith<$Res> {
     DateTime openedAt,
     DateTime? closedAt,
     int orderCounter,
+    int? openingCash,
+    int? closingCash,
+    int? expectedCash,
+    int? difference,
     DateTime createdAt,
     DateTime updatedAt,
     DateTime? deletedAt,
@@ -81,6 +89,10 @@ class _$RegisterSessionModelCopyWithImpl<
     Object? openedAt = null,
     Object? closedAt = freezed,
     Object? orderCounter = null,
+    Object? openingCash = freezed,
+    Object? closingCash = freezed,
+    Object? expectedCash = freezed,
+    Object? difference = freezed,
     Object? createdAt = null,
     Object? updatedAt = null,
     Object? deletedAt = freezed,
@@ -115,6 +127,22 @@ class _$RegisterSessionModelCopyWithImpl<
                 ? _value.orderCounter
                 : orderCounter // ignore: cast_nullable_to_non_nullable
                       as int,
+            openingCash: freezed == openingCash
+                ? _value.openingCash
+                : openingCash // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            closingCash: freezed == closingCash
+                ? _value.closingCash
+                : closingCash // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            expectedCash: freezed == expectedCash
+                ? _value.expectedCash
+                : expectedCash // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            difference: freezed == difference
+                ? _value.difference
+                : difference // ignore: cast_nullable_to_non_nullable
+                      as int?,
             createdAt: null == createdAt
                 ? _value.createdAt
                 : createdAt // ignore: cast_nullable_to_non_nullable
@@ -150,6 +178,10 @@ abstract class _$$RegisterSessionModelImplCopyWith<$Res>
     DateTime openedAt,
     DateTime? closedAt,
     int orderCounter,
+    int? openingCash,
+    int? closingCash,
+    int? expectedCash,
+    int? difference,
     DateTime createdAt,
     DateTime updatedAt,
     DateTime? deletedAt,
@@ -177,6 +209,10 @@ class __$$RegisterSessionModelImplCopyWithImpl<$Res>
     Object? openedAt = null,
     Object? closedAt = freezed,
     Object? orderCounter = null,
+    Object? openingCash = freezed,
+    Object? closingCash = freezed,
+    Object? expectedCash = freezed,
+    Object? difference = freezed,
     Object? createdAt = null,
     Object? updatedAt = null,
     Object? deletedAt = freezed,
@@ -211,6 +247,22 @@ class __$$RegisterSessionModelImplCopyWithImpl<$Res>
             ? _value.orderCounter
             : orderCounter // ignore: cast_nullable_to_non_nullable
                   as int,
+        openingCash: freezed == openingCash
+            ? _value.openingCash
+            : openingCash // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        closingCash: freezed == closingCash
+            ? _value.closingCash
+            : closingCash // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        expectedCash: freezed == expectedCash
+            ? _value.expectedCash
+            : expectedCash // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        difference: freezed == difference
+            ? _value.difference
+            : difference // ignore: cast_nullable_to_non_nullable
+                  as int?,
         createdAt: null == createdAt
             ? _value.createdAt
             : createdAt // ignore: cast_nullable_to_non_nullable
@@ -239,6 +291,10 @@ class _$RegisterSessionModelImpl implements _RegisterSessionModel {
     required this.openedAt,
     this.closedAt,
     this.orderCounter = 0,
+    this.openingCash,
+    this.closingCash,
+    this.expectedCash,
+    this.difference,
     required this.createdAt,
     required this.updatedAt,
     this.deletedAt,
@@ -260,6 +316,14 @@ class _$RegisterSessionModelImpl implements _RegisterSessionModel {
   @JsonKey()
   final int orderCounter;
   @override
+  final int? openingCash;
+  @override
+  final int? closingCash;
+  @override
+  final int? expectedCash;
+  @override
+  final int? difference;
+  @override
   final DateTime createdAt;
   @override
   final DateTime updatedAt;
@@ -268,7 +332,7 @@ class _$RegisterSessionModelImpl implements _RegisterSessionModel {
 
   @override
   String toString() {
-    return 'RegisterSessionModel(id: $id, companyId: $companyId, registerId: $registerId, openedByUserId: $openedByUserId, openedAt: $openedAt, closedAt: $closedAt, orderCounter: $orderCounter, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+    return 'RegisterSessionModel(id: $id, companyId: $companyId, registerId: $registerId, openedByUserId: $openedByUserId, openedAt: $openedAt, closedAt: $closedAt, orderCounter: $orderCounter, openingCash: $openingCash, closingCash: $closingCash, expectedCash: $expectedCash, difference: $difference, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
   }
 
   @override
@@ -289,6 +353,14 @@ class _$RegisterSessionModelImpl implements _RegisterSessionModel {
                 other.closedAt == closedAt) &&
             (identical(other.orderCounter, orderCounter) ||
                 other.orderCounter == orderCounter) &&
+            (identical(other.openingCash, openingCash) ||
+                other.openingCash == openingCash) &&
+            (identical(other.closingCash, closingCash) ||
+                other.closingCash == closingCash) &&
+            (identical(other.expectedCash, expectedCash) ||
+                other.expectedCash == expectedCash) &&
+            (identical(other.difference, difference) ||
+                other.difference == difference) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.updatedAt, updatedAt) ||
@@ -307,6 +379,10 @@ class _$RegisterSessionModelImpl implements _RegisterSessionModel {
     openedAt,
     closedAt,
     orderCounter,
+    openingCash,
+    closingCash,
+    expectedCash,
+    difference,
     createdAt,
     updatedAt,
     deletedAt,
@@ -334,6 +410,10 @@ abstract class _RegisterSessionModel implements RegisterSessionModel {
     required final DateTime openedAt,
     final DateTime? closedAt,
     final int orderCounter,
+    final int? openingCash,
+    final int? closingCash,
+    final int? expectedCash,
+    final int? difference,
     required final DateTime createdAt,
     required final DateTime updatedAt,
     final DateTime? deletedAt,
@@ -353,6 +433,14 @@ abstract class _RegisterSessionModel implements RegisterSessionModel {
   DateTime? get closedAt;
   @override
   int get orderCounter;
+  @override
+  int? get openingCash;
+  @override
+  int? get closingCash;
+  @override
+  int? get expectedCash;
+  @override
+  int? get difference;
   @override
   DateTime get createdAt;
   @override

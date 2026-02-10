@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import '../../database/app_database.dart';
 import '../models/bill_model.dart';
+import '../models/cash_movement_model.dart';
 import '../models/category_model.dart';
 import '../models/company_model.dart';
 import '../models/currency_model.dart';
@@ -390,6 +391,24 @@ RegisterSessionModel registerSessionFromEntity(RegisterSession e) => RegisterSes
       openedAt: e.openedAt,
       closedAt: e.closedAt,
       orderCounter: e.orderCounter,
+      openingCash: e.openingCash,
+      closingCash: e.closingCash,
+      expectedCash: e.expectedCash,
+      difference: e.difference,
+      createdAt: e.createdAt,
+      updatedAt: e.updatedAt,
+      deletedAt: e.deletedAt,
+    );
+
+// --- CashMovement ---
+CashMovementModel cashMovementFromEntity(CashMovement e) => CashMovementModel(
+      id: e.id,
+      companyId: e.companyId,
+      registerSessionId: e.registerSessionId,
+      userId: e.userId,
+      type: e.type,
+      amount: e.amount,
+      reason: e.reason,
       createdAt: e.createdAt,
       updatedAt: e.updatedAt,
       deletedAt: e.deletedAt,

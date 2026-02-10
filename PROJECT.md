@@ -153,8 +153,7 @@ Funkce, které nejsou nezbytné pro základní prodej, ale rozšiřují možnost
 - **Task3.2b** Sync pro bills, orders, order_items, payments — mappers, outbox registrace, pull tables ✅
 - **Task3.4** ConnectCompanyScreen — připojení k existující firmě, InitialSync, sync pro 20 tabulek ✅
 - **Task3.5** SyncAuthScreen — admin credentials pro Supabase session ✅ (ScreenCloudAuth)
-- **Task3.6** SQLCipher šifrování — migrace plain SQLite → šifrovaná DB, klíč ve secure storage ⬜
-- **Výsledek:** Data se synchronizují mezi zařízeními. Nové zařízení se připojí k firmě a stáhne data. Lokální DB je šifrovaná.
+- **Výsledek:** Data se synchronizují mezi zařízeními. Nové zařízení se připojí k firmě a stáhne data.
 
 #### Milník 3.2 — Pokročilý prodej
 
@@ -167,8 +166,8 @@ Funkce, které nejsou nezbytné pro základní prodej, ale rozšiřují možnost
 
 #### Milník 3.3 — Provoz (rozšíření register session)
 
-- **Task3.11** Register session rozšíření — počáteční/koncový stav hotovosti (opening_cash, closing_cash, expected_cash, difference)
-- **Task3.12** Cash movements — vklady, výběry, výdaje
+- **Task3.11** ✅ Register session rozšíření — počáteční/koncový stav hotovosti (opening_cash, closing_cash, expected_cash, difference)
+- **Task3.12** ✅ Cash movements — vklady, výběry, výdaje
 - **Task3.13** Z-report — denní uzávěrka s detailním souhrnem
 - **Výsledek:** Pokladna má plnou otevírací/zavírací proceduru s kontrolou hotovosti, evidenci hotovostních pohybů a denní uzávěrku.
 
@@ -208,6 +207,12 @@ Přehledy a reporty pro majitele a manažery.
 - **Task4.8** Excel export — tabulkový export dat
 - **Task4.9** Účetní export — formát pro účetní software
 - **Výsledek:** Reporty a data lze exportovat do PDF, Excelu a formátu pro účetní software.
+
+---
+
+### Infrastruktura (odloženo — lze implementovat kdykoliv před produkčním nasazením)
+
+- **Task3.6** SQLCipher šifrování — migrace plain SQLite → šifrovaná DB, klíč ve secure storage ⬜
 
 ---
 
@@ -412,7 +417,7 @@ Navíc každá tabulka definuje: `createdAt`, `updatedAt`, `deletedAt` (soft del
 
 #### Přehled tabulek
 
-##### Aktivní tabulky (20) — Etapa 1–2
+##### Aktivní tabulky (21) — Etapa 1–3
 
 | SQL tabulka | Drift Table | Drift Entity | Model |
 |-------------|-------------|--------------|-------|
@@ -436,6 +441,7 @@ Navíc každá tabulka definuje: `createdAt`, `updatedAt`, `deletedAt` (soft del
 | `users` | `Users` | `User` | `UserModel` |
 | `layout_items` | `LayoutItems` | `LayoutItem` | `LayoutItemModel` |
 | `register_sessions` | `RegisterSessions` | `RegisterSession` | `RegisterSessionModel` |
+| `cash_movements` | `CashMovements` | `CashMovement` | `CashMovementModel` |
 
 > **Poznámka:** `TableEntity` používá `@DataClassName` anotaci (konflikt s Drift `Table`).
 
@@ -446,7 +452,7 @@ Navíc každá tabulka definuje: `createdAt`, `updatedAt`, `deletedAt` (soft del
 | `sync_queue` | `SyncQueue` | Sync (Etapa 3) | **Aktivní** |
 | `sync_metadata` | `SyncMetadata` | Sync (Etapa 3) | **Aktivní** |
 | `shifts` | `Shifts` | Provoz (Etapa 3) | Plánovaná |
-| `cash_movements` | `CashMovements` | Provoz (Etapa 3) | Plánovaná |
+| `cash_movements` | `CashMovements` | Provoz (Etapa 3) | **Aktivní** |
 | `company_settings` | `CompanySettings` | CRM rozšíření | Plánovaná |
 | `customers` | `Customers` | CRM rozšíření | Plánovaná |
 | `customer_transactions` | `CustomerTransactions` | CRM rozšíření | Plánovaná |

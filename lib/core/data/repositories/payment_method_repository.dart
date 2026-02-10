@@ -56,4 +56,12 @@ class PaymentMethodRepository
         deletedAt: Value(now),
         updatedAt: Value(now),
       );
+
+  Future<List<PaymentMethodModel>> getAll(String companyId) async {
+    final entities = await (db.select(db.paymentMethods)
+          ..where((t) => t.companyId.equals(companyId) & t.deletedAt.isNull())
+          ..orderBy([(t) => OrderingTerm.asc(t.name)]))
+        .get();
+    return entities.map(paymentMethodFromEntity).toList();
+  }
 }

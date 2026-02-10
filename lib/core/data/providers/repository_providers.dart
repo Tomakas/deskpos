@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../repositories/bill_repository.dart';
+import '../repositories/cash_movement_repository.dart';
 import '../repositories/category_repository.dart';
 import '../repositories/company_repository.dart';
 import '../repositories/item_repository.dart';
@@ -116,6 +117,13 @@ final registerRepositoryProvider = Provider<RegisterRepository>((ref) {
 
 final registerSessionRepositoryProvider = Provider<RegisterSessionRepository>((ref) {
   return RegisterSessionRepository(
+    ref.watch(appDatabaseProvider),
+    syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
+  );
+});
+
+final cashMovementRepositoryProvider = Provider<CashMovementRepository>((ref) {
+  return CashMovementRepository(
     ref.watch(appDatabaseProvider),
     syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
   );

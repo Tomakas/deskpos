@@ -349,6 +349,27 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
         openedAt: Value(_requireDateTime(json['opened_at'])),
         closedAt: Value(_parseDateTime(json['closed_at'])),
         orderCounter: Value(json['order_counter'] as int? ?? 0),
+        openingCash: Value(json['opening_cash'] as int?),
+        closingCash: Value(json['closing_cash'] as int?),
+        expectedCash: Value(json['expected_cash'] as int?),
+        difference: Value(json['difference'] as int?),
+        createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
+        updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
+        deletedAt: Value(_parseDateTime(json['deleted_at'])),
+        serverCreatedAt: Value(_parseDateTime(json['created_at'])),
+        serverUpdatedAt: Value(_parseDateTime(json['updated_at'])),
+        lastSyncedAt: Value(now),
+      );
+
+    case 'cash_movements':
+      return CashMovementsCompanion(
+        id: Value(json['id'] as String),
+        companyId: Value(json['company_id'] as String),
+        registerSessionId: Value(json['register_session_id'] as String),
+        userId: Value(json['user_id'] as String),
+        type: Value(_enumFromName(CashMovementType.values, json['type'])),
+        amount: Value(json['amount'] as int),
+        reason: Value(json['reason'] as String?),
         createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
         updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
         deletedAt: Value(_parseDateTime(json['deleted_at'])),

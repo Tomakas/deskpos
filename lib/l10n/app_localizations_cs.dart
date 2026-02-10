@@ -697,4 +697,80 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get cashMovementNoteHint => 'Důvod pohybu...';
+
+  @override
+  String get openingCashTitle => 'Počáteční hotovost';
+
+  @override
+  String get openingCashSubtitle =>
+      'Zadejte stav hotovosti v pokladně před zahájením prodeje.';
+
+  @override
+  String get openingCashConfirm => 'Potvrdit';
+
+  @override
+  String get closingTitle => 'Uzávěrka';
+
+  @override
+  String get closingSessionTitle => 'Přehled směny';
+
+  @override
+  String get closingOpenedAt => 'Začátek';
+
+  @override
+  String get closingOpenedBy => 'Otevřel';
+
+  @override
+  String get closingDuration => 'Trvání';
+
+  @override
+  String get closingBillsPaid => 'Zaplacené účty';
+
+  @override
+  String get closingBillsCancelled => 'Stornované účty';
+
+  @override
+  String get closingRevenueTitle => 'Tržba dle plateb';
+
+  @override
+  String get closingRevenueTotal => 'Celkem';
+
+  @override
+  String get closingTips => 'Spropitné';
+
+  @override
+  String get closingCashTitle => 'Stav hotovosti';
+
+  @override
+  String get closingOpeningCash => 'Počáteční hotovost';
+
+  @override
+  String get closingCashRevenue => 'Tržba hotovost';
+
+  @override
+  String get closingDeposits => 'Vklady';
+
+  @override
+  String get closingWithdrawals => 'Výběry';
+
+  @override
+  String get closingExpectedCash => 'Očekávaná hotovost';
+
+  @override
+  String get closingActualCash => 'Skutečný stav hotovosti';
+
+  @override
+  String get closingDifference => 'Rozdíl';
+
+  @override
+  String get closingPrint => 'Tisk';
+
+  @override
+  String get closingConfirm => 'Uzavřít směnu';
+
+  @override
+  String get closingNoteTitle => 'Poznámka k uzávěrce';
+
+  @override
+  String get closingNoteHint => 'Poznámky k uzávěrce...';
 }

@@ -76,6 +76,14 @@ class BillRepository {
         .map((e) => e == null ? null : billFromEntity(e));
   }
 
+  Future<List<BillModel>> getByCompany(String companyId) async {
+    final entities = await (_db.select(_db.bills)
+          ..where((t) => t.companyId.equals(companyId) & t.deletedAt.isNull())
+          ..orderBy([(t) => OrderingTerm.desc(t.openedAt)]))
+        .get();
+    return entities.map(billFromEntity).toList();
+  }
+
   Stream<List<BillModel>> watchByStatus(String companyId, BillStatus status) {
     return (_db.select(_db.bills)
           ..where((t) =>

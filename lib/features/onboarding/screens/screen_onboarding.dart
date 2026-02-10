@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/auth/pin_helper.dart';
 import '../../../core/data/providers/auth_providers.dart';
+import '../../../core/data/providers/sync_providers.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/logging/app_logger.dart';
@@ -231,6 +232,12 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
   Future<void> _finish() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isSubmitting = true);
+
+    // Clear any stale Supabase session from a previous installation/company
+    final authService = ref.read(supabaseAuthServiceProvider);
+    if (authService.isAuthenticated) {
+      await authService.signOut();
+    }
 
     final seedService = ref.read(seedServiceProvider);
     final result = await seedService.seedOnboarding(

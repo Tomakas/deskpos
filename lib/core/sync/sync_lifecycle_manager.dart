@@ -72,21 +72,25 @@ class SyncLifecycleManager {
   }
 
   Future<void> _initialPush(String companyId) async {
-    // Check if we already have any pending entries — skip if so
-    final pending = await _syncQueueRepo.getPending(limit: 1);
-    if (pending.isNotEmpty) {
-      AppLogger.debug('SyncLifecycleManager: sync_queue not empty, skipping initial push', tag: 'SYNC');
-      return;
-    }
-
-    // Also check if there are any completed entries (means we already did initial push)
+    // Check if initial push was already completed.
+    // Any completed entry for this company means sync has run before.
     final hasHistory = await _syncQueueRepo.hasCompletedEntries(companyId);
     if (hasHistory) {
-      AppLogger.debug('SyncLifecycleManager: completed entries exist, skipping initial push', tag: 'SYNC');
+      AppLogger.debug('SyncLifecycleManager: initial push already completed, skipping', tag: 'SYNC');
       return;
     }
 
     AppLogger.info('SyncLifecycleManager: initial push for existing data', tag: 'SYNC');
+
+    // Clear any pending/processing entries created before sync was activated.
+    // They will be re-enqueued below as part of the full push in correct FK order.
+    final cleared = await _syncQueueRepo.deleteAllPending();
+    if (cleared > 0) {
+      AppLogger.info(
+        'SyncLifecycleManager: cleared $cleared pre-sync pending entries',
+        tag: 'SYNC',
+      );
+    }
 
     // Push global reference data (no company_id)
     await _enqueueGlobalTable(
@@ -136,6 +140,62 @@ class SyncLifecycleManager {
 
     // Push user_permissions (not in companyRepos)
     await _enqueueUserPermissions(companyId);
+
+    // Push register_sessions
+    await _enqueueCompanyTable(
+      companyId,
+      'register_sessions',
+      _db.registerSessions,
+      (e) => registerSessionToSupabaseJson(registerSessionFromEntity(e as RegisterSession)),
+    );
+
+    // Push cash_movements (depends on register_sessions)
+    await _enqueueCompanyTable(
+      companyId,
+      'cash_movements',
+      _db.cashMovements,
+      (e) => cashMovementToSupabaseJson(cashMovementFromEntity(e as CashMovement)),
+    );
+
+    // Push layout_items
+    await _enqueueCompanyTable(
+      companyId,
+      'layout_items',
+      _db.layoutItems,
+      (e) => layoutItemToSupabaseJson(layoutItemFromEntity(e as LayoutItem)),
+    );
+
+    // Push bills
+    await _enqueueCompanyTable(
+      companyId,
+      'bills',
+      _db.bills,
+      (e) => billToSupabaseJson(billFromEntity(e as Bill)),
+    );
+
+    // Push orders (depends on bills)
+    await _enqueueCompanyTable(
+      companyId,
+      'orders',
+      _db.orders,
+      (e) => orderToSupabaseJson(orderFromEntity(e as Order)),
+    );
+
+    // Push order_items (depends on orders)
+    await _enqueueCompanyTable(
+      companyId,
+      'order_items',
+      _db.orderItems,
+      (e) => orderItemToSupabaseJson(orderItemFromEntity(e as OrderItem)),
+    );
+
+    // Push payments (depends on bills)
+    await _enqueueCompanyTable(
+      companyId,
+      'payments',
+      _db.payments,
+      (e) => paymentToSupabaseJson(paymentFromEntity(e as Payment)),
+    );
   }
 
   Future<void> _enqueueCompany(String companyId) async {
@@ -161,6 +221,40 @@ class SyncLifecycleManager {
   ) async {
     try {
       final entities = await _db.select(table).get();
+      for (final entity in entities) {
+        final json = toJson(entity);
+        await _syncQueueRepo.enqueue(
+          companyId: companyId,
+          entityType: tableName,
+          entityId: (entity as dynamic).id as String,
+          operation: 'insert',
+          payload: jsonEncode(json),
+        );
+      }
+      AppLogger.info(
+        'Enqueued ${entities.length} existing $tableName for initial sync',
+        tag: 'SYNC',
+      );
+    } catch (e, s) {
+      AppLogger.error(
+        'Failed to enqueue existing $tableName',
+        tag: 'SYNC',
+        error: e,
+        stackTrace: s,
+      );
+    }
+  }
+
+  Future<void> _enqueueCompanyTable(
+    String companyId,
+    String tableName,
+    TableInfo table,
+    Map<String, dynamic> Function(dynamic entity) toJson,
+  ) async {
+    try {
+      final entities = await (_db.select(table)
+            ..where((t) => (t as dynamic).companyId.equals(companyId)))
+          .get();
       for (final entity in entities) {
         final json = toJson(entity);
         await _syncQueueRepo.enqueue(

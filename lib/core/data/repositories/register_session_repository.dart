@@ -20,6 +20,7 @@ class RegisterSessionRepository {
     required String companyId,
     required String registerId,
     required String userId,
+    int? openingCash,
   }) async {
     try {
       final now = DateTime.now();
@@ -31,6 +32,7 @@ class RegisterSessionRepository {
           registerId: registerId,
           openedByUserId: userId,
           openedAt: now,
+          openingCash: Value(openingCash),
         ),
       );
       final entity = await (_db.select(_db.registerSessions)
@@ -45,12 +47,20 @@ class RegisterSessionRepository {
     }
   }
 
-  Future<Result<RegisterSessionModel>> closeSession(String sessionId) async {
+  Future<Result<RegisterSessionModel>> closeSession(
+    String sessionId, {
+    int? closingCash,
+    int? expectedCash,
+    int? difference,
+  }) async {
     try {
       final now = DateTime.now();
       await (_db.update(_db.registerSessions)..where((t) => t.id.equals(sessionId)))
           .write(RegisterSessionsCompanion(
         closedAt: Value(now),
+        closingCash: Value(closingCash),
+        expectedCash: Value(expectedCash),
+        difference: Value(difference),
         updatedAt: Value(now),
       ));
       final entity = await (_db.select(_db.registerSessions)
@@ -63,6 +73,18 @@ class RegisterSessionRepository {
       AppLogger.error('Failed to close register session', error: e, stackTrace: s);
       return Failure('Failed to close register session: $e');
     }
+  }
+
+  Future<int?> getLastClosingCash(String companyId) async {
+    final entity = await (_db.select(_db.registerSessions)
+          ..where((t) =>
+              t.companyId.equals(companyId) &
+              t.closedAt.isNotNull() &
+              t.deletedAt.isNull())
+          ..orderBy([(t) => OrderingTerm.desc(t.closedAt)])
+          ..limit(1))
+        .getSingleOrNull();
+    return entity?.closingCash;
   }
 
   Future<RegisterSessionModel?> getActiveSession(String companyId) async {

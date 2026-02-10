@@ -113,4 +113,14 @@ class SyncQueueRepository {
               t.status.equals('completed') & t.processedAt.isSmallerOrEqualValue(cutoff)))
         .go();
   }
+
+  /// Deletes all pending (and processing) entries.
+  /// Used before initial push to clear entries created before sync was activated.
+  /// Returns the number of deleted entries.
+  Future<int> deleteAllPending() async {
+    return (_db.delete(_db.syncQueue)
+          ..where((t) =>
+              t.status.equals('pending') | t.status.equals('processing')))
+        .go();
+  }
 }

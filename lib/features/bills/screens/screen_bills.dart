@@ -8,6 +8,8 @@ import 'package:intl/intl.dart';
 import '../../../core/auth/auth_service.dart';
 import '../../../core/auth/pin_helper.dart';
 import '../../../core/data/enums/bill_status.dart';
+import '../../../core/data/enums/cash_movement_type.dart';
+import '../../../core/data/enums/payment_type.dart';
 import '../../../core/data/models/bill_model.dart';
 import '../../../core/data/models/section_model.dart';
 import '../../../core/data/models/table_model.dart';
@@ -19,7 +21,10 @@ import '../../../core/data/providers/sync_providers.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../widgets/dialog_bill_detail.dart';
+import '../widgets/dialog_cash_movement.dart';
+import '../widgets/dialog_closing_session.dart';
 import '../widgets/dialog_new_bill.dart';
+import '../widgets/dialog_opening_cash.dart';
 
 class ScreenBills extends ConsumerStatefulWidget {
   const ScreenBills({super.key});
@@ -80,6 +85,7 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
               onNewBill: hasSession ? () => _createNewBill(context) : null,
               onQuickBill: hasSession ? () => _createQuickBill(context) : null,
               onToggleSession: () => _toggleSession(context, hasSession),
+              onCashMovement: hasSession ? () => _showCashMovement(context) : null,
             ),
           ),
         ],
@@ -151,34 +157,160 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
     if (company == null || user == null) return;
 
     if (hasSession) {
-      final l = context.l10n;
-      final confirmed = await showDialog<bool>(
-        context: context,
-        builder: (_) => AlertDialog(
-          content: Text(l.registerSessionConfirmClose),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
-            TextButton(onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
-          ],
-        ),
-      );
-      if (confirmed != true) return;
-
+      // --- Closing session ---
       final sessionAsync = ref.read(activeRegisterSessionProvider);
       final session = sessionAsync.valueOrNull;
-      if (session != null) {
-        await ref.read(registerSessionRepositoryProvider).closeSession(session.id);
+      if (session == null) return;
+
+      // Build closing data
+      final cashMovements = await ref.read(cashMovementRepositoryProvider).getBySession(session.id);
+      final cashDeposits = cashMovements
+          .where((m) => m.type == CashMovementType.deposit)
+          .fold(0, (sum, m) => sum + m.amount);
+      final cashWithdrawals = cashMovements
+          .where((m) => m.type == CashMovementType.withdrawal || m.type == CashMovementType.expense)
+          .fold(0, (sum, m) => sum + m.amount);
+
+      // Payment summaries: get all bills paid during this session
+      final billRepo = ref.read(billRepositoryProvider);
+      final allBills = await billRepo.getByCompany(company.id);
+      final sessionBills = allBills.where((b) =>
+          b.closedAt != null && b.closedAt!.isAfter(session.openedAt)).toList();
+
+      final paymentRepo = ref.read(paymentRepositoryProvider);
+      final paymentMethodRepo = ref.read(paymentMethodRepositoryProvider);
+      final allMethods = await paymentMethodRepo.getAll(company.id);
+      final methodMap = {for (final m in allMethods) m.id: m};
+
+      // Aggregate payments by method
+      final paymentsByMethod = <String, (String name, int amount, int count, bool isCash)>{};
+      int totalRevenue = 0;
+      int totalTips = 0;
+
+      for (final bill in sessionBills) {
+        final payments = await paymentRepo.getByBill(bill.id);
+        for (final p in payments) {
+          final method = methodMap[p.paymentMethodId];
+          final methodName = method?.name ?? '-';
+          final isCash = method?.type == PaymentType.cash;
+          final existing = paymentsByMethod[p.paymentMethodId];
+          paymentsByMethod[p.paymentMethodId] = (
+            methodName,
+            (existing?.$2 ?? 0) + p.amount,
+            (existing?.$3 ?? 0) + 1,
+            isCash,
+          );
+          totalRevenue += p.amount;
+          totalTips += p.tipIncludedAmount;
+        }
       }
+
+      final paymentSummaries = paymentsByMethod.values
+          .map((e) => PaymentTypeSummary(name: e.$1, amount: e.$2, count: e.$3, isCash: e.$4))
+          .toList();
+
+      final openingCash = session.openingCash ?? 0;
+      final cashRevenue = paymentSummaries
+          .where((s) => s.isCash)
+          .fold(0, (sum, s) => sum + s.amount);
+      final expectedCash = openingCash + cashRevenue + cashDeposits - cashWithdrawals;
+
+      final billsPaid = sessionBills.where((b) => b.status == BillStatus.paid).length;
+      final billsCancelled = sessionBills.where((b) => b.status == BillStatus.cancelled).length;
+
+      // Resolve who opened the session
+      final userRepo = ref.read(userRepositoryProvider);
+      final openedByUser = await userRepo.getById(session.openedByUserId);
+      final openedByName = openedByUser?.fullName ?? '-';
+
+      if (!mounted) return;
+
+      final closingData = ClosingSessionData(
+        sessionOpenedAt: session.openedAt,
+        openedByUserName: openedByName,
+        openingCash: openingCash,
+        expectedCash: expectedCash,
+        paymentSummaries: paymentSummaries,
+        totalRevenue: totalRevenue,
+        totalTips: totalTips,
+        billsPaid: billsPaid,
+        billsCancelled: billsCancelled,
+        cashDeposits: cashDeposits,
+        cashWithdrawals: cashWithdrawals,
+      );
+
+      final result = await showDialog<ClosingSessionResult>(
+        context: context,
+        builder: (_) => DialogClosingSession(data: closingData),
+      );
+      if (result == null || !mounted) return;
+
+      final difference = result.closingCash - expectedCash;
+      await ref.read(registerSessionRepositoryProvider).closeSession(
+        session.id,
+        closingCash: result.closingCash,
+        expectedCash: expectedCash,
+        difference: difference,
+      );
     } else {
+      // --- Opening session ---
       final register = await ref.read(activeRegisterProvider.future);
       if (register == null) return;
 
-      await ref.read(registerSessionRepositoryProvider).openSession(
+      final sessionRepo = ref.read(registerSessionRepositoryProvider);
+      final lastClosingCash = await sessionRepo.getLastClosingCash(company.id);
+
+      if (!mounted) return;
+
+      final openingCash = await showDialog<int>(
+        context: context,
+        builder: (_) => DialogOpeningCash(initialAmount: lastClosingCash),
+      );
+      if (openingCash == null || !mounted) return;
+
+      final openResult = await sessionRepo.openSession(
         companyId: company.id,
         registerId: register.id,
         userId: user.id,
+        openingCash: openingCash,
       );
+
+      // If opening amount differs from previous closing cash → create correction movement
+      if (lastClosingCash != null && openingCash != lastClosingCash && openResult is Success) {
+        final newSession = (openResult as Success).value;
+        final diff = openingCash - lastClosingCash;
+        await ref.read(cashMovementRepositoryProvider).create(
+          companyId: company.id,
+          registerSessionId: newSession.id,
+          userId: user.id,
+          type: diff > 0 ? CashMovementType.deposit : CashMovementType.withdrawal,
+          amount: diff.abs(),
+          reason: 'Auto-correction: opening cash differs from previous closing',
+        );
+      }
     }
+  }
+
+  Future<void> _showCashMovement(BuildContext context) async {
+    final company = ref.read(currentCompanyProvider);
+    final user = ref.read(activeUserProvider);
+    final session = ref.read(activeRegisterSessionProvider).valueOrNull;
+    if (company == null || user == null || session == null) return;
+
+    final result = await showDialog<CashMovementResult>(
+      context: context,
+      builder: (_) => const DialogCashMovement(),
+    );
+    if (result == null) return;
+
+    await ref.read(cashMovementRepositoryProvider).create(
+      companyId: company.id,
+      registerSessionId: session.id,
+      userId: user.id,
+      type: result.type,
+      amount: result.amount,
+      reason: result.reason,
+    );
   }
 }
 
@@ -513,6 +645,7 @@ class _RightPanel extends ConsumerWidget {
     required this.onNewBill,
     required this.onQuickBill,
     required this.onToggleSession,
+    required this.onCashMovement,
   });
 
   final dynamic activeUser;
@@ -525,6 +658,7 @@ class _RightPanel extends ConsumerWidget {
   final VoidCallback? onNewBill;
   final VoidCallback? onQuickBill;
   final VoidCallback onToggleSession;
+  final VoidCallback? onCashMovement;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -550,7 +684,7 @@ class _RightPanel extends ConsumerWidget {
           _ButtonRow(
             left: l.billsCashJournal,
             right: l.billsSalesOverview,
-            onLeft: null,
+            onLeft: onCashMovement,
             onRight: null,
           ),
           // Row 3: SKLAD | DALŠÍ (→ menu near button)
@@ -735,6 +869,14 @@ class _InfoPanel extends ConsumerWidget {
     final dateFormat = DateFormat('EEEE d.M.yyyy', 'cs');
     final timeFormat = DateFormat('HH:mm:ss', 'cs');
     final isSyncConnected = ref.watch(isSupabaseAuthenticatedProvider);
+    final session = ref.watch(activeRegisterSessionProvider).valueOrNull;
+
+    // Compute register total when session is active
+    String registerTotal = '-';
+    if (session != null) {
+      final openingCash = session.openingCash ?? 0;
+      registerTotal = '${openingCash ~/ 100} Kč';
+    }
 
     return Container(
       padding: const EdgeInsets.all(10),
@@ -762,7 +904,7 @@ class _InfoPanel extends ConsumerWidget {
           _InfoRow(l.infoPanelLoggedIn, loggedInUsers.where((u) => u.id != activeUser?.id).map((u) => u.username).join(', ')),
           const Divider(),
           // Register total
-          _InfoRow(l.infoPanelRegisterTotal, '-'),
+          _InfoRow(l.infoPanelRegisterTotal, registerTotal),
         ],
       ),
     );
