@@ -2073,6 +2073,42 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'probíhá'**
   String get shiftsOngoing;
+
+  /// No description provided for @closingOpenBillsWarningTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Otevřené účty'**
+  String get closingOpenBillsWarningTitle;
+
+  /// No description provided for @closingOpenBillsWarningMessage.
+  ///
+  /// In cs, this message translates to:
+  /// **'Na konci prodeje je {count} otevřených účtů v celkové hodnotě {amount}.'**
+  String closingOpenBillsWarningMessage(int count, String amount);
+
+  /// No description provided for @closingOpenBillsContinue.
+  ///
+  /// In cs, this message translates to:
+  /// **'Pokračovat'**
+  String get closingOpenBillsContinue;
+
+  /// No description provided for @closingOpenBills.
+  ///
+  /// In cs, this message translates to:
+  /// **'Otevřené účty'**
+  String get closingOpenBills;
+
+  /// No description provided for @zReportOpenBillsAtOpen.
+  ///
+  /// In cs, this message translates to:
+  /// **'Otevřené účty (začátek)'**
+  String get zReportOpenBillsAtOpen;
+
+  /// No description provided for @zReportOpenBillsAtClose.
+  ///
+  /// In cs, this message translates to:
+  /// **'Otevřené účty (konec)'**
+  String get zReportOpenBillsAtClose;
 }
 
 class _AppLocalizationsDelegate

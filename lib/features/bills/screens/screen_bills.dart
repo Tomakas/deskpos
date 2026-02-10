@@ -241,12 +241,40 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
       final billsPaid = sessionBills.where((b) => b.status == BillStatus.paid).length;
       final billsCancelled = sessionBills.where((b) => b.status == BillStatus.cancelled).length;
 
+      // Compute open bills across entire company
+      final openBills = allBills.where((b) => b.status == BillStatus.opened).toList();
+      final openBillsCount = openBills.length;
+      final openBillsAmount = openBills.fold(0, (sum, b) => sum + b.totalGross);
+
       // Resolve who opened the session
       final userRepo = ref.read(userRepositoryProvider);
       final openedByUser = await userRepo.getById(session.openedByUserId);
       final openedByName = openedByUser?.fullName ?? '-';
 
       if (!mounted) return;
+
+      // Warn about open bills before closing
+      if (openBillsCount > 0) {
+        final l = context.l10n;
+        final shouldContinue = await showDialog<bool>(
+          context: context,
+          builder: (dialogContext) => AlertDialog(
+            title: Text(l.closingOpenBillsWarningTitle),
+            content: Text(l.closingOpenBillsWarningMessage(openBillsCount, '${openBillsAmount ~/ 100} Kč')),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext, false),
+                child: Text(l.actionCancel),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(dialogContext, true),
+                child: Text(l.closingOpenBillsContinue),
+              ),
+            ],
+          ),
+        );
+        if (shouldContinue != true || !mounted) return;
+      }
 
       final closingData = ClosingSessionData(
         sessionOpenedAt: session.openedAt,
@@ -260,6 +288,8 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
         billsCancelled: billsCancelled,
         cashDeposits: cashDeposits,
         cashWithdrawals: cashWithdrawals,
+        openBillsCount: openBillsCount,
+        openBillsAmount: openBillsAmount,
       );
 
       final result = await showDialog<ClosingSessionResult>(
@@ -277,6 +307,8 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
         closingCash: result.closingCash,
         expectedCash: expectedCash,
         difference: difference,
+        openBillsAtCloseCount: openBillsCount,
+        openBillsAtCloseAmount: openBillsAmount,
       );
     } else {
       // --- Opening session ---
@@ -294,11 +326,18 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
       );
       if (openingCash == null || !mounted) return;
 
+      // Snapshot open bills at session open
+      final allBillsForOpen = await ref.read(billRepositoryProvider).getByCompany(company.id);
+      final openBillsForOpen = allBillsForOpen.where((b) => b.status == BillStatus.opened).toList();
+      final openBillsForOpenAmount = openBillsForOpen.fold(0, (sum, b) => sum + b.totalGross);
+
       final openResult = await sessionRepo.openSession(
         companyId: company.id,
         registerId: register.id,
         userId: user.id,
         openingCash: openingCash,
+        openBillsAtOpenCount: openBillsForOpen.length,
+        openBillsAtOpenAmount: openBillsForOpenAmount,
       );
 
       // If opening amount differs from previous closing cash → create correction movement

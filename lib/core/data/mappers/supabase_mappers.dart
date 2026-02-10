@@ -366,6 +366,10 @@ Map<String, dynamic> registerSessionToSupabaseJson(RegisterSessionModel m) => {
       'closing_cash': m.closingCash,
       'expected_cash': m.expectedCash,
       'difference': m.difference,
+      'open_bills_at_open_count': m.openBillsAtOpenCount,
+      'open_bills_at_open_amount': m.openBillsAtOpenAmount,
+      'open_bills_at_close_count': m.openBillsAtCloseCount,
+      'open_bills_at_close_amount': m.openBillsAtCloseAmount,
     };
 
 Map<String, dynamic> cashMovementToSupabaseJson(CashMovementModel m) => {

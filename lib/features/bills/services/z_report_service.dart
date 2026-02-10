@@ -194,6 +194,10 @@ class ZReportService {
       cashWithdrawals: cashWithdrawals,
       cashRevenue: cashRevenue,
       shiftDurations: shiftDurations,
+      openBillsAtOpenCount: session.openBillsAtOpenCount ?? 0,
+      openBillsAtOpenAmount: session.openBillsAtOpenAmount ?? 0,
+      openBillsAtCloseCount: session.openBillsAtCloseCount ?? 0,
+      openBillsAtCloseAmount: session.openBillsAtCloseAmount ?? 0,
     );
   }
 

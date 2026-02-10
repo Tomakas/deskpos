@@ -20,6 +20,8 @@ class ClosingSessionData {
     required this.billsCancelled,
     required this.cashDeposits,
     required this.cashWithdrawals,
+    required this.openBillsCount,
+    required this.openBillsAmount,
   });
 
   final DateTime sessionOpenedAt;
@@ -47,6 +49,10 @@ class ClosingSessionData {
 
   /// Total cash withdrawn during session, in haléře.
   final int cashWithdrawals;
+
+  /// Open bills count and total amount at close time.
+  final int openBillsCount;
+  final int openBillsAmount;
 
   /// Cash revenue only (sum of payments where method type == cash), in haléře.
   int get cashRevenue {
@@ -261,6 +267,8 @@ class _DialogClosingSessionState extends State<DialogClosingSession> {
         _row(l.closingBillsPaid, '${_data.billsPaid}'),
         if (_data.billsCancelled > 0)
           _row(l.closingBillsCancelled, '${_data.billsCancelled}'),
+        if (_data.openBillsCount > 0)
+          _row(l.closingOpenBills, '${_data.openBillsCount} (${_fmtKc(_data.openBillsAmount)})'),
       ],
     );
   }

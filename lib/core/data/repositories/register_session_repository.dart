@@ -21,6 +21,8 @@ class RegisterSessionRepository {
     required String registerId,
     required String userId,
     int? openingCash,
+    int? openBillsAtOpenCount,
+    int? openBillsAtOpenAmount,
   }) async {
     try {
       final now = DateTime.now();
@@ -33,6 +35,8 @@ class RegisterSessionRepository {
           openedByUserId: userId,
           openedAt: now,
           openingCash: Value(openingCash),
+          openBillsAtOpenCount: Value(openBillsAtOpenCount),
+          openBillsAtOpenAmount: Value(openBillsAtOpenAmount),
         ),
       );
       final entity = await (_db.select(_db.registerSessions)
@@ -52,6 +56,8 @@ class RegisterSessionRepository {
     int? closingCash,
     int? expectedCash,
     int? difference,
+    int? openBillsAtCloseCount,
+    int? openBillsAtCloseAmount,
   }) async {
     try {
       final now = DateTime.now();
@@ -61,6 +67,8 @@ class RegisterSessionRepository {
         closingCash: Value(closingCash),
         expectedCash: Value(expectedCash),
         difference: Value(difference),
+        openBillsAtCloseCount: Value(openBillsAtCloseCount),
+        openBillsAtCloseAmount: Value(openBillsAtCloseAmount),
         updatedAt: Value(now),
       ));
       final entity = await (_db.select(_db.registerSessions)

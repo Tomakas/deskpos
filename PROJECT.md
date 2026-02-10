@@ -539,7 +539,7 @@ Všechny aktivní tabulky obsahují společné sync sloupce (viz [SyncColumnsMix
 | Tabulka | Sloupce |
 |---------|---------|
 | **registers** | id (T), company_id →companies, code (T), is_active (B), type (T), allow_cash (B), allow_card (B), allow_transfer (B), allow_refunds (B), grid_rows (I), grid_cols (I) |
-| **register_sessions** | id (T), company_id →companies, register_id →registers, opened_by_user_id →users, opened_at (D), closed_at (D), order_counter (I), opening_cash (I?), closing_cash (I?), expected_cash (I?), difference (I?) |
+| **register_sessions** | id (T), company_id →companies, register_id →registers, opened_by_user_id →users, opened_at (D), closed_at (D), order_counter (I), opening_cash (I?), closing_cash (I?), expected_cash (I?), difference (I?), open_bills_at_open_count (I?), open_bills_at_open_amount (I?), open_bills_at_close_count (I?), open_bills_at_close_amount (I?) |
 | **cash_movements** | id (T), company_id →companies, register_session_id →register_sessions, user_id →users, type (T — CashMovementType), amount (I), reason (T?) |
 | **shifts** | id (T), company_id →companies, register_session_id →register_sessions, user_id →users, login_at (D), logout_at (D?) |
 

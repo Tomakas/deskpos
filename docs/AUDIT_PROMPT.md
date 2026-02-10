@@ -15,15 +15,47 @@ Proveď **kompletní, důkladnou a podrobnou analýzu** celého EPOS projektu. A
 2. **Uváděj přesné cesty a čísla řádků** (`soubor:řádek`) u každého nálezu.
 3. **Rozlišuj závažnost**: KRITICKÉ > VYSOKÉ > STŘEDNÍ > NÍZKÉ > INFO.
 4. **U každého nálezu uveď**: co je špatně, proč je to problém, konkrétní dopad, a navrhované řešení.
-5. **Porovnávej kód s dokumentací** (`PROJECT.md`, `CLAUDE.md`). Pokud se liší, popiš nesoulad — neurčuj, kdo má pravdu.
+5. **Porovnávej kód s dokumentací** (`PROJECT.md`, `CLAUDE.md`). Každý rozpor mezi kódem a dokumentací je **nález** — reportuj jako STŘEDNÍ+ závažnost. Neurčuj, kdo má pravdu (kód nebo docs), ale jasně popiš co se liší a kde.
 6. **Analýzu Supabase** proveď přes MCP nástroje (execute_sql, list_tables, get_advisors) — nikdy nehádej stav serveru.
 7. **Spouštěj analýzy paralelně** kde je to možné (Task tool s agenty pro různé oblasti).
+
+### Doporučené rozdělení agentů (4 paralelní)
+
+Spouštěj jako background agenty v jednom kroku:
+
+1. **Agent: Repositories + Sync + Mappers** — FÁZE 3.1, 3.2, mappers
+2. **Agent: Auth + Security + Routing + Providers** — FÁZE 3.3, 3.5, 3.6, seed service
+3. **Agent: UI (všechny screeny a widgety)** — FÁZE 3.4
+4. **Agent: Code quality + Drift tabulky** — FÁZE 3.7, 3.8, Drift table definitions
+
+FÁZE 2 (Supabase MCP) běží přímo v hlavní konverzaci paralelně s agenty.
+FÁZE 4 (křížová validace) kombinuje výsledky z agentů + FÁZE 2 — provádí hlavní konverzace.
+
+### Priorita při nedostatku kontextu
+
+Pokud hrozí vyčerpání kontextu, upřednostni:
+
+1. FÁZE 4 (křížová validace Drift ↔ Supabase) — zde se nalézají nejkritičtější bugy
+2. FÁZE 2 (Supabase server) — nelze ověřit z kódu
+3. FÁZE 3.2 (sync engine) — nejkomplexnější logika
+4. FÁZE 3.1 (repositories + mappers) — second most critical
+5. Zbytek
+
+---
+
+## FÁZE 0 — Prerekvizity
+
+Před začátkem analýzy:
+
+1. **Supabase project ID** — zjisti z `lib/core/network/supabase_config.dart` (potřebuješ pro MCP volání)
+2. **Git status** — `git status` a `git log --oneline -10` — co se nedávno měnilo?
+3. **Cesta k PROJECT.md** — ověř skutečnou cestu (Glob `**/PROJECT.md`), CLAUDE.md může odkazovat jinam než kde soubor skutečně je
 
 ---
 
 ## FÁZE 1 — Sběr kontextu
 
-Před začátkem analýzy přečti:
+Přečti:
 
 1. `CLAUDE.md` — pravidla pro práci s projektem
 2. `PROJECT.md` — autoritativní designový dokument (čti celý, po částech pokud je velký)
@@ -71,11 +103,17 @@ SELECT tablename, indexname, indexdef
 FROM pg_indexes WHERE schemaname = 'public'
 ORDER BY tablename, indexname;
 
--- Velikost tabulek a indexů
-SELECT relname, pg_size_pretty(pg_total_relation_size(c.oid)) as total_size
-FROM pg_class c LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
-WHERE n.nspname = 'public' AND c.relkind = 'r'
-ORDER BY pg_total_relation_size(c.oid) DESC;
+-- FK sloupce bez indexu (výkonnostní problém)
+SELECT tc.table_name, kcu.column_name
+FROM information_schema.table_constraints tc
+JOIN information_schema.key_column_usage kcu
+  ON tc.constraint_name = kcu.constraint_name
+WHERE tc.constraint_type = 'FOREIGN KEY' AND tc.table_schema = 'public'
+  AND NOT EXISTS (
+    SELECT 1 FROM pg_indexes
+    WHERE tablename = tc.table_name
+      AND indexdef LIKE '%' || kcu.column_name || '%'
+  );
 ```
 
 ### 2.3 RLS politiky
@@ -101,6 +139,22 @@ FROM information_schema.triggers
 WHERE trigger_schema = 'public'
 ORDER BY event_object_table, trigger_name;
 
+-- Tabulky BEZ enforce_lww triggeru
+SELECT t.tablename FROM pg_tables t
+WHERE t.schemaname = 'public'
+  AND t.tablename NOT IN (
+    SELECT event_object_table FROM information_schema.triggers
+    WHERE trigger_name LIKE '%lww%'
+  );
+
+-- Tabulky BEZ set_server_timestamps triggeru
+SELECT t.tablename FROM pg_tables t
+WHERE t.schemaname = 'public'
+  AND t.tablename NOT IN (
+    SELECT event_object_table FROM information_schema.triggers
+    WHERE trigger_name LIKE '%timestamps%'
+  );
+
 -- Těla trigger funkcí
 SELECT p.proname, pg_get_functiondef(p.oid)
 FROM pg_proc p JOIN pg_namespace n ON p.pronamespace = n.oid
@@ -116,7 +170,8 @@ ORDER BY p.proname;
 
 ### 2.6 Supabase audit checklist
 
-Pro každou tabulku ověř:
+Pro každou tabulku ověř (globální tabulky jako currencies, roles, permissions, role_permissions mají odlišná pravidla — typicky `true` pro authenticated):
+
 - [ ] RLS je **enabled**
 - [ ] Existuje SELECT policy s `company_id IN (SELECT get_my_company_ids())`
 - [ ] Existuje INSERT policy s WITH CHECK
@@ -139,7 +194,9 @@ Přečti a analyzuj **každý** soubor v těchto adresářích:
 **Repositáře** (`lib/core/data/repositories/*.dart`):
 - [ ] Dodržuje se Repository pattern? Žádný přímý DB přístup mimo repositáře?
 - [ ] `BaseCompanyScopedRepository` — je správně implementován? Dědí z něj správné entity?
+- [ ] `getById()` — validuje company_id scope, nebo vrací entitu jakékoli firmy bez ověření?
 - [ ] Manuální outbox — jsou `_enqueue*` volání po **každé** mutaci? Nechybí nějaké?
+- [ ] `Company.create()` — enqueueuje do outboxu? (zvláštní případ — není BaseCompanyScoped)
 - [ ] Result pattern — vracejí všechny veřejné metody `Result<T>`? Jsou try/catch kompletní?
 - [ ] Transakce — jsou atomické operace (`createOrderWithItems`, `cancelBill` cascade) v transaction bloku?
 - [ ] N+1 queries — jsou někde smyčky s await uvnitř (query per iteration)?
@@ -149,6 +206,7 @@ Přečti a analyzuj **každý** soubor v těchto adresářích:
 - [ ] `entity_mappers.dart` — existuje `fromEntity()` a `toCompanion()` pro **každou** entitu? Porovnej s tabulkou v PROJECT.md.
 - [ ] `supabase_mappers.dart` — existuje `toSupabaseJson()` pro **každou** entitu? Jsou všechny sloupce pokryty? Odesílá se `client_created_at`/`client_updated_at` (ne `created_at`/`updated_at`)?
 - [ ] `supabase_pull_mappers.dart` — existuje `fromSupabasePull()` pro **každou** entitu? Nastavuje se `lastSyncedAt`, `serverCreatedAt`, `serverUpdatedAt`?
+- [ ] **Enum safety** — je `firstWhere` v enum konverzích volán s `orElse`? Bez něj crash na neznámém enum value ze serveru.
 - [ ] Konzistence: pokud Drift tabulka má sloupec X, má ho i model, mapper push i mapper pull?
 - [ ] Typ safety: jsou `as String`, `as int` casty ošetřeny pro null/chybějící klíče?
 - [ ] Enum konverze: odpovídají Dart enum hodnoty Supabase enum hodnotám (1:1 shoda)?
@@ -168,6 +226,7 @@ Přečti a analyzuj **každý** soubor v těchto adresářích:
 **`app_database.dart`**:
 - [ ] Jsou všechny tabulky registrované v `@DriftDatabase(tables: [...])`?
 - [ ] `schemaVersion` — je aktuální?
+- [ ] Existují hardcoded absolutní cesty (např. `File('/Users/...')` v `_openConnection`)?
 
 ### 3.2 Sync engine
 
@@ -179,12 +238,14 @@ Přečti a analyzuj:
 Checklist:
 - [ ] Pull tabulky — je pořadí v `_pullTables` správné podle FK závislostí? Srovnej s Supabase FK.
 - [ ] Pull tabulky — jsou **všechny** tabulky v `_pullTables`? Žádná nechybí?
+- [ ] Pull tabulky — jsou v `_pullTables` tabulky, které **neexistují** na Supabase? (crash risk)
 - [ ] LWW logika — je `enforce_lww` trigger konzistentní s pull-side LWW v `sync_service.dart`?
 - [ ] Outbox — `_isProcessing` flag brání concurrent processing?
 - [ ] Outbox — `_isPermanentError` detekuje správné chybové typy?
 - [ ] Outbox — stuck entries reset (processing > 5 min)?
 - [ ] Outbox — completed entries cleanup (> 7 days)?
 - [ ] Initial push v `sync_lifecycle_manager.dart` — pushují se globální tabulky (currencies, roles, permissions, role_permissions)?
+- [ ] Initial push — pushují se tabulky, jejichž Supabase schéma se liší od Drift? (push fail risk)
 - [ ] `enqueueAll` — mají **všechny** BaseCompanyScopedRepository potomci implementaci?
 - [ ] Timer cleanup — `_pullTimer?.cancel()` a `_timer?.cancel()` v dispose/stop?
 - [ ] Dynamic casty — kolik je `as dynamic` v sync kódu? Jsou bezpečné?
@@ -215,13 +276,14 @@ Přečti a analyzuj **každý** screen a widget:
 - `lib/features/auth/screens/screen_login.dart`
 - `lib/features/bills/screens/screen_bills.dart`
 - `lib/features/bills/widgets/*.dart` (všechny dialogy)
+- `lib/features/bills/services/*.dart` (services volané z UI)
 - `lib/features/sell/screens/screen_sell.dart`
 - `lib/features/onboarding/screens/*.dart`
 - `lib/features/settings/screens/*.dart`
 - `lib/features/settings/widgets/*.dart`
 
 Checklist:
-- [ ] **Business logika v UI** — je v screen/widget souboru kalkulace, agregace, nebo logika, která patří do repositáře?
+- [ ] **Business logika v UI** — je v screen/widget souboru kalkulace, agregace, nebo logika, která patří do repositáře/service?
 - [ ] **Hardcoded stringy** — jsou všechny UI texty přes `context.l10n`?
 - [ ] **Error states** — rozlišuje se loading vs error v `AsyncValue.when()`? Nebo error zobrazuje spinner?
 - [ ] **Mounted checks** — je před každým `setState()` po await kontrola `if (!mounted) return`?
@@ -230,10 +292,10 @@ Checklist:
 - [ ] **Chip/button bars** — dodržuje se pattern z CLAUDE.md (Expanded + SizedBox)?
 - [ ] **N+1 v UI** — jsou ve widgetech smyčky s await (query per row)?
 - [ ] **Permission checks** — jsou akce chráněné `hasPermissionProvider`?
-- [ ] **Direct DB access** — volá UI přímo `appDatabaseProvider` místo repositáře?
+- [ ] **Direct DB/Supabase access** — volá UI přímo `appDatabaseProvider` nebo `Supabase.instance.client` místo repositáře?
 - [ ] **Processing guard** — mají tlačítka s async akcemi ochranu proti double-tap?
+- [ ] **FutureBuilder** — je future vytvořen v `initState`, nebo inline v `build()`? (Inline = recreated on every rebuild)
 - [ ] **Dialog width** — jsou šířky dialogů konzistentní?
-- [ ] **Semantic labels** — mají IconButtony `semanticLabel` pro accessibility?
 
 ### 3.5 Providery a state management
 
@@ -262,6 +324,7 @@ Přečti: `lib/core/routing/app_router.dart`
 - [ ] `!` force unwrap — kolik force unwrapů existuje? Jsou bezpečné?
 - [ ] Const constructors — jsou widgety bez parametrů označené `const`?
 - [ ] Generated code — je `app_database.g.dart` a `*.freezed.dart` aktuální vůči zdrojům?
+- [ ] Hardcoded absolutní cesty — existují `File('/Users/...')` nebo podobné? (Grep: `File('`)
 
 ### 3.8 Testy
 
@@ -269,20 +332,42 @@ Přečti: `lib/core/routing/app_router.dart`
 - [ ] Existují widget testy? Kolik jich je?
 - [ ] Existují integration testy?
 - [ ] Jaké je pokrytí kritických cest (sync, LWW, outbox, auth)?
+- [ ] Pokud testy neexistují: které oblasti jsou **nejkritičtější** pokrýt? (prioritizovaný seznam)
 
 ---
 
 ## FÁZE 4 — Křížová validace (Drift ↔ Supabase ↔ Modely ↔ Mappery)
 
-Pro **každou** z 22 tabulek vytvoř srovnávací tabulku:
+### Krok 1: Porovnej seznamy tabulek
+
+Jako **první krok** než začneš per-column srovnání:
+
+1. Vypiš **VŠECHNY** tabulky z Drift (`app_database.dart` — `@DriftDatabase(tables: [...])`)
+2. Vypiš **VŠECHNY** tabulky ze Supabase (MCP `list_tables` nebo `information_schema.tables`)
+3. Porovnej oba seznamy — hledej tabulky, které existují **POUZE na jedné straně**
+4. Tabulky pouze v Drift = **KRITICKÉ** (sync pull/push crash)
+5. Tabulky pouze v Supabase = **VYSOKÉ** (data se nesynchronizují)
+
+Pozn: `sync_queue` a `sync_metadata` jsou infrastrukturní tabulky. Existují na obou stranách ale mají odlišné schéma — porovnej je zvlášť.
+
+### Krok 2: Per-column srovnání
+
+Pro **každou sdílenou** tabulku:
+
+1. Vypiš seznam sloupců z Drift (`.dart` soubor, bez sync sloupců z mixinu)
+2. Vypiš seznam sloupců ze Supabase (`information_schema.columns`, bez server sync sloupců `created_at`, `updated_at`, `client_created_at`, `client_updated_at`, `deleted_at`)
+3. Porovnej — hledej sloupce přítomné **POUZE na jedné straně** (KRITICKÉ)
+4. Pro společné sloupce vytvoř srovnávací tabulku:
 
 | Sloupec | Drift typ | Drift nullable | Supabase typ | Supabase nullable | Model field | Push mapper | Pull mapper | Shoda? |
 |---------|-----------|----------------|--------------|-------------------|-------------|-------------|-------------|--------|
 
-Hledej:
-- Sloupec existuje v Drift ale ne v Supabase (nebo naopak)
+### Krok 3: Hledej nesoulady
+
+- Sloupec existuje v Drift ale ne v Supabase (nebo naopak) → **KRITICKÉ**
+- Tabulka existuje v Drift ale ne v Supabase (nebo naopak) → **KRITICKÉ**
 - Sloupec je nullable v jednom ale NOT NULL v druhém
-- Typ mismatch (text vs integer, enum vs text)
+- Typ mismatch (text vs uuid, text vs integer, real vs integer, enum vs text)
 - Sloupec chybí v modelu
 - Sloupec chybí v push/pull mapperu
 - Enum hodnoty se liší mezi Dart a Supabase
@@ -291,16 +376,47 @@ Hledej:
 
 ## FÁZE 5 — Dokumentace vs implementace
 
-Porovnej `PROJECT.md` s aktuální implementací:
+**Každý rozpor je nález.** Pokud kód dělá něco jiného než říká dokumentace, nebo dokumentace popisuje něco co v kódu neexistuje (nebo naopak), reportuj jako nález se závažností dle dopadu.
 
+### 5.1 Analýza PROJECT.md
+
+Přečti `PROJECT.md` **celý** (po částech). Pro každou sekci hledej:
+
+**Schéma a tabulky:**
 - [ ] Tabulky v PROJECT.md — existují všechny v Drift i Supabase?
-- [ ] Sloupce v PROJECT.md — sedí typy, nullable, defaults?
-- [ ] Workflows (createBill, cancelBill, recordPayment) — odpovídá implementace popisu?
-- [ ] Enum hodnoty — sedí Dart enum, Supabase enum, a dokumentace?
-- [ ] Route paths — sedí routes v `app_router.dart` s dokumentací?
+- [ ] Existují tabulky v kódu, které **nejsou** v dokumentaci? (např. přidané v nedávných taskech ale docs neaktualizovány)
+- [ ] Sloupce v PROJECT.md — sedí typy, nullable, defaults s Drift a Supabase?
+- [ ] Počet tabulek — sedí číslo uvedené v docs s realitou?
+
+**Enum definice:**
+- [ ] Enum hodnoty v PROJECT.md — sedí s Dart enum definicemi v `lib/core/data/enums/`?
+- [ ] Enum hodnoty v PROJECT.md — sedí se Supabase `pg_enum` hodnotami?
+- [ ] Pořadí a pojmenování — je konzistentní napříč všemi třemi zdroji?
+
+**Workflows a business logika:**
+- [ ] Workflows (createBill, cancelBill, recordPayment, refundBill) — odpovídá implementace v repositories popisu v docs?
+- [ ] Pořadí kroků ve workflow — sedí s kódem?
+- [ ] Edge cases popsané v docs — jsou ošetřeny v kódu?
+
+**Seed data a konfigurace:**
+- [ ] Seed data — odpovídá `SeedService` dokumentaci (3 tax rates, 3 payment methods, 3 sections, 5 categories, 25 items)?
 - [ ] Permission kódy — sedí seed s dokumentací? Je jich přesně 14?
 - [ ] Role šablony — sedí helper/operator/admin oprávnění s tabulkou v docs?
-- [ ] Seed data — odpovídá SeedService dokumentaci (3 tax rates, 3 payment methods, 3 sections, 5 categories, 25 items)?
+
+**UI a routing:**
+- [ ] Route paths — sedí routes v `app_router.dart` s dokumentací?
+- [ ] Screen layouts popsané v docs — odpovídají implementaci?
+
+**Architektura:**
+- [ ] Popisuje docs patterny (Repository, Outbox, LWW), které kód nedodržuje?
+- [ ] Odkazuje docs na soubory/třídy, které neexistují?
+- [ ] Popisuje docs funkce/features, které nejsou implementované (bez označení jako "plánované")?
+
+### 5.2 Analýza CLAUDE.md
+
+- [ ] Sedí pravidla v CLAUDE.md s realitou? (např. cesty k souborům, konvence)
+- [ ] Odkazuje CLAUDE.md na `docs/PROJECT.md` ale soubor je jinde?
+- [ ] Jsou v CLAUDE.md pravidla, která kód systematicky porušuje?
 
 ---
 
@@ -339,3 +455,23 @@ Co je implementováno dobře a správně.
 
 ### G. Prioritizovaný akční plán
 Seřazený seznam nálezů k opravě (KRITICKÉ → NÍZKÉ) s odhadem rozsahu (1 řádek / 1 soubor / více souborů / architekturální změna).
+
+### H. Quick-Fix Reference
+Tabulka 5 nejkritičtějších nálezů s přesnými soubory a řádky pro okamžitou opravu:
+
+| # | Soubor:řádek | Co změnit | Rozsah |
+|---|-------------|-----------|--------|
+
+---
+
+## Známé nesoulady (z auditu 2026-02-10)
+
+Při auditu ověř, zda následující problémy přetrvávají. Pokud ano, znovu reportuj:
+
+- `shifts` tabulka — existuje v Drift (`tables/shifts.dart`, `app_database.dart:52`, `sync_service.dart:63`), ale **chybí na Supabase** → sync crash
+- `payments.user_id` — existuje v Drift (`payments.dart:10`), ale **chybí na Supabase** → push fail
+- `companies.auth_user_id` — `text().nullable()` v Drift vs `uuid NOT NULL` na Supabase → type + nullability mismatch
+- `_enumFromName()` v `supabase_pull_mappers.dart:15-16` — `firstWhere` bez `orElse` → crash na neznámém enum
+- `getById()` v `base_company_scoped_repository.dart:127-132` — bez company scope validace → cross-company data leak
+- `Company.create()` v `company_repository.dart:24` — bez outbox enqueue → company se nesynchronizuje
+- `order_items.quantity` — `real()` v Drift vs `integer` na Supabase → precision mismatch

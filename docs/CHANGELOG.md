@@ -1,5 +1,37 @@
 # Changelog
 
+## 2026-02-10 (Open Bills Warning + Z-Report Tracking)
+
+### Features
+- **Open bills warning**: When closing a session (Uzávěrka), if there are open (unpaid) bills, a warning dialog shows count + total value; user can cancel or continue
+- **Open bills snapshot**: 4 new columns on `register_sessions` — `open_bills_at_open_count`, `open_bills_at_open_amount`, `open_bills_at_close_count`, `open_bills_at_close_amount` — stored at session open and close
+- **Closing dialog**: Shows "Otevřené účty" row with count and amount when open bills exist
+- **Z-Report**: Displays open bills at session open and close
+
+### Schema
+- `register_sessions` table: added 4 nullable integer columns for open bills tracking
+
+### Modified
+- `lib/core/database/tables/register_sessions.dart` — 4 new columns
+- `lib/core/data/models/register_session_model.dart` — 4 new fields
+- `lib/core/data/mappers/entity_mappers.dart` — register session entity mapper
+- `lib/core/data/mappers/supabase_mappers.dart` — push mapper
+- `lib/core/data/mappers/supabase_pull_mappers.dart` — pull mapper
+- `lib/core/data/repositories/register_session_repository.dart` — new params in `openSession()` and `closeSession()`
+- `lib/features/bills/screens/screen_bills.dart` — warning dialog + open bills data for open/close
+- `lib/features/bills/widgets/dialog_closing_session.dart` — 2 fields + display row
+- `lib/features/bills/widgets/dialog_z_report.dart` — open bills rows
+- `lib/features/bills/models/z_report_data.dart` — 4 new fields
+- `lib/features/bills/services/z_report_service.dart` — reads from session model
+
+### Localization
+- Added 6 Czech keys: `closingOpenBillsWarningTitle`, `closingOpenBillsWarningMessage`, `closingOpenBillsContinue`, `closingOpenBills`, `zReportOpenBillsAtOpen`, `zReportOpenBillsAtClose`
+
+### Documentation
+- `PROJECT.md` — updated `register_sessions` column docs
+
+---
+
 ## 2026-02-10 (PROJECT.md audit)
 
 ### Documentation

@@ -11990,6 +11990,46 @@ class $RegisterSessionsTable extends RegisterSessions
     type: DriftSqlType.int,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _openBillsAtOpenCountMeta =
+      const VerificationMeta('openBillsAtOpenCount');
+  @override
+  late final GeneratedColumn<int> openBillsAtOpenCount = GeneratedColumn<int>(
+    'open_bills_at_open_count',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _openBillsAtOpenAmountMeta =
+      const VerificationMeta('openBillsAtOpenAmount');
+  @override
+  late final GeneratedColumn<int> openBillsAtOpenAmount = GeneratedColumn<int>(
+    'open_bills_at_open_amount',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _openBillsAtCloseCountMeta =
+      const VerificationMeta('openBillsAtCloseCount');
+  @override
+  late final GeneratedColumn<int> openBillsAtCloseCount = GeneratedColumn<int>(
+    'open_bills_at_close_count',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _openBillsAtCloseAmountMeta =
+      const VerificationMeta('openBillsAtCloseAmount');
+  @override
+  late final GeneratedColumn<int> openBillsAtCloseAmount = GeneratedColumn<int>(
+    'open_bills_at_close_amount',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     lastSyncedAt,
@@ -12010,6 +12050,10 @@ class $RegisterSessionsTable extends RegisterSessions
     closingCash,
     expectedCash,
     difference,
+    openBillsAtOpenCount,
+    openBillsAtOpenAmount,
+    openBillsAtCloseCount,
+    openBillsAtCloseAmount,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -12162,6 +12206,42 @@ class $RegisterSessionsTable extends RegisterSessions
         difference.isAcceptableOrUnknown(data['difference']!, _differenceMeta),
       );
     }
+    if (data.containsKey('open_bills_at_open_count')) {
+      context.handle(
+        _openBillsAtOpenCountMeta,
+        openBillsAtOpenCount.isAcceptableOrUnknown(
+          data['open_bills_at_open_count']!,
+          _openBillsAtOpenCountMeta,
+        ),
+      );
+    }
+    if (data.containsKey('open_bills_at_open_amount')) {
+      context.handle(
+        _openBillsAtOpenAmountMeta,
+        openBillsAtOpenAmount.isAcceptableOrUnknown(
+          data['open_bills_at_open_amount']!,
+          _openBillsAtOpenAmountMeta,
+        ),
+      );
+    }
+    if (data.containsKey('open_bills_at_close_count')) {
+      context.handle(
+        _openBillsAtCloseCountMeta,
+        openBillsAtCloseCount.isAcceptableOrUnknown(
+          data['open_bills_at_close_count']!,
+          _openBillsAtCloseCountMeta,
+        ),
+      );
+    }
+    if (data.containsKey('open_bills_at_close_amount')) {
+      context.handle(
+        _openBillsAtCloseAmountMeta,
+        openBillsAtCloseAmount.isAcceptableOrUnknown(
+          data['open_bills_at_close_amount']!,
+          _openBillsAtCloseAmountMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -12243,6 +12323,22 @@ class $RegisterSessionsTable extends RegisterSessions
         DriftSqlType.int,
         data['${effectivePrefix}difference'],
       ),
+      openBillsAtOpenCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}open_bills_at_open_count'],
+      ),
+      openBillsAtOpenAmount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}open_bills_at_open_amount'],
+      ),
+      openBillsAtCloseCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}open_bills_at_close_count'],
+      ),
+      openBillsAtCloseAmount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}open_bills_at_close_amount'],
+      ),
     );
   }
 
@@ -12271,6 +12367,10 @@ class RegisterSession extends DataClass implements Insertable<RegisterSession> {
   final int? closingCash;
   final int? expectedCash;
   final int? difference;
+  final int? openBillsAtOpenCount;
+  final int? openBillsAtOpenAmount;
+  final int? openBillsAtCloseCount;
+  final int? openBillsAtCloseAmount;
   const RegisterSession({
     this.lastSyncedAt,
     required this.version,
@@ -12290,6 +12390,10 @@ class RegisterSession extends DataClass implements Insertable<RegisterSession> {
     this.closingCash,
     this.expectedCash,
     this.difference,
+    this.openBillsAtOpenCount,
+    this.openBillsAtOpenAmount,
+    this.openBillsAtCloseCount,
+    this.openBillsAtCloseAmount,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -12329,6 +12433,18 @@ class RegisterSession extends DataClass implements Insertable<RegisterSession> {
     }
     if (!nullToAbsent || difference != null) {
       map['difference'] = Variable<int>(difference);
+    }
+    if (!nullToAbsent || openBillsAtOpenCount != null) {
+      map['open_bills_at_open_count'] = Variable<int>(openBillsAtOpenCount);
+    }
+    if (!nullToAbsent || openBillsAtOpenAmount != null) {
+      map['open_bills_at_open_amount'] = Variable<int>(openBillsAtOpenAmount);
+    }
+    if (!nullToAbsent || openBillsAtCloseCount != null) {
+      map['open_bills_at_close_count'] = Variable<int>(openBillsAtCloseCount);
+    }
+    if (!nullToAbsent || openBillsAtCloseAmount != null) {
+      map['open_bills_at_close_amount'] = Variable<int>(openBillsAtCloseAmount);
     }
     return map;
   }
@@ -12371,6 +12487,18 @@ class RegisterSession extends DataClass implements Insertable<RegisterSession> {
       difference: difference == null && nullToAbsent
           ? const Value.absent()
           : Value(difference),
+      openBillsAtOpenCount: openBillsAtOpenCount == null && nullToAbsent
+          ? const Value.absent()
+          : Value(openBillsAtOpenCount),
+      openBillsAtOpenAmount: openBillsAtOpenAmount == null && nullToAbsent
+          ? const Value.absent()
+          : Value(openBillsAtOpenAmount),
+      openBillsAtCloseCount: openBillsAtCloseCount == null && nullToAbsent
+          ? const Value.absent()
+          : Value(openBillsAtCloseCount),
+      openBillsAtCloseAmount: openBillsAtCloseAmount == null && nullToAbsent
+          ? const Value.absent()
+          : Value(openBillsAtCloseAmount),
     );
   }
 
@@ -12398,6 +12526,18 @@ class RegisterSession extends DataClass implements Insertable<RegisterSession> {
       closingCash: serializer.fromJson<int?>(json['closingCash']),
       expectedCash: serializer.fromJson<int?>(json['expectedCash']),
       difference: serializer.fromJson<int?>(json['difference']),
+      openBillsAtOpenCount: serializer.fromJson<int?>(
+        json['openBillsAtOpenCount'],
+      ),
+      openBillsAtOpenAmount: serializer.fromJson<int?>(
+        json['openBillsAtOpenAmount'],
+      ),
+      openBillsAtCloseCount: serializer.fromJson<int?>(
+        json['openBillsAtCloseCount'],
+      ),
+      openBillsAtCloseAmount: serializer.fromJson<int?>(
+        json['openBillsAtCloseAmount'],
+      ),
     );
   }
   @override
@@ -12422,6 +12562,10 @@ class RegisterSession extends DataClass implements Insertable<RegisterSession> {
       'closingCash': serializer.toJson<int?>(closingCash),
       'expectedCash': serializer.toJson<int?>(expectedCash),
       'difference': serializer.toJson<int?>(difference),
+      'openBillsAtOpenCount': serializer.toJson<int?>(openBillsAtOpenCount),
+      'openBillsAtOpenAmount': serializer.toJson<int?>(openBillsAtOpenAmount),
+      'openBillsAtCloseCount': serializer.toJson<int?>(openBillsAtCloseCount),
+      'openBillsAtCloseAmount': serializer.toJson<int?>(openBillsAtCloseAmount),
     };
   }
 
@@ -12444,6 +12588,10 @@ class RegisterSession extends DataClass implements Insertable<RegisterSession> {
     Value<int?> closingCash = const Value.absent(),
     Value<int?> expectedCash = const Value.absent(),
     Value<int?> difference = const Value.absent(),
+    Value<int?> openBillsAtOpenCount = const Value.absent(),
+    Value<int?> openBillsAtOpenAmount = const Value.absent(),
+    Value<int?> openBillsAtCloseCount = const Value.absent(),
+    Value<int?> openBillsAtCloseAmount = const Value.absent(),
   }) => RegisterSession(
     lastSyncedAt: lastSyncedAt.present ? lastSyncedAt.value : this.lastSyncedAt,
     version: version ?? this.version,
@@ -12467,6 +12615,18 @@ class RegisterSession extends DataClass implements Insertable<RegisterSession> {
     closingCash: closingCash.present ? closingCash.value : this.closingCash,
     expectedCash: expectedCash.present ? expectedCash.value : this.expectedCash,
     difference: difference.present ? difference.value : this.difference,
+    openBillsAtOpenCount: openBillsAtOpenCount.present
+        ? openBillsAtOpenCount.value
+        : this.openBillsAtOpenCount,
+    openBillsAtOpenAmount: openBillsAtOpenAmount.present
+        ? openBillsAtOpenAmount.value
+        : this.openBillsAtOpenAmount,
+    openBillsAtCloseCount: openBillsAtCloseCount.present
+        ? openBillsAtCloseCount.value
+        : this.openBillsAtCloseCount,
+    openBillsAtCloseAmount: openBillsAtCloseAmount.present
+        ? openBillsAtCloseAmount.value
+        : this.openBillsAtCloseAmount,
   );
   RegisterSession copyWithCompanion(RegisterSessionsCompanion data) {
     return RegisterSession(
@@ -12508,6 +12668,18 @@ class RegisterSession extends DataClass implements Insertable<RegisterSession> {
       difference: data.difference.present
           ? data.difference.value
           : this.difference,
+      openBillsAtOpenCount: data.openBillsAtOpenCount.present
+          ? data.openBillsAtOpenCount.value
+          : this.openBillsAtOpenCount,
+      openBillsAtOpenAmount: data.openBillsAtOpenAmount.present
+          ? data.openBillsAtOpenAmount.value
+          : this.openBillsAtOpenAmount,
+      openBillsAtCloseCount: data.openBillsAtCloseCount.present
+          ? data.openBillsAtCloseCount.value
+          : this.openBillsAtCloseCount,
+      openBillsAtCloseAmount: data.openBillsAtCloseAmount.present
+          ? data.openBillsAtCloseAmount.value
+          : this.openBillsAtCloseAmount,
     );
   }
 
@@ -12531,13 +12703,17 @@ class RegisterSession extends DataClass implements Insertable<RegisterSession> {
           ..write('openingCash: $openingCash, ')
           ..write('closingCash: $closingCash, ')
           ..write('expectedCash: $expectedCash, ')
-          ..write('difference: $difference')
+          ..write('difference: $difference, ')
+          ..write('openBillsAtOpenCount: $openBillsAtOpenCount, ')
+          ..write('openBillsAtOpenAmount: $openBillsAtOpenAmount, ')
+          ..write('openBillsAtCloseCount: $openBillsAtCloseCount, ')
+          ..write('openBillsAtCloseAmount: $openBillsAtCloseAmount')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     lastSyncedAt,
     version,
     serverCreatedAt,
@@ -12556,7 +12732,11 @@ class RegisterSession extends DataClass implements Insertable<RegisterSession> {
     closingCash,
     expectedCash,
     difference,
-  );
+    openBillsAtOpenCount,
+    openBillsAtOpenAmount,
+    openBillsAtCloseCount,
+    openBillsAtCloseAmount,
+  ]);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -12578,7 +12758,11 @@ class RegisterSession extends DataClass implements Insertable<RegisterSession> {
           other.openingCash == this.openingCash &&
           other.closingCash == this.closingCash &&
           other.expectedCash == this.expectedCash &&
-          other.difference == this.difference);
+          other.difference == this.difference &&
+          other.openBillsAtOpenCount == this.openBillsAtOpenCount &&
+          other.openBillsAtOpenAmount == this.openBillsAtOpenAmount &&
+          other.openBillsAtCloseCount == this.openBillsAtCloseCount &&
+          other.openBillsAtCloseAmount == this.openBillsAtCloseAmount);
 }
 
 class RegisterSessionsCompanion extends UpdateCompanion<RegisterSession> {
@@ -12600,6 +12784,10 @@ class RegisterSessionsCompanion extends UpdateCompanion<RegisterSession> {
   final Value<int?> closingCash;
   final Value<int?> expectedCash;
   final Value<int?> difference;
+  final Value<int?> openBillsAtOpenCount;
+  final Value<int?> openBillsAtOpenAmount;
+  final Value<int?> openBillsAtCloseCount;
+  final Value<int?> openBillsAtCloseAmount;
   final Value<int> rowid;
   const RegisterSessionsCompanion({
     this.lastSyncedAt = const Value.absent(),
@@ -12620,6 +12808,10 @@ class RegisterSessionsCompanion extends UpdateCompanion<RegisterSession> {
     this.closingCash = const Value.absent(),
     this.expectedCash = const Value.absent(),
     this.difference = const Value.absent(),
+    this.openBillsAtOpenCount = const Value.absent(),
+    this.openBillsAtOpenAmount = const Value.absent(),
+    this.openBillsAtCloseCount = const Value.absent(),
+    this.openBillsAtCloseAmount = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   RegisterSessionsCompanion.insert({
@@ -12641,6 +12833,10 @@ class RegisterSessionsCompanion extends UpdateCompanion<RegisterSession> {
     this.closingCash = const Value.absent(),
     this.expectedCash = const Value.absent(),
     this.difference = const Value.absent(),
+    this.openBillsAtOpenCount = const Value.absent(),
+    this.openBillsAtOpenAmount = const Value.absent(),
+    this.openBillsAtCloseCount = const Value.absent(),
+    this.openBillsAtCloseAmount = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        companyId = Value(companyId),
@@ -12666,6 +12862,10 @@ class RegisterSessionsCompanion extends UpdateCompanion<RegisterSession> {
     Expression<int>? closingCash,
     Expression<int>? expectedCash,
     Expression<int>? difference,
+    Expression<int>? openBillsAtOpenCount,
+    Expression<int>? openBillsAtOpenAmount,
+    Expression<int>? openBillsAtCloseCount,
+    Expression<int>? openBillsAtCloseAmount,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -12687,6 +12887,14 @@ class RegisterSessionsCompanion extends UpdateCompanion<RegisterSession> {
       if (closingCash != null) 'closing_cash': closingCash,
       if (expectedCash != null) 'expected_cash': expectedCash,
       if (difference != null) 'difference': difference,
+      if (openBillsAtOpenCount != null)
+        'open_bills_at_open_count': openBillsAtOpenCount,
+      if (openBillsAtOpenAmount != null)
+        'open_bills_at_open_amount': openBillsAtOpenAmount,
+      if (openBillsAtCloseCount != null)
+        'open_bills_at_close_count': openBillsAtCloseCount,
+      if (openBillsAtCloseAmount != null)
+        'open_bills_at_close_amount': openBillsAtCloseAmount,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -12710,6 +12918,10 @@ class RegisterSessionsCompanion extends UpdateCompanion<RegisterSession> {
     Value<int?>? closingCash,
     Value<int?>? expectedCash,
     Value<int?>? difference,
+    Value<int?>? openBillsAtOpenCount,
+    Value<int?>? openBillsAtOpenAmount,
+    Value<int?>? openBillsAtCloseCount,
+    Value<int?>? openBillsAtCloseAmount,
     Value<int>? rowid,
   }) {
     return RegisterSessionsCompanion(
@@ -12731,6 +12943,13 @@ class RegisterSessionsCompanion extends UpdateCompanion<RegisterSession> {
       closingCash: closingCash ?? this.closingCash,
       expectedCash: expectedCash ?? this.expectedCash,
       difference: difference ?? this.difference,
+      openBillsAtOpenCount: openBillsAtOpenCount ?? this.openBillsAtOpenCount,
+      openBillsAtOpenAmount:
+          openBillsAtOpenAmount ?? this.openBillsAtOpenAmount,
+      openBillsAtCloseCount:
+          openBillsAtCloseCount ?? this.openBillsAtCloseCount,
+      openBillsAtCloseAmount:
+          openBillsAtCloseAmount ?? this.openBillsAtCloseAmount,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -12792,6 +13011,26 @@ class RegisterSessionsCompanion extends UpdateCompanion<RegisterSession> {
     if (difference.present) {
       map['difference'] = Variable<int>(difference.value);
     }
+    if (openBillsAtOpenCount.present) {
+      map['open_bills_at_open_count'] = Variable<int>(
+        openBillsAtOpenCount.value,
+      );
+    }
+    if (openBillsAtOpenAmount.present) {
+      map['open_bills_at_open_amount'] = Variable<int>(
+        openBillsAtOpenAmount.value,
+      );
+    }
+    if (openBillsAtCloseCount.present) {
+      map['open_bills_at_close_count'] = Variable<int>(
+        openBillsAtCloseCount.value,
+      );
+    }
+    if (openBillsAtCloseAmount.present) {
+      map['open_bills_at_close_amount'] = Variable<int>(
+        openBillsAtCloseAmount.value,
+      );
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -12819,6 +13058,10 @@ class RegisterSessionsCompanion extends UpdateCompanion<RegisterSession> {
           ..write('closingCash: $closingCash, ')
           ..write('expectedCash: $expectedCash, ')
           ..write('difference: $difference, ')
+          ..write('openBillsAtOpenCount: $openBillsAtOpenCount, ')
+          ..write('openBillsAtOpenAmount: $openBillsAtOpenAmount, ')
+          ..write('openBillsAtCloseCount: $openBillsAtCloseCount, ')
+          ..write('openBillsAtCloseAmount: $openBillsAtCloseAmount, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -26441,6 +26684,10 @@ typedef $$RegisterSessionsTableCreateCompanionBuilder =
       Value<int?> closingCash,
       Value<int?> expectedCash,
       Value<int?> difference,
+      Value<int?> openBillsAtOpenCount,
+      Value<int?> openBillsAtOpenAmount,
+      Value<int?> openBillsAtCloseCount,
+      Value<int?> openBillsAtCloseAmount,
       Value<int> rowid,
     });
 typedef $$RegisterSessionsTableUpdateCompanionBuilder =
@@ -26463,6 +26710,10 @@ typedef $$RegisterSessionsTableUpdateCompanionBuilder =
       Value<int?> closingCash,
       Value<int?> expectedCash,
       Value<int?> difference,
+      Value<int?> openBillsAtOpenCount,
+      Value<int?> openBillsAtOpenAmount,
+      Value<int?> openBillsAtCloseCount,
+      Value<int?> openBillsAtCloseAmount,
       Value<int> rowid,
     });
 
@@ -26562,6 +26813,26 @@ class $$RegisterSessionsTableFilterComposer
 
   ColumnFilters<int> get difference => $composableBuilder(
     column: $table.difference,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get openBillsAtOpenCount => $composableBuilder(
+    column: $table.openBillsAtOpenCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get openBillsAtOpenAmount => $composableBuilder(
+    column: $table.openBillsAtOpenAmount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get openBillsAtCloseCount => $composableBuilder(
+    column: $table.openBillsAtCloseCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get openBillsAtCloseAmount => $composableBuilder(
+    column: $table.openBillsAtCloseAmount,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -26664,6 +26935,26 @@ class $$RegisterSessionsTableOrderingComposer
     column: $table.difference,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<int> get openBillsAtOpenCount => $composableBuilder(
+    column: $table.openBillsAtOpenCount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get openBillsAtOpenAmount => $composableBuilder(
+    column: $table.openBillsAtOpenAmount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get openBillsAtCloseCount => $composableBuilder(
+    column: $table.openBillsAtCloseCount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get openBillsAtCloseAmount => $composableBuilder(
+    column: $table.openBillsAtCloseAmount,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$RegisterSessionsTableAnnotationComposer
@@ -26748,6 +27039,26 @@ class $$RegisterSessionsTableAnnotationComposer
     column: $table.difference,
     builder: (column) => column,
   );
+
+  GeneratedColumn<int> get openBillsAtOpenCount => $composableBuilder(
+    column: $table.openBillsAtOpenCount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get openBillsAtOpenAmount => $composableBuilder(
+    column: $table.openBillsAtOpenAmount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get openBillsAtCloseCount => $composableBuilder(
+    column: $table.openBillsAtCloseCount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get openBillsAtCloseAmount => $composableBuilder(
+    column: $table.openBillsAtCloseAmount,
+    builder: (column) => column,
+  );
 }
 
 class $$RegisterSessionsTableTableManager
@@ -26805,6 +27116,10 @@ class $$RegisterSessionsTableTableManager
                 Value<int?> closingCash = const Value.absent(),
                 Value<int?> expectedCash = const Value.absent(),
                 Value<int?> difference = const Value.absent(),
+                Value<int?> openBillsAtOpenCount = const Value.absent(),
+                Value<int?> openBillsAtOpenAmount = const Value.absent(),
+                Value<int?> openBillsAtCloseCount = const Value.absent(),
+                Value<int?> openBillsAtCloseAmount = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => RegisterSessionsCompanion(
                 lastSyncedAt: lastSyncedAt,
@@ -26825,6 +27140,10 @@ class $$RegisterSessionsTableTableManager
                 closingCash: closingCash,
                 expectedCash: expectedCash,
                 difference: difference,
+                openBillsAtOpenCount: openBillsAtOpenCount,
+                openBillsAtOpenAmount: openBillsAtOpenAmount,
+                openBillsAtCloseCount: openBillsAtCloseCount,
+                openBillsAtCloseAmount: openBillsAtCloseAmount,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -26847,6 +27166,10 @@ class $$RegisterSessionsTableTableManager
                 Value<int?> closingCash = const Value.absent(),
                 Value<int?> expectedCash = const Value.absent(),
                 Value<int?> difference = const Value.absent(),
+                Value<int?> openBillsAtOpenCount = const Value.absent(),
+                Value<int?> openBillsAtOpenAmount = const Value.absent(),
+                Value<int?> openBillsAtCloseCount = const Value.absent(),
+                Value<int?> openBillsAtCloseAmount = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => RegisterSessionsCompanion.insert(
                 lastSyncedAt: lastSyncedAt,
@@ -26867,6 +27190,10 @@ class $$RegisterSessionsTableTableManager
                 closingCash: closingCash,
                 expectedCash: expectedCash,
                 difference: difference,
+                openBillsAtOpenCount: openBillsAtOpenCount,
+                openBillsAtOpenAmount: openBillsAtOpenAmount,
+                openBillsAtCloseCount: openBillsAtCloseCount,
+                openBillsAtCloseAmount: openBillsAtCloseAmount,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

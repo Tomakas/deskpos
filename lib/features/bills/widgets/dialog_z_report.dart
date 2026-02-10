@@ -120,6 +120,12 @@ class DialogZReport extends StatelessWidget {
                   _row(context, l.zReportBillsCancelled, '${data.billsCancelled}'),
                 if (data.billsRefunded > 0)
                   _row(context, l.zReportBillsRefunded, '${data.billsRefunded}'),
+                if (data.openBillsAtOpenCount > 0)
+                  _row(context, l.zReportOpenBillsAtOpen,
+                       '${data.openBillsAtOpenCount} (${_fmtKc(data.openBillsAtOpenAmount)})'),
+                if (data.openBillsAtCloseCount > 0)
+                  _row(context, l.zReportOpenBillsAtClose,
+                       '${data.openBillsAtCloseCount} (${_fmtKc(data.openBillsAtCloseAmount)})'),
                 const Divider(height: 24),
 
                 // --- Cash reconciliation ---

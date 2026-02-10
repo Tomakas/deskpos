@@ -15,6 +15,10 @@ class RegisterSessions extends Table with SyncColumnsMixin {
   IntColumn get closingCash => integer().nullable()();
   IntColumn get expectedCash => integer().nullable()();
   IntColumn get difference => integer().nullable()();
+  IntColumn get openBillsAtOpenCount => integer().nullable()();
+  IntColumn get openBillsAtOpenAmount => integer().nullable()();
+  IntColumn get openBillsAtCloseCount => integer().nullable()();
+  IntColumn get openBillsAtCloseAmount => integer().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};

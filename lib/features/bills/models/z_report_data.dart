@@ -24,6 +24,10 @@ class ZReportData {
     required this.cashWithdrawals,
     required this.cashRevenue,
     required this.shiftDurations,
+    required this.openBillsAtOpenCount,
+    required this.openBillsAtOpenAmount,
+    required this.openBillsAtCloseCount,
+    required this.openBillsAtCloseAmount,
   });
 
   final String sessionId;
@@ -55,6 +59,11 @@ class ZReportData {
 
   /// userId -> (username, duration)
   final Map<String, (String username, Duration duration)> shiftDurations;
+
+  final int openBillsAtOpenCount;
+  final int openBillsAtOpenAmount;
+  final int openBillsAtCloseCount;
+  final int openBillsAtCloseAmount;
 }
 
 class TaxBreakdownRow {

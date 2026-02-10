@@ -420,5 +420,18 @@
   "shiftsColumnLogin": "Přihlášení",
   "shiftsColumnLogout": "Odhlášení",
   "shiftsColumnDuration": "Trvání",
-  "shiftsOngoing": "probíhá"
+  "shiftsOngoing": "probíhá",
+
+  "closingOpenBillsWarningTitle": "Otevřené účty",
+  "closingOpenBillsWarningMessage": "Na konci prodeje je {count} otevřených účtů v celkové hodnotě {amount}.",
+  "@closingOpenBillsWarningMessage": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "amount": { "type": "String" }
+    }
+  },
+  "closingOpenBillsContinue": "Pokračovat",
+  "closingOpenBills": "Otevřené účty",
+  "zReportOpenBillsAtOpen": "Otevřené účty (začátek)",
+  "zReportOpenBillsAtClose": "Otevřené účty (konec)"
 }

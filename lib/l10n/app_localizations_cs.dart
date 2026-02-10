@@ -1026,4 +1026,24 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get shiftsOngoing => 'probíhá';
+
+  @override
+  String get closingOpenBillsWarningTitle => 'Otevřené účty';
+
+  @override
+  String closingOpenBillsWarningMessage(int count, String amount) {
+    return 'Na konci prodeje je $count otevřených účtů v celkové hodnotě $amount.';
+  }
+
+  @override
+  String get closingOpenBillsContinue => 'Pokračovat';
+
+  @override
+  String get closingOpenBills => 'Otevřené účty';
+
+  @override
+  String get zReportOpenBillsAtOpen => 'Otevřené účty (začátek)';
+
+  @override
+  String get zReportOpenBillsAtClose => 'Otevřené účty (konec)';
 }
