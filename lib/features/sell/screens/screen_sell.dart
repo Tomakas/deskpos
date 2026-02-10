@@ -13,7 +13,6 @@ import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/repositories/order_repository.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
-import '../../bills/widgets/dialog_new_bill.dart';
 import '../../bills/widgets/dialog_payment.dart';
 
 class ScreenSell extends ConsumerStatefulWidget {
@@ -653,14 +652,6 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
 
   Future<void> _convertToBill(BuildContext context, WidgetRef ref) async {
     if (_isSubmitting) return;
-
-    // Dialog BEFORE _isSubmitting — user can cancel freely
-    final result = await showDialog<NewBillResult>(
-      context: context,
-      builder: (_) => const DialogNewBill(),
-    );
-    if (result == null || !mounted) return;
-
     setState(() => _isSubmitting = true);
     try {
       final company = ref.read(currentCompanyProvider);
@@ -669,14 +660,12 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
 
       final billRepo = ref.read(billRepositoryProvider);
 
-      // Create regular bill (not takeaway)
+      // Create regular bill on default section, no table
       final billResult = await billRepo.createBill(
         companyId: company.id,
         userId: user.id,
         currencyId: company.defaultCurrencyId,
-        tableId: result.tableId,
         isTakeaway: false,
-        numberOfGuests: result.numberOfGuests,
       );
       if (billResult is! Success<BillModel>) return;
       final bill = billResult.value;

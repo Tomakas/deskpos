@@ -15,6 +15,7 @@ import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import 'dialog_discount.dart';
+import 'dialog_new_bill.dart';
 import 'dialog_payment.dart';
 
 class DialogBillDetail extends ConsumerWidget {
@@ -249,7 +250,10 @@ class DialogBillDetail extends ConsumerWidget {
           children: [
             _SideButton(label: l.billDetailCustomer, onPressed: null),
             const SizedBox(height: 4),
-            _SideButton(label: l.billDetailMove, onPressed: null),
+            _SideButton(
+              label: l.billDetailMove,
+              onPressed: isOpened ? () => _moveBill(context, ref, bill) : null,
+            ),
             const SizedBox(height: 4),
             _SideButton(label: l.billDetailMerge, onPressed: null),
             const SizedBox(height: 4),
@@ -397,6 +401,22 @@ class DialogBillDetail extends ConsumerWidget {
       bill.id,
       result.$1,
       result.$2,
+    );
+  }
+
+  Future<void> _moveBill(BuildContext context, WidgetRef ref, BillModel bill) async {
+    final result = await showDialog<NewBillResult>(
+      context: context,
+      builder: (_) => DialogNewBill(
+        initialTableId: bill.tableId,
+        initialNumberOfGuests: bill.numberOfGuests,
+      ),
+    );
+    if (result == null) return;
+    await ref.read(billRepositoryProvider).moveBill(
+      bill.id,
+      tableId: result.tableId,
+      numberOfGuests: result.numberOfGuests,
     );
   }
 

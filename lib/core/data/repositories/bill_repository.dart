@@ -384,6 +384,32 @@ class BillRepository {
     }
   }
 
+  Future<Result<BillModel>> moveBill(
+    String billId, {
+    required String? tableId,
+    required int numberOfGuests,
+  }) async {
+    try {
+      await (_db.update(_db.bills)..where((t) => t.id.equals(billId))).write(
+        BillsCompanion(
+          tableId: Value(tableId),
+          numberOfGuests: Value(numberOfGuests),
+          isTakeaway: const Value(false),
+          updatedAt: Value(DateTime.now()),
+        ),
+      );
+      final entity = await (_db.select(_db.bills)
+            ..where((t) => t.id.equals(billId)))
+          .getSingle();
+      final bill = billFromEntity(entity);
+      await _enqueueBill('update', bill);
+      return Success(bill);
+    } catch (e, s) {
+      AppLogger.error('Failed to move bill', error: e, stackTrace: s);
+      return Failure('Failed to move bill: $e');
+    }
+  }
+
   Future<Result<BillModel>> refundBill({
     required String billId,
     required String registerSessionId,

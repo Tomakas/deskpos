@@ -8,7 +8,14 @@ import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 
 class DialogNewBill extends ConsumerStatefulWidget {
-  const DialogNewBill({super.key});
+  const DialogNewBill({
+    super.key,
+    this.initialTableId,
+    this.initialNumberOfGuests = 0,
+  });
+
+  final String? initialTableId;
+  final int initialNumberOfGuests;
 
   @override
   ConsumerState<DialogNewBill> createState() => _DialogNewBillState();
@@ -18,6 +25,12 @@ class _DialogNewBillState extends ConsumerState<DialogNewBill> {
   String? _selectedSectionId;
   String? _selectedTableId;
   int _guestCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _guestCount = widget.initialNumberOfGuests;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,19 +48,36 @@ class _DialogNewBillState extends ConsumerState<DialogNewBill> {
             builder: (context, sectionSnap) {
               final sections = sectionSnap.data ?? [];
               if (_selectedSectionId == null && sections.isNotEmpty) {
-                final defaultSection = sections.where((s) => s.isDefault).firstOrNull;
-                if (defaultSection != null) {
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    if (mounted && _selectedSectionId == null) {
-                      setState(() => _selectedSectionId = defaultSection.id);
-                    }
-                  });
+                if (widget.initialTableId != null) {
+                  // Will resolve once tables load below
+                } else {
+                  final defaultSection = sections.where((s) => s.isDefault).firstOrNull;
+                  if (defaultSection != null) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (mounted && _selectedSectionId == null) {
+                        setState(() => _selectedSectionId = defaultSection.id);
+                      }
+                    });
+                  }
                 }
               }
               return StreamBuilder<List<TableModel>>(
                 stream: ref.watch(tableRepositoryProvider).watchAll(company.id),
                 builder: (context, tableSnap) {
                   final allTables = tableSnap.data ?? [];
+                  if (_selectedSectionId == null && widget.initialTableId != null && allTables.isNotEmpty) {
+                    final initTable = allTables.where((t) => t.id == widget.initialTableId).firstOrNull;
+                    if (initTable != null) {
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (mounted && _selectedSectionId == null) {
+                          setState(() {
+                            _selectedSectionId = initTable.sectionId;
+                            _selectedTableId = initTable.id;
+                          });
+                        }
+                      });
+                    }
+                  }
                   final filteredTables = _selectedSectionId != null
                       ? allTables.where((t) => t.sectionId == _selectedSectionId && t.isActive).toList()
                       : <TableModel>[];
