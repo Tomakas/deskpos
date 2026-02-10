@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/data/enums/bill_status.dart';
+import '../../../core/data/enums/discount_type.dart';
 import '../../../core/data/enums/prep_status.dart';
 import '../../../core/data/models/bill_model.dart';
 import '../../../core/data/models/order_item_model.dart';
@@ -13,6 +14,7 @@ import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import 'dialog_discount.dart';
 import 'dialog_payment.dart';
 
 class DialogBillDetail extends ConsumerWidget {
@@ -52,7 +54,7 @@ class DialogBillDetail extends ConsumerWidget {
                       Expanded(child: _buildOrderList(context, ref, bill, l)),
                       const VerticalDivider(width: 1),
                       // Right action buttons
-                      _buildRightButtons(context, l),
+                      _buildRightButtons(context, ref, bill, l),
                     ],
                   ),
                 ),
@@ -180,7 +182,11 @@ class DialogBillDetail extends ConsumerWidget {
               return ListView.builder(
                 padding: const EdgeInsets.all(8),
                 itemCount: orders.length,
-                itemBuilder: (context, index) => _OrderSection(order: orders[index]),
+                itemBuilder: (context, index) => _OrderSection(
+                  order: orders[index],
+                  isEditable: bill.status == BillStatus.opened,
+                  isPaid: bill.status == BillStatus.paid,
+                ),
               );
             },
           ),
@@ -189,7 +195,8 @@ class DialogBillDetail extends ConsumerWidget {
     );
   }
 
-  Widget _buildRightButtons(BuildContext context, dynamic l) {
+  Widget _buildRightButtons(BuildContext context, WidgetRef ref, BillModel bill, dynamic l) {
+    final isOpened = bill.status == BillStatus.opened;
     return SizedBox(
       width: 100,
       child: Padding(
@@ -205,6 +212,11 @@ class DialogBillDetail extends ConsumerWidget {
             _SideButton(label: l.billDetailSplit, onPressed: null),
             const SizedBox(height: 4),
             _SideButton(label: l.billDetailSummary, onPressed: null),
+            const SizedBox(height: 4),
+            _SideButton(
+              label: l.billDetailDiscount,
+              onPressed: isOpened ? () => _applyBillDiscount(context, ref, bill) : null,
+            ),
             const Spacer(),
             _SideButton(label: l.billDetailPrint, onPressed: null, color: Colors.blue),
           ],
@@ -215,6 +227,7 @@ class DialogBillDetail extends ConsumerWidget {
 
   Widget _buildFooter(BuildContext context, WidgetRef ref, BillModel bill, dynamic l) {
     final isClosed = bill.status != BillStatus.opened;
+    final isPaid = bill.status == BillStatus.paid;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -233,6 +246,19 @@ class DialogBillDetail extends ConsumerWidget {
               child: Text(l.actionClose),
             ),
           ),
+          if (isPaid) ...[
+            const SizedBox(width: 12),
+            // Refund
+            SizedBox(
+              height: 44,
+              width: 130,
+              child: FilledButton(
+                style: FilledButton.styleFrom(backgroundColor: Colors.orange),
+                onPressed: () => _refundBill(context, ref, bill, l),
+                child: Text(l.refundButton),
+              ),
+            ),
+          ],
           if (!isClosed) ...[
             const SizedBox(width: 12),
             // Cancel bill
@@ -303,6 +329,49 @@ class DialogBillDetail extends ConsumerWidget {
     }
   }
 
+  Future<void> _applyBillDiscount(BuildContext context, WidgetRef ref, BillModel bill) async {
+    final result = await showDialog<(DiscountType, int)?>(
+      context: context,
+      builder: (_) => DialogDiscount(
+        currentDiscount: bill.discountAmount,
+        currentDiscountType: bill.discountType ?? DiscountType.absolute,
+        referenceAmount: bill.subtotalGross,
+      ),
+    );
+    if (result == null) return;
+    await ref.read(billRepositoryProvider).updateDiscount(
+      bill.id,
+      result.$1,
+      result.$2,
+    );
+  }
+
+  Future<void> _refundBill(BuildContext context, WidgetRef ref, BillModel bill, dynamic l) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(l.refundTitle),
+        content: Text(l.refundConfirmFull),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    final session = ref.read(activeRegisterSessionProvider).valueOrNull;
+    final user = ref.read(activeUserProvider);
+    if (session == null || user == null) return;
+
+    final repo = ref.read(billRepositoryProvider);
+    await repo.refundBill(
+      billId: bill.id,
+      registerSessionId: session.id,
+      userId: user.id,
+    );
+  }
+
   Future<void> _payBill(BuildContext context, WidgetRef ref, BillModel bill) async {
     String? tableName;
     if (bill.tableId != null) {
@@ -351,8 +420,10 @@ class _SideButton extends StatelessWidget {
 // Order section (shows items inline, with status)
 // ---------------------------------------------------------------------------
 class _OrderSection extends ConsumerWidget {
-  const _OrderSection({required this.order});
+  const _OrderSection({required this.order, this.isEditable = false, this.isPaid = false});
   final OrderModel order;
+  final bool isEditable;
+  final bool isPaid;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -365,68 +436,252 @@ class _OrderSection extends ConsumerWidget {
       builder: (context, snap) {
         final items = snap.data ?? [];
         return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            for (final item in items)
-              Container(
-                padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
-                decoration: BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(color: Theme.of(context).dividerColor.withValues(alpha: 0.2)),
+            // Order notes (if any)
+            if (order.notes != null && order.notes!.isNotEmpty)
+              InkWell(
+                onTap: isEditable ? () => _editOrderNotes(context, ref) : null,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+                  child: Row(
+                    children: [
+                      Icon(Icons.notes, size: 14, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          order.notes!,
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            fontStyle: FontStyle.italic,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                child: Row(
-                  children: [
-                    SizedBox(
-                      width: 44,
-                      child: Text(
-                        timeFormat.format(order.createdAt),
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
+              ),
+            for (final item in items)
+              InkWell(
+                onTap: isEditable
+                    ? () => _editItemNotes(context, ref, item)
+                    : (isPaid && item.status != PrepStatus.voided)
+                        ? () => _refundItem(context, ref, item)
+                        : null,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+                  decoration: BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(color: Theme.of(context).dividerColor.withValues(alpha: 0.2)),
                     ),
-                    SizedBox(
-                      width: 36,
-                      child: Text(
-                        '${item.quantity.toStringAsFixed(item.quantity == item.quantity.roundToDouble() ? 0 : 1)} ks',
-                        style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          SizedBox(
+                            width: 44,
+                            child: Text(
+                              timeFormat.format(order.createdAt),
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ),
+                          SizedBox(
+                            width: 36,
+                            child: Text(
+                              '${item.quantity.toStringAsFixed(item.quantity == item.quantity.roundToDouble() ? 0 : 1)} ks',
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ),
+                          Expanded(child: Text(item.itemName, style: Theme.of(context).textTheme.bodyMedium)),
+                          SizedBox(
+                            width: 70,
+                            child: Text(
+                              '${(item.salePriceAtt * item.quantity).round() ~/ 100} Kč',
+                              textAlign: TextAlign.right,
+                              style: Theme.of(context).textTheme.bodyMedium,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: statusColor,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          if (order.status == PrepStatus.created ||
+                              order.status == PrepStatus.inPrep ||
+                              order.status == PrepStatus.ready)
+                            PopupMenuButton<PrepStatus>(
+                              iconSize: 16,
+                              padding: EdgeInsets.zero,
+                              onSelected: (status) => _changeStatus(ref, status),
+                              itemBuilder: (_) => _availableTransitions(order.status, l),
+                            )
+                          else
+                            const SizedBox(width: 32),
+                        ],
                       ),
-                    ),
-                    Expanded(child: Text(item.itemName, style: Theme.of(context).textTheme.bodyMedium)),
-                    SizedBox(
-                      width: 70,
-                      child: Text(
-                        '${(item.salePriceAtt * item.quantity).round() ~/ 100} Kč',
-                        textAlign: TextAlign.right,
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    // Status indicator
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: statusColor,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    // Status change popup
-                    if (order.status == PrepStatus.created ||
-                        order.status == PrepStatus.inPrep ||
-                        order.status == PrepStatus.ready)
-                      PopupMenuButton<PrepStatus>(
-                        iconSize: 16,
-                        padding: EdgeInsets.zero,
-                        onSelected: (status) => _changeStatus(ref, status),
-                        itemBuilder: (_) => _availableTransitions(order.status, l),
-                      )
-                    else
-                      const SizedBox(width: 32),
-                  ],
+                      // Item notes
+                      if (item.notes != null && item.notes!.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 80, bottom: 2),
+                          child: Text(
+                            item.notes!,
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              fontStyle: FontStyle.italic,
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               ),
           ],
         );
       },
+    );
+  }
+
+  Future<void> _editOrderNotes(BuildContext context, WidgetRef ref) async {
+    final controller = TextEditingController(text: order.notes);
+    final result = await showDialog<String?>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(context.l10n.sellNote),
+        content: SizedBox(
+          width: 300,
+          child: TextField(
+            controller: controller,
+            autofocus: true,
+            maxLines: 3,
+            decoration: InputDecoration(
+              hintText: context.l10n.sellNote,
+              border: const OutlineInputBorder(),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(context.l10n.actionCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, controller.text),
+            child: Text(context.l10n.actionSave),
+          ),
+        ],
+      ),
+    );
+    if (result != null) {
+      await ref.read(orderRepositoryProvider).updateOrderNotes(
+        order.id,
+        result.isEmpty ? null : result,
+      );
+    }
+  }
+
+  Future<void> _editItemNotes(BuildContext context, WidgetRef ref, OrderItemModel item) async {
+    final controller = TextEditingController(text: item.notes);
+    final result = await showDialog<String?>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(item.itemName),
+        content: SizedBox(
+          width: 300,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: controller,
+                autofocus: true,
+                maxLines: 3,
+                decoration: InputDecoration(
+                  hintText: context.l10n.sellNote,
+                  border: const OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                height: 40,
+                child: OutlinedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    _editItemDiscount(context, ref, item);
+                  },
+                  child: Text(context.l10n.billDetailDiscount),
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(context.l10n.actionCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, controller.text),
+            child: Text(context.l10n.actionSave),
+          ),
+        ],
+      ),
+    );
+    if (result != null) {
+      await ref.read(orderRepositoryProvider).updateItemNotes(
+        item.id,
+        result.isEmpty ? null : result,
+      );
+    }
+  }
+
+  Future<void> _editItemDiscount(BuildContext context, WidgetRef ref, OrderItemModel item) async {
+    final referenceAmount = (item.salePriceAtt * item.quantity).round();
+    final result = await showDialog<(DiscountType, int)?>(
+      context: context,
+      builder: (_) => DialogDiscount(
+        currentDiscount: item.discount,
+        currentDiscountType: item.discountType ?? DiscountType.absolute,
+        referenceAmount: referenceAmount,
+      ),
+    );
+    if (result == null) return;
+    final orderRepo = ref.read(orderRepositoryProvider);
+    await orderRepo.updateItemDiscount(item.id, result.$1, result.$2);
+    // Recalc bill totals
+    final billId = order.billId;
+    await ref.read(billRepositoryProvider).updateTotals(billId);
+  }
+
+  Future<void> _refundItem(BuildContext context, WidgetRef ref, OrderItemModel item) async {
+    final l = context.l10n;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(l.refundTitle),
+        content: Text(l.refundConfirmItem),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    final session = ref.read(activeRegisterSessionProvider).valueOrNull;
+    final user = ref.read(activeUserProvider);
+    if (session == null || user == null) return;
+
+    await ref.read(billRepositoryProvider).refundItem(
+      billId: order.billId,
+      orderItemId: item.id,
+      registerSessionId: session.id,
+      userId: user.id,
     );
   }
 

@@ -73,7 +73,13 @@ class OutboxProcessor {
       await _syncQueueRepo.markCompleted(entry.id as String);
       AppLogger.debug('Pushed $operation $entityType/${entry.entityId}', tag: 'SYNC');
     } on PostgrestException catch (e) {
-      await _handleError(entry, e.message, _isPermanentError(e));
+      // LWW_CONFLICT = server rejected stale update → mark completed, next pull wins
+      if (e.code == 'P0001' && (e.message?.contains('LWW_CONFLICT') ?? false)) {
+        await _syncQueueRepo.markCompleted(entry.id as String);
+        AppLogger.info('LWW conflict for ${entry.entityType}/${entry.entityId} — marked completed', tag: 'SYNC');
+      } else {
+        await _handleError(entry, e.message, _isPermanentError(e));
+      }
     } on AuthException catch (e) {
       await _handleError(entry, e.message, true);
     } catch (e) {
@@ -85,10 +91,9 @@ class OutboxProcessor {
   bool _isPermanentError(PostgrestException e) {
     final code = e.code;
     if (code == null) return false;
-    // 4xx-level Postgres errors (constraint violations, etc.)
-    return code.startsWith('2') || // e.g. 23xxx unique/fk violations
-        code == 'PGRST' ||
-        code == '42'; // syntax/access errors
+    return code.startsWith('2') ||      // 23xxx constraint violations
+        code.startsWith('PGRST') ||     // PostgREST errors (PGRST116, PGRST204...)
+        code.startsWith('42');          // syntax/access errors (42501, 42P01...)
   }
 
   Future<void> _handleError(dynamic entry, String error, bool permanent) async {

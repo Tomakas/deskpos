@@ -842,6 +842,39 @@ class AppLocalizationsCs extends AppLocalizations {
   }
 
   @override
+  String get billDetailDiscount => 'Sleva';
+
+  @override
+  String get billStatusRefunded => 'Refundovaný';
+
+  @override
+  String get refundTitle => 'Refund';
+
+  @override
+  String get refundConfirmFull => 'Opravdu chcete refundovat celý účet?';
+
+  @override
+  String get refundConfirmItem => 'Opravdu chcete refundovat tuto položku?';
+
+  @override
+  String get refundButton => 'REFUND';
+
+  @override
+  String get refundFullBill => 'Celý účet';
+
+  @override
+  String get refundSelectItems => 'Vybrat položky';
+
+  @override
+  String get changeTotalTitle => 'Upravit částku';
+
+  @override
+  String get changeTotalOriginal => 'Původní částka';
+
+  @override
+  String get changeTotalEdited => 'Upravená částka';
+
+  @override
   String get newBillSave => 'Uložit';
 
   @override

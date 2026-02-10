@@ -27,6 +27,7 @@ mixin _$OrderItemModel {
   int get saleTaxRateAtt => throw _privateConstructorUsedError;
   int get saleTaxAmount => throw _privateConstructorUsedError;
   int get discount => throw _privateConstructorUsedError;
+  DiscountType? get discountType => throw _privateConstructorUsedError;
   String? get notes => throw _privateConstructorUsedError;
   PrepStatus get status => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
@@ -58,6 +59,7 @@ abstract class $OrderItemModelCopyWith<$Res> {
     int saleTaxRateAtt,
     int saleTaxAmount,
     int discount,
+    DiscountType? discountType,
     String? notes,
     PrepStatus status,
     DateTime createdAt,
@@ -91,6 +93,7 @@ class _$OrderItemModelCopyWithImpl<$Res, $Val extends OrderItemModel>
     Object? saleTaxRateAtt = null,
     Object? saleTaxAmount = null,
     Object? discount = null,
+    Object? discountType = freezed,
     Object? notes = freezed,
     Object? status = null,
     Object? createdAt = null,
@@ -139,6 +142,10 @@ class _$OrderItemModelCopyWithImpl<$Res, $Val extends OrderItemModel>
                 ? _value.discount
                 : discount // ignore: cast_nullable_to_non_nullable
                       as int,
+            discountType: freezed == discountType
+                ? _value.discountType
+                : discountType // ignore: cast_nullable_to_non_nullable
+                      as DiscountType?,
             notes: freezed == notes
                 ? _value.notes
                 : notes // ignore: cast_nullable_to_non_nullable
@@ -185,6 +192,7 @@ abstract class _$$OrderItemModelImplCopyWith<$Res>
     int saleTaxRateAtt,
     int saleTaxAmount,
     int discount,
+    DiscountType? discountType,
     String? notes,
     PrepStatus status,
     DateTime createdAt,
@@ -217,6 +225,7 @@ class __$$OrderItemModelImplCopyWithImpl<$Res>
     Object? saleTaxRateAtt = null,
     Object? saleTaxAmount = null,
     Object? discount = null,
+    Object? discountType = freezed,
     Object? notes = freezed,
     Object? status = null,
     Object? createdAt = null,
@@ -265,6 +274,10 @@ class __$$OrderItemModelImplCopyWithImpl<$Res>
             ? _value.discount
             : discount // ignore: cast_nullable_to_non_nullable
                   as int,
+        discountType: freezed == discountType
+            ? _value.discountType
+            : discountType // ignore: cast_nullable_to_non_nullable
+                  as DiscountType?,
         notes: freezed == notes
             ? _value.notes
             : notes // ignore: cast_nullable_to_non_nullable
@@ -304,6 +317,7 @@ class _$OrderItemModelImpl implements _OrderItemModel {
     required this.saleTaxRateAtt,
     required this.saleTaxAmount,
     this.discount = 0,
+    this.discountType,
     this.notes,
     required this.status,
     required this.createdAt,
@@ -333,6 +347,8 @@ class _$OrderItemModelImpl implements _OrderItemModel {
   @JsonKey()
   final int discount;
   @override
+  final DiscountType? discountType;
+  @override
   final String? notes;
   @override
   final PrepStatus status;
@@ -345,7 +361,7 @@ class _$OrderItemModelImpl implements _OrderItemModel {
 
   @override
   String toString() {
-    return 'OrderItemModel(id: $id, companyId: $companyId, orderId: $orderId, itemId: $itemId, itemName: $itemName, quantity: $quantity, salePriceAtt: $salePriceAtt, saleTaxRateAtt: $saleTaxRateAtt, saleTaxAmount: $saleTaxAmount, discount: $discount, notes: $notes, status: $status, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+    return 'OrderItemModel(id: $id, companyId: $companyId, orderId: $orderId, itemId: $itemId, itemName: $itemName, quantity: $quantity, salePriceAtt: $salePriceAtt, saleTaxRateAtt: $saleTaxRateAtt, saleTaxAmount: $saleTaxAmount, discount: $discount, discountType: $discountType, notes: $notes, status: $status, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
   }
 
   @override
@@ -370,6 +386,8 @@ class _$OrderItemModelImpl implements _OrderItemModel {
                 other.saleTaxAmount == saleTaxAmount) &&
             (identical(other.discount, discount) ||
                 other.discount == discount) &&
+            (identical(other.discountType, discountType) ||
+                other.discountType == discountType) &&
             (identical(other.notes, notes) || other.notes == notes) &&
             (identical(other.status, status) || other.status == status) &&
             (identical(other.createdAt, createdAt) ||
@@ -393,6 +411,7 @@ class _$OrderItemModelImpl implements _OrderItemModel {
     saleTaxRateAtt,
     saleTaxAmount,
     discount,
+    discountType,
     notes,
     status,
     createdAt,
@@ -424,6 +443,7 @@ abstract class _OrderItemModel implements OrderItemModel {
     required final int saleTaxRateAtt,
     required final int saleTaxAmount,
     final int discount,
+    final DiscountType? discountType,
     final String? notes,
     required final PrepStatus status,
     required final DateTime createdAt,
@@ -451,6 +471,8 @@ abstract class _OrderItemModel implements OrderItemModel {
   int get saleTaxAmount;
   @override
   int get discount;
+  @override
+  DiscountType? get discountType;
   @override
   String? get notes;
   @override

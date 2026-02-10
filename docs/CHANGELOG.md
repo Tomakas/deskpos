@@ -1,5 +1,71 @@
 # Changelog
 
+## 2026-02-10 (M3.2 — Pokročilý prodej)
+
+### Pre-M3.2 Fixy
+
+#### Supabase migrace
+- `sections`: Added `is_default` boolean column
+- `cash_movements`: Added indexes on `company_id` and `updated_at`
+
+#### OutboxProcessor fix
+- `_isPermanentError`: Fixed prefix matching (`startsWith` instead of `==` for PGRST and 42 codes)
+- Added LWW_CONFLICT handling: `P0001` with `LWW_CONFLICT` message → mark completed (server wins)
+
+#### BillRepository transaction safety
+- `recordPayment`: Wrapped INSERT payment + UPDATE bill in `_db.transaction()`
+- `cancelBill`: Wrapped cascade cancel/void orders + UPDATE bill in `_db.transaction()`
+- Enqueue sync always outside transaction
+
+### Task 3.9 — Poznámky k objednávce
+
+- **OrderRepository**: `OrderItemInput` +`notes`, `createOrderWithItems` +`orderNotes` parameter, new `updateOrderNotes`, `updateItemNotes` methods
+- **ScreenSell**: Cart item tap → notes dialog, toolbar chip "Poznámka" activated for order-level notes, notes displayed under cart items
+- **DialogBillDetail**: Order notes displayed with icon, item notes under item rows, editable via tap (when bill is opened)
+
+### Task 3.7 + 3.8 — Slevy (položka + účet)
+
+#### Schema
+- New enum `DiscountType` (`absolute`, `percent`) — Dart + Supabase
+- Drift tables: `order_items` + `bills` +`discountType` (nullable textEnum)
+- Models: `OrderItemModel` + `BillModel` +`discountType`
+- Entity/push/pull mappers updated for `discount_type`
+
+#### Logic
+- `BillRepository.updateTotals`: Item discount calc (percent=basis points/10000, absolute=haléře) + bill-level discount
+- `BillRepository.updateDiscount(billId, discountType, discountAmount)`: Sets bill discount + recalc totals
+- `OrderRepository.updateItemDiscount(itemId, discountType, discount)`: Sets item discount + enqueue
+
+#### UI
+- New `DialogDiscount` widget: DiscountType toggle (Kč/%), numpad, preview of effective discount, Cancel/Delete/OK
+- `DialogBillDetail`: Right panel "SLEVA" button for bill discount (opened bills), item tap → discount button in notes dialog
+
+### Task 3.10 — Split payment
+
+- **DialogPayment**: Rewritten for split payment — stays open after partial payment, shows list of already-made payments, dynamic remaining amount
+- `_customAmount` state: null=full remaining, set via "Upravit částku" button
+- Overpayment → `tipAmount` parameter in `recordPayment` → `payments.tip_included_amount`
+- Cancel button returns `true` if any payments were made (partial payment scenario)
+- New `DialogChangeTotalToPay` widget: Quick buttons (rounded 10/50/100/500), numpad, original/edited amount display
+
+### Task 3.11b — Refund
+
+#### Schema
+- `BillStatus.refunded` added to Dart enum + Supabase `bill_status` type
+
+#### Logic
+- `BillRepository.refundBill`: Creates negative payment per original payment, sets status=refunded, auto CashMovement (withdrawal) for cash payments. All in transaction.
+- `BillRepository.refundItem`: Creates negative payment for item value, voids item, updates bill paidAmount, auto CashMovement for cash. If fully refunded → status=refunded.
+
+#### UI
+- `DialogBillDetail`: REFUND button (orange) in footer for paid bills, per-item refund via tap on item
+- `ScreenBills`: Added `refunded` filter chip (orange), row color for refunded bills
+
+### Documentation
+- **PROJECT.md**: Updated M3.2 tasks (✅), BillStatus enum (+refunded), DiscountType enum, discount calc, BillRepository methods, DialogPayment split payment, DialogBillDetail buttons, ScreenBills filters
+
+---
+
 ## 2026-02-10 (late night)
 
 ### SectionModel.isDefault — výchozí sekce

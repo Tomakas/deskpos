@@ -157,11 +157,11 @@ Funkce, které nejsou nezbytné pro základní prodej, ale rozšiřují možnost
 
 #### Milník 3.2 — Pokročilý prodej
 
-- **Task3.7** Slevy na položku — discount na OrderItem, UI pro zadání slevy
-- **Task3.8** Slevy na účet — discount_amount na Bill, UI pro zadání slevy
-- **Task3.9** Poznámky k objednávce — UI pro notes na Order a OrderItem (sloupce již ve schématu)
-- **Task3.10** Split payment — rozdělení platby mezi více platebních metod (celá částka musí být vždy uhrazena)
-- **Task3.11b** Refund — vrácení peněz po zaplacení, bill status → `refunded` (ve filtru se řadí pod "Zaplacené")
+- **Task3.7** ✅ Slevy na položku — discount na OrderItem, UI pro zadání slevy
+- **Task3.8** ✅ Slevy na účet — discount_amount na Bill, UI pro zadání slevy
+- **Task3.9** ✅ Poznámky k objednávce — UI pro notes na Order a OrderItem (sloupce již ve schématu)
+- **Task3.10** ✅ Split payment — rozdělení platby mezi více platebních metod (celá částka musí být vždy uhrazena)
+- **Task3.11b** ✅ Refund — vrácení peněz po zaplacení, bill status → `refunded` (ve filtru se řadí pod "Zaplacené")
 - **Výsledek:** Obsluha může aplikovat slevy, rozdělit platbu mezi metody, provést refund.
 
 #### Milník 3.3 — Provoz (rozšíření register session)
@@ -613,7 +613,7 @@ Klientské timestampy se ukládají v **UTC**.
 | `CompanyStatus` | `CompanyModel` | trial, subscribed, deleted |
 | `ItemType` | `ItemModel` | product, service, counter |
 | `UnitType` | `ItemModel` | ks, g, ml, m |
-| `BillStatus` | `BillModel` | opened, paid, cancelled |
+| `BillStatus` | `BillModel` | opened, paid, cancelled, refunded |
 | `PrepStatus` | `OrderModel`, `OrderItemModel` | created, inPrep, ready, delivered, cancelled, voided |
 | `PaymentType` | `PaymentMethodModel` | cash, card, bank, other |
 | `RoleName` | `RoleModel` | helper, operator, admin |
@@ -621,6 +621,7 @@ Klientské timestampy se ukládají v **UTC**.
 | `HardwareType` | `RegisterModel` | local, mobile, virtual |
 | `LayoutItemType` | `LayoutItemModel` | item, category |
 | `CashMovementType` | `CashMovementModel` | deposit, withdrawal, expense |
+| `DiscountType` | `OrderItemModel`, `BillModel` | absolute, percent |
 
 ##### ENUMs rozšíření (přidají se s příslušnými tabulkami)
 
@@ -636,7 +637,7 @@ Klientské timestampy se ukládají v **UTC**.
 
 Hodnoty ENUM jsou uloženy jako `TEXT` v lokální SQLite databázi. Drift `textEnum<T>()` automaticky zajišťuje konverzi mezi enum typy a string hodnotami.
 
-> **Poznámka:** `BillStatus` v Etapě 1–2 neobsahuje `refunded` — přidá se v Etapě 3.2 (pokročilý prodej). `ItemType` v Etapě 1–2 neobsahuje `recipe`, `ingredient`, `variant`, `modifier` — ty se přidají s příslušnými rozšířeními. `PaymentType` neobsahuje `voucher`, `points` — ty se přidají s CRM rozšířením.
+> **Poznámka:** `BillStatus` obsahuje `refunded` od Etapy 3.2. `DiscountType` (`absolute`, `percent`) byl přidán v Etapě 3.2 pro slevy na položku i účet. `ItemType` v Etapě 1–2 neobsahuje `recipe`, `ingredient`, `variant`, `modifier` — ty se přidají s příslušnými rozšířeními. `PaymentType` neobsahuje `voucher`, `points` — ty se přidají s CRM rozšířením.
 
 ---
 
@@ -774,15 +775,15 @@ graph TD
 
 Bill totaly se přepočítávají **po každé změně** (createOrder, cancelOrder, voidOrder). Výpočet zahrnuje pouze aktivní položky (ne cancelled/voided):
 
-1. `item_subtotal = sale_price_att × quantity - discount` (discount = 0 v E2)
-2. `bill.subtotal_gross = Σ(item_subtotals)` přes všechny aktivní orders
-3. `bill.tax_total = Σ(sale_tax_amount × quantity)` přes aktivní items
-4. `bill.subtotal_net = subtotal_gross - tax_total`
-5. `bill.total_gross = subtotal_gross - discount_amount + rounding_amount`
+1. `item_subtotal = sale_price_att × quantity`
+2. `item_discount = discount_type == percent ? (item_subtotal × discount / 10000) : discount`
+3. `bill.subtotal_gross = Σ(item_subtotal - item_discount)` přes všechny aktivní orders
+4. `bill.tax_total = Σ(sale_tax_amount × quantity)` přes aktivní items
+5. `bill.subtotal_net = subtotal_gross - tax_total`
+6. `bill_discount = discount_type == percent ? (subtotal_gross × discount_amount / 10000) : discount_amount`
+7. `bill.total_gross = subtotal_gross - bill_discount + rounding_amount`
 
-> **E2:** `discount_amount`, `rounding_amount` a `order_items.discount` jsou vždy 0. Zjednodušení: `total_gross = subtotal_gross`.
-
-**Slevy (od Etapy 3.2):** 2 úrovně — položka (`order_items.discount`) a účet (`bills.discount_amount`). Sloupce jsou ve schématu připraveny, UI a logika se implementují v E3.2. Slevy na úrovni objednávky (Order) neexistují.
+**Slevy (od Etapy 3.2):** 2 úrovně — položka (`order_items.discount` + `discount_type`) a účet (`bills.discount_amount` + `discount_type`). `DiscountType` enum: `absolute` (v haléřích) nebo `percent` (v setinách procenta, 10000 = 100%). UI: `DialogDiscount` s přepínačem Kč/%, numpadem a náhledem efektivní slevy. Slevy na úrovni objednávky (Order) neexistují.
 
 ### Platební metody
 
@@ -824,8 +825,9 @@ stateDiagram-v2
 | `opened` | `paid_amount < total_gross` | null |
 | `paid` | `paid_amount >= total_gross` | set |
 | `cancelled` | Manuální storno (pouze z `opened`) | set |
+| `refunded` | Vrácení peněz po `paid` | set |
 
-> **Rozšíření (Etapa 3.2):** `refunded` (vrácení peněz po `paid`, closedAt = set). Přechod: `paid → refunded`. Ve filtru ScreenBills se `refunded` řadí pod "Zaplacené". Status `partiallyPaid` neexistuje — platba musí vždy pokrýt celou částku (lze rozdělit mezi více platebních metod).
+> **Poznámka:** Ve filtru ScreenBills má `refunded` vlastní oranžový chip. Status `partiallyPaid` neexistuje — platba musí vždy pokrýt celou částku (lze rozdělit mezi více platebních metod). Refund vytváří záporné platby a automatický CashMovement (withdrawal) pro hotovostní platby.
 
 #### PrepStatus (stav přípravy objednávky a položky)
 
@@ -1107,14 +1109,13 @@ stateDiagram-v2
 #### BillRepository
 
 - **Query:** watchByCompany (s filtry status/section), watchById, watchByStatus, getById, generateBillNumber
-- **Business:** createBill, updateTotals, recordPayment (vytvoří Payment + aktualizuje Bill.paidAmount a status), cancelBill (cascade — cancel/void všech orders a items)
-- **Sync:** Injektovaný `SyncQueueRepository`, ruční enqueue — `_enqueueBill`, `_enqueueOrder`, `_enqueueOrderItem`, `_enqueuePayment`. Každá mutace (createBill, updateTotals, recordPayment, cancelBill vč. cascade) po sobě enqueueuje všechny dotčené entity.
-- **E3.2:** přibude updateStatus (pro refunded)
+- **Business:** createBill, updateTotals (s discount kalkulací), recordPayment (v transakci: vytvoří Payment + aktualizuje Bill, podpora tipAmount pro přeplatky), cancelBill (v transakci: cascade cancel/void všech orders a items), updateDiscount (bill-level sleva), refundBill (záporné platby za každou orig. platbu + auto CashMovement), refundItem (záporná platba za položku + void item + auto CashMovement)
+- **Sync:** Injektovaný `SyncQueueRepository`, ruční enqueue — `_enqueueBill`, `_enqueueOrder`, `_enqueueOrderItem`, `_enqueuePayment`, `_enqueueCashMovement`. Každá mutace po sobě enqueueuje všechny dotčené entity. DB operace v transakcích, enqueue vždy mimo transakci.
 
 #### OrderRepository
 
 - **Query:** watchByBill, watchOrderItems, getOrderItems, watchLastOrderTimesByCompany
-- **Business:** createOrderWithItems, updateStatus, startPreparation, markReady, markDelivered, cancelOrder, voidOrder
+- **Business:** createOrderWithItems (s orderNotes a item notes), updateStatus, startPreparation, markReady, markDelivered, cancelOrder, voidOrder, updateOrderNotes, updateItemNotes, updateItemDiscount
 - **Sync:** Injektovaný `SyncQueueRepository`, ruční enqueue — `_enqueueOrder`, `_enqueueOrderItem`. createOrderWithItems enqueueuje order + všechny items. updateStatus enqueueuje order + všechny items (delegující metody cancelOrder, voidOrder, startPreparation, markReady, markDelivered automaticky pokryty přes updateStatus).
 
 #### PaymentRepository
@@ -1469,12 +1470,12 @@ Layout: **80/20 horizontální split**
 **Levý panel (80%):**
 - **Top bar:** Sekce jako taby/chipy (radio — vždy jeden aktivní, první tab „Vše"), tlačítko Řazení
 - **Tabulka:** Stůl, Host, Počet hostů, Celkem, Poslední objednávka (relativní čas), Obsluha
-- **Barva řádku** = status účtu (opened, paid, cancelled — dle barevného systému)
+- **Barva řádku** = status účtu (opened=modrá, paid=zelená, cancelled=růžová, refunded=oranžová)
 - **Sloupec Host:** Prázdný v E1-2 (zobrazí se až s CRM rozšířením)
 - **Sloupec Poslední objednávka:** Relativní čas (< 1min, Xmin, Xh Ym) — aktualizuje se reaktivně ze streamu
-- **Bottom bar:** FilterChip pro filtrování podle statusu (Otevřené, Zaplacené, Stornované)
+- **Bottom bar:** FilterChip pro filtrování podle statusu (Otevřené, Zaplacené, Stornované, Refundované)
   - **Výchozí stav:** Pouze "Otevřené" vybrané
-  - **Barvy chipů:** Modrá (otevřené), Zelená (zaplacené), Růžová (stornované)
+  - **Barvy chipů:** Modrá (otevřené), Zelená (zaplacené), Růžová (stornované), Oranžová (refundované)
   - **Responsivní layout:** FilterChipy v `Row` s `Expanded` — rovnoměrné rozložení na celou šířku (viz [UI Patterns v CLAUDE.md](#))
 - **Prázdný stav:** Tabulka s hlavičkou, bez řádků, žádný placeholder text
 - **Sloupec Stůl:** Pro `isTakeaway` účty zobrazuje lokalizovaný text "Rychlý účet"
@@ -1514,8 +1515,9 @@ Dialog (750×520px) s informacemi o účtu a historií objednávek. 3-řádkový
 **Centrum:** Historie objednávek — čas (HH:mm), množství (N ks), položka, cena, barevný status indikátor (● — modrá/oranžová/zelená/šedá/červená dle PrepStatus), PopupMenu pro změnu stavu (⋮)
 **Pravý sloupec (100px):** 6 tlačítek — Zákazník, Přesunout, Sloučit, Rozdělit, Sumář, Tisk (všechny disabled, E3+). Tisk má modrou tónovanou barvu.
 **Bottom:** Podmíněný footer dle stavu účtu:
-  - Otevřený bill: STORNO (outlined červená, s potvrzením → cancelBill), ZAVŘÍT (červená), ZAPLATIT (zelená, jen pokud totalGross > 0 → DialogPayment), OBJEDNAT (modrá → `/sell/{billId}`)
-  - Uzavřený bill: pouze ZAVŘÍT
+  - Otevřený bill: ZAVŘÍT (červená), STORNO (outlined červená, s potvrzením → cancelBill), ZAPLATIT (zelená, jen pokud totalGross > 0 → DialogPayment), OBJEDNAT (modrá → `/sell/{billId}`)
+  - Zaplacený bill: ZAVŘÍT + REFUND (oranžová, s potvrzením → refundBill). Klik na položku → refund per-item (s potvrzením).
+  - Ostatní (cancelled, refunded): pouze ZAVŘÍT
 
 **Dostupnost tlačítek podle etapy:**
 
@@ -1525,6 +1527,8 @@ Dialog (750×520px) s informacemi o účtu a historií objednávek. 3-řádkový
 | ZAPLATIT | E2 | Otevře DialogPayment (jen pokud totalGross > 0) |
 | STORNO | E2 | Storno účtu (cancelBill, s potvrzením) |
 | ZAVŘÍT | E2 | Zavře dialog (Navigator.pop) |
+| REFUND | E3.2 | Refund celého účtu (jen pro paid bill, s potvrzením) |
+| SLEVA | E3.2 | Sleva na účet (DialogDiscount, jen pro opened bill) |
 | ZÁKAZNÍK | E3+ | Přiřazení zákazníka (CRM) |
 | PŘESUNOUT | E3+ | Přesun na jiný stůl |
 | SLOUČIT | E3+ | Sloučení účtů |
@@ -1548,11 +1552,13 @@ Layout: **3-sloupcový** (max 600px šířka, IntrinsicHeight)
 └──────────────┴────────────────────────┴──────────────┘
 ```
 
-**Levý sloupec (130px):** Akční tlačítka — Jiná měna, EET, Upravit výši, Kombinovat platby (všechny disabled, E3+). ZRUŠIT (červená, zavře dialog).
-**Centrum (expanded):** Nadpis "PLATBA", číslo účtu + stůl, zbývající částka (velký bold), spropitné (0 Kč), tisk účtenky (ANO).
-**Pravý sloupec (130px):** Platební metody — streamované z DB, pouze aktivní. Každá metoda = zelené tlačítko (48px). Click-to-pay: klik přímo zaplatí celou zbývající částku danou metodou (bez potvrzení). Jiná platba (disabled, budoucí).
+**Levý sloupec (130px):** Akční tlačítka — Jiná měna (disabled), EET (disabled), Upravit částku (otevře DialogChangeTotalToPay pro custom amount). ZRUŠIT (červená, zavře dialog — vrací `true` pokud byly provedeny platby).
+**Centrum (expanded):** Nadpis "PLATBA", číslo účtu + stůl, seznam již provedených plateb (streamováno), zbývající částka (velký bold). Pokud je nastavena custom částka, zobrazuje se pod zbývající částkou. Při přeplatku zobrazuje spropitné.
+**Pravý sloupec (130px):** Platební metody — streamované z DB, pouze aktivní. Každá metoda = zelené tlačítko (48px). Click-to-pay: klik zaplatí `customAmount ?? remaining` danou metodou. Jiná platba (disabled, budoucí).
 
-**Click-to-pay pattern:** Klik na platební metodu → `recordPayment(amount: remaining)` → dialog se zavře s `true`. Během zpracování jsou všechna tlačítka disabled (`_processing` flag).
+**Split payment pattern:** Po platbě se dialog nezavře, pokud `paidAmount < totalGross` — aktualizuje se `_bill` z výsledku `recordPayment`, resetuje `_customAmount`, zobrazí se zbytek k úhradě + seznam provedených plateb. Dialog se zavře s `true` teprve při plné úhradě (`paidAmount >= totalGross`).
+**Přeplatek:** Pokud `customAmount > remaining`, rozdíl se předá jako `tipAmount` do `recordPayment` a uloží do `payments.tip_included_amount`.
+**DialogChangeTotalToPay:** Numpad dialog s quick buttons (zaokrouhlené hodnoty 10/50/100/500) pro zadání custom částky. Vstup: `originalAmount` (zbývající v haléřích). Výstup: `int` (částka v haléřích) nebo null.
 
 #### ScreenSell (prodejní obrazovka)
 

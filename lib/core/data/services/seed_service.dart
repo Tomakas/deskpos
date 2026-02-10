@@ -226,7 +226,7 @@ class SeedService {
         final zahradkaId = _id();
         final interniId = _id();
         final sections = [
-          SectionModel(id: hlavniId, companyId: companyId, name: 'Hlavní', color: '#4CAF50', createdAt: now, updatedAt: now),
+          SectionModel(id: hlavniId, companyId: companyId, name: 'Hlavní', color: '#4CAF50', isDefault: true, createdAt: now, updatedAt: now),
           SectionModel(id: zahradkaId, companyId: companyId, name: 'Zahrádka', color: '#FF9800', createdAt: now, updatedAt: now),
           SectionModel(id: interniId, companyId: companyId, name: 'Interní', color: '#9E9E9E', createdAt: now, updatedAt: now),
         ];

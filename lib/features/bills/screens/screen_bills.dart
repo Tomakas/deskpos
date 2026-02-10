@@ -568,6 +568,7 @@ class _BillRow extends StatelessWidget {
       BillStatus.opened => Colors.blue.withValues(alpha: 0.08),
       BillStatus.paid => Colors.green.withValues(alpha: 0.08),
       BillStatus.cancelled => Colors.pink.withValues(alpha: 0.08),
+      BillStatus.refunded => Colors.orange.withValues(alpha: 0.08),
     };
   }
 
@@ -641,6 +642,7 @@ class _StatusFilterBar extends StatelessWidget {
       (BillStatus.opened, l.billsFilterOpened, Colors.blue),
       (BillStatus.paid, l.billsFilterPaid, Colors.green),
       (BillStatus.cancelled, l.billsFilterCancelled, Colors.pink),
+      (BillStatus.refunded, l.billStatusRefunded, Colors.orange),
     ];
 
     return Container(

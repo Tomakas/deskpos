@@ -1702,6 +1702,72 @@ abstract class AppLocalizations {
   /// **'Účet {billNumber} - {tableName}'**
   String paymentBillSubtitle(String billNumber, String tableName);
 
+  /// No description provided for @billDetailDiscount.
+  ///
+  /// In cs, this message translates to:
+  /// **'Sleva'**
+  String get billDetailDiscount;
+
+  /// No description provided for @billStatusRefunded.
+  ///
+  /// In cs, this message translates to:
+  /// **'Refundovaný'**
+  String get billStatusRefunded;
+
+  /// No description provided for @refundTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Refund'**
+  String get refundTitle;
+
+  /// No description provided for @refundConfirmFull.
+  ///
+  /// In cs, this message translates to:
+  /// **'Opravdu chcete refundovat celý účet?'**
+  String get refundConfirmFull;
+
+  /// No description provided for @refundConfirmItem.
+  ///
+  /// In cs, this message translates to:
+  /// **'Opravdu chcete refundovat tuto položku?'**
+  String get refundConfirmItem;
+
+  /// No description provided for @refundButton.
+  ///
+  /// In cs, this message translates to:
+  /// **'REFUND'**
+  String get refundButton;
+
+  /// No description provided for @refundFullBill.
+  ///
+  /// In cs, this message translates to:
+  /// **'Celý účet'**
+  String get refundFullBill;
+
+  /// No description provided for @refundSelectItems.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vybrat položky'**
+  String get refundSelectItems;
+
+  /// No description provided for @changeTotalTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Upravit částku'**
+  String get changeTotalTitle;
+
+  /// No description provided for @changeTotalOriginal.
+  ///
+  /// In cs, this message translates to:
+  /// **'Původní částka'**
+  String get changeTotalOriginal;
+
+  /// No description provided for @changeTotalEdited.
+  ///
+  /// In cs, this message translates to:
+  /// **'Upravená částka'**
+  String get changeTotalEdited;
+
   /// No description provided for @newBillSave.
   ///
   /// In cs, this message translates to:

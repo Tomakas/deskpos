@@ -226,6 +226,15 @@ class $BillsTable extends Bills with TableInfo<$BillsTable, Bill> {
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
+  @override
+  late final GeneratedColumnWithTypeConverter<DiscountType?, String>
+  discountType = GeneratedColumn<String>(
+    'discount_type',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  ).withConverter<DiscountType?>($BillsTable.$converterdiscountTypen);
   static const VerificationMeta _taxTotalMeta = const VerificationMeta(
     'taxTotal',
   );
@@ -317,6 +326,7 @@ class $BillsTable extends Bills with TableInfo<$BillsTable, Bill> {
     subtotalGross,
     subtotalNet,
     discountAmount,
+    discountType,
     taxTotal,
     totalGross,
     roundingAmount,
@@ -603,6 +613,12 @@ class $BillsTable extends Bills with TableInfo<$BillsTable, Bill> {
         DriftSqlType.int,
         data['${effectivePrefix}discount_amount'],
       )!,
+      discountType: $BillsTable.$converterdiscountTypen.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}discount_type'],
+        ),
+      ),
       taxTotal: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}tax_total'],
@@ -637,6 +653,14 @@ class $BillsTable extends Bills with TableInfo<$BillsTable, Bill> {
 
   static JsonTypeConverter2<BillStatus, String, String> $converterstatus =
       const EnumNameConverter<BillStatus>(BillStatus.values);
+  static JsonTypeConverter2<DiscountType, String, String>
+  $converterdiscountType = const EnumNameConverter<DiscountType>(
+    DiscountType.values,
+  );
+  static JsonTypeConverter2<DiscountType?, String?, String?>
+  $converterdiscountTypen = JsonTypeConverter2.asNullable(
+    $converterdiscountType,
+  );
 }
 
 class Bill extends DataClass implements Insertable<Bill> {
@@ -659,6 +683,7 @@ class Bill extends DataClass implements Insertable<Bill> {
   final int subtotalGross;
   final int subtotalNet;
   final int discountAmount;
+  final DiscountType? discountType;
   final int taxTotal;
   final int totalGross;
   final int roundingAmount;
@@ -685,6 +710,7 @@ class Bill extends DataClass implements Insertable<Bill> {
     required this.subtotalGross,
     required this.subtotalNet,
     required this.discountAmount,
+    this.discountType,
     required this.taxTotal,
     required this.totalGross,
     required this.roundingAmount,
@@ -728,6 +754,11 @@ class Bill extends DataClass implements Insertable<Bill> {
     map['subtotal_gross'] = Variable<int>(subtotalGross);
     map['subtotal_net'] = Variable<int>(subtotalNet);
     map['discount_amount'] = Variable<int>(discountAmount);
+    if (!nullToAbsent || discountType != null) {
+      map['discount_type'] = Variable<String>(
+        $BillsTable.$converterdiscountTypen.toSql(discountType),
+      );
+    }
     map['tax_total'] = Variable<int>(taxTotal);
     map['total_gross'] = Variable<int>(totalGross);
     map['rounding_amount'] = Variable<int>(roundingAmount);
@@ -770,6 +801,9 @@ class Bill extends DataClass implements Insertable<Bill> {
       subtotalGross: Value(subtotalGross),
       subtotalNet: Value(subtotalNet),
       discountAmount: Value(discountAmount),
+      discountType: discountType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(discountType),
       taxTotal: Value(taxTotal),
       totalGross: Value(totalGross),
       roundingAmount: Value(roundingAmount),
@@ -808,6 +842,9 @@ class Bill extends DataClass implements Insertable<Bill> {
       subtotalGross: serializer.fromJson<int>(json['subtotalGross']),
       subtotalNet: serializer.fromJson<int>(json['subtotalNet']),
       discountAmount: serializer.fromJson<int>(json['discountAmount']),
+      discountType: $BillsTable.$converterdiscountTypen.fromJson(
+        serializer.fromJson<String?>(json['discountType']),
+      ),
       taxTotal: serializer.fromJson<int>(json['taxTotal']),
       totalGross: serializer.fromJson<int>(json['totalGross']),
       roundingAmount: serializer.fromJson<int>(json['roundingAmount']),
@@ -841,6 +878,9 @@ class Bill extends DataClass implements Insertable<Bill> {
       'subtotalGross': serializer.toJson<int>(subtotalGross),
       'subtotalNet': serializer.toJson<int>(subtotalNet),
       'discountAmount': serializer.toJson<int>(discountAmount),
+      'discountType': serializer.toJson<String?>(
+        $BillsTable.$converterdiscountTypen.toJson(discountType),
+      ),
       'taxTotal': serializer.toJson<int>(taxTotal),
       'totalGross': serializer.toJson<int>(totalGross),
       'roundingAmount': serializer.toJson<int>(roundingAmount),
@@ -870,6 +910,7 @@ class Bill extends DataClass implements Insertable<Bill> {
     int? subtotalGross,
     int? subtotalNet,
     int? discountAmount,
+    Value<DiscountType?> discountType = const Value.absent(),
     int? taxTotal,
     int? totalGross,
     int? roundingAmount,
@@ -900,6 +941,7 @@ class Bill extends DataClass implements Insertable<Bill> {
     subtotalGross: subtotalGross ?? this.subtotalGross,
     subtotalNet: subtotalNet ?? this.subtotalNet,
     discountAmount: discountAmount ?? this.discountAmount,
+    discountType: discountType.present ? discountType.value : this.discountType,
     taxTotal: taxTotal ?? this.taxTotal,
     totalGross: totalGross ?? this.totalGross,
     roundingAmount: roundingAmount ?? this.roundingAmount,
@@ -950,6 +992,9 @@ class Bill extends DataClass implements Insertable<Bill> {
       discountAmount: data.discountAmount.present
           ? data.discountAmount.value
           : this.discountAmount,
+      discountType: data.discountType.present
+          ? data.discountType.value
+          : this.discountType,
       taxTotal: data.taxTotal.present ? data.taxTotal.value : this.taxTotal,
       totalGross: data.totalGross.present
           ? data.totalGross.value
@@ -987,6 +1032,7 @@ class Bill extends DataClass implements Insertable<Bill> {
           ..write('subtotalGross: $subtotalGross, ')
           ..write('subtotalNet: $subtotalNet, ')
           ..write('discountAmount: $discountAmount, ')
+          ..write('discountType: $discountType, ')
           ..write('taxTotal: $taxTotal, ')
           ..write('totalGross: $totalGross, ')
           ..write('roundingAmount: $roundingAmount, ')
@@ -1018,6 +1064,7 @@ class Bill extends DataClass implements Insertable<Bill> {
     subtotalGross,
     subtotalNet,
     discountAmount,
+    discountType,
     taxTotal,
     totalGross,
     roundingAmount,
@@ -1048,6 +1095,7 @@ class Bill extends DataClass implements Insertable<Bill> {
           other.subtotalGross == this.subtotalGross &&
           other.subtotalNet == this.subtotalNet &&
           other.discountAmount == this.discountAmount &&
+          other.discountType == this.discountType &&
           other.taxTotal == this.taxTotal &&
           other.totalGross == this.totalGross &&
           other.roundingAmount == this.roundingAmount &&
@@ -1076,6 +1124,7 @@ class BillsCompanion extends UpdateCompanion<Bill> {
   final Value<int> subtotalGross;
   final Value<int> subtotalNet;
   final Value<int> discountAmount;
+  final Value<DiscountType?> discountType;
   final Value<int> taxTotal;
   final Value<int> totalGross;
   final Value<int> roundingAmount;
@@ -1103,6 +1152,7 @@ class BillsCompanion extends UpdateCompanion<Bill> {
     this.subtotalGross = const Value.absent(),
     this.subtotalNet = const Value.absent(),
     this.discountAmount = const Value.absent(),
+    this.discountType = const Value.absent(),
     this.taxTotal = const Value.absent(),
     this.totalGross = const Value.absent(),
     this.roundingAmount = const Value.absent(),
@@ -1131,6 +1181,7 @@ class BillsCompanion extends UpdateCompanion<Bill> {
     this.subtotalGross = const Value.absent(),
     this.subtotalNet = const Value.absent(),
     this.discountAmount = const Value.absent(),
+    this.discountType = const Value.absent(),
     this.taxTotal = const Value.absent(),
     this.totalGross = const Value.absent(),
     this.roundingAmount = const Value.absent(),
@@ -1165,6 +1216,7 @@ class BillsCompanion extends UpdateCompanion<Bill> {
     Expression<int>? subtotalGross,
     Expression<int>? subtotalNet,
     Expression<int>? discountAmount,
+    Expression<String>? discountType,
     Expression<int>? taxTotal,
     Expression<int>? totalGross,
     Expression<int>? roundingAmount,
@@ -1193,6 +1245,7 @@ class BillsCompanion extends UpdateCompanion<Bill> {
       if (subtotalGross != null) 'subtotal_gross': subtotalGross,
       if (subtotalNet != null) 'subtotal_net': subtotalNet,
       if (discountAmount != null) 'discount_amount': discountAmount,
+      if (discountType != null) 'discount_type': discountType,
       if (taxTotal != null) 'tax_total': taxTotal,
       if (totalGross != null) 'total_gross': totalGross,
       if (roundingAmount != null) 'rounding_amount': roundingAmount,
@@ -1223,6 +1276,7 @@ class BillsCompanion extends UpdateCompanion<Bill> {
     Value<int>? subtotalGross,
     Value<int>? subtotalNet,
     Value<int>? discountAmount,
+    Value<DiscountType?>? discountType,
     Value<int>? taxTotal,
     Value<int>? totalGross,
     Value<int>? roundingAmount,
@@ -1251,6 +1305,7 @@ class BillsCompanion extends UpdateCompanion<Bill> {
       subtotalGross: subtotalGross ?? this.subtotalGross,
       subtotalNet: subtotalNet ?? this.subtotalNet,
       discountAmount: discountAmount ?? this.discountAmount,
+      discountType: discountType ?? this.discountType,
       taxTotal: taxTotal ?? this.taxTotal,
       totalGross: totalGross ?? this.totalGross,
       roundingAmount: roundingAmount ?? this.roundingAmount,
@@ -1323,6 +1378,11 @@ class BillsCompanion extends UpdateCompanion<Bill> {
     if (discountAmount.present) {
       map['discount_amount'] = Variable<int>(discountAmount.value);
     }
+    if (discountType.present) {
+      map['discount_type'] = Variable<String>(
+        $BillsTable.$converterdiscountTypen.toSql(discountType.value),
+      );
+    }
     if (taxTotal.present) {
       map['tax_total'] = Variable<int>(taxTotal.value);
     }
@@ -1369,6 +1429,7 @@ class BillsCompanion extends UpdateCompanion<Bill> {
           ..write('subtotalGross: $subtotalGross, ')
           ..write('subtotalNet: $subtotalNet, ')
           ..write('discountAmount: $discountAmount, ')
+          ..write('discountType: $discountType, ')
           ..write('taxTotal: $taxTotal, ')
           ..write('totalGross: $totalGross, ')
           ..write('roundingAmount: $roundingAmount, ')
@@ -7121,6 +7182,15 @@ class $OrderItemsTable extends OrderItems
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
+  @override
+  late final GeneratedColumnWithTypeConverter<DiscountType?, String>
+  discountType = GeneratedColumn<String>(
+    'discount_type',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  ).withConverter<DiscountType?>($OrderItemsTable.$converterdiscountTypen);
   static const VerificationMeta _notesMeta = const VerificationMeta('notes');
   @override
   late final GeneratedColumn<String> notes = GeneratedColumn<String>(
@@ -7158,6 +7228,7 @@ class $OrderItemsTable extends OrderItems
     saleTaxRateAtt,
     saleTaxAmount,
     discount,
+    discountType,
     notes,
     status,
   ];
@@ -7391,6 +7462,12 @@ class $OrderItemsTable extends OrderItems
         DriftSqlType.int,
         data['${effectivePrefix}discount'],
       )!,
+      discountType: $OrderItemsTable.$converterdiscountTypen.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}discount_type'],
+        ),
+      ),
       notes: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}notes'],
@@ -7409,6 +7486,14 @@ class $OrderItemsTable extends OrderItems
     return $OrderItemsTable(attachedDatabase, alias);
   }
 
+  static JsonTypeConverter2<DiscountType, String, String>
+  $converterdiscountType = const EnumNameConverter<DiscountType>(
+    DiscountType.values,
+  );
+  static JsonTypeConverter2<DiscountType?, String?, String?>
+  $converterdiscountTypen = JsonTypeConverter2.asNullable(
+    $converterdiscountType,
+  );
   static JsonTypeConverter2<PrepStatus, String, String> $converterstatus =
       const EnumNameConverter<PrepStatus>(PrepStatus.values);
 }
@@ -7431,6 +7516,7 @@ class OrderItem extends DataClass implements Insertable<OrderItem> {
   final int saleTaxRateAtt;
   final int saleTaxAmount;
   final int discount;
+  final DiscountType? discountType;
   final String? notes;
   final PrepStatus status;
   const OrderItem({
@@ -7451,6 +7537,7 @@ class OrderItem extends DataClass implements Insertable<OrderItem> {
     required this.saleTaxRateAtt,
     required this.saleTaxAmount,
     required this.discount,
+    this.discountType,
     this.notes,
     required this.status,
   });
@@ -7482,6 +7569,11 @@ class OrderItem extends DataClass implements Insertable<OrderItem> {
     map['sale_tax_rate_att'] = Variable<int>(saleTaxRateAtt);
     map['sale_tax_amount'] = Variable<int>(saleTaxAmount);
     map['discount'] = Variable<int>(discount);
+    if (!nullToAbsent || discountType != null) {
+      map['discount_type'] = Variable<String>(
+        $OrderItemsTable.$converterdiscountTypen.toSql(discountType),
+      );
+    }
     if (!nullToAbsent || notes != null) {
       map['notes'] = Variable<String>(notes);
     }
@@ -7520,6 +7612,9 @@ class OrderItem extends DataClass implements Insertable<OrderItem> {
       saleTaxRateAtt: Value(saleTaxRateAtt),
       saleTaxAmount: Value(saleTaxAmount),
       discount: Value(discount),
+      discountType: discountType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(discountType),
       notes: notes == null && nullToAbsent
           ? const Value.absent()
           : Value(notes),
@@ -7550,6 +7645,9 @@ class OrderItem extends DataClass implements Insertable<OrderItem> {
       saleTaxRateAtt: serializer.fromJson<int>(json['saleTaxRateAtt']),
       saleTaxAmount: serializer.fromJson<int>(json['saleTaxAmount']),
       discount: serializer.fromJson<int>(json['discount']),
+      discountType: $OrderItemsTable.$converterdiscountTypen.fromJson(
+        serializer.fromJson<String?>(json['discountType']),
+      ),
       notes: serializer.fromJson<String?>(json['notes']),
       status: $OrderItemsTable.$converterstatus.fromJson(
         serializer.fromJson<String>(json['status']),
@@ -7577,6 +7675,9 @@ class OrderItem extends DataClass implements Insertable<OrderItem> {
       'saleTaxRateAtt': serializer.toJson<int>(saleTaxRateAtt),
       'saleTaxAmount': serializer.toJson<int>(saleTaxAmount),
       'discount': serializer.toJson<int>(discount),
+      'discountType': serializer.toJson<String?>(
+        $OrderItemsTable.$converterdiscountTypen.toJson(discountType),
+      ),
       'notes': serializer.toJson<String?>(notes),
       'status': serializer.toJson<String>(
         $OrderItemsTable.$converterstatus.toJson(status),
@@ -7602,6 +7703,7 @@ class OrderItem extends DataClass implements Insertable<OrderItem> {
     int? saleTaxRateAtt,
     int? saleTaxAmount,
     int? discount,
+    Value<DiscountType?> discountType = const Value.absent(),
     Value<String?> notes = const Value.absent(),
     PrepStatus? status,
   }) => OrderItem(
@@ -7626,6 +7728,7 @@ class OrderItem extends DataClass implements Insertable<OrderItem> {
     saleTaxRateAtt: saleTaxRateAtt ?? this.saleTaxRateAtt,
     saleTaxAmount: saleTaxAmount ?? this.saleTaxAmount,
     discount: discount ?? this.discount,
+    discountType: discountType.present ? discountType.value : this.discountType,
     notes: notes.present ? notes.value : this.notes,
     status: status ?? this.status,
   );
@@ -7660,6 +7763,9 @@ class OrderItem extends DataClass implements Insertable<OrderItem> {
           ? data.saleTaxAmount.value
           : this.saleTaxAmount,
       discount: data.discount.present ? data.discount.value : this.discount,
+      discountType: data.discountType.present
+          ? data.discountType.value
+          : this.discountType,
       notes: data.notes.present ? data.notes.value : this.notes,
       status: data.status.present ? data.status.value : this.status,
     );
@@ -7685,6 +7791,7 @@ class OrderItem extends DataClass implements Insertable<OrderItem> {
           ..write('saleTaxRateAtt: $saleTaxRateAtt, ')
           ..write('saleTaxAmount: $saleTaxAmount, ')
           ..write('discount: $discount, ')
+          ..write('discountType: $discountType, ')
           ..write('notes: $notes, ')
           ..write('status: $status')
           ..write(')'))
@@ -7710,6 +7817,7 @@ class OrderItem extends DataClass implements Insertable<OrderItem> {
     saleTaxRateAtt,
     saleTaxAmount,
     discount,
+    discountType,
     notes,
     status,
   );
@@ -7734,6 +7842,7 @@ class OrderItem extends DataClass implements Insertable<OrderItem> {
           other.saleTaxRateAtt == this.saleTaxRateAtt &&
           other.saleTaxAmount == this.saleTaxAmount &&
           other.discount == this.discount &&
+          other.discountType == this.discountType &&
           other.notes == this.notes &&
           other.status == this.status);
 }
@@ -7756,6 +7865,7 @@ class OrderItemsCompanion extends UpdateCompanion<OrderItem> {
   final Value<int> saleTaxRateAtt;
   final Value<int> saleTaxAmount;
   final Value<int> discount;
+  final Value<DiscountType?> discountType;
   final Value<String?> notes;
   final Value<PrepStatus> status;
   final Value<int> rowid;
@@ -7777,6 +7887,7 @@ class OrderItemsCompanion extends UpdateCompanion<OrderItem> {
     this.saleTaxRateAtt = const Value.absent(),
     this.saleTaxAmount = const Value.absent(),
     this.discount = const Value.absent(),
+    this.discountType = const Value.absent(),
     this.notes = const Value.absent(),
     this.status = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -7799,6 +7910,7 @@ class OrderItemsCompanion extends UpdateCompanion<OrderItem> {
     required int saleTaxRateAtt,
     required int saleTaxAmount,
     this.discount = const Value.absent(),
+    this.discountType = const Value.absent(),
     this.notes = const Value.absent(),
     required PrepStatus status,
     this.rowid = const Value.absent(),
@@ -7830,6 +7942,7 @@ class OrderItemsCompanion extends UpdateCompanion<OrderItem> {
     Expression<int>? saleTaxRateAtt,
     Expression<int>? saleTaxAmount,
     Expression<int>? discount,
+    Expression<String>? discountType,
     Expression<String>? notes,
     Expression<String>? status,
     Expression<int>? rowid,
@@ -7852,6 +7965,7 @@ class OrderItemsCompanion extends UpdateCompanion<OrderItem> {
       if (saleTaxRateAtt != null) 'sale_tax_rate_att': saleTaxRateAtt,
       if (saleTaxAmount != null) 'sale_tax_amount': saleTaxAmount,
       if (discount != null) 'discount': discount,
+      if (discountType != null) 'discount_type': discountType,
       if (notes != null) 'notes': notes,
       if (status != null) 'status': status,
       if (rowid != null) 'rowid': rowid,
@@ -7876,6 +7990,7 @@ class OrderItemsCompanion extends UpdateCompanion<OrderItem> {
     Value<int>? saleTaxRateAtt,
     Value<int>? saleTaxAmount,
     Value<int>? discount,
+    Value<DiscountType?>? discountType,
     Value<String?>? notes,
     Value<PrepStatus>? status,
     Value<int>? rowid,
@@ -7898,6 +8013,7 @@ class OrderItemsCompanion extends UpdateCompanion<OrderItem> {
       saleTaxRateAtt: saleTaxRateAtt ?? this.saleTaxRateAtt,
       saleTaxAmount: saleTaxAmount ?? this.saleTaxAmount,
       discount: discount ?? this.discount,
+      discountType: discountType ?? this.discountType,
       notes: notes ?? this.notes,
       status: status ?? this.status,
       rowid: rowid ?? this.rowid,
@@ -7958,6 +8074,11 @@ class OrderItemsCompanion extends UpdateCompanion<OrderItem> {
     if (discount.present) {
       map['discount'] = Variable<int>(discount.value);
     }
+    if (discountType.present) {
+      map['discount_type'] = Variable<String>(
+        $OrderItemsTable.$converterdiscountTypen.toSql(discountType.value),
+      );
+    }
     if (notes.present) {
       map['notes'] = Variable<String>(notes.value);
     }
@@ -7992,6 +8113,7 @@ class OrderItemsCompanion extends UpdateCompanion<OrderItem> {
           ..write('saleTaxRateAtt: $saleTaxRateAtt, ')
           ..write('saleTaxAmount: $saleTaxAmount, ')
           ..write('discount: $discount, ')
+          ..write('discountType: $discountType, ')
           ..write('notes: $notes, ')
           ..write('status: $status, ')
           ..write('rowid: $rowid')
@@ -20216,6 +20338,7 @@ typedef $$BillsTableCreateCompanionBuilder =
       Value<int> subtotalGross,
       Value<int> subtotalNet,
       Value<int> discountAmount,
+      Value<DiscountType?> discountType,
       Value<int> taxTotal,
       Value<int> totalGross,
       Value<int> roundingAmount,
@@ -20245,6 +20368,7 @@ typedef $$BillsTableUpdateCompanionBuilder =
       Value<int> subtotalGross,
       Value<int> subtotalNet,
       Value<int> discountAmount,
+      Value<DiscountType?> discountType,
       Value<int> taxTotal,
       Value<int> totalGross,
       Value<int> roundingAmount,
@@ -20356,6 +20480,12 @@ class $$BillsTableFilterComposer extends Composer<_$AppDatabase, $BillsTable> {
   ColumnFilters<int> get discountAmount => $composableBuilder(
     column: $table.discountAmount,
     builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<DiscountType?, DiscountType, String>
+  get discountType => $composableBuilder(
+    column: $table.discountType,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
   );
 
   ColumnFilters<int> get taxTotal => $composableBuilder(
@@ -20493,6 +20623,11 @@ class $$BillsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get discountType => $composableBuilder(
+    column: $table.discountType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get taxTotal => $composableBuilder(
     column: $table.taxTotal,
     builder: (column) => ColumnOrderings(column),
@@ -20612,6 +20747,12 @@ class $$BillsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumnWithTypeConverter<DiscountType?, String> get discountType =>
+      $composableBuilder(
+        column: $table.discountType,
+        builder: (column) => column,
+      );
+
   GeneratedColumn<int> get taxTotal =>
       $composableBuilder(column: $table.taxTotal, builder: (column) => column);
 
@@ -20684,6 +20825,7 @@ class $$BillsTableTableManager
                 Value<int> subtotalGross = const Value.absent(),
                 Value<int> subtotalNet = const Value.absent(),
                 Value<int> discountAmount = const Value.absent(),
+                Value<DiscountType?> discountType = const Value.absent(),
                 Value<int> taxTotal = const Value.absent(),
                 Value<int> totalGross = const Value.absent(),
                 Value<int> roundingAmount = const Value.absent(),
@@ -20711,6 +20853,7 @@ class $$BillsTableTableManager
                 subtotalGross: subtotalGross,
                 subtotalNet: subtotalNet,
                 discountAmount: discountAmount,
+                discountType: discountType,
                 taxTotal: taxTotal,
                 totalGross: totalGross,
                 roundingAmount: roundingAmount,
@@ -20740,6 +20883,7 @@ class $$BillsTableTableManager
                 Value<int> subtotalGross = const Value.absent(),
                 Value<int> subtotalNet = const Value.absent(),
                 Value<int> discountAmount = const Value.absent(),
+                Value<DiscountType?> discountType = const Value.absent(),
                 Value<int> taxTotal = const Value.absent(),
                 Value<int> totalGross = const Value.absent(),
                 Value<int> roundingAmount = const Value.absent(),
@@ -20767,6 +20911,7 @@ class $$BillsTableTableManager
                 subtotalGross: subtotalGross,
                 subtotalNet: subtotalNet,
                 discountAmount: discountAmount,
+                discountType: discountType,
                 taxTotal: taxTotal,
                 totalGross: totalGross,
                 roundingAmount: roundingAmount,
@@ -23312,6 +23457,7 @@ typedef $$OrderItemsTableCreateCompanionBuilder =
       required int saleTaxRateAtt,
       required int saleTaxAmount,
       Value<int> discount,
+      Value<DiscountType?> discountType,
       Value<String?> notes,
       required PrepStatus status,
       Value<int> rowid,
@@ -23335,6 +23481,7 @@ typedef $$OrderItemsTableUpdateCompanionBuilder =
       Value<int> saleTaxRateAtt,
       Value<int> saleTaxAmount,
       Value<int> discount,
+      Value<DiscountType?> discountType,
       Value<String?> notes,
       Value<PrepStatus> status,
       Value<int> rowid,
@@ -23432,6 +23579,12 @@ class $$OrderItemsTableFilterComposer
   ColumnFilters<int> get discount => $composableBuilder(
     column: $table.discount,
     builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<DiscountType?, DiscountType, String>
+  get discountType => $composableBuilder(
+    column: $table.discountType,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
   );
 
   ColumnFilters<String> get notes => $composableBuilder(
@@ -23540,6 +23693,11 @@ class $$OrderItemsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get discountType => $composableBuilder(
+    column: $table.discountType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get notes => $composableBuilder(
     column: $table.notes,
     builder: (column) => ColumnOrderings(column),
@@ -23623,6 +23781,12 @@ class $$OrderItemsTableAnnotationComposer
   GeneratedColumn<int> get discount =>
       $composableBuilder(column: $table.discount, builder: (column) => column);
 
+  GeneratedColumnWithTypeConverter<DiscountType?, String> get discountType =>
+      $composableBuilder(
+        column: $table.discountType,
+        builder: (column) => column,
+      );
+
   GeneratedColumn<String> get notes =>
       $composableBuilder(column: $table.notes, builder: (column) => column);
 
@@ -23678,6 +23842,7 @@ class $$OrderItemsTableTableManager
                 Value<int> saleTaxRateAtt = const Value.absent(),
                 Value<int> saleTaxAmount = const Value.absent(),
                 Value<int> discount = const Value.absent(),
+                Value<DiscountType?> discountType = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
                 Value<PrepStatus> status = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -23699,6 +23864,7 @@ class $$OrderItemsTableTableManager
                 saleTaxRateAtt: saleTaxRateAtt,
                 saleTaxAmount: saleTaxAmount,
                 discount: discount,
+                discountType: discountType,
                 notes: notes,
                 status: status,
                 rowid: rowid,
@@ -23722,6 +23888,7 @@ class $$OrderItemsTableTableManager
                 required int saleTaxRateAtt,
                 required int saleTaxAmount,
                 Value<int> discount = const Value.absent(),
+                Value<DiscountType?> discountType = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
                 required PrepStatus status,
                 Value<int> rowid = const Value.absent(),
@@ -23743,6 +23910,7 @@ class $$OrderItemsTableTableManager
                 saleTaxRateAtt: saleTaxRateAtt,
                 saleTaxAmount: saleTaxAmount,
                 discount: discount,
+                discountType: discountType,
                 notes: notes,
                 status: status,
                 rowid: rowid,

@@ -5,6 +5,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../database/app_database.dart';
 import '../../logging/app_logger.dart';
+import '../enums/discount_type.dart';
 import '../enums/prep_status.dart';
 import '../mappers/entity_mappers.dart';
 import '../mappers/supabase_mappers.dart';
@@ -24,6 +25,7 @@ class OrderRepository {
     required String userId,
     required String orderNumber,
     required List<_OrderItemInput> items,
+    String? orderNotes,
   }) async {
     try {
       final now = DateTime.now();
@@ -40,6 +42,7 @@ class OrderRepository {
           billId: billId,
           createdByUserId: userId,
           orderNumber: orderNumber,
+          notes: Value(orderNotes),
           status: PrepStatus.created,
         ));
 
@@ -61,6 +64,7 @@ class OrderRepository {
             salePriceAtt: item.salePriceAtt,
             saleTaxRateAtt: item.saleTaxRateAtt,
             saleTaxAmount: item.saleTaxAmount,
+            notes: Value(item.notes),
             status: PrepStatus.created,
           ));
         }
@@ -214,6 +218,68 @@ class OrderRepository {
   Future<Result<OrderModel>> markDelivered(String orderId) =>
       updateStatus(orderId, PrepStatus.delivered);
 
+  Future<Result<void>> updateOrderNotes(String orderId, String? notes) async {
+    try {
+      await (_db.update(_db.orders)..where((t) => t.id.equals(orderId))).write(
+        OrdersCompanion(
+          notes: Value(notes),
+          updatedAt: Value(DateTime.now()),
+        ),
+      );
+      final entity = await (_db.select(_db.orders)
+            ..where((t) => t.id.equals(orderId)))
+          .getSingle();
+      await _enqueueOrder('update', orderFromEntity(entity));
+      return const Success(null);
+    } catch (e, s) {
+      AppLogger.error('Failed to update order notes', error: e, stackTrace: s);
+      return Failure('Failed to update order notes: $e');
+    }
+  }
+
+  Future<Result<void>> updateItemDiscount(
+    String itemId,
+    DiscountType discountType,
+    int discount,
+  ) async {
+    try {
+      await (_db.update(_db.orderItems)..where((t) => t.id.equals(itemId))).write(
+        OrderItemsCompanion(
+          discount: Value(discount),
+          discountType: Value(discountType),
+          updatedAt: Value(DateTime.now()),
+        ),
+      );
+      final entity = await (_db.select(_db.orderItems)
+            ..where((t) => t.id.equals(itemId)))
+          .getSingle();
+      await _enqueueOrderItem('update', orderItemFromEntity(entity));
+      return const Success(null);
+    } catch (e, s) {
+      AppLogger.error('Failed to update item discount', error: e, stackTrace: s);
+      return Failure('Failed to update item discount: $e');
+    }
+  }
+
+  Future<Result<void>> updateItemNotes(String itemId, String? notes) async {
+    try {
+      await (_db.update(_db.orderItems)..where((t) => t.id.equals(itemId))).write(
+        OrderItemsCompanion(
+          notes: Value(notes),
+          updatedAt: Value(DateTime.now()),
+        ),
+      );
+      final entity = await (_db.select(_db.orderItems)
+            ..where((t) => t.id.equals(itemId)))
+          .getSingle();
+      await _enqueueOrderItem('update', orderItemFromEntity(entity));
+      return const Success(null);
+    } catch (e, s) {
+      AppLogger.error('Failed to update item notes', error: e, stackTrace: s);
+      return Failure('Failed to update item notes: $e');
+    }
+  }
+
   Future<void> _enqueueOrder(String operation, OrderModel m) async {
     if (syncQueueRepo == null) return;
     await syncQueueRepo!.enqueue(
@@ -245,6 +311,7 @@ class OrderItemInput {
     required this.salePriceAtt,
     required this.saleTaxRateAtt,
     required this.saleTaxAmount,
+    this.notes,
   });
 
   final String itemId;
@@ -253,6 +320,7 @@ class OrderItemInput {
   final int salePriceAtt;
   final int saleTaxRateAtt;
   final int saleTaxAmount;
+  final String? notes;
 }
 
 typedef _OrderItemInput = OrderItemInput;

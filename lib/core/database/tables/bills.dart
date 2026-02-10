@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 
 import '../../data/enums/bill_status.dart';
+import '../../data/enums/discount_type.dart';
 import 'sync_columns_mixin.dart';
 
 @TableIndex(name: 'idx_bills_company_updated', columns: {#companyId, #updatedAt})
@@ -17,6 +18,7 @@ class Bills extends Table with SyncColumnsMixin {
   IntColumn get subtotalGross => integer().withDefault(const Constant(0))();
   IntColumn get subtotalNet => integer().withDefault(const Constant(0))();
   IntColumn get discountAmount => integer().withDefault(const Constant(0))();
+  TextColumn get discountType => textEnum<DiscountType>().nullable()();
   IntColumn get taxTotal => integer().withDefault(const Constant(0))();
   IntColumn get totalGross => integer().withDefault(const Constant(0))();
   IntColumn get roundingAmount => integer().withDefault(const Constant(0))();

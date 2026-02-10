@@ -2,6 +2,7 @@
 import 'package:drift/drift.dart';
 
 import '../../database/app_database.dart';
+import '../enums/discount_type.dart';
 import '../enums/enums.dart';
 
 DateTime? _parseDateTime(dynamic v) {
@@ -156,6 +157,9 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
         subtotalGross: Value(json['subtotal_gross'] as int? ?? 0),
         subtotalNet: Value(json['subtotal_net'] as int? ?? 0),
         discountAmount: Value(json['discount_amount'] as int? ?? 0),
+        discountType: Value(json['discount_type'] != null
+            ? _enumFromName(DiscountType.values, json['discount_type'])
+            : null),
         taxTotal: Value(json['tax_total'] as int? ?? 0),
         totalGross: Value(json['total_gross'] as int? ?? 0),
         roundingAmount: Value(json['rounding_amount'] as int? ?? 0),
@@ -203,6 +207,9 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
         saleTaxRateAtt: Value(json['sale_tax_rate_att'] as int),
         saleTaxAmount: Value(json['sale_tax_amount'] as int),
         discount: Value(json['discount'] as int? ?? 0),
+        discountType: Value(json['discount_type'] != null
+            ? _enumFromName(DiscountType.values, json['discount_type'])
+            : null),
         notes: Value(json['notes'] as String?),
         status: Value(_enumFromName(PrepStatus.values, json['status'])),
         createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),

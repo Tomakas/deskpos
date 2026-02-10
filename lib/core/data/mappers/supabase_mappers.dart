@@ -186,6 +186,7 @@ Map<String, dynamic> billToSupabaseJson(BillModel m) => {
       'subtotal_gross': m.subtotalGross,
       'subtotal_net': m.subtotalNet,
       'discount_amount': m.discountAmount,
+      'discount_type': m.discountType?.name,
       'tax_total': m.taxTotal,
       'total_gross': m.totalGross,
       'rounding_amount': m.roundingAmount,
@@ -229,6 +230,7 @@ Map<String, dynamic> orderItemToSupabaseJson(OrderItemModel m) => {
       'sale_tax_rate_att': m.saleTaxRateAtt,
       'sale_tax_amount': m.saleTaxAmount,
       'discount': m.discount,
+      'discount_type': m.discountType?.name,
       'notes': m.notes,
       'status': m.status.name,
     };

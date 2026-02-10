@@ -1,6 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../enums/bill_status.dart';
+import '../enums/discount_type.dart';
 
 part 'bill_model.freezed.dart';
 
@@ -19,6 +20,7 @@ class BillModel with _$BillModel {
     @Default(0) int subtotalGross,
     @Default(0) int subtotalNet,
     @Default(0) int discountAmount,
+    DiscountType? discountType,
     @Default(0) int taxTotal,
     @Default(0) int totalGross,
     @Default(0) int roundingAmount,

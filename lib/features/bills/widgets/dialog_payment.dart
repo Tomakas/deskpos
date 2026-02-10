@@ -3,10 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/data/models/bill_model.dart';
 import '../../../core/data/models/payment_method_model.dart';
+import '../../../core/data/models/payment_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import 'dialog_change_total.dart';
 
 class DialogPayment extends ConsumerStatefulWidget {
   const DialogPayment({
@@ -23,14 +25,25 @@ class DialogPayment extends ConsumerStatefulWidget {
 
 class _DialogPaymentState extends ConsumerState<DialogPayment> {
   bool _processing = false;
+  late BillModel _bill;
+  int? _customAmount;
+
+  @override
+  void initState() {
+    super.initState();
+    _bill = widget.bill;
+  }
+
+  int get _remaining => _bill.totalGross - _bill.paidAmount;
+
+  int get _payAmount => _customAmount ?? _remaining;
 
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
+    final theme = Theme.of(context);
     final company = ref.watch(currentCompanyProvider);
     if (company == null) return const SizedBox.shrink();
-
-    final remaining = widget.bill.totalGross - widget.bill.paidAmount;
 
     return Dialog(
       child: ConstrainedBox(
@@ -50,20 +63,21 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
                       const SizedBox(height: 8),
                       _SideButton(label: l.paymentEet, onPressed: null),
                       const SizedBox(height: 8),
-                      _SideButton(label: l.paymentEditAmount, onPressed: null),
-                      const SizedBox(height: 8),
-                      _SideButton(label: l.paymentMixPayments, onPressed: null),
+                      _SideButton(
+                        label: l.paymentEditAmount,
+                        onPressed: _remaining > 0 ? () => _editAmount(context) : null,
+                      ),
                       const Spacer(),
                       _SideButton(
                         label: l.actionCancel,
-                        onPressed: () => Navigator.pop(context),
+                        onPressed: () => Navigator.pop(context, _bill.paidAmount > widget.bill.paidAmount),
                         color: Colors.red,
                       ),
                     ],
                   ),
                 ),
               ),
-              // Center — bill info
+              // Center — bill info + payments list
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 12),
@@ -71,41 +85,70 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
                     children: [
                       Text(
                         l.paymentTitle.toUpperCase(),
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         l.paymentBillSubtitle(
-                          widget.bill.billNumber,
+                          _bill.billNumber,
                           widget.tableName ?? l.billDetailNoTable,
                         ),
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              fontStyle: FontStyle.italic,
-                            ),
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      // Already-made payments
+                      StreamBuilder<List<PaymentModel>>(
+                        stream: ref.watch(paymentRepositoryProvider).watchByBill(_bill.id),
+                        builder: (context, snap) {
+                          final payments = snap.data ?? [];
+                          if (payments.isEmpty) return const SizedBox.shrink();
+                          return _buildPaymentsList(context, payments);
+                        },
                       ),
                       const Spacer(),
-                      Text(
-                        '${(remaining / 100).toStringAsFixed(2).replaceAll('.', ',')} Kč',
-                        style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                      ),
+                      // Remaining amount
+                      if (_customAmount != null) ...[
+                        Text(
+                          _formatKc(_remaining),
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _formatKc(_customAmount!),
+                          style: theme.textTheme.headlineLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ] else ...[
+                        Text(
+                          _formatKc(_remaining),
+                          style: theme.textTheme.headlineLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: 12),
-                      Text(
-                        '(${l.paymentTip('0 Kč')})',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              fontStyle: FontStyle.italic,
-                            ),
-                      ),
+                      if (_customAmount != null && _customAmount! > _remaining)
+                        Text(
+                          '(${l.paymentTip(_formatKc(_customAmount! - _remaining))})',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontStyle: FontStyle.italic,
+                          ),
+                        )
+                      else
+                        Text(
+                          '${l.paymentPrintReceipt}: ${l.paymentPrintYes}',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       const Spacer(),
-                      Text(
-                        '${l.paymentPrintReceipt}: ${l.paymentPrintYes}',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                      ),
                     ],
                   ),
                 ),
@@ -125,7 +168,7 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
                             if (i > 0) const SizedBox(height: 8),
                             _PaymentMethodButton(
                               label: methods[i].name.toUpperCase(),
-                              onPressed: _processing
+                              onPressed: _processing || _remaining <= 0
                                   ? null
                                   : () => _pay(context, methods[i].id),
                             ),
@@ -145,26 +188,107 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
     );
   }
 
+  Widget _buildPaymentsList(BuildContext context, List<PaymentModel> payments) {
+    final theme = Theme.of(context);
+    final methodRepo = ref.read(paymentMethodRepositoryProvider);
+    final company = ref.read(currentCompanyProvider);
+
+    return FutureBuilder<List<PaymentMethodModel>>(
+      future: company != null ? methodRepo.getAll(company.id) : Future.value([]),
+      builder: (context, snap) {
+        final methods = snap.data ?? [];
+        final methodMap = {for (final m in methods) m.id: m.name};
+
+        return Column(
+          children: [
+            for (final p in payments)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 2),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      methodMap[p.paymentMethodId] ?? '?',
+                      style: theme.textTheme.bodyMedium,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      _formatKc(p.amount),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    if (p.tipIncludedAmount > 0) ...[
+                      const SizedBox(width: 4),
+                      Text(
+                        '(+${_formatKc(p.tipIncludedAmount)})',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            const Divider(),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _editAmount(BuildContext context) async {
+    final result = await showDialog<int>(
+      context: context,
+      builder: (_) => DialogChangeTotalToPay(originalAmount: _remaining),
+    );
+    if (result != null && mounted) {
+      setState(() => _customAmount = result);
+    }
+  }
+
   Future<void> _pay(BuildContext context, String methodId) async {
     setState(() => _processing = true);
 
-    final remaining = widget.bill.totalGross - widget.bill.paidAmount;
-    if (remaining <= 0) return;
+    if (_remaining <= 0) return;
+
+    final amount = _payAmount;
+    final tipAmount = amount > _remaining ? amount - _remaining : 0;
+    final effectiveAmount = amount > _remaining ? _remaining : amount;
 
     final repo = ref.read(billRepositoryProvider);
     final result = await repo.recordPayment(
-      companyId: widget.bill.companyId,
-      billId: widget.bill.id,
+      companyId: _bill.companyId,
+      billId: _bill.id,
       paymentMethodId: methodId,
-      currencyId: widget.bill.currencyId,
-      amount: remaining,
+      currencyId: _bill.currencyId,
+      amount: effectiveAmount,
+      tipAmount: tipAmount,
     );
 
-    if (result is Success && mounted) {
-      Navigator.pop(context, true);
-    } else if (mounted) {
+    if (!mounted) return;
+
+    if (result is Success<BillModel>) {
+      final updatedBill = result.value;
+      final fullyPaid = updatedBill.paidAmount >= updatedBill.totalGross;
+
+      if (fullyPaid) {
+        Navigator.pop(context, true);
+      } else {
+        // Stay open — update state for next payment
+        setState(() {
+          _bill = updatedBill;
+          _customAmount = null;
+          _processing = false;
+        });
+      }
+    } else {
       setState(() => _processing = false);
     }
+  }
+
+  String _formatKc(int halere) {
+    return '${(halere / 100).toStringAsFixed(2).replaceAll('.', ',')} Kč';
   }
 }
 

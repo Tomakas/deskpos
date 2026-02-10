@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 
+import '../../data/enums/discount_type.dart';
 import '../../data/enums/prep_status.dart';
 import 'sync_columns_mixin.dart';
 
@@ -15,6 +16,7 @@ class OrderItems extends Table with SyncColumnsMixin {
   IntColumn get saleTaxRateAtt => integer()();
   IntColumn get saleTaxAmount => integer()();
   IntColumn get discount => integer().withDefault(const Constant(0))();
+  TextColumn get discountType => textEnum<DiscountType>().nullable()();
   TextColumn get notes => text().nullable()();
   TextColumn get status => textEnum<PrepStatus>()();
 

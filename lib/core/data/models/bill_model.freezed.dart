@@ -29,6 +29,7 @@ mixin _$BillModel {
   int get subtotalGross => throw _privateConstructorUsedError;
   int get subtotalNet => throw _privateConstructorUsedError;
   int get discountAmount => throw _privateConstructorUsedError;
+  DiscountType? get discountType => throw _privateConstructorUsedError;
   int get taxTotal => throw _privateConstructorUsedError;
   int get totalGross => throw _privateConstructorUsedError;
   int get roundingAmount => throw _privateConstructorUsedError;
@@ -64,6 +65,7 @@ abstract class $BillModelCopyWith<$Res> {
     int subtotalGross,
     int subtotalNet,
     int discountAmount,
+    DiscountType? discountType,
     int taxTotal,
     int totalGross,
     int roundingAmount,
@@ -103,6 +105,7 @@ class _$BillModelCopyWithImpl<$Res, $Val extends BillModel>
     Object? subtotalGross = null,
     Object? subtotalNet = null,
     Object? discountAmount = null,
+    Object? discountType = freezed,
     Object? taxTotal = null,
     Object? totalGross = null,
     Object? roundingAmount = null,
@@ -163,6 +166,10 @@ class _$BillModelCopyWithImpl<$Res, $Val extends BillModel>
                 ? _value.discountAmount
                 : discountAmount // ignore: cast_nullable_to_non_nullable
                       as int,
+            discountType: freezed == discountType
+                ? _value.discountType
+                : discountType // ignore: cast_nullable_to_non_nullable
+                      as DiscountType?,
             taxTotal: null == taxTotal
                 ? _value.taxTotal
                 : taxTotal // ignore: cast_nullable_to_non_nullable
@@ -227,6 +234,7 @@ abstract class _$$BillModelImplCopyWith<$Res>
     int subtotalGross,
     int subtotalNet,
     int discountAmount,
+    DiscountType? discountType,
     int taxTotal,
     int totalGross,
     int roundingAmount,
@@ -265,6 +273,7 @@ class __$$BillModelImplCopyWithImpl<$Res>
     Object? subtotalGross = null,
     Object? subtotalNet = null,
     Object? discountAmount = null,
+    Object? discountType = freezed,
     Object? taxTotal = null,
     Object? totalGross = null,
     Object? roundingAmount = null,
@@ -325,6 +334,10 @@ class __$$BillModelImplCopyWithImpl<$Res>
             ? _value.discountAmount
             : discountAmount // ignore: cast_nullable_to_non_nullable
                   as int,
+        discountType: freezed == discountType
+            ? _value.discountType
+            : discountType // ignore: cast_nullable_to_non_nullable
+                  as DiscountType?,
         taxTotal: null == taxTotal
             ? _value.taxTotal
             : taxTotal // ignore: cast_nullable_to_non_nullable
@@ -382,6 +395,7 @@ class _$BillModelImpl implements _BillModel {
     this.subtotalGross = 0,
     this.subtotalNet = 0,
     this.discountAmount = 0,
+    this.discountType,
     this.taxTotal = 0,
     this.totalGross = 0,
     this.roundingAmount = 0,
@@ -423,6 +437,8 @@ class _$BillModelImpl implements _BillModel {
   @JsonKey()
   final int discountAmount;
   @override
+  final DiscountType? discountType;
+  @override
   @JsonKey()
   final int taxTotal;
   @override
@@ -447,7 +463,7 @@ class _$BillModelImpl implements _BillModel {
 
   @override
   String toString() {
-    return 'BillModel(id: $id, companyId: $companyId, tableId: $tableId, openedByUserId: $openedByUserId, billNumber: $billNumber, numberOfGuests: $numberOfGuests, isTakeaway: $isTakeaway, status: $status, currencyId: $currencyId, subtotalGross: $subtotalGross, subtotalNet: $subtotalNet, discountAmount: $discountAmount, taxTotal: $taxTotal, totalGross: $totalGross, roundingAmount: $roundingAmount, paidAmount: $paidAmount, openedAt: $openedAt, closedAt: $closedAt, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+    return 'BillModel(id: $id, companyId: $companyId, tableId: $tableId, openedByUserId: $openedByUserId, billNumber: $billNumber, numberOfGuests: $numberOfGuests, isTakeaway: $isTakeaway, status: $status, currencyId: $currencyId, subtotalGross: $subtotalGross, subtotalNet: $subtotalNet, discountAmount: $discountAmount, discountType: $discountType, taxTotal: $taxTotal, totalGross: $totalGross, roundingAmount: $roundingAmount, paidAmount: $paidAmount, openedAt: $openedAt, closedAt: $closedAt, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
   }
 
   @override
@@ -476,6 +492,8 @@ class _$BillModelImpl implements _BillModel {
                 other.subtotalNet == subtotalNet) &&
             (identical(other.discountAmount, discountAmount) ||
                 other.discountAmount == discountAmount) &&
+            (identical(other.discountType, discountType) ||
+                other.discountType == discountType) &&
             (identical(other.taxTotal, taxTotal) ||
                 other.taxTotal == taxTotal) &&
             (identical(other.totalGross, totalGross) ||
@@ -511,6 +529,7 @@ class _$BillModelImpl implements _BillModel {
     subtotalGross,
     subtotalNet,
     discountAmount,
+    discountType,
     taxTotal,
     totalGross,
     roundingAmount,
@@ -545,6 +564,7 @@ abstract class _BillModel implements BillModel {
     final int subtotalGross,
     final int subtotalNet,
     final int discountAmount,
+    final DiscountType? discountType,
     final int taxTotal,
     final int totalGross,
     final int roundingAmount,
@@ -580,6 +600,8 @@ abstract class _BillModel implements BillModel {
   int get subtotalNet;
   @override
   int get discountAmount;
+  @override
+  DiscountType? get discountType;
   @override
   int get taxTotal;
   @override

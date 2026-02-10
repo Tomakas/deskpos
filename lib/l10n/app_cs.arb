@@ -356,6 +356,18 @@
     }
   },
 
+  "billDetailDiscount": "Sleva",
+  "billStatusRefunded": "Refundovaný",
+  "refundTitle": "Refund",
+  "refundConfirmFull": "Opravdu chcete refundovat celý účet?",
+  "refundConfirmItem": "Opravdu chcete refundovat tuto položku?",
+  "refundButton": "REFUND",
+  "refundFullBill": "Celý účet",
+  "refundSelectItems": "Vybrat položky",
+  "changeTotalTitle": "Upravit částku",
+  "changeTotalOriginal": "Původní částka",
+  "changeTotalEdited": "Upravená částka",
+
   "newBillSave": "Uložit",
   "newBillOrder": "Objednat",
   "newBillSelectSection": "Výběr sekce",

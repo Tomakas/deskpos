@@ -29,6 +29,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
   final List<_CartItem> _cart = [];
   bool _editMode = false;
   String? _categoryFilterId;
+  String? _orderNotes;
 
   @override
   Widget build(BuildContext context) {
@@ -77,7 +78,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
           const SizedBox(width: 8),
           _toolbarChip(l.sellCustomer, onSelected: null),
           const SizedBox(width: 8),
-          _toolbarChip(l.sellNote, onSelected: null),
+          _toolbarChip(l.sellNote, selected: _orderNotes != null && _orderNotes!.isNotEmpty, onSelected: () => _showOrderNoteDialog(context)),
           const SizedBox(width: 8),
           _toolbarChip(l.sellActions, onSelected: null),
           const SizedBox(width: 8),
@@ -148,13 +149,26 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
                       return ListTile(
                         dense: true,
                         title: Text(item.name),
-                        subtitle: Text(
-                          l.sellQuantity(item.quantity.toStringAsFixed(
-                            item.quantity == item.quantity.roundToDouble() ? 0 : 1,
-                          )),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              l.sellQuantity(item.quantity.toStringAsFixed(
+                                item.quantity == item.quantity.roundToDouble() ? 0 : 1,
+                              )),
+                            ),
+                            if (item.notes != null && item.notes!.isNotEmpty)
+                              Text(
+                                item.notes!,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                          ],
                         ),
                         trailing: Text('${(item.unitPrice * item.quantity).round() ~/ 100} Kč'),
-                        onTap: () => setState(() => item.quantity++),
+                        onTap: () => _showItemNoteDialog(context, item),
                         onLongPress: () => setState(() {
                           item.quantity--;
                           if (item.quantity <= 0) _cart.removeAt(index);
@@ -371,6 +385,83 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     );
   }
 
+  Future<void> _showItemNoteDialog(BuildContext context, _CartItem item) async {
+    final controller = TextEditingController(text: item.notes);
+    final result = await showDialog<String?>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(item.name),
+        content: SizedBox(
+          width: 300,
+          child: TextField(
+            controller: controller,
+            autofocus: true,
+            maxLines: 3,
+            decoration: InputDecoration(
+              hintText: context.l10n.sellNote,
+              border: const OutlineInputBorder(),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(context.l10n.actionCancel),
+          ),
+          TextButton(
+            onPressed: () {
+              setState(() => item.quantity++);
+              Navigator.pop(context);
+            },
+            child: const Text('+1'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, controller.text),
+            child: Text(context.l10n.actionSave),
+          ),
+        ],
+      ),
+    );
+    if (result != null) {
+      setState(() => item.notes = result.isEmpty ? null : result);
+    }
+  }
+
+  Future<void> _showOrderNoteDialog(BuildContext context) async {
+    final controller = TextEditingController(text: _orderNotes);
+    final result = await showDialog<String?>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(context.l10n.sellNote),
+        content: SizedBox(
+          width: 300,
+          child: TextField(
+            controller: controller,
+            autofocus: true,
+            maxLines: 3,
+            decoration: InputDecoration(
+              hintText: context.l10n.sellNote,
+              border: const OutlineInputBorder(),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(context.l10n.actionCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, controller.text),
+            child: Text(context.l10n.actionSave),
+          ),
+        ],
+      ),
+    );
+    if (result != null) {
+      setState(() => _orderNotes = result.isEmpty ? null : result);
+    }
+  }
+
   void _addToCart(WidgetRef ref, ItemModel item, String companyId) {
     setState(() {
       final existing = _cart.where((c) => c.itemId == item.id).firstOrNull;
@@ -409,6 +500,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
         salePriceAtt: cartItem.unitPrice,
         saleTaxRateAtt: taxRateBps,
         saleTaxAmount: taxAmount,
+        notes: cartItem.notes,
       ));
     }
     return orderItems;
@@ -438,6 +530,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
       userId: user.id,
       orderNumber: orderNumber,
       items: orderItems,
+      orderNotes: _orderNotes,
     );
 
     if (result is Success) {
@@ -475,6 +568,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
       userId: user.id,
       orderNumber: orderNumber,
       items: orderItems,
+      orderNotes: _orderNotes,
     );
     await billRepo.updateTotals(bill.id);
 
@@ -513,6 +607,7 @@ class _CartItem {
   final int unitPrice;
   final String? saleTaxRateId;
   double quantity = 1;
+  String? notes;
 }
 
 class _ItemButton extends StatelessWidget {
