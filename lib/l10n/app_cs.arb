@@ -492,5 +492,13 @@
   "fieldParentProduct": "Nadřazený produkt",
   "fieldComponent": "Složka",
   "fieldQuantityRequired": "Požadované množství",
-  "moreCatalog": "Katalog"
+  "moreCatalog": "Katalog",
+
+  "mergeBillTitle": "Sloučit účet",
+  "mergeBillDescription": "Objednávky z tohoto účtu budou přesunuty na vybraný účet. Aktuální účet bude zrušen.",
+  "mergeBillNoBills": "Žádné otevřené účty k sloučení",
+  "splitBillTitle": "Rozdělit účet",
+  "splitBillSelectItems": "Vyberte položky k rozdělení",
+  "splitBillPayButton": "Rozdělit a zaplatit",
+  "splitBillNewBillButton": "Rozdělit na nový účet"
 }

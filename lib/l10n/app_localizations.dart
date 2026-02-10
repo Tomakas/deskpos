@@ -2421,6 +2421,48 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Katalog'**
   String get moreCatalog;
+
+  /// No description provided for @mergeBillTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Sloučit účet'**
+  String get mergeBillTitle;
+
+  /// No description provided for @mergeBillDescription.
+  ///
+  /// In cs, this message translates to:
+  /// **'Objednávky z tohoto účtu budou přesunuty na vybraný účet. Aktuální účet bude zrušen.'**
+  String get mergeBillDescription;
+
+  /// No description provided for @mergeBillNoBills.
+  ///
+  /// In cs, this message translates to:
+  /// **'Žádné otevřené účty k sloučení'**
+  String get mergeBillNoBills;
+
+  /// No description provided for @splitBillTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Rozdělit účet'**
+  String get splitBillTitle;
+
+  /// No description provided for @splitBillSelectItems.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vyberte položky k rozdělení'**
+  String get splitBillSelectItems;
+
+  /// No description provided for @splitBillPayButton.
+  ///
+  /// In cs, this message translates to:
+  /// **'Rozdělit a zaplatit'**
+  String get splitBillPayButton;
+
+  /// No description provided for @splitBillNewBillButton.
+  ///
+  /// In cs, this message translates to:
+  /// **'Rozdělit na nový účet'**
+  String get splitBillNewBillButton;
 }
 
 class _AppLocalizationsDelegate

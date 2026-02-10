@@ -15,8 +15,10 @@ import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import 'dialog_discount.dart';
+import 'dialog_merge_bill.dart';
 import 'dialog_new_bill.dart';
 import 'dialog_payment.dart';
+import 'dialog_split_bill.dart';
 
 class DialogBillDetail extends ConsumerStatefulWidget {
   const DialogBillDetail({super.key, required this.billId});
@@ -359,9 +361,15 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
               onPressed: isOpened ? () => _moveBill(context, ref, bill) : null,
             ),
             const SizedBox(height: 4),
-            _SideButton(label: l.billDetailMerge, onPressed: null),
+            _SideButton(
+              label: l.billDetailMerge,
+              onPressed: isOpened ? () => _mergeBill(context, ref, bill) : null,
+            ),
             const SizedBox(height: 4),
-            _SideButton(label: l.billDetailSplit, onPressed: null),
+            _SideButton(
+              label: l.billDetailSplit,
+              onPressed: isOpened ? () => _splitBill(context, ref, bill) : null,
+            ),
             const SizedBox(height: 4),
             _SideButton(
               label: _showSummary ? l.billDetailItemList : l.billDetailSummary,
@@ -527,6 +535,105 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
       tableId: result.tableId,
       numberOfGuests: result.numberOfGuests,
     );
+  }
+
+  Future<void> _mergeBill(BuildContext context, WidgetRef ref, BillModel bill) async {
+    final targetBillId = await showDialog<String>(
+      context: context,
+      builder: (_) => DialogMergeBill(excludeBillId: bill.id),
+    );
+    if (targetBillId == null || !context.mounted) return;
+
+    final result = await ref.read(billRepositoryProvider).mergeBill(bill.id, targetBillId);
+    if (result is Success && context.mounted) {
+      Navigator.pop(context);
+      showDialog(
+        context: context,
+        builder: (_) => DialogBillDetail(billId: targetBillId),
+      );
+    }
+  }
+
+  Future<void> _splitBill(BuildContext context, WidgetRef ref, BillModel bill) async {
+    final splitResult = await showDialog<SplitBillResult>(
+      context: context,
+      builder: (_) => DialogSplitBill(billId: bill.id),
+    );
+    if (splitResult == null || !context.mounted) return;
+
+    final company = ref.read(currentCompanyProvider);
+    final user = ref.read(activeUserProvider);
+    if (company == null || user == null) return;
+
+    if (splitResult.payImmediately) {
+      // Create new bill (same table, 0 guests)
+      final newBillResult = await ref.read(billRepositoryProvider).createBill(
+        companyId: company.id,
+        userId: user.id,
+        currencyId: bill.currencyId,
+        tableId: bill.tableId,
+      );
+      if (newBillResult is! Success<BillModel> || !context.mounted) return;
+      final newBill = newBillResult.value;
+
+      // Split items to new bill
+      await ref.read(billRepositoryProvider).splitBill(
+        sourceBillId: bill.id,
+        targetBillId: newBill.id,
+        orderItemIds: splitResult.orderItemIds,
+        userId: user.id,
+      );
+
+      // Get updated new bill for payment
+      final updatedResult = await ref.read(billRepositoryProvider).getById(newBill.id);
+      if (updatedResult is! Success<BillModel> || !context.mounted) return;
+
+      // Resolve table name for payment dialog
+      String? tableName;
+      if (bill.tableId != null) {
+        final table = await ref.read(tableRepositoryProvider).getById(bill.tableId!);
+        tableName = table?.name;
+      }
+      if (!context.mounted) return;
+
+      // Open payment dialog for new bill
+      await showDialog<bool>(
+        context: context,
+        builder: (_) => DialogPayment(bill: updatedResult.value, tableName: tableName),
+      );
+      // Stay on original bill detail (auto-refreshed via stream)
+    } else {
+      // Show DialogNewBill for target configuration
+      final l = context.l10n;
+      final newBillConfig = await showDialog<NewBillResult>(
+        context: context,
+        builder: (_) => DialogNewBill(
+          title: l.splitBillTitle,
+          initialTableId: bill.tableId,
+          initialNumberOfGuests: 0,
+        ),
+      );
+      if (newBillConfig == null || !context.mounted) return;
+
+      // Create new bill
+      final newBillResult = await ref.read(billRepositoryProvider).createBill(
+        companyId: company.id,
+        userId: user.id,
+        currencyId: bill.currencyId,
+        tableId: newBillConfig.tableId,
+        numberOfGuests: newBillConfig.numberOfGuests,
+      );
+      if (newBillResult is! Success<BillModel> || !context.mounted) return;
+
+      // Split items to new bill
+      await ref.read(billRepositoryProvider).splitBill(
+        sourceBillId: bill.id,
+        targetBillId: newBillResult.value.id,
+        orderItemIds: splitResult.orderItemIds,
+        userId: user.id,
+      );
+      // Stay on original bill detail (auto-refreshed via stream)
+    }
   }
 
   Future<void> _refundBill(BuildContext context, WidgetRef ref, BillModel bill, dynamic l) async {

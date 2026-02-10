@@ -1180,8 +1180,14 @@ void _showMoreMenu(BuildContext btnContext, bool canManageSettings, {VoidCallbac
         PopupMenuItem(enabled: false, height: 48, child: Text(l.moreShifts)),
       PopupMenuItem(enabled: false, height: 48, child: Text(l.moreStatistics)),
       PopupMenuItem(enabled: false, height: 48, child: Text(l.moreReservations)),
-      PopupMenuItem(value: 'company-settings', height: 48, child: Text(l.moreCompanySettings)),
-      PopupMenuItem(value: 'register-settings', height: 48, child: Text(l.moreRegisterSettings)),
+      if (canManageSettings)
+        PopupMenuItem(value: 'company-settings', height: 48, child: Text(l.moreCompanySettings)),
+      if (!canManageSettings)
+        PopupMenuItem(enabled: false, height: 48, child: Text(l.moreCompanySettings)),
+      if (canManageSettings)
+        PopupMenuItem(value: 'register-settings', height: 48, child: Text(l.moreRegisterSettings)),
+      if (!canManageSettings)
+        PopupMenuItem(enabled: false, height: 48, child: Text(l.moreRegisterSettings)),
     ],
   ).then((value) {
     if (value == null || !btnContext.mounted) return;

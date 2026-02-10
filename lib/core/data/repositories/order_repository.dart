@@ -292,6 +292,136 @@ class OrderRepository {
     }
   }
 
+  Future<void> reassignOrdersToBill(String sourceBillId, String targetBillId) async {
+    final orders = await (_db.select(_db.orders)
+          ..where((t) => t.billId.equals(sourceBillId) & t.deletedAt.isNull()))
+        .get();
+    final now = DateTime.now();
+    for (final order in orders) {
+      await (_db.update(_db.orders)..where((t) => t.id.equals(order.id))).write(
+        OrdersCompanion(
+          billId: Value(targetBillId),
+          updatedAt: Value(now),
+        ),
+      );
+      final entity = await (_db.select(_db.orders)
+            ..where((t) => t.id.equals(order.id)))
+          .getSingle();
+      await _enqueueOrder('update', orderFromEntity(entity));
+    }
+  }
+
+  Future<void> splitItemsToNewOrder({
+    required String targetBillId,
+    required String companyId,
+    required String userId,
+    required List<String> orderItemIds,
+  }) async {
+    final now = DateTime.now();
+    final newOrderId = const Uuid().v7();
+
+    // Collect source order IDs before moving items
+    final sourceOrderIds = <String>{};
+    for (final itemId in orderItemIds) {
+      final item = await (_db.select(_db.orderItems)
+            ..where((t) => t.id.equals(itemId)))
+          .getSingle();
+      sourceOrderIds.add(item.orderId);
+    }
+
+    // Create new order on target bill
+    await _db.into(_db.orders).insert(OrdersCompanion.insert(
+      id: newOrderId,
+      companyId: companyId,
+      billId: targetBillId,
+      createdByUserId: userId,
+      orderNumber: 'S-${now.millisecondsSinceEpoch}',
+      status: PrepStatus.delivered,
+    ));
+
+    // Move items to new order
+    int subtotalGross = 0;
+    int taxTotal = 0;
+    for (final itemId in orderItemIds) {
+      await (_db.update(_db.orderItems)..where((t) => t.id.equals(itemId))).write(
+        OrderItemsCompanion(orderId: Value(newOrderId), updatedAt: Value(now)),
+      );
+      final itemEntity = await (_db.select(_db.orderItems)
+            ..where((t) => t.id.equals(itemId)))
+          .getSingle();
+      final itemSubtotal = (itemEntity.salePriceAtt * itemEntity.quantity).round();
+      final itemTax = (itemEntity.saleTaxAmount * itemEntity.quantity).round();
+      subtotalGross += itemSubtotal;
+      taxTotal += itemTax;
+      await _enqueueOrderItem('update', orderItemFromEntity(itemEntity));
+    }
+
+    // Update new order totals
+    final subtotalNet = subtotalGross - taxTotal;
+    await (_db.update(_db.orders)..where((t) => t.id.equals(newOrderId))).write(
+      OrdersCompanion(
+        itemCount: Value(orderItemIds.length),
+        subtotalGross: Value(subtotalGross),
+        subtotalNet: Value(subtotalNet),
+        taxTotal: Value(taxTotal),
+        updatedAt: Value(now),
+      ),
+    );
+
+    // Enqueue new order
+    final newOrderEntity = await (_db.select(_db.orders)
+          ..where((t) => t.id.equals(newOrderId)))
+        .getSingle();
+    await _enqueueOrder('insert', orderFromEntity(newOrderEntity));
+
+    // Check source orders: if any order lost ALL active items, cancel it
+    for (final sourceOrderId in sourceOrderIds) {
+      final remainingItems = await (_db.select(_db.orderItems)
+            ..where((t) =>
+                t.orderId.equals(sourceOrderId) &
+                t.deletedAt.isNull() &
+                t.status.isNotIn([PrepStatus.cancelled.name, PrepStatus.voided.name])))
+          .get();
+      if (remainingItems.isEmpty) {
+        await (_db.update(_db.orders)..where((t) => t.id.equals(sourceOrderId))).write(
+          OrdersCompanion(
+            status: const Value(PrepStatus.cancelled),
+            itemCount: const Value(0),
+            subtotalGross: const Value(0),
+            subtotalNet: const Value(0),
+            taxTotal: const Value(0),
+            updatedAt: Value(now),
+          ),
+        );
+        final entity = await (_db.select(_db.orders)
+              ..where((t) => t.id.equals(sourceOrderId)))
+            .getSingle();
+        await _enqueueOrder('update', orderFromEntity(entity));
+      } else {
+        // Recalculate source order totals
+        int srcGross = 0;
+        int srcTax = 0;
+        for (final item in remainingItems) {
+          srcGross += (item.salePriceAtt * item.quantity).round();
+          srcTax += (item.saleTaxAmount * item.quantity).round();
+        }
+        await (_db.update(_db.orders)..where((t) => t.id.equals(sourceOrderId))).write(
+          OrdersCompanion(
+            itemCount: Value(remainingItems.length),
+            subtotalGross: Value(srcGross),
+            subtotalNet: Value(srcGross - srcTax),
+            taxTotal: Value(srcTax),
+            updatedAt: Value(now),
+          ),
+        );
+        final entity = await (_db.select(_db.orders)
+              ..where((t) => t.id.equals(sourceOrderId)))
+            .getSingle();
+        await _enqueueOrder('update', orderFromEntity(entity));
+      }
+    }
+  }
+
   Future<void> _enqueueOrder(String operation, OrderModel m) async {
     if (syncQueueRepo == null) return;
     await syncQueueRepo!.enqueue(

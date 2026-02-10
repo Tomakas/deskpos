@@ -18,12 +18,14 @@ import '../models/order_item_model.dart';
 import '../models/order_model.dart';
 import '../models/payment_model.dart';
 import '../result.dart';
+import 'order_repository.dart';
 import 'sync_queue_repository.dart';
 
 class BillRepository {
-  BillRepository(this._db, {this.syncQueueRepo});
+  BillRepository(this._db, {this.syncQueueRepo, this.orderRepo});
   final AppDatabase _db;
   final SyncQueueRepository? syncQueueRepo;
+  final OrderRepository? orderRepo;
 
   Future<Result<BillModel>> createBill({
     required String companyId,
@@ -663,6 +665,76 @@ class BillRepository {
     } catch (e, s) {
       AppLogger.error('Failed to refund item', error: e, stackTrace: s);
       return Failure('Failed to refund item: $e');
+    }
+  }
+
+  Future<Result<BillModel>> mergeBill(String sourceBillId, String targetBillId) async {
+    try {
+      if (orderRepo == null) return const Failure('OrderRepository not available');
+
+      // Move all orders from source to target
+      await orderRepo!.reassignOrdersToBill(sourceBillId, targetBillId);
+
+      // Cancel source bill
+      final now = DateTime.now();
+      await (_db.update(_db.bills)..where((t) => t.id.equals(sourceBillId))).write(
+        BillsCompanion(
+          status: const Value(BillStatus.cancelled),
+          closedAt: Value(now),
+          updatedAt: Value(now),
+        ),
+      );
+      final sourceEntity = await (_db.select(_db.bills)
+            ..where((t) => t.id.equals(sourceBillId)))
+          .getSingle();
+      await _enqueueBill('update', billFromEntity(sourceEntity));
+
+      // Recalculate target totals
+      await updateTotals(targetBillId);
+
+      final targetEntity = await (_db.select(_db.bills)
+            ..where((t) => t.id.equals(targetBillId)))
+          .getSingle();
+      return Success(billFromEntity(targetEntity));
+    } catch (e, s) {
+      AppLogger.error('Failed to merge bill', error: e, stackTrace: s);
+      return Failure('Failed to merge bill: $e');
+    }
+  }
+
+  Future<Result<BillModel>> splitBill({
+    required String sourceBillId,
+    required String targetBillId,
+    required List<String> orderItemIds,
+    required String userId,
+  }) async {
+    try {
+      if (orderRepo == null) return const Failure('OrderRepository not available');
+
+      // Get companyId from source bill
+      final sourceBill = await (_db.select(_db.bills)
+            ..where((t) => t.id.equals(sourceBillId)))
+          .getSingle();
+
+      // Move selected items to new order on target bill
+      await orderRepo!.splitItemsToNewOrder(
+        targetBillId: targetBillId,
+        companyId: sourceBill.companyId,
+        userId: userId,
+        orderItemIds: orderItemIds,
+      );
+
+      // Recalculate both bill totals
+      await updateTotals(sourceBillId);
+      await updateTotals(targetBillId);
+
+      final targetEntity = await (_db.select(_db.bills)
+            ..where((t) => t.id.equals(targetBillId)))
+          .getSingle();
+      return Success(billFromEntity(targetEntity));
+    } catch (e, s) {
+      AppLogger.error('Failed to split bill', error: e, stackTrace: s);
+      return Failure('Failed to split bill: $e');
     }
   }
 

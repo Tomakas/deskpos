@@ -1206,4 +1206,26 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get moreCatalog => 'Katalog';
+
+  @override
+  String get mergeBillTitle => 'Sloučit účet';
+
+  @override
+  String get mergeBillDescription =>
+      'Objednávky z tohoto účtu budou přesunuty na vybraný účet. Aktuální účet bude zrušen.';
+
+  @override
+  String get mergeBillNoBills => 'Žádné otevřené účty k sloučení';
+
+  @override
+  String get splitBillTitle => 'Rozdělit účet';
+
+  @override
+  String get splitBillSelectItems => 'Vyberte položky k rozdělení';
+
+  @override
+  String get splitBillPayButton => 'Rozdělit a zaplatit';
+
+  @override
+  String get splitBillNewBillButton => 'Rozdělit na nový účet';
 }

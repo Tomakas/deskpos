@@ -116,6 +116,7 @@ final billRepositoryProvider = Provider<BillRepository>((ref) {
   return BillRepository(
     ref.watch(appDatabaseProvider),
     syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
+    orderRepo: ref.watch(orderRepositoryProvider),
   );
 });
 
