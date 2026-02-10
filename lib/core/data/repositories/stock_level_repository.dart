@@ -5,6 +5,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../database/app_database.dart';
 import '../../logging/app_logger.dart';
+import '../enums/unit_type.dart';
 import '../mappers/entity_mappers.dart';
 import '../mappers/supabase_mappers.dart';
 import '../models/stock_level_model.dart';
@@ -194,6 +195,6 @@ class StockLevelWithItem {
 
   final StockLevelModel stockLevel;
   final String itemName;
-  final dynamic unit; // UnitType enum from Drift
+  final UnitType unit;
   final int? purchasePrice;
 }
