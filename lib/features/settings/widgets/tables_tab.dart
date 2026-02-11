@@ -7,12 +7,27 @@ import '../../../core/data/models/table_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/utils/search_utils.dart';
 
-class TablesTab extends ConsumerWidget {
+class TablesTab extends ConsumerStatefulWidget {
   const TablesTab({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<TablesTab> createState() => _TablesTabState();
+}
+
+class _TablesTabState extends ConsumerState<TablesTab> {
+  final _searchCtrl = TextEditingController();
+  String _query = '';
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l = context.l10n;
     final company = ref.watch(currentCompanyProvider);
     if (company == null) return const SizedBox.shrink();
@@ -28,13 +43,38 @@ class TablesTab extends ConsumerWidget {
           builder: (context, sectionsSnap) {
             final tables = tablesSnap.data ?? [];
             final sections = sectionsSnap.data ?? [];
+
+            final filtered = tables.where((t) {
+              if (_query.isEmpty) return true;
+              final q = _query;
+              if (normalizeSearch(t.name).contains(q)) return true;
+              final sectionName = sections
+                  .where((s) => s.id == t.sectionId)
+                  .firstOrNull
+                  ?.name;
+              if (sectionName != null && normalizeSearch(sectionName).contains(q)) return true;
+              return false;
+            }).toList();
+
             return Column(
               children: [
                 Padding(
                   padding: const EdgeInsets.all(16),
                   child: Row(
                     children: [
-                      const Spacer(),
+                      Expanded(
+                        child: TextField(
+                          controller: _searchCtrl,
+                          decoration: InputDecoration(
+                            hintText: l.searchHint,
+                            prefixIcon: const Icon(Icons.search),
+                            isDense: true,
+                            border: const OutlineInputBorder(),
+                          ),
+                          onChanged: (v) => setState(() => _query = normalizeSearch(v)),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
                       FilledButton.icon(
                         onPressed: () => _showEditDialog(context, ref, sections, null),
                         icon: const Icon(Icons.add),
@@ -57,7 +97,7 @@ class TablesTab extends ConsumerWidget {
                         DataColumn(label: Text(l.fieldActive)),
                         DataColumn(label: Text(l.fieldActions)),
                       ],
-                      rows: tables
+                      rows: filtered
                           .map((t) => DataRow(cells: [
                                 DataCell(Text(t.name)),
                                 DataCell(Text(

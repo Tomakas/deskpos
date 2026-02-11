@@ -6,12 +6,27 @@ import '../../../core/data/models/category_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/utils/search_utils.dart';
 
-class CatalogCategoriesTab extends ConsumerWidget {
+class CatalogCategoriesTab extends ConsumerStatefulWidget {
   const CatalogCategoriesTab({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CatalogCategoriesTab> createState() => _CatalogCategoriesTabState();
+}
+
+class _CatalogCategoriesTabState extends ConsumerState<CatalogCategoriesTab> {
+  final _searchCtrl = TextEditingController();
+  String _query = '';
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l = context.l10n;
     final company = ref.watch(currentCompanyProvider);
     if (company == null) return const SizedBox.shrink();
@@ -20,13 +35,29 @@ class CatalogCategoriesTab extends ConsumerWidget {
       stream: ref.watch(categoryRepositoryProvider).watchAll(company.id),
       builder: (context, snap) {
         final categories = snap.data ?? [];
+        final filtered = categories.where((c) {
+          if (_query.isEmpty) return true;
+          return normalizeSearch(c.name).contains(_query);
+        }).toList();
         return Column(
           children: [
             Padding(
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
-                  const Spacer(),
+                  Expanded(
+                    child: TextField(
+                      controller: _searchCtrl,
+                      decoration: InputDecoration(
+                        hintText: l.searchHint,
+                        prefixIcon: const Icon(Icons.search),
+                        isDense: true,
+                        border: const OutlineInputBorder(),
+                      ),
+                      onChanged: (v) => setState(() => _query = normalizeSearch(v)),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
                   FilledButton.icon(
                     onPressed: () => _showEditDialog(context, ref, categories, null),
                     icon: const Icon(Icons.add),
@@ -49,7 +80,7 @@ class CatalogCategoriesTab extends ConsumerWidget {
                           DataColumn(label: Text(l.fieldParentCategory)),
                           DataColumn(label: Text(l.fieldActive)),
                         ],
-                        rows: categories
+                        rows: filtered
                             .map((c) => DataRow(
                                   onSelectChanged: (_) =>
                                       _showEditDialog(context, ref, categories, c),

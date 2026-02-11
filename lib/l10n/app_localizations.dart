@@ -2847,6 +2847,30 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Žádné složky. Přidejte alespoň jednu.'**
   String get recipeNoComponents;
+
+  /// No description provided for @searchHint.
+  ///
+  /// In cs, this message translates to:
+  /// **'Hledat...'**
+  String get searchHint;
+
+  /// No description provided for @filterTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Filtr'**
+  String get filterTitle;
+
+  /// No description provided for @filterAll.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vše'**
+  String get filterAll;
+
+  /// No description provided for @filterReset.
+  ///
+  /// In cs, this message translates to:
+  /// **'Resetovat'**
+  String get filterReset;
 }
 
 class _AppLocalizationsDelegate

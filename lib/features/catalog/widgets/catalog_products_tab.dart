@@ -12,6 +12,7 @@ import '../../../core/data/models/tax_rate_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/utils/search_utils.dart';
 import '../../../l10n/app_localizations.dart';
 
 String _localizedItemType(AppLocalizations l, ItemType type) {
@@ -26,11 +27,43 @@ String _localizedItemType(AppLocalizations l, ItemType type) {
   };
 }
 
-class CatalogProductsTab extends ConsumerWidget {
+class CatalogProductsTab extends ConsumerStatefulWidget {
   const CatalogProductsTab({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CatalogProductsTab> createState() => _CatalogProductsTabState();
+}
+
+class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
+  final _searchCtrl = TextEditingController();
+  String _query = '';
+
+  // Filter state
+  ItemType? _filterItemType;
+  String? _filterCategoryId;
+  bool? _filterIsActive;
+  bool? _filterIsOnSale;
+  bool? _filterIsStockTracked;
+  String? _filterSupplierId;
+  String? _filterManufacturerId;
+
+  bool get _hasActiveFilters =>
+      _filterItemType != null ||
+      _filterCategoryId != null ||
+      _filterIsActive != null ||
+      _filterIsOnSale != null ||
+      _filterIsStockTracked != null ||
+      _filterSupplierId != null ||
+      _filterManufacturerId != null;
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l = context.l10n;
     final company = ref.watch(currentCompanyProvider);
     if (company == null) return const SizedBox.shrink();
@@ -62,13 +95,65 @@ class CatalogProductsTab extends ConsumerWidget {
                         final suppliers = supplierSnap.data ?? [];
                         final manufacturers = mfgSnap.data ?? [];
 
+                        final filtered = items.where((item) {
+                          // Filters
+                          if (_filterItemType != null && item.itemType != _filterItemType) return false;
+                          if (_filterCategoryId != null && item.categoryId != _filterCategoryId) return false;
+                          if (_filterIsActive != null && item.isActive != _filterIsActive) return false;
+                          if (_filterIsOnSale != null && item.isOnSale != _filterIsOnSale) return false;
+                          if (_filterIsStockTracked != null && item.isStockTracked != _filterIsStockTracked) return false;
+                          if (_filterSupplierId != null && item.supplierId != _filterSupplierId) return false;
+                          if (_filterManufacturerId != null && item.manufacturerId != _filterManufacturerId) return false;
+
+                          // Search
+                          if (_query.isEmpty) return true;
+                          final q = _query;
+                          if (normalizeSearch(item.name).contains(q)) return true;
+                          if (item.altSku != null && normalizeSearch(item.altSku!).contains(q)) return true;
+                          final catName = categories
+                              .where((c) => c.id == item.categoryId)
+                              .firstOrNull
+                              ?.name;
+                          if (catName != null && normalizeSearch(catName).contains(q)) return true;
+                          if (normalizeSearch(_localizedItemType(l, item.itemType)).contains(q)) return true;
+                          return false;
+                        }).toList();
+
                         return Column(
                           children: [
                             Padding(
                               padding: const EdgeInsets.all(16),
                               child: Row(
                                 children: [
-                                  const Spacer(),
+                                  Expanded(
+                                    child: TextField(
+                                      controller: _searchCtrl,
+                                      decoration: InputDecoration(
+                                        hintText: l.searchHint,
+                                        prefixIcon: const Icon(Icons.search),
+                                        isDense: true,
+                                        border: const OutlineInputBorder(),
+                                      ),
+                                      onChanged: (v) => setState(() => _query = normalizeSearch(v)),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  IconButton(
+                                    icon: Icon(
+                                      Icons.filter_list,
+                                      color: _hasActiveFilters
+                                          ? Theme.of(context).colorScheme.primary
+                                          : null,
+                                    ),
+                                    onPressed: () => _showFilterDialog(
+                                      context,
+                                      l,
+                                      categories,
+                                      suppliers,
+                                      manufacturers,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
                                   FilledButton.icon(
                                     onPressed: () => _showEditDialog(
                                         context, ref, categories, taxRates, suppliers, manufacturers, null),
@@ -94,11 +179,10 @@ class CatalogProductsTab extends ConsumerWidget {
                                           DataColumn(label: Text(l.fieldTaxRate)),
                                           DataColumn(label: Text(l.fieldType)),
                                           DataColumn(label: Text(l.fieldSupplier)),
-                                          DataColumn(label: Text(l.fieldManufacturer)),
                                           DataColumn(label: Text(l.fieldPurchasePrice)),
                                           DataColumn(label: Text(l.fieldActive)),
                                         ],
-                                        rows: items
+                                        rows: filtered
                                             .map((item) => DataRow(
                                                   onSelectChanged: (_) => _showEditDialog(
                                                       context, ref, categories, taxRates, suppliers, manufacturers, item),
@@ -151,17 +235,6 @@ class CatalogProductsTab extends ConsumerWidget {
                                                       ),
                                                     )),
                                                     DataCell(ConstrainedBox(
-                                                      constraints: const BoxConstraints(maxWidth: 100),
-                                                      child: Text(
-                                                        manufacturers
-                                                                .where((m) => m.id == item.manufacturerId)
-                                                                .firstOrNull
-                                                                ?.name ??
-                                                            '-',
-                                                        overflow: TextOverflow.ellipsis,
-                                                      ),
-                                                    )),
-                                                    DataCell(ConstrainedBox(
                                                       constraints: const BoxConstraints(maxWidth: 70),
                                                       child: Text(
                                                         item.purchasePrice != null
@@ -196,6 +269,149 @@ class CatalogProductsTab extends ConsumerWidget {
         );
       },
     );
+  }
+
+  Future<void> _showFilterDialog(
+    BuildContext context,
+    AppLocalizations l,
+    List<CategoryModel> categories,
+    List<SupplierModel> suppliers,
+    List<ManufacturerModel> manufacturers,
+  ) async {
+    var itemType = _filterItemType;
+    var categoryId = _filterCategoryId;
+    var isActive = _filterIsActive;
+    var isOnSale = _filterIsOnSale;
+    var isStockTracked = _filterIsStockTracked;
+    var supplierId = _filterSupplierId;
+    var manufacturerId = _filterManufacturerId;
+
+    var resetCount = 0;
+
+    final boolItems = [
+      DropdownMenuItem<bool?>(value: null, child: Text(l.filterAll)),
+      DropdownMenuItem<bool?>(value: true, child: Text(l.yes)),
+      DropdownMenuItem<bool?>(value: false, child: Text(l.no)),
+    ];
+
+    await showDialog<void>(
+      context: context,
+      builder: (_) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: Text(l.filterTitle),
+          content: SizedBox(
+            width: 400,
+            child: SingleChildScrollView(
+              child: Column(
+                key: ValueKey(resetCount),
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  DropdownButtonFormField<ItemType?>(
+                    initialValue: itemType,
+                    decoration: InputDecoration(labelText: l.fieldType),
+                    items: [
+                      DropdownMenuItem<ItemType?>(value: null, child: Text(l.filterAll)),
+                      ...ItemType.values.map(
+                        (t) => DropdownMenuItem(value: t, child: Text(_localizedItemType(l, t))),
+                      ),
+                    ],
+                    onChanged: (v) => setDialogState(() => itemType = v),
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String?>(
+                    initialValue: categoryId,
+                    decoration: InputDecoration(labelText: l.fieldCategory),
+                    items: [
+                      DropdownMenuItem<String?>(value: null, child: Text(l.filterAll)),
+                      ...categories.map(
+                        (c) => DropdownMenuItem(value: c.id, child: Text(c.name)),
+                      ),
+                    ],
+                    onChanged: (v) => setDialogState(() => categoryId = v),
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<bool?>(
+                    initialValue: isActive,
+                    decoration: InputDecoration(labelText: l.fieldActive),
+                    items: boolItems,
+                    onChanged: (v) => setDialogState(() => isActive = v),
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<bool?>(
+                    initialValue: isOnSale,
+                    decoration: InputDecoration(labelText: l.fieldOnSale),
+                    items: boolItems,
+                    onChanged: (v) => setDialogState(() => isOnSale = v),
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<bool?>(
+                    initialValue: isStockTracked,
+                    decoration: InputDecoration(labelText: l.fieldStockTracked),
+                    items: boolItems,
+                    onChanged: (v) => setDialogState(() => isStockTracked = v),
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String?>(
+                    initialValue: supplierId,
+                    decoration: InputDecoration(labelText: l.fieldSupplier),
+                    items: [
+                      DropdownMenuItem<String?>(value: null, child: Text(l.filterAll)),
+                      ...suppliers.map(
+                        (s) => DropdownMenuItem(value: s.id, child: Text(s.supplierName)),
+                      ),
+                    ],
+                    onChanged: (v) => setDialogState(() => supplierId = v),
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String?>(
+                    initialValue: manufacturerId,
+                    decoration: InputDecoration(labelText: l.fieldManufacturer),
+                    items: [
+                      DropdownMenuItem<String?>(value: null, child: Text(l.filterAll)),
+                      ...manufacturers.map(
+                        (m) => DropdownMenuItem(value: m.id, child: Text(m.name)),
+                      ),
+                    ],
+                    onChanged: (v) => setDialogState(() => manufacturerId = v),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                setDialogState(() {
+                  itemType = null;
+                  categoryId = null;
+                  isActive = null;
+                  isOnSale = null;
+                  isStockTracked = null;
+                  supplierId = null;
+                  manufacturerId = null;
+                  resetCount++;
+                });
+              },
+              child: Text(l.filterReset),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(l.actionClose),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    setState(() {
+      _filterItemType = itemType;
+      _filterCategoryId = categoryId;
+      _filterIsActive = isActive;
+      _filterIsOnSale = isOnSale;
+      _filterIsStockTracked = isStockTracked;
+      _filterSupplierId = supplierId;
+      _filterManufacturerId = manufacturerId;
+    });
   }
 
   Future<void> _showEditDialog(

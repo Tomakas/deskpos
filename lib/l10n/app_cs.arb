@@ -578,5 +578,11 @@
     }
   },
   "recipeAddComponent": "Přidat složku",
-  "recipeNoComponents": "Žádné složky. Přidejte alespoň jednu."
+  "recipeNoComponents": "Žádné složky. Přidejte alespoň jednu.",
+
+  "searchHint": "Hledat...",
+
+  "filterTitle": "Filtr",
+  "filterAll": "Vše",
+  "filterReset": "Resetovat"
 }

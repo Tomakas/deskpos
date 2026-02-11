@@ -170,7 +170,7 @@ Funkce, které nejsou nezbytné pro základní prodej, ale rozšiřují možnost
 
 - **Task3.11** ✅ Register session rozšíření — počáteční/koncový stav hotovosti (opening_cash, closing_cash, expected_cash, difference)
 - **Task3.12** ✅ Cash movements — vklady, výběry, výdaje
-- **Task3.13** Z-report — denní uzávěrka s detailním souhrnem
+- **Task3.13** ✅ Z-report — denní uzávěrka s detailním souhrnem (ZReportService, DialogZReport, DialogZReportList)
 - **Výsledek:** Pokladna má plnou otevírací/zavírací proceduru s kontrolou hotovosti, evidenci hotovostních pohybů a denní uzávěrku.
 
 > **Pozn.:** Základní register session (otevření/zavření bez hotovosti) je již v Etapě 2 (Milník 2.5).

@@ -6,12 +6,27 @@ import '../../../core/data/models/supplier_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/utils/search_utils.dart';
 
-class SuppliersTab extends ConsumerWidget {
+class SuppliersTab extends ConsumerStatefulWidget {
   const SuppliersTab({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SuppliersTab> createState() => _SuppliersTabState();
+}
+
+class _SuppliersTabState extends ConsumerState<SuppliersTab> {
+  final _searchCtrl = TextEditingController();
+  String _query = '';
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l = context.l10n;
     final company = ref.watch(currentCompanyProvider);
     if (company == null) return const SizedBox.shrink();
@@ -20,13 +35,33 @@ class SuppliersTab extends ConsumerWidget {
       stream: ref.watch(supplierRepositoryProvider).watchAll(company.id),
       builder: (context, snap) {
         final suppliers = snap.data ?? [];
+        final filtered = suppliers.where((s) {
+          if (_query.isEmpty) return true;
+          final q = _query;
+          return normalizeSearch(s.supplierName).contains(q)
+              || (s.contactPerson != null && normalizeSearch(s.contactPerson!).contains(q))
+              || (s.email != null && normalizeSearch(s.email!).contains(q))
+              || (s.phone != null && normalizeSearch(s.phone!).contains(q));
+        }).toList();
         return Column(
           children: [
             Padding(
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
-                  const Spacer(),
+                  Expanded(
+                    child: TextField(
+                      controller: _searchCtrl,
+                      decoration: InputDecoration(
+                        hintText: l.searchHint,
+                        prefixIcon: const Icon(Icons.search),
+                        isDense: true,
+                        border: const OutlineInputBorder(),
+                      ),
+                      onChanged: (v) => setState(() => _query = normalizeSearch(v)),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
                   FilledButton.icon(
                     onPressed: () => _showEditDialog(context, ref, null),
                     icon: const Icon(Icons.add),
@@ -50,7 +85,7 @@ class SuppliersTab extends ConsumerWidget {
                           DataColumn(label: Text(l.fieldEmail)),
                           DataColumn(label: Text(l.fieldPhone)),
                         ],
-                        rows: suppliers
+                        rows: filtered
                             .map((s) => DataRow(
                                   onSelectChanged: (_) =>
                                       _showEditDialog(context, ref, s),

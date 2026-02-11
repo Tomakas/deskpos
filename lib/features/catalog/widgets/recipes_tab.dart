@@ -9,12 +9,27 @@ import '../../../core/data/models/product_recipe_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/utils/search_utils.dart';
 
-class RecipesTab extends ConsumerWidget {
+class RecipesTab extends ConsumerStatefulWidget {
   const RecipesTab({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<RecipesTab> createState() => _RecipesTabState();
+}
+
+class _RecipesTabState extends ConsumerState<RecipesTab> {
+  final _searchCtrl = TextEditingController();
+  String _query = '';
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l = context.l10n;
     final company = ref.watch(currentCompanyProvider);
     if (company == null) return const SizedBox.shrink();
@@ -38,13 +53,31 @@ class RecipesTab extends ConsumerWidget {
               grouped.putIfAbsent(r.parentProductId, () => []).add(r);
             }
 
+            final filteredEntries = grouped.entries.where((entry) {
+              if (_query.isEmpty) return true;
+              final parentName = itemMap[entry.key]?.name ?? '';
+              return normalizeSearch(parentName).contains(_query);
+            }).toList();
+
             return Column(
               children: [
                 Padding(
                   padding: const EdgeInsets.all(16),
                   child: Row(
                     children: [
-                      const Spacer(),
+                      Expanded(
+                        child: TextField(
+                          controller: _searchCtrl,
+                          decoration: InputDecoration(
+                            hintText: l.searchHint,
+                            prefixIcon: const Icon(Icons.search),
+                            isDense: true,
+                            border: const OutlineInputBorder(),
+                          ),
+                          onChanged: (v) => setState(() => _query = normalizeSearch(v)),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
                       FilledButton.icon(
                         onPressed: () => _showRecipeDialog(context, ref, items, null, []),
                         icon: const Icon(Icons.add),
@@ -66,7 +99,7 @@ class RecipesTab extends ConsumerWidget {
                               DataColumn(label: Text(l.fieldParentProduct)),
                               DataColumn(label: Text(l.recipeComponents)),
                             ],
-                            rows: grouped.entries.map((entry) {
+                            rows: filteredEntries.map((entry) {
                               final parentName = itemMap[entry.key]?.name ?? '-';
                               final components = entry.value;
                               final summary = components.map((r) {

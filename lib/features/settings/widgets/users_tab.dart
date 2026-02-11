@@ -10,12 +10,27 @@ import '../../../core/data/models/user_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/utils/search_utils.dart';
 
-class UsersTab extends ConsumerWidget {
+class UsersTab extends ConsumerStatefulWidget {
   const UsersTab({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<UsersTab> createState() => _UsersTabState();
+}
+
+class _UsersTabState extends ConsumerState<UsersTab> {
+  final _searchCtrl = TextEditingController();
+  String _query = '';
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l = context.l10n;
     final company = ref.watch(currentCompanyProvider);
     if (company == null) return const SizedBox.shrink();
@@ -32,13 +47,32 @@ class UsersTab extends ConsumerWidget {
             final users = usersSnap.data ?? [];
             final roles = rolesSnap.data ?? [];
 
+            final filtered = users.where((u) {
+              if (_query.isEmpty) return true;
+              final q = _query;
+              return normalizeSearch(u.fullName).contains(q)
+                  || normalizeSearch(u.username).contains(q);
+            }).toList();
+
             return Column(
               children: [
                 Padding(
                   padding: const EdgeInsets.all(16),
                   child: Row(
                     children: [
-                      const Spacer(),
+                      Expanded(
+                        child: TextField(
+                          controller: _searchCtrl,
+                          decoration: InputDecoration(
+                            hintText: l.searchHint,
+                            prefixIcon: const Icon(Icons.search),
+                            isDense: true,
+                            border: const OutlineInputBorder(),
+                          ),
+                          onChanged: (v) => setState(() => _query = normalizeSearch(v)),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
                       FilledButton.icon(
                         onPressed: () => _showEditDialog(context, ref, roles, null),
                         icon: const Icon(Icons.add),
@@ -61,7 +95,7 @@ class UsersTab extends ConsumerWidget {
                         DataColumn(label: Text(l.fieldActive)),
                         DataColumn(label: Text(l.fieldActions)),
                       ],
-                      rows: users
+                      rows: filtered
                           .map((user) => DataRow(cells: [
                                 DataCell(Text(user.fullName)),
                                 DataCell(Text(user.username)),

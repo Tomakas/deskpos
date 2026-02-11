@@ -1422,4 +1422,16 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get recipeNoComponents => 'Žádné složky. Přidejte alespoň jednu.';
+
+  @override
+  String get searchHint => 'Hledat...';
+
+  @override
+  String get filterTitle => 'Filtr';
+
+  @override
+  String get filterAll => 'Vše';
+
+  @override
+  String get filterReset => 'Resetovat';
 }
