@@ -215,11 +215,12 @@ Funkce, které nejsou nezbytné pro základní prodej, ale rozšiřují možnost
 
 #### Milník 3.6 — Tisk
 
-- **Task3.27** Náhled účtenky — dialog s náhledem (firma, položky, DPH, celkem)
-- **Task3.28** Tisk účtenky — napojení na tiskárnu (POS printer / PDF export)
-- **Task3.29** Tisk Z-reportu — denní uzávěrka
-- **Task3.30** Tisk reportů — tržby, prodeje dle kategorií/zaměstnanců
-- **Výsledek:** Lze tisknout účtenky, denní uzávěrky a reporty na POS tiskárnu nebo do PDF.
+- ✅ Účtenka — PDF 80mm šířka (thermal receipt styl), generováno lokálně přes `pdf` package, otevřeno v systémovém prohlížeči. Obsahuje: hlavička firmy (název, adresa, IČO, DIČ), info účtu, položky se slevami, DPH rekapitulace, platby se spropitným, patička.
+- ✅ Z-report — PDF A4, kopíruje strukturu `DialogZReport` (session info, tržby, DPH, spropitné, slevy, počty účtů, cash reconciliation, směny).
+- ✅ Fonty — bundled Roboto TTF (české diakritické znaky) v `assets/fonts/`.
+- ✅ Infrastruktura — `lib/core/printing/` (PdfFontLoader, ReceiptData, ReceiptPdfBuilder, ZReportPdfBuilder, PrintingService), provider v `lib/core/data/providers/printing_providers.dart`.
+- **Task3.30** Tisk reportů — tržby, prodeje dle kategorií/zaměstnanců (backlog)
+- **Výsledek:** Lze tisknout účtenky a denní uzávěrky do PDF. Kuchyňské tisky a tisk reportů mimo scope v1.
 
 ---
 

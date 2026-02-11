@@ -1,10 +1,13 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:printing/printing.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../../../core/data/providers/printing_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/logging/app_logger.dart';
 import '../../../core/printing/receipt_data.dart';
 import '../models/z_report_data.dart';
 
@@ -212,10 +215,18 @@ class DialogZReport extends ConsumerWidget {
                   children: [
                     OutlinedButton(
                       onPressed: () async {
-                        final labels = _buildLabels(context);
-                        final bytes = await ref.read(printingServiceProvider)
-                            .generateZReportPdf(data, labels);
-                        await Printing.layoutPdf(onLayout: (_) => bytes);
+                        try {
+                          final labels = _buildLabels(context);
+                          final bytes = await ref.read(printingServiceProvider)
+                              .generateZReportPdf(data, labels);
+                          final dir = await getTemporaryDirectory();
+                          if (!dir.existsSync()) dir.createSync(recursive: true);
+                          final file = File('${dir.path}/z_report_${data.sessionId}.pdf');
+                          await file.writeAsBytes(bytes);
+                          await Process.run('open', [file.path]);
+                        } catch (e, s) {
+                          AppLogger.error('Failed to print Z-report', error: e, stackTrace: s);
+                        }
                       },
                       child: Text(l.zReportPrint),
                     ),

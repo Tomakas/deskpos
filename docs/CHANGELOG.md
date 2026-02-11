@@ -1,5 +1,30 @@
 # Changelog
 
+## 2026-02-11 — Milník 3.6: Tisk (účtenky + Z-report)
+
+### Features
+- **Účtenka PDF**: Generování 80mm thermal receipt PDF — hlavička firmy (název, adresa, IČO, DIČ), info účtu, položky se slevami a poznámkami, DPH rekapitulace (tabulka), platby se spropitným, patička
+- **Z-report PDF**: A4 PDF se strukturou kopírující `DialogZReport` — session info, tržby dle plateb, DPH, spropitné, slevy, počty účtů, cash reconciliation, směny
+- **Tlačítka tisku**: Aktivována stub tlačítka v `DialogBillDetail` (sidebar + footer) a `DialogZReport`
+- **České fonty**: Bundled Roboto Regular + Bold TTF pro správné zobrazení diakritiky v PDF
+
+### New Files
+- `assets/fonts/Roboto-Regular.ttf`, `Roboto-Bold.ttf` — fonty pro PDF
+- `lib/core/printing/pdf_font_loader.dart` — singleton lazy-loading fontů z assets
+- `lib/core/printing/receipt_data.dart` — datové třídy `ReceiptData`, `ReceiptLabels`, `ZReportLabels`
+- `lib/core/printing/receipt_pdf_builder.dart` — receipt PDF builder (80mm šířka)
+- `lib/core/printing/z_report_pdf_builder.dart` — Z-report PDF builder (A4)
+- `lib/core/printing/printing_service.dart` — orchestrace: sběr dat z repozitářů + generování PDF
+- `lib/core/data/providers/printing_providers.dart` — Riverpod provider pro `PrintingService`
+- `lib/features/bills/widgets/dialog_receipt_preview.dart` — `showReceiptPrintDialog()` funkce
+
+### Dependencies
+- `pdf: ^3.11.1` — cross-platform PDF generování
+- `printing: ^5.13.4` — (zatím nevyužito pro nativní tisk, macOS desktop kompatibilita)
+
+### L10n
+- +33 nových klíčů v `app_cs.arb` pro popisky účtenky a Z-reportu
+
 ## 2026-02-10 — Milník 3.4: Product Catalog Expansion (/catalog)
 
 ### Schema
