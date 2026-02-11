@@ -19,6 +19,9 @@ class OrderItems extends Table with SyncColumnsMixin {
   TextColumn get discountType => textEnum<DiscountType>().nullable()();
   TextColumn get notes => text().nullable()();
   TextColumn get status => textEnum<PrepStatus>()();
+  DateTimeColumn get prepStartedAt => dateTime().nullable()();
+  DateTimeColumn get readyAt => dateTime().nullable()();
+  DateTimeColumn get deliveredAt => dateTime().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};

@@ -27,6 +27,7 @@ class SyncService {
 
   Timer? _pullTimer;
   bool _isPulling = false;
+  int _pullVersion = 0;
   static const _pullInterval = Duration(minutes: 5);
 
   // Global tables have no company_id — pull all rows without filter
@@ -87,15 +88,21 @@ class SyncService {
   void stop() {
     _pullTimer?.cancel();
     _pullTimer = null;
+    _pullVersion++;
     _isPulling = false;
   }
 
   Future<void> pullAll(String companyId) async {
     if (_isPulling) return;
     _isPulling = true;
+    final version = _pullVersion;
     try {
       AppLogger.debug('SyncService: pulling all tables', tag: 'SYNC');
       for (final tableName in _pullTables) {
+        if (_pullVersion != version) {
+          AppLogger.info('SyncService: pull cancelled', tag: 'SYNC');
+          break;
+        }
         try {
           await pullTable(companyId, tableName);
         } catch (e, s) {

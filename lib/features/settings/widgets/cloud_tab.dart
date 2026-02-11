@@ -4,7 +4,9 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/database_provider.dart';
+import '../../../core/data/providers/sync_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/logging/app_logger.dart';
 import '../screens/screen_cloud_auth.dart';
 
 class CloudTab extends ConsumerWidget {
@@ -92,21 +94,35 @@ class CloudTab extends ConsumerWidget {
 
     if (confirmed != true || !context.mounted) return;
 
-    final db = ref.read(appDatabaseProvider);
+    try {
+      // Stop sync BEFORE deleting data to prevent re-pull race condition
+      ref.read(syncLifecycleManagerProvider).stop();
 
-    await db.customStatement('PRAGMA foreign_keys = OFF');
-    await db.transaction(() async {
-      for (final table in db.allTables) {
-        await db.customStatement('DELETE FROM "${table.actualTableName}"');
-      }
-    });
-    await db.customStatement('PRAGMA foreign_keys = ON');
+      // Clear in-memory state first so sync watcher won't restart
+      ref.read(sessionManagerProvider).logoutAll();
+      ref.read(activeUserProvider.notifier).state = null;
+      ref.read(loggedInUsersProvider.notifier).state = [];
+      ref.read(currentCompanyProvider.notifier).state = null;
 
-    // Clear in-memory state
-    ref.read(sessionManagerProvider).logoutAll();
-    ref.read(activeUserProvider.notifier).state = null;
-    ref.read(loggedInUsersProvider.notifier).state = [];
-    ref.read(currentCompanyProvider.notifier).state = null;
+      // Small delay to let any in-flight pull finish its current table
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+
+      final db = ref.read(appDatabaseProvider);
+
+      await db.customStatement('PRAGMA foreign_keys = OFF');
+      await db.transaction(() async {
+        for (final table in db.allTables) {
+          await db.customStatement('DELETE FROM "${table.actualTableName}"');
+        }
+      });
+      await db.customStatement('PRAGMA foreign_keys = ON');
+
+      // Invalidate cached init state so router re-evaluates
+      ref.invalidate(appInitProvider);
+    } catch (e, s) {
+      AppLogger.error('Failed to delete local data', error: e, stackTrace: s);
+      return;
+    }
 
     if (!context.mounted) return;
     context.go('/onboarding');
