@@ -552,5 +552,21 @@
   "inventoryDialogActualQuantity": "Skutečný stav",
   "inventoryDialogDifference": "Rozdíl",
   "inventoryDialogSave": "Uložit inventuru",
-  "inventoryDialogNoDifferences": "Žádné rozdíly"
+  "inventoryDialogNoDifferences": "Žádné rozdíly",
+
+  "inventoryTabLevels": "Zásoby",
+  "inventoryTabDocuments": "Doklady",
+
+  "documentColumnNumber": "Číslo",
+  "documentColumnType": "Typ",
+  "documentColumnDate": "Datum",
+  "documentColumnSupplier": "Dodavatel",
+  "documentColumnNote": "Poznámka",
+  "documentColumnTotal": "Celkem",
+  "documentNoDocuments": "Žádné skladové doklady",
+
+  "documentTypeReceipt": "Příjemka",
+  "documentTypeWaste": "Výdejka",
+  "documentTypeInventory": "Inventura",
+  "documentTypeCorrection": "Oprava"
 }

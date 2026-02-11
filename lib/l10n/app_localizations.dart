@@ -2745,6 +2745,84 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Žádné rozdíly'**
   String get inventoryDialogNoDifferences;
+
+  /// No description provided for @inventoryTabLevels.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zásoby'**
+  String get inventoryTabLevels;
+
+  /// No description provided for @inventoryTabDocuments.
+  ///
+  /// In cs, this message translates to:
+  /// **'Doklady'**
+  String get inventoryTabDocuments;
+
+  /// No description provided for @documentColumnNumber.
+  ///
+  /// In cs, this message translates to:
+  /// **'Číslo'**
+  String get documentColumnNumber;
+
+  /// No description provided for @documentColumnType.
+  ///
+  /// In cs, this message translates to:
+  /// **'Typ'**
+  String get documentColumnType;
+
+  /// No description provided for @documentColumnDate.
+  ///
+  /// In cs, this message translates to:
+  /// **'Datum'**
+  String get documentColumnDate;
+
+  /// No description provided for @documentColumnSupplier.
+  ///
+  /// In cs, this message translates to:
+  /// **'Dodavatel'**
+  String get documentColumnSupplier;
+
+  /// No description provided for @documentColumnNote.
+  ///
+  /// In cs, this message translates to:
+  /// **'Poznámka'**
+  String get documentColumnNote;
+
+  /// No description provided for @documentColumnTotal.
+  ///
+  /// In cs, this message translates to:
+  /// **'Celkem'**
+  String get documentColumnTotal;
+
+  /// No description provided for @documentNoDocuments.
+  ///
+  /// In cs, this message translates to:
+  /// **'Žádné skladové doklady'**
+  String get documentNoDocuments;
+
+  /// No description provided for @documentTypeReceipt.
+  ///
+  /// In cs, this message translates to:
+  /// **'Příjemka'**
+  String get documentTypeReceipt;
+
+  /// No description provided for @documentTypeWaste.
+  ///
+  /// In cs, this message translates to:
+  /// **'Výdejka'**
+  String get documentTypeWaste;
+
+  /// No description provided for @documentTypeInventory.
+  ///
+  /// In cs, this message translates to:
+  /// **'Inventura'**
+  String get documentTypeInventory;
+
+  /// No description provided for @documentTypeCorrection.
+  ///
+  /// In cs, this message translates to:
+  /// **'Oprava'**
+  String get documentTypeCorrection;
 }
 
 class _AppLocalizationsDelegate

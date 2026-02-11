@@ -1369,4 +1369,43 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get inventoryDialogNoDifferences => 'Žádné rozdíly';
+
+  @override
+  String get inventoryTabLevels => 'Zásoby';
+
+  @override
+  String get inventoryTabDocuments => 'Doklady';
+
+  @override
+  String get documentColumnNumber => 'Číslo';
+
+  @override
+  String get documentColumnType => 'Typ';
+
+  @override
+  String get documentColumnDate => 'Datum';
+
+  @override
+  String get documentColumnSupplier => 'Dodavatel';
+
+  @override
+  String get documentColumnNote => 'Poznámka';
+
+  @override
+  String get documentColumnTotal => 'Celkem';
+
+  @override
+  String get documentNoDocuments => 'Žádné skladové doklady';
+
+  @override
+  String get documentTypeReceipt => 'Příjemka';
+
+  @override
+  String get documentTypeWaste => 'Výdejka';
+
+  @override
+  String get documentTypeInventory => 'Inventura';
+
+  @override
+  String get documentTypeCorrection => 'Oprava';
 }
