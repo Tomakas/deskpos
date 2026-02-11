@@ -29,6 +29,7 @@ import '../widgets/dialog_closing_session.dart';
 import '../widgets/dialog_new_bill.dart';
 import '../widgets/dialog_opening_cash.dart';
 import '../widgets/dialog_z_report.dart';
+import '../widgets/dialog_reservations_list.dart';
 import '../widgets/dialog_shifts_list.dart';
 import '../widgets/dialog_z_report_list.dart';
 
@@ -108,6 +109,7 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
               onCashMovement: hasSession ? () => _showCashMovement(context) : null,
               onZReports: () => _showZReports(context),
               onShifts: () => _showShifts(context),
+              onReservations: () => _showReservations(context),
             ),
           ),
         ],
@@ -521,6 +523,13 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
     showDialog(
       context: context,
       builder: (_) => DialogShiftsList(shifts: rows),
+    );
+  }
+
+  void _showReservations(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (_) => const DialogReservationsList(),
     );
   }
 }
@@ -991,6 +1000,7 @@ class _RightPanel extends ConsumerWidget {
     required this.onCashMovement,
     required this.onZReports,
     required this.onShifts,
+    required this.onReservations,
   });
 
   final dynamic activeUser;
@@ -1006,6 +1016,7 @@ class _RightPanel extends ConsumerWidget {
   final VoidCallback? onCashMovement;
   final VoidCallback onZReports;
   final VoidCallback onShifts;
+  final VoidCallback onReservations;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -1059,6 +1070,7 @@ class _RightPanel extends ConsumerWidget {
                           canManageSettings,
                           onZReports: onZReports,
                           onShifts: onShifts,
+                          onReservations: onReservations,
                         ),
                         child: Text(l.billsMore, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12)),
                       );
@@ -1169,7 +1181,7 @@ class _ButtonRow extends StatelessWidget {
   }
 }
 
-void _showMoreMenu(BuildContext btnContext, bool canManageSettings, {VoidCallback? onZReports, VoidCallback? onShifts}) {
+void _showMoreMenu(BuildContext btnContext, bool canManageSettings, {VoidCallback? onZReports, VoidCallback? onShifts, VoidCallback? onReservations}) {
   final l = btnContext.l10n;
   final button = btnContext.findRenderObject()! as RenderBox;
   final overlay = Overlay.of(btnContext).context.findRenderObject()! as RenderBox;
@@ -1194,7 +1206,7 @@ void _showMoreMenu(BuildContext btnContext, bool canManageSettings, {VoidCallbac
       if (!canManageSettings)
         PopupMenuItem(enabled: false, height: 48, child: Text(l.moreShifts)),
       PopupMenuItem(enabled: false, height: 48, child: Text(l.moreStatistics)),
-      PopupMenuItem(enabled: false, height: 48, child: Text(l.moreReservations)),
+      PopupMenuItem(value: 'reservations', height: 48, child: Text(l.moreReservations)),
       if (canManageSettings)
         PopupMenuItem(value: 'company-settings', height: 48, child: Text(l.moreCompanySettings)),
       if (!canManageSettings)
@@ -1215,6 +1227,8 @@ void _showMoreMenu(BuildContext btnContext, bool canManageSettings, {VoidCallbac
         onZReports?.call();
       case 'shifts':
         onShifts?.call();
+      case 'reservations':
+        onReservations?.call();
     }
   });
 }

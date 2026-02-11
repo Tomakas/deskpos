@@ -8,6 +8,7 @@ export 'layout_item_type.dart';
 export 'payment_type.dart';
 export 'prep_status.dart';
 export 'purchase_price_strategy.dart';
+export 'reservation_status.dart';
 export 'role_name.dart';
 export 'stock_document_type.dart';
 export 'stock_movement_direction.dart';

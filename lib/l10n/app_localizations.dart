@@ -3069,6 +3069,168 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Směny'**
   String get zReportShiftsReportTitle;
+
+  /// No description provided for @reservationsTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Rezervace'**
+  String get reservationsTitle;
+
+  /// No description provided for @reservationNew.
+  ///
+  /// In cs, this message translates to:
+  /// **'Nová rezervace'**
+  String get reservationNew;
+
+  /// No description provided for @reservationEdit.
+  ///
+  /// In cs, this message translates to:
+  /// **'Upravit rezervaci'**
+  String get reservationEdit;
+
+  /// No description provided for @reservationDate.
+  ///
+  /// In cs, this message translates to:
+  /// **'Datum'**
+  String get reservationDate;
+
+  /// No description provided for @reservationTime.
+  ///
+  /// In cs, this message translates to:
+  /// **'Čas'**
+  String get reservationTime;
+
+  /// No description provided for @reservationCustomerName.
+  ///
+  /// In cs, this message translates to:
+  /// **'Jméno'**
+  String get reservationCustomerName;
+
+  /// No description provided for @reservationCustomerPhone.
+  ///
+  /// In cs, this message translates to:
+  /// **'Telefon'**
+  String get reservationCustomerPhone;
+
+  /// No description provided for @reservationPartySize.
+  ///
+  /// In cs, this message translates to:
+  /// **'Počet osob'**
+  String get reservationPartySize;
+
+  /// No description provided for @reservationTable.
+  ///
+  /// In cs, this message translates to:
+  /// **'Stůl'**
+  String get reservationTable;
+
+  /// No description provided for @reservationNotes.
+  ///
+  /// In cs, this message translates to:
+  /// **'Poznámka'**
+  String get reservationNotes;
+
+  /// No description provided for @reservationStatus.
+  ///
+  /// In cs, this message translates to:
+  /// **'Stav'**
+  String get reservationStatus;
+
+  /// No description provided for @reservationStatusCreated.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vytvořena'**
+  String get reservationStatusCreated;
+
+  /// No description provided for @reservationStatusConfirmed.
+  ///
+  /// In cs, this message translates to:
+  /// **'Potvrzena'**
+  String get reservationStatusConfirmed;
+
+  /// No description provided for @reservationStatusSeated.
+  ///
+  /// In cs, this message translates to:
+  /// **'Usazeni'**
+  String get reservationStatusSeated;
+
+  /// No description provided for @reservationStatusCancelled.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zrušena'**
+  String get reservationStatusCancelled;
+
+  /// No description provided for @reservationLinkCustomer.
+  ///
+  /// In cs, this message translates to:
+  /// **'Propojit zákazníka'**
+  String get reservationLinkCustomer;
+
+  /// No description provided for @reservationLinkedCustomer.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zákazník'**
+  String get reservationLinkedCustomer;
+
+  /// No description provided for @reservationsEmpty.
+  ///
+  /// In cs, this message translates to:
+  /// **'Žádné rezervace'**
+  String get reservationsEmpty;
+
+  /// No description provided for @reservationSave.
+  ///
+  /// In cs, this message translates to:
+  /// **'Uložit'**
+  String get reservationSave;
+
+  /// No description provided for @reservationDelete.
+  ///
+  /// In cs, this message translates to:
+  /// **'Smazat'**
+  String get reservationDelete;
+
+  /// No description provided for @reservationColumnDate.
+  ///
+  /// In cs, this message translates to:
+  /// **'Datum'**
+  String get reservationColumnDate;
+
+  /// No description provided for @reservationColumnTime.
+  ///
+  /// In cs, this message translates to:
+  /// **'Čas'**
+  String get reservationColumnTime;
+
+  /// No description provided for @reservationColumnName.
+  ///
+  /// In cs, this message translates to:
+  /// **'Jméno'**
+  String get reservationColumnName;
+
+  /// No description provided for @reservationColumnPhone.
+  ///
+  /// In cs, this message translates to:
+  /// **'Telefon'**
+  String get reservationColumnPhone;
+
+  /// No description provided for @reservationColumnPartySize.
+  ///
+  /// In cs, this message translates to:
+  /// **'Počet'**
+  String get reservationColumnPartySize;
+
+  /// No description provided for @reservationColumnTable.
+  ///
+  /// In cs, this message translates to:
+  /// **'Stůl'**
+  String get reservationColumnTable;
+
+  /// No description provided for @reservationColumnStatus.
+  ///
+  /// In cs, this message translates to:
+  /// **'Stav'**
+  String get reservationColumnStatus;
 }
 
 class _AppLocalizationsDelegate

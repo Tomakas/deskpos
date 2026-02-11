@@ -611,6 +611,26 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
         lastSyncedAt: Value(now),
       );
 
+    case 'reservations':
+      return ReservationsCompanion(
+        id: Value(json['id'] as String),
+        companyId: Value(json['company_id'] as String),
+        customerId: Value(json['customer_id'] as String?),
+        customerName: Value(json['customer_name'] as String),
+        customerPhone: Value(json['customer_phone'] as String?),
+        reservationDate: Value(_requireDateTime(json['reservation_date'])),
+        partySize: Value(json['party_size'] as int? ?? 2),
+        tableId: Value(json['table_id'] as String?),
+        notes: Value(json['notes'] as String?),
+        status: Value(_enumFromName(ReservationStatus.values, json['status']).name),
+        createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
+        updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
+        deletedAt: Value(_parseDateTime(json['deleted_at'])),
+        serverCreatedAt: Value(_parseDateTime(json['created_at'])),
+        serverUpdatedAt: Value(_parseDateTime(json['updated_at'])),
+        lastSyncedAt: Value(now),
+      );
+
     case 'stock_movements':
       return StockMovementsCompanion(
         id: Value(json['id'] as String),

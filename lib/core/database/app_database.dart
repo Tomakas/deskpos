@@ -34,6 +34,7 @@ import 'tables/stock_levels.dart';
 import 'tables/stock_movements.dart';
 import 'tables/suppliers.dart';
 import 'tables/sync_metadata.dart';
+import 'tables/reservations.dart';
 import 'tables/warehouses.dart';
 import 'tables/sync_queue.dart';
 import 'tables/table_entities.dart';
@@ -63,6 +64,7 @@ part 'app_database.g.dart';
   ProductRecipes,
   RegisterSessions,
   Registers,
+  Reservations,
   RolePermissions,
   Roles,
   Sections,

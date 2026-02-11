@@ -222,6 +222,12 @@ Funkce, které nejsou nezbytné pro základní prodej, ale rozšiřují možnost
 - **Task3.30** Tisk reportů — tržby, prodeje dle kategorií/zaměstnanců (backlog)
 - **Výsledek:** Lze tisknout účtenky a denní uzávěrky do PDF. Kuchyňské tisky a tisk reportů mimo scope v1.
 
+#### Milník 3.7 — Rezervace
+
+- **Task3.31** ✅ Rezervace — tabulka `reservations` (customer_name, customer_phone, reservation_date, party_size, table_id, status, optional FK na customers). Drift table, Freezed model, BaseCompanyScopedRepository, entity/supabase/pull mappers, sync registrace, provider. Status enum: created, confirmed, seated, cancelled.
+- **Task3.32** ✅ UI — DialogReservationsList (seznam s date range filtrem, 7 sloupců), DialogReservationEdit (create/edit formulář s propojením zákazníka, date/time picker, table dropdown, status segmented button). Přístup přes menu "Další" → "Rezervace" na ScreenBills.
+- **Výsledek:** Uživatel může vytvářet, prohlížet, editovat a mazat rezervace. Volitelné propojení se zákazníkem z DB (pre-fill jméno + telefon). Plná offline podpora a sync přes outbox.
+
 ---
 
 ### Etapa 4 — Statistiky a reporty

@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-02-11 — Milník 3.7: Rezervace
+
+### Features
+- **Rezervace**: Nová tabulka `reservations` s Drift definicí, Freezed modelem, repository, mappers (entity, supabase push, supabase pull), sync registrací a provider
+- **ReservationStatus enum**: `created`, `confirmed`, `seated`, `cancelled`
+- **DialogReservationsList**: Seznam rezervací s date range filtrem (výchozí: dnes + 7 dní), 7 sloupců (datum, čas, jméno, telefon, počet, stůl, stav), kliknutí na řádek otevře edit dialog
+- **DialogReservationEdit**: Create/edit formulář — jméno, telefon, propojení zákazníka z DB (pre-fill), date/time picker, party size, table dropdown, poznámka, status segmented button (edit only), delete (edit only)
+- **Menu wiring**: Aktivován stub "Rezervace" v menu "Další" na ScreenBills (přístup pro všechny uživatele)
+
+### New Files
+- `lib/core/database/tables/reservations.dart` — Drift table definition
+- `lib/core/data/enums/reservation_status.dart` — status enum
+- `lib/core/data/models/reservation_model.dart` — Freezed model
+- `lib/core/data/repositories/reservation_repository.dart` — repository s `watchByDateRange`
+- `lib/features/bills/widgets/dialog_reservations_list.dart` — list dialog
+- `lib/features/bills/widgets/dialog_reservation_edit.dart` — create/edit dialog
+
+### L10n
+- +27 nových klíčů v `app_cs.arb` pro rezervace
+
 ## 2026-02-11 — Milník 3.6: Tisk (účtenky + Z-report)
 
 ### Features

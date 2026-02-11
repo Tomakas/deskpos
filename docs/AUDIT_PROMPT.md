@@ -19,6 +19,39 @@ Proveď **kompletní, důkladnou a podrobnou analýzu** celého EPOS projektu. A
 6. **Analýzu Supabase** proveď přes MCP nástroje (execute_sql, list_tables, get_advisors) — nikdy nehádej stav serveru.
 7. **Spouštěj analýzy paralelně** kde je to možné (Task tool s agenty pro různé oblasti).
 
+### Verifikační protokol (POVINNÝ)
+
+Každý nález **MUSÍ** projít verifikací před zařazením do reportu. Cílem je eliminovat falešné nálezy.
+
+**Postup pro každý potenciální nález:**
+
+1. **Znovu přečti primární zdroj** — znovu otevři soubor a přečti konkrétní řádky. Nespoléhej na to, co sis přečetl dříve nebo co máš v paměti.
+2. **Ověř protistranu** — pokud tvrdíš „sloupec X chybí v Supabase", spusť SQL dotaz a ověř, že sloupec skutečně neexistuje. Pokud tvrdíš „mapper neposílá pole Y", přečti mapper znovu a hledej pole pod všemi možnými názvy (camelCase, snake_case, aliasy).
+3. **Zvaž kontext a záměr** — je to skutečně bug, nebo záměrné designové rozhodnutí? Příklady:
+   - Drift `text()` pro UUID sloupec = standardní praxe v SQLite (ne bug)
+   - Chybějící FK constraints = může být záměr pro offline-first sync
+   - `public` role s `get_my_company_ids()` = funguje stejně jako `authenticated` pokud funkce volá `auth.uid()`
+   - Sloupce `lastSyncedAt`, `version` pouze v Drift = local-only sync metadata (ne chybějící na serveru)
+4. **Ověř kompletní řetězec** — pokud reportuješ problém v mapperu, ověř i Drift tabulku, model, Supabase schéma a druhý mapper. Problém může být na jiném místě než se zdá.
+5. **Rozliš „nefunkční" vs „neoptimální"** — KRITICKÉ = crash nebo data loss. Neoptimální index ≠ KRITICKÉ.
+
+**U každého nálezu v reportu uveď:**
+
+```
+### [ZÁVAŽNOST] Název nálezu
+**Verifikace:** Jak jsem ověřil, že jde o skutečný problém (ne domněnku).
+**Důkaz:** Přesná citace kódu/SQL výsledku, který problém potvrzuje.
+**Soubor:** `cesta/soubor.dart:řádek`
+**Popis:** Co je špatně.
+**Dopad:** Proč je to problém (konkrétní scénář).
+**Řešení:** Jak to opravit (konkrétní kroky).
+```
+
+**Pokud si nejsi 100% jistý**, zda jde o skutečný problém:
+- Sniž závažnost o jeden stupeň
+- Přidej poznámku „VYŽADUJE RUČNÍ OVĚŘENÍ" s popisem, co přesně ověřit
+- Nikdy nehlásaj KRITICKÉ bez důkazu
+
 ### Doporučené rozdělení agentů (4 paralelní)
 
 Spouštěj jako background agenty v jednom kroku:
@@ -462,16 +495,3 @@ Tabulka 5 nejkritičtějších nálezů s přesnými soubory a řádky pro okam�
 | # | Soubor:řádek | Co změnit | Rozsah |
 |---|-------------|-----------|--------|
 
----
-
-## Známé nesoulady (z auditu 2026-02-10)
-
-Při auditu ověř, zda následující problémy přetrvávají. Pokud ano, znovu reportuj:
-
-- `shifts` tabulka — existuje v Drift (`tables/shifts.dart`, `app_database.dart:52`, `sync_service.dart:63`), ale **chybí na Supabase** → sync crash
-- `payments.user_id` — existuje v Drift (`payments.dart:10`), ale **chybí na Supabase** → push fail
-- `companies.auth_user_id` — `text().nullable()` v Drift vs `uuid NOT NULL` na Supabase → type + nullability mismatch
-- `_enumFromName()` v `supabase_pull_mappers.dart:15-16` — `firstWhere` bez `orElse` → crash na neznámém enum
-- `getById()` v `base_company_scoped_repository.dart:127-132` — bez company scope validace → cross-company data leak
-- `Company.create()` v `company_repository.dart:24` — bez outbox enqueue → company se nesynchronizuje
-- `order_items.quantity` — `real()` v Drift vs `integer` na Supabase → precision mismatch

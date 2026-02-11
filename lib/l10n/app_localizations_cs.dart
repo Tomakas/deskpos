@@ -1533,4 +1533,85 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get zReportShiftsReportTitle => 'Směny';
+
+  @override
+  String get reservationsTitle => 'Rezervace';
+
+  @override
+  String get reservationNew => 'Nová rezervace';
+
+  @override
+  String get reservationEdit => 'Upravit rezervaci';
+
+  @override
+  String get reservationDate => 'Datum';
+
+  @override
+  String get reservationTime => 'Čas';
+
+  @override
+  String get reservationCustomerName => 'Jméno';
+
+  @override
+  String get reservationCustomerPhone => 'Telefon';
+
+  @override
+  String get reservationPartySize => 'Počet osob';
+
+  @override
+  String get reservationTable => 'Stůl';
+
+  @override
+  String get reservationNotes => 'Poznámka';
+
+  @override
+  String get reservationStatus => 'Stav';
+
+  @override
+  String get reservationStatusCreated => 'Vytvořena';
+
+  @override
+  String get reservationStatusConfirmed => 'Potvrzena';
+
+  @override
+  String get reservationStatusSeated => 'Usazeni';
+
+  @override
+  String get reservationStatusCancelled => 'Zrušena';
+
+  @override
+  String get reservationLinkCustomer => 'Propojit zákazníka';
+
+  @override
+  String get reservationLinkedCustomer => 'Zákazník';
+
+  @override
+  String get reservationsEmpty => 'Žádné rezervace';
+
+  @override
+  String get reservationSave => 'Uložit';
+
+  @override
+  String get reservationDelete => 'Smazat';
+
+  @override
+  String get reservationColumnDate => 'Datum';
+
+  @override
+  String get reservationColumnTime => 'Čas';
+
+  @override
+  String get reservationColumnName => 'Jméno';
+
+  @override
+  String get reservationColumnPhone => 'Telefon';
+
+  @override
+  String get reservationColumnPartySize => 'Počet';
+
+  @override
+  String get reservationColumnTable => 'Stůl';
+
+  @override
+  String get reservationColumnStatus => 'Stav';
 }

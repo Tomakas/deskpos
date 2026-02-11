@@ -16,6 +16,7 @@ import '../repositories/payment_repository.dart';
 import '../repositories/permission_repository.dart';
 import '../repositories/product_recipe_repository.dart';
 import '../repositories/register_repository.dart';
+import '../repositories/reservation_repository.dart';
 import '../repositories/register_session_repository.dart';
 import '../repositories/shift_repository.dart';
 import '../repositories/role_repository.dart';
@@ -176,6 +177,13 @@ final layoutItemRepositoryProvider = Provider<LayoutItemRepository>((ref) {
 
 final customerRepositoryProvider = Provider<CustomerRepository>((ref) {
   return CustomerRepository(
+    ref.watch(appDatabaseProvider),
+    syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
+  );
+});
+
+final reservationRepositoryProvider = Provider<ReservationRepository>((ref) {
+  return ReservationRepository(
     ref.watch(appDatabaseProvider),
     syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
   );

@@ -18,6 +18,7 @@ import '../models/payment_model.dart';
 import '../models/permission_model.dart';
 import '../models/product_recipe_model.dart';
 import '../models/register_model.dart';
+import '../models/reservation_model.dart';
 import '../models/register_session_model.dart';
 import '../models/role_model.dart';
 import '../models/role_permission_model.dart';
@@ -599,4 +600,22 @@ Map<String, dynamic> stockMovementToSupabaseJson(StockMovementModel m) => {
       'purchase_price': m.purchasePrice,
       'direction': m.direction.name,
       'purchase_price_strategy': m.purchasePriceStrategy?.name,
+    };
+
+Map<String, dynamic> reservationToSupabaseJson(ReservationModel m) => {
+      ..._baseSyncFields(
+        id: m.id,
+        companyId: m.companyId,
+        createdAt: m.createdAt,
+        updatedAt: m.updatedAt,
+        deletedAt: m.deletedAt,
+      ),
+      'customer_id': m.customerId,
+      'customer_name': m.customerName,
+      'customer_phone': m.customerPhone,
+      'reservation_date': toIso8601Utc(m.reservationDate),
+      'party_size': m.partySize,
+      'table_id': m.tableId,
+      'notes': m.notes,
+      'status': m.status.name,
     };

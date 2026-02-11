@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 
 import '../../database/app_database.dart';
+import '../enums/reservation_status.dart';
 import '../models/bill_model.dart';
 import '../models/cash_movement_model.dart';
 import '../models/category_model.dart';
@@ -19,6 +20,7 @@ import '../models/payment_model.dart';
 import '../models/permission_model.dart';
 import '../models/product_recipe_model.dart';
 import '../models/register_model.dart';
+import '../models/reservation_model.dart';
 import '../models/register_session_model.dart';
 import '../models/role_model.dart';
 import '../models/role_permission_model.dart';
@@ -765,4 +767,35 @@ StockMovementsCompanion stockMovementToCompanion(StockMovementModel m) =>
       purchasePrice: Value(m.purchasePrice),
       direction: m.direction,
       purchasePriceStrategy: Value(m.purchasePriceStrategy),
+    );
+
+// --- Reservation ---
+ReservationModel reservationFromEntity(Reservation e) => ReservationModel(
+      id: e.id,
+      companyId: e.companyId,
+      customerId: e.customerId,
+      customerName: e.customerName,
+      customerPhone: e.customerPhone,
+      reservationDate: e.reservationDate,
+      partySize: e.partySize,
+      tableId: e.tableId,
+      notes: e.notes,
+      status: ReservationStatus.values.byName(e.status),
+      createdAt: e.createdAt,
+      updatedAt: e.updatedAt,
+      deletedAt: e.deletedAt,
+    );
+
+ReservationsCompanion reservationToCompanion(ReservationModel m) =>
+    ReservationsCompanion.insert(
+      id: m.id,
+      companyId: m.companyId,
+      customerId: Value(m.customerId),
+      customerName: m.customerName,
+      customerPhone: Value(m.customerPhone),
+      reservationDate: m.reservationDate,
+      partySize: Value(m.partySize),
+      tableId: Value(m.tableId),
+      notes: Value(m.notes),
+      status: m.status.name,
     );

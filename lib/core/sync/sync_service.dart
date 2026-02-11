@@ -59,6 +59,7 @@ class SyncService {
     'registers',
     'layout_items',
     'customers',
+    'reservations',
     'warehouses',
     'bills',
     'orders',
@@ -231,6 +232,8 @@ class SyncService {
         return _db.manufacturers;
       case 'customers':
         return _db.customers;
+      case 'reservations':
+        return _db.reservations;
       case 'customer_transactions':
         return _db.customerTransactions;
       case 'product_recipes':
