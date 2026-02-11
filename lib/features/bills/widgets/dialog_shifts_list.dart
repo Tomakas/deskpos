@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/widgets/pos_table.dart';
 
 class ShiftDisplayRow {
   const ShiftDisplayRow({
@@ -101,66 +102,42 @@ class _DialogShiftsListState extends State<DialogShiftsList> {
                 ],
               ),
               const SizedBox(height: 8),
-              // Header
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainerHighest,
-                ),
-                child: Row(
-                  children: [
-                    SizedBox(width: 90, child: Text(l.shiftsColumnDate, style: theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.bold))),
-                    Expanded(child: Text(l.shiftsColumnUser, style: theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.bold))),
-                    SizedBox(width: 60, child: Text(l.shiftsColumnLogin, style: theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.bold))),
-                    SizedBox(width: 80, child: Text(l.shiftsColumnLogout, textAlign: TextAlign.right, style: theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.bold))),
-                    SizedBox(width: 80, child: Text(l.shiftsColumnDuration, textAlign: TextAlign.right, style: theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.bold))),
-                  ],
-                ),
-              ),
-              // Body
+              // Table
               SizedBox(
                 height: 400,
-                child: filtered.isEmpty
-                    ? Center(child: Text(l.shiftsListEmpty, style: theme.textTheme.bodyMedium))
-                    : ListView.builder(
-                        itemCount: filtered.length,
-                        itemBuilder: (context, index) {
-                          final s = filtered[index];
-                          final isOngoing = s.logoutAt == null;
-                          final duration = (s.logoutAt ?? DateTime.now()).difference(s.loginAt);
-
-                          return Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-                            decoration: BoxDecoration(
-                              border: Border(bottom: BorderSide(color: theme.dividerColor.withValues(alpha: 0.3))),
-                            ),
-                            child: Row(
-                              children: [
-                                SizedBox(width: 90, child: Text(dateFormat.format(s.loginAt))),
-                                Expanded(child: Text(s.username)),
-                                SizedBox(width: 60, child: Text(timeFormat.format(s.loginAt))),
-                                SizedBox(
-                                  width: 80,
-                                  child: Text(
-                                    isOngoing ? l.shiftsOngoing : timeFormat.format(s.logoutAt!),
-                                    textAlign: TextAlign.right,
-                                    style: isOngoing
-                                        ? TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold)
-                                        : null,
-                                  ),
-                                ),
-                                SizedBox(
-                                  width: 80,
-                                  child: Text(
-                                    _fmtDuration(duration),
-                                    textAlign: TextAlign.right,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
+                child: PosTable<ShiftDisplayRow>(
+                  columns: [
+                    PosColumn(label: l.shiftsColumnDate, width: 90, cellBuilder: (s) => Text(dateFormat.format(s.loginAt))),
+                    PosColumn(label: l.shiftsColumnUser, cellBuilder: (s) => Text(s.username)),
+                    PosColumn(label: l.shiftsColumnLogin, width: 60, cellBuilder: (s) => Text(timeFormat.format(s.loginAt))),
+                    PosColumn(
+                      label: l.shiftsColumnLogout,
+                      width: 80,
+                      numeric: true,
+                      cellBuilder: (s) {
+                        final isOngoing = s.logoutAt == null;
+                        return Text(
+                          isOngoing ? l.shiftsOngoing : timeFormat.format(s.logoutAt!),
+                          textAlign: TextAlign.right,
+                          style: isOngoing
+                              ? TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold)
+                              : null,
+                        );
+                      },
+                    ),
+                    PosColumn(
+                      label: l.shiftsColumnDuration,
+                      width: 80,
+                      numeric: true,
+                      cellBuilder: (s) {
+                        final duration = (s.logoutAt ?? DateTime.now()).difference(s.loginAt);
+                        return Text(_fmtDuration(duration), textAlign: TextAlign.right);
+                      },
+                    ),
+                  ],
+                  items: filtered,
+                  emptyMessage: l.shiftsListEmpty,
+                ),
               ),
               const SizedBox(height: 16),
               Align(

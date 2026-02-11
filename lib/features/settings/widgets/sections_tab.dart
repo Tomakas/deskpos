@@ -6,6 +6,7 @@ import '../../../core/data/models/section_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/widgets/pos_table.dart';
 
 class SectionsTab extends ConsumerWidget {
   const SectionsTab({super.key});
@@ -22,77 +23,70 @@ class SectionsTab extends ConsumerWidget {
         final sections = snap.data ?? [];
         return Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  const Spacer(),
-                  FilledButton.icon(
-                    onPressed: () => _showEditDialog(context, ref, null),
-                    icon: const Icon(Icons.add),
-                    label: Text(l.actionAdd),
-                  ),
-                ],
-              ),
+            PosTableToolbar(
+              trailing: [
+                FilledButton.icon(
+                  onPressed: () => _showEditDialog(context, ref, null),
+                  icon: const Icon(Icons.add),
+                  label: Text(l.actionAdd),
+                ),
+              ],
             ),
             Expanded(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return SingleChildScrollView(
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(minWidth: constraints.maxWidth),
-                      child: DataTable(
-                  columns: [
-                    DataColumn(label: Text(l.fieldName)),
-                    DataColumn(label: Text(l.fieldColor)),
-                    DataColumn(label: Text(l.fieldActive)),
-                    DataColumn(label: Text(l.fieldDefault)),
-                    DataColumn(label: Text(l.fieldActions)),
-                  ],
-                  rows: sections
-                      .map((s) => DataRow(cells: [
-                            DataCell(Text(s.name)),
-                            DataCell(
-                              s.color != null
-                                  ? Container(
-                                      width: 24,
-                                      height: 24,
-                                      decoration: BoxDecoration(
-                                        color: _parseColor(s.color),
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                    )
-                                  : const Text('-'),
+              child: PosTable<SectionModel>(
+                columns: [
+                  PosColumn(label: l.fieldName, flex: 3, cellBuilder: (s) => Text(s.name, overflow: TextOverflow.ellipsis)),
+                  PosColumn(
+                    label: l.fieldColor,
+                    flex: 1,
+                    cellBuilder: (s) => s.color != null
+                        ? Container(
+                            width: 24,
+                            height: 24,
+                            decoration: BoxDecoration(
+                              color: _parseColor(s.color),
+                              borderRadius: BorderRadius.circular(4),
                             ),
-                            DataCell(Icon(
-                              s.isActive ? Icons.check_circle : Icons.cancel,
-                              color: s.isActive ? Colors.green : Colors.grey,
-                              size: 20,
-                            )),
-                            DataCell(Icon(
-                              s.isDefault ? Icons.check_circle : Icons.radio_button_unchecked,
-                              color: s.isDefault ? Colors.green : Colors.grey,
-                              size: 20,
-                            )),
-                            DataCell(Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(
-                                  icon: const Icon(Icons.edit, size: 20),
-                                  onPressed: () => _showEditDialog(context, ref, s),
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.delete, size: 20),
-                                  onPressed: () => _delete(context, ref, s),
-                                ),
-                              ],
-                            )),
-                          ]))
-                      .toList(),
+                          )
+                        : const Text('-'),
+                  ),
+                  PosColumn(
+                    label: l.fieldActive,
+                    flex: 1,
+                    cellBuilder: (s) => Icon(
+                      s.isActive ? Icons.check_circle : Icons.cancel,
+                      color: s.isActive ? Colors.green : Colors.grey,
+                      size: 20,
                     ),
                   ),
-                );
-                },
+                  PosColumn(
+                    label: l.fieldDefault,
+                    flex: 1,
+                    cellBuilder: (s) => Icon(
+                      s.isDefault ? Icons.check_circle : Icons.radio_button_unchecked,
+                      color: s.isDefault ? Colors.green : Colors.grey,
+                      size: 20,
+                    ),
+                  ),
+                  PosColumn(
+                    label: l.fieldActions,
+                    flex: 2,
+                    cellBuilder: (s) => Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.edit, size: 20),
+                          onPressed: () => _showEditDialog(context, ref, s),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete, size: 20),
+                          onPressed: () => _delete(context, ref, s),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+                items: sections,
               ),
             ),
           ],

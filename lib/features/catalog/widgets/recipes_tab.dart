@@ -10,6 +10,7 @@ import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/utils/search_utils.dart';
+import '../../../core/widgets/pos_table.dart';
 
 class RecipesTab extends ConsumerStatefulWidget {
   const RecipesTab({super.key});
@@ -31,8 +32,6 @@ class _RecipesTabState extends ConsumerState<RecipesTab> {
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
-    final theme = Theme.of(context);
-    final headerStyle = theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.bold);
     final company = ref.watch(currentCompanyProvider);
     if (company == null) return const SizedBox.shrink();
 
@@ -63,83 +62,43 @@ class _RecipesTabState extends ConsumerState<RecipesTab> {
 
             return Column(
               children: [
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _searchCtrl,
-                          decoration: InputDecoration(
-                            hintText: l.searchHint,
-                            prefixIcon: const Icon(Icons.search),
-                            suffixIcon: _query.isNotEmpty
-                                ? IconButton(
-                                    icon: const Icon(Icons.close),
-                                    onPressed: () {
-                                      _searchCtrl.clear();
-                                      setState(() => _query = '');
-                                    },
-                                  )
-                                : null,
-                            isDense: true,
-                            border: const OutlineInputBorder(),
-                          ),
-                          onChanged: (v) => setState(() => _query = normalizeSearch(v)),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      FilledButton.icon(
-                        onPressed: () => _showRecipeDialog(context, ref, items, null, []),
-                        icon: const Icon(Icons.add),
-                        label: Text(l.actionAdd),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surfaceContainerHighest,
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(flex: 2, child: Text(l.fieldParentProduct, style: headerStyle)),
-                      Expanded(flex: 5, child: Text(l.recipeComponents, style: headerStyle)),
-                    ],
-                  ),
+                PosTableToolbar(
+                  searchController: _searchCtrl,
+                  searchHint: l.searchHint,
+                  onSearchChanged: (v) => setState(() => _query = normalizeSearch(v)),
+                  trailing: [
+                    FilledButton.icon(
+                      onPressed: () => _showRecipeDialog(context, ref, items, null, []),
+                      icon: const Icon(Icons.add),
+                      label: Text(l.actionAdd),
+                    ),
+                  ],
                 ),
                 Expanded(
-                  child: ListView.builder(
-                    itemCount: filteredEntries.length,
-                    itemBuilder: (context, index) {
-                      final entry = filteredEntries[index];
-                      final parentName = itemMap[entry.key]?.name ?? '-';
-                      final components = entry.value;
-                      final summary = components.map((r) {
-                        final name = itemMap[r.componentProductId]?.name ?? '?';
-                        final qty = _formatQty(r.quantityRequired);
-                        return '$qty $name';
-                      }).join(', ');
-
-                      return InkWell(
-                        onTap: () => _showRecipeDialog(
-                          context, ref, items, entry.key, components,
-                        ),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                          decoration: BoxDecoration(
-                            border: Border(bottom: BorderSide(color: theme.dividerColor.withValues(alpha: 0.3))),
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(flex: 2, child: Text(parentName, overflow: TextOverflow.ellipsis)),
-                              Expanded(flex: 5, child: Text(summary, overflow: TextOverflow.ellipsis)),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
+                  child: PosTable<MapEntry<String, List<ProductRecipeModel>>>(
+                    columns: [
+                      PosColumn(
+                        label: l.fieldParentProduct,
+                        flex: 2,
+                        cellBuilder: (entry) => Text(itemMap[entry.key]?.name ?? '-', overflow: TextOverflow.ellipsis),
+                      ),
+                      PosColumn(
+                        label: l.recipeComponents,
+                        flex: 5,
+                        cellBuilder: (entry) {
+                          final summary = entry.value.map((r) {
+                            final name = itemMap[r.componentProductId]?.name ?? '?';
+                            final qty = _formatQty(r.quantityRequired);
+                            return '$qty $name';
+                          }).join(', ');
+                          return Text(summary, overflow: TextOverflow.ellipsis);
+                        },
+                      ),
+                    ],
+                    items: filteredEntries,
+                    onRowTap: (entry) => _showRecipeDialog(
+                      context, ref, items, entry.key, entry.value,
+                    ),
                   ),
                 ),
               ],

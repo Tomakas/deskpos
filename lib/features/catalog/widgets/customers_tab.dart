@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../core/data/models/customer_model.dart';
@@ -7,6 +8,7 @@ import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/utils/search_utils.dart';
+import '../../../core/widgets/pos_table.dart';
 import 'dialog_customer_credit.dart';
 
 class CustomersTab extends ConsumerStatefulWidget {
@@ -29,8 +31,6 @@ class _CustomersTabState extends ConsumerState<CustomersTab> {
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
-    final theme = Theme.of(context);
-    final headerStyle = theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.bold);
     final company = ref.watch(currentCompanyProvider);
     if (company == null) return const SizedBox.shrink();
 
@@ -48,93 +48,37 @@ class _CustomersTabState extends ConsumerState<CustomersTab> {
         }).toList();
         return Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _searchCtrl,
-                      decoration: InputDecoration(
-                        hintText: l.searchHint,
-                        prefixIcon: const Icon(Icons.search),
-                        suffixIcon: _query.isNotEmpty
-                            ? IconButton(
-                                icon: const Icon(Icons.close),
-                                onPressed: () {
-                                  _searchCtrl.clear();
-                                  setState(() => _query = '');
-                                },
-                              )
-                            : null,
-                        isDense: true,
-                        border: const OutlineInputBorder(),
-                      ),
-                      onChanged: (v) => setState(() => _query = normalizeSearch(v)),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  FilledButton.icon(
-                    onPressed: () => _showEditDialog(context, ref, null),
-                    icon: const Icon(Icons.add),
-                    label: Text(l.actionAdd),
-                  ),
-                ],
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerHighest,
-              ),
-              child: Row(
-                children: [
-                  Expanded(flex: 2, child: Text(l.customerFirstName, style: headerStyle)),
-                  Expanded(flex: 2, child: Text(l.customerLastName, style: headerStyle)),
-                  Expanded(flex: 2, child: Text(l.customerEmail, style: headerStyle)),
-                  Expanded(flex: 2, child: Text(l.customerPhone, style: headerStyle)),
-                  Expanded(flex: 1, child: Text(l.customerPoints, style: headerStyle)),
-                  Expanded(flex: 1, child: Text(l.customerCredit, style: headerStyle)),
-                  const SizedBox(width: 48),
-                ],
-              ),
+            PosTableToolbar(
+              searchController: _searchCtrl,
+              searchHint: l.searchHint,
+              onSearchChanged: (v) => setState(() => _query = normalizeSearch(v)),
+              trailing: [
+                FilledButton.icon(
+                  onPressed: () => _showEditDialog(context, ref, null),
+                  icon: const Icon(Icons.add),
+                  label: Text(l.actionAdd),
+                ),
+              ],
             ),
             Expanded(
-              child: ListView.builder(
-                itemCount: filtered.length,
-                itemBuilder: (context, index) {
-                  final c = filtered[index];
-                  return InkWell(
-                    onTap: () => _showEditDialog(context, ref, c),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                      decoration: BoxDecoration(
-                        border: Border(bottom: BorderSide(color: theme.dividerColor.withValues(alpha: 0.3))),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(flex: 2, child: Text(c.firstName, overflow: TextOverflow.ellipsis)),
-                          Expanded(flex: 2, child: Text(c.lastName, overflow: TextOverflow.ellipsis)),
-                          Expanded(flex: 2, child: Text(c.email ?? '-', overflow: TextOverflow.ellipsis)),
-                          Expanded(flex: 2, child: Text(c.phone ?? '-', overflow: TextOverflow.ellipsis)),
-                          Expanded(flex: 1, child: Text(c.points.toString(), overflow: TextOverflow.ellipsis)),
-                          Expanded(flex: 1, child: Text(
-                            (c.credit / 100).toStringAsFixed(2).replaceAll('.', ','),
-                            overflow: TextOverflow.ellipsis,
-                          )),
-                          SizedBox(
-                            width: 48,
-                            child: IconButton(
-                              icon: const Icon(Icons.account_balance_wallet_outlined, size: 20),
-                              tooltip: l.loyaltyCredit,
-                              onPressed: () => _showCreditDialog(context, c),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
+              child: PosTable<CustomerModel>(
+                columns: [
+                  PosColumn(label: l.customerFirstName, flex: 2, cellBuilder: (c) => Text(c.firstName, overflow: TextOverflow.ellipsis)),
+                  PosColumn(label: l.customerLastName, flex: 2, cellBuilder: (c) => Text(c.lastName, overflow: TextOverflow.ellipsis)),
+                  PosColumn(label: l.customerEmail, flex: 2, cellBuilder: (c) => Text(c.email ?? '-', overflow: TextOverflow.ellipsis)),
+                  PosColumn(label: l.customerPhone, flex: 2, cellBuilder: (c) => Text(c.phone ?? '-', overflow: TextOverflow.ellipsis)),
+                  PosColumn(label: l.customerPoints, flex: 1, cellBuilder: (c) => Text(c.points.toString(), overflow: TextOverflow.ellipsis)),
+                  PosColumn(label: l.customerCredit, flex: 1, cellBuilder: (c) => Text(
+                    (c.credit / 100).toStringAsFixed(2).replaceAll('.', ','),
+                    overflow: TextOverflow.ellipsis,
+                  )),
+                  PosColumn(label: l.customerLastVisit, flex: 2, cellBuilder: (c) => Text(
+                    c.lastVisitDate != null ? DateFormat('d.M.yyyy', 'cs').format(c.lastVisitDate!) : '-',
+                    overflow: TextOverflow.ellipsis,
+                  )),
+                ],
+                items: filtered,
+                onRowTap: (c) => _showEditDialog(context, ref, c),
               ),
             ),
           ],
@@ -151,8 +95,8 @@ class _CustomersTabState extends ConsumerState<CustomersTab> {
     final phoneCtrl = TextEditingController(text: existing?.phone ?? '');
     final addressCtrl = TextEditingController(text: existing?.address ?? '');
     final pointsCtrl = TextEditingController(text: existing?.points.toString() ?? '0');
-    final creditCtrl = TextEditingController(text: existing?.credit.toString() ?? '0');
-    final totalSpentCtrl = TextEditingController(text: existing?.totalSpent.toString() ?? '0');
+    final creditCtrl = TextEditingController(text: ((existing?.credit ?? 0) / 100).toStringAsFixed(2) );
+    final totalSpentCtrl = TextEditingController(text: ((existing?.totalSpent ?? 0) / 100).toStringAsFixed(2));
 
     final theme = Theme.of(context);
     final result = await showDialog<Object>(
@@ -197,10 +141,27 @@ class _CustomersTabState extends ConsumerState<CustomersTab> {
                     keyboardType: TextInputType.number,
                   ),
                   const SizedBox(height: 12),
-                  TextField(
-                    controller: creditCtrl,
-                    decoration: InputDecoration(labelText: l.customerCredit),
-                    keyboardType: TextInputType.number,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: creditCtrl,
+                          decoration: InputDecoration(labelText: l.customerCredit),
+                          keyboardType: TextInputType.number,
+                        ),
+                      ),
+                      if (existing != null) ...[
+                        const SizedBox(width: 8),
+                        IconButton(
+                          icon: const Icon(Icons.account_balance_wallet_outlined),
+                          tooltip: l.loyaltyCredit,
+                          onPressed: () {
+                            Navigator.pop(ctx);
+                            _showCreditDialog(context, existing);
+                          },
+                        ),
+                      ],
+                    ],
                   ),
                   const SizedBox(height: 12),
                   TextField(
@@ -208,6 +169,17 @@ class _CustomersTabState extends ConsumerState<CustomersTab> {
                     decoration: InputDecoration(labelText: l.customerTotalSpent),
                     keyboardType: TextInputType.number,
                   ),
+                  if (existing != null) ...[
+                    const SizedBox(height: 12),
+                    InputDecorator(
+                      decoration: InputDecoration(labelText: l.customerLastVisit),
+                      child: Text(
+                        existing.lastVisitDate != null
+                            ? DateFormat('d.M.yyyy HH:mm', 'cs').format(existing.lastVisitDate!)
+                            : '-',
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -246,8 +218,8 @@ class _CustomersTabState extends ConsumerState<CustomersTab> {
         phone: phoneCtrl.text.trim().isNotEmpty ? phoneCtrl.text.trim() : null,
         address: addressCtrl.text.trim().isNotEmpty ? addressCtrl.text.trim() : null,
         points: int.tryParse(pointsCtrl.text.trim()) ?? 0,
-        credit: int.tryParse(creditCtrl.text.trim()) ?? 0,
-        totalSpent: int.tryParse(totalSpentCtrl.text.trim()) ?? 0,
+        credit: ((double.tryParse(creditCtrl.text.trim()) ?? 0) * 100).round(),
+        totalSpent: ((double.tryParse(totalSpentCtrl.text.trim()) ?? 0) * 100).round(),
       ));
     } else {
       await repo.create(CustomerModel(
@@ -259,8 +231,8 @@ class _CustomersTabState extends ConsumerState<CustomersTab> {
         phone: phoneCtrl.text.trim().isNotEmpty ? phoneCtrl.text.trim() : null,
         address: addressCtrl.text.trim().isNotEmpty ? addressCtrl.text.trim() : null,
         points: int.tryParse(pointsCtrl.text.trim()) ?? 0,
-        credit: int.tryParse(creditCtrl.text.trim()) ?? 0,
-        totalSpent: int.tryParse(totalSpentCtrl.text.trim()) ?? 0,
+        credit: ((double.tryParse(creditCtrl.text.trim()) ?? 0) * 100).round(),
+        totalSpent: ((double.tryParse(totalSpentCtrl.text.trim()) ?? 0) * 100).round(),
         createdAt: now,
         updatedAt: now,
       ));

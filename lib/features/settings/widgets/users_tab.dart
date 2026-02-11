@@ -11,6 +11,7 @@ import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/utils/search_utils.dart';
+import '../../../core/widgets/pos_table.dart';
 
 class UsersTab extends ConsumerStatefulWidget {
   const UsersTab({super.key});
@@ -32,8 +33,6 @@ class _UsersTabState extends ConsumerState<UsersTab> {
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
-    final theme = Theme.of(context);
-    final headerStyle = theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.bold);
     final company = ref.watch(currentCompanyProvider);
     if (company == null) return const SizedBox.shrink();
 
@@ -58,102 +57,55 @@ class _UsersTabState extends ConsumerState<UsersTab> {
 
             return Column(
               children: [
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _searchCtrl,
-                          decoration: InputDecoration(
-                            hintText: l.searchHint,
-                            prefixIcon: const Icon(Icons.search),
-                            suffixIcon: _query.isNotEmpty
-                                ? IconButton(
-                                    icon: const Icon(Icons.close),
-                                    onPressed: () {
-                                      _searchCtrl.clear();
-                                      setState(() => _query = '');
-                                    },
-                                  )
-                                : null,
-                            isDense: true,
-                            border: const OutlineInputBorder(),
-                          ),
-                          onChanged: (v) => setState(() => _query = normalizeSearch(v)),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      FilledButton.icon(
-                        onPressed: () => _showEditDialog(context, ref, roles, null),
-                        icon: const Icon(Icons.add),
-                        label: Text(l.actionAdd),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surfaceContainerHighest,
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(flex: 3, child: Text(l.fieldName, style: headerStyle)),
-                      Expanded(flex: 2, child: Text(l.fieldUsername, style: headerStyle)),
-                      Expanded(flex: 2, child: Text(l.fieldRole, style: headerStyle)),
-                      Expanded(flex: 1, child: Text(l.fieldActive, style: headerStyle)),
-                      Expanded(flex: 2, child: Text(l.fieldActions, style: headerStyle)),
-                    ],
-                  ),
+                PosTableToolbar(
+                  searchController: _searchCtrl,
+                  searchHint: l.searchHint,
+                  onSearchChanged: (v) => setState(() => _query = normalizeSearch(v)),
+                  trailing: [
+                    FilledButton.icon(
+                      onPressed: () => _showEditDialog(context, ref, roles, null),
+                      icon: const Icon(Icons.add),
+                      label: Text(l.actionAdd),
+                    ),
+                  ],
                 ),
                 Expanded(
-                  child: ListView.builder(
-                    itemCount: filtered.length,
-                    itemBuilder: (context, index) {
-                      final user = filtered[index];
-                      return Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                        decoration: BoxDecoration(
-                          border: Border(bottom: BorderSide(color: theme.dividerColor.withValues(alpha: 0.3))),
+                  child: PosTable<UserModel>(
+                    columns: [
+                      PosColumn(label: l.fieldName, flex: 3, cellBuilder: (user) => Text(user.fullName, overflow: TextOverflow.ellipsis)),
+                      PosColumn(label: l.fieldUsername, flex: 2, cellBuilder: (user) => Text(user.username, overflow: TextOverflow.ellipsis)),
+                      PosColumn(label: l.fieldRole, flex: 2, cellBuilder: (user) => Text(_roleLabel(l, roles, user.roleId), overflow: TextOverflow.ellipsis)),
+                      PosColumn(
+                        label: l.fieldActive,
+                        flex: 1,
+                        cellBuilder: (user) => Align(
+                          alignment: Alignment.centerLeft,
+                          child: Icon(
+                            user.isActive ? Icons.check_circle : Icons.cancel,
+                            color: user.isActive ? Colors.green : Colors.grey,
+                            size: 20,
+                          ),
                         ),
-                        child: Row(
+                      ),
+                      PosColumn(
+                        label: l.fieldActions,
+                        flex: 2,
+                        cellBuilder: (user) => Row(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            Expanded(flex: 3, child: Text(user.fullName, overflow: TextOverflow.ellipsis)),
-                            Expanded(flex: 2, child: Text(user.username, overflow: TextOverflow.ellipsis)),
-                            Expanded(flex: 2, child: Text(_roleLabel(l, roles, user.roleId), overflow: TextOverflow.ellipsis)),
-                            Expanded(
-                              flex: 1,
-                              child: Align(
-                                alignment: Alignment.centerLeft,
-                                child: Icon(
-                                  user.isActive ? Icons.check_circle : Icons.cancel,
-                                  color: user.isActive ? Colors.green : Colors.grey,
-                                  size: 20,
-                                ),
-                              ),
+                            IconButton(
+                              icon: const Icon(Icons.edit, size: 20),
+                              onPressed: () => _showEditDialog(context, ref, roles, user),
                             ),
-                            Expanded(
-                              flex: 2,
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.edit, size: 20),
-                                    onPressed: () =>
-                                        _showEditDialog(context, ref, roles, user),
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.delete, size: 20),
-                                    onPressed: () => _delete(context, ref, user),
-                                  ),
-                                ],
-                              ),
+                            IconButton(
+                              icon: const Icon(Icons.delete, size: 20),
+                              onPressed: () => _delete(context, ref, user),
                             ),
                           ],
                         ),
-                      );
-                    },
+                      ),
+                    ],
+                    items: filtered,
                   ),
                 ),
               ],

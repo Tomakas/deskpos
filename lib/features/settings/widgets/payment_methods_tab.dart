@@ -7,6 +7,7 @@ import '../../../core/data/models/payment_method_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/widgets/pos_table.dart';
 
 class PaymentMethodsTab extends ConsumerWidget {
   const PaymentMethodsTab({super.key});
@@ -23,60 +24,48 @@ class PaymentMethodsTab extends ConsumerWidget {
         final methods = snap.data ?? [];
         return Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  const Spacer(),
-                  FilledButton.icon(
-                    onPressed: () => _showEditDialog(context, ref, null),
-                    icon: const Icon(Icons.add),
-                    label: Text(l.actionAdd),
-                  ),
-                ],
-              ),
+            PosTableToolbar(
+              trailing: [
+                FilledButton.icon(
+                  onPressed: () => _showEditDialog(context, ref, null),
+                  icon: const Icon(Icons.add),
+                  label: Text(l.actionAdd),
+                ),
+              ],
             ),
             Expanded(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return SingleChildScrollView(
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(minWidth: constraints.maxWidth),
-                      child: DataTable(
-                  columns: [
-                    DataColumn(label: Text(l.fieldName)),
-                    DataColumn(label: Text(l.fieldType)),
-                    DataColumn(label: Text(l.fieldActive)),
-                    DataColumn(label: Text(l.fieldActions)),
-                  ],
-                  rows: methods
-                      .map((pm) => DataRow(cells: [
-                            DataCell(Text(pm.name)),
-                            DataCell(Text(_typeLabel(l, pm.type))),
-                            DataCell(Icon(
-                              pm.isActive ? Icons.check_circle : Icons.cancel,
-                              color: pm.isActive ? Colors.green : Colors.grey,
-                              size: 20,
-                            )),
-                            DataCell(Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(
-                                  icon: const Icon(Icons.edit, size: 20),
-                                  onPressed: () => _showEditDialog(context, ref, pm),
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.delete, size: 20),
-                                  onPressed: () => _delete(context, ref, pm),
-                                ),
-                              ],
-                            )),
-                          ]))
-                      .toList(),
+              child: PosTable<PaymentMethodModel>(
+                columns: [
+                  PosColumn(label: l.fieldName, flex: 3, cellBuilder: (pm) => Text(pm.name, overflow: TextOverflow.ellipsis)),
+                  PosColumn(label: l.fieldType, flex: 2, cellBuilder: (pm) => Text(_typeLabel(l, pm.type), overflow: TextOverflow.ellipsis)),
+                  PosColumn(
+                    label: l.fieldActive,
+                    flex: 1,
+                    cellBuilder: (pm) => Icon(
+                      pm.isActive ? Icons.check_circle : Icons.cancel,
+                      color: pm.isActive ? Colors.green : Colors.grey,
+                      size: 20,
                     ),
                   ),
-                );
-                },
+                  PosColumn(
+                    label: l.fieldActions,
+                    flex: 2,
+                    cellBuilder: (pm) => Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.edit, size: 20),
+                          onPressed: () => _showEditDialog(context, ref, pm),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete, size: 20),
+                          onPressed: () => _delete(context, ref, pm),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+                items: methods,
               ),
             ),
           ],

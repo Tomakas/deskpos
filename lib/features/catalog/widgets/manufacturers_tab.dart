@@ -7,6 +7,7 @@ import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/utils/search_utils.dart';
+import '../../../core/widgets/pos_table.dart';
 
 class ManufacturersTab extends ConsumerStatefulWidget {
   const ManufacturersTab({super.key});
@@ -28,8 +29,6 @@ class _ManufacturersTabState extends ConsumerState<ManufacturersTab> {
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
-    final theme = Theme.of(context);
-    final headerStyle = theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.bold);
     final company = ref.watch(currentCompanyProvider);
     if (company == null) return const SizedBox.shrink();
 
@@ -43,71 +42,25 @@ class _ManufacturersTabState extends ConsumerState<ManufacturersTab> {
         }).toList();
         return Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _searchCtrl,
-                      decoration: InputDecoration(
-                        hintText: l.searchHint,
-                        prefixIcon: const Icon(Icons.search),
-                        suffixIcon: _query.isNotEmpty
-                            ? IconButton(
-                                icon: const Icon(Icons.close),
-                                onPressed: () {
-                                  _searchCtrl.clear();
-                                  setState(() => _query = '');
-                                },
-                              )
-                            : null,
-                        isDense: true,
-                        border: const OutlineInputBorder(),
-                      ),
-                      onChanged: (v) => setState(() => _query = normalizeSearch(v)),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  FilledButton.icon(
-                    onPressed: () => _showEditDialog(context, ref, null),
-                    icon: const Icon(Icons.add),
-                    label: Text(l.actionAdd),
-                  ),
-                ],
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerHighest,
-              ),
-              child: Row(
-                children: [
-                  Expanded(child: Text(l.fieldName, style: headerStyle)),
-                ],
-              ),
+            PosTableToolbar(
+              searchController: _searchCtrl,
+              searchHint: l.searchHint,
+              onSearchChanged: (v) => setState(() => _query = normalizeSearch(v)),
+              trailing: [
+                FilledButton.icon(
+                  onPressed: () => _showEditDialog(context, ref, null),
+                  icon: const Icon(Icons.add),
+                  label: Text(l.actionAdd),
+                ),
+              ],
             ),
             Expanded(
-              child: ListView.builder(
-                itemCount: filtered.length,
-                itemBuilder: (context, index) {
-                  final m = filtered[index];
-                  return InkWell(
-                    onTap: () => _showEditDialog(context, ref, m),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                      decoration: BoxDecoration(
-                        border: Border(bottom: BorderSide(color: theme.dividerColor.withValues(alpha: 0.3))),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(child: Text(m.name, overflow: TextOverflow.ellipsis)),
-                        ],
-                      ),
-                    ),
-                  );
-                },
+              child: PosTable<ManufacturerModel>(
+                columns: [
+                  PosColumn(label: l.fieldName, cellBuilder: (m) => Text(m.name, overflow: TextOverflow.ellipsis)),
+                ],
+                items: filtered,
+                onRowTap: (m) => _showEditDialog(context, ref, m),
               ),
             ),
           ],

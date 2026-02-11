@@ -8,6 +8,7 @@ import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/utils/search_utils.dart';
+import '../../../core/widgets/pos_table.dart';
 
 class TablesTab extends ConsumerStatefulWidget {
   const TablesTab({super.key});
@@ -29,8 +30,6 @@ class _TablesTabState extends ConsumerState<TablesTab> {
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
-    final theme = Theme.of(context);
-    final headerStyle = theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.bold);
     final company = ref.watch(currentCompanyProvider);
     if (company == null) return const SizedBox.shrink();
 
@@ -60,112 +59,62 @@ class _TablesTabState extends ConsumerState<TablesTab> {
 
             return Column(
               children: [
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _searchCtrl,
-                          decoration: InputDecoration(
-                            hintText: l.searchHint,
-                            prefixIcon: const Icon(Icons.search),
-                            suffixIcon: _query.isNotEmpty
-                                ? IconButton(
-                                    icon: const Icon(Icons.close),
-                                    onPressed: () {
-                                      _searchCtrl.clear();
-                                      setState(() => _query = '');
-                                    },
-                                  )
-                                : null,
-                            isDense: true,
-                            border: const OutlineInputBorder(),
-                          ),
-                          onChanged: (v) => setState(() => _query = normalizeSearch(v)),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      FilledButton.icon(
-                        onPressed: () => _showEditDialog(context, ref, sections, null),
-                        icon: const Icon(Icons.add),
-                        label: Text(l.actionAdd),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surfaceContainerHighest,
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(flex: 3, child: Text(l.fieldName, style: headerStyle)),
-                      Expanded(flex: 2, child: Text(l.fieldSection, style: headerStyle)),
-                      Expanded(flex: 1, child: Text(l.fieldCapacity, style: headerStyle)),
-                      Expanded(flex: 1, child: Text(l.fieldActive, style: headerStyle)),
-                      Expanded(flex: 2, child: Text(l.fieldActions, style: headerStyle)),
-                    ],
-                  ),
+                PosTableToolbar(
+                  searchController: _searchCtrl,
+                  searchHint: l.searchHint,
+                  onSearchChanged: (v) => setState(() => _query = normalizeSearch(v)),
+                  trailing: [
+                    FilledButton.icon(
+                      onPressed: () => _showEditDialog(context, ref, sections, null),
+                      icon: const Icon(Icons.add),
+                      label: Text(l.actionAdd),
+                    ),
+                  ],
                 ),
                 Expanded(
-                  child: ListView.builder(
-                    itemCount: filtered.length,
-                    itemBuilder: (context, index) {
-                      final t = filtered[index];
-                      return Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                        decoration: BoxDecoration(
-                          border: Border(bottom: BorderSide(color: theme.dividerColor.withValues(alpha: 0.3))),
+                  child: PosTable<TableModel>(
+                    columns: [
+                      PosColumn(label: l.fieldName, flex: 3, cellBuilder: (t) => Text(t.name, overflow: TextOverflow.ellipsis)),
+                      PosColumn(
+                        label: l.fieldSection,
+                        flex: 2,
+                        cellBuilder: (t) => Text(
+                          sections.where((s) => s.id == t.sectionId).firstOrNull?.name ?? '-',
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        child: Row(
+                      ),
+                      PosColumn(label: l.fieldCapacity, flex: 1, cellBuilder: (t) => Text('${t.capacity}', overflow: TextOverflow.ellipsis)),
+                      PosColumn(
+                        label: l.fieldActive,
+                        flex: 1,
+                        cellBuilder: (t) => Align(
+                          alignment: Alignment.centerLeft,
+                          child: Icon(
+                            t.isActive ? Icons.check_circle : Icons.cancel,
+                            color: t.isActive ? Colors.green : Colors.grey,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                      PosColumn(
+                        label: l.fieldActions,
+                        flex: 2,
+                        cellBuilder: (t) => Row(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            Expanded(flex: 3, child: Text(t.name, overflow: TextOverflow.ellipsis)),
-                            Expanded(
-                              flex: 2,
-                              child: Text(
-                                sections
-                                        .where((s) => s.id == t.sectionId)
-                                        .firstOrNull
-                                        ?.name ??
-                                    '-',
-                                overflow: TextOverflow.ellipsis,
-                              ),
+                            IconButton(
+                              icon: const Icon(Icons.edit, size: 20),
+                              onPressed: () => _showEditDialog(context, ref, sections, t),
                             ),
-                            Expanded(flex: 1, child: Text('${t.capacity}', overflow: TextOverflow.ellipsis)),
-                            Expanded(
-                              flex: 1,
-                              child: Align(
-                                alignment: Alignment.centerLeft,
-                                child: Icon(
-                                  t.isActive ? Icons.check_circle : Icons.cancel,
-                                  color: t.isActive ? Colors.green : Colors.grey,
-                                  size: 20,
-                                ),
-                              ),
-                            ),
-                            Expanded(
-                              flex: 2,
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.edit, size: 20),
-                                    onPressed: () =>
-                                        _showEditDialog(context, ref, sections, t),
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.delete, size: 20),
-                                    onPressed: () => _delete(context, ref, t),
-                                  ),
-                                ],
-                              ),
+                            IconButton(
+                              icon: const Icon(Icons.delete, size: 20),
+                              onPressed: () => _delete(context, ref, t),
                             ),
                           ],
                         ),
-                      );
-                    },
+                      ),
+                    ],
+                    items: filtered,
                   ),
                 ),
               ],

@@ -8,6 +8,7 @@ import '../../../core/data/repositories/stock_document_repository.dart';
 import '../../../core/data/repositories/stock_level_repository.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/widgets/pos_table.dart';
 
 class DialogInventory extends ConsumerStatefulWidget {
   const DialogInventory({
@@ -57,76 +58,79 @@ class _DialogInventoryState extends ConsumerState<DialogInventory> {
                         widget.warehouseId,
                       ),
                   builder: (context, snap) {
+                    final theme = Theme.of(context);
                     final levels = snap.data ?? [];
 
-                    if (levels.isEmpty) {
-                      return Center(child: Text(l.inventoryNoItems));
+                    // Ensure controllers exist for all items
+                    for (final item in levels) {
+                      final itemId = item.stockLevel.itemId;
+                      _controllers.putIfAbsent(
+                        itemId,
+                        () => TextEditingController(text: _formatQuantity(item.stockLevel.quantity)),
+                      );
                     }
 
-                    return LayoutBuilder(
-                      builder: (context, constraints) {
-                        return SingleChildScrollView(
-                          child: ConstrainedBox(
-                            constraints: BoxConstraints(minWidth: constraints.maxWidth),
-                            child: DataTable(
-                              columnSpacing: 16,
-                              columns: [
-                                DataColumn(label: Text(l.inventoryColumnItem)),
-                                DataColumn(label: Text(l.inventoryColumnUnit)),
-                                DataColumn(label: Text(l.inventoryColumnQuantity), numeric: true),
-                                DataColumn(label: Text(l.inventoryDialogActualQuantity), numeric: true),
-                                DataColumn(label: Text(l.inventoryDialogDifference), numeric: true),
-                              ],
-                              rows: levels.map((item) {
-                                final itemId = item.stockLevel.itemId;
-                                _controllers.putIfAbsent(
-                                  itemId,
-                                  () => TextEditingController(text: _formatQuantity(item.stockLevel.quantity)),
-                                );
-                                final controller = _controllers[itemId]!;
-
-                                return DataRow(cells: [
-                                  DataCell(Text(item.itemName)),
-                                  DataCell(Text(item.unit.name)),
-                                  DataCell(Text(_formatQuantity(item.stockLevel.quantity))),
-                                  DataCell(
-                                    SizedBox(
-                                      width: 80,
-                                      child: TextField(
-                                        controller: controller,
-                                        decoration: const InputDecoration(isDense: true),
-                                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                        inputFormatters: [
-                                          FilteringTextInputFormatter.allow(RegExp(r'[\d.,-]')),
-                                        ],
-                                        onChanged: (_) => setState(() {}),
-                                      ),
-                                    ),
-                                  ),
-                                  DataCell(Builder(builder: (context) {
-                                    final actual = double.tryParse(
-                                            controller.text.replaceAll(',', '.')) ??
-                                        item.stockLevel.quantity;
-                                    final diff = actual - item.stockLevel.quantity;
-                                    final diffText = diff == 0
-                                        ? '-'
-                                        : (diff > 0 ? '+' : '') + _formatQuantity(diff);
-                                    return Text(
-                                      diffText,
-                                      style: diff != 0
-                                          ? TextStyle(
-                                              color: diff > 0 ? Colors.green : Theme.of(context).colorScheme.error,
-                                              fontWeight: FontWeight.bold,
-                                            )
-                                          : null,
-                                    );
-                                  })),
-                                ]);
-                              }).toList(),
-                            ),
+                    return PosTable<StockLevelWithItem>(
+                      columns: [
+                        PosColumn(label: l.inventoryColumnItem, flex: 3, cellBuilder: (item) => Text(item.itemName)),
+                        PosColumn(label: l.inventoryColumnUnit, width: 60, cellBuilder: (item) => Text(item.unit.name)),
+                        PosColumn(
+                          label: l.inventoryColumnQuantity,
+                          width: 80,
+                          numeric: true,
+                          cellBuilder: (item) => Text(
+                            _formatQuantity(item.stockLevel.quantity),
+                            textAlign: TextAlign.right,
                           ),
-                        );
-                      },
+                        ),
+                        PosColumn(
+                          label: l.inventoryDialogActualQuantity,
+                          width: 100,
+                          numeric: true,
+                          cellBuilder: (item) {
+                            final controller = _controllers[item.stockLevel.itemId]!;
+                            return SizedBox(
+                              width: 80,
+                              child: TextField(
+                                controller: controller,
+                                decoration: const InputDecoration(isDense: true),
+                                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.allow(RegExp(r'[\d.,-]')),
+                                ],
+                                onChanged: (_) => setState(() {}),
+                              ),
+                            );
+                          },
+                        ),
+                        PosColumn(
+                          label: l.inventoryDialogDifference,
+                          width: 80,
+                          numeric: true,
+                          cellBuilder: (item) {
+                            final controller = _controllers[item.stockLevel.itemId]!;
+                            final actual = double.tryParse(
+                                    controller.text.replaceAll(',', '.')) ??
+                                item.stockLevel.quantity;
+                            final diff = actual - item.stockLevel.quantity;
+                            final diffText = diff == 0
+                                ? '-'
+                                : (diff > 0 ? '+' : '') + _formatQuantity(diff);
+                            return Text(
+                              diffText,
+                              textAlign: TextAlign.right,
+                              style: diff != 0
+                                  ? TextStyle(
+                                      color: diff > 0 ? Colors.green : theme.colorScheme.error,
+                                      fontWeight: FontWeight.bold,
+                                    )
+                                  : null,
+                            );
+                          },
+                        ),
+                      ],
+                      items: levels,
+                      emptyMessage: l.inventoryNoItems,
                     );
                   },
                 ),

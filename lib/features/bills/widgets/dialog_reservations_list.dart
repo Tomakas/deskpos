@@ -8,6 +8,7 @@ import '../../../core/data/models/table_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/widgets/pos_table.dart';
 import 'dialog_reservation_edit.dart';
 
 class DialogReservationsList extends ConsumerStatefulWidget {
@@ -126,26 +127,7 @@ class _DialogReservationsListState extends ConsumerState<DialogReservationsList>
               ),
               const SizedBox(height: 8),
 
-              // Header row
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainerHighest,
-                ),
-                child: Row(
-                  children: [
-                    SizedBox(width: 80, child: Text(l.reservationColumnDate, style: theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.bold))),
-                    SizedBox(width: 50, child: Text(l.reservationColumnTime, style: theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.bold))),
-                    Expanded(child: Text(l.reservationColumnName, style: theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.bold))),
-                    SizedBox(width: 100, child: Text(l.reservationColumnPhone, style: theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.bold))),
-                    SizedBox(width: 50, child: Text(l.reservationColumnPartySize, textAlign: TextAlign.center, style: theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.bold))),
-                    SizedBox(width: 80, child: Text(l.reservationColumnTable, style: theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.bold))),
-                    SizedBox(width: 90, child: Text(l.reservationColumnStatus, textAlign: TextAlign.right, style: theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.bold))),
-                  ],
-                ),
-              ),
-
-              // Body
+              // Table
               SizedBox(
                 height: 400,
                 child: StreamBuilder<List<ReservationModel>>(
@@ -156,9 +138,6 @@ class _DialogReservationsListState extends ConsumerState<DialogReservationsList>
                       ),
                   builder: (context, snap) {
                     final reservations = snap.data ?? [];
-                    if (reservations.isEmpty) {
-                      return Center(child: Text(l.reservationsEmpty, style: theme.textTheme.bodyMedium));
-                    }
 
                     // Load tables for name lookup
                     return StreamBuilder<List<TableModel>>(
@@ -167,44 +146,34 @@ class _DialogReservationsListState extends ConsumerState<DialogReservationsList>
                         final tables = tablesnap.data ?? [];
                         final tableMap = {for (final t in tables) t.id: t.name};
 
-                        return ListView.builder(
-                          itemCount: reservations.length,
-                          itemBuilder: (context, index) {
-                            final r = reservations[index];
-                            return InkWell(
-                              onTap: () => _openEditDialog(r),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-                                decoration: BoxDecoration(
-                                  border: Border(bottom: BorderSide(color: theme.dividerColor.withValues(alpha: 0.3))),
-                                ),
-                                child: Row(
-                                  children: [
-                                    SizedBox(width: 80, child: Text(dateFormat.format(r.reservationDate))),
-                                    SizedBox(width: 50, child: Text(timeFormat.format(r.reservationDate))),
-                                    Expanded(child: Text(r.customerName)),
-                                    SizedBox(width: 100, child: Text(r.customerPhone ?? '')),
-                                    SizedBox(width: 50, child: Text('${r.partySize}', textAlign: TextAlign.center)),
-                                    SizedBox(width: 80, child: Text(r.tableId != null ? (tableMap[r.tableId] ?? '-') : '-')),
-                                    SizedBox(
-                                      width: 90,
-                                      child: Text(
-                                        _statusLabel(context, r.status),
-                                        textAlign: TextAlign.right,
-                                        style: TextStyle(
-                                          color: r.status == ReservationStatus.cancelled
-                                              ? theme.colorScheme.error
-                                              : r.status == ReservationStatus.confirmed
-                                                  ? theme.colorScheme.primary
-                                                  : null,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
+                        return PosTable<ReservationModel>(
+                          columns: [
+                            PosColumn(label: l.reservationColumnDate, width: 80, cellBuilder: (r) => Text(dateFormat.format(r.reservationDate))),
+                            PosColumn(label: l.reservationColumnTime, width: 50, cellBuilder: (r) => Text(timeFormat.format(r.reservationDate))),
+                            PosColumn(label: l.reservationColumnName, cellBuilder: (r) => Text(r.customerName)),
+                            PosColumn(label: l.reservationColumnPhone, width: 100, cellBuilder: (r) => Text(r.customerPhone ?? '')),
+                            PosColumn(label: l.reservationColumnPartySize, width: 50, cellBuilder: (r) => Text('${r.partySize}', textAlign: TextAlign.center)),
+                            PosColumn(label: l.reservationColumnTable, width: 80, cellBuilder: (r) => Text(r.tableId != null ? (tableMap[r.tableId] ?? '-') : '-')),
+                            PosColumn(
+                              label: l.reservationColumnStatus,
+                              width: 90,
+                              numeric: true,
+                              cellBuilder: (r) => Text(
+                                _statusLabel(context, r.status),
+                                textAlign: TextAlign.right,
+                                style: TextStyle(
+                                  color: r.status == ReservationStatus.cancelled
+                                      ? theme.colorScheme.error
+                                      : r.status == ReservationStatus.confirmed
+                                          ? theme.colorScheme.primary
+                                          : null,
                                 ),
                               ),
-                            );
-                          },
+                            ),
+                          ],
+                          items: reservations,
+                          onRowTap: (r) => _openEditDialog(r),
+                          emptyMessage: l.reservationsEmpty,
                         );
                       },
                     );

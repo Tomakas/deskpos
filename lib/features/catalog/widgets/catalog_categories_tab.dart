@@ -7,6 +7,7 @@ import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/utils/search_utils.dart';
+import '../../../core/widgets/pos_table.dart';
 
 class CatalogCategoriesTab extends ConsumerStatefulWidget {
   const CatalogCategoriesTab({super.key});
@@ -28,8 +29,6 @@ class _CatalogCategoriesTabState extends ConsumerState<CatalogCategoriesTab> {
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
-    final theme = Theme.of(context);
-    final headerStyle = theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.bold);
     final company = ref.watch(currentCompanyProvider);
     if (company == null) return const SizedBox.shrink();
 
@@ -43,95 +42,45 @@ class _CatalogCategoriesTabState extends ConsumerState<CatalogCategoriesTab> {
         }).toList();
         return Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _searchCtrl,
-                      decoration: InputDecoration(
-                        hintText: l.searchHint,
-                        prefixIcon: const Icon(Icons.search),
-                        suffixIcon: _query.isNotEmpty
-                            ? IconButton(
-                                icon: const Icon(Icons.close),
-                                onPressed: () {
-                                  _searchCtrl.clear();
-                                  setState(() => _query = '');
-                                },
-                              )
-                            : null,
-                        isDense: true,
-                        border: const OutlineInputBorder(),
-                      ),
-                      onChanged: (v) => setState(() => _query = normalizeSearch(v)),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  FilledButton.icon(
-                    onPressed: () => _showEditDialog(context, ref, categories, null),
-                    icon: const Icon(Icons.add),
-                    label: Text(l.actionAdd),
-                  ),
-                ],
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerHighest,
-              ),
-              child: Row(
-                children: [
-                  Expanded(flex: 3, child: Text(l.fieldName, style: headerStyle)),
-                  Expanded(flex: 3, child: Text(l.fieldParentCategory, style: headerStyle)),
-                  Expanded(flex: 1, child: Text(l.fieldActive, style: headerStyle)),
-                ],
-              ),
+            PosTableToolbar(
+              searchController: _searchCtrl,
+              searchHint: l.searchHint,
+              onSearchChanged: (v) => setState(() => _query = normalizeSearch(v)),
+              trailing: [
+                FilledButton.icon(
+                  onPressed: () => _showEditDialog(context, ref, categories, null),
+                  icon: const Icon(Icons.add),
+                  label: Text(l.actionAdd),
+                ),
+              ],
             ),
             Expanded(
-              child: ListView.builder(
-                itemCount: filtered.length,
-                itemBuilder: (context, index) {
-                  final c = filtered[index];
-                  return InkWell(
-                    onTap: () => _showEditDialog(context, ref, categories, c),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                      decoration: BoxDecoration(
-                        border: Border(bottom: BorderSide(color: theme.dividerColor.withValues(alpha: 0.3))),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(flex: 3, child: Text(c.name, overflow: TextOverflow.ellipsis)),
-                          Expanded(
-                            flex: 3,
-                            child: Text(
-                              categories
-                                      .where((p) => p.id == c.parentId)
-                                      .firstOrNull
-                                      ?.name ??
-                                  '-',
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          Expanded(
-                            flex: 1,
-                            child: Align(
-                              alignment: Alignment.centerLeft,
-                              child: Icon(
-                                c.isActive ? Icons.check_circle : Icons.cancel,
-                                color: c.isActive ? Colors.green : Colors.grey,
-                                size: 20,
-                              ),
-                            ),
-                          ),
-                        ],
+              child: PosTable<CategoryModel>(
+                columns: [
+                  PosColumn(label: l.fieldName, flex: 3, cellBuilder: (c) => Text(c.name, overflow: TextOverflow.ellipsis)),
+                  PosColumn(
+                    label: l.fieldParentCategory,
+                    flex: 3,
+                    cellBuilder: (c) => Text(
+                      categories.where((p) => p.id == c.parentId).firstOrNull?.name ?? '-',
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  PosColumn(
+                    label: l.fieldActive,
+                    flex: 1,
+                    cellBuilder: (c) => Align(
+                      alignment: Alignment.centerLeft,
+                      child: Icon(
+                        c.isActive ? Icons.check_circle : Icons.cancel,
+                        color: c.isActive ? Colors.green : Colors.grey,
+                        size: 20,
                       ),
                     ),
-                  );
-                },
+                  ),
+                ],
+                items: filtered,
+                onRowTap: (c) => _showEditDialog(context, ref, categories, c),
               ),
             ),
           ],

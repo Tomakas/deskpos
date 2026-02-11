@@ -21,6 +21,7 @@ import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/providers/sync_providers.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/widgets/pos_table.dart';
 import '../providers/z_report_providers.dart';
 import '../widgets/dialog_bill_detail.dart';
 import '../widgets/dialog_cash_journal.dart';
@@ -645,6 +646,24 @@ class _SectionTabBar extends ConsumerWidget {
 }
 
 // ---------------------------------------------------------------------------
+// Resolved bill row data for PosTable
+// ---------------------------------------------------------------------------
+class _ResolvedBill {
+  const _ResolvedBill({
+    required this.bill,
+    required this.tableName,
+    required this.customerName,
+    required this.staffName,
+    required this.lastOrderTime,
+  });
+  final BillModel bill;
+  final String tableName;
+  final String customerName;
+  final String staffName;
+  final DateTime? lastOrderTime;
+}
+
+// ---------------------------------------------------------------------------
 // Bills Table
 // ---------------------------------------------------------------------------
 class _BillsTable extends ConsumerWidget {
@@ -736,45 +755,53 @@ class _BillsTable extends ConsumerWidget {
                       return sortAscending ? cmp : -cmp;
                     });
 
-                    return Column(
-                      children: [
-                        // Header
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                          ),
-                          child: Row(
-                            children: [
-                              _HeaderCell(l.columnTable, flex: 2),
-                              _HeaderCell(l.sellCustomer, flex: 2),
-                              _HeaderCell(l.columnGuests, flex: 1),
-                              _HeaderCell(l.columnTotal, flex: 2),
-                              _HeaderCell(l.columnLastOrder, flex: 2),
-                              _HeaderCell(l.columnStaff, flex: 2),
-                            ],
+                    final resolved = bills.map((bill) {
+                      final customer = bill.customerId != null ? customerMap[bill.customerId] : null;
+                      return _ResolvedBill(
+                        bill: bill,
+                        tableName: _resolveTableName(bill, tableMap, l),
+                        customerName: customer != null ? '${customer.firstName} ${customer.lastName}' : '',
+                        staffName: userMap[bill.openedByUserId]?.username ?? '-',
+                        lastOrderTime: lastOrderTimes[bill.id],
+                      );
+                    }).toList();
+
+                    return PosTable<_ResolvedBill>(
+                      columns: [
+                        PosColumn(label: l.columnTable, flex: 2, cellBuilder: (r) => Text(r.tableName)),
+                        PosColumn(label: l.sellCustomer, flex: 2, cellBuilder: (r) => Text(r.customerName)),
+                        PosColumn(label: l.columnGuests, flex: 1, cellBuilder: (r) => Text(r.bill.numberOfGuests > 0 ? '${r.bill.numberOfGuests}' : '')),
+                        PosColumn(
+                          label: l.columnTotal,
+                          flex: 2,
+                          cellBuilder: (r) => r.bill.status == BillStatus.refunded
+                              ? Text(
+                                  r.bill.totalGross > 0 ? '${r.bill.totalGross ~/ 100},-' : '0,-',
+                                  style: TextStyle(
+                                    decoration: TextDecoration.lineThrough,
+                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                  ),
+                                )
+                              : Text(r.bill.totalGross > 0 ? '${r.bill.totalGross ~/ 100},-' : '0,-'),
+                        ),
+                        PosColumn(
+                          label: l.columnLastOrder,
+                          flex: 2,
+                          cellBuilder: (r) => _RelativeTimeCell(
+                            time: r.lastOrderTime,
+                            isOpened: r.bill.status == BillStatus.opened,
                           ),
                         ),
-                        Expanded(
-                          child: bills.isEmpty
-                              ? const SizedBox.shrink()
-                              : ListView.builder(
-                                  itemCount: bills.length,
-                                  itemBuilder: (context, index) {
-                                    final bill = bills[index];
-                                    final customer = bill.customerId != null ? customerMap[bill.customerId] : null;
-                                    return _BillRow(
-                                      bill: bill,
-                                      tableName: _resolveTableName(bill, tableMap, l),
-                                      customerName: customer != null ? '${customer.firstName} ${customer.lastName}' : '',
-                                      staffName: userMap[bill.openedByUserId]?.username ?? '-',
-                                      lastOrderTime: lastOrderTimes[bill.id],
-                                      onTap: () => onBillTap(bill),
-                                    );
-                                  },
-                                ),
-                        ),
+                        PosColumn(label: l.columnStaff, flex: 2, cellBuilder: (r) => Text(r.staffName)),
                       ],
+                      items: resolved,
+                      onRowTap: (r) => onBillTap(r.bill),
+                      rowColor: (r) => switch (r.bill.status) {
+                        BillStatus.opened => Colors.blue.withValues(alpha: 0.08),
+                        BillStatus.paid => Colors.green.withValues(alpha: 0.08),
+                        BillStatus.cancelled => Colors.pink.withValues(alpha: 0.08),
+                        BillStatus.refunded => Colors.orange.withValues(alpha: 0.08),
+                      },
                     );
                   },
                 );
@@ -796,27 +823,19 @@ class _BillsTable extends ConsumerWidget {
   }
 }
 
-class _BillRow extends StatefulWidget {
-  const _BillRow({
-    required this.bill,
-    required this.tableName,
-    required this.customerName,
-    required this.staffName,
-    required this.lastOrderTime,
-    required this.onTap,
-  });
-  final BillModel bill;
-  final String tableName;
-  final String customerName;
-  final String staffName;
-  final DateTime? lastOrderTime;
-  final VoidCallback onTap;
+// ---------------------------------------------------------------------------
+// Relative time cell with auto-refresh timer
+// ---------------------------------------------------------------------------
+class _RelativeTimeCell extends StatefulWidget {
+  const _RelativeTimeCell({required this.time, required this.isOpened});
+  final DateTime? time;
+  final bool isOpened;
 
   @override
-  State<_BillRow> createState() => _BillRowState();
+  State<_RelativeTimeCell> createState() => _RelativeTimeCellState();
 }
 
-class _BillRowState extends State<_BillRow> {
+class _RelativeTimeCellState extends State<_RelativeTimeCell> {
   Timer? _timer;
 
   @override
@@ -826,9 +845,9 @@ class _BillRowState extends State<_BillRow> {
   }
 
   @override
-  void didUpdateWidget(covariant _BillRow oldWidget) {
+  void didUpdateWidget(covariant _RelativeTimeCell oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.lastOrderTime != widget.lastOrderTime) {
+    if (oldWidget.time != widget.time || oldWidget.isOpened != widget.isOpened) {
       _startTimerIfNeeded();
     }
   }
@@ -841,20 +860,11 @@ class _BillRowState extends State<_BillRow> {
 
   void _startTimerIfNeeded() {
     _timer?.cancel();
-    if (widget.lastOrderTime != null && widget.bill.status == BillStatus.opened) {
+    if (widget.time != null && widget.isOpened) {
       _timer = Timer.periodic(const Duration(seconds: 30), (_) {
         if (mounted) setState(() {});
       });
     }
-  }
-
-  Color? _rowColor(BuildContext context) {
-    return switch (widget.bill.status) {
-      BillStatus.opened => Colors.blue.withValues(alpha: 0.08),
-      BillStatus.paid => Colors.green.withValues(alpha: 0.08),
-      BillStatus.cancelled => Colors.pink.withValues(alpha: 0.08),
-      BillStatus.refunded => Colors.orange.withValues(alpha: 0.08),
-    };
   }
 
   String _formatRelativeTime(BuildContext context, DateTime time) {
@@ -869,54 +879,7 @@ class _BillRowState extends State<_BillRow> {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: widget.onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(
-          color: _rowColor(context),
-          border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor.withValues(alpha: 0.3))),
-        ),
-        child: Row(
-          children: [
-            Expanded(flex: 2, child: Text(widget.tableName)),
-            Expanded(flex: 2, child: Text(widget.customerName)),
-            Expanded(flex: 1, child: Text(widget.bill.numberOfGuests > 0 ? '${widget.bill.numberOfGuests}' : '')),
-            Expanded(
-              flex: 2,
-              child: widget.bill.status == BillStatus.refunded
-                  ? Text(
-                      widget.bill.totalGross > 0 ? '${widget.bill.totalGross ~/ 100},-' : '0,-',
-                      style: TextStyle(
-                        decoration: TextDecoration.lineThrough,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    )
-                  : Text(widget.bill.totalGross > 0 ? '${widget.bill.totalGross ~/ 100},-' : '0,-'),
-            ),
-            Expanded(flex: 2, child: Text(widget.lastOrderTime != null ? _formatRelativeTime(context, widget.lastOrderTime!) : '')),
-            Expanded(flex: 2, child: Text(widget.staffName)),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _HeaderCell extends StatelessWidget {
-  const _HeaderCell(this.text, {required this.flex});
-  final String text;
-  final int flex;
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      flex: flex,
-      child: Text(
-        text,
-        style: Theme.of(context).textTheme.labelMedium?.copyWith(fontWeight: FontWeight.bold),
-      ),
-    );
+    return Text(widget.time != null ? _formatRelativeTime(context, widget.time!) : '');
   }
 }
 

@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../../core/data/enums/cash_movement_type.dart';
 import '../../../core/data/models/cash_movement_model.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/widgets/pos_table.dart';
 import 'dialog_cash_movement.dart';
 
 // ---------------------------------------------------------------------------
@@ -203,84 +204,68 @@ class _DialogCashJournalState extends State<DialogCashJournal> {
               ),
               const SizedBox(height: 8),
 
-              // Table header
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainerHighest,
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
-                ),
-                child: Row(
-                  children: [
-                    SizedBox(width: 50, child: Text(l.cashJournalColumnTime, style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.bold))),
-                    SizedBox(width: 60, child: Text(l.cashJournalColumnType, style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.bold))),
-                    SizedBox(width: 80, child: Text(l.cashJournalColumnAmount, textAlign: TextAlign.right, style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.bold))),
-                    const SizedBox(width: 12),
-                    Expanded(child: Text(l.cashJournalColumnNote, style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.bold))),
-                  ],
-                ),
-              ),
-
-              // Table body — fixed height
+              // Table
               SizedBox(
-                height: 240,
-                child: filtered.isEmpty
-                    ? Center(
-                        child: Text(l.cashJournalEmpty, style: theme.textTheme.bodySmall),
-                      )
-                    : ListView.builder(
-                        itemCount: filtered.length,
-                        itemBuilder: (context, index) {
-                          final e = filtered[index];
-                          final String sign;
-                          final Color color;
-                          final String typeName;
-
-                          switch (e.kind) {
-                            case _EntryKind.deposit:
-                              sign = '+';
-                              color = Colors.green;
-                              typeName = l.cashMovementDeposit;
-                            case _EntryKind.withdrawal:
-                              sign = '-';
-                              color = theme.colorScheme.error;
-                              typeName = l.cashMovementWithdrawal;
-                            case _EntryKind.sale:
-                              sign = '+';
-                              color = theme.colorScheme.primary;
-                              typeName = l.cashMovementSale;
-                          }
-
-                          return Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                            decoration: BoxDecoration(
-                              border: Border(bottom: BorderSide(color: theme.dividerColor.withValues(alpha: 0.3))),
-                            ),
-                            child: Row(
-                              children: [
-                                SizedBox(width: 50, child: Text(timeFormat.format(e.createdAt), style: theme.textTheme.bodySmall)),
-                                SizedBox(width: 60, child: Text(typeName, style: theme.textTheme.bodySmall)),
-                                SizedBox(
-                                  width: 80,
-                                  child: Text(
-                                    '$sign ${e.amount ~/ 100} Kč',
-                                    textAlign: TextAlign.right,
-                                    style: theme.textTheme.bodySmall?.copyWith(color: color, fontWeight: FontWeight.w600),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Text(
-                                    e.note ?? '',
-                                    style: theme.textTheme.bodySmall,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
+                height: 240 + 32, // body + header
+                child: PosTable<_JournalEntry>(
+                  columns: [
+                    PosColumn(
+                      label: l.cashJournalColumnTime,
+                      width: 50,
+                      cellBuilder: (e) => Text(timeFormat.format(e.createdAt), style: theme.textTheme.bodySmall),
+                    ),
+                    PosColumn(
+                      label: l.cashJournalColumnType,
+                      width: 60,
+                      cellBuilder: (e) {
+                        final typeName = switch (e.kind) {
+                          _EntryKind.deposit => l.cashMovementDeposit,
+                          _EntryKind.withdrawal => l.cashMovementWithdrawal,
+                          _EntryKind.sale => l.cashMovementSale,
+                        };
+                        return Text(typeName, style: theme.textTheme.bodySmall);
+                      },
+                    ),
+                    PosColumn(
+                      label: l.cashJournalColumnAmount,
+                      width: 80,
+                      numeric: true,
+                      cellBuilder: (e) {
+                        final String sign;
+                        final Color color;
+                        switch (e.kind) {
+                          case _EntryKind.deposit:
+                            sign = '+';
+                            color = Colors.green;
+                          case _EntryKind.withdrawal:
+                            sign = '-';
+                            color = theme.colorScheme.error;
+                          case _EntryKind.sale:
+                            sign = '+';
+                            color = theme.colorScheme.primary;
+                        }
+                        return Text(
+                          '$sign ${e.amount ~/ 100} Kč',
+                          textAlign: TextAlign.right,
+                          style: theme.textTheme.bodySmall?.copyWith(color: color, fontWeight: FontWeight.w600),
+                        );
+                      },
+                    ),
+                    PosColumn(
+                      label: l.cashJournalColumnNote,
+                      cellBuilder: (e) => Padding(
+                        padding: const EdgeInsets.only(left: 12),
+                        child: Text(
+                          e.note ?? '',
+                          style: theme.textTheme.bodySmall,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
+                    ),
+                  ],
+                  items: filtered,
+                  emptyMessage: l.cashJournalEmpty,
+                ),
               ),
               const SizedBox(height: 12),
 

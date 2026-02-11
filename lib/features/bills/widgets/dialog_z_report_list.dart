@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/widgets/pos_table.dart';
 import '../models/z_report_data.dart';
 
 class DialogZReportList extends StatefulWidget {
@@ -91,68 +92,53 @@ class _DialogZReportListState extends State<DialogZReportList> {
                 ],
               ),
               const SizedBox(height: 8),
-              // Header
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainerHighest,
-                ),
-                child: Row(
-                  children: [
-                    SizedBox(width: 100, child: Text(l.zReportColumnDate, style: theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.bold))),
-                    SizedBox(width: 60, child: Text(l.zReportColumnTime, style: theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.bold))),
-                    Expanded(child: Text(l.zReportColumnUser, style: theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.bold))),
-                    SizedBox(width: 100, child: Text(l.zReportColumnRevenue, textAlign: TextAlign.right, style: theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.bold))),
-                    SizedBox(width: 80, child: Text(l.zReportColumnDifference, textAlign: TextAlign.right, style: theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.bold))),
-                  ],
-                ),
-              ),
-              // Body
+              // Table
               SizedBox(
                 height: 400,
-                child: filtered.isEmpty
-                    ? Center(child: Text(l.zReportListEmpty, style: theme.textTheme.bodyMedium))
-                    : ListView.builder(
-                        itemCount: filtered.length,
-                        itemBuilder: (context, index) {
-                          final s = filtered[index];
-                          final displayDate = s.closedAt ?? s.openedAt;
-                          final diff = s.difference;
-                          final diffColor = diff == null
-                              ? null
-                              : diff == 0
-                                  ? Colors.green
-                                  : diff > 0
-                                      ? Colors.blue
-                                      : theme.colorScheme.error;
-
-                          return InkWell(
-                            onTap: () => widget.onSessionSelected(s.sessionId),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-                              decoration: BoxDecoration(
-                                border: Border(bottom: BorderSide(color: theme.dividerColor.withValues(alpha: 0.3))),
-                              ),
-                              child: Row(
-                                children: [
-                                  SizedBox(width: 100, child: Text(dateFormat.format(displayDate))),
-                                  SizedBox(width: 60, child: Text(timeFormat.format(displayDate))),
-                                  Expanded(child: Text(s.userName)),
-                                  SizedBox(width: 100, child: Text(_fmtKc(s.totalRevenue), textAlign: TextAlign.right)),
-                                  SizedBox(
-                                    width: 80,
-                                    child: Text(
-                                      diff != null ? '${diff >= 0 ? '+' : ''}${diff ~/ 100} Kč' : '-',
-                                      textAlign: TextAlign.right,
-                                      style: TextStyle(color: diffColor),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      ),
+                child: PosTable<ZReportSessionSummary>(
+                  columns: [
+                    PosColumn(
+                      label: l.zReportColumnDate,
+                      width: 100,
+                      cellBuilder: (s) => Text(dateFormat.format(s.closedAt ?? s.openedAt)),
+                    ),
+                    PosColumn(
+                      label: l.zReportColumnTime,
+                      width: 60,
+                      cellBuilder: (s) => Text(timeFormat.format(s.closedAt ?? s.openedAt)),
+                    ),
+                    PosColumn(label: l.zReportColumnUser, cellBuilder: (s) => Text(s.userName)),
+                    PosColumn(
+                      label: l.zReportColumnRevenue,
+                      width: 100,
+                      numeric: true,
+                      cellBuilder: (s) => Text(_fmtKc(s.totalRevenue), textAlign: TextAlign.right),
+                    ),
+                    PosColumn(
+                      label: l.zReportColumnDifference,
+                      width: 80,
+                      numeric: true,
+                      cellBuilder: (s) {
+                        final diff = s.difference;
+                        final diffColor = diff == null
+                            ? null
+                            : diff == 0
+                                ? Colors.green
+                                : diff > 0
+                                    ? Colors.blue
+                                    : theme.colorScheme.error;
+                        return Text(
+                          diff != null ? '${diff >= 0 ? '+' : ''}${diff ~/ 100} Kč' : '-',
+                          textAlign: TextAlign.right,
+                          style: TextStyle(color: diffColor),
+                        );
+                      },
+                    ),
+                  ],
+                  items: filtered,
+                  onRowTap: (s) => widget.onSessionSelected(s.sessionId),
+                  emptyMessage: l.zReportListEmpty,
+                ),
               ),
               const SizedBox(height: 16),
               Align(

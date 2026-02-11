@@ -9,6 +9,7 @@ import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/repositories/stock_level_repository.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/widgets/pos_table.dart';
 import '../../../l10n/app_localizations.dart';
 import '../widgets/dialog_inventory.dart';
 import '../widgets/dialog_stock_document.dart';
@@ -179,10 +180,6 @@ class _StockLevelsTab extends ConsumerWidget {
       builder: (context, snap) {
         final levels = snap.data ?? [];
 
-        if (levels.isEmpty) {
-          return Center(child: Text(l.inventoryNoItems));
-        }
-
         int totalValue = 0;
         for (final item in levels) {
           if (item.purchasePrice != null) {
@@ -190,70 +187,76 @@ class _StockLevelsTab extends ConsumerWidget {
           }
         }
 
-        return Column(
-          children: [
-            Expanded(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return SingleChildScrollView(
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(minWidth: constraints.maxWidth),
-                      child: DataTable(
-                        columnSpacing: 16,
-                        columns: [
-                          DataColumn(label: Text(l.inventoryColumnItem)),
-                          DataColumn(label: Text(l.inventoryColumnUnit)),
-                          DataColumn(label: Text(l.inventoryColumnQuantity), numeric: true),
-                          DataColumn(label: Text(l.inventoryColumnMinQuantity), numeric: true),
-                          DataColumn(label: Text(l.inventoryColumnPurchasePrice), numeric: true),
-                          DataColumn(label: Text(l.inventoryColumnTotalValue), numeric: true),
-                        ],
-                        rows: levels.map((item) {
-                          final qty = item.stockLevel.quantity;
-                          final minQty = item.stockLevel.minQuantity;
-                          final price = item.purchasePrice;
-                          final value = price != null ? (price * qty).round() : 0;
-                          final isBelowMin = minQty != null && qty < minQty;
-
-                          return DataRow(
-                            cells: [
-                              DataCell(Text(item.itemName)),
-                              DataCell(Text(item.unit.name)),
-                              DataCell(Text(
-                                _formatQuantity(qty),
-                                style: isBelowMin
-                                    ? TextStyle(
-                                        color: Theme.of(context).colorScheme.error,
-                                        fontWeight: FontWeight.bold,
-                                      )
-                                    : null,
-                              )),
-                              DataCell(Text(minQty != null ? _formatQuantity(minQty) : '-')),
-                              DataCell(Text(price != null ? _formatPrice(price) : '-')),
-                              DataCell(Text(price != null ? _formatPrice(value) : '-')),
-                            ],
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                  );
-                },
+        return PosTable<StockLevelWithItem>(
+          columns: [
+            PosColumn(label: l.inventoryColumnItem, flex: 3, cellBuilder: (item) => Text(item.itemName, overflow: TextOverflow.ellipsis)),
+            PosColumn(label: l.inventoryColumnUnit, flex: 1, cellBuilder: (item) => Text(item.unit.name)),
+            PosColumn(
+              label: l.inventoryColumnQuantity,
+              flex: 1,
+              numeric: true,
+              cellBuilder: (item) {
+                final qty = item.stockLevel.quantity;
+                final minQty = item.stockLevel.minQuantity;
+                final isBelowMin = minQty != null && qty < minQty;
+                return Text(
+                  _formatQuantity(qty),
+                  textAlign: TextAlign.right,
+                  style: isBelowMin
+                      ? TextStyle(
+                          color: Theme.of(context).colorScheme.error,
+                          fontWeight: FontWeight.bold,
+                        )
+                      : null,
+                );
+              },
+            ),
+            PosColumn(
+              label: l.inventoryColumnMinQuantity,
+              flex: 1,
+              numeric: true,
+              cellBuilder: (item) => Text(
+                item.stockLevel.minQuantity != null ? _formatQuantity(item.stockLevel.minQuantity!) : '-',
+                textAlign: TextAlign.right,
               ),
             ),
-            // Footer: total value
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                border: Border(top: BorderSide(color: Theme.of(context).dividerColor)),
+            PosColumn(
+              label: l.inventoryColumnPurchasePrice,
+              flex: 1,
+              numeric: true,
+              cellBuilder: (item) => Text(
+                item.purchasePrice != null ? _formatPrice(item.purchasePrice!) : '-',
+                textAlign: TextAlign.right,
               ),
-              child: Text(
-                '${l.inventoryTotalValue}: ${_formatPrice(totalValue)}',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                textAlign: TextAlign.end,
-              ),
+            ),
+            PosColumn(
+              label: l.inventoryColumnTotalValue,
+              flex: 1,
+              numeric: true,
+              cellBuilder: (item) {
+                final price = item.purchasePrice;
+                final value = price != null ? (price * item.stockLevel.quantity).round() : 0;
+                return Text(
+                  price != null ? _formatPrice(value) : '-',
+                  textAlign: TextAlign.right,
+                );
+              },
             ),
           ],
+          items: levels,
+          emptyMessage: l.inventoryNoItems,
+          footer: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              border: Border(top: BorderSide(color: Theme.of(context).dividerColor)),
+            ),
+            child: Text(
+              '${l.inventoryTotalValue}: ${_formatPrice(totalValue)}',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              textAlign: TextAlign.end,
+            ),
+          ),
         );
       },
     );
@@ -286,10 +289,6 @@ class _StockDocumentsTab extends ConsumerWidget {
       builder: (context, docSnap) {
         final documents = docSnap.data ?? [];
 
-        if (documents.isEmpty) {
-          return Center(child: Text(l.documentNoDocuments));
-        }
-
         // Resolve supplier names
         return StreamBuilder<List<SupplierModel>>(
           stream: ref.watch(supplierRepositoryProvider).watchAll(companyId),
@@ -297,43 +296,32 @@ class _StockDocumentsTab extends ConsumerWidget {
             final suppliers = suppSnap.data ?? [];
             final supplierMap = {for (final s in suppliers) s.id: s.supplierName};
 
-            return LayoutBuilder(
-              builder: (context, constraints) {
-                return SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(minWidth: constraints.maxWidth),
-                    child: DataTable(
-                      columnSpacing: 16,
-                      columns: [
-                        DataColumn(label: Text(l.documentColumnNumber)),
-                        DataColumn(label: Text(l.documentColumnType)),
-                        DataColumn(label: Text(l.documentColumnDate)),
-                        DataColumn(label: Text(l.documentColumnSupplier)),
-                        DataColumn(label: Text(l.documentColumnNote)),
-                        DataColumn(label: Text(l.documentColumnTotal), numeric: true),
-                      ],
-                      rows: documents.map((doc) {
-                        return DataRow(cells: [
-                          DataCell(Text(doc.documentNumber)),
-                          DataCell(Text(_documentTypeLabel(l, doc.type))),
-                          DataCell(Text(dateFormat.format(doc.documentDate))),
-                          DataCell(Text(
-                            doc.supplierId != null
-                                ? (supplierMap[doc.supplierId] ?? '-')
-                                : '-',
-                          )),
-                          DataCell(Text(doc.note ?? '-')),
-                          DataCell(Text(
-                            doc.totalAmount != 0
-                                ? (doc.totalAmount / 100).toStringAsFixed(2)
-                                : '-',
-                          )),
-                        ]);
-                      }).toList(),
-                    ),
+            return PosTable<StockDocumentModel>(
+              columns: [
+                PosColumn(label: l.documentColumnNumber, flex: 2, cellBuilder: (doc) => Text(doc.documentNumber, overflow: TextOverflow.ellipsis)),
+                PosColumn(label: l.documentColumnType, flex: 2, cellBuilder: (doc) => Text(_documentTypeLabel(l, doc.type), overflow: TextOverflow.ellipsis)),
+                PosColumn(label: l.documentColumnDate, flex: 2, cellBuilder: (doc) => Text(dateFormat.format(doc.documentDate), overflow: TextOverflow.ellipsis)),
+                PosColumn(
+                  label: l.documentColumnSupplier,
+                  flex: 2,
+                  cellBuilder: (doc) => Text(
+                    doc.supplierId != null ? (supplierMap[doc.supplierId] ?? '-') : '-',
+                    overflow: TextOverflow.ellipsis,
                   ),
-                );
-              },
+                ),
+                PosColumn(label: l.documentColumnNote, flex: 2, cellBuilder: (doc) => Text(doc.note ?? '-', overflow: TextOverflow.ellipsis)),
+                PosColumn(
+                  label: l.documentColumnTotal,
+                  flex: 1,
+                  numeric: true,
+                  cellBuilder: (doc) => Text(
+                    doc.totalAmount != 0 ? (doc.totalAmount / 100).toStringAsFixed(2) : '-',
+                    textAlign: TextAlign.right,
+                  ),
+                ),
+              ],
+              items: documents,
+              emptyMessage: l.documentNoDocuments,
             );
           },
         );

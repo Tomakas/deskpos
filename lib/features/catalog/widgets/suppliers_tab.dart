@@ -7,6 +7,7 @@ import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/utils/search_utils.dart';
+import '../../../core/widgets/pos_table.dart';
 
 class SuppliersTab extends ConsumerStatefulWidget {
   const SuppliersTab({super.key});
@@ -28,8 +29,6 @@ class _SuppliersTabState extends ConsumerState<SuppliersTab> {
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
-    final theme = Theme.of(context);
-    final headerStyle = theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.bold);
     final company = ref.watch(currentCompanyProvider);
     if (company == null) return const SizedBox.shrink();
 
@@ -47,77 +46,28 @@ class _SuppliersTabState extends ConsumerState<SuppliersTab> {
         }).toList();
         return Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _searchCtrl,
-                      decoration: InputDecoration(
-                        hintText: l.searchHint,
-                        prefixIcon: const Icon(Icons.search),
-                        suffixIcon: _query.isNotEmpty
-                            ? IconButton(
-                                icon: const Icon(Icons.close),
-                                onPressed: () {
-                                  _searchCtrl.clear();
-                                  setState(() => _query = '');
-                                },
-                              )
-                            : null,
-                        isDense: true,
-                        border: const OutlineInputBorder(),
-                      ),
-                      onChanged: (v) => setState(() => _query = normalizeSearch(v)),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  FilledButton.icon(
-                    onPressed: () => _showEditDialog(context, ref, null),
-                    icon: const Icon(Icons.add),
-                    label: Text(l.actionAdd),
-                  ),
-                ],
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerHighest,
-              ),
-              child: Row(
-                children: [
-                  Expanded(flex: 3, child: Text(l.fieldSupplierName, style: headerStyle)),
-                  Expanded(flex: 2, child: Text(l.fieldContactPerson, style: headerStyle)),
-                  Expanded(flex: 2, child: Text(l.fieldEmail, style: headerStyle)),
-                  Expanded(flex: 2, child: Text(l.fieldPhone, style: headerStyle)),
-                ],
-              ),
+            PosTableToolbar(
+              searchController: _searchCtrl,
+              searchHint: l.searchHint,
+              onSearchChanged: (v) => setState(() => _query = normalizeSearch(v)),
+              trailing: [
+                FilledButton.icon(
+                  onPressed: () => _showEditDialog(context, ref, null),
+                  icon: const Icon(Icons.add),
+                  label: Text(l.actionAdd),
+                ),
+              ],
             ),
             Expanded(
-              child: ListView.builder(
-                itemCount: filtered.length,
-                itemBuilder: (context, index) {
-                  final s = filtered[index];
-                  return InkWell(
-                    onTap: () => _showEditDialog(context, ref, s),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                      decoration: BoxDecoration(
-                        border: Border(bottom: BorderSide(color: theme.dividerColor.withValues(alpha: 0.3))),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(flex: 3, child: Text(s.supplierName, overflow: TextOverflow.ellipsis)),
-                          Expanded(flex: 2, child: Text(s.contactPerson ?? '-', overflow: TextOverflow.ellipsis)),
-                          Expanded(flex: 2, child: Text(s.email ?? '-', overflow: TextOverflow.ellipsis)),
-                          Expanded(flex: 2, child: Text(s.phone ?? '-', overflow: TextOverflow.ellipsis)),
-                        ],
-                      ),
-                    ),
-                  );
-                },
+              child: PosTable<SupplierModel>(
+                columns: [
+                  PosColumn(label: l.fieldSupplierName, flex: 3, cellBuilder: (s) => Text(s.supplierName, overflow: TextOverflow.ellipsis)),
+                  PosColumn(label: l.fieldContactPerson, flex: 2, cellBuilder: (s) => Text(s.contactPerson ?? '-', overflow: TextOverflow.ellipsis)),
+                  PosColumn(label: l.fieldEmail, flex: 2, cellBuilder: (s) => Text(s.email ?? '-', overflow: TextOverflow.ellipsis)),
+                  PosColumn(label: l.fieldPhone, flex: 2, cellBuilder: (s) => Text(s.phone ?? '-', overflow: TextOverflow.ellipsis)),
+                ],
+                items: filtered,
+                onRowTap: (s) => _showEditDialog(context, ref, s),
               ),
             ),
           ],

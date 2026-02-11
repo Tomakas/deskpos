@@ -13,6 +13,7 @@ import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/utils/search_utils.dart';
+import '../../../core/widgets/pos_table.dart';
 import '../../../l10n/app_localizations.dart';
 
 String _localizedItemType(AppLocalizations l, ItemType type) {
@@ -66,7 +67,6 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
   Widget build(BuildContext context) {
     final l = context.l10n;
     final theme = Theme.of(context);
-    final headerStyle = theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.bold);
     final company = ref.watch(currentCompanyProvider);
     if (company == null) return const SizedBox.shrink();
 
@@ -123,151 +123,89 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
 
                         return Column(
                           children: [
-                            Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: TextField(
-                                      controller: _searchCtrl,
-                                      decoration: InputDecoration(
-                                        hintText: l.searchHint,
-                                        prefixIcon: const Icon(Icons.search),
-                                        suffixIcon: _query.isNotEmpty
-                                            ? IconButton(
-                                                icon: const Icon(Icons.close),
-                                                onPressed: () {
-                                                  _searchCtrl.clear();
-                                                  setState(() => _query = '');
-                                                },
-                                              )
-                                            : null,
-                                        isDense: true,
-                                        border: const OutlineInputBorder(),
-                                      ),
-                                      onChanged: (v) => setState(() => _query = normalizeSearch(v)),
-                                    ),
+                            PosTableToolbar(
+                              searchController: _searchCtrl,
+                              searchHint: l.searchHint,
+                              onSearchChanged: (v) => setState(() => _query = normalizeSearch(v)),
+                              trailing: [
+                                IconButton(
+                                  icon: Icon(
+                                    Icons.filter_list,
+                                    color: _hasActiveFilters
+                                        ? theme.colorScheme.primary
+                                        : null,
                                   ),
-                                  const SizedBox(width: 8),
-                                  IconButton(
-                                    icon: Icon(
-                                      Icons.filter_list,
-                                      color: _hasActiveFilters
-                                          ? theme.colorScheme.primary
-                                          : null,
-                                    ),
-                                    onPressed: () => _showFilterDialog(
-                                      context,
-                                      l,
-                                      categories,
-                                      suppliers,
-                                      manufacturers,
-                                    ),
+                                  onPressed: () => _showFilterDialog(
+                                    context,
+                                    l,
+                                    categories,
+                                    suppliers,
+                                    manufacturers,
                                   ),
-                                  const SizedBox(width: 8),
-                                  FilledButton.icon(
-                                    onPressed: () => _showEditDialog(
-                                        context, ref, categories, taxRates, suppliers, manufacturers, null),
-                                    icon: const Icon(Icons.add),
-                                    label: Text(l.actionAdd),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                              decoration: BoxDecoration(
-                                color: theme.colorScheme.surfaceContainerHighest,
-                              ),
-                              child: Row(
-                                children: [
-                                  Expanded(flex: 3, child: Text(l.fieldName, style: headerStyle)),
-                                  Expanded(flex: 2, child: Text(l.fieldCategory, style: headerStyle)),
-                                  Expanded(flex: 1, child: Text(l.fieldPrice, style: headerStyle)),
-                                  Expanded(flex: 2, child: Text(l.fieldTaxRate, style: headerStyle)),
-                                  Expanded(flex: 2, child: Text(l.fieldType, style: headerStyle)),
-                                  Expanded(flex: 2, child: Text(l.fieldSupplier, style: headerStyle)),
-                                  Expanded(flex: 1, child: Text(l.fieldPurchasePrice, style: headerStyle)),
-                                  Expanded(flex: 1, child: Text(l.fieldActive, style: headerStyle)),
-                                ],
-                              ),
+                                ),
+                                const SizedBox(width: 8),
+                                FilledButton.icon(
+                                  onPressed: () => _showEditDialog(
+                                      context, ref, categories, taxRates, suppliers, manufacturers, null),
+                                  icon: const Icon(Icons.add),
+                                  label: Text(l.actionAdd),
+                                ),
+                              ],
                             ),
                             Expanded(
-                              child: ListView.builder(
-                                itemCount: filtered.length,
-                                itemBuilder: (context, index) {
-                                  final item = filtered[index];
-                                  return InkWell(
-                                    onTap: () => _showEditDialog(
-                                        context, ref, categories, taxRates, suppliers, manufacturers, item),
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                                      decoration: BoxDecoration(
-                                        border: Border(bottom: BorderSide(color: theme.dividerColor.withValues(alpha: 0.3))),
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          Expanded(flex: 3, child: Text(item.name, overflow: TextOverflow.ellipsis)),
-                                          Expanded(
-                                            flex: 2,
-                                            child: Text(
-                                              categories
-                                                      .where((c) => c.id == item.categoryId)
-                                                      .firstOrNull
-                                                      ?.name ??
-                                                  '-',
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                          ),
-                                          Expanded(flex: 1, child: Text((item.unitPrice / 100).toStringAsFixed(2), overflow: TextOverflow.ellipsis)),
-                                          Expanded(
-                                            flex: 2,
-                                            child: Text(
-                                              taxRates
-                                                      .where((t) => t.id == item.saleTaxRateId)
-                                                      .firstOrNull
-                                                      ?.label ??
-                                                  '-',
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                          ),
-                                          Expanded(flex: 2, child: Text(_localizedItemType(l, item.itemType), overflow: TextOverflow.ellipsis)),
-                                          Expanded(
-                                            flex: 2,
-                                            child: Text(
-                                              suppliers
-                                                      .where((s) => s.id == item.supplierId)
-                                                      .firstOrNull
-                                                      ?.supplierName ??
-                                                  '-',
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                          ),
-                                          Expanded(
-                                            flex: 1,
-                                            child: Text(
-                                              item.purchasePrice != null
-                                                  ? (item.purchasePrice! / 100).toStringAsFixed(2)
-                                                  : '-',
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                          ),
-                                          Expanded(
-                                            flex: 1,
-                                            child: Align(
-                                              alignment: Alignment.centerLeft,
-                                              child: Icon(
-                                                item.isActive ? Icons.check_circle : Icons.cancel,
-                                                color: item.isActive ? Colors.green : Colors.grey,
-                                                size: 20,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
+                              child: PosTable<ItemModel>(
+                                columns: [
+                                  PosColumn(label: l.fieldName, flex: 3, cellBuilder: (item) => Text(item.name, overflow: TextOverflow.ellipsis)),
+                                  PosColumn(
+                                    label: l.fieldCategory,
+                                    flex: 2,
+                                    cellBuilder: (item) => Text(
+                                      categories.where((c) => c.id == item.categoryId).firstOrNull?.name ?? '-',
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  PosColumn(label: l.fieldPrice, flex: 1, cellBuilder: (item) => Text((item.unitPrice / 100).toStringAsFixed(2), overflow: TextOverflow.ellipsis)),
+                                  PosColumn(
+                                    label: l.fieldTaxRate,
+                                    flex: 2,
+                                    cellBuilder: (item) => Text(
+                                      taxRates.where((t) => t.id == item.saleTaxRateId).firstOrNull?.label ?? '-',
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  PosColumn(label: l.fieldType, flex: 2, cellBuilder: (item) => Text(_localizedItemType(l, item.itemType), overflow: TextOverflow.ellipsis)),
+                                  PosColumn(
+                                    label: l.fieldSupplier,
+                                    flex: 2,
+                                    cellBuilder: (item) => Text(
+                                      suppliers.where((s) => s.id == item.supplierId).firstOrNull?.supplierName ?? '-',
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  PosColumn(
+                                    label: l.fieldPurchasePrice,
+                                    flex: 1,
+                                    cellBuilder: (item) => Text(
+                                      item.purchasePrice != null ? (item.purchasePrice! / 100).toStringAsFixed(2) : '-',
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  PosColumn(
+                                    label: l.fieldActive,
+                                    flex: 1,
+                                    cellBuilder: (item) => Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: Icon(
+                                        item.isActive ? Icons.check_circle : Icons.cancel,
+                                        color: item.isActive ? Colors.green : Colors.grey,
+                                        size: 20,
                                       ),
                                     ),
-                                  );
-                                },
+                                  ),
+                                ],
+                                items: filtered,
+                                onRowTap: (item) => _showEditDialog(
+                                    context, ref, categories, taxRates, suppliers, manufacturers, item),
                               ),
                             ),
                           ],
