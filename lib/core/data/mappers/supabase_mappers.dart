@@ -179,6 +179,11 @@ Map<String, dynamic> tableToSupabaseJson(TableModel m) => {
       'table_name': m.name,
       'capacity': m.capacity,
       'is_active': m.isActive,
+      'grid_row': m.gridRow,
+      'grid_col': m.gridCol,
+      'grid_width': m.gridWidth,
+      'grid_height': m.gridHeight,
+      'shape': m.shape.name,
     };
 
 Map<String, dynamic> paymentMethodToSupabaseJson(PaymentMethodModel m) => {
@@ -290,6 +295,8 @@ Map<String, dynamic> billToSupabaseJson(BillModel m) => {
       'loyalty_discount_amount': m.loyaltyDiscountAmount,
       'opened_at': toIso8601Utc(m.openedAt),
       'closed_at': toIso8601Utc(m.closedAt),
+      'map_pos_x': m.mapPosX,
+      'map_pos_y': m.mapPosY,
     };
 
 Map<String, dynamic> orderToSupabaseJson(OrderModel m) => {

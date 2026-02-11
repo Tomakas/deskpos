@@ -399,6 +399,8 @@ BillModel billFromEntity(Bill e) => BillModel(
       loyaltyDiscountAmount: e.loyaltyDiscountAmount,
       openedAt: e.openedAt,
       closedAt: e.closedAt,
+      mapPosX: e.mapPosX,
+      mapPosY: e.mapPosY,
       createdAt: e.createdAt,
       updatedAt: e.updatedAt,
       deletedAt: e.deletedAt,
@@ -546,6 +548,11 @@ TableModel tableFromEntity(TableEntity e) => TableModel(
       name: e.name,
       capacity: e.capacity,
       isActive: e.isActive,
+      gridRow: e.gridRow,
+      gridCol: e.gridCol,
+      gridWidth: e.gridWidth,
+      gridHeight: e.gridHeight,
+      shape: e.shape,
       createdAt: e.createdAt,
       updatedAt: e.updatedAt,
       deletedAt: e.deletedAt,
@@ -558,6 +565,11 @@ TablesCompanion tableToCompanion(TableModel m) => TablesCompanion.insert(
       name: m.name,
       capacity: Value(m.capacity),
       isActive: Value(m.isActive),
+      gridRow: Value(m.gridRow),
+      gridCol: Value(m.gridCol),
+      gridWidth: Value(m.gridWidth),
+      gridHeight: Value(m.gridHeight),
+      shape: Value(m.shape),
     );
 
 // --- Section ---

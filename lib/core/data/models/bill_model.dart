@@ -30,6 +30,8 @@ class BillModel with _$BillModel {
     @Default(0) int loyaltyDiscountAmount,
     required DateTime openedAt,
     DateTime? closedAt,
+    int? mapPosX,
+    int? mapPosY,
     required DateTime createdAt,
     required DateTime updatedAt,
     DateTime? deletedAt,

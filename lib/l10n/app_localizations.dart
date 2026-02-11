@@ -1294,6 +1294,12 @@ abstract class AppLocalizations {
   /// **'Nastavení firmy'**
   String get moreCompanySettings;
 
+  /// No description provided for @moreVenueSettings.
+  ///
+  /// In cs, this message translates to:
+  /// **'Nastavení provozovny'**
+  String get moreVenueSettings;
+
   /// No description provided for @moreRegisterSettings.
   ///
   /// In cs, this message translates to:
@@ -1305,6 +1311,12 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Nastavení firmy'**
   String get settingsCompanyTitle;
+
+  /// No description provided for @settingsVenueTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Nastavení provozovny'**
+  String get settingsVenueTitle;
 
   /// No description provided for @settingsRegisterTitle.
   ///
@@ -3453,6 +3465,84 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Stránka {page}'**
   String gridEditorPage(int page);
+
+  /// No description provided for @settingsFloorMap.
+  ///
+  /// In cs, this message translates to:
+  /// **'Mapa'**
+  String get settingsFloorMap;
+
+  /// No description provided for @billsTableList.
+  ///
+  /// In cs, this message translates to:
+  /// **'Seznam'**
+  String get billsTableList;
+
+  /// No description provided for @floorMapEditorTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Editor mapy'**
+  String get floorMapEditorTitle;
+
+  /// No description provided for @floorMapAddTable.
+  ///
+  /// In cs, this message translates to:
+  /// **'Přidat stůl na mapu'**
+  String get floorMapAddTable;
+
+  /// No description provided for @floorMapEditTable.
+  ///
+  /// In cs, this message translates to:
+  /// **'Upravit pozici stolu'**
+  String get floorMapEditTable;
+
+  /// No description provided for @floorMapRemoveTable.
+  ///
+  /// In cs, this message translates to:
+  /// **'Odebrat z mapy'**
+  String get floorMapRemoveTable;
+
+  /// No description provided for @floorMapWidth.
+  ///
+  /// In cs, this message translates to:
+  /// **'Šířka (buňky)'**
+  String get floorMapWidth;
+
+  /// No description provided for @floorMapHeight.
+  ///
+  /// In cs, this message translates to:
+  /// **'Výška (buňky)'**
+  String get floorMapHeight;
+
+  /// No description provided for @floorMapSelectSection.
+  ///
+  /// In cs, this message translates to:
+  /// **'Sekce'**
+  String get floorMapSelectSection;
+
+  /// No description provided for @floorMapSelectTable.
+  ///
+  /// In cs, this message translates to:
+  /// **'Stůl'**
+  String get floorMapSelectTable;
+
+  /// No description provided for @floorMapNewTable.
+  ///
+  /// In cs, this message translates to:
+  /// **'Nový stůl'**
+  String get floorMapNewTable;
+
+  /// No description provided for @floorMapNoTables.
+  ///
+  /// In cs, this message translates to:
+  /// **'Žádné stoly na mapě. Přidejte je v editoru mapy v Nastavení.'**
+  String get floorMapNoTables;
+
+  /// No description provided for @floorMapEmptySlot.
+  ///
+  /// In cs, this message translates to:
+  /// **'Prázdné'**
+  String get floorMapEmptySlot;
 }
 
 class _AppLocalizationsDelegate

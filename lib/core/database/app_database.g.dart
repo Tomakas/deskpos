@@ -339,6 +339,28 @@ class $BillsTable extends Bills with TableInfo<$BillsTable, Bill> {
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _mapPosXMeta = const VerificationMeta(
+    'mapPosX',
+  );
+  @override
+  late final GeneratedColumn<int> mapPosX = GeneratedColumn<int>(
+    'map_pos_x',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _mapPosYMeta = const VerificationMeta(
+    'mapPosY',
+  );
+  @override
+  late final GeneratedColumn<int> mapPosY = GeneratedColumn<int>(
+    'map_pos_y',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     lastSyncedAt,
@@ -370,6 +392,8 @@ class $BillsTable extends Bills with TableInfo<$BillsTable, Bill> {
     loyaltyDiscountAmount,
     openedAt,
     closedAt,
+    mapPosX,
+    mapPosY,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -587,6 +611,18 @@ class $BillsTable extends Bills with TableInfo<$BillsTable, Bill> {
         closedAt.isAcceptableOrUnknown(data['closed_at']!, _closedAtMeta),
       );
     }
+    if (data.containsKey('map_pos_x')) {
+      context.handle(
+        _mapPosXMeta,
+        mapPosX.isAcceptableOrUnknown(data['map_pos_x']!, _mapPosXMeta),
+      );
+    }
+    if (data.containsKey('map_pos_y')) {
+      context.handle(
+        _mapPosYMeta,
+        mapPosY.isAcceptableOrUnknown(data['map_pos_y']!, _mapPosYMeta),
+      );
+    }
     return context;
   }
 
@@ -716,6 +752,14 @@ class $BillsTable extends Bills with TableInfo<$BillsTable, Bill> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}closed_at'],
       ),
+      mapPosX: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}map_pos_x'],
+      ),
+      mapPosY: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}map_pos_y'],
+      ),
     );
   }
 
@@ -766,6 +810,8 @@ class Bill extends DataClass implements Insertable<Bill> {
   final int loyaltyDiscountAmount;
   final DateTime openedAt;
   final DateTime? closedAt;
+  final int? mapPosX;
+  final int? mapPosY;
   const Bill({
     this.lastSyncedAt,
     required this.version,
@@ -796,6 +842,8 @@ class Bill extends DataClass implements Insertable<Bill> {
     required this.loyaltyDiscountAmount,
     required this.openedAt,
     this.closedAt,
+    this.mapPosX,
+    this.mapPosY,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -851,6 +899,12 @@ class Bill extends DataClass implements Insertable<Bill> {
     if (!nullToAbsent || closedAt != null) {
       map['closed_at'] = Variable<DateTime>(closedAt);
     }
+    if (!nullToAbsent || mapPosX != null) {
+      map['map_pos_x'] = Variable<int>(mapPosX);
+    }
+    if (!nullToAbsent || mapPosY != null) {
+      map['map_pos_y'] = Variable<int>(mapPosY);
+    }
     return map;
   }
 
@@ -901,6 +955,12 @@ class Bill extends DataClass implements Insertable<Bill> {
       closedAt: closedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(closedAt),
+      mapPosX: mapPosX == null && nullToAbsent
+          ? const Value.absent()
+          : Value(mapPosX),
+      mapPosY: mapPosY == null && nullToAbsent
+          ? const Value.absent()
+          : Value(mapPosY),
     );
   }
 
@@ -945,6 +1005,8 @@ class Bill extends DataClass implements Insertable<Bill> {
       ),
       openedAt: serializer.fromJson<DateTime>(json['openedAt']),
       closedAt: serializer.fromJson<DateTime?>(json['closedAt']),
+      mapPosX: serializer.fromJson<int?>(json['mapPosX']),
+      mapPosY: serializer.fromJson<int?>(json['mapPosY']),
     );
   }
   @override
@@ -984,6 +1046,8 @@ class Bill extends DataClass implements Insertable<Bill> {
       'loyaltyDiscountAmount': serializer.toJson<int>(loyaltyDiscountAmount),
       'openedAt': serializer.toJson<DateTime>(openedAt),
       'closedAt': serializer.toJson<DateTime?>(closedAt),
+      'mapPosX': serializer.toJson<int?>(mapPosX),
+      'mapPosY': serializer.toJson<int?>(mapPosY),
     };
   }
 
@@ -1017,6 +1081,8 @@ class Bill extends DataClass implements Insertable<Bill> {
     int? loyaltyDiscountAmount,
     DateTime? openedAt,
     Value<DateTime?> closedAt = const Value.absent(),
+    Value<int?> mapPosX = const Value.absent(),
+    Value<int?> mapPosY = const Value.absent(),
   }) => Bill(
     lastSyncedAt: lastSyncedAt.present ? lastSyncedAt.value : this.lastSyncedAt,
     version: version ?? this.version,
@@ -1051,6 +1117,8 @@ class Bill extends DataClass implements Insertable<Bill> {
     loyaltyDiscountAmount: loyaltyDiscountAmount ?? this.loyaltyDiscountAmount,
     openedAt: openedAt ?? this.openedAt,
     closedAt: closedAt.present ? closedAt.value : this.closedAt,
+    mapPosX: mapPosX.present ? mapPosX.value : this.mapPosX,
+    mapPosY: mapPosY.present ? mapPosY.value : this.mapPosY,
   );
   Bill copyWithCompanion(BillsCompanion data) {
     return Bill(
@@ -1119,6 +1187,8 @@ class Bill extends DataClass implements Insertable<Bill> {
           : this.loyaltyDiscountAmount,
       openedAt: data.openedAt.present ? data.openedAt.value : this.openedAt,
       closedAt: data.closedAt.present ? data.closedAt.value : this.closedAt,
+      mapPosX: data.mapPosX.present ? data.mapPosX.value : this.mapPosX,
+      mapPosY: data.mapPosY.present ? data.mapPosY.value : this.mapPosY,
     );
   }
 
@@ -1153,7 +1223,9 @@ class Bill extends DataClass implements Insertable<Bill> {
           ..write('loyaltyPointsUsed: $loyaltyPointsUsed, ')
           ..write('loyaltyDiscountAmount: $loyaltyDiscountAmount, ')
           ..write('openedAt: $openedAt, ')
-          ..write('closedAt: $closedAt')
+          ..write('closedAt: $closedAt, ')
+          ..write('mapPosX: $mapPosX, ')
+          ..write('mapPosY: $mapPosY')
           ..write(')'))
         .toString();
   }
@@ -1189,6 +1261,8 @@ class Bill extends DataClass implements Insertable<Bill> {
     loyaltyDiscountAmount,
     openedAt,
     closedAt,
+    mapPosX,
+    mapPosY,
   ]);
   @override
   bool operator ==(Object other) =>
@@ -1222,7 +1296,9 @@ class Bill extends DataClass implements Insertable<Bill> {
           other.loyaltyPointsUsed == this.loyaltyPointsUsed &&
           other.loyaltyDiscountAmount == this.loyaltyDiscountAmount &&
           other.openedAt == this.openedAt &&
-          other.closedAt == this.closedAt);
+          other.closedAt == this.closedAt &&
+          other.mapPosX == this.mapPosX &&
+          other.mapPosY == this.mapPosY);
 }
 
 class BillsCompanion extends UpdateCompanion<Bill> {
@@ -1255,6 +1331,8 @@ class BillsCompanion extends UpdateCompanion<Bill> {
   final Value<int> loyaltyDiscountAmount;
   final Value<DateTime> openedAt;
   final Value<DateTime?> closedAt;
+  final Value<int?> mapPosX;
+  final Value<int?> mapPosY;
   final Value<int> rowid;
   const BillsCompanion({
     this.lastSyncedAt = const Value.absent(),
@@ -1286,6 +1364,8 @@ class BillsCompanion extends UpdateCompanion<Bill> {
     this.loyaltyDiscountAmount = const Value.absent(),
     this.openedAt = const Value.absent(),
     this.closedAt = const Value.absent(),
+    this.mapPosX = const Value.absent(),
+    this.mapPosY = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   BillsCompanion.insert({
@@ -1318,6 +1398,8 @@ class BillsCompanion extends UpdateCompanion<Bill> {
     this.loyaltyDiscountAmount = const Value.absent(),
     required DateTime openedAt,
     this.closedAt = const Value.absent(),
+    this.mapPosX = const Value.absent(),
+    this.mapPosY = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        companyId = Value(companyId),
@@ -1356,6 +1438,8 @@ class BillsCompanion extends UpdateCompanion<Bill> {
     Expression<int>? loyaltyDiscountAmount,
     Expression<DateTime>? openedAt,
     Expression<DateTime>? closedAt,
+    Expression<int>? mapPosX,
+    Expression<int>? mapPosY,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -1389,6 +1473,8 @@ class BillsCompanion extends UpdateCompanion<Bill> {
         'loyalty_discount_amount': loyaltyDiscountAmount,
       if (openedAt != null) 'opened_at': openedAt,
       if (closedAt != null) 'closed_at': closedAt,
+      if (mapPosX != null) 'map_pos_x': mapPosX,
+      if (mapPosY != null) 'map_pos_y': mapPosY,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -1423,6 +1509,8 @@ class BillsCompanion extends UpdateCompanion<Bill> {
     Value<int>? loyaltyDiscountAmount,
     Value<DateTime>? openedAt,
     Value<DateTime?>? closedAt,
+    Value<int?>? mapPosX,
+    Value<int?>? mapPosY,
     Value<int>? rowid,
   }) {
     return BillsCompanion(
@@ -1456,6 +1544,8 @@ class BillsCompanion extends UpdateCompanion<Bill> {
           loyaltyDiscountAmount ?? this.loyaltyDiscountAmount,
       openedAt: openedAt ?? this.openedAt,
       closedAt: closedAt ?? this.closedAt,
+      mapPosX: mapPosX ?? this.mapPosX,
+      mapPosY: mapPosY ?? this.mapPosY,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1556,6 +1646,12 @@ class BillsCompanion extends UpdateCompanion<Bill> {
     if (closedAt.present) {
       map['closed_at'] = Variable<DateTime>(closedAt.value);
     }
+    if (mapPosX.present) {
+      map['map_pos_x'] = Variable<int>(mapPosX.value);
+    }
+    if (mapPosY.present) {
+      map['map_pos_y'] = Variable<int>(mapPosY.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1594,6 +1690,8 @@ class BillsCompanion extends UpdateCompanion<Bill> {
           ..write('loyaltyDiscountAmount: $loyaltyDiscountAmount, ')
           ..write('openedAt: $openedAt, ')
           ..write('closedAt: $closedAt, ')
+          ..write('mapPosX: $mapPosX, ')
+          ..write('mapPosY: $mapPosY, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -27381,6 +27479,64 @@ class $TablesTable extends Tables with TableInfo<$TablesTable, TableEntity> {
     ),
     defaultValue: const Constant(true),
   );
+  static const VerificationMeta _gridRowMeta = const VerificationMeta(
+    'gridRow',
+  );
+  @override
+  late final GeneratedColumn<int> gridRow = GeneratedColumn<int>(
+    'grid_row',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _gridColMeta = const VerificationMeta(
+    'gridCol',
+  );
+  @override
+  late final GeneratedColumn<int> gridCol = GeneratedColumn<int>(
+    'grid_col',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _gridWidthMeta = const VerificationMeta(
+    'gridWidth',
+  );
+  @override
+  late final GeneratedColumn<int> gridWidth = GeneratedColumn<int>(
+    'grid_width',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _gridHeightMeta = const VerificationMeta(
+    'gridHeight',
+  );
+  @override
+  late final GeneratedColumn<int> gridHeight = GeneratedColumn<int>(
+    'grid_height',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<TableShape, String> shape =
+      GeneratedColumn<String>(
+        'shape',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultValue: Constant(TableShape.rectangle.name),
+      ).withConverter<TableShape>($TablesTable.$convertershape);
   @override
   List<GeneratedColumn> get $columns => [
     lastSyncedAt,
@@ -27396,6 +27552,11 @@ class $TablesTable extends Tables with TableInfo<$TablesTable, TableEntity> {
     name,
     capacity,
     isActive,
+    gridRow,
+    gridCol,
+    gridWidth,
+    gridHeight,
+    shape,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -27499,6 +27660,30 @@ class $TablesTable extends Tables with TableInfo<$TablesTable, TableEntity> {
         isActive.isAcceptableOrUnknown(data['is_active']!, _isActiveMeta),
       );
     }
+    if (data.containsKey('grid_row')) {
+      context.handle(
+        _gridRowMeta,
+        gridRow.isAcceptableOrUnknown(data['grid_row']!, _gridRowMeta),
+      );
+    }
+    if (data.containsKey('grid_col')) {
+      context.handle(
+        _gridColMeta,
+        gridCol.isAcceptableOrUnknown(data['grid_col']!, _gridColMeta),
+      );
+    }
+    if (data.containsKey('grid_width')) {
+      context.handle(
+        _gridWidthMeta,
+        gridWidth.isAcceptableOrUnknown(data['grid_width']!, _gridWidthMeta),
+      );
+    }
+    if (data.containsKey('grid_height')) {
+      context.handle(
+        _gridHeightMeta,
+        gridHeight.isAcceptableOrUnknown(data['grid_height']!, _gridHeightMeta),
+      );
+    }
     return context;
   }
 
@@ -27560,6 +27745,28 @@ class $TablesTable extends Tables with TableInfo<$TablesTable, TableEntity> {
         DriftSqlType.bool,
         data['${effectivePrefix}is_active'],
       )!,
+      gridRow: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}grid_row'],
+      )!,
+      gridCol: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}grid_col'],
+      )!,
+      gridWidth: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}grid_width'],
+      )!,
+      gridHeight: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}grid_height'],
+      )!,
+      shape: $TablesTable.$convertershape.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}shape'],
+        )!,
+      ),
     );
   }
 
@@ -27567,6 +27774,9 @@ class $TablesTable extends Tables with TableInfo<$TablesTable, TableEntity> {
   $TablesTable createAlias(String alias) {
     return $TablesTable(attachedDatabase, alias);
   }
+
+  static JsonTypeConverter2<TableShape, String, String> $convertershape =
+      const EnumNameConverter<TableShape>(TableShape.values);
 }
 
 class TableEntity extends DataClass implements Insertable<TableEntity> {
@@ -27583,6 +27793,11 @@ class TableEntity extends DataClass implements Insertable<TableEntity> {
   final String name;
   final int capacity;
   final bool isActive;
+  final int gridRow;
+  final int gridCol;
+  final int gridWidth;
+  final int gridHeight;
+  final TableShape shape;
   const TableEntity({
     this.lastSyncedAt,
     required this.version,
@@ -27597,6 +27812,11 @@ class TableEntity extends DataClass implements Insertable<TableEntity> {
     required this.name,
     required this.capacity,
     required this.isActive,
+    required this.gridRow,
+    required this.gridCol,
+    required this.gridWidth,
+    required this.gridHeight,
+    required this.shape,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -27624,6 +27844,15 @@ class TableEntity extends DataClass implements Insertable<TableEntity> {
     map['table_name'] = Variable<String>(name);
     map['capacity'] = Variable<int>(capacity);
     map['is_active'] = Variable<bool>(isActive);
+    map['grid_row'] = Variable<int>(gridRow);
+    map['grid_col'] = Variable<int>(gridCol);
+    map['grid_width'] = Variable<int>(gridWidth);
+    map['grid_height'] = Variable<int>(gridHeight);
+    {
+      map['shape'] = Variable<String>(
+        $TablesTable.$convertershape.toSql(shape),
+      );
+    }
     return map;
   }
 
@@ -27652,6 +27881,11 @@ class TableEntity extends DataClass implements Insertable<TableEntity> {
       name: Value(name),
       capacity: Value(capacity),
       isActive: Value(isActive),
+      gridRow: Value(gridRow),
+      gridCol: Value(gridCol),
+      gridWidth: Value(gridWidth),
+      gridHeight: Value(gridHeight),
+      shape: Value(shape),
     );
   }
 
@@ -27674,6 +27908,13 @@ class TableEntity extends DataClass implements Insertable<TableEntity> {
       name: serializer.fromJson<String>(json['name']),
       capacity: serializer.fromJson<int>(json['capacity']),
       isActive: serializer.fromJson<bool>(json['isActive']),
+      gridRow: serializer.fromJson<int>(json['gridRow']),
+      gridCol: serializer.fromJson<int>(json['gridCol']),
+      gridWidth: serializer.fromJson<int>(json['gridWidth']),
+      gridHeight: serializer.fromJson<int>(json['gridHeight']),
+      shape: $TablesTable.$convertershape.fromJson(
+        serializer.fromJson<String>(json['shape']),
+      ),
     );
   }
   @override
@@ -27693,6 +27934,13 @@ class TableEntity extends DataClass implements Insertable<TableEntity> {
       'name': serializer.toJson<String>(name),
       'capacity': serializer.toJson<int>(capacity),
       'isActive': serializer.toJson<bool>(isActive),
+      'gridRow': serializer.toJson<int>(gridRow),
+      'gridCol': serializer.toJson<int>(gridCol),
+      'gridWidth': serializer.toJson<int>(gridWidth),
+      'gridHeight': serializer.toJson<int>(gridHeight),
+      'shape': serializer.toJson<String>(
+        $TablesTable.$convertershape.toJson(shape),
+      ),
     };
   }
 
@@ -27710,6 +27958,11 @@ class TableEntity extends DataClass implements Insertable<TableEntity> {
     String? name,
     int? capacity,
     bool? isActive,
+    int? gridRow,
+    int? gridCol,
+    int? gridWidth,
+    int? gridHeight,
+    TableShape? shape,
   }) => TableEntity(
     lastSyncedAt: lastSyncedAt.present ? lastSyncedAt.value : this.lastSyncedAt,
     version: version ?? this.version,
@@ -27728,6 +27981,11 @@ class TableEntity extends DataClass implements Insertable<TableEntity> {
     name: name ?? this.name,
     capacity: capacity ?? this.capacity,
     isActive: isActive ?? this.isActive,
+    gridRow: gridRow ?? this.gridRow,
+    gridCol: gridCol ?? this.gridCol,
+    gridWidth: gridWidth ?? this.gridWidth,
+    gridHeight: gridHeight ?? this.gridHeight,
+    shape: shape ?? this.shape,
   );
   TableEntity copyWithCompanion(TablesCompanion data) {
     return TableEntity(
@@ -27750,6 +28008,13 @@ class TableEntity extends DataClass implements Insertable<TableEntity> {
       name: data.name.present ? data.name.value : this.name,
       capacity: data.capacity.present ? data.capacity.value : this.capacity,
       isActive: data.isActive.present ? data.isActive.value : this.isActive,
+      gridRow: data.gridRow.present ? data.gridRow.value : this.gridRow,
+      gridCol: data.gridCol.present ? data.gridCol.value : this.gridCol,
+      gridWidth: data.gridWidth.present ? data.gridWidth.value : this.gridWidth,
+      gridHeight: data.gridHeight.present
+          ? data.gridHeight.value
+          : this.gridHeight,
+      shape: data.shape.present ? data.shape.value : this.shape,
     );
   }
 
@@ -27768,7 +28033,12 @@ class TableEntity extends DataClass implements Insertable<TableEntity> {
           ..write('sectionId: $sectionId, ')
           ..write('name: $name, ')
           ..write('capacity: $capacity, ')
-          ..write('isActive: $isActive')
+          ..write('isActive: $isActive, ')
+          ..write('gridRow: $gridRow, ')
+          ..write('gridCol: $gridCol, ')
+          ..write('gridWidth: $gridWidth, ')
+          ..write('gridHeight: $gridHeight, ')
+          ..write('shape: $shape')
           ..write(')'))
         .toString();
   }
@@ -27788,6 +28058,11 @@ class TableEntity extends DataClass implements Insertable<TableEntity> {
     name,
     capacity,
     isActive,
+    gridRow,
+    gridCol,
+    gridWidth,
+    gridHeight,
+    shape,
   );
   @override
   bool operator ==(Object other) =>
@@ -27805,7 +28080,12 @@ class TableEntity extends DataClass implements Insertable<TableEntity> {
           other.sectionId == this.sectionId &&
           other.name == this.name &&
           other.capacity == this.capacity &&
-          other.isActive == this.isActive);
+          other.isActive == this.isActive &&
+          other.gridRow == this.gridRow &&
+          other.gridCol == this.gridCol &&
+          other.gridWidth == this.gridWidth &&
+          other.gridHeight == this.gridHeight &&
+          other.shape == this.shape);
 }
 
 class TablesCompanion extends UpdateCompanion<TableEntity> {
@@ -27822,6 +28102,11 @@ class TablesCompanion extends UpdateCompanion<TableEntity> {
   final Value<String> name;
   final Value<int> capacity;
   final Value<bool> isActive;
+  final Value<int> gridRow;
+  final Value<int> gridCol;
+  final Value<int> gridWidth;
+  final Value<int> gridHeight;
+  final Value<TableShape> shape;
   final Value<int> rowid;
   const TablesCompanion({
     this.lastSyncedAt = const Value.absent(),
@@ -27837,6 +28122,11 @@ class TablesCompanion extends UpdateCompanion<TableEntity> {
     this.name = const Value.absent(),
     this.capacity = const Value.absent(),
     this.isActive = const Value.absent(),
+    this.gridRow = const Value.absent(),
+    this.gridCol = const Value.absent(),
+    this.gridWidth = const Value.absent(),
+    this.gridHeight = const Value.absent(),
+    this.shape = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   TablesCompanion.insert({
@@ -27853,6 +28143,11 @@ class TablesCompanion extends UpdateCompanion<TableEntity> {
     required String name,
     this.capacity = const Value.absent(),
     this.isActive = const Value.absent(),
+    this.gridRow = const Value.absent(),
+    this.gridCol = const Value.absent(),
+    this.gridWidth = const Value.absent(),
+    this.gridHeight = const Value.absent(),
+    this.shape = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        companyId = Value(companyId),
@@ -27871,6 +28166,11 @@ class TablesCompanion extends UpdateCompanion<TableEntity> {
     Expression<String>? name,
     Expression<int>? capacity,
     Expression<bool>? isActive,
+    Expression<int>? gridRow,
+    Expression<int>? gridCol,
+    Expression<int>? gridWidth,
+    Expression<int>? gridHeight,
+    Expression<String>? shape,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -27887,6 +28187,11 @@ class TablesCompanion extends UpdateCompanion<TableEntity> {
       if (name != null) 'table_name': name,
       if (capacity != null) 'capacity': capacity,
       if (isActive != null) 'is_active': isActive,
+      if (gridRow != null) 'grid_row': gridRow,
+      if (gridCol != null) 'grid_col': gridCol,
+      if (gridWidth != null) 'grid_width': gridWidth,
+      if (gridHeight != null) 'grid_height': gridHeight,
+      if (shape != null) 'shape': shape,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -27905,6 +28210,11 @@ class TablesCompanion extends UpdateCompanion<TableEntity> {
     Value<String>? name,
     Value<int>? capacity,
     Value<bool>? isActive,
+    Value<int>? gridRow,
+    Value<int>? gridCol,
+    Value<int>? gridWidth,
+    Value<int>? gridHeight,
+    Value<TableShape>? shape,
     Value<int>? rowid,
   }) {
     return TablesCompanion(
@@ -27921,6 +28231,11 @@ class TablesCompanion extends UpdateCompanion<TableEntity> {
       name: name ?? this.name,
       capacity: capacity ?? this.capacity,
       isActive: isActive ?? this.isActive,
+      gridRow: gridRow ?? this.gridRow,
+      gridCol: gridCol ?? this.gridCol,
+      gridWidth: gridWidth ?? this.gridWidth,
+      gridHeight: gridHeight ?? this.gridHeight,
+      shape: shape ?? this.shape,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -27967,6 +28282,23 @@ class TablesCompanion extends UpdateCompanion<TableEntity> {
     if (isActive.present) {
       map['is_active'] = Variable<bool>(isActive.value);
     }
+    if (gridRow.present) {
+      map['grid_row'] = Variable<int>(gridRow.value);
+    }
+    if (gridCol.present) {
+      map['grid_col'] = Variable<int>(gridCol.value);
+    }
+    if (gridWidth.present) {
+      map['grid_width'] = Variable<int>(gridWidth.value);
+    }
+    if (gridHeight.present) {
+      map['grid_height'] = Variable<int>(gridHeight.value);
+    }
+    if (shape.present) {
+      map['shape'] = Variable<String>(
+        $TablesTable.$convertershape.toSql(shape.value),
+      );
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -27989,6 +28321,11 @@ class TablesCompanion extends UpdateCompanion<TableEntity> {
           ..write('name: $name, ')
           ..write('capacity: $capacity, ')
           ..write('isActive: $isActive, ')
+          ..write('gridRow: $gridRow, ')
+          ..write('gridCol: $gridCol, ')
+          ..write('gridWidth: $gridWidth, ')
+          ..write('gridHeight: $gridHeight, ')
+          ..write('shape: $shape, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -31531,6 +31868,8 @@ typedef $$BillsTableCreateCompanionBuilder =
       Value<int> loyaltyDiscountAmount,
       required DateTime openedAt,
       Value<DateTime?> closedAt,
+      Value<int?> mapPosX,
+      Value<int?> mapPosY,
       Value<int> rowid,
     });
 typedef $$BillsTableUpdateCompanionBuilder =
@@ -31564,6 +31903,8 @@ typedef $$BillsTableUpdateCompanionBuilder =
       Value<int> loyaltyDiscountAmount,
       Value<DateTime> openedAt,
       Value<DateTime?> closedAt,
+      Value<int?> mapPosX,
+      Value<int?> mapPosY,
       Value<int> rowid,
     });
 
@@ -31721,6 +32062,16 @@ class $$BillsTableFilterComposer extends Composer<_$AppDatabase, $BillsTable> {
     column: $table.closedAt,
     builder: (column) => ColumnFilters(column),
   );
+
+  ColumnFilters<int> get mapPosX => $composableBuilder(
+    column: $table.mapPosX,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get mapPosY => $composableBuilder(
+    column: $table.mapPosY,
+    builder: (column) => ColumnFilters(column),
+  );
 }
 
 class $$BillsTableOrderingComposer
@@ -31876,6 +32227,16 @@ class $$BillsTableOrderingComposer
     column: $table.closedAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<int> get mapPosX => $composableBuilder(
+    column: $table.mapPosX,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get mapPosY => $composableBuilder(
+    column: $table.mapPosY,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$BillsTableAnnotationComposer
@@ -32010,6 +32371,12 @@ class $$BillsTableAnnotationComposer
 
   GeneratedColumn<DateTime> get closedAt =>
       $composableBuilder(column: $table.closedAt, builder: (column) => column);
+
+  GeneratedColumn<int> get mapPosX =>
+      $composableBuilder(column: $table.mapPosX, builder: (column) => column);
+
+  GeneratedColumn<int> get mapPosY =>
+      $composableBuilder(column: $table.mapPosY, builder: (column) => column);
 }
 
 class $$BillsTableTableManager
@@ -32069,6 +32436,8 @@ class $$BillsTableTableManager
                 Value<int> loyaltyDiscountAmount = const Value.absent(),
                 Value<DateTime> openedAt = const Value.absent(),
                 Value<DateTime?> closedAt = const Value.absent(),
+                Value<int?> mapPosX = const Value.absent(),
+                Value<int?> mapPosY = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => BillsCompanion(
                 lastSyncedAt: lastSyncedAt,
@@ -32100,6 +32469,8 @@ class $$BillsTableTableManager
                 loyaltyDiscountAmount: loyaltyDiscountAmount,
                 openedAt: openedAt,
                 closedAt: closedAt,
+                mapPosX: mapPosX,
+                mapPosY: mapPosY,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -32133,6 +32504,8 @@ class $$BillsTableTableManager
                 Value<int> loyaltyDiscountAmount = const Value.absent(),
                 required DateTime openedAt,
                 Value<DateTime?> closedAt = const Value.absent(),
+                Value<int?> mapPosX = const Value.absent(),
+                Value<int?> mapPosY = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => BillsCompanion.insert(
                 lastSyncedAt: lastSyncedAt,
@@ -32164,6 +32537,8 @@ class $$BillsTableTableManager
                 loyaltyDiscountAmount: loyaltyDiscountAmount,
                 openedAt: openedAt,
                 closedAt: closedAt,
+                mapPosX: mapPosX,
+                mapPosY: mapPosY,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -43847,6 +44222,11 @@ typedef $$TablesTableCreateCompanionBuilder =
       required String name,
       Value<int> capacity,
       Value<bool> isActive,
+      Value<int> gridRow,
+      Value<int> gridCol,
+      Value<int> gridWidth,
+      Value<int> gridHeight,
+      Value<TableShape> shape,
       Value<int> rowid,
     });
 typedef $$TablesTableUpdateCompanionBuilder =
@@ -43864,6 +44244,11 @@ typedef $$TablesTableUpdateCompanionBuilder =
       Value<String> name,
       Value<int> capacity,
       Value<bool> isActive,
+      Value<int> gridRow,
+      Value<int> gridCol,
+      Value<int> gridWidth,
+      Value<int> gridHeight,
+      Value<TableShape> shape,
       Value<int> rowid,
     });
 
@@ -43940,6 +44325,32 @@ class $$TablesTableFilterComposer
     column: $table.isActive,
     builder: (column) => ColumnFilters(column),
   );
+
+  ColumnFilters<int> get gridRow => $composableBuilder(
+    column: $table.gridRow,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get gridCol => $composableBuilder(
+    column: $table.gridCol,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get gridWidth => $composableBuilder(
+    column: $table.gridWidth,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get gridHeight => $composableBuilder(
+    column: $table.gridHeight,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<TableShape, TableShape, String> get shape =>
+      $composableBuilder(
+        column: $table.shape,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
 }
 
 class $$TablesTableOrderingComposer
@@ -44015,6 +44426,31 @@ class $$TablesTableOrderingComposer
     column: $table.isActive,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<int> get gridRow => $composableBuilder(
+    column: $table.gridRow,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get gridCol => $composableBuilder(
+    column: $table.gridCol,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get gridWidth => $composableBuilder(
+    column: $table.gridWidth,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get gridHeight => $composableBuilder(
+    column: $table.gridHeight,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get shape => $composableBuilder(
+    column: $table.shape,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$TablesTableAnnotationComposer
@@ -44070,6 +44506,23 @@ class $$TablesTableAnnotationComposer
 
   GeneratedColumn<bool> get isActive =>
       $composableBuilder(column: $table.isActive, builder: (column) => column);
+
+  GeneratedColumn<int> get gridRow =>
+      $composableBuilder(column: $table.gridRow, builder: (column) => column);
+
+  GeneratedColumn<int> get gridCol =>
+      $composableBuilder(column: $table.gridCol, builder: (column) => column);
+
+  GeneratedColumn<int> get gridWidth =>
+      $composableBuilder(column: $table.gridWidth, builder: (column) => column);
+
+  GeneratedColumn<int> get gridHeight => $composableBuilder(
+    column: $table.gridHeight,
+    builder: (column) => column,
+  );
+
+  GeneratedColumnWithTypeConverter<TableShape, String> get shape =>
+      $composableBuilder(column: $table.shape, builder: (column) => column);
 }
 
 class $$TablesTableTableManager
@@ -44116,6 +44569,11 @@ class $$TablesTableTableManager
                 Value<String> name = const Value.absent(),
                 Value<int> capacity = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
+                Value<int> gridRow = const Value.absent(),
+                Value<int> gridCol = const Value.absent(),
+                Value<int> gridWidth = const Value.absent(),
+                Value<int> gridHeight = const Value.absent(),
+                Value<TableShape> shape = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => TablesCompanion(
                 lastSyncedAt: lastSyncedAt,
@@ -44131,6 +44589,11 @@ class $$TablesTableTableManager
                 name: name,
                 capacity: capacity,
                 isActive: isActive,
+                gridRow: gridRow,
+                gridCol: gridCol,
+                gridWidth: gridWidth,
+                gridHeight: gridHeight,
+                shape: shape,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -44148,6 +44611,11 @@ class $$TablesTableTableManager
                 required String name,
                 Value<int> capacity = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
+                Value<int> gridRow = const Value.absent(),
+                Value<int> gridCol = const Value.absent(),
+                Value<int> gridWidth = const Value.absent(),
+                Value<int> gridHeight = const Value.absent(),
+                Value<TableShape> shape = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => TablesCompanion.insert(
                 lastSyncedAt: lastSyncedAt,
@@ -44163,6 +44631,11 @@ class $$TablesTableTableManager
                 name: name,
                 capacity: capacity,
                 isActive: isActive,
+                gridRow: gridRow,
+                gridCol: gridCol,
+                gridWidth: gridWidth,
+                gridHeight: gridHeight,
+                shape: shape,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

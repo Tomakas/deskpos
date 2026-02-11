@@ -39,6 +39,8 @@ mixin _$BillModel {
   int get loyaltyDiscountAmount => throw _privateConstructorUsedError;
   DateTime get openedAt => throw _privateConstructorUsedError;
   DateTime? get closedAt => throw _privateConstructorUsedError;
+  int? get mapPosX => throw _privateConstructorUsedError;
+  int? get mapPosY => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
   DateTime get updatedAt => throw _privateConstructorUsedError;
   DateTime? get deletedAt => throw _privateConstructorUsedError;
@@ -78,6 +80,8 @@ abstract class $BillModelCopyWith<$Res> {
     int loyaltyDiscountAmount,
     DateTime openedAt,
     DateTime? closedAt,
+    int? mapPosX,
+    int? mapPosY,
     DateTime createdAt,
     DateTime updatedAt,
     DateTime? deletedAt,
@@ -121,6 +125,8 @@ class _$BillModelCopyWithImpl<$Res, $Val extends BillModel>
     Object? loyaltyDiscountAmount = null,
     Object? openedAt = null,
     Object? closedAt = freezed,
+    Object? mapPosX = freezed,
+    Object? mapPosY = freezed,
     Object? createdAt = null,
     Object? updatedAt = null,
     Object? deletedAt = freezed,
@@ -215,6 +221,14 @@ class _$BillModelCopyWithImpl<$Res, $Val extends BillModel>
                 ? _value.closedAt
                 : closedAt // ignore: cast_nullable_to_non_nullable
                       as DateTime?,
+            mapPosX: freezed == mapPosX
+                ? _value.mapPosX
+                : mapPosX // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            mapPosY: freezed == mapPosY
+                ? _value.mapPosY
+                : mapPosY // ignore: cast_nullable_to_non_nullable
+                      as int?,
             createdAt: null == createdAt
                 ? _value.createdAt
                 : createdAt // ignore: cast_nullable_to_non_nullable
@@ -265,6 +279,8 @@ abstract class _$$BillModelImplCopyWith<$Res>
     int loyaltyDiscountAmount,
     DateTime openedAt,
     DateTime? closedAt,
+    int? mapPosX,
+    int? mapPosY,
     DateTime createdAt,
     DateTime updatedAt,
     DateTime? deletedAt,
@@ -307,6 +323,8 @@ class __$$BillModelImplCopyWithImpl<$Res>
     Object? loyaltyDiscountAmount = null,
     Object? openedAt = null,
     Object? closedAt = freezed,
+    Object? mapPosX = freezed,
+    Object? mapPosY = freezed,
     Object? createdAt = null,
     Object? updatedAt = null,
     Object? deletedAt = freezed,
@@ -401,6 +419,14 @@ class __$$BillModelImplCopyWithImpl<$Res>
             ? _value.closedAt
             : closedAt // ignore: cast_nullable_to_non_nullable
                   as DateTime?,
+        mapPosX: freezed == mapPosX
+            ? _value.mapPosX
+            : mapPosX // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        mapPosY: freezed == mapPosY
+            ? _value.mapPosY
+            : mapPosY // ignore: cast_nullable_to_non_nullable
+                  as int?,
         createdAt: null == createdAt
             ? _value.createdAt
             : createdAt // ignore: cast_nullable_to_non_nullable
@@ -444,6 +470,8 @@ class _$BillModelImpl implements _BillModel {
     this.loyaltyDiscountAmount = 0,
     required this.openedAt,
     this.closedAt,
+    this.mapPosX,
+    this.mapPosY,
     required this.createdAt,
     required this.updatedAt,
     this.deletedAt,
@@ -505,6 +533,10 @@ class _$BillModelImpl implements _BillModel {
   @override
   final DateTime? closedAt;
   @override
+  final int? mapPosX;
+  @override
+  final int? mapPosY;
+  @override
   final DateTime createdAt;
   @override
   final DateTime updatedAt;
@@ -513,7 +545,7 @@ class _$BillModelImpl implements _BillModel {
 
   @override
   String toString() {
-    return 'BillModel(id: $id, companyId: $companyId, customerId: $customerId, tableId: $tableId, openedByUserId: $openedByUserId, billNumber: $billNumber, numberOfGuests: $numberOfGuests, isTakeaway: $isTakeaway, status: $status, currencyId: $currencyId, subtotalGross: $subtotalGross, subtotalNet: $subtotalNet, discountAmount: $discountAmount, discountType: $discountType, taxTotal: $taxTotal, totalGross: $totalGross, roundingAmount: $roundingAmount, paidAmount: $paidAmount, loyaltyPointsUsed: $loyaltyPointsUsed, loyaltyDiscountAmount: $loyaltyDiscountAmount, openedAt: $openedAt, closedAt: $closedAt, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+    return 'BillModel(id: $id, companyId: $companyId, customerId: $customerId, tableId: $tableId, openedByUserId: $openedByUserId, billNumber: $billNumber, numberOfGuests: $numberOfGuests, isTakeaway: $isTakeaway, status: $status, currencyId: $currencyId, subtotalGross: $subtotalGross, subtotalNet: $subtotalNet, discountAmount: $discountAmount, discountType: $discountType, taxTotal: $taxTotal, totalGross: $totalGross, roundingAmount: $roundingAmount, paidAmount: $paidAmount, loyaltyPointsUsed: $loyaltyPointsUsed, loyaltyDiscountAmount: $loyaltyDiscountAmount, openedAt: $openedAt, closedAt: $closedAt, mapPosX: $mapPosX, mapPosY: $mapPosY, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
   }
 
   @override
@@ -562,6 +594,8 @@ class _$BillModelImpl implements _BillModel {
                 other.openedAt == openedAt) &&
             (identical(other.closedAt, closedAt) ||
                 other.closedAt == closedAt) &&
+            (identical(other.mapPosX, mapPosX) || other.mapPosX == mapPosX) &&
+            (identical(other.mapPosY, mapPosY) || other.mapPosY == mapPosY) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.updatedAt, updatedAt) ||
@@ -595,6 +629,8 @@ class _$BillModelImpl implements _BillModel {
     loyaltyDiscountAmount,
     openedAt,
     closedAt,
+    mapPosX,
+    mapPosY,
     createdAt,
     updatedAt,
     deletedAt,
@@ -633,6 +669,8 @@ abstract class _BillModel implements BillModel {
     final int loyaltyDiscountAmount,
     required final DateTime openedAt,
     final DateTime? closedAt,
+    final int? mapPosX,
+    final int? mapPosY,
     required final DateTime createdAt,
     required final DateTime updatedAt,
     final DateTime? deletedAt,
@@ -682,6 +720,10 @@ abstract class _BillModel implements BillModel {
   DateTime get openedAt;
   @override
   DateTime? get closedAt;
+  @override
+  int? get mapPosX;
+  @override
+  int? get mapPosY;
   @override
   DateTime get createdAt;
   @override

@@ -33,6 +33,7 @@ import '../widgets/dialog_z_report.dart';
 import '../widgets/dialog_reservations_list.dart';
 import '../widgets/dialog_shifts_list.dart';
 import '../widgets/dialog_z_report_list.dart';
+import '../widgets/floor_map_view.dart';
 
 enum _SortField { table, total, lastOrder }
 
@@ -50,6 +51,7 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
   bool _sortAscending = true;
   bool _isProcessing = false;
   bool _isCreatingBill = false;
+  bool _showMap = false;
 
   @override
   Widget build(BuildContext context) {
@@ -78,18 +80,25 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
                   }),
                 ),
                 Expanded(
-                  child: _BillsTable(
-                    statusFilters: _statusFilters,
-                    sectionFilters: _sectionFilters,
-                    sortField: _sortField,
-                    sortAscending: _sortAscending,
-                    onBillTap: (bill) => _openBillDetail(context, bill),
+                  child: _showMap
+                      ? FloorMapView(
+                          sectionFilters: _sectionFilters,
+                          onBillTap: (bill) => _openBillDetail(context, bill),
+                          onTableTap: (table) => _createNewBillForTable(context, table),
+                        )
+                      : _BillsTable(
+                          statusFilters: _statusFilters,
+                          sectionFilters: _sectionFilters,
+                          sortField: _sortField,
+                          sortAscending: _sortAscending,
+                          onBillTap: (bill) => _openBillDetail(context, bill),
+                        ),
+                ),
+                if (!_showMap)
+                  _StatusFilterBar(
+                    selected: _statusFilters,
+                    onChanged: (filters) => setState(() => _statusFilters = filters),
                   ),
-                ),
-                _StatusFilterBar(
-                  selected: _statusFilters,
-                  onChanged: (filters) => setState(() => _statusFilters = filters),
-                ),
               ],
             ),
           ),
@@ -102,6 +111,8 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
               canManageSettings: canManageSettings,
               hasSession: hasSession,
               sessionAsync: sessionAsync,
+              showMap: _showMap,
+              onToggleMap: () => setState(() => _showMap = !_showMap),
               onLogout: () => _logout(context),
               onSwitchUser: () => _showSwitchUserDialog(context),
               onNewBill: hasSession ? () => _createNewBill(context) : null,
@@ -153,6 +164,15 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
       context: context,
       builder: (_) => DialogBillDetail(billId: bill.id),
     );
+  }
+
+  Future<void> _createNewBillForTable(BuildContext context, TableModel table) async {
+    final result = await showDialog<NewBillResult>(
+      context: context,
+      builder: (_) => DialogNewBill(initialTableId: table.id),
+    );
+    if (result == null || !mounted) return;
+    await _createBillFromResult(context, result);
   }
 
   Future<void> _createNewBill(BuildContext context) async {
@@ -955,6 +975,8 @@ class _RightPanel extends ConsumerWidget {
     required this.canManageSettings,
     required this.hasSession,
     required this.sessionAsync,
+    required this.showMap,
+    required this.onToggleMap,
     required this.onLogout,
     required this.onSwitchUser,
     required this.onNewBill,
@@ -971,6 +993,8 @@ class _RightPanel extends ConsumerWidget {
   final bool canManageSettings;
   final bool hasSession;
   final AsyncValue sessionAsync;
+  final bool showMap;
+  final VoidCallback onToggleMap;
   final VoidCallback onLogout;
   final VoidCallback onSwitchUser;
   final VoidCallback? onNewBill;
@@ -1043,11 +1067,11 @@ class _RightPanel extends ConsumerWidget {
               ],
             ),
           ),
-          // Row 4: MAPA (disabled) | UZÁVĚRKA
+          // Row 4: MAPA/SEZNAM | UZÁVĚRKA
           _ButtonRow(
-            left: l.billsTableMap,
+            left: showMap ? l.billsTableList : l.billsTableMap,
             right: l.registerSessionClose,
-            onLeft: null,
+            onLeft: onToggleMap,
             onRight: onToggleSession,
             rightHighlight: !hasSession,
             rightLabel: hasSession ? l.registerSessionClose : l.registerSessionStart,
@@ -1175,6 +1199,10 @@ void _showMoreMenu(BuildContext btnContext, bool canManageSettings, {VoidCallbac
       if (!canManageSettings)
         PopupMenuItem(enabled: false, height: 48, child: Text(l.moreCompanySettings)),
       if (canManageSettings)
+        PopupMenuItem(value: 'venue-settings', height: 48, child: Text(l.moreVenueSettings)),
+      if (!canManageSettings)
+        PopupMenuItem(enabled: false, height: 48, child: Text(l.moreVenueSettings)),
+      if (canManageSettings)
         PopupMenuItem(value: 'register-settings', height: 48, child: Text(l.moreRegisterSettings)),
       if (!canManageSettings)
         PopupMenuItem(enabled: false, height: 48, child: Text(l.moreRegisterSettings)),
@@ -1184,6 +1212,8 @@ void _showMoreMenu(BuildContext btnContext, bool canManageSettings, {VoidCallbac
     switch (value) {
       case 'company-settings':
         btnContext.push('/settings/company');
+      case 'venue-settings':
+        btnContext.push('/settings/venue');
       case 'register-settings':
         btnContext.push('/settings/register');
       case 'z-reports':

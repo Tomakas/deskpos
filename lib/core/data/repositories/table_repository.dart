@@ -45,6 +45,11 @@ class TableRepository
         name: Value(m.name),
         capacity: Value(m.capacity),
         isActive: Value(m.isActive),
+        gridRow: Value(m.gridRow),
+        gridCol: Value(m.gridCol),
+        gridWidth: Value(m.gridWidth),
+        gridHeight: Value(m.gridHeight),
+        shape: Value(m.shape),
         updatedAt: Value(DateTime.now()),
       );
 

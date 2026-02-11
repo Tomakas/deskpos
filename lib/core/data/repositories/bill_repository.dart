@@ -433,6 +433,27 @@ class BillRepository {
     }
   }
 
+  Future<Result<BillModel>> updateMapPosition(String billId, int? posX, int? posY) async {
+    try {
+      await (_db.update(_db.bills)..where((t) => t.id.equals(billId))).write(
+        BillsCompanion(
+          mapPosX: Value(posX),
+          mapPosY: Value(posY),
+          updatedAt: Value(DateTime.now()),
+        ),
+      );
+      final entity = await (_db.select(_db.bills)
+            ..where((t) => t.id.equals(billId)))
+          .getSingle();
+      final bill = billFromEntity(entity);
+      await _enqueueBill('update', bill);
+      return Success(bill);
+    } catch (e, s) {
+      AppLogger.error('Failed to update bill map position', error: e, stackTrace: s);
+      return Failure('Failed to update bill map position: $e');
+    }
+  }
+
   Future<Result<BillModel>> updateDiscount(
     String billId,
     DiscountType discountType,

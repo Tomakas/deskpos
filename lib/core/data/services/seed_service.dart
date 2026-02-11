@@ -249,15 +249,24 @@ class SeedService {
           await _db.into(_db.sections).insert(sectionToCompanion(s));
         }
 
-        // 9. Tables
+        // 9. Tables — Hlavní & Zahrádka placed on floor map, Interní off-map
         final tables = [
-          for (var i = 1; i <= 5; i++)
-            TableModel(id: _id(), companyId: companyId, name: 'Stůl $i', sectionId: hlavniId, capacity: 4, createdAt: now, updatedAt: now),
-          for (var i = 1; i <= 5; i++)
-            TableModel(id: _id(), companyId: companyId, name: 'Stolek $i', sectionId: zahradkaId, capacity: 2, createdAt: now, updatedAt: now),
-          TableModel(id: _id(), companyId: companyId, name: 'Majitel', sectionId: interniId, capacity: 0, createdAt: now, updatedAt: now),
-          TableModel(id: _id(), companyId: companyId, name: 'Repre', sectionId: interniId, capacity: 0, createdAt: now, updatedAt: now),
-          TableModel(id: _id(), companyId: companyId, name: 'Odpisy', sectionId: interniId, capacity: 0, createdAt: now, updatedAt: now),
+          // Hlavní section — larger tables (2×2) spread across top area
+          TableModel(id: _id(), companyId: companyId, name: 'Stůl 1', sectionId: hlavniId, capacity: 4, gridRow: 1, gridCol: 2, gridWidth: 2, gridHeight: 2, createdAt: now, updatedAt: now),
+          TableModel(id: _id(), companyId: companyId, name: 'Stůl 2', sectionId: hlavniId, capacity: 4, gridRow: 1, gridCol: 5, gridWidth: 2, gridHeight: 2, createdAt: now, updatedAt: now),
+          TableModel(id: _id(), companyId: companyId, name: 'Stůl 3', sectionId: hlavniId, capacity: 4, gridRow: 1, gridCol: 9, gridWidth: 2, gridHeight: 2, createdAt: now, updatedAt: now),
+          TableModel(id: _id(), companyId: companyId, name: 'Stůl 4', sectionId: hlavniId, capacity: 4, gridRow: 4, gridCol: 3, gridWidth: 2, gridHeight: 2, createdAt: now, updatedAt: now),
+          TableModel(id: _id(), companyId: companyId, name: 'Stůl 5', sectionId: hlavniId, capacity: 4, gridRow: 4, gridCol: 7, gridWidth: 2, gridHeight: 2, createdAt: now, updatedAt: now),
+          // Zahrádka section — smaller tables (1×1) in the bottom area
+          TableModel(id: _id(), companyId: companyId, name: 'Stolek 1', sectionId: zahradkaId, capacity: 2, gridRow: 7, gridCol: 1, createdAt: now, updatedAt: now),
+          TableModel(id: _id(), companyId: companyId, name: 'Stolek 2', sectionId: zahradkaId, capacity: 2, gridRow: 7, gridCol: 4, createdAt: now, updatedAt: now),
+          TableModel(id: _id(), companyId: companyId, name: 'Stolek 3', sectionId: zahradkaId, capacity: 2, gridRow: 7, gridCol: 7, createdAt: now, updatedAt: now),
+          TableModel(id: _id(), companyId: companyId, name: 'Stolek 4', sectionId: zahradkaId, capacity: 2, gridRow: 7, gridCol: 10, createdAt: now, updatedAt: now),
+          TableModel(id: _id(), companyId: companyId, name: 'Stolek 5', sectionId: zahradkaId, capacity: 2, gridRow: 7, gridCol: 13, createdAt: now, updatedAt: now),
+          // Interní section — off-map (gridRow: -1)
+          TableModel(id: _id(), companyId: companyId, name: 'Majitel', sectionId: interniId, capacity: 0, gridRow: -1, gridCol: -1, createdAt: now, updatedAt: now),
+          TableModel(id: _id(), companyId: companyId, name: 'Repre', sectionId: interniId, capacity: 0, gridRow: -1, gridCol: -1, createdAt: now, updatedAt: now),
+          TableModel(id: _id(), companyId: companyId, name: 'Odpisy', sectionId: interniId, capacity: 0, gridRow: -1, gridCol: -1, createdAt: now, updatedAt: now),
         ];
         for (final t in tables) {
           await _db.into(_db.tables).insert(tableToCompanion(t));

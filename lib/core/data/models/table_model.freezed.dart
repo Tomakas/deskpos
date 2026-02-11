@@ -23,6 +23,11 @@ mixin _$TableModel {
   String get name => throw _privateConstructorUsedError;
   int get capacity => throw _privateConstructorUsedError;
   bool get isActive => throw _privateConstructorUsedError;
+  int get gridRow => throw _privateConstructorUsedError;
+  int get gridCol => throw _privateConstructorUsedError;
+  int get gridWidth => throw _privateConstructorUsedError;
+  int get gridHeight => throw _privateConstructorUsedError;
+  TableShape get shape => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
   DateTime get updatedAt => throw _privateConstructorUsedError;
   DateTime? get deletedAt => throw _privateConstructorUsedError;
@@ -48,6 +53,11 @@ abstract class $TableModelCopyWith<$Res> {
     String name,
     int capacity,
     bool isActive,
+    int gridRow,
+    int gridCol,
+    int gridWidth,
+    int gridHeight,
+    TableShape shape,
     DateTime createdAt,
     DateTime updatedAt,
     DateTime? deletedAt,
@@ -75,6 +85,11 @@ class _$TableModelCopyWithImpl<$Res, $Val extends TableModel>
     Object? name = null,
     Object? capacity = null,
     Object? isActive = null,
+    Object? gridRow = null,
+    Object? gridCol = null,
+    Object? gridWidth = null,
+    Object? gridHeight = null,
+    Object? shape = null,
     Object? createdAt = null,
     Object? updatedAt = null,
     Object? deletedAt = freezed,
@@ -105,6 +120,26 @@ class _$TableModelCopyWithImpl<$Res, $Val extends TableModel>
                 ? _value.isActive
                 : isActive // ignore: cast_nullable_to_non_nullable
                       as bool,
+            gridRow: null == gridRow
+                ? _value.gridRow
+                : gridRow // ignore: cast_nullable_to_non_nullable
+                      as int,
+            gridCol: null == gridCol
+                ? _value.gridCol
+                : gridCol // ignore: cast_nullable_to_non_nullable
+                      as int,
+            gridWidth: null == gridWidth
+                ? _value.gridWidth
+                : gridWidth // ignore: cast_nullable_to_non_nullable
+                      as int,
+            gridHeight: null == gridHeight
+                ? _value.gridHeight
+                : gridHeight // ignore: cast_nullable_to_non_nullable
+                      as int,
+            shape: null == shape
+                ? _value.shape
+                : shape // ignore: cast_nullable_to_non_nullable
+                      as TableShape,
             createdAt: null == createdAt
                 ? _value.createdAt
                 : createdAt // ignore: cast_nullable_to_non_nullable
@@ -139,6 +174,11 @@ abstract class _$$TableModelImplCopyWith<$Res>
     String name,
     int capacity,
     bool isActive,
+    int gridRow,
+    int gridCol,
+    int gridWidth,
+    int gridHeight,
+    TableShape shape,
     DateTime createdAt,
     DateTime updatedAt,
     DateTime? deletedAt,
@@ -165,6 +205,11 @@ class __$$TableModelImplCopyWithImpl<$Res>
     Object? name = null,
     Object? capacity = null,
     Object? isActive = null,
+    Object? gridRow = null,
+    Object? gridCol = null,
+    Object? gridWidth = null,
+    Object? gridHeight = null,
+    Object? shape = null,
     Object? createdAt = null,
     Object? updatedAt = null,
     Object? deletedAt = freezed,
@@ -195,6 +240,26 @@ class __$$TableModelImplCopyWithImpl<$Res>
             ? _value.isActive
             : isActive // ignore: cast_nullable_to_non_nullable
                   as bool,
+        gridRow: null == gridRow
+            ? _value.gridRow
+            : gridRow // ignore: cast_nullable_to_non_nullable
+                  as int,
+        gridCol: null == gridCol
+            ? _value.gridCol
+            : gridCol // ignore: cast_nullable_to_non_nullable
+                  as int,
+        gridWidth: null == gridWidth
+            ? _value.gridWidth
+            : gridWidth // ignore: cast_nullable_to_non_nullable
+                  as int,
+        gridHeight: null == gridHeight
+            ? _value.gridHeight
+            : gridHeight // ignore: cast_nullable_to_non_nullable
+                  as int,
+        shape: null == shape
+            ? _value.shape
+            : shape // ignore: cast_nullable_to_non_nullable
+                  as TableShape,
         createdAt: null == createdAt
             ? _value.createdAt
             : createdAt // ignore: cast_nullable_to_non_nullable
@@ -222,6 +287,11 @@ class _$TableModelImpl implements _TableModel {
     required this.name,
     this.capacity = 0,
     this.isActive = true,
+    this.gridRow = 0,
+    this.gridCol = 0,
+    this.gridWidth = 1,
+    this.gridHeight = 1,
+    this.shape = TableShape.rectangle,
     required this.createdAt,
     required this.updatedAt,
     this.deletedAt,
@@ -242,6 +312,21 @@ class _$TableModelImpl implements _TableModel {
   @JsonKey()
   final bool isActive;
   @override
+  @JsonKey()
+  final int gridRow;
+  @override
+  @JsonKey()
+  final int gridCol;
+  @override
+  @JsonKey()
+  final int gridWidth;
+  @override
+  @JsonKey()
+  final int gridHeight;
+  @override
+  @JsonKey()
+  final TableShape shape;
+  @override
   final DateTime createdAt;
   @override
   final DateTime updatedAt;
@@ -250,7 +335,7 @@ class _$TableModelImpl implements _TableModel {
 
   @override
   String toString() {
-    return 'TableModel(id: $id, companyId: $companyId, sectionId: $sectionId, name: $name, capacity: $capacity, isActive: $isActive, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+    return 'TableModel(id: $id, companyId: $companyId, sectionId: $sectionId, name: $name, capacity: $capacity, isActive: $isActive, gridRow: $gridRow, gridCol: $gridCol, gridWidth: $gridWidth, gridHeight: $gridHeight, shape: $shape, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
   }
 
   @override
@@ -268,6 +353,13 @@ class _$TableModelImpl implements _TableModel {
                 other.capacity == capacity) &&
             (identical(other.isActive, isActive) ||
                 other.isActive == isActive) &&
+            (identical(other.gridRow, gridRow) || other.gridRow == gridRow) &&
+            (identical(other.gridCol, gridCol) || other.gridCol == gridCol) &&
+            (identical(other.gridWidth, gridWidth) ||
+                other.gridWidth == gridWidth) &&
+            (identical(other.gridHeight, gridHeight) ||
+                other.gridHeight == gridHeight) &&
+            (identical(other.shape, shape) || other.shape == shape) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.updatedAt, updatedAt) ||
@@ -285,6 +377,11 @@ class _$TableModelImpl implements _TableModel {
     name,
     capacity,
     isActive,
+    gridRow,
+    gridCol,
+    gridWidth,
+    gridHeight,
+    shape,
     createdAt,
     updatedAt,
     deletedAt,
@@ -307,6 +404,11 @@ abstract class _TableModel implements TableModel {
     required final String name,
     final int capacity,
     final bool isActive,
+    final int gridRow,
+    final int gridCol,
+    final int gridWidth,
+    final int gridHeight,
+    final TableShape shape,
     required final DateTime createdAt,
     required final DateTime updatedAt,
     final DateTime? deletedAt,
@@ -324,6 +426,16 @@ abstract class _TableModel implements TableModel {
   int get capacity;
   @override
   bool get isActive;
+  @override
+  int get gridRow;
+  @override
+  int get gridCol;
+  @override
+  int get gridWidth;
+  @override
+  int get gridHeight;
+  @override
+  TableShape get shape;
   @override
   DateTime get createdAt;
   @override

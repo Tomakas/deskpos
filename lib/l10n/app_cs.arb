@@ -269,8 +269,10 @@
   "moreReservations": "Rezervace",
   "moreSettings": "Nastavení",
   "moreCompanySettings": "Nastavení firmy",
+  "moreVenueSettings": "Nastavení provozovny",
   "moreRegisterSettings": "Nastavení pokladny",
   "settingsCompanyTitle": "Nastavení firmy",
+  "settingsVenueTitle": "Nastavení provozovny",
   "settingsRegisterTitle": "Nastavení pokladny",
   "settingsTabCompany": "Firma",
   "settingsTabRegister": "Pokladna",
@@ -722,5 +724,19 @@
     "placeholders": {
       "page": { "type": "int" }
     }
-  }
+  },
+
+  "settingsFloorMap": "Mapa",
+  "billsTableList": "Seznam",
+  "floorMapEditorTitle": "Editor mapy",
+  "floorMapAddTable": "Přidat stůl na mapu",
+  "floorMapEditTable": "Upravit pozici stolu",
+  "floorMapRemoveTable": "Odebrat z mapy",
+  "floorMapWidth": "Šířka (buňky)",
+  "floorMapHeight": "Výška (buňky)",
+  "floorMapSelectSection": "Sekce",
+  "floorMapSelectTable": "Stůl",
+  "floorMapNewTable": "Nový stůl",
+  "floorMapNoTables": "Žádné stoly na mapě. Přidejte je v editoru mapy v Nastavení.",
+  "floorMapEmptySlot": "Prázdné"
 }

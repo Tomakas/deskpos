@@ -632,10 +632,16 @@ class AppLocalizationsCs extends AppLocalizations {
   String get moreCompanySettings => 'Nastavení firmy';
 
   @override
+  String get moreVenueSettings => 'Nastavení provozovny';
+
+  @override
   String get moreRegisterSettings => 'Nastavení pokladny';
 
   @override
   String get settingsCompanyTitle => 'Nastavení firmy';
+
+  @override
+  String get settingsVenueTitle => 'Nastavení provozovny';
 
   @override
   String get settingsRegisterTitle => 'Nastavení pokladny';
@@ -1741,4 +1747,44 @@ class AppLocalizationsCs extends AppLocalizations {
   String gridEditorPage(int page) {
     return 'Stránka $page';
   }
+
+  @override
+  String get settingsFloorMap => 'Mapa';
+
+  @override
+  String get billsTableList => 'Seznam';
+
+  @override
+  String get floorMapEditorTitle => 'Editor mapy';
+
+  @override
+  String get floorMapAddTable => 'Přidat stůl na mapu';
+
+  @override
+  String get floorMapEditTable => 'Upravit pozici stolu';
+
+  @override
+  String get floorMapRemoveTable => 'Odebrat z mapy';
+
+  @override
+  String get floorMapWidth => 'Šířka (buňky)';
+
+  @override
+  String get floorMapHeight => 'Výška (buňky)';
+
+  @override
+  String get floorMapSelectSection => 'Sekce';
+
+  @override
+  String get floorMapSelectTable => 'Stůl';
+
+  @override
+  String get floorMapNewTable => 'Nový stůl';
+
+  @override
+  String get floorMapNoTables =>
+      'Žádné stoly na mapě. Přidejte je v editoru mapy v Nastavení.';
+
+  @override
+  String get floorMapEmptySlot => 'Prázdné';
 }

@@ -11,6 +11,7 @@ import '../../features/onboarding/screens/screen_onboarding.dart';
 import '../../features/sell/screens/screen_sell.dart';
 import '../../features/settings/screens/screen_register_settings.dart';
 import '../../features/settings/screens/screen_settings.dart';
+import '../../features/settings/screens/screen_venue_settings.dart';
 import '../data/providers/auth_providers.dart';
 import '../data/providers/permission_providers.dart';
 
@@ -86,6 +87,15 @@ final routerProvider = Provider<GoRouter>((ref) {
           return null;
         },
         builder: (context, state) => const ScreenCompanySettings(),
+      ),
+      GoRoute(
+        path: '/settings/venue',
+        redirect: (context, state) {
+          final hasPermission = ref.read(hasPermissionProvider('settings.manage'));
+          if (!hasPermission) return '/bills';
+          return null;
+        },
+        builder: (context, state) => const ScreenVenueSettings(),
       ),
       GoRoute(
         path: '/settings/register',

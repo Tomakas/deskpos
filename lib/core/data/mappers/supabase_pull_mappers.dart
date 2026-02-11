@@ -180,6 +180,13 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
         name: Value(json['table_name'] as String),
         capacity: Value(json['capacity'] as int? ?? 0),
         isActive: Value(json['is_active'] as bool? ?? true),
+        gridRow: Value(json['grid_row'] as int? ?? 0),
+        gridCol: Value(json['grid_col'] as int? ?? 0),
+        gridWidth: Value(json['grid_width'] as int? ?? 1),
+        gridHeight: Value(json['grid_height'] as int? ?? 1),
+        shape: Value(json['shape'] != null
+            ? _enumFromName(TableShape.values, json['shape'])
+            : TableShape.rectangle),
         createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
         updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
         deletedAt: Value(_parseDateTime(json['deleted_at'])),
@@ -266,6 +273,8 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
         loyaltyDiscountAmount: Value(json['loyalty_discount_amount'] as int? ?? 0),
         openedAt: Value(_requireDateTime(json['opened_at'])),
         closedAt: Value(_parseDateTime(json['closed_at'])),
+        mapPosX: Value(json['map_pos_x'] as int?),
+        mapPosY: Value(json['map_pos_y'] as int?),
         createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
         updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
         deletedAt: Value(_parseDateTime(json['deleted_at'])),
