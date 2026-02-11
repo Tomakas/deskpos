@@ -3345,6 +3345,114 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'K účtu není přiřazen zákazník'**
   String get loyaltyNoCustomer;
+
+  /// No description provided for @settingsSectionGridManagement.
+  ///
+  /// In cs, this message translates to:
+  /// **'Správa rozložení mřížky'**
+  String get settingsSectionGridManagement;
+
+  /// No description provided for @settingsAutoArrange.
+  ///
+  /// In cs, this message translates to:
+  /// **'Automatické rozmístění'**
+  String get settingsAutoArrange;
+
+  /// No description provided for @settingsAutoArrangeDescription.
+  ///
+  /// In cs, this message translates to:
+  /// **'Rozmístí kategorie a produkty do mřížky'**
+  String get settingsAutoArrangeDescription;
+
+  /// No description provided for @settingsManualEditor.
+  ///
+  /// In cs, this message translates to:
+  /// **'Ruční editor mřížky'**
+  String get settingsManualEditor;
+
+  /// No description provided for @settingsManualEditorDescription.
+  ///
+  /// In cs, this message translates to:
+  /// **'Otevře editor pro přiřazení položek'**
+  String get settingsManualEditorDescription;
+
+  /// No description provided for @autoArrangeTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Automatické rozmístění'**
+  String get autoArrangeTitle;
+
+  /// No description provided for @autoArrangeHorizontal.
+  ///
+  /// In cs, this message translates to:
+  /// **'Horizontální'**
+  String get autoArrangeHorizontal;
+
+  /// No description provided for @autoArrangeHorizontalDesc.
+  ///
+  /// In cs, this message translates to:
+  /// **'Řádek = kategorie + její produkty'**
+  String get autoArrangeHorizontalDesc;
+
+  /// No description provided for @autoArrangeVertical.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vertikální'**
+  String get autoArrangeVertical;
+
+  /// No description provided for @autoArrangeVerticalDesc.
+  ///
+  /// In cs, this message translates to:
+  /// **'Sloupec = kategorie + její produkty pod ní'**
+  String get autoArrangeVerticalDesc;
+
+  /// No description provided for @autoArrangeWarning.
+  ///
+  /// In cs, this message translates to:
+  /// **'Stávající rozmístění bude nahrazeno'**
+  String get autoArrangeWarning;
+
+  /// No description provided for @autoArrangeConfirm.
+  ///
+  /// In cs, this message translates to:
+  /// **'Rozmístit'**
+  String get autoArrangeConfirm;
+
+  /// No description provided for @autoArrangeSummary.
+  ///
+  /// In cs, this message translates to:
+  /// **'{categories} kategorií, {products} produktů'**
+  String autoArrangeSummary(int categories, int products);
+
+  /// No description provided for @autoArrangeOverflow.
+  ///
+  /// In cs, this message translates to:
+  /// **'Na hlavní stránku se vejde jen {fit} z {total} kategorií. Zbylé budou dostupné pouze na sub-stránkách.'**
+  String autoArrangeOverflow(int fit, int total);
+
+  /// No description provided for @gridEditorTitle2.
+  ///
+  /// In cs, this message translates to:
+  /// **'Editor mřížky'**
+  String get gridEditorTitle2;
+
+  /// No description provided for @gridEditorBack.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zpět'**
+  String get gridEditorBack;
+
+  /// No description provided for @gridEditorRootPage.
+  ///
+  /// In cs, this message translates to:
+  /// **'Hlavní stránka'**
+  String get gridEditorRootPage;
+
+  /// No description provided for @gridEditorPage.
+  ///
+  /// In cs, this message translates to:
+  /// **'Stránka {page}'**
+  String gridEditorPage(int page);
 }
 
 class _AppLocalizationsDelegate

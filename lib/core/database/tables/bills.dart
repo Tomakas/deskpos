@@ -28,6 +28,8 @@ class Bills extends Table with SyncColumnsMixin {
   IntColumn get loyaltyDiscountAmount => integer().withDefault(const Constant(0))();
   DateTimeColumn get openedAt => dateTime()();
   DateTimeColumn get closedAt => dateTime().nullable()();
+  IntColumn get mapPosX => integer().nullable()();
+  IntColumn get mapPosY => integer().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};

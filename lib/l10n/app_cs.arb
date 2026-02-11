@@ -686,5 +686,41 @@
   "loyaltyCreditDeduct": "Odečíst kredit",
   "loyaltyCreditBalance": "Zůstatek",
   "loyaltyTransactionHistory": "Historie transakcí",
-  "loyaltyNoCustomer": "K účtu není přiřazen zákazník"
+  "loyaltyNoCustomer": "K účtu není přiřazen zákazník",
+
+  "settingsSectionGridManagement": "Správa rozložení mřížky",
+  "settingsAutoArrange": "Automatické rozmístění",
+  "settingsAutoArrangeDescription": "Rozmístí kategorie a produkty do mřížky",
+  "settingsManualEditor": "Ruční editor mřížky",
+  "settingsManualEditorDescription": "Otevře editor pro přiřazení položek",
+  "autoArrangeTitle": "Automatické rozmístění",
+  "autoArrangeHorizontal": "Horizontální",
+  "autoArrangeHorizontalDesc": "Řádek = kategorie + její produkty",
+  "autoArrangeVertical": "Vertikální",
+  "autoArrangeVerticalDesc": "Sloupec = kategorie + její produkty pod ní",
+  "autoArrangeWarning": "Stávající rozmístění bude nahrazeno",
+  "autoArrangeConfirm": "Rozmístit",
+  "autoArrangeSummary": "{categories} kategorií, {products} produktů",
+  "@autoArrangeSummary": {
+    "placeholders": {
+      "categories": { "type": "int" },
+      "products": { "type": "int" }
+    }
+  },
+  "autoArrangeOverflow": "Na hlavní stránku se vejde jen {fit} z {total} kategorií. Zbylé budou dostupné pouze na sub-stránkách.",
+  "@autoArrangeOverflow": {
+    "placeholders": {
+      "fit": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "gridEditorTitle2": "Editor mřížky",
+  "gridEditorBack": "Zpět",
+  "gridEditorRootPage": "Hlavní stránka",
+  "gridEditorPage": "Stránka {page}",
+  "@gridEditorPage": {
+    "placeholders": {
+      "page": { "type": "int" }
+    }
+  }
 }

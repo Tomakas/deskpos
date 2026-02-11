@@ -1678,4 +1678,67 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get loyaltyNoCustomer => 'K účtu není přiřazen zákazník';
+
+  @override
+  String get settingsSectionGridManagement => 'Správa rozložení mřížky';
+
+  @override
+  String get settingsAutoArrange => 'Automatické rozmístění';
+
+  @override
+  String get settingsAutoArrangeDescription =>
+      'Rozmístí kategorie a produkty do mřížky';
+
+  @override
+  String get settingsManualEditor => 'Ruční editor mřížky';
+
+  @override
+  String get settingsManualEditorDescription =>
+      'Otevře editor pro přiřazení položek';
+
+  @override
+  String get autoArrangeTitle => 'Automatické rozmístění';
+
+  @override
+  String get autoArrangeHorizontal => 'Horizontální';
+
+  @override
+  String get autoArrangeHorizontalDesc => 'Řádek = kategorie + její produkty';
+
+  @override
+  String get autoArrangeVertical => 'Vertikální';
+
+  @override
+  String get autoArrangeVerticalDesc =>
+      'Sloupec = kategorie + její produkty pod ní';
+
+  @override
+  String get autoArrangeWarning => 'Stávající rozmístění bude nahrazeno';
+
+  @override
+  String get autoArrangeConfirm => 'Rozmístit';
+
+  @override
+  String autoArrangeSummary(int categories, int products) {
+    return '$categories kategorií, $products produktů';
+  }
+
+  @override
+  String autoArrangeOverflow(int fit, int total) {
+    return 'Na hlavní stránku se vejde jen $fit z $total kategorií. Zbylé budou dostupné pouze na sub-stránkách.';
+  }
+
+  @override
+  String get gridEditorTitle2 => 'Editor mřížky';
+
+  @override
+  String get gridEditorBack => 'Zpět';
+
+  @override
+  String get gridEditorRootPage => 'Hlavní stránka';
+
+  @override
+  String gridEditorPage(int page) {
+    return 'Stránka $page';
+  }
 }

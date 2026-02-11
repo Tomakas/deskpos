@@ -221,6 +221,7 @@ Map<String, dynamic> userToSupabaseJson(UserModel m) => {
       'full_name': m.fullName,
       'email': m.email,
       'phone': m.phone,
+      'pin_hash': m.pinHash,
       'pin_enabled': m.pinEnabled,
       'role_id': m.roleId,
       'is_active': m.isActive,

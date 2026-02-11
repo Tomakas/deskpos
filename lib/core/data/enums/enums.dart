@@ -12,5 +12,6 @@ export 'reservation_status.dart';
 export 'role_name.dart';
 export 'stock_document_type.dart';
 export 'stock_movement_direction.dart';
+export 'table_shape.dart';
 export 'tax_calc_type.dart';
 export 'unit_type.dart';

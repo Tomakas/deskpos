@@ -74,7 +74,7 @@ final syncLifecycleWatcherProvider = Provider<void>((ref) {
   final company = ref.watch(currentCompanyProvider);
   final manager = ref.watch(syncLifecycleManagerProvider);
 
-  if (isAuthenticated && company != null && company.authUserId != null) {
+  if (isAuthenticated && company != null) {
     manager.start(company.id);
   } else {
     manager.stop();

@@ -29,9 +29,9 @@ class ScreenSell extends ConsumerStatefulWidget {
 
 class _ScreenSellState extends ConsumerState<ScreenSell> {
   final List<_CartItem> _cart = [];
-  bool _editMode = false;
   bool _isSubmitting = false;
-  String? _categoryFilterId;
+  int _currentPage = 0;
+  final List<int> _pageStack = [];
   String? _orderNotes;
   String? _customerName;
 
@@ -93,7 +93,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
       padding: const EdgeInsets.symmetric(horizontal: 8),
       child: Row(
         children: [
-          _toolbarChip(l.sellSearch, selected: true, onSelected: () => setState(() => _categoryFilterId = null)),
+          _toolbarChip(l.sellSearch, selected: true, onSelected: () => setState(() { _currentPage = 0; _pageStack.clear(); })),
           const SizedBox(width: 8),
           _toolbarChip(l.sellScan, onSelected: null),
           const SizedBox(width: 8),
@@ -106,12 +106,18 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
           _toolbarChip(l.sellNote, selected: _orderNotes != null && _orderNotes!.isNotEmpty, onSelected: () => _showOrderNoteDialog(context)),
           const SizedBox(width: 8),
           _toolbarChip(l.sellActions, onSelected: null),
-          const SizedBox(width: 8),
-          if (_categoryFilterId != null && !_editMode) ...[
-            _toolbarChip(l.sellBackToCategories, selected: true, onSelected: () => setState(() => _categoryFilterId = null)),
+          if (_currentPage > 0) ...[
             const SizedBox(width: 8),
+            _toolbarChip(l.sellBackToCategories, selected: true, onSelected: () {
+              setState(() {
+                if (_pageStack.isNotEmpty) {
+                  _currentPage = _pageStack.removeLast();
+                } else {
+                  _currentPage = 0;
+                }
+              });
+            }),
           ],
-          _toolbarChip(_editMode ? l.sellExitEdit : l.sellEditGrid, selected: _editMode, onSelected: () => setState(() => _editMode = !_editMode)),
         ],
       ),
     );
@@ -309,7 +315,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     if (company == null) return const SizedBox.shrink();
 
     return StreamBuilder<List<LayoutItemModel>>(
-      stream: ref.watch(layoutItemRepositoryProvider).watchByRegister(register.id),
+      stream: ref.watch(layoutItemRepositoryProvider).watchByRegister(register.id, page: _currentPage),
       builder: (context, snap) {
         final layoutItems = snap.data ?? [];
         return _buildGridContent(
@@ -327,19 +333,6 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     String companyId,
     dynamic l,
   ) {
-    // If filtering by category, show items of that category instead of grid
-    if (_categoryFilterId != null && !_editMode) {
-      return StreamBuilder<List<ItemModel>>(
-        stream: ref.watch(itemRepositoryProvider).watchAll(companyId),
-        builder: (context, snap) {
-          final items = (snap.data ?? [])
-              .where((i) => i.categoryId == _categoryFilterId && i.isActive && i.isSellable)
-              .toList();
-          return _buildItemList(context, ref, items, companyId);
-        },
-      );
-    }
-
     final rows = register.gridRows;
     final cols = register.gridCols;
 
@@ -380,27 +373,6 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     );
   }
 
-  Widget _buildItemList(BuildContext context, WidgetRef ref, List<ItemModel> items, String companyId) {
-    return GridView.builder(
-      padding: const EdgeInsets.all(8),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 6,
-        mainAxisSpacing: 4,
-        crossAxisSpacing: 4,
-        childAspectRatio: 2,
-      ),
-      itemCount: items.length,
-      itemBuilder: (context, index) {
-        final item = items[index];
-        return _ItemButton(
-          label: item.name,
-          color: Theme.of(context).colorScheme.primaryContainer,
-          onTap: () => _addToCart(ref, item, companyId),
-        );
-      },
-    );
-  }
-
   Widget _buildCell(
     BuildContext context,
     WidgetRef ref,
@@ -413,21 +385,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     String companyId,
     dynamic l,
   ) {
-    final layoutItem = layoutItems.where((li) => li.gridRow == row && li.gridCol == col && li.page == 0).firstOrNull;
-
-    if (_editMode) {
-      return _EditableCell(
-        layoutItem: layoutItem,
-        allItems: allItems,
-        allCategories: allCategories,
-        row: row,
-        col: col,
-        registerId: register.id,
-        companyId: companyId,
-        l: l,
-        onAssigned: () => setState(() {}),
-      );
-    }
+    final layoutItem = layoutItems.where((li) => li.gridRow == row && li.gridCol == col).firstOrNull;
 
     if (layoutItem == null) {
       return const SizedBox.shrink();
@@ -440,7 +398,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
         color: layoutItem.color != null
             ? Color(int.parse(layoutItem.color!.replaceFirst('#', 'FF'), radix: 16))
             : Theme.of(context).colorScheme.secondaryContainer,
-        onTap: () => setState(() => _categoryFilterId = layoutItem.categoryId),
+        onTap: () => _onCategoryTap(register.id, layoutItem),
       );
     }
 
@@ -552,6 +510,31 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     );
     if (result != null) {
       setState(() => _orderNotes = result.isEmpty ? null : result);
+    }
+  }
+
+  Future<void> _onCategoryTap(String registerId, LayoutItemModel layoutItem) async {
+    if (_currentPage > 0) {
+      // On sub-page, category marker navigates back
+      setState(() {
+        if (_pageStack.isNotEmpty) {
+          _currentPage = _pageStack.removeLast();
+        } else {
+          _currentPage = 0;
+        }
+      });
+      return;
+    }
+
+    // On root page, navigate to sub-page
+    final page = await ref
+        .read(layoutItemRepositoryProvider)
+        .getPageForCategory(registerId, layoutItem.categoryId!);
+    if (page != null && mounted) {
+      setState(() {
+        _pageStack.add(_currentPage);
+        _currentPage = page;
+      });
     }
   }
 
@@ -797,246 +780,3 @@ class _ItemButton extends StatelessWidget {
     );
   }
 }
-
-class _EditableCell extends ConsumerWidget {
-  const _EditableCell({
-    required this.layoutItem,
-    required this.allItems,
-    required this.allCategories,
-    required this.row,
-    required this.col,
-    required this.registerId,
-    required this.companyId,
-    required this.l,
-    required this.onAssigned,
-  });
-
-  final LayoutItemModel? layoutItem;
-  final List<ItemModel> allItems;
-  final List<CategoryModel> allCategories;
-  final int row;
-  final int col;
-  final String registerId;
-  final String companyId;
-  final dynamic l;
-  final VoidCallback onAssigned;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    String label = l.sellEmptySlot;
-    Color color = Theme.of(context).colorScheme.surfaceContainerHighest;
-
-    if (layoutItem != null) {
-      if (layoutItem!.type == LayoutItemType.item) {
-        final item = allItems.where((i) => i.id == layoutItem!.itemId).firstOrNull;
-        label = layoutItem!.label ?? item?.name ?? '?';
-        color = Theme.of(context).colorScheme.primaryContainer;
-      } else {
-        final cat = allCategories.where((c) => c.id == layoutItem!.categoryId).firstOrNull;
-        label = layoutItem!.label ?? cat?.name ?? '?';
-        color = Theme.of(context).colorScheme.secondaryContainer;
-      }
-    }
-
-    return Padding(
-      padding: const EdgeInsets.all(2),
-      child: Material(
-        color: color,
-        borderRadius: BorderRadius.circular(8),
-        child: InkWell(
-          onTap: () => _showEditDialog(context, ref),
-          borderRadius: BorderRadius.circular(8),
-          child: Stack(
-            children: [
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(4),
-                  child: Text(
-                    label,
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 12),
-                  ),
-                ),
-              ),
-              const Positioned(
-                top: 2,
-                right: 2,
-                child: Icon(Icons.edit, size: 12, color: Colors.grey),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Future<void> _showEditDialog(BuildContext context, WidgetRef ref) async {
-    final result = await showDialog<_GridEditResult>(
-      context: context,
-      builder: (_) => _GridEditDialog(
-        allItems: allItems,
-        allCategories: allCategories,
-        l: l,
-      ),
-    );
-
-    if (result == null) return;
-    final repo = ref.read(layoutItemRepositoryProvider);
-
-    if (result.clear) {
-      await repo.clearCell(registerId: registerId, page: 0, gridRow: row, gridCol: col);
-    } else {
-      await repo.setCell(
-        companyId: companyId,
-        registerId: registerId,
-        page: 0,
-        gridRow: row,
-        gridCol: col,
-        type: result.type!,
-        itemId: result.itemId,
-        categoryId: result.categoryId,
-      );
-    }
-    onAssigned();
-  }
-}
-
-class _GridEditResult {
-  _GridEditResult({this.type, this.itemId, this.categoryId, this.clear = false});
-  final LayoutItemType? type;
-  final String? itemId;
-  final String? categoryId;
-  final bool clear;
-}
-
-class _GridEditDialog extends StatelessWidget {
-  const _GridEditDialog({
-    required this.allItems,
-    required this.allCategories,
-    required this.l,
-  });
-
-  final List<ItemModel> allItems;
-  final List<CategoryModel> allCategories;
-  final dynamic l;
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text(l.gridEditorTitle),
-      content: SizedBox(
-        width: 350,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            SizedBox(
-              height: 44,
-              child: OutlinedButton(
-                onPressed: () => _selectItem(context),
-                child: Text(l.gridEditorItem),
-              ),
-            ),
-            const SizedBox(height: 8),
-            SizedBox(
-              height: 44,
-              child: OutlinedButton(
-                onPressed: () => _selectCategory(context),
-                child: Text(l.gridEditorCategory),
-              ),
-            ),
-            const SizedBox(height: 8),
-            SizedBox(
-              height: 44,
-              child: OutlinedButton(
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Theme.of(context).colorScheme.error,
-                ),
-                onPressed: () => Navigator.pop(context, _GridEditResult(clear: true)),
-                child: Text(l.gridEditorClear),
-              ),
-            ),
-          ],
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text(l.actionCancel),
-        ),
-      ],
-    );
-  }
-
-  Future<void> _selectItem(BuildContext context) async {
-    final sellableItems = allItems.where((i) => i.isActive && i.isSellable).toList();
-    final selected = await showDialog<ItemModel>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: Text(l.gridEditorSelectItem),
-        content: SizedBox(
-          width: 350,
-          height: 400,
-          child: ListView.builder(
-            itemCount: sellableItems.length,
-            itemBuilder: (context, index) {
-              final item = sellableItems[index];
-              return ListTile(
-                title: Text(item.name),
-                subtitle: Text('${item.unitPrice ~/ 100} Kč'),
-                onTap: () => Navigator.pop(context, item),
-              );
-            },
-          ),
-        ),
-      ),
-    );
-
-    if (selected != null && context.mounted) {
-      Navigator.pop(
-        context,
-        _GridEditResult(
-          type: LayoutItemType.item,
-          itemId: selected.id,
-        ),
-      );
-    }
-  }
-
-  Future<void> _selectCategory(BuildContext context) async {
-    final activeCategories = allCategories.where((c) => c.isActive).toList();
-    final selected = await showDialog<CategoryModel>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: Text(l.gridEditorSelectCategory),
-        content: SizedBox(
-          width: 350,
-          height: 400,
-          child: ListView.builder(
-            itemCount: activeCategories.length,
-            itemBuilder: (context, index) {
-              final cat = activeCategories[index];
-              return ListTile(
-                title: Text(cat.name),
-                onTap: () => Navigator.pop(context, cat),
-              );
-            },
-          ),
-        ),
-      ),
-    );
-
-    if (selected != null && context.mounted) {
-      Navigator.pop(
-        context,
-        _GridEditResult(
-          type: LayoutItemType.category,
-          categoryId: selected.id,
-        ),
-      );
-    }
-  }
-}
-

@@ -12,6 +12,32 @@ import '../models/layout_item_model.dart';
 import '../result.dart';
 import 'sync_queue_repository.dart';
 
+class BulkCellInput {
+  const BulkCellInput({
+    required this.companyId,
+    required this.registerId,
+    required this.page,
+    required this.gridRow,
+    required this.gridCol,
+    required this.type,
+    this.itemId,
+    this.categoryId,
+    this.label,
+    this.color,
+  });
+
+  final String companyId;
+  final String registerId;
+  final int page;
+  final int gridRow;
+  final int gridCol;
+  final LayoutItemType type;
+  final String? itemId;
+  final String? categoryId;
+  final String? label;
+  final String? color;
+}
+
 class LayoutItemRepository {
   LayoutItemRepository(this._db, {this.syncQueueRepo});
   final AppDatabase _db;
@@ -135,6 +161,109 @@ class LayoutItemRepository {
     } catch (e, s) {
       AppLogger.error('Failed to clear layout cell', error: e, stackTrace: s);
       return Failure('Failed to clear layout cell: $e');
+    }
+  }
+
+  Future<Result<int>> clearByRegister(String registerId) async {
+    try {
+      final now = DateTime.now();
+      final existing = await (_db.select(_db.layoutItems)
+            ..where((t) =>
+                t.registerId.equals(registerId) &
+                t.deletedAt.isNull()))
+          .get();
+
+      if (existing.isEmpty) return const Success(0);
+
+      final ids = existing.map((e) => e.id).toList();
+
+      await _db.transaction(() async {
+        await (_db.update(_db.layoutItems)
+              ..where((t) => t.id.isIn(ids)))
+            .write(LayoutItemsCompanion(
+          deletedAt: Value(now),
+          updatedAt: Value(now),
+        ));
+      });
+
+      // Enqueue outside transaction
+      for (final entity in existing) {
+        final model = layoutItemFromEntity(entity);
+        final updated = LayoutItemModel(
+          id: model.id,
+          companyId: model.companyId,
+          registerId: model.registerId,
+          page: model.page,
+          gridRow: model.gridRow,
+          gridCol: model.gridCol,
+          type: model.type,
+          itemId: model.itemId,
+          categoryId: model.categoryId,
+          label: model.label,
+          color: model.color,
+          createdAt: model.createdAt,
+          updatedAt: now,
+          deletedAt: now,
+        );
+        await _enqueueLayoutItem('delete', updated);
+      }
+
+      return Success(ids.length);
+    } catch (e, s) {
+      AppLogger.error('Failed to clear layout by register', error: e, stackTrace: s);
+      return Failure('Failed to clear layout by register: $e');
+    }
+  }
+
+  Future<int?> getPageForCategory(String registerId, String categoryId) async {
+    final result = await (_db.select(_db.layoutItems)
+          ..where((t) =>
+              t.registerId.equals(registerId) &
+              t.type.equalsValue(LayoutItemType.category) &
+              t.categoryId.equals(categoryId) &
+              t.page.isBiggerThanValue(0) &
+              t.deletedAt.isNull())
+          ..limit(1))
+        .getSingleOrNull();
+    return result?.page;
+  }
+
+  Future<Result<void>> bulkSetCells(List<BulkCellInput> cells) async {
+    if (cells.isEmpty) return const Success(null);
+    try {
+      final ids = <String>[];
+      await _db.transaction(() async {
+        for (final cell in cells) {
+          final id = const Uuid().v7();
+          ids.add(id);
+          await _db.into(_db.layoutItems).insert(LayoutItemsCompanion.insert(
+            id: id,
+            companyId: cell.companyId,
+            registerId: cell.registerId,
+            page: Value(cell.page),
+            gridRow: cell.gridRow,
+            gridCol: cell.gridCol,
+            type: cell.type,
+            itemId: Value(cell.itemId),
+            categoryId: Value(cell.categoryId),
+            label: Value(cell.label),
+            color: Value(cell.color),
+          ));
+        }
+      });
+
+      // Enqueue outside transaction
+      for (final id in ids) {
+        final entity = await (_db.select(_db.layoutItems)
+              ..where((t) => t.id.equals(id)))
+            .getSingle();
+        await _enqueueLayoutItem('insert', layoutItemFromEntity(entity));
+      }
+
+      return const Success(null);
+    } catch (e, s) {
+      AppLogger.error('Failed to bulk set cells', error: e, stackTrace: s);
+      return Failure('Failed to bulk set cells: $e');
     }
   }
 

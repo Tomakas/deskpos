@@ -1,11 +1,6 @@
-# Audit Prompt — Kompletní analýza EPOS projektu (Triple Redundancy)
+PROVED následující audit projektu.
 
-> Tento prompt se předává Claude Code pro provedení důkladné read-only analýzy celého projektu.
-> Spouštěj na čisté konverzaci (bez předchozího kontextu).
-
----
-
-## Architektura auditu — Trojitá redundance
+### Architektura auditu — Trojitá redundance
 
 Audit používá architekturu **Triple Modular Redundancy (TMR)** pro maximální spolehlivost:
 
@@ -32,19 +27,20 @@ Audit používá architekturu **Triple Modular Redundancy (TMR)** pro maximáln�
        │               │               │
        ▼               ▼               ▼
 ┌─────────────────────────────────────────────────────┐
-│              FÁZE SLOUČENÍ — Merge & Diff            │
+│          FÁZE SLOUČENÍ — Merge & Verify              │
 │                 (hlavní konverzace)                   │
 │                                                      │
-│  1. Sloučit nálezy ze všech 3 agentů                │
-│  2. Identifikovat shody (≥2/3 = potvrzený nález)   │
-│  3. Identifikovat rozpory (nález jen u 1 agenta)    │
-│  4. Re-verifikovat sporné nálezy                     │
+│  1. Sloučit a deduplikovat nálezy ze všech 3 agentů │
+│  2. KAŽDÝ nález (i od 1 agenta) nezávisle           │
+│     re-verifikovat čtením zdrojového kódu / SQL     │
+│  3. Potvrzené → do reportu                          │
+│  4. Vyvrácené → do sekce zamítnutých                │
 │  5. Vyhodnotit kvalitu analýzy každého agenta        │
 └──────────────────────┬──────────────────────────────┘
                        │
                        ▼
 ┌─────────────────────────────────────────────────────┐
-│           FINÁLNÍ REPORT + Confidence Score          │
+│   FINÁLNÍ REPORT (pouze re-verifikované nálezy)     │
 └─────────────────────────────────────────────────────┘
 ```
 
@@ -418,6 +414,17 @@ Přečti: `lib/core/routing/app_router.dart`
 
 #### 3.7 Kvalita kódu
 
+**3.7.0 Statická analýza (POVINNÝ PRVNÍ KROK)**
+
+Spusť `dart analyze lib/` a zaznamenej VŠECHNY warnings a errors. Každý warning je automaticky nález:
+- `error` → VYSOKÉ
+- `warning` → STŘEDNÍ
+- `info` → NÍZKÉ
+
+Toto zachytí kategorie problémů, které manuální review nemůže efektivně odhalit: unnecessary null-aware operators, unused imports, type mismatches, dead code, missing overrides, deprecated API, null-safety porušení, atd.
+
+**3.7.1 Manuální kontroly (grep-based)**
+
 - [ ] `print()` — existují volání `print()` mimo AppLogger? (Grep: `print(`)
 - [ ] Empty catch — existují prázdné `catch` bloky? (Grep: `catch.*\{\s*\}`)
 - [ ] TODO/FIXME — kolik jich je a jsou relevantní? (Grep: `TODO|FIXME|HACK|XXX`)
@@ -561,84 +568,80 @@ Každý agent vrátí svůj report ve strukturovaném formátu:
 
 ---
 
-## FÁZE SLOUČENÍ — Merge & Diff (hlavní konverzace)
+## FÁZE SLOUČENÍ — Merge & Verify (hlavní konverzace)
 
 Po dokončení všech 3 agentů hlavní konverzace provede:
 
-### S1. Sběr výsledků
+### Princip: Každý nález musí být nezávisle potvrzen
 
-Přečti výstup všech 3 agentů. Pro každý nález zaznamenej:
-- ID nálezu
-- Závažnost
-- Soubor a řádek
-- Stručný popis
+Do finálního reportu se dostane **pouze nález, který prošel nezávislou re-verifikací** hlavní konverzací. Nezáleží na tom, kolik agentů ho reportovalo — i nález od jednoho agenta je validní, pokud ho hlavní konverzace potvrdí. Naopak i nález od všech 3 agentů bude vyřazen, pokud se při re-verifikaci ukáže jako falešný.
 
-### S2. Klasifikace nálezů
+```
+Nález od ≥1 agenta → Re-verifikace hlavní konverzací → POTVRZEN → do reportu
+                                                      → VYVRÁCEN → do sekce zamítnutých
+```
 
-Každý nález zařaď do jedné z kategorií:
+### S1. Sběr a deduplikace
 
-| Kategorie | Definice | Akce |
-|-----------|----------|------|
-| **POTVRZENÝ (3/3)** | Všichni 3 agenti reportují totéž | Přijmout. Použít nejvyšší závažnost ze tří. |
-| **VĚTŠINOVÝ (2/3)** | 2 agenti reportují, 1 ne | Přijmout, ale re-verifikovat detaily. Poznámka: „1 agent nereportoval". |
-| **SPORNÝ (1/3)** | Pouze 1 agent reportuje | **POVINNÁ RE-VERIFIKACE** — hlavní konverzace musí nezávisle ověřit. |
-| **KONFLIKTNÍ** | Agenti reportují protichůdné závěry | **POVINNÁ RE-VERIFIKACE** — hlavní konverzace rozhodne a zdůvodní. |
+Přečti výstup všech 3 agentů. Vytvoř **sloučený seznam unikátních nálezů**:
 
-### S3. Re-verifikace sporných nálezů
+1. Identifikuj nálezy, které reportují totéž (i když různě formulované) — slouč do jednoho záznamu
+2. Pro každý unikátní nález zaznamenej:
+   - Popis nálezu
+   - Závažnost (od každého agenta zvlášť)
+   - Soubor a řádek
+   - Počet agentů, kteří ho reportovali (1/3, 2/3, 3/3)
+   - Případné rozdíly v interpretaci mezi agenty
 
-Pro každý SPORNÝ nebo KONFLIKTNÍ nález:
+### S2. Nezávislá re-verifikace VŠECH nálezů
 
-1. Přečti primární zdroj (soubor, SQL dotaz)
-2. Rozhodni: skutečný problém / falešný nález / nerozhodnutelné
-3. Zaznamenej verdikt s odůvodněním
+**Každý nález** ze sloučeného seznamu (bez výjimky) musí projít nezávislou verifikací hlavní konverzací:
 
-### S4. Vyhodnocení kvality agentů
+1. **Přečti primární zdroj** — otevři soubor/spusť SQL dotaz a ověř tvrzení z nálezu
+2. **Ověř protistranu** — pokud nález tvrdí nesoulad mezi A a B, přečti obojí
+3. **Zvaž kontext** — je to skutečný problém, nebo záměrný design?
+4. **Rozhodni verdikt:**
 
-Porovnej výkon jednotlivých agentů:
+| Verdikt | Definice | Akce |
+|---------|----------|------|
+| **POTVRZEN** | Hlavní konverzace nezávisle ověřila, že problém existuje | Zařadit do finálního reportu |
+| **VYVRÁCEN** | Při re-verifikaci se ukázalo, že jde o falešný nález | Zařadit do sekce zamítnutých s odůvodněním |
+| **NEROZHODNUTELNÝ** | Nelze jednoznačně potvrdit ani vyvrátit | Zařadit do reportu s poznámkou „VYŽADUJE RUČNÍ OVĚŘENÍ" a snížit závažnost o stupeň |
 
-| Metrika | Agent α | Agent β | Agent γ |
-|---------|---------|---------|---------|
-| Celkový počet nálezů | | | |
-| Falešné nálezy (false positives) | | | |
-| Propuštěné nálezy (false negatives) | | | |
-| Přesnost závažnosti | | | |
-| Kvalita verifikace | | | |
-| Kvalita řešení | | | |
-
-### S5. Analýza rozporů
-
-Pro každý případ kde se agenti neshodli, uveď:
-- Co konkrétně se lišilo
-- Proč se pravděpodobně lišilo (různá interpretace, přehlédnutí, odlišný kontext)
-- Jaký je správný závěr
+5. **U potvrzených nálezů** — urči finální závažnost (může se lišit od agentů)
 
 ---
 
 ## FINÁLNÍ REPORT
 
-Výsledný report kombinuje sloučené nálezy:
+Výsledný report obsahuje **pouze nálezy potvrzené nezávislou re-verifikací**. Zaměřuje se na **akční seznam problémů k řešení** — co, kde, proč, jak opravit.
 
 ### A. Executive Summary
 - 3-5 vět o celkovém stavu projektu
-- Počet nálezů per závažnost
+- Počet nálezů per závažnost (pouze potvrzené)
 - Top 3 rizika
-- **Confidence score** — % nálezů potvrzených ≥2/3 agenty
 
-### B. Nálezy per oblast (sloučené)
+### B. Seznam problémů k řešení (HLAVNÍ VÝSTUP)
 
-Pro každou oblast (Supabase, Architektura, Bezpečnost, Sync, UI, Kvalita kódu):
+Seřazený od nejkritičtějších. **Toto je primární výstup celého auditu.**
+
+Pro každý potvrzený nález:
 
 ```
 ### [ZÁVAŽNOST] Název nálezu
-**Shoda agentů:** 3/3 | 2/3 | 1/3 (re-verifikováno)
 **Soubor:** `cesta/soubor.dart:řádek`
 **Popis:** Co je špatně.
 **Dopad:** Proč je to problém (konkrétní scénář).
 **Řešení:** Jak to opravit (konkrétní kroky).
+**Rozsah opravy:** 1 řádek / 1 soubor / více souborů / architekturální změna
 ```
 
-### C. Dokumentace vs kód — nesoulady
-Tabulka nesouladů s odkazem na PROJECT.md a na konkrétní kód.
+### C. Quick-Fix Reference
+
+Tabulka všech nálezů seřazená pro okamžitou opravu:
+
+| # | Závažnost | Soubor:řádek | Co změnit | Rozsah |
+|---|-----------|-------------|-----------|--------|
 
 ### D. Drift ↔ Supabase ↔ Model ↔ Mapper matice
 Kompletní srovnávací tabulka (pouze řádky kde je nesoulad).
@@ -646,20 +649,11 @@ Kompletní srovnávací tabulka (pouze řádky kde je nesoulad).
 ### E. Supabase RLS/Trigger audit
 Tabulka per tabulka: co chybí, co je špatně, co je nekonzistentní.
 
-### F. Pozitivní nálezy
-Co je implementováno dobře a správně.
+### F. Dokumentace vs kód — nesoulady
+Tabulka nesouladů s odkazem na PROJECT.md a na konkrétní kód.
 
-### G. Prioritizovaný akční plán
-Seřazený seznam nálezů k opravě (KRITICKÉ → NÍZKÉ) s odhadem rozsahu.
+### G. Zamítnuté nálezy (stručně)
+Stručná tabulka nálezů, které agenti reportovali ale re-verifikace je vyvrátila:
 
-### H. Quick-Fix Reference
-Tabulka 5 nejkritičtějších nálezů s přesnými soubory a řádky:
-
-| # | Soubor:řádek | Co změnit | Rozsah | Shoda |
-|---|-------------|-----------|--------|-------|
-
-### I. Analýza rozporů mezi agenty
-Tabulka všech případů kde se agenti neshodli, s finálním verdiktem.
-
-### J. Vyhodnocení kvality agentů
-Tabulka metrik pro každého agenta (viz S4).
+| # | Nález | Důvod zamítnutí |
+|---|-------|-----------------|

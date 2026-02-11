@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 
+import '../../data/enums/table_shape.dart';
 import 'sync_columns_mixin.dart';
 
 @DataClassName('TableEntity')
@@ -11,6 +12,11 @@ class Tables extends Table with SyncColumnsMixin {
   TextColumn get name => text().named('table_name')();
   IntColumn get capacity => integer().withDefault(const Constant(0))();
   BoolColumn get isActive => boolean().withDefault(const Constant(true))();
+  IntColumn get gridRow => integer().withDefault(const Constant(0))();
+  IntColumn get gridCol => integer().withDefault(const Constant(0))();
+  IntColumn get gridWidth => integer().withDefault(const Constant(1))();
+  IntColumn get gridHeight => integer().withDefault(const Constant(1))();
+  TextColumn get shape => textEnum<TableShape>().withDefault(Constant(TableShape.rectangle.name))();
 
   @override
   Set<Column> get primaryKey => {id};

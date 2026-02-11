@@ -83,7 +83,7 @@ class OutboxProcessor {
       AppLogger.debug('Pushed $operation $entityType/${entry.entityId}', tag: 'SYNC');
     } on PostgrestException catch (e) {
       // LWW_CONFLICT = server rejected stale update → mark completed, next pull wins
-      if (e.code == 'P0001' && (e.message?.contains('LWW_CONFLICT') ?? false)) {
+      if (e.code == 'P0001' && e.message.contains('LWW_CONFLICT')) {
         await _syncQueueRepo.markCompleted(entry.id as String);
         AppLogger.info('LWW conflict for ${entry.entityType}/${entry.entityId} — marked completed', tag: 'SYNC');
       } else {
