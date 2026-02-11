@@ -285,6 +285,8 @@ Map<String, dynamic> billToSupabaseJson(BillModel m) => {
       'total_gross': m.totalGross,
       'rounding_amount': m.roundingAmount,
       'paid_amount': m.paidAmount,
+      'loyalty_points_used': m.loyaltyPointsUsed,
+      'loyalty_discount_amount': m.loyaltyDiscountAmount,
       'opened_at': toIso8601Utc(m.openedAt),
       'closed_at': toIso8601Utc(m.closedAt),
     };
@@ -361,6 +363,8 @@ Map<String, dynamic> companySettingsToSupabaseJson(CompanySettingsModel m) => {
       ),
       'require_pin_on_switch': m.requirePinOnSwitch,
       'auto_lock_timeout_minutes': m.autoLockTimeoutMinutes,
+      'loyalty_earn_per_hundred_czk': m.loyaltyEarnPerHundredCzk,
+      'loyalty_point_value_halere': m.loyaltyPointValueHalere,
     };
 
 Map<String, dynamic> companyToSupabaseJson(CompanyModel m) => {

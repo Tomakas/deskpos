@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/data/models/company_settings_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/result.dart';
@@ -25,6 +28,13 @@ class _CompanyInfoTabState extends ConsumerState<CompanyInfoTab> {
 
   bool _companyInitialized = false;
 
+  // Loyalty settings
+  StreamSubscription<CompanySettingsModel?>? _settingsSub;
+  CompanySettingsModel? _settings;
+  bool _settingsInitialized = false;
+  late final TextEditingController _earnCtrl;
+  late final TextEditingController _pointValueCtrl;
+
   @override
   void initState() {
     super.initState();
@@ -34,7 +44,10 @@ class _CompanyInfoTabState extends ConsumerState<CompanyInfoTab> {
     _addressCtrl = TextEditingController();
     _phoneCtrl = TextEditingController();
     _emailCtrl = TextEditingController();
+    _earnCtrl = TextEditingController();
+    _pointValueCtrl = TextEditingController();
     _initCompany();
+    _initSettings();
   }
 
   void _initCompany() {
@@ -49,14 +62,43 @@ class _CompanyInfoTabState extends ConsumerState<CompanyInfoTab> {
     _companyInitialized = true;
   }
 
+  Future<void> _initSettings() async {
+    final company = ref.read(currentCompanyProvider);
+    if (company == null) return;
+
+    final repo = ref.read(companySettingsRepositoryProvider);
+    final settings = await repo.getOrCreate(company.id);
+    if (!mounted) return;
+    _earnCtrl.text = settings.loyaltyEarnPerHundredCzk.toString();
+    _pointValueCtrl.text = settings.loyaltyPointValueHalere.toString();
+    setState(() {
+      _settings = settings;
+      _settingsInitialized = true;
+    });
+
+    _settingsSub = repo.watchByCompany(company.id).listen((s) {
+      if (mounted && s != null) {
+        setState(() => _settings = s);
+      }
+    });
+  }
+
+  Future<void> _updateSettings(CompanySettingsModel updated) async {
+    final repo = ref.read(companySettingsRepositoryProvider);
+    await repo.update(updated);
+  }
+
   @override
   void dispose() {
+    _settingsSub?.cancel();
     _nameCtrl.dispose();
     _businessIdCtrl.dispose();
     _vatNumberCtrl.dispose();
     _addressCtrl.dispose();
     _phoneCtrl.dispose();
     _emailCtrl.dispose();
+    _earnCtrl.dispose();
+    _pointValueCtrl.dispose();
     super.dispose();
   }
 
@@ -161,6 +203,56 @@ class _CompanyInfoTabState extends ConsumerState<CompanyInfoTab> {
               ),
             ),
           ),
+          const SizedBox(height: 24),
+          // Loyalty section
+          if (_settingsInitialized && _settings != null) ...[
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Text(
+                l.loyaltySectionTitle,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextField(
+                    controller: _earnCtrl,
+                    decoration: InputDecoration(labelText: l.loyaltyEarnPerHundredCzk),
+                    keyboardType: TextInputType.number,
+                    onChanged: (v) {
+                      final value = int.tryParse(v) ?? 0;
+                      _updateSettings(_settings!.copyWith(loyaltyEarnPerHundredCzk: value));
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _pointValueCtrl,
+                    decoration: InputDecoration(labelText: l.loyaltyPointValueHalere),
+                    keyboardType: TextInputType.number,
+                    onChanged: (v) {
+                      final value = int.tryParse(v) ?? 0;
+                      _updateSettings(_settings!.copyWith(loyaltyPointValueHalere: value));
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    _settings!.loyaltyEarnPerHundredCzk > 0 || _settings!.loyaltyPointValueHalere > 0
+                        ? l.loyaltyDescription(
+                            _settings!.loyaltyEarnPerHundredCzk,
+                            (_settings!.loyaltyPointValueHalere / 100).toStringAsFixed(2).replaceAll('.', ','),
+                          )
+                        : l.loyaltyDisabled,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );

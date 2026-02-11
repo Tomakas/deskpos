@@ -59,4 +59,12 @@ class CustomerTransactionRepository extends BaseCompanyScopedRepository<
         deletedAt: Value(now),
         updatedAt: Value(now),
       );
+
+  Stream<List<CustomerTransactionModel>> watchByCustomer(String customerId) {
+    return (db.select(db.customerTransactions)
+          ..where((t) => t.customerId.equals(customerId) & t.deletedAt.isNull())
+          ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
+        .watch()
+        .map((rows) => rows.map(customerTransactionFromEntity).toList());
+  }
 }

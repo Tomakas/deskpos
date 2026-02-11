@@ -647,5 +647,44 @@
   "reservationColumnPhone": "Telefon",
   "reservationColumnPartySize": "Počet",
   "reservationColumnTable": "Stůl",
-  "reservationColumnStatus": "Stav"
+  "reservationColumnStatus": "Stav",
+
+  "paymentTypeCredit": "Kredit",
+
+  "loyaltySectionTitle": "Věrnostní program",
+  "loyaltyEarnPerHundredCzk": "Bodů za 100 Kč",
+  "loyaltyPointValueHalere": "Hodnota 1 bodu (haléře)",
+  "loyaltyDescription": "Zákazník získá {earn} bodů za každých 100 Kč. 1 bod = {value} Kč.",
+  "@loyaltyDescription": {
+    "placeholders": {
+      "earn": { "type": "int" },
+      "value": { "type": "String" }
+    }
+  },
+  "loyaltyDisabled": "Věrnostní program je vypnutý (nastavte hodnoty > 0)",
+  "loyaltyRedeem": "Uplatnit body",
+  "loyaltyAvailablePoints": "Dostupné body",
+  "loyaltyPointsValue": "Hodnota",
+  "loyaltyPointsToUse": "Bodů k uplatnění",
+  "loyaltyDiscountPreview": "{points} bodů = {amount} Kč sleva",
+  "@loyaltyDiscountPreview": {
+    "placeholders": {
+      "points": { "type": "int" },
+      "amount": { "type": "String" }
+    }
+  },
+  "loyaltyEarned": "Získáno bodů",
+  "loyaltyCustomerInfo": "Body: {points} | Kredit: {credit} Kč",
+  "@loyaltyCustomerInfo": {
+    "placeholders": {
+      "points": { "type": "int" },
+      "credit": { "type": "String" }
+    }
+  },
+  "loyaltyCredit": "Zákaznický kredit",
+  "loyaltyCreditTopUp": "Nabít kredit",
+  "loyaltyCreditDeduct": "Odečíst kredit",
+  "loyaltyCreditBalance": "Zůstatek",
+  "loyaltyTransactionHistory": "Historie transakcí",
+  "loyaltyNoCustomer": "K účtu není přiřazen zákazník"
 }

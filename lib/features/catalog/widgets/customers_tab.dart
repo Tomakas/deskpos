@@ -7,6 +7,7 @@ import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/utils/search_utils.dart';
+import 'dialog_customer_credit.dart';
 
 class CustomersTab extends ConsumerStatefulWidget {
   const CustomersTab({super.key});
@@ -94,6 +95,7 @@ class _CustomersTabState extends ConsumerState<CustomersTab> {
                   Expanded(flex: 2, child: Text(l.customerPhone, style: headerStyle)),
                   Expanded(flex: 1, child: Text(l.customerPoints, style: headerStyle)),
                   Expanded(flex: 1, child: Text(l.customerCredit, style: headerStyle)),
+                  const SizedBox(width: 48),
                 ],
               ),
             ),
@@ -116,7 +118,18 @@ class _CustomersTabState extends ConsumerState<CustomersTab> {
                           Expanded(flex: 2, child: Text(c.email ?? '-', overflow: TextOverflow.ellipsis)),
                           Expanded(flex: 2, child: Text(c.phone ?? '-', overflow: TextOverflow.ellipsis)),
                           Expanded(flex: 1, child: Text(c.points.toString(), overflow: TextOverflow.ellipsis)),
-                          Expanded(flex: 1, child: Text(c.credit.toString(), overflow: TextOverflow.ellipsis)),
+                          Expanded(flex: 1, child: Text(
+                            (c.credit / 100).toStringAsFixed(2).replaceAll('.', ','),
+                            overflow: TextOverflow.ellipsis,
+                          )),
+                          SizedBox(
+                            width: 48,
+                            child: IconButton(
+                              icon: const Icon(Icons.account_balance_wallet_outlined, size: 20),
+                              tooltip: l.loyaltyCredit,
+                              onPressed: () => _showCreditDialog(context, c),
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -252,6 +265,13 @@ class _CustomersTabState extends ConsumerState<CustomersTab> {
         updatedAt: now,
       ));
     }
+  }
+
+  void _showCreditDialog(BuildContext context, CustomerModel customer) {
+    showDialog(
+      context: context,
+      builder: (_) => DialogCustomerCredit(customer: customer),
+    );
   }
 
   Future<void> _delete(BuildContext context, WidgetRef ref, CustomerModel customer) async {

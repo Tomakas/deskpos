@@ -35,6 +35,8 @@ mixin _$BillModel {
   int get totalGross => throw _privateConstructorUsedError;
   int get roundingAmount => throw _privateConstructorUsedError;
   int get paidAmount => throw _privateConstructorUsedError;
+  int get loyaltyPointsUsed => throw _privateConstructorUsedError;
+  int get loyaltyDiscountAmount => throw _privateConstructorUsedError;
   DateTime get openedAt => throw _privateConstructorUsedError;
   DateTime? get closedAt => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
@@ -72,6 +74,8 @@ abstract class $BillModelCopyWith<$Res> {
     int totalGross,
     int roundingAmount,
     int paidAmount,
+    int loyaltyPointsUsed,
+    int loyaltyDiscountAmount,
     DateTime openedAt,
     DateTime? closedAt,
     DateTime createdAt,
@@ -113,6 +117,8 @@ class _$BillModelCopyWithImpl<$Res, $Val extends BillModel>
     Object? totalGross = null,
     Object? roundingAmount = null,
     Object? paidAmount = null,
+    Object? loyaltyPointsUsed = null,
+    Object? loyaltyDiscountAmount = null,
     Object? openedAt = null,
     Object? closedAt = freezed,
     Object? createdAt = null,
@@ -193,6 +199,14 @@ class _$BillModelCopyWithImpl<$Res, $Val extends BillModel>
                 ? _value.paidAmount
                 : paidAmount // ignore: cast_nullable_to_non_nullable
                       as int,
+            loyaltyPointsUsed: null == loyaltyPointsUsed
+                ? _value.loyaltyPointsUsed
+                : loyaltyPointsUsed // ignore: cast_nullable_to_non_nullable
+                      as int,
+            loyaltyDiscountAmount: null == loyaltyDiscountAmount
+                ? _value.loyaltyDiscountAmount
+                : loyaltyDiscountAmount // ignore: cast_nullable_to_non_nullable
+                      as int,
             openedAt: null == openedAt
                 ? _value.openedAt
                 : openedAt // ignore: cast_nullable_to_non_nullable
@@ -247,6 +261,8 @@ abstract class _$$BillModelImplCopyWith<$Res>
     int totalGross,
     int roundingAmount,
     int paidAmount,
+    int loyaltyPointsUsed,
+    int loyaltyDiscountAmount,
     DateTime openedAt,
     DateTime? closedAt,
     DateTime createdAt,
@@ -287,6 +303,8 @@ class __$$BillModelImplCopyWithImpl<$Res>
     Object? totalGross = null,
     Object? roundingAmount = null,
     Object? paidAmount = null,
+    Object? loyaltyPointsUsed = null,
+    Object? loyaltyDiscountAmount = null,
     Object? openedAt = null,
     Object? closedAt = freezed,
     Object? createdAt = null,
@@ -367,6 +385,14 @@ class __$$BillModelImplCopyWithImpl<$Res>
             ? _value.paidAmount
             : paidAmount // ignore: cast_nullable_to_non_nullable
                   as int,
+        loyaltyPointsUsed: null == loyaltyPointsUsed
+            ? _value.loyaltyPointsUsed
+            : loyaltyPointsUsed // ignore: cast_nullable_to_non_nullable
+                  as int,
+        loyaltyDiscountAmount: null == loyaltyDiscountAmount
+            ? _value.loyaltyDiscountAmount
+            : loyaltyDiscountAmount // ignore: cast_nullable_to_non_nullable
+                  as int,
         openedAt: null == openedAt
             ? _value.openedAt
             : openedAt // ignore: cast_nullable_to_non_nullable
@@ -414,6 +440,8 @@ class _$BillModelImpl implements _BillModel {
     this.totalGross = 0,
     this.roundingAmount = 0,
     this.paidAmount = 0,
+    this.loyaltyPointsUsed = 0,
+    this.loyaltyDiscountAmount = 0,
     required this.openedAt,
     this.closedAt,
     required this.createdAt,
@@ -467,6 +495,12 @@ class _$BillModelImpl implements _BillModel {
   @JsonKey()
   final int paidAmount;
   @override
+  @JsonKey()
+  final int loyaltyPointsUsed;
+  @override
+  @JsonKey()
+  final int loyaltyDiscountAmount;
+  @override
   final DateTime openedAt;
   @override
   final DateTime? closedAt;
@@ -479,7 +513,7 @@ class _$BillModelImpl implements _BillModel {
 
   @override
   String toString() {
-    return 'BillModel(id: $id, companyId: $companyId, customerId: $customerId, tableId: $tableId, openedByUserId: $openedByUserId, billNumber: $billNumber, numberOfGuests: $numberOfGuests, isTakeaway: $isTakeaway, status: $status, currencyId: $currencyId, subtotalGross: $subtotalGross, subtotalNet: $subtotalNet, discountAmount: $discountAmount, discountType: $discountType, taxTotal: $taxTotal, totalGross: $totalGross, roundingAmount: $roundingAmount, paidAmount: $paidAmount, openedAt: $openedAt, closedAt: $closedAt, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+    return 'BillModel(id: $id, companyId: $companyId, customerId: $customerId, tableId: $tableId, openedByUserId: $openedByUserId, billNumber: $billNumber, numberOfGuests: $numberOfGuests, isTakeaway: $isTakeaway, status: $status, currencyId: $currencyId, subtotalGross: $subtotalGross, subtotalNet: $subtotalNet, discountAmount: $discountAmount, discountType: $discountType, taxTotal: $taxTotal, totalGross: $totalGross, roundingAmount: $roundingAmount, paidAmount: $paidAmount, loyaltyPointsUsed: $loyaltyPointsUsed, loyaltyDiscountAmount: $loyaltyDiscountAmount, openedAt: $openedAt, closedAt: $closedAt, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
   }
 
   @override
@@ -520,6 +554,10 @@ class _$BillModelImpl implements _BillModel {
                 other.roundingAmount == roundingAmount) &&
             (identical(other.paidAmount, paidAmount) ||
                 other.paidAmount == paidAmount) &&
+            (identical(other.loyaltyPointsUsed, loyaltyPointsUsed) ||
+                other.loyaltyPointsUsed == loyaltyPointsUsed) &&
+            (identical(other.loyaltyDiscountAmount, loyaltyDiscountAmount) ||
+                other.loyaltyDiscountAmount == loyaltyDiscountAmount) &&
             (identical(other.openedAt, openedAt) ||
                 other.openedAt == openedAt) &&
             (identical(other.closedAt, closedAt) ||
@@ -553,6 +591,8 @@ class _$BillModelImpl implements _BillModel {
     totalGross,
     roundingAmount,
     paidAmount,
+    loyaltyPointsUsed,
+    loyaltyDiscountAmount,
     openedAt,
     closedAt,
     createdAt,
@@ -589,6 +629,8 @@ abstract class _BillModel implements BillModel {
     final int totalGross,
     final int roundingAmount,
     final int paidAmount,
+    final int loyaltyPointsUsed,
+    final int loyaltyDiscountAmount,
     required final DateTime openedAt,
     final DateTime? closedAt,
     required final DateTime createdAt,
@@ -632,6 +674,10 @@ abstract class _BillModel implements BillModel {
   int get roundingAmount;
   @override
   int get paidAmount;
+  @override
+  int get loyaltyPointsUsed;
+  @override
+  int get loyaltyDiscountAmount;
   @override
   DateTime get openedAt;
   @override

@@ -17,6 +17,7 @@ import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import 'dialog_customer_search.dart';
 import 'dialog_discount.dart';
+import 'dialog_loyalty_redeem.dart';
 import 'dialog_merge_bill.dart';
 import 'dialog_new_bill.dart';
 import 'dialog_payment.dart';
@@ -98,6 +99,8 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
                 _buildBillTitle(context, ref, bill, l),
                 const SizedBox(height: 2),
                 _buildTotalSpentLine(context, ref, bill, l),
+                if (bill.customerId != null)
+                  _buildCustomerLoyaltyInfo(context, ref, bill),
               ],
             ),
           ),
@@ -199,6 +202,26 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
             ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildCustomerLoyaltyInfo(BuildContext context, WidgetRef ref, BillModel bill) {
+    return FutureBuilder<CustomerModel?>(
+      future: ref.watch(customerRepositoryProvider).getById(bill.customerId!),
+      builder: (context, snap) {
+        final customer = snap.data;
+        if (customer == null) return const SizedBox.shrink();
+        final l = context.l10n;
+        return Text(
+          l.loyaltyCustomerInfo(
+            customer.points,
+            (customer.credit / 100).toStringAsFixed(2).replaceAll('.', ','),
+          ),
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: Theme.of(context).colorScheme.primary,
           ),
         );
       },
@@ -386,6 +409,13 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
               label: l.billDetailDiscount,
               onPressed: isOpened ? () => _applyBillDiscount(context, ref, bill) : null,
             ),
+            const SizedBox(height: 4),
+            _SideButton(
+              label: l.loyaltyRedeem,
+              onPressed: isOpened && bill.customerId != null
+                  ? () => _redeemLoyalty(context, ref, bill)
+                  : null,
+            ),
             const Spacer(),
             _SideButton(
               label: l.billDetailPrint,
@@ -526,6 +556,29 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
       bill.id,
       result.$1,
       result.$2,
+    );
+  }
+
+  Future<void> _redeemLoyalty(BuildContext context, WidgetRef ref, BillModel bill) async {
+    if (bill.customerId == null) return;
+    final customer = await ref.read(customerRepositoryProvider).getById(bill.customerId!);
+    if (customer == null || customer.points <= 0) return;
+
+    final company = ref.read(currentCompanyProvider);
+    if (company == null) return;
+
+    final settingsRepo = ref.read(companySettingsRepositoryProvider);
+    final settings = await settingsRepo.getOrCreate(company.id);
+    if (settings.loyaltyPointValueHalere <= 0) return;
+
+    if (!context.mounted) return;
+    await showDialog<bool>(
+      context: context,
+      builder: (_) => DialogLoyaltyRedeem(
+        bill: bill,
+        customer: customer,
+        pointValueHalere: settings.loyaltyPointValueHalere,
+      ),
     );
   }
 

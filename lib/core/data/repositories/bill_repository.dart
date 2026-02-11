@@ -18,14 +18,16 @@ import '../models/order_item_model.dart';
 import '../models/order_model.dart';
 import '../models/payment_model.dart';
 import '../result.dart';
+import 'customer_repository.dart';
 import 'order_repository.dart';
 import 'sync_queue_repository.dart';
 
 class BillRepository {
-  BillRepository(this._db, {this.syncQueueRepo, this.orderRepo});
+  BillRepository(this._db, {this.syncQueueRepo, this.orderRepo, this.customerRepo});
   final AppDatabase _db;
   final SyncQueueRepository? syncQueueRepo;
   final OrderRepository? orderRepo;
+  final CustomerRepository? customerRepo;
 
   Future<Result<BillModel>> createBill({
     required String companyId,
@@ -197,7 +199,7 @@ class BillRepository {
       }
 
       final subtotalNet = subtotalGross - taxTotal;
-      final totalGross = subtotalGross - billDiscount + billEntity.roundingAmount;
+      final totalGross = subtotalGross - billDiscount - billEntity.loyaltyDiscountAmount + billEntity.roundingAmount;
 
       await (_db.update(_db.bills)..where((t) => t.id.equals(billId))).write(
         BillsCompanion(
@@ -221,6 +223,44 @@ class BillRepository {
     }
   }
 
+  Future<Result<BillModel>> applyLoyaltyDiscount(
+    String billId,
+    int pointsToUse,
+    int pointValueHalere,
+    String processedByUserId,
+  ) async {
+    try {
+      final loyaltyDiscountAmount = pointsToUse * pointValueHalere;
+
+      await (_db.update(_db.bills)..where((t) => t.id.equals(billId))).write(
+        BillsCompanion(
+          loyaltyPointsUsed: Value(pointsToUse),
+          loyaltyDiscountAmount: Value(loyaltyDiscountAmount),
+          updatedAt: Value(DateTime.now()),
+        ),
+      );
+
+      // Deduct points from customer
+      final billEntity = await (_db.select(_db.bills)
+            ..where((t) => t.id.equals(billId)))
+          .getSingle();
+      if (billEntity.customerId != null && customerRepo != null) {
+        await customerRepo!.adjustPoints(
+          customerId: billEntity.customerId!,
+          delta: -pointsToUse,
+          processedByUserId: processedByUserId,
+          orderId: billId,
+        );
+      }
+
+      // Recalculate totals
+      return updateTotals(billId);
+    } catch (e, s) {
+      AppLogger.error('Failed to apply loyalty discount', error: e, stackTrace: s);
+      return Failure('Failed to apply loyalty discount: $e');
+    }
+  }
+
   Future<Result<BillModel>> recordPayment({
     required String companyId,
     required String billId,
@@ -229,6 +269,7 @@ class BillRepository {
     required int amount,
     int tipAmount = 0,
     String? userId,
+    int loyaltyEarnPerHundredCzk = 0,
   }) async {
     try {
       final now = DateTime.now();
@@ -275,6 +316,30 @@ class BillRepository {
           .getSingle();
       final updatedBill = billFromEntity(entity);
       await _enqueueBill('update', updatedBill);
+
+      // Auto-earn points + tracking on full payment
+      final isPaid = updatedBill.paidAmount >= updatedBill.totalGross;
+      if (isPaid && updatedBill.customerId != null && customerRepo != null) {
+        // Update totalSpent + lastVisitDate
+        await customerRepo!.updateTrackingOnPayment(
+          customerId: updatedBill.customerId!,
+          billTotal: updatedBill.totalGross,
+        );
+
+        // Auto-earn loyalty points
+        if (loyaltyEarnPerHundredCzk > 0) {
+          final earnedPoints = (updatedBill.totalGross * loyaltyEarnPerHundredCzk) ~/ 10000;
+          if (earnedPoints > 0) {
+            await customerRepo!.adjustPoints(
+              customerId: updatedBill.customerId!,
+              delta: earnedPoints,
+              processedByUserId: userId ?? '',
+              orderId: billId,
+            );
+          }
+        }
+      }
+
       return Success(updatedBill);
     } catch (e, s) {
       AppLogger.error('Failed to record payment', error: e, stackTrace: s);

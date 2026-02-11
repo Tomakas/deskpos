@@ -3231,6 +3231,120 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Stav'**
   String get reservationColumnStatus;
+
+  /// No description provided for @paymentTypeCredit.
+  ///
+  /// In cs, this message translates to:
+  /// **'Kredit'**
+  String get paymentTypeCredit;
+
+  /// No description provided for @loyaltySectionTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Věrnostní program'**
+  String get loyaltySectionTitle;
+
+  /// No description provided for @loyaltyEarnPerHundredCzk.
+  ///
+  /// In cs, this message translates to:
+  /// **'Bodů za 100 Kč'**
+  String get loyaltyEarnPerHundredCzk;
+
+  /// No description provided for @loyaltyPointValueHalere.
+  ///
+  /// In cs, this message translates to:
+  /// **'Hodnota 1 bodu (haléře)'**
+  String get loyaltyPointValueHalere;
+
+  /// No description provided for @loyaltyDescription.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zákazník získá {earn} bodů za každých 100 Kč. 1 bod = {value} Kč.'**
+  String loyaltyDescription(int earn, String value);
+
+  /// No description provided for @loyaltyDisabled.
+  ///
+  /// In cs, this message translates to:
+  /// **'Věrnostní program je vypnutý (nastavte hodnoty > 0)'**
+  String get loyaltyDisabled;
+
+  /// No description provided for @loyaltyRedeem.
+  ///
+  /// In cs, this message translates to:
+  /// **'Uplatnit body'**
+  String get loyaltyRedeem;
+
+  /// No description provided for @loyaltyAvailablePoints.
+  ///
+  /// In cs, this message translates to:
+  /// **'Dostupné body'**
+  String get loyaltyAvailablePoints;
+
+  /// No description provided for @loyaltyPointsValue.
+  ///
+  /// In cs, this message translates to:
+  /// **'Hodnota'**
+  String get loyaltyPointsValue;
+
+  /// No description provided for @loyaltyPointsToUse.
+  ///
+  /// In cs, this message translates to:
+  /// **'Bodů k uplatnění'**
+  String get loyaltyPointsToUse;
+
+  /// No description provided for @loyaltyDiscountPreview.
+  ///
+  /// In cs, this message translates to:
+  /// **'{points} bodů = {amount} Kč sleva'**
+  String loyaltyDiscountPreview(int points, String amount);
+
+  /// No description provided for @loyaltyEarned.
+  ///
+  /// In cs, this message translates to:
+  /// **'Získáno bodů'**
+  String get loyaltyEarned;
+
+  /// No description provided for @loyaltyCustomerInfo.
+  ///
+  /// In cs, this message translates to:
+  /// **'Body: {points} | Kredit: {credit} Kč'**
+  String loyaltyCustomerInfo(int points, String credit);
+
+  /// No description provided for @loyaltyCredit.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zákaznický kredit'**
+  String get loyaltyCredit;
+
+  /// No description provided for @loyaltyCreditTopUp.
+  ///
+  /// In cs, this message translates to:
+  /// **'Nabít kredit'**
+  String get loyaltyCreditTopUp;
+
+  /// No description provided for @loyaltyCreditDeduct.
+  ///
+  /// In cs, this message translates to:
+  /// **'Odečíst kredit'**
+  String get loyaltyCreditDeduct;
+
+  /// No description provided for @loyaltyCreditBalance.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zůstatek'**
+  String get loyaltyCreditBalance;
+
+  /// No description provided for @loyaltyTransactionHistory.
+  ///
+  /// In cs, this message translates to:
+  /// **'Historie transakcí'**
+  String get loyaltyTransactionHistory;
+
+  /// No description provided for @loyaltyNoCustomer.
+  ///
+  /// In cs, this message translates to:
+  /// **'K účtu není přiřazen zákazník'**
+  String get loyaltyNoCustomer;
 }
 
 class _AppLocalizationsDelegate

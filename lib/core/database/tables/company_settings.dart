@@ -8,6 +8,8 @@ class CompanySettings extends Table with SyncColumnsMixin {
   TextColumn get companyId => text()();
   BoolColumn get requirePinOnSwitch => boolean().withDefault(const Constant(true))();
   IntColumn get autoLockTimeoutMinutes => integer().nullable()();
+  IntColumn get loyaltyEarnPerHundredCzk => integer().withDefault(const Constant(0))();
+  IntColumn get loyaltyPointValueHalere => integer().withDefault(const Constant(0))();
 
   @override
   Set<Column> get primaryKey => {id};

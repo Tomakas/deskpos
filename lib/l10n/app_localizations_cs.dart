@@ -1614,4 +1614,68 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get reservationColumnStatus => 'Stav';
+
+  @override
+  String get paymentTypeCredit => 'Kredit';
+
+  @override
+  String get loyaltySectionTitle => 'Věrnostní program';
+
+  @override
+  String get loyaltyEarnPerHundredCzk => 'Bodů za 100 Kč';
+
+  @override
+  String get loyaltyPointValueHalere => 'Hodnota 1 bodu (haléře)';
+
+  @override
+  String loyaltyDescription(int earn, String value) {
+    return 'Zákazník získá $earn bodů za každých 100 Kč. 1 bod = $value Kč.';
+  }
+
+  @override
+  String get loyaltyDisabled =>
+      'Věrnostní program je vypnutý (nastavte hodnoty > 0)';
+
+  @override
+  String get loyaltyRedeem => 'Uplatnit body';
+
+  @override
+  String get loyaltyAvailablePoints => 'Dostupné body';
+
+  @override
+  String get loyaltyPointsValue => 'Hodnota';
+
+  @override
+  String get loyaltyPointsToUse => 'Bodů k uplatnění';
+
+  @override
+  String loyaltyDiscountPreview(int points, String amount) {
+    return '$points bodů = $amount Kč sleva';
+  }
+
+  @override
+  String get loyaltyEarned => 'Získáno bodů';
+
+  @override
+  String loyaltyCustomerInfo(int points, String credit) {
+    return 'Body: $points | Kredit: $credit Kč';
+  }
+
+  @override
+  String get loyaltyCredit => 'Zákaznický kredit';
+
+  @override
+  String get loyaltyCreditTopUp => 'Nabít kredit';
+
+  @override
+  String get loyaltyCreditDeduct => 'Odečíst kredit';
+
+  @override
+  String get loyaltyCreditBalance => 'Zůstatek';
+
+  @override
+  String get loyaltyTransactionHistory => 'Historie transakcí';
+
+  @override
+  String get loyaltyNoCustomer => 'K účtu není přiřazen zákazník';
 }

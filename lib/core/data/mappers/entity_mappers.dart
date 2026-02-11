@@ -82,6 +82,8 @@ CompanySettingsModel companySettingsFromEntity(CompanySetting e) => CompanySetti
       companyId: e.companyId,
       requirePinOnSwitch: e.requirePinOnSwitch,
       autoLockTimeoutMinutes: e.autoLockTimeoutMinutes,
+      loyaltyEarnPerHundredCzk: e.loyaltyEarnPerHundredCzk,
+      loyaltyPointValueHalere: e.loyaltyPointValueHalere,
       createdAt: e.createdAt,
       updatedAt: e.updatedAt,
       deletedAt: e.deletedAt,
@@ -93,6 +95,8 @@ CompanySettingsCompanion companySettingsToCompanion(CompanySettingsModel m) =>
       companyId: m.companyId,
       requirePinOnSwitch: Value(m.requirePinOnSwitch),
       autoLockTimeoutMinutes: Value(m.autoLockTimeoutMinutes),
+      loyaltyEarnPerHundredCzk: Value(m.loyaltyEarnPerHundredCzk),
+      loyaltyPointValueHalere: Value(m.loyaltyPointValueHalere),
     );
 
 // --- Currency ---
@@ -391,6 +395,8 @@ BillModel billFromEntity(Bill e) => BillModel(
       totalGross: e.totalGross,
       roundingAmount: e.roundingAmount,
       paidAmount: e.paidAmount,
+      loyaltyPointsUsed: e.loyaltyPointsUsed,
+      loyaltyDiscountAmount: e.loyaltyDiscountAmount,
       openedAt: e.openedAt,
       closedAt: e.closedAt,
       createdAt: e.createdAt,

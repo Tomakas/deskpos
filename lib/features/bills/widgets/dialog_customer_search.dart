@@ -161,9 +161,15 @@ class _DialogCustomerSearchState extends ConsumerState<_DialogCustomerSearch> {
       itemCount: customers.length,
       itemBuilder: (context, i) {
         final c = customers[i];
+        final contactInfo = [c.email, c.phone].whereType<String>().join(' | ');
+        final loyaltyInfo = context.l10n.loyaltyCustomerInfo(
+          c.points,
+          (c.credit / 100).toStringAsFixed(2).replaceAll('.', ','),
+        );
         return ListTile(
           title: Text('${c.firstName} ${c.lastName}'),
-          subtitle: Text([c.email, c.phone].whereType<String>().join(' | ')),
+          subtitle: Text(contactInfo.isNotEmpty ? '$contactInfo\n$loyaltyInfo' : loyaltyInfo),
+          isThreeLine: contactInfo.isNotEmpty,
           onTap: () => Navigator.pop(context, c),
         );
       },

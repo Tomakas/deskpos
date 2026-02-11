@@ -124,6 +124,7 @@ final billRepositoryProvider = Provider<BillRepository>((ref) {
     ref.watch(appDatabaseProvider),
     syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
     orderRepo: ref.watch(orderRepositoryProvider),
+    customerRepo: ref.watch(customerRepositoryProvider),
   );
 });
 

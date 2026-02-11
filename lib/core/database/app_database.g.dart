@@ -294,6 +294,29 @@ class $BillsTable extends Bills with TableInfo<$BillsTable, Bill> {
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
+  static const VerificationMeta _loyaltyPointsUsedMeta = const VerificationMeta(
+    'loyaltyPointsUsed',
+  );
+  @override
+  late final GeneratedColumn<int> loyaltyPointsUsed = GeneratedColumn<int>(
+    'loyalty_points_used',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _loyaltyDiscountAmountMeta =
+      const VerificationMeta('loyaltyDiscountAmount');
+  @override
+  late final GeneratedColumn<int> loyaltyDiscountAmount = GeneratedColumn<int>(
+    'loyalty_discount_amount',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
   static const VerificationMeta _openedAtMeta = const VerificationMeta(
     'openedAt',
   );
@@ -343,6 +366,8 @@ class $BillsTable extends Bills with TableInfo<$BillsTable, Bill> {
     totalGross,
     roundingAmount,
     paidAmount,
+    loyaltyPointsUsed,
+    loyaltyDiscountAmount,
     openedAt,
     closedAt,
   ];
@@ -530,6 +555,24 @@ class $BillsTable extends Bills with TableInfo<$BillsTable, Bill> {
         paidAmount.isAcceptableOrUnknown(data['paid_amount']!, _paidAmountMeta),
       );
     }
+    if (data.containsKey('loyalty_points_used')) {
+      context.handle(
+        _loyaltyPointsUsedMeta,
+        loyaltyPointsUsed.isAcceptableOrUnknown(
+          data['loyalty_points_used']!,
+          _loyaltyPointsUsedMeta,
+        ),
+      );
+    }
+    if (data.containsKey('loyalty_discount_amount')) {
+      context.handle(
+        _loyaltyDiscountAmountMeta,
+        loyaltyDiscountAmount.isAcceptableOrUnknown(
+          data['loyalty_discount_amount']!,
+          _loyaltyDiscountAmountMeta,
+        ),
+      );
+    }
     if (data.containsKey('opened_at')) {
       context.handle(
         _openedAtMeta,
@@ -657,6 +700,14 @@ class $BillsTable extends Bills with TableInfo<$BillsTable, Bill> {
         DriftSqlType.int,
         data['${effectivePrefix}paid_amount'],
       )!,
+      loyaltyPointsUsed: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}loyalty_points_used'],
+      )!,
+      loyaltyDiscountAmount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}loyalty_discount_amount'],
+      )!,
       openedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}opened_at'],
@@ -711,6 +762,8 @@ class Bill extends DataClass implements Insertable<Bill> {
   final int totalGross;
   final int roundingAmount;
   final int paidAmount;
+  final int loyaltyPointsUsed;
+  final int loyaltyDiscountAmount;
   final DateTime openedAt;
   final DateTime? closedAt;
   const Bill({
@@ -739,6 +792,8 @@ class Bill extends DataClass implements Insertable<Bill> {
     required this.totalGross,
     required this.roundingAmount,
     required this.paidAmount,
+    required this.loyaltyPointsUsed,
+    required this.loyaltyDiscountAmount,
     required this.openedAt,
     this.closedAt,
   });
@@ -790,6 +845,8 @@ class Bill extends DataClass implements Insertable<Bill> {
     map['total_gross'] = Variable<int>(totalGross);
     map['rounding_amount'] = Variable<int>(roundingAmount);
     map['paid_amount'] = Variable<int>(paidAmount);
+    map['loyalty_points_used'] = Variable<int>(loyaltyPointsUsed);
+    map['loyalty_discount_amount'] = Variable<int>(loyaltyDiscountAmount);
     map['opened_at'] = Variable<DateTime>(openedAt);
     if (!nullToAbsent || closedAt != null) {
       map['closed_at'] = Variable<DateTime>(closedAt);
@@ -838,6 +895,8 @@ class Bill extends DataClass implements Insertable<Bill> {
       totalGross: Value(totalGross),
       roundingAmount: Value(roundingAmount),
       paidAmount: Value(paidAmount),
+      loyaltyPointsUsed: Value(loyaltyPointsUsed),
+      loyaltyDiscountAmount: Value(loyaltyDiscountAmount),
       openedAt: Value(openedAt),
       closedAt: closedAt == null && nullToAbsent
           ? const Value.absent()
@@ -880,6 +939,10 @@ class Bill extends DataClass implements Insertable<Bill> {
       totalGross: serializer.fromJson<int>(json['totalGross']),
       roundingAmount: serializer.fromJson<int>(json['roundingAmount']),
       paidAmount: serializer.fromJson<int>(json['paidAmount']),
+      loyaltyPointsUsed: serializer.fromJson<int>(json['loyaltyPointsUsed']),
+      loyaltyDiscountAmount: serializer.fromJson<int>(
+        json['loyaltyDiscountAmount'],
+      ),
       openedAt: serializer.fromJson<DateTime>(json['openedAt']),
       closedAt: serializer.fromJson<DateTime?>(json['closedAt']),
     );
@@ -917,6 +980,8 @@ class Bill extends DataClass implements Insertable<Bill> {
       'totalGross': serializer.toJson<int>(totalGross),
       'roundingAmount': serializer.toJson<int>(roundingAmount),
       'paidAmount': serializer.toJson<int>(paidAmount),
+      'loyaltyPointsUsed': serializer.toJson<int>(loyaltyPointsUsed),
+      'loyaltyDiscountAmount': serializer.toJson<int>(loyaltyDiscountAmount),
       'openedAt': serializer.toJson<DateTime>(openedAt),
       'closedAt': serializer.toJson<DateTime?>(closedAt),
     };
@@ -948,6 +1013,8 @@ class Bill extends DataClass implements Insertable<Bill> {
     int? totalGross,
     int? roundingAmount,
     int? paidAmount,
+    int? loyaltyPointsUsed,
+    int? loyaltyDiscountAmount,
     DateTime? openedAt,
     Value<DateTime?> closedAt = const Value.absent(),
   }) => Bill(
@@ -980,6 +1047,8 @@ class Bill extends DataClass implements Insertable<Bill> {
     totalGross: totalGross ?? this.totalGross,
     roundingAmount: roundingAmount ?? this.roundingAmount,
     paidAmount: paidAmount ?? this.paidAmount,
+    loyaltyPointsUsed: loyaltyPointsUsed ?? this.loyaltyPointsUsed,
+    loyaltyDiscountAmount: loyaltyDiscountAmount ?? this.loyaltyDiscountAmount,
     openedAt: openedAt ?? this.openedAt,
     closedAt: closedAt.present ? closedAt.value : this.closedAt,
   );
@@ -1042,6 +1111,12 @@ class Bill extends DataClass implements Insertable<Bill> {
       paidAmount: data.paidAmount.present
           ? data.paidAmount.value
           : this.paidAmount,
+      loyaltyPointsUsed: data.loyaltyPointsUsed.present
+          ? data.loyaltyPointsUsed.value
+          : this.loyaltyPointsUsed,
+      loyaltyDiscountAmount: data.loyaltyDiscountAmount.present
+          ? data.loyaltyDiscountAmount.value
+          : this.loyaltyDiscountAmount,
       openedAt: data.openedAt.present ? data.openedAt.value : this.openedAt,
       closedAt: data.closedAt.present ? data.closedAt.value : this.closedAt,
     );
@@ -1075,6 +1150,8 @@ class Bill extends DataClass implements Insertable<Bill> {
           ..write('totalGross: $totalGross, ')
           ..write('roundingAmount: $roundingAmount, ')
           ..write('paidAmount: $paidAmount, ')
+          ..write('loyaltyPointsUsed: $loyaltyPointsUsed, ')
+          ..write('loyaltyDiscountAmount: $loyaltyDiscountAmount, ')
           ..write('openedAt: $openedAt, ')
           ..write('closedAt: $closedAt')
           ..write(')'))
@@ -1108,6 +1185,8 @@ class Bill extends DataClass implements Insertable<Bill> {
     totalGross,
     roundingAmount,
     paidAmount,
+    loyaltyPointsUsed,
+    loyaltyDiscountAmount,
     openedAt,
     closedAt,
   ]);
@@ -1140,6 +1219,8 @@ class Bill extends DataClass implements Insertable<Bill> {
           other.totalGross == this.totalGross &&
           other.roundingAmount == this.roundingAmount &&
           other.paidAmount == this.paidAmount &&
+          other.loyaltyPointsUsed == this.loyaltyPointsUsed &&
+          other.loyaltyDiscountAmount == this.loyaltyDiscountAmount &&
           other.openedAt == this.openedAt &&
           other.closedAt == this.closedAt);
 }
@@ -1170,6 +1251,8 @@ class BillsCompanion extends UpdateCompanion<Bill> {
   final Value<int> totalGross;
   final Value<int> roundingAmount;
   final Value<int> paidAmount;
+  final Value<int> loyaltyPointsUsed;
+  final Value<int> loyaltyDiscountAmount;
   final Value<DateTime> openedAt;
   final Value<DateTime?> closedAt;
   final Value<int> rowid;
@@ -1199,6 +1282,8 @@ class BillsCompanion extends UpdateCompanion<Bill> {
     this.totalGross = const Value.absent(),
     this.roundingAmount = const Value.absent(),
     this.paidAmount = const Value.absent(),
+    this.loyaltyPointsUsed = const Value.absent(),
+    this.loyaltyDiscountAmount = const Value.absent(),
     this.openedAt = const Value.absent(),
     this.closedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -1229,6 +1314,8 @@ class BillsCompanion extends UpdateCompanion<Bill> {
     this.totalGross = const Value.absent(),
     this.roundingAmount = const Value.absent(),
     this.paidAmount = const Value.absent(),
+    this.loyaltyPointsUsed = const Value.absent(),
+    this.loyaltyDiscountAmount = const Value.absent(),
     required DateTime openedAt,
     this.closedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -1265,6 +1352,8 @@ class BillsCompanion extends UpdateCompanion<Bill> {
     Expression<int>? totalGross,
     Expression<int>? roundingAmount,
     Expression<int>? paidAmount,
+    Expression<int>? loyaltyPointsUsed,
+    Expression<int>? loyaltyDiscountAmount,
     Expression<DateTime>? openedAt,
     Expression<DateTime>? closedAt,
     Expression<int>? rowid,
@@ -1295,6 +1384,9 @@ class BillsCompanion extends UpdateCompanion<Bill> {
       if (totalGross != null) 'total_gross': totalGross,
       if (roundingAmount != null) 'rounding_amount': roundingAmount,
       if (paidAmount != null) 'paid_amount': paidAmount,
+      if (loyaltyPointsUsed != null) 'loyalty_points_used': loyaltyPointsUsed,
+      if (loyaltyDiscountAmount != null)
+        'loyalty_discount_amount': loyaltyDiscountAmount,
       if (openedAt != null) 'opened_at': openedAt,
       if (closedAt != null) 'closed_at': closedAt,
       if (rowid != null) 'rowid': rowid,
@@ -1327,6 +1419,8 @@ class BillsCompanion extends UpdateCompanion<Bill> {
     Value<int>? totalGross,
     Value<int>? roundingAmount,
     Value<int>? paidAmount,
+    Value<int>? loyaltyPointsUsed,
+    Value<int>? loyaltyDiscountAmount,
     Value<DateTime>? openedAt,
     Value<DateTime?>? closedAt,
     Value<int>? rowid,
@@ -1357,6 +1451,9 @@ class BillsCompanion extends UpdateCompanion<Bill> {
       totalGross: totalGross ?? this.totalGross,
       roundingAmount: roundingAmount ?? this.roundingAmount,
       paidAmount: paidAmount ?? this.paidAmount,
+      loyaltyPointsUsed: loyaltyPointsUsed ?? this.loyaltyPointsUsed,
+      loyaltyDiscountAmount:
+          loyaltyDiscountAmount ?? this.loyaltyDiscountAmount,
       openedAt: openedAt ?? this.openedAt,
       closedAt: closedAt ?? this.closedAt,
       rowid: rowid ?? this.rowid,
@@ -1445,6 +1542,14 @@ class BillsCompanion extends UpdateCompanion<Bill> {
     if (paidAmount.present) {
       map['paid_amount'] = Variable<int>(paidAmount.value);
     }
+    if (loyaltyPointsUsed.present) {
+      map['loyalty_points_used'] = Variable<int>(loyaltyPointsUsed.value);
+    }
+    if (loyaltyDiscountAmount.present) {
+      map['loyalty_discount_amount'] = Variable<int>(
+        loyaltyDiscountAmount.value,
+      );
+    }
     if (openedAt.present) {
       map['opened_at'] = Variable<DateTime>(openedAt.value);
     }
@@ -1485,6 +1590,8 @@ class BillsCompanion extends UpdateCompanion<Bill> {
           ..write('totalGross: $totalGross, ')
           ..write('roundingAmount: $roundingAmount, ')
           ..write('paidAmount: $paidAmount, ')
+          ..write('loyaltyPointsUsed: $loyaltyPointsUsed, ')
+          ..write('loyaltyDiscountAmount: $loyaltyDiscountAmount, ')
           ..write('openedAt: $openedAt, ')
           ..write('closedAt: $closedAt, ')
           ..write('rowid: $rowid')
@@ -6301,6 +6408,30 @@ class $CompanySettingsTable extends CompanySettings
     type: DriftSqlType.int,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _loyaltyEarnPerHundredCzkMeta =
+      const VerificationMeta('loyaltyEarnPerHundredCzk');
+  @override
+  late final GeneratedColumn<int> loyaltyEarnPerHundredCzk =
+      GeneratedColumn<int>(
+        'loyalty_earn_per_hundred_czk',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: false,
+        defaultValue: const Constant(0),
+      );
+  static const VerificationMeta _loyaltyPointValueHalereMeta =
+      const VerificationMeta('loyaltyPointValueHalere');
+  @override
+  late final GeneratedColumn<int> loyaltyPointValueHalere =
+      GeneratedColumn<int>(
+        'loyalty_point_value_halere',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: false,
+        defaultValue: const Constant(0),
+      );
   @override
   List<GeneratedColumn> get $columns => [
     lastSyncedAt,
@@ -6314,6 +6445,8 @@ class $CompanySettingsTable extends CompanySettings
     companyId,
     requirePinOnSwitch,
     autoLockTimeoutMinutes,
+    loyaltyEarnPerHundredCzk,
+    loyaltyPointValueHalere,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -6409,6 +6542,24 @@ class $CompanySettingsTable extends CompanySettings
         ),
       );
     }
+    if (data.containsKey('loyalty_earn_per_hundred_czk')) {
+      context.handle(
+        _loyaltyEarnPerHundredCzkMeta,
+        loyaltyEarnPerHundredCzk.isAcceptableOrUnknown(
+          data['loyalty_earn_per_hundred_czk']!,
+          _loyaltyEarnPerHundredCzkMeta,
+        ),
+      );
+    }
+    if (data.containsKey('loyalty_point_value_halere')) {
+      context.handle(
+        _loyaltyPointValueHalereMeta,
+        loyaltyPointValueHalere.isAcceptableOrUnknown(
+          data['loyalty_point_value_halere']!,
+          _loyaltyPointValueHalereMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -6462,6 +6613,14 @@ class $CompanySettingsTable extends CompanySettings
         DriftSqlType.int,
         data['${effectivePrefix}auto_lock_timeout_minutes'],
       ),
+      loyaltyEarnPerHundredCzk: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}loyalty_earn_per_hundred_czk'],
+      )!,
+      loyaltyPointValueHalere: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}loyalty_point_value_halere'],
+      )!,
     );
   }
 
@@ -6483,6 +6642,8 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
   final String companyId;
   final bool requirePinOnSwitch;
   final int? autoLockTimeoutMinutes;
+  final int loyaltyEarnPerHundredCzk;
+  final int loyaltyPointValueHalere;
   const CompanySetting({
     this.lastSyncedAt,
     required this.version,
@@ -6495,6 +6656,8 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
     required this.companyId,
     required this.requirePinOnSwitch,
     this.autoLockTimeoutMinutes,
+    required this.loyaltyEarnPerHundredCzk,
+    required this.loyaltyPointValueHalere,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -6520,6 +6683,10 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
     if (!nullToAbsent || autoLockTimeoutMinutes != null) {
       map['auto_lock_timeout_minutes'] = Variable<int>(autoLockTimeoutMinutes);
     }
+    map['loyalty_earn_per_hundred_czk'] = Variable<int>(
+      loyaltyEarnPerHundredCzk,
+    );
+    map['loyalty_point_value_halere'] = Variable<int>(loyaltyPointValueHalere);
     return map;
   }
 
@@ -6546,6 +6713,8 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
       autoLockTimeoutMinutes: autoLockTimeoutMinutes == null && nullToAbsent
           ? const Value.absent()
           : Value(autoLockTimeoutMinutes),
+      loyaltyEarnPerHundredCzk: Value(loyaltyEarnPerHundredCzk),
+      loyaltyPointValueHalere: Value(loyaltyPointValueHalere),
     );
   }
 
@@ -6568,6 +6737,12 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
       autoLockTimeoutMinutes: serializer.fromJson<int?>(
         json['autoLockTimeoutMinutes'],
       ),
+      loyaltyEarnPerHundredCzk: serializer.fromJson<int>(
+        json['loyaltyEarnPerHundredCzk'],
+      ),
+      loyaltyPointValueHalere: serializer.fromJson<int>(
+        json['loyaltyPointValueHalere'],
+      ),
     );
   }
   @override
@@ -6585,6 +6760,12 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
       'companyId': serializer.toJson<String>(companyId),
       'requirePinOnSwitch': serializer.toJson<bool>(requirePinOnSwitch),
       'autoLockTimeoutMinutes': serializer.toJson<int?>(autoLockTimeoutMinutes),
+      'loyaltyEarnPerHundredCzk': serializer.toJson<int>(
+        loyaltyEarnPerHundredCzk,
+      ),
+      'loyaltyPointValueHalere': serializer.toJson<int>(
+        loyaltyPointValueHalere,
+      ),
     };
   }
 
@@ -6600,6 +6781,8 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
     String? companyId,
     bool? requirePinOnSwitch,
     Value<int?> autoLockTimeoutMinutes = const Value.absent(),
+    int? loyaltyEarnPerHundredCzk,
+    int? loyaltyPointValueHalere,
   }) => CompanySetting(
     lastSyncedAt: lastSyncedAt.present ? lastSyncedAt.value : this.lastSyncedAt,
     version: version ?? this.version,
@@ -6618,6 +6801,10 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
     autoLockTimeoutMinutes: autoLockTimeoutMinutes.present
         ? autoLockTimeoutMinutes.value
         : this.autoLockTimeoutMinutes,
+    loyaltyEarnPerHundredCzk:
+        loyaltyEarnPerHundredCzk ?? this.loyaltyEarnPerHundredCzk,
+    loyaltyPointValueHalere:
+        loyaltyPointValueHalere ?? this.loyaltyPointValueHalere,
   );
   CompanySetting copyWithCompanion(CompanySettingsCompanion data) {
     return CompanySetting(
@@ -6642,6 +6829,12 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
       autoLockTimeoutMinutes: data.autoLockTimeoutMinutes.present
           ? data.autoLockTimeoutMinutes.value
           : this.autoLockTimeoutMinutes,
+      loyaltyEarnPerHundredCzk: data.loyaltyEarnPerHundredCzk.present
+          ? data.loyaltyEarnPerHundredCzk.value
+          : this.loyaltyEarnPerHundredCzk,
+      loyaltyPointValueHalere: data.loyaltyPointValueHalere.present
+          ? data.loyaltyPointValueHalere.value
+          : this.loyaltyPointValueHalere,
     );
   }
 
@@ -6658,7 +6851,9 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
           ..write('id: $id, ')
           ..write('companyId: $companyId, ')
           ..write('requirePinOnSwitch: $requirePinOnSwitch, ')
-          ..write('autoLockTimeoutMinutes: $autoLockTimeoutMinutes')
+          ..write('autoLockTimeoutMinutes: $autoLockTimeoutMinutes, ')
+          ..write('loyaltyEarnPerHundredCzk: $loyaltyEarnPerHundredCzk, ')
+          ..write('loyaltyPointValueHalere: $loyaltyPointValueHalere')
           ..write(')'))
         .toString();
   }
@@ -6676,6 +6871,8 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
     companyId,
     requirePinOnSwitch,
     autoLockTimeoutMinutes,
+    loyaltyEarnPerHundredCzk,
+    loyaltyPointValueHalere,
   );
   @override
   bool operator ==(Object other) =>
@@ -6691,7 +6888,9 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
           other.id == this.id &&
           other.companyId == this.companyId &&
           other.requirePinOnSwitch == this.requirePinOnSwitch &&
-          other.autoLockTimeoutMinutes == this.autoLockTimeoutMinutes);
+          other.autoLockTimeoutMinutes == this.autoLockTimeoutMinutes &&
+          other.loyaltyEarnPerHundredCzk == this.loyaltyEarnPerHundredCzk &&
+          other.loyaltyPointValueHalere == this.loyaltyPointValueHalere);
 }
 
 class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
@@ -6706,6 +6905,8 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
   final Value<String> companyId;
   final Value<bool> requirePinOnSwitch;
   final Value<int?> autoLockTimeoutMinutes;
+  final Value<int> loyaltyEarnPerHundredCzk;
+  final Value<int> loyaltyPointValueHalere;
   final Value<int> rowid;
   const CompanySettingsCompanion({
     this.lastSyncedAt = const Value.absent(),
@@ -6719,6 +6920,8 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
     this.companyId = const Value.absent(),
     this.requirePinOnSwitch = const Value.absent(),
     this.autoLockTimeoutMinutes = const Value.absent(),
+    this.loyaltyEarnPerHundredCzk = const Value.absent(),
+    this.loyaltyPointValueHalere = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   CompanySettingsCompanion.insert({
@@ -6733,6 +6936,8 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
     required String companyId,
     this.requirePinOnSwitch = const Value.absent(),
     this.autoLockTimeoutMinutes = const Value.absent(),
+    this.loyaltyEarnPerHundredCzk = const Value.absent(),
+    this.loyaltyPointValueHalere = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        companyId = Value(companyId);
@@ -6748,6 +6953,8 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
     Expression<String>? companyId,
     Expression<bool>? requirePinOnSwitch,
     Expression<int>? autoLockTimeoutMinutes,
+    Expression<int>? loyaltyEarnPerHundredCzk,
+    Expression<int>? loyaltyPointValueHalere,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -6764,6 +6971,10 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
         'require_pin_on_switch': requirePinOnSwitch,
       if (autoLockTimeoutMinutes != null)
         'auto_lock_timeout_minutes': autoLockTimeoutMinutes,
+      if (loyaltyEarnPerHundredCzk != null)
+        'loyalty_earn_per_hundred_czk': loyaltyEarnPerHundredCzk,
+      if (loyaltyPointValueHalere != null)
+        'loyalty_point_value_halere': loyaltyPointValueHalere,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -6780,6 +6991,8 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
     Value<String>? companyId,
     Value<bool>? requirePinOnSwitch,
     Value<int?>? autoLockTimeoutMinutes,
+    Value<int>? loyaltyEarnPerHundredCzk,
+    Value<int>? loyaltyPointValueHalere,
     Value<int>? rowid,
   }) {
     return CompanySettingsCompanion(
@@ -6795,6 +7008,10 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
       requirePinOnSwitch: requirePinOnSwitch ?? this.requirePinOnSwitch,
       autoLockTimeoutMinutes:
           autoLockTimeoutMinutes ?? this.autoLockTimeoutMinutes,
+      loyaltyEarnPerHundredCzk:
+          loyaltyEarnPerHundredCzk ?? this.loyaltyEarnPerHundredCzk,
+      loyaltyPointValueHalere:
+          loyaltyPointValueHalere ?? this.loyaltyPointValueHalere,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -6837,6 +7054,16 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
         autoLockTimeoutMinutes.value,
       );
     }
+    if (loyaltyEarnPerHundredCzk.present) {
+      map['loyalty_earn_per_hundred_czk'] = Variable<int>(
+        loyaltyEarnPerHundredCzk.value,
+      );
+    }
+    if (loyaltyPointValueHalere.present) {
+      map['loyalty_point_value_halere'] = Variable<int>(
+        loyaltyPointValueHalere.value,
+      );
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -6857,6 +7084,8 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
           ..write('companyId: $companyId, ')
           ..write('requirePinOnSwitch: $requirePinOnSwitch, ')
           ..write('autoLockTimeoutMinutes: $autoLockTimeoutMinutes, ')
+          ..write('loyaltyEarnPerHundredCzk: $loyaltyEarnPerHundredCzk, ')
+          ..write('loyaltyPointValueHalere: $loyaltyPointValueHalere, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -31298,6 +31527,8 @@ typedef $$BillsTableCreateCompanionBuilder =
       Value<int> totalGross,
       Value<int> roundingAmount,
       Value<int> paidAmount,
+      Value<int> loyaltyPointsUsed,
+      Value<int> loyaltyDiscountAmount,
       required DateTime openedAt,
       Value<DateTime?> closedAt,
       Value<int> rowid,
@@ -31329,6 +31560,8 @@ typedef $$BillsTableUpdateCompanionBuilder =
       Value<int> totalGross,
       Value<int> roundingAmount,
       Value<int> paidAmount,
+      Value<int> loyaltyPointsUsed,
+      Value<int> loyaltyDiscountAmount,
       Value<DateTime> openedAt,
       Value<DateTime?> closedAt,
       Value<int> rowid,
@@ -31466,6 +31699,16 @@ class $$BillsTableFilterComposer extends Composer<_$AppDatabase, $BillsTable> {
 
   ColumnFilters<int> get paidAmount => $composableBuilder(
     column: $table.paidAmount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get loyaltyPointsUsed => $composableBuilder(
+    column: $table.loyaltyPointsUsed,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get loyaltyDiscountAmount => $composableBuilder(
+    column: $table.loyaltyDiscountAmount,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -31614,6 +31857,16 @@ class $$BillsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get loyaltyPointsUsed => $composableBuilder(
+    column: $table.loyaltyPointsUsed,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get loyaltyDiscountAmount => $composableBuilder(
+    column: $table.loyaltyDiscountAmount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get openedAt => $composableBuilder(
     column: $table.openedAt,
     builder: (column) => ColumnOrderings(column),
@@ -31742,6 +31995,16 @@ class $$BillsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<int> get loyaltyPointsUsed => $composableBuilder(
+    column: $table.loyaltyPointsUsed,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get loyaltyDiscountAmount => $composableBuilder(
+    column: $table.loyaltyDiscountAmount,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<DateTime> get openedAt =>
       $composableBuilder(column: $table.openedAt, builder: (column) => column);
 
@@ -31802,6 +32065,8 @@ class $$BillsTableTableManager
                 Value<int> totalGross = const Value.absent(),
                 Value<int> roundingAmount = const Value.absent(),
                 Value<int> paidAmount = const Value.absent(),
+                Value<int> loyaltyPointsUsed = const Value.absent(),
+                Value<int> loyaltyDiscountAmount = const Value.absent(),
                 Value<DateTime> openedAt = const Value.absent(),
                 Value<DateTime?> closedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -31831,6 +32096,8 @@ class $$BillsTableTableManager
                 totalGross: totalGross,
                 roundingAmount: roundingAmount,
                 paidAmount: paidAmount,
+                loyaltyPointsUsed: loyaltyPointsUsed,
+                loyaltyDiscountAmount: loyaltyDiscountAmount,
                 openedAt: openedAt,
                 closedAt: closedAt,
                 rowid: rowid,
@@ -31862,6 +32129,8 @@ class $$BillsTableTableManager
                 Value<int> totalGross = const Value.absent(),
                 Value<int> roundingAmount = const Value.absent(),
                 Value<int> paidAmount = const Value.absent(),
+                Value<int> loyaltyPointsUsed = const Value.absent(),
+                Value<int> loyaltyDiscountAmount = const Value.absent(),
                 required DateTime openedAt,
                 Value<DateTime?> closedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -31891,6 +32160,8 @@ class $$BillsTableTableManager
                 totalGross: totalGross,
                 roundingAmount: roundingAmount,
                 paidAmount: paidAmount,
+                loyaltyPointsUsed: loyaltyPointsUsed,
+                loyaltyDiscountAmount: loyaltyDiscountAmount,
                 openedAt: openedAt,
                 closedAt: closedAt,
                 rowid: rowid,
@@ -34048,6 +34319,8 @@ typedef $$CompanySettingsTableCreateCompanionBuilder =
       required String companyId,
       Value<bool> requirePinOnSwitch,
       Value<int?> autoLockTimeoutMinutes,
+      Value<int> loyaltyEarnPerHundredCzk,
+      Value<int> loyaltyPointValueHalere,
       Value<int> rowid,
     });
 typedef $$CompanySettingsTableUpdateCompanionBuilder =
@@ -34063,6 +34336,8 @@ typedef $$CompanySettingsTableUpdateCompanionBuilder =
       Value<String> companyId,
       Value<bool> requirePinOnSwitch,
       Value<int?> autoLockTimeoutMinutes,
+      Value<int> loyaltyEarnPerHundredCzk,
+      Value<int> loyaltyPointValueHalere,
       Value<int> rowid,
     });
 
@@ -34127,6 +34402,16 @@ class $$CompanySettingsTableFilterComposer
 
   ColumnFilters<int> get autoLockTimeoutMinutes => $composableBuilder(
     column: $table.autoLockTimeoutMinutes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get loyaltyEarnPerHundredCzk => $composableBuilder(
+    column: $table.loyaltyEarnPerHundredCzk,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get loyaltyPointValueHalere => $composableBuilder(
+    column: $table.loyaltyPointValueHalere,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -34194,6 +34479,16 @@ class $$CompanySettingsTableOrderingComposer
     column: $table.autoLockTimeoutMinutes,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<int> get loyaltyEarnPerHundredCzk => $composableBuilder(
+    column: $table.loyaltyEarnPerHundredCzk,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get loyaltyPointValueHalere => $composableBuilder(
+    column: $table.loyaltyPointValueHalere,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$CompanySettingsTableAnnotationComposer
@@ -34247,6 +34542,16 @@ class $$CompanySettingsTableAnnotationComposer
     column: $table.autoLockTimeoutMinutes,
     builder: (column) => column,
   );
+
+  GeneratedColumn<int> get loyaltyEarnPerHundredCzk => $composableBuilder(
+    column: $table.loyaltyEarnPerHundredCzk,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get loyaltyPointValueHalere => $composableBuilder(
+    column: $table.loyaltyPointValueHalere,
+    builder: (column) => column,
+  );
 }
 
 class $$CompanySettingsTableTableManager
@@ -34297,6 +34602,8 @@ class $$CompanySettingsTableTableManager
                 Value<String> companyId = const Value.absent(),
                 Value<bool> requirePinOnSwitch = const Value.absent(),
                 Value<int?> autoLockTimeoutMinutes = const Value.absent(),
+                Value<int> loyaltyEarnPerHundredCzk = const Value.absent(),
+                Value<int> loyaltyPointValueHalere = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => CompanySettingsCompanion(
                 lastSyncedAt: lastSyncedAt,
@@ -34310,6 +34617,8 @@ class $$CompanySettingsTableTableManager
                 companyId: companyId,
                 requirePinOnSwitch: requirePinOnSwitch,
                 autoLockTimeoutMinutes: autoLockTimeoutMinutes,
+                loyaltyEarnPerHundredCzk: loyaltyEarnPerHundredCzk,
+                loyaltyPointValueHalere: loyaltyPointValueHalere,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -34325,6 +34634,8 @@ class $$CompanySettingsTableTableManager
                 required String companyId,
                 Value<bool> requirePinOnSwitch = const Value.absent(),
                 Value<int?> autoLockTimeoutMinutes = const Value.absent(),
+                Value<int> loyaltyEarnPerHundredCzk = const Value.absent(),
+                Value<int> loyaltyPointValueHalere = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => CompanySettingsCompanion.insert(
                 lastSyncedAt: lastSyncedAt,
@@ -34338,6 +34649,8 @@ class $$CompanySettingsTableTableManager
                 companyId: companyId,
                 requirePinOnSwitch: requirePinOnSwitch,
                 autoLockTimeoutMinutes: autoLockTimeoutMinutes,
+                loyaltyEarnPerHundredCzk: loyaltyEarnPerHundredCzk,
+                loyaltyPointValueHalere: loyaltyPointValueHalere,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

@@ -49,6 +49,8 @@ class CompanySettingsRepository
       CompanySettingsCompanion(
         requirePinOnSwitch: Value(m.requirePinOnSwitch),
         autoLockTimeoutMinutes: Value(m.autoLockTimeoutMinutes),
+        loyaltyEarnPerHundredCzk: Value(m.loyaltyEarnPerHundredCzk),
+        loyaltyPointValueHalere: Value(m.loyaltyPointValueHalere),
         updatedAt: Value(DateTime.now()),
       );
 

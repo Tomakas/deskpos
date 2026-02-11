@@ -1,0 +1,340 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+
+import '../../../core/data/models/customer_model.dart';
+import '../../../core/data/models/customer_transaction_model.dart';
+import '../../../core/data/providers/auth_providers.dart';
+import '../../../core/data/providers/repository_providers.dart';
+import '../../../core/data/result.dart';
+import '../../../core/l10n/app_localizations_ext.dart';
+
+class DialogCustomerCredit extends ConsumerStatefulWidget {
+  const DialogCustomerCredit({super.key, required this.customer});
+  final CustomerModel customer;
+
+  @override
+  ConsumerState<DialogCustomerCredit> createState() => _DialogCustomerCreditState();
+}
+
+class _DialogCustomerCreditState extends ConsumerState<DialogCustomerCredit> {
+  String _amountText = '';
+  late CustomerModel _customer;
+
+  @override
+  void initState() {
+    super.initState();
+    _customer = widget.customer;
+  }
+
+  int get _amountKc => int.tryParse(_amountText) ?? 0;
+  bool get _hasAmount => _amountKc > 0;
+
+  void _numpadTap(String digit) {
+    if (_amountText.length >= 7) return;
+    setState(() => _amountText += digit);
+  }
+
+  void _numpadBackspace() {
+    if (_amountText.isEmpty) return;
+    setState(() => _amountText = _amountText.substring(0, _amountText.length - 1));
+  }
+
+  void _numpadClear() {
+    setState(() => _amountText = '');
+  }
+
+  String _formatKc(int halere) {
+    return '${(halere / 100).toStringAsFixed(2).replaceAll('.', ',')} Kč';
+  }
+
+  Future<void> _topUp() async {
+    if (!_hasAmount) return;
+    final user = ref.read(activeUserProvider);
+    final repo = ref.read(customerRepositoryProvider);
+    final result = await repo.adjustCredit(
+      customerId: _customer.id,
+      delta: _amountKc * 100,
+      processedByUserId: user?.id ?? '',
+    );
+    if (result is Success && mounted) {
+      _refreshCustomer();
+      setState(() => _amountText = '');
+    }
+  }
+
+  Future<void> _deduct() async {
+    if (!_hasAmount) return;
+    final deductHalere = _amountKc * 100;
+    if (deductHalere > _customer.credit) return;
+    final user = ref.read(activeUserProvider);
+    final repo = ref.read(customerRepositoryProvider);
+    final result = await repo.adjustCredit(
+      customerId: _customer.id,
+      delta: -deductHalere,
+      processedByUserId: user?.id ?? '',
+    );
+    if (result is Success && mounted) {
+      _refreshCustomer();
+      setState(() => _amountText = '');
+    }
+  }
+
+  Future<void> _refreshCustomer() async {
+    final repo = ref.read(customerRepositoryProvider);
+    final updated = await repo.getById(_customer.id);
+    if (updated != null && mounted) {
+      setState(() => _customer = updated);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    final theme = Theme.of(context);
+
+    return Dialog(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 500, maxHeight: 600),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(l.loyaltyCredit, style: theme.textTheme.titleLarge),
+              const SizedBox(height: 8),
+              Text(
+                '${_customer.firstName} ${_customer.lastName}',
+                style: theme.textTheme.titleMedium,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                '${l.loyaltyCreditBalance}: ${_formatKc(_customer.credit)}',
+                style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              // Amount display
+              Container(
+                height: 48,
+                decoration: BoxDecoration(
+                  border: Border.all(color: theme.dividerColor),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                alignment: Alignment.centerRight,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
+                  '$_amountKc Kč',
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              // Numpad + action buttons
+              _buildNumpadAndActions(theme, l),
+              const SizedBox(height: 16),
+              // Transaction history
+              Text(l.loyaltyTransactionHistory, style: theme.textTheme.titleSmall),
+              const SizedBox(height: 8),
+              SizedBox(
+                height: 120,
+                child: _buildTransactionHistory(context),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                height: 44,
+                child: OutlinedButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(l.actionClose),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNumpadAndActions(ThemeData theme, dynamic l) {
+    const rowHeight = 48.0;
+    const gap = 8.0;
+    const totalHeight = rowHeight * 4 + gap * 3;
+    const actionHeight = (totalHeight - gap) / 2;
+
+    return SizedBox(
+      height: totalHeight,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 230,
+            child: Column(
+              children: [
+                _numpadRow(['1', '2', '3'], rowHeight),
+                const SizedBox(height: gap),
+                _numpadRow(['4', '5', '6'], rowHeight),
+                const SizedBox(height: gap),
+                _numpadRow(['7', '8', '9'], rowHeight),
+                const SizedBox(height: gap),
+                _numpadRow(['⌫', '0', 'C'], rowHeight),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          SizedBox(
+            width: 110,
+            child: Column(
+              children: [
+                SizedBox(
+                  height: actionHeight,
+                  width: double.infinity,
+                  child: FilledButton(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: _hasAmount ? _topUp : null,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(l.loyaltyCreditTopUp, style: const TextStyle(fontSize: 13)),
+                        const SizedBox(height: 4),
+                        const Icon(Icons.add_circle_outline, size: 32),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: gap),
+                SizedBox(
+                  height: actionHeight,
+                  width: double.infinity,
+                  child: FilledButton(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: theme.colorScheme.error,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: _hasAmount && _amountKc * 100 <= _customer.credit
+                        ? _deduct
+                        : null,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(l.loyaltyCreditDeduct, style: const TextStyle(fontSize: 13)),
+                        const SizedBox(height: 4),
+                        const Icon(Icons.remove_circle_outline, size: 32),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTransactionHistory(BuildContext context) {
+    final theme = Theme.of(context);
+    final dateFormat = DateFormat('d.M. HH:mm', 'cs');
+
+    return StreamBuilder<List<CustomerTransactionModel>>(
+      stream: ref.watch(customerTransactionRepositoryProvider).watchByCustomer(_customer.id),
+      builder: (context, snap) {
+        final txs = snap.data ?? [];
+        if (txs.isEmpty) {
+          return Center(
+            child: Text('-', style: theme.textTheme.bodyMedium),
+          );
+        }
+        return ListView.builder(
+          itemCount: txs.length > 10 ? 10 : txs.length,
+          itemBuilder: (context, i) {
+            final tx = txs[i];
+            final hasPoints = tx.pointsChange != 0;
+            final hasCredit = tx.creditChange != 0;
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 2),
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 80,
+                    child: Text(
+                      dateFormat.format(tx.createdAt),
+                      style: theme.textTheme.bodySmall,
+                    ),
+                  ),
+                  if (hasPoints)
+                    Expanded(
+                      child: Text(
+                        '${tx.pointsChange > 0 ? '+' : ''}${tx.pointsChange} bodů',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: tx.pointsChange > 0 ? Colors.green : Colors.red,
+                        ),
+                      ),
+                    ),
+                  if (hasCredit)
+                    Expanded(
+                      child: Text(
+                        '${tx.creditChange > 0 ? '+' : ''}${_formatKc(tx.creditChange)}',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: tx.creditChange > 0 ? Colors.green : Colors.red,
+                        ),
+                      ),
+                    ),
+                  if (!hasPoints && !hasCredit) const Expanded(child: SizedBox.shrink()),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _numpadRow(List<String> keys, double height) {
+    return SizedBox(
+      height: height,
+      child: Row(
+        children: [
+          for (int i = 0; i < keys.length; i++) ...[
+            if (i > 0) const SizedBox(width: 8),
+            Expanded(child: _numpadButton(keys[i])),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _numpadButton(String key) {
+    final Widget child;
+    final VoidCallback onTap;
+    switch (key) {
+      case '⌫':
+        child = const Icon(Icons.backspace_outlined);
+        onTap = _numpadBackspace;
+      case 'C':
+        child = const Text('C', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold));
+        onTap = _numpadClear;
+      default:
+        child = Text(key, style: const TextStyle(fontSize: 24));
+        onTap = () => _numpadTap(key);
+    }
+    return SizedBox(
+      height: double.infinity,
+      child: OutlinedButton(
+        onPressed: onTap,
+        style: OutlinedButton.styleFrom(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          padding: EdgeInsets.zero,
+        ),
+        child: child,
+      ),
+    );
+  }
+}

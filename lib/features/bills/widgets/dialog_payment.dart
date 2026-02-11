@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/data/enums/payment_type.dart';
 import '../../../core/data/models/bill_model.dart';
+import '../../../core/data/models/customer_model.dart';
 import '../../../core/data/models/payment_method_model.dart';
 import '../../../core/data/models/payment_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
@@ -27,11 +29,21 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
   bool _processing = false;
   late BillModel _bill;
   int? _customAmount;
+  CustomerModel? _customer;
 
   @override
   void initState() {
     super.initState();
     _bill = widget.bill;
+    _loadCustomer();
+  }
+
+  Future<void> _loadCustomer() async {
+    if (_bill.customerId == null) return;
+    final customer = await ref.read(customerRepositoryProvider).getById(_bill.customerId!);
+    if (mounted && customer != null) {
+      setState(() => _customer = customer);
+    }
   }
 
   int get _remaining => _bill.totalGross - _bill.paidAmount;
@@ -99,6 +111,25 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
                           fontStyle: FontStyle.italic,
                         ),
                       ),
+                      if (_customer != null) ...[
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            '${_customer!.firstName} ${_customer!.lastName} | ${l.loyaltyCustomerInfo(
+                              _customer!.points,
+                              (_customer!.credit / 100).toStringAsFixed(2).replaceAll('.', ','),
+                            )}',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: 16),
                       // Already-made payments
                       StreamBuilder<List<PaymentModel>>(
@@ -162,15 +193,27 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
                     stream: ref.watch(paymentMethodRepositoryProvider).watchAll(company.id),
                     builder: (context, snap) {
                       final methods = (snap.data ?? []).where((m) => m.isActive).toList();
+                      // Separate credit methods from regular methods
+                      final regularMethods = methods.where((m) => m.type != PaymentType.credit).toList();
+                      final creditMethod = methods.where((m) => m.type == PaymentType.credit).firstOrNull;
                       return Column(
                         children: [
-                          for (var i = 0; i < methods.length; i++) ...[
+                          for (var i = 0; i < regularMethods.length; i++) ...[
                             if (i > 0) const SizedBox(height: 8),
                             _PaymentMethodButton(
-                              label: methods[i].name.toUpperCase(),
+                              label: regularMethods[i].name.toUpperCase(),
                               onPressed: _processing || _remaining <= 0
                                   ? null
-                                  : () => _pay(context, methods[i].id),
+                                  : () => _pay(context, regularMethods[i].id),
+                            ),
+                          ],
+                          if (creditMethod != null && _customer != null && _customer!.credit > 0) ...[
+                            const SizedBox(height: 8),
+                            _PaymentMethodButton(
+                              label: '${creditMethod.name.toUpperCase()}\n(${_formatKc(_customer!.credit)})',
+                              onPressed: _processing || _remaining <= 0
+                                  ? null
+                                  : () => _payWithCredit(context, creditMethod.id),
                             ),
                           ],
                           const SizedBox(height: 8),
@@ -256,6 +299,14 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
     final tipAmount = amount > _remaining ? amount - _remaining : 0;
     final effectiveAmount = amount > _remaining ? _remaining : amount;
 
+    // Load loyalty settings for auto-earn
+    int loyaltyEarn = 0;
+    final company = ref.read(currentCompanyProvider);
+    if (company != null && _bill.customerId != null) {
+      final settings = await ref.read(companySettingsRepositoryProvider).getOrCreate(company.id);
+      loyaltyEarn = settings.loyaltyEarnPerHundredCzk;
+    }
+
     final repo = ref.read(billRepositoryProvider);
     final result = await repo.recordPayment(
       companyId: _bill.companyId,
@@ -265,6 +316,7 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
       amount: effectiveAmount,
       tipAmount: tipAmount,
       userId: ref.read(activeUserProvider)?.id,
+      loyaltyEarnPerHundredCzk: loyaltyEarn,
     );
 
     if (!mounted) return;
@@ -277,6 +329,61 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
         Navigator.pop(context, true);
       } else {
         // Stay open — update state for next payment
+        setState(() {
+          _bill = updatedBill;
+          _customAmount = null;
+          _processing = false;
+        });
+      }
+    } else {
+      setState(() => _processing = false);
+    }
+  }
+
+  Future<void> _payWithCredit(BuildContext context, String creditMethodId) async {
+    if (_customer == null || _remaining <= 0) return;
+    setState(() => _processing = true);
+
+    final creditAvailable = _customer!.credit;
+    final effectiveAmount = creditAvailable < _remaining ? creditAvailable : _remaining;
+
+    // Deduct credit from customer
+    final customerRepo = ref.read(customerRepositoryProvider);
+    final creditResult = await customerRepo.adjustCredit(
+      customerId: _customer!.id,
+      delta: -effectiveAmount,
+      processedByUserId: ref.read(activeUserProvider)?.id ?? '',
+      orderId: _bill.id,
+    );
+    if (creditResult is! Success) {
+      if (mounted) setState(() => _processing = false);
+      return;
+    }
+
+    // Record the payment
+    final repo = ref.read(billRepositoryProvider);
+    final result = await repo.recordPayment(
+      companyId: _bill.companyId,
+      billId: _bill.id,
+      paymentMethodId: creditMethodId,
+      currencyId: _bill.currencyId,
+      amount: effectiveAmount,
+      tipAmount: 0,
+      userId: ref.read(activeUserProvider)?.id,
+    );
+
+    if (!mounted) return;
+
+    if (result is Success<BillModel>) {
+      final updatedBill = result.value;
+      final fullyPaid = updatedBill.paidAmount >= updatedBill.totalGross;
+
+      if (fullyPaid) {
+        Navigator.pop(context, true);
+      } else {
+        // Reload customer to get updated credit
+        await _loadCustomer();
+        if (!mounted) return;
         setState(() {
           _bill = updatedBill;
           _customAmount = null;

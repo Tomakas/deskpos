@@ -11,6 +11,8 @@ class CompanySettingsModel with _$CompanySettingsModel implements CompanyScopedM
     required String companyId,
     @Default(true) bool requirePinOnSwitch,
     int? autoLockTimeoutMinutes,
+    @Default(0) int loyaltyEarnPerHundredCzk,
+    @Default(0) int loyaltyPointValueHalere,
     required DateTime createdAt,
     required DateTime updatedAt,
     DateTime? deletedAt,

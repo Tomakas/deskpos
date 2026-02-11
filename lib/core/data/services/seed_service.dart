@@ -222,6 +222,15 @@ class SeedService {
             createdAt: now,
             updatedAt: now,
           ),
+          PaymentMethodModel(
+            id: _id(),
+            companyId: companyId,
+            name: 'Zákaznický kredit',
+            type: PaymentType.credit,
+            isActive: true,
+            createdAt: now,
+            updatedAt: now,
+          ),
         ];
         for (final pm in paymentMethods) {
           await _db.into(_db.paymentMethods).insert(paymentMethodToCompanion(pm));

@@ -90,6 +90,7 @@ class PaymentMethodsTab extends ConsumerWidget {
       PaymentType.cash => l.paymentTypeCash,
       PaymentType.card => l.paymentTypeCard,
       PaymentType.bank => l.paymentTypeBank,
+      PaymentType.credit => l.paymentTypeCredit,
       PaymentType.other => l.paymentTypeOther,
     };
   }

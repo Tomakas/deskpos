@@ -26,6 +26,8 @@ class BillModel with _$BillModel {
     @Default(0) int totalGross,
     @Default(0) int roundingAmount,
     @Default(0) int paidAmount,
+    @Default(0) int loyaltyPointsUsed,
+    @Default(0) int loyaltyDiscountAmount,
     required DateTime openedAt,
     DateTime? closedAt,
     required DateTime createdAt,
