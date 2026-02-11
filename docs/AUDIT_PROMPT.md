@@ -1,15 +1,95 @@
-# Audit Prompt — Kompletní analýza EPOS projektu
+# Audit Prompt — Kompletní analýza EPOS projektu (Triple Redundancy)
 
 > Tento prompt se předává Claude Code pro provedení důkladné read-only analýzy celého projektu.
 > Spouštěj na čisté konverzaci (bez předchozího kontextu).
 
 ---
 
-## Instrukce
+## Architektura auditu — Trojitá redundance
 
-Proveď **kompletní, důkladnou a podrobnou analýzu** celého EPOS projektu. Analýza je čistě **READ-ONLY** — žádný kód se nemodifikuje, žádné commity, žádné migrace.
+Audit používá architekturu **Triple Modular Redundancy (TMR)** pro maximální spolehlivost:
+
+```
+┌─────────────────────────────────────────────────────┐
+│                  FÁZE 0 — Prerekvizity              │
+│         (hlavní konverzace, jednorázově)             │
+│  Supabase project ID, git status, cesty k docs      │
+└──────────────────────┬──────────────────────────────┘
+                       │
+        ┌──────────────┼──────────────────┐
+        ▼              ▼                  ▼
+┌──────────────┐┌──────────────┐┌──────────────┐
+│   AGENT α    ││   AGENT β    ││   AGENT γ    │
+│              ││              ││              │
+│  IDENTICKÁ   ││  IDENTICKÁ   ││  IDENTICKÁ   │
+│  kompletní   ││  kompletní   ││  kompletní   │
+│  analýza     ││  analýza     ││  analýza     │
+│              ││              ││              │
+│ (může použít ││ (může použít ││ (může použít │
+│  vlastní     ││  vlastní     ││  vlastní     │
+│  podagenty)  ││  podagenty)  ││  podagenty)  │
+└──────┬───────┘└──────┬───────┘└──────┬───────┘
+       │               │               │
+       ▼               ▼               ▼
+┌─────────────────────────────────────────────────────┐
+│              FÁZE SLOUČENÍ — Merge & Diff            │
+│                 (hlavní konverzace)                   │
+│                                                      │
+│  1. Sloučit nálezy ze všech 3 agentů                │
+│  2. Identifikovat shody (≥2/3 = potvrzený nález)   │
+│  3. Identifikovat rozpory (nález jen u 1 agenta)    │
+│  4. Re-verifikovat sporné nálezy                     │
+│  5. Vyhodnotit kvalitu analýzy každého agenta        │
+└──────────────────────┬──────────────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────────────┐
+│           FINÁLNÍ REPORT + Confidence Score          │
+└─────────────────────────────────────────────────────┘
+```
+
+### Klíčové principy TMR
+
+1. **Identický scope** — Všichni 3 agenti provádějí **tutéž kompletní analýzu** (FÁZE 1–5). Žádné dělení práce mezi agenty.
+2. **Nezávislost** — Agenti nevidí výsledky ostatních. Každý pracuje izolovaně.
+3. **Vlastní podagenti** — Každý agent MŮŽE (a měl by) spouštět vlastní podagenty pro paralelizaci své práce (např. repos+sync, UI, auth, quality). Vnitřní organizace je na každém agentovi.
+4. **Supabase MCP** — Každý agent má přístup k MCP nástrojům a provádí vlastní Supabase analýzu nezávisle.
+5. **Sloučení až na konci** — Hlavní konverzace sloučí výsledky teprve po dokončení všech 3 agentů.
+
+### Jak spustit 3 agenty
+
+Spusť **v jednom kroku** 3 background agenty (Task tool, `run_in_background: true`). Každý dostane identický prompt obsahující:
+
+- Kompletní instrukce (pravidla analýzy, verifikační protokol)
+- Všechny fáze (FÁZE 1–5)
+- Supabase project ID (zjištěné v FÁZI 0)
+- Identifikátor agenta (α / β / γ) — pouze pro rozlišení ve výstupu
+
+**Prompt pro každého agenta musí být shodný** (kromě identifikátoru). Agent si sám rozhodne, jak svou práci interně organizuje.
+
+---
+
+## FÁZE 0 — Prerekvizity (hlavní konverzace)
+
+Před spuštěním agentů:
+
+1. **Supabase project ID** — zjisti z `lib/core/network/supabase_config.dart`
+2. **Git status** — `git status` a `git log --oneline -10`
+3. **Cesta k PROJECT.md** — ověř skutečnou cestu (Glob `**/PROJECT.md`)
+4. Tyto informace předej do promptu všem 3 agentům.
+
+---
+
+## Instrukce pro agenty (α, β, γ) — Kompletní analýza
+
+> Následující instrukce tvoří prompt, který dostane každý z 3 agentů.
+> Hlavní konverzace je zkopíruje do Task tool promptu pro každého agenta.
+
+---
 
 ### Pravidla analýzy
+
+Proveď **kompletní, důkladnou a podrobnou analýzu** celého EPOS projektu. Analýza je čistě **READ-ONLY** — žádný kód se nemodifikuje, žádné commity, žádné migrace.
 
 1. **Čti každý soubor**, na který odkazuješ. Necituj z paměti — vždy ověř aktuální stav.
 2. **Uváděj přesné cesty a čísla řádků** (`soubor:řádek`) u každého nálezu.
@@ -17,7 +97,7 @@ Proveď **kompletní, důkladnou a podrobnou analýzu** celého EPOS projektu. A
 4. **U každého nálezu uveď**: co je špatně, proč je to problém, konkrétní dopad, a navrhované řešení.
 5. **Porovnávej kód s dokumentací** (`PROJECT.md`, `CLAUDE.md`). Každý rozpor mezi kódem a dokumentací je **nález** — reportuj jako STŘEDNÍ+ závažnost. Neurčuj, kdo má pravdu (kód nebo docs), ale jasně popiš co se liší a kde.
 6. **Analýzu Supabase** proveď přes MCP nástroje (execute_sql, list_tables, get_advisors) — nikdy nehádej stav serveru.
-7. **Spouštěj analýzy paralelně** kde je to možné (Task tool s agenty pro různé oblasti).
+7. **Spouštěj podagenty** pro paralelizaci vlastní práce kde je to efektivní (viz doporučené rozdělení podagentů).
 
 ### Verifikační protokol (POVINNÝ)
 
@@ -52,17 +132,16 @@ Každý nález **MUSÍ** projít verifikací před zařazením do reportu. Cíle
 - Přidej poznámku „VYŽADUJE RUČNÍ OVĚŘENÍ" s popisem, co přesně ověřit
 - Nikdy nehlásaj KRITICKÉ bez důkazu
 
-### Doporučené rozdělení agentů (4 paralelní)
+### Doporučené rozdělení podagentů (interní pro každého agenta)
 
-Spouštěj jako background agenty v jednom kroku:
+Každý agent (α/β/γ) si MŮŽE svou práci interně rozdělit na podagenty. Doporučené rozdělení:
 
-1. **Agent: Repositories + Sync + Mappers** — FÁZE 3.1, 3.2, mappers
-2. **Agent: Auth + Security + Routing + Providers** — FÁZE 3.3, 3.5, 3.6, seed service
-3. **Agent: UI (všechny screeny a widgety)** — FÁZE 3.4
-4. **Agent: Code quality + Drift tabulky** — FÁZE 3.7, 3.8, Drift table definitions
+1. **Podagent: Repositories + Sync + Mappers** — FÁZE 3.1, 3.2, mappers
+2. **Podagent: Auth + Security + Routing + Providers** — FÁZE 3.3, 3.5, 3.6, seed service
+3. **Podagent: UI (všechny screeny a widgety)** — FÁZE 3.4
+4. **Podagent: Code quality + Drift tabulky** — FÁZE 3.7, 3.8, Drift table definitions
 
-FÁZE 2 (Supabase MCP) běží přímo v hlavní konverzaci paralelně s agenty.
-FÁZE 4 (křížová validace) kombinuje výsledky z agentů + FÁZE 2 — provádí hlavní konverzace.
+FÁZE 2 (Supabase MCP) a FÁZE 4 (křížová validace) by měl agent provádět přímo (ne v podagentech), protože vyžadují koordinaci dat.
 
 ### Priorita při nedostatku kontextu
 
@@ -76,17 +155,7 @@ Pokud hrozí vyčerpání kontextu, upřednostni:
 
 ---
 
-## FÁZE 0 — Prerekvizity
-
-Před začátkem analýzy:
-
-1. **Supabase project ID** — zjisti z `lib/core/network/supabase_config.dart` (potřebuješ pro MCP volání)
-2. **Git status** — `git status` a `git log --oneline -10` — co se nedávno měnilo?
-3. **Cesta k PROJECT.md** — ověř skutečnou cestu (Glob `**/PROJECT.md`), CLAUDE.md může odkazovat jinam než kde soubor skutečně je
-
----
-
-## FÁZE 1 — Sběr kontextu
+### FÁZE 1 — Sběr kontextu
 
 Přečti:
 
@@ -102,11 +171,11 @@ Strom všech `.dart` souborů v `lib/` (přes Glob `lib/**/*.dart`).
 
 ---
 
-## FÁZE 2 — Analýza Supabase serveru (MCP)
+### FÁZE 2 — Analýza Supabase serveru (MCP)
 
 Pomocí Supabase MCP nástrojů proveď kompletní audit server-side:
 
-### 2.1 Schéma a struktura
+#### 2.1 Schéma a struktura
 ```sql
 -- Všechny tabulky se sloupci
 SELECT table_name, column_name, data_type, is_nullable, column_default
@@ -129,7 +198,7 @@ JOIN information_schema.constraint_column_usage ccu ON ccu.constraint_name = tc.
 WHERE tc.constraint_type = 'FOREIGN KEY' AND tc.table_schema = 'public';
 ```
 
-### 2.2 Indexy a výkon
+#### 2.2 Indexy a výkon
 ```sql
 -- Všechny indexy
 SELECT tablename, indexname, indexdef
@@ -149,7 +218,7 @@ WHERE tc.constraint_type = 'FOREIGN KEY' AND tc.table_schema = 'public'
   );
 ```
 
-### 2.3 RLS politiky
+#### 2.3 RLS politiky
 ```sql
 -- Všechny RLS politiky (kompletní)
 SELECT schemaname, tablename, policyname, permissive, roles, cmd, qual, with_check
@@ -164,7 +233,7 @@ WHERE schemaname = 'public'
 ORDER BY tablename;
 ```
 
-### 2.4 Triggery a funkce
+#### 2.4 Triggery a funkce
 ```sql
 -- Všechny triggery
 SELECT trigger_name, event_manipulation, event_object_table, action_timing, action_statement
@@ -196,12 +265,12 @@ WHERE n.nspname = 'public'
 ORDER BY p.proname;
 ```
 
-### 2.5 Migrace a advisors
+#### 2.5 Migrace a advisors
 - `list_migrations` — seznam všech migrací
 - `get_advisors(type: "security")` — bezpečnostní doporučení
 - `get_advisors(type: "performance")` — výkonnostní doporučení
 
-### 2.6 Supabase audit checklist
+#### 2.6 Supabase audit checklist
 
 Pro každou tabulku ověř (globální tabulky jako currencies, roles, permissions, role_permissions mají odlišná pravidla — typicky `true` pro authenticated):
 
@@ -218,9 +287,9 @@ Pro každou tabulku ověř (globální tabulky jako currencies, roles, permissio
 
 ---
 
-## FÁZE 3 — Analýza klienta (Flutter/Dart)
+### FÁZE 3 — Analýza klienta (Flutter/Dart)
 
-### 3.1 Architektura a vzory
+#### 3.1 Architektura a vzory
 
 Přečti a analyzuj **každý** soubor v těchto adresářích:
 
@@ -261,7 +330,7 @@ Přečti a analyzuj **každý** soubor v těchto adresářích:
 - [ ] `schemaVersion` — je aktuální?
 - [ ] Existují hardcoded absolutní cesty (např. `File('/Users/...')` v `_openConnection`)?
 
-### 3.2 Sync engine
+#### 3.2 Sync engine
 
 Přečti a analyzuj:
 - `lib/core/sync/sync_service.dart`
@@ -283,7 +352,7 @@ Checklist:
 - [ ] Timer cleanup — `_pullTimer?.cancel()` a `_timer?.cancel()` v dispose/stop?
 - [ ] Dynamic casty — kolik je `as dynamic` v sync kódu? Jsou bezpečné?
 
-### 3.3 Autentizace a bezpečnost
+#### 3.3 Autentizace a bezpečnost
 
 Přečti a analyzuj:
 - `lib/core/auth/pin_helper.dart`
@@ -303,7 +372,7 @@ Checklist:
 - [ ] Token expiration — jaký je JWT expiration time?
 - [ ] Leaked password protection — je zapnutá nebo vypnutá? Je to dokumentováno?
 
-### 3.4 UI vrstva
+#### 3.4 UI vrstva
 
 Přečti a analyzuj **každý** screen a widget:
 - `lib/features/auth/screens/screen_login.dart`
@@ -330,7 +399,7 @@ Checklist:
 - [ ] **FutureBuilder** — je future vytvořen v `initState`, nebo inline v `build()`? (Inline = recreated on every rebuild)
 - [ ] **Dialog width** — jsou šířky dialogů konzistentní?
 
-### 3.5 Providery a state management
+#### 3.5 Providery a state management
 
 Přečti: `lib/core/data/providers/*.dart`
 
@@ -339,7 +408,7 @@ Přečti: `lib/core/data/providers/*.dart`
 - [ ] `appInitProvider` — je inicializační logika kompletní a v správném pořadí?
 - [ ] `activeRegisterProvider` / `activeRegisterSessionProvider` — jsou správně invalidovány při změně stavu?
 
-### 3.6 Routing
+#### 3.6 Routing
 
 Přečti: `lib/core/routing/app_router.dart`
 
@@ -347,7 +416,7 @@ Přečti: `lib/core/routing/app_router.dart`
 - [ ] `/dev` route — je chráněná `kDebugMode` nebo permission checkem?
 - [ ] Redirect loops — může nastat nekonečný redirect?
 
-### 3.7 Kvalita kódu
+#### 3.7 Kvalita kódu
 
 - [ ] `print()` — existují volání `print()` mimo AppLogger? (Grep: `print(`)
 - [ ] Empty catch — existují prázdné `catch` bloky? (Grep: `catch.*\{\s*\}`)
@@ -359,7 +428,7 @@ Přečti: `lib/core/routing/app_router.dart`
 - [ ] Generated code — je `app_database.g.dart` a `*.freezed.dart` aktuální vůči zdrojům?
 - [ ] Hardcoded absolutní cesty — existují `File('/Users/...')` nebo podobné? (Grep: `File('`)
 
-### 3.8 Testy
+#### 3.8 Testy
 
 - [ ] Existují unit testy? Kolik jich je?
 - [ ] Existují widget testy? Kolik jich je?
@@ -369,9 +438,9 @@ Přečti: `lib/core/routing/app_router.dart`
 
 ---
 
-## FÁZE 4 — Křížová validace (Drift ↔ Supabase ↔ Modely ↔ Mappery)
+### FÁZE 4 — Křížová validace (Drift ↔ Supabase ↔ Modely ↔ Mappery)
 
-### Krok 1: Porovnej seznamy tabulek
+#### Krok 1: Porovnej seznamy tabulek
 
 Jako **první krok** než začneš per-column srovnání:
 
@@ -383,7 +452,7 @@ Jako **první krok** než začneš per-column srovnání:
 
 Pozn: `sync_queue` a `sync_metadata` jsou infrastrukturní tabulky. Existují na obou stranách ale mají odlišné schéma — porovnej je zvlášť.
 
-### Krok 2: Per-column srovnání
+#### Krok 2: Per-column srovnání
 
 Pro **každou sdílenou** tabulku:
 
@@ -395,7 +464,7 @@ Pro **každou sdílenou** tabulku:
 | Sloupec | Drift typ | Drift nullable | Supabase typ | Supabase nullable | Model field | Push mapper | Pull mapper | Shoda? |
 |---------|-----------|----------------|--------------|-------------------|-------------|-------------|-------------|--------|
 
-### Krok 3: Hledej nesoulady
+#### Krok 3: Hledej nesoulady
 
 - Sloupec existuje v Drift ale ne v Supabase (nebo naopak) → **KRITICKÉ**
 - Tabulka existuje v Drift ale ne v Supabase (nebo naopak) → **KRITICKÉ**
@@ -407,11 +476,11 @@ Pro **každou sdílenou** tabulku:
 
 ---
 
-## FÁZE 5 — Dokumentace vs implementace
+### FÁZE 5 — Dokumentace vs implementace
 
 **Každý rozpor je nález.** Pokud kód dělá něco jiného než říká dokumentace, nebo dokumentace popisuje něco co v kódu neexistuje (nebo naopak), reportuj jako nález se závažností dle dopadu.
 
-### 5.1 Analýza PROJECT.md
+#### 5.1 Analýza PROJECT.md
 
 Přečti `PROJECT.md` **celý** (po částech). Pro každou sekci hledej:
 
@@ -445,7 +514,7 @@ Přečti `PROJECT.md` **celý** (po částech). Pro každou sekci hledej:
 - [ ] Odkazuje docs na soubory/třídy, které neexistují?
 - [ ] Popisuje docs funkce/features, které nejsou implementované (bez označení jako "plánované")?
 
-### 5.2 Analýza CLAUDE.md
+#### 5.2 Analýza CLAUDE.md
 
 - [ ] Sedí pravidla v CLAUDE.md s realitou? (např. cesty k souborům, konvence)
 - [ ] Odkazuje CLAUDE.md na `docs/PROJECT.md` ale soubor je jinde?
@@ -453,21 +522,115 @@ Přečti `PROJECT.md` **celý** (po částech). Pro každou sekci hledej:
 
 ---
 
-## FÁZE 6 — Výstupní zpráva
+### Výstupní formát agenta
 
-Strukturuj výsledky takto:
+Každý agent vrátí svůj report ve strukturovaném formátu:
+
+```
+# REPORT AGENTA [α/β/γ]
+
+## Souhrn
+- Celkový počet nálezů: X
+- KRITICKÉ: X | VYSOKÉ: X | STŘEDNÍ: X | NÍZKÉ: X | INFO: X
+
+## Nálezy
+
+### [ZÁVAŽNOST] Název nálezu
+**ID:** [α/β/γ]-001 (unikátní ID pro pozdější křížové srovnání)
+**Verifikace:** ...
+**Důkaz:** ...
+**Soubor:** `cesta/soubor.dart:řádek`
+**Popis:** ...
+**Dopad:** ...
+**Řešení:** ...
+
+(opakuj pro každý nález)
+
+## Dokumentace vs kód — nesoulady
+(tabulka)
+
+## Drift ↔ Supabase matice
+(tabulka, pouze řádky s nesouladem)
+
+## Supabase RLS/Trigger audit
+(tabulka per tabulka)
+
+## Pozitivní nálezy
+(co funguje správně)
+```
+
+---
+
+## FÁZE SLOUČENÍ — Merge & Diff (hlavní konverzace)
+
+Po dokončení všech 3 agentů hlavní konverzace provede:
+
+### S1. Sběr výsledků
+
+Přečti výstup všech 3 agentů. Pro každý nález zaznamenej:
+- ID nálezu
+- Závažnost
+- Soubor a řádek
+- Stručný popis
+
+### S2. Klasifikace nálezů
+
+Každý nález zařaď do jedné z kategorií:
+
+| Kategorie | Definice | Akce |
+|-----------|----------|------|
+| **POTVRZENÝ (3/3)** | Všichni 3 agenti reportují totéž | Přijmout. Použít nejvyšší závažnost ze tří. |
+| **VĚTŠINOVÝ (2/3)** | 2 agenti reportují, 1 ne | Přijmout, ale re-verifikovat detaily. Poznámka: „1 agent nereportoval". |
+| **SPORNÝ (1/3)** | Pouze 1 agent reportuje | **POVINNÁ RE-VERIFIKACE** — hlavní konverzace musí nezávisle ověřit. |
+| **KONFLIKTNÍ** | Agenti reportují protichůdné závěry | **POVINNÁ RE-VERIFIKACE** — hlavní konverzace rozhodne a zdůvodní. |
+
+### S3. Re-verifikace sporných nálezů
+
+Pro každý SPORNÝ nebo KONFLIKTNÍ nález:
+
+1. Přečti primární zdroj (soubor, SQL dotaz)
+2. Rozhodni: skutečný problém / falešný nález / nerozhodnutelné
+3. Zaznamenej verdikt s odůvodněním
+
+### S4. Vyhodnocení kvality agentů
+
+Porovnej výkon jednotlivých agentů:
+
+| Metrika | Agent α | Agent β | Agent γ |
+|---------|---------|---------|---------|
+| Celkový počet nálezů | | | |
+| Falešné nálezy (false positives) | | | |
+| Propuštěné nálezy (false negatives) | | | |
+| Přesnost závažnosti | | | |
+| Kvalita verifikace | | | |
+| Kvalita řešení | | | |
+
+### S5. Analýza rozporů
+
+Pro každý případ kde se agenti neshodli, uveď:
+- Co konkrétně se lišilo
+- Proč se pravděpodobně lišilo (různá interpretace, přehlédnutí, odlišný kontext)
+- Jaký je správný závěr
+
+---
+
+## FINÁLNÍ REPORT
+
+Výsledný report kombinuje sloučené nálezy:
 
 ### A. Executive Summary
 - 3-5 vět o celkovém stavu projektu
 - Počet nálezů per závažnost
 - Top 3 rizika
+- **Confidence score** — % nálezů potvrzených ≥2/3 agenty
 
-### B. Nálezy per oblast
+### B. Nálezy per oblast (sloučené)
 
 Pro každou oblast (Supabase, Architektura, Bezpečnost, Sync, UI, Kvalita kódu):
 
 ```
 ### [ZÁVAŽNOST] Název nálezu
+**Shoda agentů:** 3/3 | 2/3 | 1/3 (re-verifikováno)
 **Soubor:** `cesta/soubor.dart:řádek`
 **Popis:** Co je špatně.
 **Dopad:** Proč je to problém (konkrétní scénář).
@@ -487,11 +650,16 @@ Tabulka per tabulka: co chybí, co je špatně, co je nekonzistentní.
 Co je implementováno dobře a správně.
 
 ### G. Prioritizovaný akční plán
-Seřazený seznam nálezů k opravě (KRITICKÉ → NÍZKÉ) s odhadem rozsahu (1 řádek / 1 soubor / více souborů / architekturální změna).
+Seřazený seznam nálezů k opravě (KRITICKÉ → NÍZKÉ) s odhadem rozsahu.
 
 ### H. Quick-Fix Reference
-Tabulka 5 nejkritičtějších nálezů s přesnými soubory a řádky pro okamžitou opravu:
+Tabulka 5 nejkritičtějších nálezů s přesnými soubory a řádky:
 
-| # | Soubor:řádek | Co změnit | Rozsah |
-|---|-------------|-----------|--------|
+| # | Soubor:řádek | Co změnit | Rozsah | Shoda |
+|---|-------------|-----------|--------|-------|
 
+### I. Analýza rozporů mezi agenty
+Tabulka všech případů kde se agenti neshodli, s finálním verdiktem.
+
+### J. Vyhodnocení kvality agentů
+Tabulka metrik pro každého agenta (viz S4).
