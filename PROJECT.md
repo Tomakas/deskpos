@@ -2,7 +2,7 @@
 
 > Konsolidovaná dokumentace projektu EPOS Desktop App.
 >
-> **Poslední aktualizace:** 2026-02-10
+> **Poslední aktualizace:** 2026-02-11
 
 ---
 
@@ -41,7 +41,7 @@
 
 ## Roadmap
 
-4 etapy, každá s milníky a tasky. Schéma obsahuje **30 tabulek** (28 doménových + 2 sync). Dalších 12 tabulek se přidá s příslušnými rozšířeními. Sync se řeší až v Etapě 3 — do té doby funguje aplikace offline na jednom zařízení.
+4 etapy, každá s milníky a tasky. Schéma obsahuje **34 tabulek** (32 doménových + 2 sync). Dalších 6 tabulek se přidá s příslušnými rozšířeními. Sync se řeší až v Etapě 3 — do té doby funguje aplikace offline na jednom zařízení.
 
 ---
 
@@ -151,7 +151,7 @@ Funkce, které nejsou nezbytné pro základní prodej, ale rozšiřují možnost
 - **Task3.2** Outbox pattern — sync_queue, auto-retry, status tracking ✅
 - **Task3.3** LWW conflict resolution — updated_at porovnání, merge logika ✅
 - **Task3.2b** Sync pro bills, orders, order_items, payments — mappers, outbox registrace, pull tables ✅
-- **Task3.4** ConnectCompanyScreen — připojení k existující firmě, InitialSync, sync pro 25 tabulek ✅
+- **Task3.4** ConnectCompanyScreen — připojení k existující firmě, InitialSync, sync pro 32 tabulek ✅
 - **Task3.5** SyncAuthScreen — admin credentials pro Supabase session ✅ (ScreenCloudAuth)
 - **Výsledek:** Data se synchronizují mezi zařízeními. Nové zařízení se připojí k firmě a stáhne data.
 
@@ -182,7 +182,7 @@ Funkce, které nejsou nezbytné pro základní prodej, ale rozšiřují možnost
 - **Task3.16** ✅ Receptury — tabulka `product_recipes` (parent_product_id → hotový produkt, component_product_id → surovina, quantity_required); item_type rozšíření o `recipe`, `ingredient`
 - **Task3.17** ✅ Varianty produktů — `parent_id` ve items, item_type `variant`, `modifier` (velikost, barva apod.)
 - **Task3.18** ✅ Hierarchické kategorie — `parent_id` v categories (stromová struktura, max 3 úrovně)
-- **Task3.19** ✅ UI správa — nová route `/catalog` s 5 taby (Produkty, Kategorie, Dodavatelé, Výrobci, Receptury); ScreenDev redukován na 4 taby
+- **Task3.19** ✅ UI správa — nová route `/catalog` s 5 taby (Produkty, Kategorie, Dodavatelé, Výrobci, Receptury); Dev taby (Sekce, Stoly, Daň. sazby, Plat. metody) sloučeny do ScreenCompanySettings
 - **Výsledek:** Kompletní produktový katalog s dodavateli, výrobci, recepturami a variantami. Položky mají nákupní cenu, alt SKU a vazby na dodavatele/výrobce.
 
 #### Milník 3.5 — Sklad a zásobování
@@ -202,15 +202,15 @@ Funkce, které nejsou nezbytné pro základní prodej, ale rozšiřují možnost
 
 ##### Tasky
 
-- **Task3.20** Enumy + Drift tabulky — `StockDocumentType` (receipt, waste, inventory, correction), `PurchasePriceStrategy` (overwrite, keep, average, weightedAverage), `StockMovementDirection` (in, out). Tabulky: `warehouses` (id, company_id, name, is_default, is_active), `stock_levels` (id, company_id, warehouse_id, item_id, quantity real, min_quantity real), `stock_documents` (id, company_id, warehouse_id, supplier_id?, user_id, document_number, type, purchase_price_strategy, note?, total_amount, document_date), `stock_movements` (id, company_id, stock_document_id?, item_id, quantity real, purchase_price?, direction, purchase_price_strategy? override). Modely (freezed): WarehouseModel, StockLevelModel, StockDocumentModel, StockMovementModel.
-- **Task3.21** Mappers + Supabase — entity_mappers, supabase_mappers, supabase_pull_mappers pro všechny 4 tabulky. Supabase migrace: CREATE TABLE + RLS (company_id based) + handle_updated_at triggery + indexy. Outbox registrace v sync provideru.
-- **Task3.22** WarehouseRepository — createDefaultWarehouse (lazy init při prvním přístupu), getDefault, watchAll. Injektovaný SyncQueueRepository.
-- **Task3.23** StockLevelRepository — getOrCreate (lazy init), watchByWarehouse (JOIN s items pro název/unit/purchasePrice), adjustQuantity (delta), setQuantity (absolutní). Injektovaný SyncQueueRepository.
-- **Task3.24** StockDocumentRepository — createDocument (transakce: insert document + movements + adjust stock_levels + update purchase_price dle strategie per položka, enqueue všech dotčených entit). Logika nákupní ceny: per položka zjistí strategii (item override ?? document strategy), aplikuje dle typu (overwrite/keep/average/weightedAverage). watchByWarehouse, generateDocumentNumber (R-001/W-001/I-001/C-001).
-- **Task3.25** Automatický odpis v OrderRepository — modifikace `createOrderWithItems`: po insertu pro každý isStockTracked item vytvořit stock_movement (bez stock_document_id). Receptury: rozpad přes product_recipes, odečtení ingrediencí. Modifikace `updateStatus`: při cancelled/voided reverzní stock_movements. Nové závislosti: StockLevelRepository, ProductRecipeRepository.
-- **Task3.26** ScreenInventory — fullscreen route `/inventory`, DataTable se všemi stock-tracked položkami. Sloupce: Položka, Jednotka, Množství, Min.množství, Nákupní cena, Celková hodnota. Footer: celková hodnota skladu. Tlačítka: Příjemka, Výdejka, Inventura, Oprava. Přístup: tlačítko SKLAD na ScreenBills.
-- **Task3.27** DialogStockDocument — znovupoužitelný dialog pro příjemku/výdejku/opravu. Pole: dodavatel (dropdown, jen receipt), strategie ceny (dropdown + per-item override, jen receipt), seznam položek (search + quantity + price). Validace: ≥1 položka.
-- **Task3.28** DialogInventory — seznam stock-tracked položek s aktuálním stavem + pole pro skutečný stav. Systém vypočítá diff, vytvoří stock_movements a jeden stock_document typu `inventory`.
+- **Task3.20** ✅ Enumy + Drift tabulky — `StockDocumentType` (receipt, waste, inventory, correction), `PurchasePriceStrategy` (overwrite, keep, average, weightedAverage), `StockMovementDirection` (inbound, outbound). Tabulky: `warehouses` (id, company_id, name, is_default, is_active), `stock_levels` (id, company_id, warehouse_id, item_id, quantity real, min_quantity real), `stock_documents` (id, company_id, warehouse_id, supplier_id?, user_id, document_number, type, purchase_price_strategy, note?, total_amount, document_date), `stock_movements` (id, company_id, stock_document_id?, item_id, quantity real, purchase_price?, direction, purchase_price_strategy? override). Modely (freezed): WarehouseModel, StockLevelModel, StockDocumentModel, StockMovementModel.
+- **Task3.21** ✅ Mappers + Sync — entity_mappers, supabase_mappers, supabase_pull_mappers pro všechny 4 tabulky. Outbox registrace v sync provideru. Supabase migrace: zatím nepřidány (klient-side hotový).
+- **Task3.22** ✅ WarehouseRepository — getDefault (lazy init „Hlavní sklad" při prvním přístupu), watchAll. Extends BaseCompanyScopedRepository.
+- **Task3.23** ✅ StockLevelRepository — getOrCreate (lazy init), watchByWarehouse (JOIN s items pro název/unit/purchasePrice), adjustQuantity (delta), setQuantity (absolutní), setMinQuantity. Injektovaný SyncQueueRepository.
+- **Task3.24** ✅ StockDocumentRepository — createDocument (transakce: insert document + movements + adjust stock_levels + update purchase_price dle strategie per položka, enqueue všech dotčených entit). createInventoryDocument (difference-based movements). Logika nákupní ceny: per položka zjistí strategii (item override ?? document strategy), aplikuje dle typu (overwrite/keep/average/weightedAverage). watchByWarehouse, generateDocumentNumber (R-001/W-001/I-001/C-001).
+- **Task3.25** ✅ Automatický odpis v OrderRepository — modifikace `createOrderWithItems`: po insertu pro každý isStockTracked item vytvořit stock_movement (bez stock_document_id). Receptury: rozpad přes product_recipes, odečtení ingrediencí. Modifikace `updateStatus`: při cancelled/voided reverzní stock_movements. Nové závislosti: StockLevelRepository, StockMovementRepository.
+- **Task3.26** ✅ ScreenInventory — fullscreen route `/inventory`, 2 taby (Zásoby + Doklady). Tab Zásoby: DataTable se stock-tracked položkami (Položka, Jednotka, Množství, Min.množství, Nákupní cena, Celková hodnota) + footer s celkovou hodnotou skladu. Tab Doklady: DataTable se skladovými doklady (Číslo, Typ, Datum, Dodavatel, Poznámka, Celkem). Tlačítka: Příjemka, Výdejka, Inventura, Oprava. Přístup: tlačítko SKLAD na ScreenBills.
+- **Task3.27** ✅ DialogStockDocument — znovupoužitelný dialog pro příjemku/výdejku/opravu. Pole: dodavatel (dropdown, jen receipt), strategie ceny (dropdown + per-item override, jen receipt), seznam položek (search + quantity + price). Validace: ≥1 položka.
+- **Task3.28** ✅ DialogInventory — seznam stock-tracked položek s aktuálním stavem + pole pro skutečný stav. Systém vypočítá diff, vytvoří stock_movements a jeden stock_document typu `inventory`.
 - **Výsledek:** Plné skladové hospodářství s evidencí zásob, příjemkami, výdejkami, automatickým odpisem při prodeji (s rozpadem receptur), inventurami a plnou synchronizací přes outbox.
 
 #### Milník 3.6 — Tisk
@@ -355,14 +355,15 @@ Deklarativní routing s auth guardem:
 /bills               → ScreenBills (hlavní obrazovka)
 /sell                → ScreenSell (rychlý prodej — bez billId)
 /sell/:billId        → ScreenSell (objednávka na existující účet)
-/settings            → ScreenSettings (3 taby: Firma, Pokladna, Uživatelé) — vyžaduje settings.manage
+/settings/company    → ScreenCompanySettings (Informace o firmě, Zabezpečení, Cloud) — vyžaduje settings.manage
+/settings/register   → ScreenRegisterSettings (Zobrazení mřížky) — vyžaduje settings.manage
 /catalog             → ScreenCatalog (5 tabů: Produkty, Kategorie, Dodavatelé, Výrobci, Receptury) — vyžaduje settings.manage
-/dev                 → ScreenDev (správa dat — 4 taby: Sekce, Stoly, Daň. sazby, Plat. metody) — vyžaduje settings.manage
+/inventory           → ScreenInventory (2 taby: Zásoby, Doklady) + akční tlačítka (Příjemka, Výdejka, Oprava, Inventura)
 ```
 
 **Auth guard:** Router čeká na `appInitProvider`. Nepřihlášený uživatel je přesměrován na `/login`. Pokud neexistuje firma, přesměrování na `/onboarding`. Po přihlášení se z auth/onboarding stránek přesměruje na `/bills`.
 
-**Permission guard:** Routy `/settings`, `/catalog` a `/dev` vyžadují oprávnění `settings.manage`. Bez něj se uživatel přesměruje na `/bills`.
+**Permission guard:** Routy `/settings/*` a `/catalog` vyžadují oprávnění `settings.manage`. Bez něj se uživatel přesměruje na `/bills`.
 
 ---
 
@@ -379,19 +380,19 @@ lib/
 │   │   ├── supabase_auth_service.dart # Supabase GoTrue (email/password)
 │   │   └── pin_helper.dart            # Hashing (salt + SHA-256)
 │   ├── data/                          # Globální datová vrstva
-│   │   ├── enums/                     # Dart enum definice (12 enumů + barrel)
+│   │   ├── enums/                     # Dart enum definice (15 enumů + barrel)
 │   │   ├── mappers/                   # Entity ↔ Model mapování (3 soubory)
-│   │   ├── models/                    # Doménové modely (Freezed, 26 + interface)
+│   │   ├── models/                    # Doménové modely (Freezed, 33 + interface)
 │   │   ├── providers/                 # DI registrace (Riverpod, 5 souborů)
-│   │   ├── repositories/              # Repozitáře (25 souborů)
+│   │   ├── repositories/              # Repozitáře (31 souborů)
 │   │   └── services/                  # SeedService (onboarding seed)
 │   ├── database/                      # Drift databáze
-│   │   ├── app_database.dart          # @DriftDatabase (28 tabulek)
-│   │   └── tables/                    # Definice tabulek (29 souborů: 28 tabulek + mixin)
+│   │   ├── app_database.dart          # @DriftDatabase (34 tabulek)
+│   │   └── tables/                    # Definice tabulek (35 souborů: 34 tabulek + mixin)
 │   ├── routing/                       # GoRouter + auth guard (app_router.dart)
 │   ├── network/                       # Supabase konfigurace (URL, anon key)
 │   ├── sync/                          # Sync engine
-│   │   ├── sync_service.dart          # Pull (5min interval, 25 tabulek)
+│   │   ├── sync_service.dart          # Pull (5min interval, 32 tabulek)
 │   │   ├── outbox_processor.dart      # Push (5s interval, retry + backoff)
 │   │   └── sync_lifecycle_manager.dart # Orchestrace start/stop/initial push
 │   ├── logging/                       # AppLogger (dart:developer)
@@ -404,15 +405,18 @@ lib/
 │   │   │                              # DialogOpeningCash, DialogClosingSession,
 │   │   │                              # DialogCashMovement, DialogCashJournal,
 │   │   │                              # DialogDiscount, DialogChangeTotalToPay,
-│   │   │                              # DialogZReport, DialogZReportList, DialogShiftsList
+│   │   │                              # DialogZReport, DialogZReportList, DialogShiftsList,
+│   │   │                              # DialogMergeBill, DialogSplitBill, DialogCustomerSearch
 │   │   ├── providers/                 # z_report_providers
 │   │   ├── services/                  # ZReportService (výpočet Z-reportu)
 │   │   └── models/                    # ZReportData (model pro Z-report)
 │   ├── catalog/                       # ScreenCatalog (5 tabů: Produkty, Kategorie, Dodavatelé, Výrobci, Receptury)
+│   ├── inventory/                     # ScreenInventory (2 taby: Zásoby, Doklady),
+│   │                                  # DialogStockDocument, DialogInventory
 │   ├── onboarding/                    # ScreenOnboarding, ScreenConnectCompany
 │   ├── sell/                          # ScreenSell (grid + košík)
-│   └── settings/                      # ScreenSettings (3 taby: Firma, Pokladna, Uživatelé),
-│                                      # ScreenCloudAuth, ScreenDev (4 taby CRUD)
+│   └── settings/                      # ScreenCompanySettings (8 tabů), ScreenRegisterSettings,
+│                                      # ScreenCloudAuth
 └── l10n/                              # ARB soubory + generovaný kód
 ```
 
@@ -430,8 +434,8 @@ Každá entita v `core/data/` se skládá z následujících souborů:
 **Architektura:** Repozitáře pracují přímo s `AppDatabase` (Drift) bez DataSource abstrakce. Sync logika (outbox zápis, pull merge) žije přímo v repozitářích.
 
 **Dva vzory outbox zápisu:**
-- **Konfigurační entity** (sections, categories, items, tables, payment_methods, tax_rates, users, suppliers, manufacturers, product_recipes): Dědí z `BaseCompanyScopedRepository<T>` — automatický outbox zápis v transakci s CRUD operací.
-- **Prodejní a provozní entity** (bills, orders, order_items, payments, register_sessions, cash_movements, layout_items, user_permissions, shifts): Vlastní repozitáře s injektovaným `SyncQueueRepository` a explicitním `_enqueue*` voláním po každé mutaci. Ruční přístup — business metody (createOrderWithItems, recordPayment, cancelBill cascade, openSession, closeSession, applyRoleToUser) nepasují do CRUD patternu base repository.
+- **Konfigurační entity** (sections, categories, items, tables, payment_methods, tax_rates, users, suppliers, manufacturers, product_recipes, warehouses): Dědí z `BaseCompanyScopedRepository<T>` — automatický outbox zápis v transakci s CRUD operací.
+- **Prodejní a provozní entity** (bills, orders, order_items, payments, register_sessions, cash_movements, layout_items, user_permissions, shifts, stock_levels, stock_documents, stock_movements): Vlastní repozitáře s injektovaným `SyncQueueRepository` a explicitním `_enqueue*` voláním po každé mutaci. Ruční přístup — business metody (createOrderWithItems, recordPayment, cancelBill cascade, openSession, closeSession, applyRoleToUser, createDocument, adjustQuantity) nepasují do CRUD patternu base repository.
 
 ---
 
@@ -448,21 +452,17 @@ Každá entita v `core/data/` se skládá z následujících souborů:
 
 ### Umístění lokální databáze
 
-Databáze se ukládá přímo v adresáři projektu:
+Databáze se ukládá v adresáři dokumentů aplikace (`getApplicationDocumentsDirectory()` z `path_provider`):
 
 ```
-<projekt>/epos_database.sqlite
+<applicationDocumentsDirectory>/epos_database.sqlite
 ```
 
-Soubor je v `.gitignore`. Jedna cesta pro všechny platformy — nezávisí na OS.
+Cesta se skládá pomocí `path` package (`p.join(dir.path, 'epos_database.sqlite')`). Na macOS typicky `~/Library/Containers/.../Data/Documents/`, na Android `data/data/<package>/files/`.
 
 ### Mazání lokálních dat (Clean Install)
 
-Pro simulaci čisté instalace (např. testování onboardingu):
-
-```bash
-rm -f epos_database.sqlite
-```
+Pro simulaci čisté instalace (např. testování onboardingu) smazat DB soubor z příslušného umístění a restartovat aplikaci.
 
 Po smazání databáze a restartu aplikace se zobrazí **ScreenOnboarding** — onboarding wizard pro vytvoření firmy a admin účtu.
 
@@ -474,7 +474,7 @@ Po smazání databáze a restartu aplikace se zobrazí **ScreenOnboarding** — 
 
 > Sync sloupce jsou předpřipravené ve schématu od Etapy 1. V Etapě 1–2 zůstávají prázdné (nullable). Využijí se až v Etapě 3 při aktivaci sync.
 
-Všechny doménové tabulky (26) používají mixin `SyncColumnsMixin` se sloupci: `lastSyncedAt` (D), `version` (I, default 1), `serverCreatedAt` (D), `serverUpdatedAt` (D). Mixin rovněž přidává `createdAt` (D, default now), `updatedAt` (D, default now), `deletedAt` (D, nullable) pro soft delete. Tabulky `sync_queue` a `sync_metadata` mixin nepoužívají (vlastní timestamps).
+Všechny doménové tabulky (32) používají mixin `SyncColumnsMixin` se sloupci: `lastSyncedAt` (D), `version` (I, default 1), `serverCreatedAt` (D), `serverUpdatedAt` (D). Mixin rovněž přidává `createdAt` (D, default now), `updatedAt` (D, default now), `deletedAt` (D, nullable) pro soft delete. Tabulky `sync_queue` a `sync_metadata` mixin nepoužívají (vlastní timestamps).
 
 Navíc každá tabulka definuje: `createdAt`, `updatedAt`, `deletedAt` (soft delete).
 
@@ -482,9 +482,9 @@ Navíc každá tabulka definuje: `createdAt`, `updatedAt`, `deletedAt` (soft del
 
 #### Přehled tabulek
 
-##### Aktivní tabulky (28) — registrované v @DriftDatabase
+##### Aktivní tabulky (34) — registrované v @DriftDatabase
 
-**Doménové tabulky (26):**
+**Doménové tabulky (32):**
 
 | SQL tabulka | Drift Table | Drift Entity | Model |
 |-------------|-------------|--------------|-------|
@@ -494,6 +494,8 @@ Navíc každá tabulka definuje: `createdAt`, `updatedAt`, `deletedAt` (soft del
 | `companies` | `Companies` | `Company` | `CompanyModel` |
 | `company_settings` | `CompanySettings` | `CompanySetting` | `CompanySettingsModel` |
 | `currencies` | `Currencies` | `Currency` | `CurrencyModel` |
+| `customers` | `Customers` | `Customer` | `CustomerModel` |
+| `customer_transactions` | `CustomerTransactions` | `CustomerTransaction` | `CustomerTransactionModel` |
 | `items` | `Items` | `Item` | `ItemModel` |
 | `layout_items` | `LayoutItems` | `LayoutItem` | `LayoutItemModel` |
 | `manufacturers` | `Manufacturers` | `Manufacturer` | `ManufacturerModel` |
@@ -509,11 +511,15 @@ Navíc každá tabulka definuje: `createdAt`, `updatedAt`, `deletedAt` (soft del
 | `roles` | `Roles` | `Role` | `RoleModel` |
 | `sections` | `Sections` | `Section` | `SectionModel` |
 | `shifts` | `Shifts` | `Shift` | `ShiftModel` |
+| `stock_documents` | `StockDocuments` | `StockDocument` | `StockDocumentModel` |
+| `stock_levels` | `StockLevels` | `StockLevel` | `StockLevelModel` |
+| `stock_movements` | `StockMovements` | `StockMovement` | `StockMovementModel` |
 | `suppliers` | `Suppliers` | `Supplier` | `SupplierModel` |
 | `tables` | `Tables` | `TableEntity` | `TableModel` |
 | `tax_rates` | `TaxRates` | `TaxRate` | `TaxRateModel` |
 | `user_permissions` | `UserPermissions` | `UserPermission` | `UserPermissionModel` |
 | `users` | `Users` | `User` | `UserModel` |
+| `warehouses` | `Warehouses` | `Warehouse` | `WarehouseModel` |
 
 **Sync tabulky (2):**
 
@@ -530,16 +536,10 @@ Navíc každá tabulka definuje: `createdAt`, `updatedAt`, `deletedAt` (soft del
 
 | SQL tabulka | Drift Table | Kdy |
 |-------------|-------------|-----|
-| `customers` | `Customers` | CRM rozšíření |
-| `customer_transactions` | `CustomerTransactions` | CRM rozšíření |
 | `vouchers` | `Vouchers` | CRM rozšíření |
 | `item_modifiers` | `ItemModifiers` | Gastro rozšíření |
 | `order_item_modifiers` | `OrderItemModifiers` | Gastro rozšíření |
 | `reservations` | `Reservations` | Gastro rozšíření |
-| `warehouses` | `Warehouses` | Sklad rozšíření |
-| `stock_levels` | `StockLevels` | Sklad rozšíření |
-| `stock_documents` | `StockDocuments` | Sklad rozšíření |
-| `stock_movements` | `StockMovements` | Sklad rozšíření |
 
 #### Sloupce tabulek
 
@@ -602,6 +602,21 @@ Všechny aktivní tabulky obsahují společné sync sloupce (viz [SyncColumnsMix
 | Tabulka | Sloupce |
 |---------|---------|
 | **sections** | id (T), company_id →companies, name (T), color (T), is_active (B), is_default (B — max 1 per company) |
+
+##### Sklad
+
+| Tabulka | Sloupce |
+|---------|---------|
+| **warehouses** | id (T), company_id →companies, name (T), is_default (B), is_active (B) |
+| **stock_levels** | id (T), company_id →companies, warehouse_id →warehouses, item_id →items, quantity (R), min_quantity (R?) |
+| **stock_documents** | id (T), company_id →companies, warehouse_id →warehouses, supplier_id →suppliers?, user_id →users, document_number (T), type (T — StockDocumentType), purchase_price_strategy (T? — PurchasePriceStrategy), note (T?), total_amount (I), document_date (D) |
+| **stock_movements** | id (T), company_id →companies, stock_document_id →stock_documents?, item_id →items, quantity (R), purchase_price (I?), direction (T — StockMovementDirection), purchase_price_strategy (T? — PurchasePriceStrategy per-item override) |
+
+**Pravidla:**
+- `stock_levels` — composite index na `(warehouse_id, item_id)`, lazy created přes `getOrCreate`
+- `stock_documents` — `supplier_id` a `purchase_price_strategy` pouze pro typ `receipt`
+- `stock_movements` — `stock_document_id` nullable: null pro automatické prodejní odpisy, nastaveno pro ruční doklady
+- `purchase_price_strategy` na movements — per-item override, nullable (fallback na strategii dokladu)
 
 ##### Layout grid
 
@@ -676,15 +691,15 @@ Klientské timestampy se ukládají v **UTC**.
 | `LayoutItemType` | `LayoutItemModel` | item, category |
 | `CashMovementType` | `CashMovementModel` | deposit, withdrawal, expense |
 | `DiscountType` | `OrderItemModel`, `BillModel` | absolute, percent |
+| `StockDocumentType` | `StockDocumentModel` | receipt, waste, inventory, correction |
+| `PurchasePriceStrategy` | `StockDocumentModel`, `StockMovementModel` | overwrite, keep, average, weightedAverage |
+| `StockMovementDirection` | `StockMovementModel` | inbound, outbound |
 
 ##### ENUMs rozšíření (přidají se s příslušnými tabulkami)
 
 | Dart Enum | Kdy | Hodnoty |
 |-----------|-----|---------|
 | `SubscriptionPlan` | Sync (Etapa 3) | free, basic, advance, pro, enterprise, tech |
-| `StockDocumentType` | Sklad (Milník 3.5) | receipt, waste, inventory, correction (transfer s multi-warehouse) |
-| `PurchasePriceStrategy` | Sklad (Milník 3.5) | overwrite, keep, average, weightedAverage |
-| `StockMovementDirection` | Sklad (Milník 3.5) | in, out |
 | `VoucherType` | CRM rozšíření | fixedAmount, percentage, product |
 | `VoucherStatus` | CRM rozšíření | valid, used, cancelled, expired |
 | `ReservationStatus` | Gastro rozšíření | created, confirmed, cancelled, seated |
@@ -692,13 +707,13 @@ Klientské timestampy se ukládají v **UTC**.
 
 Hodnoty ENUM jsou uloženy jako `TEXT` v lokální SQLite databázi. Drift `textEnum<T>()` automaticky zajišťuje konverzi mezi enum typy a string hodnotami.
 
-> **Poznámka:** `BillStatus` obsahuje `refunded` od Etapy 3.2. `DiscountType` (`absolute`, `percent`) byl přidán v Etapě 3.2 pro slevy na položku i účet. `ItemType` obsahuje `recipe`, `ingredient`, `variant`, `modifier` od Etapy 3.4. `PaymentType` neobsahuje `voucher`, `points` — ty se přidají s CRM rozšířením.
+> **Poznámka:** `BillStatus` obsahuje `refunded` od Etapy 3.2. `DiscountType` (`absolute`, `percent`) byl přidán v Etapě 3.2 pro slevy na položku i účet. `ItemType` obsahuje `recipe`, `ingredient`, `variant`, `modifier` od Etapy 3.4. `StockMovementDirection` používá `inbound`/`outbound` (ne `in`/`out` — `in` je reserved keyword v Dartu). `PaymentType` neobsahuje `voucher`, `points` — ty se přidají s CRM rozšířením.
 
 ---
 
 ## Synchronizace (Etapa 3 — částečně implementováno)
 
-> **Stav implementace:** Sync infrastruktura je funkční pro všech 26 doménových tabulek. Konfigurační entity (sections, categories, items, tables, payment_methods, tax_rates, users, suppliers, manufacturers, product_recipes) dědí z `BaseCompanyScopedRepository` s automatickým outbox zápisem v transakci. Prodejní a provozní entity (bills, orders, order_items, payments, register_sessions, cash_movements, layout_items, user_permissions, shifts) používají ruční enqueue — vlastní repozitáře s injektovaným `SyncQueueRepository` a explicitním `_enqueue*` voláním po každé mutaci. Globální tabulky (currencies, roles, permissions, role_permissions) se pullují bez company_id filtru a pushují při initial sync. SyncService pulluje všech 26 tabulek v FK-respektujícím pořadí. ConnectCompanyScreen umožňuje připojení nového zařízení k existující firmě stažením dat přes InitialSync (pullAll).
+> **Stav implementace:** Sync infrastruktura je funkční pro všech 32 doménových tabulek. Konfigurační entity (sections, categories, items, tables, payment_methods, tax_rates, users, suppliers, manufacturers, product_recipes, warehouses) dědí z `BaseCompanyScopedRepository` s automatickým outbox zápisem v transakci. Prodejní a provozní entity (bills, orders, order_items, payments, register_sessions, cash_movements, layout_items, user_permissions, shifts, stock_levels, stock_documents, stock_movements) používají ruční enqueue — vlastní repozitáře s injektovaným `SyncQueueRepository` a explicitním `_enqueue*` voláním po každé mutaci. Globální tabulky (currencies, roles, permissions, role_permissions) se pullují bez company_id filtru a pushují při initial sync. SyncService pulluje všech 32 tabulek v FK-respektujícím pořadí. ConnectCompanyScreen umožňuje připojení nového zařízení k existující firmě stažením dat přes InitialSync (pullAll).
 
 ### Outbox Pattern
 
@@ -791,7 +806,7 @@ Flow pro nové zařízení (5 kroků — enum `_Step`):
 1. `credentials` — Formulář: email + heslo → `supabaseAuthService.signIn()`
 2. `searching` — Loading: „Hledání firmy..." → fetch company z Supabase (`companies.auth_user_id = userId`)
 3. `companyPreview` — Zobrazí název firmy + tlačítko „Připojit"
-4. `syncing` — Loading: „Synchronizace dat..." → `syncService.pullAll(companyId)` — stáhne všech 25 tabulek
+4. `syncing` — Loading: „Synchronizace dat..." → `syncService.pullAll(companyId)` — stáhne všech 32 tabulek
 5. `done` — „Synchronizace dokončena" → invalidace `appInitProvider` → navigace na `/login`
 
 ### Known Issues / Limitations
@@ -1173,8 +1188,11 @@ stateDiagram-v2
 #### OrderRepository
 
 - **Query:** watchByBill, watchOrderItems, getOrderItems, getOrderItemsByBill, watchLastOrderTimesByCompany
-- **Business:** createOrderWithItems (s orderNotes a item notes), updateStatus, startPreparation, markReady, markDelivered, cancelOrder, voidOrder, updateOrderNotes, updateItemNotes, updateItemDiscount, reassignOrdersToBill (přesun všech objednávek mezi účty — pro merge), splitItemsToNewOrder (vytvoření nové objednávky na cílovém účtu a přesun vybraných položek — pro split; automaticky zruší zdrojové objednávky bez zbývajících položek)
-- **Sync:** Injektovaný `SyncQueueRepository`, ruční enqueue — `_enqueueOrder`, `_enqueueOrderItem`. createOrderWithItems enqueueuje order + všechny items. updateStatus enqueueuje order + všechny items (delegující metody cancelOrder, voidOrder, startPreparation, markReady, markDelivered automaticky pokryty přes updateStatus).
+- **Business:** createOrderWithItems (s orderNotes a item notes + automatický stock odpis), updateStatus (s automatickým reversal stock při cancelled/voided), startPreparation, markReady, markDelivered, cancelOrder, voidOrder, updateOrderNotes, updateItemNotes, updateItemDiscount, reassignOrdersToBill (přesun všech objednávek mezi účty — pro merge), splitItemsToNewOrder (vytvoření nové objednávky na cílovém účtu a přesun vybraných položek — pro split; automaticky zruší zdrojové objednávky bez zbývajících položek)
+- **Stock deduction:** Po `createOrderWithItems` automaticky volá `_deductStockForOrder` — pro každý `isStockTracked` item vytvoří `stock_movement` (outbound, bez stock_document_id). Receptury (`item_type == recipe`): rozpad přes `product_recipes`, odečtení ingrediencí místo receptury samotné.
+- **Stock reversal:** Při `updateStatus` do cancelled/voided volá `_reverseStockForOrder` — vytvoří reverzní inbound movements pro všechny dříve odečtené položky.
+- **Závislosti:** Injektovaný `SyncQueueRepository`, volitelné `StockLevelRepository` a `StockMovementRepository` (pro stock odpis/reversal)
+- **Sync:** Ruční enqueue — `_enqueueOrder`, `_enqueueOrderItem`. createOrderWithItems enqueueuje order + všechny items. updateStatus enqueueuje order + všechny items (delegující metody cancelOrder, voidOrder, startPreparation, markReady, markDelivered automaticky pokryty přes updateStatus).
 
 #### PaymentRepository
 
@@ -1205,6 +1223,31 @@ stateDiagram-v2
 - **Business:** setCell (nastaví/přepíše buňku gridu — soft-delete starého + insert nového), clearCell (soft-delete buňky)
 - **Query:** watchByRegister (filtrováno dle registerId a page)
 - **Sync:** Injektovaný `SyncQueueRepository`, ruční enqueue `_enqueueLayoutItem` po každé mutaci
+
+#### WarehouseRepository
+
+- **Extends:** `BaseCompanyScopedRepository<WarehouseModel>` — automatický CRUD + sync
+- **Business:** getDefault (lazy init — vytvoří „Hlavní sklad" pokud žádný neexistuje)
+
+#### StockLevelRepository
+
+- **Query:** watchByWarehouse (JOIN s items pro název/unit/purchasePrice — vrací `StockLevelWithItem`)
+- **Business:** getOrCreate (lazy init stock level pro item+warehouse), adjustQuantity (delta ±), setQuantity (absolutní hodnota), setMinQuantity
+- **Sync:** Injektovaný `SyncQueueRepository`, ruční enqueue `_enqueue` po každé mutaci
+
+#### StockMovementRepository
+
+- **Business:** createMovement (insert movement + enqueue)
+- **Query:** watchByDocument, getByItem, getInboundByItem
+- **Sync:** Injektovaný `SyncQueueRepository`, ruční enqueue `_enqueue` po vytvoření
+
+#### StockDocumentRepository
+
+- **Business:** createDocument (transakce: insert document + movements + adjust stock_levels + update purchase_price dle strategie per položka, enqueue všech dotčených entit), createInventoryDocument (difference-based — porovná aktuální vs zadané množství, vytvoří korekční movements), generateDocumentNumber (R-001/W-001/I-001/C-001)
+- **Nákupní cena:** `_applyPurchasePriceStrategy` — per položka zjistí strategii (item override ?? document strategy), aplikuje: overwrite (přepsat), keep (ponechat), average (prostý průměr), weightedAverage (vážený průměr dle stávajícího množství). Aktualizuje `items.purchase_price` a enqueueuje item pro sync.
+- **Query:** watchByWarehouse
+- **Závislosti:** `SyncQueueRepository`, `StockLevelRepository`, `StockMovementRepository`
+- **Sync:** Ruční enqueue — `_enqueueDocument`, `_enqueueMovement` po každé mutaci. Movements a stock level úpravy delegovány na StockMovement/StockLevel repos.
 
 #### PermissionRepository
 
@@ -1339,12 +1382,14 @@ Implementováno — navigace z ScreenOnboarding na `/connect-company`:
 1. Uživatel zadá email + heslo (Supabase admin credentials)
 2. Aplikace ověří přihlášení a najde firmu podle `companies.auth_user_id = userId`
 3. Zobrazí název firmy + tlačítko „Připojit"
-4. `SyncService.pullAll(companyId)` stáhne data firmy v pořadí FK závislostí (25 tabulek):
-   1. Currencies, Companies, Roles, Permissions, RolePermissions
+4. `SyncService.pullAll(companyId)` stáhne data firmy v pořadí FK závislostí (32 tabulek):
+   1. Currencies, Companies, CompanySettings, Roles, Permissions, RolePermissions
    2. Sections, TaxRates, PaymentMethods, Categories, Users, UserPermissions
    3. Tables, Suppliers, Manufacturers, Items, ProductRecipes, Registers, LayoutItems
-   4. Bills, Orders, OrderItems, Payments
-   5. RegisterSessions, CashMovements, Shifts
+   4. Customers, Warehouses
+   5. Bills, Orders, OrderItems, Payments
+   6. RegisterSessions, CashMovements, Shifts, CustomerTransactions
+   7. StockLevels, StockDocuments, StockMovements
 5. Po dokončení → invalidace `appInitProvider` → navigace na `/login`
 
 ---
@@ -1548,7 +1593,7 @@ Layout: **80/20 horizontální split**
 **Pravý panel (290px):**
 - **Řada 1:** RYCHLÝ ÚČET (tonal, → `/sell`) + VYTVOŘIT ÚČET (tonal, → DialogNewBill). Oba disabled bez aktivní session.
 - **Řada 2:** POKLADNÍ DENÍK (tonal, → DialogCashJournal, disabled bez session) + PŘEHLED PRODEJE (tonal, disabled — budoucí)
-- **Řada 3:** SKLAD (tonal, disabled — budoucí) + DALŠÍ (tonal, PopupMenuButton: Katalog → `/catalog`; Reporty → DialogZReportList; Směny → DialogShiftsList; Statistika, Rezervace — disabled; Nastavení → `/settings`; Dev → `/dev` dle oprávnění). Katalog, Reporty a Směny vyžadují `settings.manage`.
+- **Řada 3:** SKLAD (tonal, → `/inventory`) + DALŠÍ (tonal, PopupMenuButton: Katalog → `/catalog`; Reporty → DialogZReportList; Směny → DialogShiftsList; Statistika, Rezervace — disabled; Nastavení → `/settings/company`). Katalog, Reporty, Směny a Nastavení vyžadují `settings.manage`.
 - **Řada 4:** MAPA (tonal, disabled — budoucí) + Session toggle:
   - Žádná aktivní session → **"Otevřít"** (zelená, FilledButton) → DialogOpeningCash
   - Aktivní session → **"Uzavřít"** (tonal) → DialogClosingSession
@@ -1669,42 +1714,26 @@ Layout: **20/80 horizontální split**
 
 Grid konfigurace je uložena v tabulce `layout_items` (viz [Schéma](#layout-grid)).
 
-#### ScreenSettings (`/settings`)
+#### ScreenCompanySettings (`/settings/company`)
 
-Layout: **3 taby**
+Layout: **8 tabů** (scrollovatelné)
 
-| Tab | Widget | Obsah |
-|-----|--------|-------|
-| Firma | `CompanyTab` | Sekce **Informace o firmě** (editační formulář: název, IČO, DIČ, adresa, telefon, e-mail + tlačítko Uložit), sekce **Zabezpečení** (toggle PIN při přepínání obsluhy, dropdown auto-lock timeout), sekce **Cloud** (embedded `ScreenCloudAuth` — připojení/odpojení Supabase sync) |
-| Pokladna | `RegisterTab` | Sekce **Zobrazení mřížky** — editace grid rows/cols aktivní pokladny |
-| Uživatelé | `UsersTab` | DataTable se správou uživatelů (jméno, username, role, aktivní, akce), dialog pro přidání/editaci, soft-delete |
+| Tab | Obsah |
+|-----|-------|
+| Informace | Editační formulář: název firmy, IČO, DIČ, adresa, telefon, e-mail + tlačítko Uložit |
+| Zabezpečení | Toggle PIN při přepínání obsluhy, dropdown auto-lock timeout |
+| Cloud | Embedded `ScreenCloudAuth` — připojení/odpojení Supabase sync |
+| Uživatelé | DataTable se správou uživatelů (jméno, username, role, aktivní, akce), dialog pro přidání/editaci, soft-delete |
+| Sekce | CRUD sekce (název, barva, aktivní, výchozí) |
+| Stoly | CRUD stoly (název, sekce dropdown, kapacita, aktivní) |
+| Daňové sazby | CRUD daňové sazby (název, typ, sazba %, výchozí) |
+| Platební metody | CRUD platební metody (název, typ dropdown, aktivní) |
 
-#### ScreenDev (`/dev`) — Správa dat
+#### ScreenRegisterSettings (`/settings/register`)
 
-Layout: **4 taby + inline editace**
+Layout: **Sekce Zobrazení mřížky** — editace grid rows/cols aktivní pokladny
 
-```
-┌──────────────────────────────────────────────────────────┐
-│ [Sekce] [Stoly] [Daň.sazby] [Plat.met.]                 │
-│──────────────────────────────────────────────────────────│
-│                                                          │
-└──────────────────────────────────────────────────────────┘
-```
-
-**Navigace:** Scrollovatelné horizontální taby (`isScrollable: true`)
-**Obsah:** Datová tabulka (DataTable) per tab + editační dialogy (AlertDialog)
-**Akce:** Přidat (tlačítko nahoře), Editovat/Smazat (ikony v řádku)
-
-> **Pozn.:** Kategorie a Produkty byly přesunuty do ScreenCatalog (`/catalog`).
-
-**Sloupce per tab:**
-
-| Tab | Sloupce |
-|-----|---------|
-| Sekce | Název, Barva, Aktivní, Výchozí, Akce |
-| Stoly | Název stolu, Sekce (dropdown), Kapacita, Aktivní, Akce |
-| Daňové sazby | Název, Typ, Sazba (%), Výchozí, Akce |
-| Platební metody | Název, Typ (dropdown), Aktivní, Akce |
+> **Pozn.:** Původní ScreenDev (`/dev`) byl sloučen do ScreenCompanySettings — taby Sekce, Stoly, Daňové sazby a Platební metody jsou nyní součástí `/settings/company`.
 
 #### ScreenCatalog (`/catalog`) — Produktový katalog
 
@@ -1731,6 +1760,45 @@ Layout: **5 tabů + inline editace**
 | Dodavatelé | Název, Kontaktní osoba, E-mail, Telefon, Akce |
 | Výrobci | Název, Akce |
 | Receptury | Nadřazený produkt (dropdown), Složka (dropdown), Požadované množství, Akce |
+
+#### ScreenInventory (`/inventory`) — Sklad
+
+Layout: **2 taby + akční tlačítka**
+
+```
+┌──────────────────────────────────────────────────────────┐
+│ [Příjemka] [Výdejka] [Oprava] [Inventura]                │
+│──────────────────────────────────────────────────────────│
+│ [Zásoby] [Doklady]                                       │
+│──────────────────────────────────────────────────────────│
+│                                                          │
+│ Tab Zásoby:                                              │
+│  Položka │ Jednotka │ Množství │ Min.mn. │ Nák.cena │ Hod│
+│ ─────────┼──────────┼──────────┼─────────┼──────────┼────│
+│  Pivo    │ ks       │    42    │   10    │  15.00   │630 │
+│  Mouka   │ g        │  5000    │  1000   │   0.02   │100 │
+│──────────────────────────────────────────────────────────│
+│                      Celková hodnota skladu: 730.00       │
+│                                                          │
+│ Tab Doklady:                                             │
+│  Číslo │ Typ      │ Datum          │ Dodavatel │ Celkem  │
+│ ───────┼──────────┼────────────────┼───────────┼─────────│
+│  R-001 │ Příjemka │ 10.02.2026     │ Pivovary  │ 5000.00│
+│  W-001 │ Výdejka  │ 10.02.2026     │ -         │    0.00│
+└──────────────────────────────────────────────────────────┘
+```
+
+**Akční tlačítka (nad taby):**
+- Příjemka (FilledButton.icon) → DialogStockDocument(type: receipt)
+- Výdejka (FilledButton.tonal) → DialogStockDocument(type: waste)
+- Oprava (FilledButton.tonal) → DialogStockDocument(type: correction)
+- Inventura (FilledButton.tonal) → DialogInventory
+
+**Tab Zásoby:** DataTable s JOIN na items (StockLevelWithItem). Sloupce: Položka, Jednotka, Množství (červeně pod min), Min.množství, Nákupní cena, Celková hodnota. Footer: celková hodnota skladu.
+
+**Tab Doklady:** DataTable se stock_documents. Sloupce: Číslo dokladu, Typ, Datum, Dodavatel (resolved přes supplier stream), Poznámka, Celkem.
+
+**Přístup:** Tlačítko SKLAD na ScreenBills pravém panelu.
 
 ---
 
@@ -1871,7 +1939,7 @@ Projekt využívá **Riverpod** jako Service Locator a DI kontejner.
 | `database_provider.dart` | `appDatabaseProvider` — singleton Drift DB |
 | `auth_providers.dart` | `sessionManagerProvider`, `authServiceProvider`, `seedServiceProvider`, `activeUserProvider`, `loggedInUsersProvider`, `currentCompanyProvider`, `appInitProvider`, `activeRegisterProvider`, `activeRegisterSessionProvider` |
 | `permission_providers.dart` | `userPermissionCodesProvider` (reaktivní Set\<String\>), `hasPermissionProvider` (O(1) family check) |
-| `repository_providers.dart` | 20 repozitářů — `syncQueueRepositoryProvider`, `companyRepositoryProvider`, `sectionRepositoryProvider`, `billRepositoryProvider`, `shiftRepositoryProvider` atd. |
+| `repository_providers.dart` | 30 repozitářů — `syncQueueRepositoryProvider`, `companyRepositoryProvider`, `sectionRepositoryProvider`, `billRepositoryProvider`, `shiftRepositoryProvider`, `warehouseRepositoryProvider`, `stockLevelRepositoryProvider`, `stockMovementRepositoryProvider`, `stockDocumentRepositoryProvider` atd. |
 | `sync_providers.dart` | `supabaseAuthServiceProvider`, `isSupabaseAuthenticatedProvider`, `outboxProcessorProvider`, `syncServiceProvider`, `syncLifecycleManagerProvider`, `syncLifecycleWatcherProvider` |
 
 ### Git Workflow

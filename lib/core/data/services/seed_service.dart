@@ -14,12 +14,15 @@ import '../mappers/entity_mappers.dart';
 import '../models/category_model.dart';
 import '../models/company_model.dart';
 import '../models/currency_model.dart';
+import '../models/customer_model.dart';
 import '../models/item_model.dart';
+import '../models/manufacturer_model.dart';
 import '../models/payment_method_model.dart';
 import '../models/permission_model.dart';
 import '../models/register_model.dart';
 import '../models/role_model.dart';
 import '../models/section_model.dart';
+import '../models/supplier_model.dart';
 import '../models/table_model.dart';
 import '../models/role_permission_model.dart';
 import '../models/tax_rate_model.dart';
@@ -331,6 +334,175 @@ class SeedService {
         for (final (name, price) in desertyItems) {
           final item = ItemModel(id: _id(), companyId: companyId, categoryId: catDeserty, name: name, itemType: ItemType.product, unitPrice: price, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now);
           await _db.into(_db.items).insert(itemToCompanion(item));
+        }
+
+        // 10a. Suppliers
+        final supplier1Id = _id();
+        final supplier2Id = _id();
+        final suppliers = [
+          SupplierModel(
+            id: supplier1Id,
+            companyId: companyId,
+            supplierName: 'Velkoobchod Čerstvé potraviny s.r.o.',
+            contactPerson: 'Jan Novák',
+            email: 'objednavky@cerstve.cz',
+            phone: '+420 601 111 222',
+            createdAt: now,
+            updatedAt: now,
+          ),
+          SupplierModel(
+            id: supplier2Id,
+            companyId: companyId,
+            supplierName: 'Nápoje Express a.s.',
+            contactPerson: 'Petra Dvořáková',
+            email: 'info@napoje-express.cz',
+            phone: '+420 602 333 444',
+            createdAt: now,
+            updatedAt: now,
+          ),
+        ];
+        for (final s in suppliers) {
+          await _db.into(_db.suppliers).insert(supplierToCompanion(s));
+        }
+
+        // 10b. Manufacturers
+        final manufacturer1Id = _id();
+        final manufacturer2Id = _id();
+        final manufacturers = [
+          ManufacturerModel(
+            id: manufacturer1Id,
+            companyId: companyId,
+            name: 'Plzeňský Prazdroj',
+            createdAt: now,
+            updatedAt: now,
+          ),
+          ManufacturerModel(
+            id: manufacturer2Id,
+            companyId: companyId,
+            name: 'Kofola ČeskoSlovensko',
+            createdAt: now,
+            updatedAt: now,
+          ),
+        ];
+        for (final m in manufacturers) {
+          await _db.into(_db.manufacturers).insert(manufacturerToCompanion(m));
+        }
+
+        // 10c. Category for ingredients & misc
+        final catSuroviny = _id();
+        final catSluzby = _id();
+        await _db.into(_db.categories).insert(categoryToCompanion(
+          CategoryModel(id: catSuroviny, companyId: companyId, name: 'Suroviny', createdAt: now, updatedAt: now),
+        ));
+        await _db.into(_db.categories).insert(categoryToCompanion(
+          CategoryModel(id: catSluzby, companyId: companyId, name: 'Služby', createdAt: now, updatedAt: now),
+        ));
+
+        // 10d. Ingredients (surovina)
+        final ingredientItems = [
+          ('Kuřecí prsa (kg)', 18900, UnitType.g),
+          ('Hovězí svíčková (kg)', 34900, UnitType.g),
+          ('Mouka hladká (kg)', 2900, UnitType.g),
+          ('Smetana 33% (l)', 6900, UnitType.ml),
+        ];
+        for (final (name, price, unit) in ingredientItems) {
+          final item = ItemModel(
+            id: _id(), companyId: companyId, categoryId: catSuroviny, name: name,
+            itemType: ItemType.ingredient, unitPrice: price, saleTaxRateId: taxRate12Id,
+            unit: unit, isSellable: false, isStockTracked: true,
+            supplierId: supplier1Id, createdAt: now, updatedAt: now,
+          );
+          await _db.into(_db.items).insert(itemToCompanion(item));
+        }
+
+        // 10e. Counter items
+        final counterItems = [
+          ('Ubrousek', 100),
+          ('Kelímek na odnos', 500),
+          ('Papírový tácek', 200),
+        ];
+        for (final (name, price) in counterItems) {
+          final item = ItemModel(
+            id: _id(), companyId: companyId, categoryId: catSuroviny, name: name,
+            itemType: ItemType.counter, unitPrice: price, saleTaxRateId: taxRate21Id,
+            unit: UnitType.ks, isSellable: false, isStockTracked: true,
+            createdAt: now, updatedAt: now,
+          );
+          await _db.into(_db.items).insert(itemToCompanion(item));
+        }
+
+        // 10f. Service
+        final serviceItem = ItemModel(
+          id: _id(), companyId: companyId, categoryId: catSluzby, name: 'Pronájem sálu (hodina)',
+          itemType: ItemType.service, unitPrice: 150000, saleTaxRateId: taxRate21Id,
+          unit: UnitType.ks, createdAt: now, updatedAt: now,
+        );
+        await _db.into(_db.items).insert(itemToCompanion(serviceItem));
+
+        // 10g. Recipe (composite)
+        final recipeItem = ItemModel(
+          id: _id(), companyId: companyId, categoryId: catHlavniJidla, name: 'Smažený sýr s hranolky (receptura)',
+          itemType: ItemType.recipe, unitPrice: 17900, saleTaxRateId: taxRate12Id,
+          unit: UnitType.ks, createdAt: now, updatedAt: now,
+        );
+        await _db.into(_db.items).insert(itemToCompanion(recipeItem));
+
+        // 10h. Product with variant
+        final parentBurgerId = _id();
+        final parentBurger = ItemModel(
+          id: parentBurgerId, companyId: companyId, categoryId: catHlavniJidla, name: 'Burger (varianty)',
+          itemType: ItemType.product, unitPrice: 19900, saleTaxRateId: taxRate12Id,
+          unit: UnitType.ks, manufacturerId: manufacturer1Id, createdAt: now, updatedAt: now,
+        );
+        await _db.into(_db.items).insert(itemToCompanion(parentBurger));
+
+        final variantItems = [
+          ('Burger – klasický', 19900),
+          ('Burger – double', 25900),
+        ];
+        for (final (name, price) in variantItems) {
+          final item = ItemModel(
+            id: _id(), companyId: companyId, categoryId: catHlavniJidla, name: name,
+            itemType: ItemType.variant, unitPrice: price, saleTaxRateId: taxRate12Id,
+            unit: UnitType.ks, parentId: parentBurgerId, createdAt: now, updatedAt: now,
+          );
+          await _db.into(_db.items).insert(itemToCompanion(item));
+        }
+
+        // 10i. Modifiers
+        final modifierItems = [
+          ('Extra sýr', 2900),
+          ('Extra slanina', 3900),
+        ];
+        for (final (name, price) in modifierItems) {
+          final item = ItemModel(
+            id: _id(), companyId: companyId, name: name,
+            itemType: ItemType.modifier, unitPrice: price, saleTaxRateId: taxRate12Id,
+            unit: UnitType.ks, createdAt: now, updatedAt: now,
+          );
+          await _db.into(_db.items).insert(itemToCompanion(item));
+        }
+
+        // 10j. Product with supplier & manufacturer references
+        final linkedProduct = ItemModel(
+          id: _id(), companyId: companyId, categoryId: catNapoje, name: 'Kofola Original 0.5l',
+          itemType: ItemType.product, unitPrice: 4500, saleTaxRateId: taxRate12Id,
+          unit: UnitType.ks, supplierId: supplier2Id, manufacturerId: manufacturer2Id,
+          isStockTracked: true, purchasePrice: 1800, purchaseTaxRateId: taxRate12Id,
+          createdAt: now, updatedAt: now,
+        );
+        await _db.into(_db.items).insert(itemToCompanion(linkedProduct));
+
+        // 10k. Customers
+        final customers = [
+          CustomerModel(id: _id(), companyId: companyId, firstName: 'Martin', lastName: 'Svoboda', email: 'martin.svoboda@email.cz', phone: '+420 777 111 222', createdAt: now, updatedAt: now),
+          CustomerModel(id: _id(), companyId: companyId, firstName: 'Lucie', lastName: 'Černá', email: 'lucie.cerna@email.cz', phone: '+420 777 333 444', createdAt: now, updatedAt: now),
+          CustomerModel(id: _id(), companyId: companyId, firstName: 'Tomáš', lastName: 'Krejčí', phone: '+420 608 555 666', createdAt: now, updatedAt: now),
+          CustomerModel(id: _id(), companyId: companyId, firstName: 'Eva', lastName: 'Nováková', email: 'eva.novakova@firma.cz', address: 'Dlouhá 15, Praha 1', createdAt: now, updatedAt: now),
+          CustomerModel(id: _id(), companyId: companyId, firstName: 'Petr', lastName: 'Veselý', phone: '+420 603 777 888', address: 'Náměstí Míru 8, Brno', createdAt: now, updatedAt: now),
+        ];
+        for (final c in customers) {
+          await _db.into(_db.customers).insert(customerToCompanion(c));
         }
 
         // 11. Register
