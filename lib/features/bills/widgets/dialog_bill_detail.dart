@@ -20,6 +20,7 @@ import 'dialog_discount.dart';
 import 'dialog_merge_bill.dart';
 import 'dialog_new_bill.dart';
 import 'dialog_payment.dart';
+import 'dialog_receipt_preview.dart';
 import 'dialog_split_bill.dart';
 
 class DialogBillDetail extends ConsumerStatefulWidget {
@@ -386,7 +387,14 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
               onPressed: isOpened ? () => _applyBillDiscount(context, ref, bill) : null,
             ),
             const Spacer(),
-            _SideButton(label: l.billDetailPrint, onPressed: null, color: Colors.blue),
+            _SideButton(
+              label: l.billDetailPrint,
+              onPressed: () => showDialog(
+                context: context,
+                builder: (_) => DialogReceiptPreview(billId: bill.id),
+              ),
+              color: Colors.blue,
+            ),
           ],
         ),
       ),
@@ -421,7 +429,10 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
               height: 44,
               width: 130,
               child: FilledButton(
-                onPressed: () {},
+                onPressed: () => showDialog(
+                  context: context,
+                  builder: (_) => DialogReceiptPreview(billId: bill.id),
+                ),
                 child: Text(l.paymentPrintReceipt),
               ),
             ),

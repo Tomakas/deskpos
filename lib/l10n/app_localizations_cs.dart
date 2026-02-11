@@ -1434,4 +1434,103 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get filterReset => 'Resetovat';
+
+  @override
+  String get receiptSubtotal => 'Mezisoučet';
+
+  @override
+  String get receiptDiscount => 'Sleva';
+
+  @override
+  String get receiptTotal => 'Celkem';
+
+  @override
+  String get receiptRounding => 'Zaokrouhlení';
+
+  @override
+  String get receiptTaxTitle => 'Rekapitulace DPH';
+
+  @override
+  String get receiptTaxRate => 'Sazba';
+
+  @override
+  String get receiptTaxNet => 'Základ';
+
+  @override
+  String get receiptTaxAmount => 'DPH';
+
+  @override
+  String get receiptTaxGross => 'Celkem';
+
+  @override
+  String get receiptPayment => 'Platba';
+
+  @override
+  String get receiptTip => 'Spropitné';
+
+  @override
+  String get receiptBillNumber => 'Účtenka č.';
+
+  @override
+  String get receiptTable => 'Stůl';
+
+  @override
+  String get receiptTakeaway => 'S sebou';
+
+  @override
+  String get receiptCashier => 'Obsluha';
+
+  @override
+  String get receiptDate => 'Datum';
+
+  @override
+  String get receiptThankYou => 'Děkujeme za návštěvu';
+
+  @override
+  String get receiptIco => 'IČO';
+
+  @override
+  String get receiptDic => 'DIČ';
+
+  @override
+  String get receiptPreviewTitle => 'Náhled účtenky';
+
+  @override
+  String get zReportReportTitle => 'Z-Report';
+
+  @override
+  String get zReportSession => 'Směna';
+
+  @override
+  String get zReportOpenedAtLabel => 'Začátek';
+
+  @override
+  String get zReportClosedAtLabel => 'Konec';
+
+  @override
+  String get zReportDurationLabel => 'Trvání';
+
+  @override
+  String get zReportOpenedByLabel => 'Otevřel';
+
+  @override
+  String get zReportRevenueTitle => 'Tržba dle plateb';
+
+  @override
+  String get zReportTaxReportTitle => 'DPH';
+
+  @override
+  String get zReportTipsTitle => 'Spropitné';
+
+  @override
+  String get zReportDiscountsTitle => 'Slevy';
+
+  @override
+  String get zReportBillCountsTitle => 'Počty účtů';
+
+  @override
+  String get zReportCashReportTitle => 'Stav hotovosti';
+
+  @override
+  String get zReportShiftsReportTitle => 'Směny';
 }

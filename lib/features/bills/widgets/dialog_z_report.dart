@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:printing/printing.dart';
 
+import '../../../core/data/providers/printing_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/printing/receipt_data.dart';
 import '../models/z_report_data.dart';
 
-class DialogZReport extends StatelessWidget {
+class DialogZReport extends ConsumerWidget {
   const DialogZReport({super.key, required this.data});
   final ZReportData data;
 
@@ -23,8 +27,48 @@ class DialogZReport extends StatelessWidget {
     return pct == pct.roundToDouble() ? '${pct.round()}%' : '${pct.toStringAsFixed(1)}%';
   }
 
+  ZReportLabels _buildLabels(BuildContext context) {
+    final l = context.l10n;
+    return ZReportLabels(
+      reportTitle: l.zReportTitle,
+      session: l.zReportSessionInfo,
+      openedAt: l.zReportOpenedAt,
+      closedAt: l.zReportClosedAt,
+      duration: l.zReportDuration,
+      openedBy: l.zReportOpenedBy,
+      revenueTitle: l.zReportRevenueByPayment,
+      revenueTotal: l.zReportRevenueTotal,
+      taxTitle: l.zReportTaxTitle,
+      taxRate: l.zReportTaxRate,
+      taxNet: l.zReportTaxNet,
+      taxAmount: l.zReportTaxAmount,
+      taxGross: l.zReportTaxGross,
+      tipsTitle: l.zReportTipsTotal,
+      tipsTotal: l.zReportTipsTotal,
+      tipsByUser: l.zReportTipsByUser,
+      discountsTitle: l.zReportDiscounts,
+      discountsTotal: l.zReportDiscounts,
+      billCountsTitle: l.zReportBillsPaid,
+      billsPaid: l.zReportBillsPaid,
+      billsCancelled: l.zReportBillsCancelled,
+      billsRefunded: l.zReportBillsRefunded,
+      openBillsAtOpen: l.zReportOpenBillsAtOpen,
+      openBillsAtClose: l.zReportOpenBillsAtClose,
+      cashTitle: l.zReportCashTitle,
+      cashOpening: l.zReportCashOpening,
+      cashRevenue: l.zReportCashRevenue,
+      cashDeposits: l.zReportCashDeposits,
+      cashWithdrawals: l.zReportCashWithdrawals,
+      cashExpected: l.zReportCashExpected,
+      cashClosing: l.zReportCashClosing,
+      cashDifference: l.zReportCashDifference,
+      shiftsTitle: l.zReportShiftsTitle,
+      currencySymbol: 'Kč',
+    );
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
     final theme = Theme.of(context);
     final dateFormat = DateFormat('d.M.yyyy', 'cs');
@@ -167,7 +211,12 @@ class DialogZReport extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     OutlinedButton(
-                      onPressed: null,
+                      onPressed: () async {
+                        final labels = _buildLabels(context);
+                        final bytes = await ref.read(printingServiceProvider)
+                            .generateZReportPdf(data, labels);
+                        await Printing.layoutPdf(onLayout: (_) => bytes);
+                      },
                       child: Text(l.zReportPrint),
                     ),
                     const SizedBox(width: 8),

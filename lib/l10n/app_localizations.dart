@@ -2871,6 +2871,204 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Resetovat'**
   String get filterReset;
+
+  /// No description provided for @receiptSubtotal.
+  ///
+  /// In cs, this message translates to:
+  /// **'Mezisoučet'**
+  String get receiptSubtotal;
+
+  /// No description provided for @receiptDiscount.
+  ///
+  /// In cs, this message translates to:
+  /// **'Sleva'**
+  String get receiptDiscount;
+
+  /// No description provided for @receiptTotal.
+  ///
+  /// In cs, this message translates to:
+  /// **'Celkem'**
+  String get receiptTotal;
+
+  /// No description provided for @receiptRounding.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zaokrouhlení'**
+  String get receiptRounding;
+
+  /// No description provided for @receiptTaxTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Rekapitulace DPH'**
+  String get receiptTaxTitle;
+
+  /// No description provided for @receiptTaxRate.
+  ///
+  /// In cs, this message translates to:
+  /// **'Sazba'**
+  String get receiptTaxRate;
+
+  /// No description provided for @receiptTaxNet.
+  ///
+  /// In cs, this message translates to:
+  /// **'Základ'**
+  String get receiptTaxNet;
+
+  /// No description provided for @receiptTaxAmount.
+  ///
+  /// In cs, this message translates to:
+  /// **'DPH'**
+  String get receiptTaxAmount;
+
+  /// No description provided for @receiptTaxGross.
+  ///
+  /// In cs, this message translates to:
+  /// **'Celkem'**
+  String get receiptTaxGross;
+
+  /// No description provided for @receiptPayment.
+  ///
+  /// In cs, this message translates to:
+  /// **'Platba'**
+  String get receiptPayment;
+
+  /// No description provided for @receiptTip.
+  ///
+  /// In cs, this message translates to:
+  /// **'Spropitné'**
+  String get receiptTip;
+
+  /// No description provided for @receiptBillNumber.
+  ///
+  /// In cs, this message translates to:
+  /// **'Účtenka č.'**
+  String get receiptBillNumber;
+
+  /// No description provided for @receiptTable.
+  ///
+  /// In cs, this message translates to:
+  /// **'Stůl'**
+  String get receiptTable;
+
+  /// No description provided for @receiptTakeaway.
+  ///
+  /// In cs, this message translates to:
+  /// **'S sebou'**
+  String get receiptTakeaway;
+
+  /// No description provided for @receiptCashier.
+  ///
+  /// In cs, this message translates to:
+  /// **'Obsluha'**
+  String get receiptCashier;
+
+  /// No description provided for @receiptDate.
+  ///
+  /// In cs, this message translates to:
+  /// **'Datum'**
+  String get receiptDate;
+
+  /// No description provided for @receiptThankYou.
+  ///
+  /// In cs, this message translates to:
+  /// **'Děkujeme za návštěvu'**
+  String get receiptThankYou;
+
+  /// No description provided for @receiptIco.
+  ///
+  /// In cs, this message translates to:
+  /// **'IČO'**
+  String get receiptIco;
+
+  /// No description provided for @receiptDic.
+  ///
+  /// In cs, this message translates to:
+  /// **'DIČ'**
+  String get receiptDic;
+
+  /// No description provided for @receiptPreviewTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Náhled účtenky'**
+  String get receiptPreviewTitle;
+
+  /// No description provided for @zReportReportTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Z-Report'**
+  String get zReportReportTitle;
+
+  /// No description provided for @zReportSession.
+  ///
+  /// In cs, this message translates to:
+  /// **'Směna'**
+  String get zReportSession;
+
+  /// No description provided for @zReportOpenedAtLabel.
+  ///
+  /// In cs, this message translates to:
+  /// **'Začátek'**
+  String get zReportOpenedAtLabel;
+
+  /// No description provided for @zReportClosedAtLabel.
+  ///
+  /// In cs, this message translates to:
+  /// **'Konec'**
+  String get zReportClosedAtLabel;
+
+  /// No description provided for @zReportDurationLabel.
+  ///
+  /// In cs, this message translates to:
+  /// **'Trvání'**
+  String get zReportDurationLabel;
+
+  /// No description provided for @zReportOpenedByLabel.
+  ///
+  /// In cs, this message translates to:
+  /// **'Otevřel'**
+  String get zReportOpenedByLabel;
+
+  /// No description provided for @zReportRevenueTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Tržba dle plateb'**
+  String get zReportRevenueTitle;
+
+  /// No description provided for @zReportTaxReportTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'DPH'**
+  String get zReportTaxReportTitle;
+
+  /// No description provided for @zReportTipsTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Spropitné'**
+  String get zReportTipsTitle;
+
+  /// No description provided for @zReportDiscountsTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Slevy'**
+  String get zReportDiscountsTitle;
+
+  /// No description provided for @zReportBillCountsTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Počty účtů'**
+  String get zReportBillCountsTitle;
+
+  /// No description provided for @zReportCashReportTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Stav hotovosti'**
+  String get zReportCashReportTitle;
+
+  /// No description provided for @zReportShiftsReportTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Směny'**
+  String get zReportShiftsReportTitle;
 }
 
 class _AppLocalizationsDelegate

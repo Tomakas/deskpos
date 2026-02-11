@@ -53,6 +53,15 @@ class _CatalogCategoriesTabState extends ConsumerState<CatalogCategoriesTab> {
                       decoration: InputDecoration(
                         hintText: l.searchHint,
                         prefixIcon: const Icon(Icons.search),
+                        suffixIcon: _query.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.close),
+                                onPressed: () {
+                                  _searchCtrl.clear();
+                                  setState(() => _query = '');
+                                },
+                              )
+                            : null,
                         isDense: true,
                         border: const OutlineInputBorder(),
                       ),
