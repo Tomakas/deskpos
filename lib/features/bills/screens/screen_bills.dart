@@ -78,11 +78,13 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
                     _sortField = field;
                     _sortAscending = ascending;
                   }),
+                  singleSelect: _showMap,
+                  showSort: !_showMap,
                 ),
                 Expanded(
                   child: _showMap
                       ? FloorMapView(
-                          sectionFilters: _sectionFilters,
+                          sectionId: _sectionFilters.length == 1 ? _sectionFilters.first : null,
                           onBillTap: (bill) => _openBillDetail(context, bill),
                           onTableTap: (table) => _createNewBillForTable(context, table),
                         )
@@ -565,12 +567,16 @@ class _SectionTabBar extends ConsumerWidget {
     required this.sortField,
     required this.sortAscending,
     required this.onSortChanged,
+    this.singleSelect = false,
+    this.showSort = true,
   });
   final Set<String> selectedSectionIds;
   final ValueChanged<Set<String>> onChanged;
   final _SortField sortField;
   final bool sortAscending;
   final void Function(_SortField field, bool ascending) onSortChanged;
+  final bool singleSelect;
+  final bool showSort;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -582,6 +588,16 @@ class _SectionTabBar extends ConsumerWidget {
       stream: ref.watch(sectionRepositoryProvider).watchAll(company.id),
       builder: (context, snap) {
         final sections = snap.data ?? [];
+
+        // Auto-select first section in single-select mode if none selected
+        if (singleSelect && sections.isNotEmpty) {
+          final hasValidSelection = sections.any((s) => selectedSectionIds.contains(s.id));
+          if (!hasValidSelection) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              onChanged({sections.first.id});
+            });
+          }
+        }
 
         return Container(
           height: 48,
@@ -598,65 +614,71 @@ class _SectionTabBar extends ConsumerWidget {
                   child: SizedBox(
                     height: 40,
                     child: FilterChip(
-                      showCheckmark: true,
+                      showCheckmark: !singleSelect,
                       label: SizedBox(
                         width: double.infinity,
                         child: Text(sections[i].name, textAlign: TextAlign.center),
                       ),
                       selected: selectedSectionIds.contains(sections[i].id),
                       onSelected: (on) {
-                        final next = Set<String>.from(selectedSectionIds);
-                        if (on) {
-                          next.add(sections[i].id);
+                        if (singleSelect) {
+                          onChanged({sections[i].id});
                         } else {
-                          next.remove(sections[i].id);
+                          final next = Set<String>.from(selectedSectionIds);
+                          if (on) {
+                            next.add(sections[i].id);
+                          } else {
+                            next.remove(sections[i].id);
+                          }
+                          onChanged(next);
                         }
-                        onChanged(next);
                       },
                     ),
                   ),
                 ),
               ],
-              const SizedBox(width: 8),
-              SizedBox(
-                height: 40,
-                child: PopupMenuButton<_SortField>(
-                  onSelected: (field) {
-                    if (field == sortField) {
-                      onSortChanged(field, !sortAscending);
-                    } else {
-                      onSortChanged(field, true);
-                    }
-                  },
-                  itemBuilder: (_) => [
-                    for (final entry in {
-                      _SortField.table: l.sortByTable,
-                      _SortField.total: l.sortByTotal,
-                      _SortField.lastOrder: l.sortByLastOrder,
-                    }.entries)
-                      PopupMenuItem(
-                        value: entry.key,
-                        child: Row(
-                          children: [
-                            Expanded(child: Text(entry.value)),
-                            if (entry.key == sortField)
-                              Icon(
-                                sortAscending ? Icons.arrow_upward : Icons.arrow_downward,
-                                size: 18,
-                              ),
-                          ],
+              if (showSort) ...[
+                const SizedBox(width: 8),
+                SizedBox(
+                  height: 40,
+                  child: PopupMenuButton<_SortField>(
+                    onSelected: (field) {
+                      if (field == sortField) {
+                        onSortChanged(field, !sortAscending);
+                      } else {
+                        onSortChanged(field, true);
+                      }
+                    },
+                    itemBuilder: (_) => [
+                      for (final entry in {
+                        _SortField.table: l.sortByTable,
+                        _SortField.total: l.sortByTotal,
+                        _SortField.lastOrder: l.sortByLastOrder,
+                      }.entries)
+                        PopupMenuItem(
+                          value: entry.key,
+                          child: Row(
+                            children: [
+                              Expanded(child: Text(entry.value)),
+                              if (entry.key == sortField)
+                                Icon(
+                                  sortAscending ? Icons.arrow_upward : Icons.arrow_downward,
+                                  size: 18,
+                                ),
+                            ],
+                          ),
                         ),
+                    ],
+                    child: Chip(
+                      label: Text(l.billsSorting),
+                      avatar: Icon(
+                        sortAscending ? Icons.arrow_upward : Icons.arrow_downward,
+                        size: 16,
                       ),
-                  ],
-                  child: Chip(
-                    label: Text(l.billsSorting),
-                    avatar: Icon(
-                      sortAscending ? Icons.arrow_upward : Icons.arrow_downward,
-                      size: 16,
                     ),
                   ),
                 ),
-              ),
+              ],
             ],
           ),
         );

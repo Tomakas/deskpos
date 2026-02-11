@@ -15,12 +15,12 @@ const _gridRows = 10;
 class FloorMapView extends ConsumerWidget {
   const FloorMapView({
     super.key,
-    required this.sectionFilters,
+    this.sectionId,
     required this.onBillTap,
     required this.onTableTap,
   });
 
-  final Set<String> sectionFilters;
+  final String? sectionId;
   final ValueChanged<BillModel> onBillTap;
   final ValueChanged<TableModel> onTableTap;
 
@@ -39,6 +39,24 @@ class FloorMapView extends ConsumerWidget {
           builder: (context, sectionSnap) {
             final sections = sectionSnap.data ?? [];
             final sectionMap = {for (final s in sections) s.id: s};
+
+            // Determine effective section
+            final effectiveSectionId = (sectionId != null && sections.any((s) => s.id == sectionId))
+                ? sectionId
+                : sections.firstOrNull?.id;
+
+            if (effectiveSectionId == null) {
+              return Center(
+                child: Text(
+                  l.floorMapNoTables,
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                  textAlign: TextAlign.center,
+                ),
+              );
+            }
+
             return StreamBuilder<List<BillModel>>(
               stream: ref.watch(billRepositoryProvider).watchByCompany(
                 company.id,
@@ -47,18 +65,13 @@ class FloorMapView extends ConsumerWidget {
               builder: (context, billSnap) {
                 final openBills = billSnap.data ?? [];
 
-                // Filter tables by section
-                var placedTables = allTables.where((t) =>
+                // Only tables from the selected section
+                final placedTables = allTables.where((t) =>
+                    t.sectionId == effectiveSectionId &&
                     t.gridRow >= 0 &&
                     t.gridCol >= 0 &&
                     t.gridRow < _gridRows &&
                     t.gridCol < _gridCols).toList();
-
-                if (sectionFilters.isNotEmpty) {
-                  placedTables = placedTables
-                      .where((t) => t.sectionId != null && sectionFilters.contains(t.sectionId))
-                      .toList();
-                }
 
                 // Group bills by table
                 final billsByTable = <String?, List<BillModel>>{};
@@ -66,12 +79,7 @@ class FloorMapView extends ConsumerWidget {
                   billsByTable.putIfAbsent(bill.tableId, () => []).add(bill);
                 }
 
-                // Bills without a table
-                final billsWithoutTable = openBills
-                    .where((b) => b.tableId == null)
-                    .toList();
-
-                // Auto-layout: compute positions for bills around tables
+                // Auto-layout positions for bills on this section's tables
                 final billPositions = <String, _BillPosition>{};
                 for (final table in placedTables) {
                   final tableBills = billsByTable[table.id] ?? [];
@@ -84,34 +92,13 @@ class FloorMapView extends ConsumerWidget {
                         isPixelBased: true,
                       );
                     } else {
-                      // Auto-layout: place below the table, then right, then further down
                       final pos = _autoLayoutPosition(table, i, placedTables);
                       billPositions[bill.id] = pos;
                     }
                   }
                 }
 
-                // Bills without table: arrange from top-left
-                for (int i = 0; i < billsWithoutTable.length; i++) {
-                  final bill = billsWithoutTable[i];
-                  if (bill.mapPosX != null && bill.mapPosY != null) {
-                    billPositions[bill.id] = _BillPosition(
-                      gridX: bill.mapPosX!.toDouble(),
-                      gridY: bill.mapPosY!.toDouble(),
-                      isPixelBased: true,
-                    );
-                  } else {
-                    // Stack in the top-left area
-                    final col = i % 3;
-                    final row = i ~/ 3;
-                    billPositions[bill.id] = _BillPosition(
-                      gridX: col.toDouble(),
-                      gridY: row.toDouble(),
-                    );
-                  }
-                }
-
-                if (placedTables.isEmpty && billsWithoutTable.isEmpty) {
+                if (placedTables.isEmpty) {
                   return Center(
                     child: Text(
                       l.floorMapNoTables,

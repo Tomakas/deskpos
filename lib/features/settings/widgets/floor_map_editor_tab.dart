@@ -11,26 +11,40 @@ import '../../../core/l10n/app_localizations_ext.dart';
 const _gridCols = 16;
 const _gridRows = 10;
 
-class FloorMapEditorTab extends ConsumerWidget {
+class FloorMapEditorTab extends ConsumerStatefulWidget {
   const FloorMapEditorTab({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<FloorMapEditorTab> createState() => _FloorMapEditorTabState();
+}
+
+class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
+  String? _selectedSectionId;
+  String? _draggingTableId;
+
+  @override
+  Widget build(BuildContext context) {
     final company = ref.watch(currentCompanyProvider);
     if (company == null) return const SizedBox.shrink();
 
-    return StreamBuilder<List<TableModel>>(
-      stream: ref.watch(tableRepositoryProvider).watchAll(company.id),
-      builder: (context, tableSnap) {
-        final allTables = tableSnap.data ?? [];
-        return StreamBuilder<List<SectionModel>>(
-          stream: ref.watch(sectionRepositoryProvider).watchAll(company.id),
-          builder: (context, sectionSnap) {
-            final sections = sectionSnap.data ?? [];
-            final sectionMap = {for (final s in sections) s.id: s};
+    return StreamBuilder<List<SectionModel>>(
+      stream: ref.watch(sectionRepositoryProvider).watchAll(company.id),
+      builder: (context, sectionSnap) {
+        final sections = sectionSnap.data ?? [];
+        if (sections.isEmpty) return const SizedBox.shrink();
 
-            // Tables placed on the grid (gridRow >= 0, gridCol >= 0, within bounds)
+        // Resolve effective section ID
+        final sectionId = sections.any((s) => s.id == _selectedSectionId)
+            ? _selectedSectionId!
+            : sections.first.id;
+        final selectedSection = sections.firstWhere((s) => s.id == sectionId);
+
+        return StreamBuilder<List<TableModel>>(
+          stream: ref.watch(tableRepositoryProvider).watchAll(company.id),
+          builder: (context, tableSnap) {
+            final allTables = tableSnap.data ?? [];
             final placedTables = allTables.where((t) =>
+                t.sectionId == sectionId &&
                 t.gridRow >= 0 &&
                 t.gridCol >= 0 &&
                 t.gridRow < _gridRows &&
@@ -38,6 +52,7 @@ class FloorMapEditorTab extends ConsumerWidget {
 
             return Column(
               children: [
+                _buildSectionSelector(sections, sectionId),
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.all(8),
@@ -48,7 +63,7 @@ class FloorMapEditorTab extends ConsumerWidget {
 
                         return Stack(
                           children: [
-                            // Grid background lines
+                            // Grid cells with DragTargets
                             for (int r = 0; r < _gridRows; r++)
                               for (int c = 0; c < _gridCols; c++)
                                 Positioned(
@@ -56,37 +71,79 @@ class FloorMapEditorTab extends ConsumerWidget {
                                   top: r * cellH,
                                   width: cellW,
                                   height: cellH,
-                                  child: _EmptyCell(
-                                    onTap: () => _showPlaceTableDialog(
-                                      context,
-                                      ref,
-                                      sections,
-                                      allTables,
-                                      placedTables,
-                                      r,
-                                      c,
-                                    ),
+                                  child: DragTarget<TableModel>(
+                                    onWillAcceptWithDetails: (details) =>
+                                        _canPlaceAt(details.data, r, c, placedTables),
+                                    onAcceptWithDetails: (details) =>
+                                        _moveTable(details.data, r, c),
+                                    builder: (context, candidateData, rejectedData) {
+                                      return _EmptyCell(
+                                        highlighted: candidateData.isNotEmpty,
+                                        onTap: () => _showPlaceTableDialog(
+                                          context,
+                                          selectedSection,
+                                          allTables,
+                                          placedTables,
+                                          r,
+                                          c,
+                                        ),
+                                      );
+                                    },
                                   ),
                                 ),
-                            // Placed tables (rendered on top)
+                            // Placed tables
                             for (final table in placedTables)
                               Positioned(
                                 left: table.gridCol * cellW,
                                 top: table.gridRow * cellH,
                                 width: table.gridWidth * cellW,
                                 height: table.gridHeight * cellH,
-                                child: _TableCell(
-                                  table: table,
-                                  section: sectionMap[table.sectionId],
-                                  onTap: () => _showEditTableDialog(
-                                    context,
-                                    ref,
-                                    sections,
-                                    allTables,
-                                    placedTables,
-                                    table,
-                                  ),
-                                ),
+                                child: _draggingTableId == table.id
+                                    ? IgnorePointer(
+                                        child: Opacity(
+                                          opacity: 0.3,
+                                          child: _TableCell(
+                                            table: table,
+                                            section: selectedSection,
+                                            onTap: () {},
+                                          ),
+                                        ),
+                                      )
+                                    : LongPressDraggable<TableModel>(
+                                        data: table,
+                                        delay: const Duration(milliseconds: 300),
+                                        onDragStarted: () =>
+                                            setState(() => _draggingTableId = table.id),
+                                        onDragEnd: (_) =>
+                                            setState(() => _draggingTableId = null),
+                                        feedback: Material(
+                                          elevation: 6,
+                                          borderRadius: BorderRadius.circular(6),
+                                          color: Colors.transparent,
+                                          child: Opacity(
+                                            opacity: 0.85,
+                                            child: SizedBox(
+                                              width: table.gridWidth * cellW,
+                                              height: table.gridHeight * cellH,
+                                              child: _TableCell(
+                                                table: table,
+                                                section: selectedSection,
+                                                onTap: () {},
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        child: _TableCell(
+                                          table: table,
+                                          section: selectedSection,
+                                          onTap: () => _showEditTableDialog(
+                                            context,
+                                            allTables,
+                                            placedTables,
+                                            table,
+                                          ),
+                                        ),
+                                      ),
                               ),
                           ],
                         );
@@ -102,10 +159,61 @@ class FloorMapEditorTab extends ConsumerWidget {
     );
   }
 
+  Widget _buildSectionSelector(List<SectionModel> sections, String activeSectionId) {
+    return Container(
+      height: 48,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      alignment: Alignment.centerLeft,
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor)),
+      ),
+      child: Row(
+        children: [
+          for (var i = 0; i < sections.length; i++) ...[
+            if (i > 0) const SizedBox(width: 8),
+            Expanded(
+              child: SizedBox(
+                height: 40,
+                child: FilterChip(
+                  label: SizedBox(
+                    width: double.infinity,
+                    child: Text(sections[i].name, textAlign: TextAlign.center),
+                  ),
+                  selected: sections[i].id == activeSectionId,
+                  onSelected: (_) => setState(() => _selectedSectionId = sections[i].id),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  bool _canPlaceAt(TableModel table, int row, int col, List<TableModel> placedTables) {
+    if (row + table.gridHeight > _gridRows) return false;
+    if (col + table.gridWidth > _gridCols) return false;
+    for (final other in placedTables) {
+      if (other.id == table.id) continue;
+      if (row < other.gridRow + other.gridHeight &&
+          row + table.gridHeight > other.gridRow &&
+          col < other.gridCol + other.gridWidth &&
+          col + table.gridWidth > other.gridCol) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  Future<void> _moveTable(TableModel table, int row, int col) async {
+    await ref.read(tableRepositoryProvider).update(
+      table.copyWith(gridRow: row, gridCol: col),
+    );
+  }
+
   Future<void> _showPlaceTableDialog(
     BuildContext context,
-    WidgetRef ref,
-    List<SectionModel> sections,
+    SectionModel section,
     List<TableModel> allTables,
     List<TableModel> placedTables,
     int row,
@@ -118,20 +226,20 @@ class FloorMapEditorTab extends ConsumerWidget {
         col >= t.gridCol &&
         col < t.gridCol + t.gridWidth).firstOrNull;
     if (occupying != null) {
-      _showEditTableDialog(context, ref, sections, allTables, placedTables, occupying);
+      _showEditTableDialog(context, allTables, placedTables, occupying);
       return;
     }
 
     final l = context.l10n;
-    // Tables not yet placed on the map
+    // Unplaced tables in this section
     final unplacedTables = allTables.where((t) =>
-        t.gridRow < 0 ||
-        t.gridCol < 0 ||
-        t.gridRow >= _gridRows ||
-        t.gridCol >= _gridCols ||
-        !placedTables.contains(t)).toList();
+        t.sectionId == section.id &&
+        (t.gridRow < 0 ||
+         t.gridCol < 0 ||
+         t.gridRow >= _gridRows ||
+         t.gridCol >= _gridCols ||
+         !placedTables.contains(t))).toList();
 
-    String? selectedSectionId = sections.isNotEmpty ? sections.first.id : null;
     String? selectedTableId;
     int width = 1;
     int height = 1;
@@ -140,10 +248,6 @@ class FloorMapEditorTab extends ConsumerWidget {
       context: context,
       builder: (_) => StatefulBuilder(
         builder: (ctx, setDialogState) {
-          final tablesInSection = unplacedTables
-              .where((t) => t.sectionId == selectedSectionId)
-              .toList();
-
           return AlertDialog(
             title: Text(l.floorMapAddTable),
             content: SizedBox(
@@ -151,17 +255,6 @@ class FloorMapEditorTab extends ConsumerWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  DropdownButtonFormField<String>(
-                    value: selectedSectionId,
-                    decoration: InputDecoration(labelText: l.floorMapSelectSection),
-                    items: sections.map((s) =>
-                        DropdownMenuItem(value: s.id, child: Text(s.name))).toList(),
-                    onChanged: (v) => setDialogState(() {
-                      selectedSectionId = v;
-                      selectedTableId = null;
-                    }),
-                  ),
-                  const SizedBox(height: 12),
                   DropdownButtonFormField<String?>(
                     value: selectedTableId,
                     decoration: InputDecoration(labelText: l.floorMapSelectTable),
@@ -170,7 +263,7 @@ class FloorMapEditorTab extends ConsumerWidget {
                         value: null,
                         child: Text(l.floorMapNewTable),
                       ),
-                      ...tablesInSection.map((t) =>
+                      ...unplacedTables.map((t) =>
                           DropdownMenuItem<String?>(value: t.id, child: Text(t.name))),
                     ],
                     onChanged: (v) => setDialogState(() => selectedTableId = v),
@@ -208,14 +301,11 @@ class FloorMapEditorTab extends ConsumerWidget {
                 child: Text(l.actionCancel),
               ),
               FilledButton(
-                onPressed: selectedSectionId == null
-                    ? null
-                    : () => Navigator.pop(ctx, _PlaceResult(
-                        sectionId: selectedSectionId!,
-                        tableId: selectedTableId,
-                        width: width,
-                        height: height,
-                      )),
+                onPressed: () => Navigator.pop(ctx, _PlaceResult(
+                  tableId: selectedTableId,
+                  width: width,
+                  height: height,
+                )),
                 child: Text(l.actionSave),
               ),
             ],
@@ -233,23 +323,21 @@ class FloorMapEditorTab extends ConsumerWidget {
       // Update existing table position
       final table = allTables.firstWhere((t) => t.id == result.tableId);
       await repo.update(table.copyWith(
-        sectionId: result.sectionId,
         gridRow: row,
         gridCol: col,
         gridWidth: result.width,
         gridHeight: result.height,
       ));
     } else {
-      // Create new table
+      // Create new table in the selected section
       final now = DateTime.now();
-      final section = sections.firstWhere((s) => s.id == result.sectionId);
-      final tableCount = allTables.where((t) => t.sectionId == result.sectionId).length;
+      final tableCount = allTables.where((t) => t.sectionId == section.id).length;
       final tableName = '${section.name} ${tableCount + 1}';
       await repo.create(TableModel(
         id: const Uuid().v7(),
         companyId: company.id,
         name: tableName,
-        sectionId: result.sectionId,
+        sectionId: section.id,
         gridRow: row,
         gridCol: col,
         gridWidth: result.width,
@@ -262,8 +350,6 @@ class FloorMapEditorTab extends ConsumerWidget {
 
   Future<void> _showEditTableDialog(
     BuildContext context,
-    WidgetRef ref,
-    List<SectionModel> sections,
     List<TableModel> allTables,
     List<TableModel> placedTables,
     TableModel table,
@@ -356,15 +442,18 @@ class FloorMapEditorTab extends ConsumerWidget {
 }
 
 class _EmptyCell extends StatelessWidget {
-  const _EmptyCell({required this.onTap});
+  const _EmptyCell({required this.onTap, this.highlighted = false});
   final VoidCallback onTap;
+  final bool highlighted;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(1),
       child: Material(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        color: highlighted
+            ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.2)
+            : Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(4),
         child: InkWell(
           onTap: onTap,
@@ -495,12 +584,10 @@ class _SpinnerField extends StatelessWidget {
 
 class _PlaceResult {
   const _PlaceResult({
-    required this.sectionId,
     this.tableId,
     required this.width,
     required this.height,
   });
-  final String sectionId;
   final String? tableId;
   final int width;
   final int height;
