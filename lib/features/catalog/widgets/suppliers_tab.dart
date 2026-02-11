@@ -28,6 +28,8 @@ class _SuppliersTabState extends ConsumerState<SuppliersTab> {
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
+    final theme = Theme.of(context);
+    final headerStyle = theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.bold);
     final company = ref.watch(currentCompanyProvider);
     if (company == null) return const SizedBox.shrink();
 
@@ -70,33 +72,39 @@ class _SuppliersTabState extends ConsumerState<SuppliersTab> {
                 ],
               ),
             ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerHighest,
+              ),
+              child: Row(
+                children: [
+                  Expanded(flex: 3, child: Text(l.fieldSupplierName, style: headerStyle)),
+                  Expanded(flex: 2, child: Text(l.fieldContactPerson, style: headerStyle)),
+                  Expanded(flex: 2, child: Text(l.fieldEmail, style: headerStyle)),
+                  Expanded(flex: 2, child: Text(l.fieldPhone, style: headerStyle)),
+                ],
+              ),
+            ),
             Expanded(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return SingleChildScrollView(
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(minWidth: constraints.maxWidth),
-                      child: DataTable(
-                        columnSpacing: 16,
-                        showCheckboxColumn: false,
-                        columns: [
-                          DataColumn(label: Text(l.fieldSupplierName)),
-                          DataColumn(label: Text(l.fieldContactPerson)),
-                          DataColumn(label: Text(l.fieldEmail)),
-                          DataColumn(label: Text(l.fieldPhone)),
+              child: ListView.builder(
+                itemCount: filtered.length,
+                itemBuilder: (context, index) {
+                  final s = filtered[index];
+                  return InkWell(
+                    onTap: () => _showEditDialog(context, ref, s),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      decoration: BoxDecoration(
+                        border: Border(bottom: BorderSide(color: theme.dividerColor.withValues(alpha: 0.3))),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(flex: 3, child: Text(s.supplierName, overflow: TextOverflow.ellipsis)),
+                          Expanded(flex: 2, child: Text(s.contactPerson ?? '-', overflow: TextOverflow.ellipsis)),
+                          Expanded(flex: 2, child: Text(s.email ?? '-', overflow: TextOverflow.ellipsis)),
+                          Expanded(flex: 2, child: Text(s.phone ?? '-', overflow: TextOverflow.ellipsis)),
                         ],
-                        rows: filtered
-                            .map((s) => DataRow(
-                                  onSelectChanged: (_) =>
-                                      _showEditDialog(context, ref, s),
-                                  cells: [
-                                    DataCell(Text(s.supplierName)),
-                                    DataCell(Text(s.contactPerson ?? '-')),
-                                    DataCell(Text(s.email ?? '-')),
-                                    DataCell(Text(s.phone ?? '-')),
-                                  ],
-                                ))
-                            .toList(),
                       ),
                     ),
                   );

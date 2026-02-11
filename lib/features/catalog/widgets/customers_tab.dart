@@ -28,6 +28,8 @@ class _CustomersTabState extends ConsumerState<CustomersTab> {
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
+    final theme = Theme.of(context);
+    final headerStyle = theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.bold);
     final company = ref.watch(currentCompanyProvider);
     if (company == null) return const SizedBox.shrink();
 
@@ -70,37 +72,43 @@ class _CustomersTabState extends ConsumerState<CustomersTab> {
                 ],
               ),
             ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerHighest,
+              ),
+              child: Row(
+                children: [
+                  Expanded(flex: 2, child: Text(l.customerFirstName, style: headerStyle)),
+                  Expanded(flex: 2, child: Text(l.customerLastName, style: headerStyle)),
+                  Expanded(flex: 2, child: Text(l.customerEmail, style: headerStyle)),
+                  Expanded(flex: 2, child: Text(l.customerPhone, style: headerStyle)),
+                  Expanded(flex: 1, child: Text(l.customerPoints, style: headerStyle)),
+                  Expanded(flex: 1, child: Text(l.customerCredit, style: headerStyle)),
+                ],
+              ),
+            ),
             Expanded(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return SingleChildScrollView(
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(minWidth: constraints.maxWidth),
-                      child: DataTable(
-                        columnSpacing: 16,
-                        showCheckboxColumn: false,
-                        columns: [
-                          DataColumn(label: Text(l.customerFirstName)),
-                          DataColumn(label: Text(l.customerLastName)),
-                          DataColumn(label: Text(l.customerEmail)),
-                          DataColumn(label: Text(l.customerPhone)),
-                          DataColumn(label: Text(l.customerPoints)),
-                          DataColumn(label: Text(l.customerCredit)),
+              child: ListView.builder(
+                itemCount: filtered.length,
+                itemBuilder: (context, index) {
+                  final c = filtered[index];
+                  return InkWell(
+                    onTap: () => _showEditDialog(context, ref, c),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      decoration: BoxDecoration(
+                        border: Border(bottom: BorderSide(color: theme.dividerColor.withValues(alpha: 0.3))),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(flex: 2, child: Text(c.firstName, overflow: TextOverflow.ellipsis)),
+                          Expanded(flex: 2, child: Text(c.lastName, overflow: TextOverflow.ellipsis)),
+                          Expanded(flex: 2, child: Text(c.email ?? '-', overflow: TextOverflow.ellipsis)),
+                          Expanded(flex: 2, child: Text(c.phone ?? '-', overflow: TextOverflow.ellipsis)),
+                          Expanded(flex: 1, child: Text(c.points.toString(), overflow: TextOverflow.ellipsis)),
+                          Expanded(flex: 1, child: Text(c.credit.toString(), overflow: TextOverflow.ellipsis)),
                         ],
-                        rows: filtered
-                            .map((c) => DataRow(
-                                  onSelectChanged: (_) =>
-                                      _showEditDialog(context, ref, c),
-                                  cells: [
-                                    DataCell(Text(c.firstName)),
-                                    DataCell(Text(c.lastName)),
-                                    DataCell(Text(c.email ?? '-')),
-                                    DataCell(Text(c.phone ?? '-')),
-                                    DataCell(Text(c.points.toString())),
-                                    DataCell(Text(c.credit.toString())),
-                                  ],
-                                ))
-                            .toList(),
                       ),
                     ),
                   );

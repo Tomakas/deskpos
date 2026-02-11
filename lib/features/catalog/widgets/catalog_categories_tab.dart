@@ -28,6 +28,8 @@ class _CatalogCategoriesTabState extends ConsumerState<CatalogCategoriesTab> {
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
+    final theme = Theme.of(context);
+    final headerStyle = theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.bold);
     final company = ref.watch(currentCompanyProvider);
     if (company == null) return const SizedBox.shrink();
 
@@ -66,41 +68,57 @@ class _CatalogCategoriesTabState extends ConsumerState<CatalogCategoriesTab> {
                 ],
               ),
             ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerHighest,
+              ),
+              child: Row(
+                children: [
+                  Expanded(flex: 3, child: Text(l.fieldName, style: headerStyle)),
+                  Expanded(flex: 3, child: Text(l.fieldParentCategory, style: headerStyle)),
+                  Expanded(flex: 1, child: Text(l.fieldActive, style: headerStyle)),
+                ],
+              ),
+            ),
             Expanded(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return SingleChildScrollView(
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(minWidth: constraints.maxWidth),
-                      child: DataTable(
-                        columnSpacing: 16,
-                        showCheckboxColumn: false,
-                        columns: [
-                          DataColumn(label: Text(l.fieldName)),
-                          DataColumn(label: Text(l.fieldParentCategory)),
-                          DataColumn(label: Text(l.fieldActive)),
+              child: ListView.builder(
+                itemCount: filtered.length,
+                itemBuilder: (context, index) {
+                  final c = filtered[index];
+                  return InkWell(
+                    onTap: () => _showEditDialog(context, ref, categories, c),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      decoration: BoxDecoration(
+                        border: Border(bottom: BorderSide(color: theme.dividerColor.withValues(alpha: 0.3))),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(flex: 3, child: Text(c.name, overflow: TextOverflow.ellipsis)),
+                          Expanded(
+                            flex: 3,
+                            child: Text(
+                              categories
+                                      .where((p) => p.id == c.parentId)
+                                      .firstOrNull
+                                      ?.name ??
+                                  '-',
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Expanded(
+                            flex: 1,
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: Icon(
+                                c.isActive ? Icons.check_circle : Icons.cancel,
+                                color: c.isActive ? Colors.green : Colors.grey,
+                                size: 20,
+                              ),
+                            ),
+                          ),
                         ],
-                        rows: filtered
-                            .map((c) => DataRow(
-                                  onSelectChanged: (_) =>
-                                      _showEditDialog(context, ref, categories, c),
-                                  cells: [
-                                    DataCell(Text(c.name)),
-                                    DataCell(Text(
-                                      categories
-                                              .where((p) => p.id == c.parentId)
-                                              .firstOrNull
-                                              ?.name ??
-                                          '-',
-                                    )),
-                                    DataCell(Icon(
-                                      c.isActive ? Icons.check_circle : Icons.cancel,
-                                      color: c.isActive ? Colors.green : Colors.grey,
-                                      size: 20,
-                                    )),
-                                  ],
-                                ))
-                            .toList(),
                       ),
                     ),
                   );
@@ -124,7 +142,6 @@ class _CatalogCategoriesTabState extends ConsumerState<CatalogCategoriesTab> {
     var isActive = existing?.isActive ?? true;
     var parentId = existing?.parentId;
 
-    // Filter out self-reference for parent dropdown
     final parentOptions = allCategories.where((c) => c.id != existing?.id).toList();
 
     final theme = Theme.of(context);

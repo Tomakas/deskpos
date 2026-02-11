@@ -31,6 +31,8 @@ class _RecipesTabState extends ConsumerState<RecipesTab> {
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
+    final theme = Theme.of(context);
+    final headerStyle = theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.bold);
     final company = ref.watch(currentCompanyProvider);
     if (company == null) return const SizedBox.shrink();
 
@@ -86,38 +88,45 @@ class _RecipesTabState extends ConsumerState<RecipesTab> {
                     ],
                   ),
                 ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surfaceContainerHighest,
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(flex: 2, child: Text(l.fieldParentProduct, style: headerStyle)),
+                      Expanded(flex: 5, child: Text(l.recipeComponents, style: headerStyle)),
+                    ],
+                  ),
+                ),
                 Expanded(
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      return SingleChildScrollView(
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(minWidth: constraints.maxWidth),
-                          child: DataTable(
-                            columnSpacing: 16,
-                            showCheckboxColumn: false,
-                            columns: [
-                              DataColumn(label: Text(l.fieldParentProduct)),
-                              DataColumn(label: Text(l.recipeComponents)),
-                            ],
-                            rows: filteredEntries.map((entry) {
-                              final parentName = itemMap[entry.key]?.name ?? '-';
-                              final components = entry.value;
-                              final summary = components.map((r) {
-                                final name = itemMap[r.componentProductId]?.name ?? '?';
-                                final qty = _formatQty(r.quantityRequired);
-                                return '$qty $name';
-                              }).join(', ');
+                  child: ListView.builder(
+                    itemCount: filteredEntries.length,
+                    itemBuilder: (context, index) {
+                      final entry = filteredEntries[index];
+                      final parentName = itemMap[entry.key]?.name ?? '-';
+                      final components = entry.value;
+                      final summary = components.map((r) {
+                        final name = itemMap[r.componentProductId]?.name ?? '?';
+                        final qty = _formatQty(r.quantityRequired);
+                        return '$qty $name';
+                      }).join(', ');
 
-                              return DataRow(
-                                onSelectChanged: (_) => _showRecipeDialog(
-                                  context, ref, items, entry.key, components,
-                                ),
-                                cells: [
-                                  DataCell(Text(parentName)),
-                                  DataCell(Text(summary, overflow: TextOverflow.ellipsis)),
-                                ],
-                              );
-                            }).toList(),
+                      return InkWell(
+                        onTap: () => _showRecipeDialog(
+                          context, ref, items, entry.key, components,
+                        ),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          decoration: BoxDecoration(
+                            border: Border(bottom: BorderSide(color: theme.dividerColor.withValues(alpha: 0.3))),
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(flex: 2, child: Text(parentName, overflow: TextOverflow.ellipsis)),
+                              Expanded(flex: 5, child: Text(summary, overflow: TextOverflow.ellipsis)),
+                            ],
                           ),
                         ),
                       );

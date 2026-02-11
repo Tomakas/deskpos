@@ -28,6 +28,8 @@ class _ManufacturersTabState extends ConsumerState<ManufacturersTab> {
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
+    final theme = Theme.of(context);
+    final headerStyle = theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.bold);
     final company = ref.watch(currentCompanyProvider);
     if (company == null) return const SizedBox.shrink();
 
@@ -66,27 +68,33 @@ class _ManufacturersTabState extends ConsumerState<ManufacturersTab> {
                 ],
               ),
             ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerHighest,
+              ),
+              child: Row(
+                children: [
+                  Expanded(child: Text(l.fieldName, style: headerStyle)),
+                ],
+              ),
+            ),
             Expanded(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return SingleChildScrollView(
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(minWidth: constraints.maxWidth),
-                      child: DataTable(
-                        columnSpacing: 16,
-                        showCheckboxColumn: false,
-                        columns: [
-                          DataColumn(label: Text(l.fieldName)),
+              child: ListView.builder(
+                itemCount: filtered.length,
+                itemBuilder: (context, index) {
+                  final m = filtered[index];
+                  return InkWell(
+                    onTap: () => _showEditDialog(context, ref, m),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      decoration: BoxDecoration(
+                        border: Border(bottom: BorderSide(color: theme.dividerColor.withValues(alpha: 0.3))),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(child: Text(m.name, overflow: TextOverflow.ellipsis)),
                         ],
-                        rows: filtered
-                            .map((m) => DataRow(
-                                  onSelectChanged: (_) =>
-                                      _showEditDialog(context, ref, m),
-                                  cells: [
-                                    DataCell(Text(m.name)),
-                                  ],
-                                ))
-                            .toList(),
                       ),
                     ),
                   );

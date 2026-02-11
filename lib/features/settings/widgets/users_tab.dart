@@ -32,6 +32,8 @@ class _UsersTabState extends ConsumerState<UsersTab> {
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
+    final theme = Theme.of(context);
+    final headerStyle = theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.bold);
     final company = ref.watch(currentCompanyProvider);
     if (company == null) return const SizedBox.shrink();
 
@@ -81,49 +83,67 @@ class _UsersTabState extends ConsumerState<UsersTab> {
                     ],
                   ),
                 ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surfaceContainerHighest,
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(flex: 3, child: Text(l.fieldName, style: headerStyle)),
+                      Expanded(flex: 2, child: Text(l.fieldUsername, style: headerStyle)),
+                      Expanded(flex: 2, child: Text(l.fieldRole, style: headerStyle)),
+                      Expanded(flex: 1, child: Text(l.fieldActive, style: headerStyle)),
+                      Expanded(flex: 2, child: Text(l.fieldActions, style: headerStyle)),
+                    ],
+                  ),
+                ),
                 Expanded(
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      return SingleChildScrollView(
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(minWidth: constraints.maxWidth),
-                          child: DataTable(
-                      columns: [
-                        DataColumn(label: Text(l.fieldName)),
-                        DataColumn(label: Text(l.fieldUsername)),
-                        DataColumn(label: Text(l.fieldRole)),
-                        DataColumn(label: Text(l.fieldActive)),
-                        DataColumn(label: Text(l.fieldActions)),
-                      ],
-                      rows: filtered
-                          .map((user) => DataRow(cells: [
-                                DataCell(Text(user.fullName)),
-                                DataCell(Text(user.username)),
-                                DataCell(Text(_roleLabel(l, roles, user.roleId))),
-                                DataCell(Icon(
+                  child: ListView.builder(
+                    itemCount: filtered.length,
+                    itemBuilder: (context, index) {
+                      final user = filtered[index];
+                      return Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        decoration: BoxDecoration(
+                          border: Border(bottom: BorderSide(color: theme.dividerColor.withValues(alpha: 0.3))),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(flex: 3, child: Text(user.fullName, overflow: TextOverflow.ellipsis)),
+                            Expanded(flex: 2, child: Text(user.username, overflow: TextOverflow.ellipsis)),
+                            Expanded(flex: 2, child: Text(_roleLabel(l, roles, user.roleId), overflow: TextOverflow.ellipsis)),
+                            Expanded(
+                              flex: 1,
+                              child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: Icon(
                                   user.isActive ? Icons.check_circle : Icons.cancel,
                                   color: user.isActive ? Colors.green : Colors.grey,
                                   size: 20,
-                                )),
-                                DataCell(Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(Icons.edit, size: 20),
-                                      onPressed: () =>
-                                          _showEditDialog(context, ref, roles, user),
-                                    ),
-                                    IconButton(
-                                      icon: const Icon(Icons.delete, size: 20),
-                                      onPressed: () => _delete(context, ref, user),
-                                    ),
-                                  ],
-                                )),
-                              ]))
-                          .toList(),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.edit, size: 20),
+                                    onPressed: () =>
+                                        _showEditDialog(context, ref, roles, user),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.delete, size: 20),
+                                    onPressed: () => _delete(context, ref, user),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    );
+                      );
                     },
                   ),
                 ),
