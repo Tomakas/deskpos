@@ -403,7 +403,7 @@ abstract class AppLocalizations {
   /// No description provided for @actionSwitchUser.
   ///
   /// In cs, this message translates to:
-  /// **'Přepnout obsluhu'**
+  /// **'Zamknout / Přepnout'**
   String get actionSwitchUser;
 
   /// No description provided for @actionLogout.
@@ -1461,6 +1461,42 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Heslo musí mít alespoň 6 znaků'**
   String get cloudPasswordLength;
+
+  /// No description provided for @cloudDangerZone.
+  ///
+  /// In cs, this message translates to:
+  /// **'Nebezpečná zóna'**
+  String get cloudDangerZone;
+
+  /// No description provided for @cloudDeleteLocalData.
+  ///
+  /// In cs, this message translates to:
+  /// **'Smazat lokální data'**
+  String get cloudDeleteLocalData;
+
+  /// No description provided for @cloudDeleteLocalDataDescription.
+  ///
+  /// In cs, this message translates to:
+  /// **'Smaže všechna data z tohoto zařízení včetně účtů, položek, nastavení a uživatelů. Data uložená v cloudu zůstanou zachována.'**
+  String get cloudDeleteLocalDataDescription;
+
+  /// No description provided for @cloudDeleteLocalDataConfirmTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Smazat všechna lokální data?'**
+  String get cloudDeleteLocalDataConfirmTitle;
+
+  /// No description provided for @cloudDeleteLocalDataConfirmMessage.
+  ///
+  /// In cs, this message translates to:
+  /// **'Tato akce je nevratná. Všechna lokální data budou smazána a aplikace se vrátí na úvodní obrazovku.'**
+  String get cloudDeleteLocalDataConfirmMessage;
+
+  /// No description provided for @cloudDeleteLocalDataConfirm.
+  ///
+  /// In cs, this message translates to:
+  /// **'Smazat vše'**
+  String get cloudDeleteLocalDataConfirm;
 
   /// No description provided for @infoPanelSync.
   ///

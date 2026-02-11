@@ -5,8 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../../core/auth/auth_service.dart';
-import '../../../core/auth/pin_helper.dart';
 import '../../../core/data/enums/bill_status.dart';
 import '../../../core/data/enums/cash_movement_type.dart';
 import '../../../core/data/enums/payment_type.dart';
@@ -21,7 +19,6 @@ import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/providers/sync_providers.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
-import '../../../core/widgets/pos_numpad.dart';
 import '../../../core/widgets/pos_table.dart';
 import '../providers/z_report_providers.dart';
 import '../widgets/dialog_bill_detail.dart';
@@ -157,10 +154,7 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
   }
 
   void _showSwitchUserDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (_) => _SwitchUserDialog(ref: ref),
-    );
+    ref.read(manualLockProvider.notifier).state = true;
   }
 
   void _openBillDetail(BuildContext context, BillModel bill) {
@@ -1062,7 +1056,14 @@ class _RightPanel extends ConsumerWidget {
             onLeft: onCashMovement,
             onRight: canManageSettings ? () => context.push('/catalog') : null,
           ),
-          // Row 3: SKLAD | DALŠÍ (→ menu near button)
+          // Row 3: OBJEDNÁVKY | REZERVACE
+          _ButtonRow(
+            left: l.ordersTitle,
+            right: l.moreReservations,
+            onLeft: () => context.push('/orders'),
+            onRight: onReservations,
+          ),
+          // Row 4: SKLAD | DALŠÍ (→ menu near button)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             child: Row(
@@ -1087,7 +1088,6 @@ class _RightPanel extends ConsumerWidget {
                           canManageSettings,
                           onZReports: onZReports,
                           onShifts: onShifts,
-                          onReservations: onReservations,
                         ),
                         child: Text(l.billsMore, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12)),
                       );
@@ -1097,7 +1097,7 @@ class _RightPanel extends ConsumerWidget {
               ],
             ),
           ),
-          // Row 4: MAPA/SEZNAM | UZÁVĚRKA
+          // Row 5: MAPA/SEZNAM | UZÁVĚRKA
           _ButtonRow(
             left: showMap ? l.billsTableList : l.billsTableMap,
             right: l.registerSessionClose,
@@ -1198,7 +1198,7 @@ class _ButtonRow extends StatelessWidget {
   }
 }
 
-void _showMoreMenu(BuildContext btnContext, bool canManageSettings, {VoidCallback? onZReports, VoidCallback? onShifts, VoidCallback? onReservations}) {
+void _showMoreMenu(BuildContext btnContext, bool canManageSettings, {VoidCallback? onZReports, VoidCallback? onShifts}) {
   final l = btnContext.l10n;
   final button = btnContext.findRenderObject()! as RenderBox;
   final overlay = Overlay.of(btnContext).context.findRenderObject()! as RenderBox;
@@ -1214,7 +1214,6 @@ void _showMoreMenu(BuildContext btnContext, bool canManageSettings, {VoidCallbac
     context: btnContext,
     position: position,
     items: [
-      PopupMenuItem(value: 'orders', height: 48, child: Text(l.ordersTitle)),
       if (canManageSettings)
         PopupMenuItem(value: 'z-reports', height: 48, child: Text(l.moreReports)),
       if (!canManageSettings)
@@ -1224,7 +1223,6 @@ void _showMoreMenu(BuildContext btnContext, bool canManageSettings, {VoidCallbac
       if (!canManageSettings)
         PopupMenuItem(enabled: false, height: 48, child: Text(l.moreShifts)),
       PopupMenuItem(enabled: false, height: 48, child: Text(l.moreStatistics)),
-      PopupMenuItem(value: 'reservations', height: 48, child: Text(l.moreReservations)),
       if (canManageSettings)
         PopupMenuItem(value: 'vouchers', height: 48, child: Text(l.vouchersTitle)),
       if (!canManageSettings)
@@ -1245,8 +1243,6 @@ void _showMoreMenu(BuildContext btnContext, bool canManageSettings, {VoidCallbac
   ).then((value) {
     if (value == null || !btnContext.mounted) return;
     switch (value) {
-      case 'orders':
-        btnContext.push('/orders');
       case 'company-settings':
         btnContext.push('/settings/company');
       case 'venue-settings':
@@ -1257,8 +1253,6 @@ void _showMoreMenu(BuildContext btnContext, bool canManageSettings, {VoidCallbac
         onZReports?.call();
       case 'shifts':
         onShifts?.call();
-      case 'reservations':
-        onReservations?.call();
       case 'vouchers':
         btnContext.push('/vouchers');
     }
@@ -1359,374 +1353,3 @@ class _InfoRow extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Switch User Dialog — 3 states: loggedIn list, newUser list, PIN numpad
-// ---------------------------------------------------------------------------
-enum _SwitchStep { loggedIn, newUser, pin }
-
-class _SwitchUserDialog extends StatefulWidget {
-  const _SwitchUserDialog({required this.ref});
-  final WidgetRef ref;
-
-  @override
-  State<_SwitchUserDialog> createState() => _SwitchUserDialogState();
-}
-
-class _SwitchUserDialogState extends State<_SwitchUserDialog> {
-  _SwitchStep _step = _SwitchStep.loggedIn;
-  UserModel? _selectedUser;
-  bool _isNewLogin = false;
-  String _pin = '';
-  String? _error;
-  int? _lockSeconds;
-  Timer? _lockTimer;
-
-  @override
-  void dispose() {
-    _lockTimer?.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Dialog(
-      child: SizedBox(
-        width: 360,
-        child: switch (_step) {
-          _SwitchStep.loggedIn => _buildLoggedInList(context),
-          _SwitchStep.newUser => _buildNewUserList(context),
-          _SwitchStep.pin => _buildPinEntry(context),
-        },
-      ),
-    );
-  }
-
-  // -- Step 1: Logged-in users -----------------------------------------------
-
-  Widget _buildLoggedInList(BuildContext context) {
-    final l = context.l10n;
-    final session = widget.ref.read(sessionManagerProvider);
-    final activeUser = session.activeUser;
-    final company = widget.ref.read(currentCompanyProvider);
-    final loggedIn = session.loggedInUsers.where((u) => u.id != activeUser?.id).toList();
-
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: StreamBuilder<List<UserModel>>(
-        stream: company != null
-            ? widget.ref.read(userRepositoryProvider).watchAll(company.id)
-            : const Stream.empty(),
-        builder: (context, snap) {
-          final allUsers = snap.data ?? [];
-          final hasNewUsers = allUsers.any((u) => !session.isLoggedIn(u.id));
-
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(l.switchUserTitle, style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: 20),
-              if (loggedIn.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  child: Text(
-                    l.switchUserSelectUser,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                  ),
-                )
-              else
-                ...loggedIn.map((user) => Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: SizedBox(
-                        width: double.infinity,
-                        height: 52,
-                        child: OutlinedButton(
-                          onPressed: () => _selectUser(user, isNew: false),
-                          child: Text(user.username),
-                        ),
-                      ),
-                    )),
-              if (hasNewUsers) ...[
-                const SizedBox(height: 8),
-                SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: FilledButton.tonal(
-                    onPressed: () => setState(() => _step = _SwitchStep.newUser),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.person_add, size: 20),
-                        const SizedBox(width: 8),
-                        Text(l.loginTitle),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-              const SizedBox(height: 12),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: Text(l.actionClose),
-              ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-
-  // -- Step 2: All non-logged-in users ---------------------------------------
-
-  Widget _buildNewUserList(BuildContext context) {
-    final l = context.l10n;
-    final session = widget.ref.read(sessionManagerProvider);
-    final company = widget.ref.read(currentCompanyProvider);
-    if (company == null) return const SizedBox.shrink();
-
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: StreamBuilder<List<UserModel>>(
-        stream: widget.ref.read(userRepositoryProvider).watchAll(company.id),
-        builder: (context, snap) {
-          final allUsers = snap.data ?? [];
-          final notLoggedIn = allUsers.where((u) => !session.isLoggedIn(u.id)).toList();
-
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(l.loginTitle, style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: 20),
-              if (notLoggedIn.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  child: Text(
-                    l.switchUserSelectUser,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                  ),
-                )
-              else
-                ...notLoggedIn.map((user) => Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: SizedBox(
-                        width: double.infinity,
-                        height: 52,
-                        child: OutlinedButton(
-                          onPressed: () => _selectUser(user, isNew: true),
-                          child: Text(user.username),
-                        ),
-                      ),
-                    )),
-              const SizedBox(height: 12),
-              TextButton(
-                onPressed: () => setState(() => _step = _SwitchStep.loggedIn),
-                child: Text(l.wizardBack),
-              ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-
-  // -- Step 3: Numpad PIN entry ----------------------------------------------
-
-  Widget _buildPinEntry(BuildContext context) {
-    final l = context.l10n;
-
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            _selectedUser!.username,
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          const SizedBox(height: 20),
-          // PIN dots
-          SizedBox(
-            height: 32,
-            child: Text(
-              '*' * _pin.length,
-              style: TextStyle(
-                fontSize: 28,
-                letterSpacing: 12,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          // Error / lockout
-          if (_lockSeconds != null)
-            Text(
-              l.loginLockedOut(_lockSeconds!),
-              style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 13),
-            )
-          else if (_error != null)
-            Text(
-              _error!,
-              style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 13),
-            ),
-          const SizedBox(height: 16),
-          // Numpad
-          PosNumpad(
-            width: 280,
-            enabled: _lockSeconds == null,
-            onDigit: _numpadTap,
-            onBackspace: _numpadBackspace,
-            bottomLeftChild: const Icon(Icons.arrow_back),
-            onBottomLeft: _goBack,
-          ),
-        ],
-      ),
-    );
-  }
-
-  // -- Actions ---------------------------------------------------------------
-
-  Future<void> _selectUser(UserModel user, {required bool isNew}) async {
-    final previousUser = _selectedUser;
-    setState(() {
-      _selectedUser = user;
-      _isNewLogin = isNew;
-      _pin = '';
-      _error = null;
-      _lockSeconds = null;
-    });
-    if (previousUser?.id != user.id) {
-      widget.ref.read(authServiceProvider).resetAttempts();
-    }
-
-    // New logins always require PIN
-    if (isNew) {
-      setState(() => _step = _SwitchStep.pin);
-      return;
-    }
-
-    // For already-logged-in users, check if PIN can be skipped
-    final company = widget.ref.read(currentCompanyProvider);
-    if (company != null) {
-      final settings = await widget.ref
-          .read(companySettingsRepositoryProvider)
-          .getByCompany(company.id);
-      if (settings != null && !settings.requirePinOnSwitch) {
-        _onSuccess();
-        return;
-      }
-    }
-
-    setState(() => _step = _SwitchStep.pin);
-  }
-
-  void _goBack() {
-    setState(() {
-      _selectedUser = null;
-      _pin = '';
-      _error = null;
-      _step = _isNewLogin ? _SwitchStep.newUser : _SwitchStep.loggedIn;
-    });
-  }
-
-  void _numpadTap(String digit) {
-    if (_pin.length >= 6 || _lockSeconds != null) return;
-    setState(() {
-      _pin += digit;
-      _error = null;
-    });
-    _onPinChanged();
-  }
-
-  void _numpadBackspace() {
-    if (_pin.isEmpty) return;
-    setState(() {
-      _pin = _pin.substring(0, _pin.length - 1);
-      _error = null;
-    });
-  }
-
-  void _onPinChanged() {
-    if (_pin.length < 4 || _selectedUser == null || _lockSeconds != null) return;
-
-    // Silent check (no brute-force counting)
-    if (PinHelper.verifyPin(_pin, _selectedUser!.pinHash)) {
-      _onSuccess();
-      return;
-    }
-
-    // At max length (6) and still wrong — count as failed attempt
-    if (_pin.length == 6) {
-      final authService = widget.ref.read(authServiceProvider);
-      final result = authService.authenticate(_pin, _selectedUser!.pinHash);
-      switch (result) {
-        case AuthSuccess():
-          _onSuccess();
-        case AuthLocked(remainingSeconds: final secs):
-          _startLockTimer(secs);
-        case AuthFailure(message: final msg):
-          setState(() {
-            _error = msg;
-            _pin = '';
-          });
-      }
-    }
-  }
-
-  Future<void> _onSuccess() async {
-    final session = widget.ref.read(sessionManagerProvider);
-    final authService = widget.ref.read(authServiceProvider);
-    authService.resetAttempts();
-
-    if (_isNewLogin) {
-      session.login(_selectedUser!);
-    } else {
-      session.switchTo(_selectedUser!.id);
-    }
-    widget.ref.read(activeUserProvider.notifier).state = session.activeUser;
-    widget.ref.read(loggedInUsersProvider.notifier).state = session.loggedInUsers;
-
-    // Create shift if register session is active and user has no open shift
-    final company = widget.ref.read(currentCompanyProvider);
-    if (company != null) {
-      final regSession = await widget.ref.read(registerSessionRepositoryProvider).getActiveSession(company.id);
-      if (regSession != null) {
-        final shiftRepo = widget.ref.read(shiftRepositoryProvider);
-        final existing = await shiftRepo.getActiveShiftForUser(_selectedUser!.id, regSession.id);
-        if (existing == null) {
-          await shiftRepo.create(
-            companyId: company.id,
-            registerSessionId: regSession.id,
-            userId: _selectedUser!.id,
-          );
-        }
-      }
-    }
-
-    if (mounted) Navigator.of(context).pop();
-  }
-
-  void _startLockTimer(int seconds) {
-    _lockTimer?.cancel();
-    setState(() {
-      _lockSeconds = seconds;
-      _error = null;
-      _pin = '';
-    });
-    _lockTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (!mounted) {
-        timer.cancel();
-        return;
-      }
-      setState(() {
-        _lockSeconds = _lockSeconds! - 1;
-        if (_lockSeconds! <= 0) {
-          _lockSeconds = null;
-          timer.cancel();
-        }
-      });
-    });
-  }
-}

@@ -71,3 +71,6 @@ final activeRegisterSessionProvider = StreamProvider<RegisterSessionModel?>((ref
   if (company == null) return Stream.value(null);
   return ref.watch(registerSessionRepositoryProvider).watchActiveSession(company.id);
 });
+
+/// Manual lock trigger — set to true to show lock overlay (e.g. from "Switch/Lock" button)
+final manualLockProvider = StateProvider<bool>((ref) => false);

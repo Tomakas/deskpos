@@ -164,7 +164,7 @@ class AppLocalizationsCs extends AppLocalizations {
   String get infoPanelLoggedIn => 'Další přihlášení';
 
   @override
-  String get actionSwitchUser => 'Přepnout obsluhu';
+  String get actionSwitchUser => 'Zamknout / Přepnout';
 
   @override
   String get actionLogout => 'Odhlásit';
@@ -716,6 +716,26 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get cloudPasswordLength => 'Heslo musí mít alespoň 6 znaků';
+
+  @override
+  String get cloudDangerZone => 'Nebezpečná zóna';
+
+  @override
+  String get cloudDeleteLocalData => 'Smazat lokální data';
+
+  @override
+  String get cloudDeleteLocalDataDescription =>
+      'Smaže všechna data z tohoto zařízení včetně účtů, položek, nastavení a uživatelů. Data uložená v cloudu zůstanou zachována.';
+
+  @override
+  String get cloudDeleteLocalDataConfirmTitle => 'Smazat všechna lokální data?';
+
+  @override
+  String get cloudDeleteLocalDataConfirmMessage =>
+      'Tato akce je nevratná. Všechna lokální data budou smazána a aplikace se vrátí na úvodní obrazovku.';
+
+  @override
+  String get cloudDeleteLocalDataConfirm => 'Smazat vše';
 
   @override
   String get infoPanelSync => 'Synchronizace';

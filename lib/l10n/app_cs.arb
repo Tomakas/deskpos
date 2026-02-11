@@ -65,7 +65,7 @@
   "infoPanelActiveUser": "Aktivní obsluha",
   "infoPanelLoggedIn": "Další přihlášení",
 
-  "actionSwitchUser": "Přepnout obsluhu",
+  "actionSwitchUser": "Zamknout / Přepnout",
   "actionLogout": "Odhlásit",
 
   "switchUserTitle": "Přepnout obsluhu",
@@ -301,6 +301,13 @@
   "cloudEmailRequired": "E-mail je povinný",
   "cloudPasswordRequired": "Heslo je povinné",
   "cloudPasswordLength": "Heslo musí mít alespoň 6 znaků",
+
+  "cloudDangerZone": "Nebezpečná zóna",
+  "cloudDeleteLocalData": "Smazat lokální data",
+  "cloudDeleteLocalDataDescription": "Smaže všechna data z tohoto zařízení včetně účtů, položek, nastavení a uživatelů. Data uložená v cloudu zůstanou zachována.",
+  "cloudDeleteLocalDataConfirmTitle": "Smazat všechna lokální data?",
+  "cloudDeleteLocalDataConfirmMessage": "Tato akce je nevratná. Všechna lokální data budou smazána a aplikace se vrátí na úvodní obrazovku.",
+  "cloudDeleteLocalDataConfirm": "Smazat vše",
 
   "infoPanelSync": "Synchronizace",
   "infoPanelSyncConnected": "Připojeno",

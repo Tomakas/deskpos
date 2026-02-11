@@ -47,6 +47,7 @@ class _InactivityDetectorState extends ConsumerState<InactivityDetector> {
   }
 
   void _onUnlocked(UserModel user, bool isNew) {
+    ref.read(manualLockProvider.notifier).state = false;
     setState(() => _isLocked = false);
     _resetTimer();
   }
@@ -76,6 +77,9 @@ class _InactivityDetectorState extends ConsumerState<InactivityDetector> {
   }
 
   Widget _buildContent() {
+    final manualLock = ref.watch(manualLockProvider);
+    final showLock = _isLocked || manualLock;
+
     return Listener(
       onPointerDown: (_) => _resetTimer(),
       onPointerMove: (_) => _resetTimer(),
@@ -83,7 +87,7 @@ class _InactivityDetectorState extends ConsumerState<InactivityDetector> {
       child: Stack(
         children: [
           widget.child,
-          if (_isLocked)
+          if (showLock)
             Positioned.fill(
               child: LockOverlay(onUnlocked: _onUnlocked),
             ),
