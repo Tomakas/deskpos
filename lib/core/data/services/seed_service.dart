@@ -492,39 +492,88 @@ class SeedService {
           await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catSluzby, name: 'Pronájem sálu (hodina)', itemType: ItemType.service, sku: 'SLU-001', unitPrice: 150000, saleTaxRateId: taxRate21Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
           await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catSluzby, name: 'Raut – obsluha (osoba)', itemType: ItemType.service, sku: 'SLU-002', unitPrice: 50000, saleTaxRateId: taxRate21Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
 
-          // 16. Layout items for sell grid
-          // Page 0: categories as navigation buttons
+          // 16. Layout items for sell grid (horizontal — matches auto-arrange)
+          final gridRows = 5;
+          final gridCols = 8;
           final categoryIds = [catNapoje, catPivo, catHlavniJidla,
               catPredkrmy, catDeserty, catSuroviny, catSluzby];
-          for (var i = 0; i < categoryIds.length; i++) {
+          int pageCounter = 1;
+
+          for (var catIdx = 0;
+              catIdx < categoryIds.length && catIdx < gridRows;
+              catIdx++) {
+            final catId = categoryIds[catIdx];
+            final catItems = sellableByCategory[catId] ?? [];
+
+            // Page 0: category at (catIdx, 0)
             await _db.into(_db.layoutItems).insert(LayoutItemsCompanion.insert(
               id: _id(),
               companyId: companyId,
               registerId: registerId,
               page: const Value(0),
-              gridRow: i ~/ 8,
-              gridCol: i % 8,
+              gridRow: catIdx,
+              gridCol: 0,
               type: LayoutItemType.category,
-              categoryId: Value(categoryIds[i]),
+              categoryId: Value(catId),
             ));
-          }
 
-          // Pages 1+: sellable items per category
-          var pageNum = 1;
-          for (final entry in sellableByCategory.entries) {
-            for (var i = 0; i < entry.value.length && i < 40; i++) {
-              await _db.into(_db.layoutItems).insert(LayoutItemsCompanion.insert(
-                id: _id(),
-                companyId: companyId,
-                registerId: registerId,
-                page: Value(pageNum),
-                gridRow: i ~/ 8,
-                gridCol: i % 8,
-                type: LayoutItemType.item,
-                itemId: Value(entry.value[i]),
-              ));
+            // Page 0: items at (catIdx, 1..gridCols-1)
+            for (var c = 1; c < gridCols && c - 1 < catItems.length; c++) {
+              await _db
+                  .into(_db.layoutItems)
+                  .insert(LayoutItemsCompanion.insert(
+                    id: _id(),
+                    companyId: companyId,
+                    registerId: registerId,
+                    page: const Value(0),
+                    gridRow: catIdx,
+                    gridCol: c,
+                    type: LayoutItemType.item,
+                    itemId: Value(catItems[c - 1]),
+                  ));
             }
-            pageNum++;
+
+            // Sub-page: category marker at (0, 0) + all items
+            if (catItems.isNotEmpty) {
+              final page = pageCounter++;
+              await _db
+                  .into(_db.layoutItems)
+                  .insert(LayoutItemsCompanion.insert(
+                    id: _id(),
+                    companyId: companyId,
+                    registerId: registerId,
+                    page: Value(page),
+                    gridRow: 0,
+                    gridCol: 0,
+                    type: LayoutItemType.category,
+                    categoryId: Value(catId),
+                  ));
+
+              // Items left-to-right, top-to-bottom (skip (0,0))
+              var idx = 0;
+              for (var r = 0;
+                  r < gridRows && idx < catItems.length;
+                  r++) {
+                final startCol = r == 0 ? 1 : 0;
+                for (var c = startCol;
+                    c < gridCols && idx < catItems.length;
+                    c++) {
+                  await _db
+                      .into(_db.layoutItems)
+                      .insert(LayoutItemsCompanion.insert(
+                        id: _id(),
+                        companyId: companyId,
+                        registerId: registerId,
+                        page: Value(page),
+                        gridRow: r,
+                        gridCol: c,
+                        type: LayoutItemType.item,
+                        itemId: Value(catItems[idx]),
+                      ));
+                  idx++;
+                }
+              }
+            }
           }
 
           // 17. Customers (varying completeness for testing)

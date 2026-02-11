@@ -11,22 +11,13 @@ import '../../../core/data/models/table_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/widgets/pos_color_palette.dart';
 
 const _gridCols = 32;
 const _gridRows = 20;
 
 enum _HandlePos { tl, tr, br, bl }
 
-const _elementColors = [
-  '#795548',
-  '#607D8B',
-  '#9E9E9E',
-  '#4CAF50',
-  '#2196F3',
-  '#FF9800',
-  '#F44336',
-  '#000000',
-];
 
 class FloorMapEditorTab extends ConsumerStatefulWidget {
   const FloorMapEditorTab({super.key});
@@ -823,49 +814,9 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
                     // Color palette
                     Text(l.floorMapElementColor, style: Theme.of(context).textTheme.bodySmall),
                     const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        // "None" option
-                        GestureDetector(
-                          onTap: () => setDialogState(() => elementColor = null),
-                          child: Container(
-                            width: 32,
-                            height: 32,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: elementColor == null
-                                    ? Theme.of(context).colorScheme.primary
-                                    : Theme.of(context).dividerColor,
-                                width: elementColor == null ? 3 : 1,
-                              ),
-                            ),
-                            child: const Center(
-                              child: Icon(Icons.block, size: 16),
-                            ),
-                          ),
-                        ),
-                        for (final hex in _elementColors)
-                          GestureDetector(
-                            onTap: () => setDialogState(() => elementColor = hex),
-                            child: Container(
-                              width: 32,
-                              height: 32,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: _parseColor(hex),
-                                border: Border.all(
-                                  color: elementColor == hex
-                                      ? Theme.of(context).colorScheme.primary
-                                      : Colors.transparent,
-                                  width: 3,
-                                ),
-                              ),
-                            ),
-                          ),
-                      ],
+                    PosColorPalette(
+                      selectedColor: elementColor,
+                      onColorSelected: (c) => setDialogState(() => elementColor = c),
                     ),
                     const SizedBox(height: 12),
                     Row(
@@ -1144,48 +1095,9 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
                   const SizedBox(height: 12),
                   Text(l.floorMapElementColor, style: Theme.of(context).textTheme.bodySmall),
                   const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      GestureDetector(
-                        onTap: () => setDialogState(() => elementColor = null),
-                        child: Container(
-                          width: 32,
-                          height: 32,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: elementColor == null
-                                  ? Theme.of(context).colorScheme.primary
-                                  : Theme.of(context).dividerColor,
-                              width: elementColor == null ? 3 : 1,
-                            ),
-                          ),
-                          child: const Center(
-                            child: Icon(Icons.block, size: 16),
-                          ),
-                        ),
-                      ),
-                      for (final hex in _elementColors)
-                        GestureDetector(
-                          onTap: () => setDialogState(() => elementColor = hex),
-                          child: Container(
-                            width: 32,
-                            height: 32,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: _parseColor(hex),
-                              border: Border.all(
-                                color: elementColor == hex
-                                    ? Theme.of(context).colorScheme.primary
-                                    : Colors.transparent,
-                                width: 3,
-                              ),
-                            ),
-                          ),
-                        ),
-                    ],
+                  PosColorPalette(
+                    selectedColor: elementColor,
+                    onColorSelected: (c) => setDialogState(() => elementColor = c),
                   ),
                   const SizedBox(height: 12),
                   Row(
@@ -1286,15 +1198,7 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
   }
 }
 
-Color _parseColor(String? hex) {
-  if (hex == null || hex.isEmpty) return Colors.blueGrey;
-  try {
-    final colorValue = int.parse(hex.replaceFirst('#', ''), radix: 16);
-    return Color(colorValue | 0xFF000000);
-  } catch (_) {
-    return Colors.blueGrey;
-  }
-}
+
 
 class _EmptyCell extends StatelessWidget {
   const _EmptyCell({required this.onTap, this.highlighted = false});
@@ -1330,7 +1234,7 @@ class _TableCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = _parseColor(section?.color);
+    final color = parseHexColor(section?.color);
     final isRound = table.shape == TableShape.round;
     final radius = isRound ? BorderRadius.circular(999) : BorderRadius.circular(6);
 
@@ -1370,7 +1274,7 @@ class _EditorElementCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = element.color != null ? _parseColor(element.color) : null;
+    final color = element.color != null ? parseHexColor(element.color) : null;
     final isRound = element.shape == TableShape.round;
     final radius = isRound ? BorderRadius.circular(999) : BorderRadius.circular(6);
 

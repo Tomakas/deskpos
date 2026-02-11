@@ -3490,6 +3490,12 @@ abstract class AppLocalizations {
   /// **'Stránka {page}'**
   String gridEditorPage(int page);
 
+  /// No description provided for @gridEditorColor.
+  ///
+  /// In cs, this message translates to:
+  /// **'Barva tlačítka'**
+  String get gridEditorColor;
+
   /// No description provided for @settingsFloorMap.
   ///
   /// In cs, this message translates to:

@@ -434,6 +434,8 @@ Toto zachytí kategorie problémů, které manuální review nemůže efektivně
 - [ ] Const constructors — jsou widgety bez parametrů označené `const`?
 - [ ] Generated code — je `app_database.g.dart` a `*.freezed.dart` aktuální vůči zdrojům?
 - [ ] Hardcoded absolutní cesty — existují `File('/Users/...')` nebo podobné? (Grep: `File('`)
+- [ ] DRY violations — existuje nově přidaný nebo existující kód, který duplikuje funkce z `lib/core/utils/`? Hledej duplicitní normalizace, formátování, validace, helpery rozstříkané po repositories/screens místo centralizace v utils. (Grep: klíčová slova jako `normalize`, `format`, `charMap`, `diacriticMap` mimo `utils/`)
+- [ ] Utility reuse — jsou všechny helper funkce v repositories/screens/services skutečně doménově specifické, nebo patří do sdílených utils? Každá privátní funkce `_foo()` v repository, která nemá vazbu na konkrétní entitu, je kandidát na extrakci do utils.
 
 #### 3.8 Testy
 

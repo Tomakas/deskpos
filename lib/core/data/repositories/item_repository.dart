@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 
 import '../../database/app_database.dart';
+import '../../utils/search_utils.dart';
 import '../mappers/entity_mappers.dart';
 import '../mappers/supabase_mappers.dart';
 import '../models/item_model.dart';
@@ -67,4 +68,22 @@ class ItemRepository
         deletedAt: Value(now),
         updatedAt: Value(now),
       );
+
+  Stream<List<ItemModel>> search(String companyId, String query) {
+    final normalizedQuery = normalizeSearch(query);
+    return (db.select(db.items)
+          ..where((t) =>
+              t.companyId.equals(companyId) &
+              t.deletedAt.isNull() &
+              t.isSellable.equals(true))
+          ..orderBy([(t) => OrderingTerm.asc(t.name)]))
+        .watch()
+        .map((rows) => rows
+            .map(itemFromEntity)
+            .where((item) =>
+                normalizeSearch(item.name).contains(normalizedQuery) ||
+                normalizeSearch(item.sku ?? '').contains(normalizedQuery) ||
+                normalizeSearch(item.altSku ?? '').contains(normalizedQuery))
+            .toList());
+  }
 }

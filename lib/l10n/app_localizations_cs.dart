@@ -1763,6 +1763,9 @@ class AppLocalizationsCs extends AppLocalizations {
   }
 
   @override
+  String get gridEditorColor => 'Barva tlačítka';
+
+  @override
   String get settingsFloorMap => 'Mapa';
 
   @override

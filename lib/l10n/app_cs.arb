@@ -732,6 +732,7 @@
       "page": { "type": "int" }
     }
   },
+  "gridEditorColor": "Barva tlačítka",
 
   "settingsFloorMap": "Mapa",
   "billsTableList": "Seznam",

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -14,6 +16,7 @@ import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/repositories/order_repository.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/widgets/pos_color_palette.dart';
 import '../../bills/widgets/dialog_customer_search.dart';
 import '../../bills/widgets/dialog_payment.dart';
 
@@ -37,12 +40,31 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
   int _currentPage = 0;
   final List<int> _pageStack = [];
   String? _orderNotes;
+  String? _customerId;
   String? _customerName;
+  final _searchController = TextEditingController();
+  Timer? _debounce;
+  String _searchQuery = '';
+  bool _isSearchOpen = false;
 
   @override
   void initState() {
     super.initState();
     _loadCustomerName();
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _onSearchChanged(String value) {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 300), () {
+      setState(() => _searchQuery = value.trim());
+    });
   }
 
   Future<void> _loadCustomerName() async {
@@ -51,7 +73,10 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     if (billResult is Success<BillModel> && billResult.value.customerId != null) {
       final customer = await ref.read(customerRepositoryProvider).getById(billResult.value.customerId!);
       if (customer != null && mounted) {
-        setState(() => _customerName = '${customer.firstName} ${customer.lastName}');
+        setState(() {
+          _customerId = customer.id;
+          _customerName = '${customer.firstName} ${customer.lastName}';
+        });
       }
     }
   }
@@ -78,7 +103,11 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
                   children: [
                     _buildToolbar(context, l),
                     const Divider(height: 1),
-                    Expanded(child: _buildGrid(context, ref, reg, l)),
+                    Expanded(
+                      child: _searchQuery.isNotEmpty
+                          ? _buildSearchResults(context, ref, l)
+                          : _buildGrid(context, ref, reg, l),
+                    ),
                   ],
                 ),
               ),
@@ -96,39 +125,80 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
       height: 52,
       padding: const EdgeInsets.symmetric(horizontal: 8),
       child: Row(
-        children: [
-          _toolbarChip(l.sellSearch, selected: true, onSelected: () => setState(() { _currentPage = 0; _pageStack.clear(); })),
-          const SizedBox(width: 8),
-          _toolbarChip(l.sellScan, onSelected: null),
-          const SizedBox(width: 8),
-          _toolbarChip(
-            _customerName ?? l.sellCustomer,
-            selected: _customerName != null,
-            onSelected: widget.billId != null ? () => _selectCustomer(context) : null,
-          ),
-          const SizedBox(width: 8),
-          _toolbarChip(l.sellNote, selected: _orderNotes != null && _orderNotes!.isNotEmpty, onSelected: () => _showOrderNoteDialog(context)),
-          const SizedBox(width: 8),
-          _toolbarChip(l.sellSeparator, onSelected: _cart.isEmpty ? null : () {
-            if (_cart.isNotEmpty && _cart.last is! _CartSeparator) {
-              setState(() => _cart.add(const _CartSeparator()));
-            }
-          }),
-          const SizedBox(width: 8),
-          _toolbarChip(l.sellActions, onSelected: null),
-          if (_currentPage > 0) ...[
-            const SizedBox(width: 8),
-            _toolbarChip(l.sellBackToCategories, selected: true, onSelected: () {
-              setState(() {
-                if (_pageStack.isNotEmpty) {
-                  _currentPage = _pageStack.removeLast();
-                } else {
-                  _currentPage = 0;
-                }
-              });
-            }),
-          ],
-        ],
+        children: _isSearchOpen
+            ? [
+                Expanded(
+                  child: SizedBox(
+                    height: 40,
+                    child: TextField(
+                      controller: _searchController,
+                      autofocus: true,
+                      decoration: InputDecoration(
+                        prefixIcon: const Icon(Icons.search, size: 20),
+                        suffixIcon: IconButton(
+                          icon: const Icon(Icons.close, size: 20),
+                          padding: EdgeInsets.zero,
+                          onPressed: () {
+                            _searchController.clear();
+                            _debounce?.cancel();
+                            setState(() {
+                              _searchQuery = '';
+                              _isSearchOpen = false;
+                              _currentPage = 0;
+                              _pageStack.clear();
+                            });
+                          },
+                        ),
+                        hintText: l.sellSearch,
+                        isDense: true,
+                        contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                        border: const OutlineInputBorder(),
+                      ),
+                      onChanged: _onSearchChanged,
+                    ),
+                  ),
+                ),
+              ]
+            : [
+                SizedBox(
+                  height: 40,
+                  width: 48,
+                  child: IconButton(
+                    icon: const Icon(Icons.search),
+                    onPressed: () => setState(() => _isSearchOpen = true),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                _toolbarChip(l.sellScan, onSelected: null),
+                const SizedBox(width: 8),
+                _toolbarChip(
+                  _customerName ?? l.sellCustomer,
+                  selected: _customerName != null,
+                  onSelected: () => _selectCustomer(context),
+                ),
+                const SizedBox(width: 8),
+                _toolbarChip(l.sellNote, selected: _orderNotes != null && _orderNotes!.isNotEmpty, onSelected: () => _showOrderNoteDialog(context)),
+                const SizedBox(width: 8),
+                _toolbarChip(l.sellSeparator, onSelected: _cart.isEmpty ? null : () {
+                  if (_cart.isNotEmpty && _cart.last is! _CartSeparator) {
+                    setState(() => _cart.add(const _CartSeparator()));
+                  }
+                }),
+                const SizedBox(width: 8),
+                _toolbarChip(l.sellActions, onSelected: null),
+                if (_currentPage > 0) ...[
+                  const SizedBox(width: 8),
+                  _toolbarChip(l.sellBackToCategories, selected: true, onSelected: () {
+                    setState(() {
+                      if (_pageStack.isNotEmpty) {
+                        _currentPage = _pageStack.removeLast();
+                      } else {
+                        _currentPage = 0;
+                      }
+                    });
+                  }),
+                ],
+              ],
       ),
     );
   }
@@ -339,6 +409,32 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     );
   }
 
+  Widget _buildSearchResults(BuildContext context, WidgetRef ref, dynamic l) {
+    final company = ref.watch(currentCompanyProvider);
+    if (company == null) return const SizedBox.shrink();
+
+    return StreamBuilder<List<ItemModel>>(
+      stream: ref.watch(itemRepositoryProvider).search(company.id, _searchQuery),
+      builder: (context, snap) {
+        final items = snap.data ?? [];
+        if (items.isEmpty) {
+          return const SizedBox.shrink();
+        }
+        return ListView.builder(
+          itemCount: items.length,
+          itemBuilder: (context, i) {
+            final item = items[i];
+            return ListTile(
+              title: Text(item.name),
+              trailing: Text('${item.unitPrice ~/ 100} Kč'),
+              onTap: () => _addToCart(ref, item, company.id),
+            );
+          },
+        );
+      },
+    );
+  }
+
   Widget _buildGrid(BuildContext context, WidgetRef ref, RegisterModel register, dynamic l) {
     final company = ref.watch(currentCompanyProvider);
     if (company == null) return const SizedBox.shrink();
@@ -417,7 +513,14 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     final layoutItem = layoutItems.where((li) => li.gridRow == row && li.gridCol == col).firstOrNull;
 
     if (layoutItem == null) {
-      return const SizedBox.shrink();
+      return Padding(
+        padding: const EdgeInsets.all(2),
+        child: Material(
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(8),
+          child: const SizedBox.expand(),
+        ),
+      );
     }
 
     if (layoutItem.type == LayoutItemType.category) {
@@ -425,8 +528,9 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
       return _ItemButton(
         label: layoutItem.label ?? cat?.name ?? '?',
         color: layoutItem.color != null
-            ? Color(int.parse(layoutItem.color!.replaceFirst('#', 'FF'), radix: 16))
+            ? parseHexColor(layoutItem.color)
             : Theme.of(context).colorScheme.secondaryContainer,
+        isCategory: true,
         onTap: () => _onCategoryTap(register.id, layoutItem),
       );
     }
@@ -436,8 +540,9 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
 
     return _ItemButton(
       label: layoutItem.label ?? item.name,
+      subtitle: '${item.unitPrice ~/ 100} Kč',
       color: layoutItem.color != null
-          ? Color(int.parse(layoutItem.color!.replaceFirst('#', 'FF'), radix: 16))
+          ? parseHexColor(layoutItem.color)
           : Theme.of(context).colorScheme.primaryContainer,
       onTap: item.isSellable ? () => _addToCart(ref, item, companyId) : null,
     );
@@ -486,7 +591,6 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
   }
 
   Future<void> _selectCustomer(BuildContext context) async {
-    if (widget.billId == null) return;
     final result = await showCustomerSearchDialogRaw(
       context,
       ref,
@@ -494,15 +598,25 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     );
     if (result == null) return;
     if (result is CustomerModel) {
-      await ref.read(billRepositoryProvider).updateCustomer(widget.billId!, result.id);
+      if (widget.billId != null) {
+        await ref.read(billRepositoryProvider).updateCustomer(widget.billId!, result.id);
+      }
       if (mounted) {
-        setState(() => _customerName = '${result.firstName} ${result.lastName}');
+        setState(() {
+          _customerId = result.id;
+          _customerName = '${result.firstName} ${result.lastName}';
+        });
       }
     } else {
       // _RemoveCustomer sentinel
-      await ref.read(billRepositoryProvider).updateCustomer(widget.billId!, null);
+      if (widget.billId != null) {
+        await ref.read(billRepositoryProvider).updateCustomer(widget.billId!, null);
+      }
       if (mounted) {
-        setState(() => _customerName = null);
+        setState(() {
+          _customerId = null;
+          _customerName = null;
+        });
       }
     }
   }
@@ -703,6 +817,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
       userId: user.id,
       currencyId: company.defaultCurrencyId,
       sectionId: defaultSection?.id,
+      customerId: _customerId,
       isTakeaway: true,
     );
     if (billResult is! Success<BillModel>) return;
@@ -771,6 +886,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
         userId: user.id,
         currencyId: company.defaultCurrencyId,
         sectionId: defaultSection?.id,
+        customerId: _customerId,
         isTakeaway: false,
       );
       if (billResult is! Success<BillModel>) return;
@@ -818,10 +934,18 @@ class _CartItem {
 }
 
 class _ItemButton extends StatelessWidget {
-  const _ItemButton({required this.label, required this.color, this.onTap});
+  const _ItemButton({
+    required this.label,
+    required this.color,
+    this.onTap,
+    this.subtitle,
+    this.isCategory = false,
+  });
   final String label;
   final Color color;
   final VoidCallback? onTap;
+  final String? subtitle;
+  final bool isCategory;
 
   @override
   Widget build(BuildContext context) {
@@ -834,26 +958,32 @@ class _ItemButton extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(8),
-          child: Center(
-            child: ShaderMask(
-              shaderCallback: (rect) {
-                return const LinearGradient(
-                  colors: [Colors.transparent, Colors.black, Colors.black, Colors.transparent],
-                  stops: [0.0, 0.1, 0.9, 1.0],
-                ).createShader(rect);
-              },
-              blendMode: BlendMode.dstIn,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: Text(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (isCategory)
+                  const Icon(Icons.folder_outlined, size: 16),
+                Text(
                   label,
                   textAlign: TextAlign.center,
-                  maxLines: 1,
-                  softWrap: false,
-                  overflow: TextOverflow.clip,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
                 ),
-              ),
+                if (subtitle != null)
+                  Text(
+                    subtitle!,
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+              ],
             ),
           ),
         ),

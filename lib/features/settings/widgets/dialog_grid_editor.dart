@@ -9,6 +9,7 @@ import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/utils/search_utils.dart';
+import '../../../core/widgets/pos_color_palette.dart';
 
 class DialogGridEditor extends ConsumerStatefulWidget {
   const DialogGridEditor({super.key});
@@ -167,13 +168,17 @@ class _DialogGridEditorState extends ConsumerState<DialogGridEditor> {
         final item =
             allItems.where((i) => i.id == layoutItem.itemId).firstOrNull;
         label = layoutItem.label ?? item?.name ?? '?';
-        color = Theme.of(context).colorScheme.primaryContainer;
+        color = layoutItem.color != null
+            ? parseHexColor(layoutItem.color)
+            : Theme.of(context).colorScheme.primaryContainer;
       } else {
         final cat = allCategories
             .where((c) => c.id == layoutItem.categoryId)
             .firstOrNull;
         label = layoutItem.label ?? cat?.name ?? '?';
-        color = Theme.of(context).colorScheme.secondaryContainer;
+        color = layoutItem.color != null
+            ? parseHexColor(layoutItem.color)
+            : Theme.of(context).colorScheme.secondaryContainer;
       }
     }
 
@@ -335,6 +340,13 @@ class _DialogGridEditorState extends ConsumerState<DialogGridEditor> {
     );
 
     if (result == null) return;
+
+    // Show color picker for non-clear results
+    String? selectedColor;
+    if (!result.clear && context.mounted) {
+      selectedColor = await _showColorPicker(context);
+    }
+
     final repo = ref.read(layoutItemRepositoryProvider);
 
     if (result.clear) {
@@ -354,6 +366,7 @@ class _DialogGridEditorState extends ConsumerState<DialogGridEditor> {
         type: result.type!,
         itemId: result.itemId,
         categoryId: result.categoryId,
+        color: selectedColor,
       );
 
       // If assigning a category on page 0, ensure sub-page exists
@@ -374,6 +387,29 @@ class _DialogGridEditorState extends ConsumerState<DialogGridEditor> {
         }
       }
     }
+  }
+
+  Future<String?> _showColorPicker(BuildContext context) async {
+    final l = context.l10n;
+    return showDialog<String?>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(l.gridEditorColor),
+        content: SizedBox(
+          width: 300,
+          child: PosColorPalette(
+            selectedColor: null,
+            onColorSelected: (color) => Navigator.pop(context, color),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l.actionCancel),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _selectItem(
