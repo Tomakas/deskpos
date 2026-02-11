@@ -403,7 +403,7 @@ lib/
 │   ├── network/                       # Supabase konfigurace (URL, anon key)
 │   ├── sync/                          # Sync engine
 │   │   ├── sync_service.dart          # Pull (5min interval, 35 tabulek)
-│   │   ├── outbox_processor.dart      # Push (5s interval, retry + backoff)
+│   │   ├── outbox_processor.dart      # Push (5s interval, retry)
 │   │   └── sync_lifecycle_manager.dart # Orchestrace start/stop/initial push
 │   ├── logging/                       # AppLogger (dart:developer)
 │   └── l10n/                          # Extension context.l10n
@@ -607,7 +607,7 @@ Všechny aktivní tabulky obsahují společné sync sloupce (viz [SyncColumnsMix
 | **company_settings** | id (T), company_id →companies, require_pin_on_switch (B, default true), auto_lock_timeout_minutes (I?), loyalty_earn_per_hundred_czk (I, default 0), loyalty_point_value_halere (I, default 0) |
 | **users** | id (T), company_id →companies, auth_user_id (T?), username (T), full_name (T), email (T?), phone (T?), pin_hash (T), pin_enabled (B), role_id →roles, is_active (B) |
 | **roles** | id (T), name (T) |
-| **permissions** | id (T), code (T), name (T), description (T), category (T) |
+| **permissions** | id (T), code (T), name (T), description (T?), category (T) |
 | **role_permissions** | id (T), role_id →roles, permission_id →permissions |
 | **user_permissions** | id (T), company_id →companies, user_id →users, permission_id →permissions, granted_by →users |
 
@@ -650,7 +650,7 @@ Všechny aktivní tabulky obsahují společné sync sloupce (viz [SyncColumnsMix
 
 | Tabulka | Sloupce |
 |---------|---------|
-| **vouchers** | id (T), company_id →companies, code (T), type (T — VoucherType), status (T — VoucherStatus), value (I), discount_type (T? — DiscountType), discount_scope (T? — VoucherDiscountScope), item_id →items?, category_id →categories?, min_order_value (I, default 0), max_uses (I, default 1), used_count (I, default 0), customer_id →customers?, source_bill_id →bills?, redeemed_on_bill_id →bills?, expires_at (D?), redeemed_at (D?), note (T?) |
+| **vouchers** | id (T), company_id →companies, code (T), type (T — VoucherType), status (T — VoucherStatus), value (I), discount_type (T? — DiscountType), discount_scope (T? — VoucherDiscountScope), item_id →items?, category_id →categories?, min_order_value (I?), max_uses (I, default 1), used_count (I, default 0), customer_id →customers?, source_bill_id →bills?, redeemed_on_bill_id →bills?, expires_at (D?), redeemed_at (D?), note (T?) |
 
 ##### Sklad
 
@@ -777,7 +777,7 @@ graph LR
 - Garantované pořadí operací
 - Crash resilience (operace se neztratí)
 - Auditovatelnost
-- Retry s postupným backoff (1s, 5s, 10s, 50s)
+- Retry každých 5s (fixní interval, max 10 pokusů)
 
 ### Sync Lifecycle
 
@@ -835,7 +835,7 @@ Když server odmítne push (`LWW_CONFLICT`), outbox processor označí entry jak
 
 ### Retry strategie
 
-- **Transient chyby** (síť, timeout, auth): retry s backoffem (1s → 5s → 10s → 50s)
+- **Transient chyby** (síť, timeout, auth): retry každých 5s (fixní interval, max 10 pokusů)
 - **Permanent chyby** (data/constraint/permission): označí se jako `failed` hned
 - FIFO je zachováno
 - Stuck záznamy (processing > 5 min dle `processedAt` timestampu): automatický reset na `pending`

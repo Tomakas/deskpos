@@ -181,8 +181,8 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
         isActive: Value(json['is_active'] as bool? ?? true),
         gridRow: Value(json['grid_row'] as int? ?? 0),
         gridCol: Value(json['grid_col'] as int? ?? 0),
-        gridWidth: Value(json['grid_width'] as int? ?? 1),
-        gridHeight: Value(json['grid_height'] as int? ?? 1),
+        gridWidth: Value(json['grid_width'] as int? ?? 3),
+        gridHeight: Value(json['grid_height'] as int? ?? 3),
         shape: Value(json['shape'] != null
             ? _enumFromName(TableShape.values, json['shape'])
             : TableShape.rectangle),

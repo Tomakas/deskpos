@@ -150,6 +150,8 @@ class _DialogAutoArrangeState extends ConsumerState<DialogAutoArrange> {
         .first;
     final activeCategories = categories.where((c) => c.isActive).toList();
 
+    if (!context.mounted) return;
+
     if (activeCategories.length > maxOnRoot) {
       final confirmed = await showDialog<bool>(
         context: context,
@@ -196,14 +198,14 @@ class _DialogAutoArrangeState extends ConsumerState<DialogAutoArrange> {
       // 1. Clear existing
       final clearResult = await repo.clearByRegister(registerId);
       if (clearResult is Failure) {
-        if (mounted) Navigator.pop(context);
+        if (context.mounted) Navigator.pop(context);
         return;
       }
 
       // 2. Bulk insert
       await repo.bulkSetCells(cells);
 
-      if (mounted) Navigator.pop(context);
+      if (context.mounted) Navigator.pop(context);
     } finally {
       if (mounted) setState(() => _isProcessing = false);
     }

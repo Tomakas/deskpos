@@ -744,7 +744,7 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
                   if (!isElementMode) ...[
                     // TABLE mode
                     DropdownButtonFormField<String?>(
-                      value: selectedTableId,
+                      initialValue: selectedTableId,
                       decoration: InputDecoration(labelText: l.floorMapSelectTable),
                       items: [
                         DropdownMenuItem<String?>(

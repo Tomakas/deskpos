@@ -118,6 +118,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/inventory',
+        redirect: (context, state) {
+          final hasPermission = ref.read(hasPermissionProvider('settings.manage'));
+          if (!hasPermission) return '/bills';
+          return null;
+        },
         builder: (context, state) => const ScreenInventory(),
       ),
       GoRoute(

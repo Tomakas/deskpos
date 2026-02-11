@@ -151,7 +151,8 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
     session.logoutActive();
     ref.read(activeUserProvider.notifier).state = null;
     ref.read(loggedInUsersProvider.notifier).state = session.loggedInUsers;
-    if (mounted) context.go('/login');
+    if (!context.mounted) return;
+    context.go('/login');
   }
 
   void _showSwitchUserDialog(BuildContext context) {
@@ -173,7 +174,7 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
       context: context,
       builder: (_) => DialogNewBill(initialTableId: table.id),
     );
-    if (result == null || !mounted) return;
+    if (result == null || !context.mounted) return;
     await _createBillFromResult(context, result);
   }
 
@@ -182,7 +183,7 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
       context: context,
       builder: (_) => const DialogNewBill(),
     );
-    if (result == null || !mounted) return;
+    if (result == null || !context.mounted) return;
     await _createBillFromResult(context, result);
   }
 
@@ -210,7 +211,7 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
         numberOfGuests: result.numberOfGuests,
       );
 
-      if (createResult is Success<BillModel> && mounted) {
+      if (createResult is Success<BillModel> && context.mounted) {
         if (result.navigateToSell) {
           context.push('/sell/${createResult.value.id}');
         }
@@ -302,7 +303,7 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
       final openedByUser = await userRepo.getById(session.openedByUserId);
       final openedByName = openedByUser?.username ?? '-';
 
-      if (!mounted) return;
+      if (!context.mounted) return;
 
       // Warn about open bills before closing
       if (openBillsCount > 0) {
@@ -324,7 +325,7 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
             ],
           ),
         );
-        if (shouldContinue != true || !mounted) return;
+        if (shouldContinue != true || !context.mounted) return;
       }
 
       final closingData = ClosingSessionData(
@@ -347,7 +348,7 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
         context: context,
         builder: (_) => DialogClosingSession(data: closingData),
       );
-      if (result == null || !mounted) return;
+      if (result == null || !context.mounted) return;
 
       // Close all shifts for this session
       await ref.read(shiftRepositoryProvider).closeAllForSession(session.id);
@@ -369,13 +370,13 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
       final sessionRepo = ref.read(registerSessionRepositoryProvider);
       final lastClosingCash = await sessionRepo.getLastClosingCash(company.id);
 
-      if (!mounted) return;
+      if (!context.mounted) return;
 
       final openingCash = await showDialog<int>(
         context: context,
         builder: (_) => DialogOpeningCash(initialAmount: lastClosingCash),
       );
-      if (openingCash == null || !mounted) return;
+      if (openingCash == null || !context.mounted) return;
 
       // Snapshot open bills at session open
       final allBillsForOpen = await ref.read(billRepositoryProvider).getByCompany(company.id);
@@ -473,7 +474,7 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
 
     final currentBalance = openingCash + deposits - withdrawals + cashRevenue;
 
-    if (!mounted) return;
+    if (!context.mounted) return;
 
     final result = await showDialog<CashMovementResult>(
       context: context,
@@ -504,7 +505,7 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
     final zReportService = ref.read(zReportServiceProvider);
     final summaries = await zReportService.getSessionSummaries(company.id);
 
-    if (!mounted) return;
+    if (!context.mounted) return;
 
     await showDialog(
       context: context,
@@ -513,7 +514,7 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
         onSessionSelected: (sessionId) async {
           Navigator.pop(context);
           final zReport = await zReportService.buildZReport(sessionId);
-          if (zReport != null && mounted) {
+          if (zReport != null && context.mounted) {
             showDialog(
               context: context,
               builder: (_) => DialogZReport(data: zReport),
@@ -542,7 +543,7 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
       ));
     }
 
-    if (!mounted) return;
+    if (!context.mounted) return;
     showDialog(
       context: context,
       builder: (_) => DialogShiftsList(shifts: rows),

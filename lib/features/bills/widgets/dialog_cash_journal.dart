@@ -292,7 +292,7 @@ class _DialogCashJournalState extends State<DialogCashJournal> {
       context: context,
       builder: (_) => const DialogCashMovement(),
     );
-    if (result != null && mounted) {
+    if (result != null && context.mounted) {
       Navigator.pop(context, result);
     }
   }

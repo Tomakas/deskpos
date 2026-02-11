@@ -271,7 +271,7 @@ class _DialogReservationEditState extends ConsumerState<DialogReservationEdit> {
                     builder: (context, snap) {
                       final tables = snap.data ?? [];
                       return DropdownButtonFormField<String?>(
-                        value: _tableId,
+                        initialValue: _tableId,
                         decoration: InputDecoration(labelText: l.reservationTable),
                         items: [
                           DropdownMenuItem<String?>(value: null, child: Text('-')),

@@ -319,7 +319,7 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
       loyaltyEarnPerHundredCzk: loyaltyEarn,
     );
 
-    if (!mounted) return;
+    if (!context.mounted) return;
 
     if (result is Success<BillModel>) {
       final updatedBill = result.value;
@@ -372,7 +372,7 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
       userId: ref.read(activeUserProvider)?.id,
     );
 
-    if (!mounted) return;
+    if (!context.mounted) return;
 
     if (result is Success<BillModel>) {
       final updatedBill = result.value;

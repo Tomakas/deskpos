@@ -173,14 +173,6 @@ class SyncLifecycleManager {
       (e) => layoutItemToSupabaseJson(layoutItemFromEntity(e as LayoutItem)),
     );
 
-    // Push warehouses
-    await _enqueueCompanyTable(
-      companyId,
-      'warehouses',
-      _db.warehouses,
-      (e) => warehouseToSupabaseJson(warehouseFromEntity(e as Warehouse)),
-    );
-
     // Push stock_levels (depends on warehouses, items)
     await _enqueueCompanyTable(
       companyId,
@@ -260,9 +252,7 @@ class SyncLifecycleManager {
     Map<String, dynamic> Function(dynamic entity) toJson,
   ) async {
     try {
-      final entities = await (_db.select(table)
-            ..where((t) => (t as dynamic).deletedAt.isNull()))
-          .get();
+      final entities = await _db.select(table).get();
       for (final entity in entities) {
         final json = toJson(entity);
         await _syncQueueRepo.enqueue(
@@ -295,8 +285,7 @@ class SyncLifecycleManager {
   ) async {
     try {
       final entities = await (_db.select(table)
-            ..where((t) => (t as dynamic).companyId.equals(companyId))
-            ..where((t) => (t as dynamic).deletedAt.isNull()))
+            ..where((t) => (t as dynamic).companyId.equals(companyId)))
           .get();
       for (final entity in entities) {
         final json = toJson(entity);

@@ -36,7 +36,7 @@ class OrderRepository {
     required String billId,
     required String userId,
     required String orderNumber,
-    required List<_OrderItemInput> items,
+    required List<OrderItemInput> items,
     String? orderNotes,
   }) async {
     try {
@@ -446,7 +446,7 @@ class OrderRepository {
   /// For recipes: decomposes into ingredients and deducts those.
   Future<void> _deductStockForOrder(
     String companyId,
-    List<_OrderItemInput> items,
+    List<OrderItemInput> items,
   ) async {
     if (stockLevelRepo == null || stockMovementRepo == null) return;
 
@@ -607,5 +607,3 @@ class OrderItemInput {
   final int saleTaxAmount;
   final String? notes;
 }
-
-typedef _OrderItemInput = OrderItemInput;

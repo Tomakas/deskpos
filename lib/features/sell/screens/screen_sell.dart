@@ -614,7 +614,8 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
 
       if (result is Success) {
         await ref.read(billRepositoryProvider).updateTotals(widget.billId!);
-        if (mounted) context.pop();
+        if (!context.mounted) return;
+        context.pop();
       }
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
@@ -655,11 +656,13 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     );
     await billRepo.updateTotals(bill.id);
 
-    if (!mounted) return;
+    if (!context.mounted) return;
 
     // Fetch updated bill with totals
     final updatedBillResult = await billRepo.getById(bill.id);
     if (updatedBillResult is! Success<BillModel>) return;
+
+    if (!context.mounted) return;
 
     // Show payment dialog
     final paid = await showDialog<bool>(
@@ -667,7 +670,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
       builder: (_) => DialogPayment(bill: updatedBillResult.value),
     );
 
-    if (paid == true && mounted) {
+    if (paid == true && context.mounted) {
       context.pop();
     } else {
       // User cancelled payment — cancel the bill
@@ -713,7 +716,8 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
       );
       await billRepo.updateTotals(bill.id);
 
-      if (mounted) context.pop();
+      if (!context.mounted) return;
+      context.pop();
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
