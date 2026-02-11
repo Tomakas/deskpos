@@ -1939,4 +1939,57 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get wizardWithTestData => 'Vytvořit s testovacími daty';
+
+  @override
+  String get orderItemStorno => 'Storno';
+
+  @override
+  String get orderItemStornoConfirm => 'Opravdu chcete stornovat tuto položku?';
+
+  @override
+  String get ordersTitle => 'Objednávky';
+
+  @override
+  String get ordersFilterActive => 'Aktivní';
+
+  @override
+  String get ordersFilterCreated => 'Vytvořené';
+
+  @override
+  String get ordersFilterInPrep => 'Připravované';
+
+  @override
+  String get ordersFilterReady => 'Hotové';
+
+  @override
+  String get ordersFilterDelivered => 'Doručené';
+
+  @override
+  String get ordersFilterStorno => 'Stornované';
+
+  @override
+  String get ordersFilterAll => 'Vše';
+
+  @override
+  String get ordersScopeSession => 'Session';
+
+  @override
+  String get ordersScopeAll => 'Vše';
+
+  @override
+  String get ordersNoOrders => 'Žádné objednávky';
+
+  @override
+  String get ordersStornoPrefix => 'STORNO';
+
+  @override
+  String ordersStornoRef(String orderNumber) {
+    return '→ $orderNumber';
+  }
+
+  @override
+  String get sellSeparator => 'Oddělit';
+
+  @override
+  String get sellSeparatorLabel => '--- Další objednávka ---';
 }

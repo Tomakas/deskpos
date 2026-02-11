@@ -28,6 +28,11 @@ mixin _$OrderModel {
   int get subtotalGross => throw _privateConstructorUsedError;
   int get subtotalNet => throw _privateConstructorUsedError;
   int get taxTotal => throw _privateConstructorUsedError;
+  bool get isStorno => throw _privateConstructorUsedError;
+  String? get stornoSourceOrderId => throw _privateConstructorUsedError;
+  DateTime? get prepStartedAt => throw _privateConstructorUsedError;
+  DateTime? get readyAt => throw _privateConstructorUsedError;
+  DateTime? get deliveredAt => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
   DateTime get updatedAt => throw _privateConstructorUsedError;
   DateTime? get deletedAt => throw _privateConstructorUsedError;
@@ -58,6 +63,11 @@ abstract class $OrderModelCopyWith<$Res> {
     int subtotalGross,
     int subtotalNet,
     int taxTotal,
+    bool isStorno,
+    String? stornoSourceOrderId,
+    DateTime? prepStartedAt,
+    DateTime? readyAt,
+    DateTime? deliveredAt,
     DateTime createdAt,
     DateTime updatedAt,
     DateTime? deletedAt,
@@ -90,6 +100,11 @@ class _$OrderModelCopyWithImpl<$Res, $Val extends OrderModel>
     Object? subtotalGross = null,
     Object? subtotalNet = null,
     Object? taxTotal = null,
+    Object? isStorno = null,
+    Object? stornoSourceOrderId = freezed,
+    Object? prepStartedAt = freezed,
+    Object? readyAt = freezed,
+    Object? deliveredAt = freezed,
     Object? createdAt = null,
     Object? updatedAt = null,
     Object? deletedAt = freezed,
@@ -140,6 +155,26 @@ class _$OrderModelCopyWithImpl<$Res, $Val extends OrderModel>
                 ? _value.taxTotal
                 : taxTotal // ignore: cast_nullable_to_non_nullable
                       as int,
+            isStorno: null == isStorno
+                ? _value.isStorno
+                : isStorno // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            stornoSourceOrderId: freezed == stornoSourceOrderId
+                ? _value.stornoSourceOrderId
+                : stornoSourceOrderId // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            prepStartedAt: freezed == prepStartedAt
+                ? _value.prepStartedAt
+                : prepStartedAt // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
+            readyAt: freezed == readyAt
+                ? _value.readyAt
+                : readyAt // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
+            deliveredAt: freezed == deliveredAt
+                ? _value.deliveredAt
+                : deliveredAt // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
             createdAt: null == createdAt
                 ? _value.createdAt
                 : createdAt // ignore: cast_nullable_to_non_nullable
@@ -179,6 +214,11 @@ abstract class _$$OrderModelImplCopyWith<$Res>
     int subtotalGross,
     int subtotalNet,
     int taxTotal,
+    bool isStorno,
+    String? stornoSourceOrderId,
+    DateTime? prepStartedAt,
+    DateTime? readyAt,
+    DateTime? deliveredAt,
     DateTime createdAt,
     DateTime updatedAt,
     DateTime? deletedAt,
@@ -210,6 +250,11 @@ class __$$OrderModelImplCopyWithImpl<$Res>
     Object? subtotalGross = null,
     Object? subtotalNet = null,
     Object? taxTotal = null,
+    Object? isStorno = null,
+    Object? stornoSourceOrderId = freezed,
+    Object? prepStartedAt = freezed,
+    Object? readyAt = freezed,
+    Object? deliveredAt = freezed,
     Object? createdAt = null,
     Object? updatedAt = null,
     Object? deletedAt = freezed,
@@ -260,6 +305,26 @@ class __$$OrderModelImplCopyWithImpl<$Res>
             ? _value.taxTotal
             : taxTotal // ignore: cast_nullable_to_non_nullable
                   as int,
+        isStorno: null == isStorno
+            ? _value.isStorno
+            : isStorno // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        stornoSourceOrderId: freezed == stornoSourceOrderId
+            ? _value.stornoSourceOrderId
+            : stornoSourceOrderId // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        prepStartedAt: freezed == prepStartedAt
+            ? _value.prepStartedAt
+            : prepStartedAt // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
+        readyAt: freezed == readyAt
+            ? _value.readyAt
+            : readyAt // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
+        deliveredAt: freezed == deliveredAt
+            ? _value.deliveredAt
+            : deliveredAt // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
         createdAt: null == createdAt
             ? _value.createdAt
             : createdAt // ignore: cast_nullable_to_non_nullable
@@ -292,6 +357,11 @@ class _$OrderModelImpl implements _OrderModel {
     this.subtotalGross = 0,
     this.subtotalNet = 0,
     this.taxTotal = 0,
+    this.isStorno = false,
+    this.stornoSourceOrderId,
+    this.prepStartedAt,
+    this.readyAt,
+    this.deliveredAt,
     required this.createdAt,
     required this.updatedAt,
     this.deletedAt,
@@ -324,6 +394,17 @@ class _$OrderModelImpl implements _OrderModel {
   @JsonKey()
   final int taxTotal;
   @override
+  @JsonKey()
+  final bool isStorno;
+  @override
+  final String? stornoSourceOrderId;
+  @override
+  final DateTime? prepStartedAt;
+  @override
+  final DateTime? readyAt;
+  @override
+  final DateTime? deliveredAt;
+  @override
   final DateTime createdAt;
   @override
   final DateTime updatedAt;
@@ -332,7 +413,7 @@ class _$OrderModelImpl implements _OrderModel {
 
   @override
   String toString() {
-    return 'OrderModel(id: $id, companyId: $companyId, billId: $billId, createdByUserId: $createdByUserId, orderNumber: $orderNumber, notes: $notes, status: $status, itemCount: $itemCount, subtotalGross: $subtotalGross, subtotalNet: $subtotalNet, taxTotal: $taxTotal, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+    return 'OrderModel(id: $id, companyId: $companyId, billId: $billId, createdByUserId: $createdByUserId, orderNumber: $orderNumber, notes: $notes, status: $status, itemCount: $itemCount, subtotalGross: $subtotalGross, subtotalNet: $subtotalNet, taxTotal: $taxTotal, isStorno: $isStorno, stornoSourceOrderId: $stornoSourceOrderId, prepStartedAt: $prepStartedAt, readyAt: $readyAt, deliveredAt: $deliveredAt, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
   }
 
   @override
@@ -358,6 +439,15 @@ class _$OrderModelImpl implements _OrderModel {
                 other.subtotalNet == subtotalNet) &&
             (identical(other.taxTotal, taxTotal) ||
                 other.taxTotal == taxTotal) &&
+            (identical(other.isStorno, isStorno) ||
+                other.isStorno == isStorno) &&
+            (identical(other.stornoSourceOrderId, stornoSourceOrderId) ||
+                other.stornoSourceOrderId == stornoSourceOrderId) &&
+            (identical(other.prepStartedAt, prepStartedAt) ||
+                other.prepStartedAt == prepStartedAt) &&
+            (identical(other.readyAt, readyAt) || other.readyAt == readyAt) &&
+            (identical(other.deliveredAt, deliveredAt) ||
+                other.deliveredAt == deliveredAt) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.updatedAt, updatedAt) ||
@@ -367,7 +457,7 @@ class _$OrderModelImpl implements _OrderModel {
   }
 
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     runtimeType,
     id,
     companyId,
@@ -380,10 +470,15 @@ class _$OrderModelImpl implements _OrderModel {
     subtotalGross,
     subtotalNet,
     taxTotal,
+    isStorno,
+    stornoSourceOrderId,
+    prepStartedAt,
+    readyAt,
+    deliveredAt,
     createdAt,
     updatedAt,
     deletedAt,
-  );
+  ]);
 
   /// Create a copy of OrderModel
   /// with the given fields replaced by the non-null parameter values.
@@ -407,6 +502,11 @@ abstract class _OrderModel implements OrderModel {
     final int subtotalGross,
     final int subtotalNet,
     final int taxTotal,
+    final bool isStorno,
+    final String? stornoSourceOrderId,
+    final DateTime? prepStartedAt,
+    final DateTime? readyAt,
+    final DateTime? deliveredAt,
     required final DateTime createdAt,
     required final DateTime updatedAt,
     final DateTime? deletedAt,
@@ -434,6 +534,16 @@ abstract class _OrderModel implements OrderModel {
   int get subtotalNet;
   @override
   int get taxTotal;
+  @override
+  bool get isStorno;
+  @override
+  String? get stornoSourceOrderId;
+  @override
+  DateTime? get prepStartedAt;
+  @override
+  DateTime? get readyAt;
+  @override
+  DateTime? get deliveredAt;
   @override
   DateTime get createdAt;
   @override

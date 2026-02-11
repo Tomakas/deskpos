@@ -177,6 +177,9 @@ class OrderRepository {
         OrdersCompanion(
           status: Value(status),
           updatedAt: Value(now),
+          prepStartedAt: status == PrepStatus.inPrep ? Value(now) : const Value.absent(),
+          readyAt: status == PrepStatus.ready ? Value(now) : const Value.absent(),
+          deliveredAt: status == PrepStatus.delivered ? Value(now) : const Value.absent(),
         ),
       );
       // Update all items to matching status
@@ -249,6 +252,122 @@ class OrderRepository {
 
   Future<Result<OrderModel>> markDelivered(String orderId) =>
       updateStatus(orderId, PrepStatus.delivered);
+
+  Future<Result<OrderModel>> voidItem({
+    required String orderId,
+    required String orderItemId,
+    required String companyId,
+    required String userId,
+    required String stornoOrderNumber,
+  }) async {
+    try {
+      final now = DateTime.now();
+
+      // 1. Fetch and validate original item
+      final itemEntity = await (_db.select(_db.orderItems)
+            ..where((t) => t.id.equals(orderItemId)))
+          .getSingle();
+      if (itemEntity.status == PrepStatus.voided || itemEntity.status == PrepStatus.cancelled) {
+        return const Failure('Item is already voided or cancelled');
+      }
+
+      // 2. Fetch original order — validate not storno
+      final orderEntity = await (_db.select(_db.orders)
+            ..where((t) => t.id.equals(orderId)))
+          .getSingle();
+      if (orderEntity.isStorno) {
+        return const Failure('Cannot void items on storno orders');
+      }
+
+      // 3. Void original item
+      await (_db.update(_db.orderItems)..where((t) => t.id.equals(orderItemId))).write(
+        OrderItemsCompanion(
+          status: const Value(PrepStatus.voided),
+          updatedAt: Value(now),
+        ),
+      );
+
+      // 4. Stock reversal for this single item
+      await _reverseStockForSingleItem(companyId, itemEntity);
+
+      // 5. Create storno order
+      final stornoOrderId = const Uuid().v7();
+      await _db.into(_db.orders).insert(OrdersCompanion.insert(
+        id: stornoOrderId,
+        companyId: companyId,
+        billId: orderEntity.billId,
+        createdByUserId: userId,
+        orderNumber: stornoOrderNumber,
+        status: PrepStatus.delivered,
+        isStorno: const Value(true),
+        stornoSourceOrderId: Value(orderId),
+      ));
+
+      // 6. Create storno order item (copy of voided item)
+      final stornoItemId = const Uuid().v7();
+      await _db.into(_db.orderItems).insert(OrderItemsCompanion.insert(
+        id: stornoItemId,
+        companyId: companyId,
+        orderId: stornoOrderId,
+        itemId: itemEntity.itemId,
+        itemName: itemEntity.itemName,
+        quantity: itemEntity.quantity,
+        salePriceAtt: itemEntity.salePriceAtt,
+        saleTaxRateAtt: itemEntity.saleTaxRateAtt,
+        saleTaxAmount: itemEntity.saleTaxAmount,
+        status: PrepStatus.delivered,
+      ));
+
+      // 7. Update storno order totals
+      final itemSubtotal = (itemEntity.salePriceAtt * itemEntity.quantity).round();
+      final itemTax = (itemEntity.saleTaxAmount * itemEntity.quantity).round();
+      await (_db.update(_db.orders)..where((t) => t.id.equals(stornoOrderId))).write(
+        OrdersCompanion(
+          itemCount: const Value(1),
+          subtotalGross: Value(itemSubtotal),
+          subtotalNet: Value(itemSubtotal - itemTax),
+          taxTotal: Value(itemTax),
+          deliveredAt: Value(now),
+          updatedAt: Value(now),
+        ),
+      );
+
+      // 8. Recalculate original order totals (exclude voided items)
+      await _recalculateOrderTotals(orderId);
+
+      // 9. Auto-void order if all items voided
+      await _autoVoidOrderIfEmpty(orderId);
+
+      // 10. Enqueue sync: voided item, storno order, storno item, original order
+      final updatedItem = await (_db.select(_db.orderItems)..where((t) => t.id.equals(orderItemId))).getSingle();
+      await _enqueueOrderItem('update', orderItemFromEntity(updatedItem));
+
+      final stornoOrder = await (_db.select(_db.orders)..where((t) => t.id.equals(stornoOrderId))).getSingle();
+      await _enqueueOrder('insert', orderFromEntity(stornoOrder));
+
+      final stornoItem = await (_db.select(_db.orderItems)..where((t) => t.id.equals(stornoItemId))).getSingle();
+      await _enqueueOrderItem('insert', orderItemFromEntity(stornoItem));
+
+      final updatedOrder = await (_db.select(_db.orders)..where((t) => t.id.equals(orderId))).getSingle();
+      await _enqueueOrder('update', orderFromEntity(updatedOrder));
+
+      return Success(orderFromEntity(updatedOrder));
+    } catch (e, s) {
+      AppLogger.error('Failed to void item', error: e, stackTrace: s);
+      return Failure('Failed to void item: $e');
+    }
+  }
+
+  /// Watch all orders for a company (optionally filtered by time range)
+  Stream<List<OrderModel>> watchByCompany(String companyId, {DateTime? since}) {
+    var query = _db.select(_db.orders)
+      ..where((t) => t.companyId.equals(companyId) & t.deletedAt.isNull());
+    if (since != null) {
+      query = query..where((t) => t.createdAt.isBiggerOrEqualValue(since));
+    }
+    query = query..orderBy([(t) => OrderingTerm.desc(t.createdAt)]);
+    return query.watch().map((rows) => rows.map(orderFromEntity).toList());
+  }
 
   Future<Result<void>> updateOrderNotes(String orderId, String? notes) async {
     try {
@@ -439,6 +558,88 @@ class OrderRepository {
             .getSingle();
         await _enqueueOrder('update', orderFromEntity(entity));
       }
+    }
+  }
+
+  /// Reverses stock for a single order item (used by voidItem).
+  Future<void> _reverseStockForSingleItem(String companyId, OrderItem item) async {
+    if (stockLevelRepo == null || stockMovementRepo == null) return;
+
+    final warehouse = await (_db.select(_db.warehouses)
+          ..where((t) => t.companyId.equals(companyId) & t.isDefault.equals(true) & t.deletedAt.isNull()))
+        .getSingleOrNull();
+    if (warehouse == null) return;
+
+    final itemDef = await (_db.select(_db.items)
+          ..where((t) => t.id.equals(item.itemId)))
+        .getSingleOrNull();
+    if (itemDef == null || !itemDef.isStockTracked) return;
+
+    if (itemDef.itemType == ItemType.recipe) {
+      final recipes = await (_db.select(_db.productRecipes)
+            ..where((t) => t.parentProductId.equals(itemDef.id) & t.deletedAt.isNull()))
+          .get();
+      for (final recipe in recipes) {
+        final componentQty = recipe.quantityRequired * item.quantity;
+        await _createStockMovement(
+          companyId: companyId,
+          warehouseId: warehouse.id,
+          itemId: recipe.componentProductId,
+          quantity: componentQty,
+          direction: StockMovementDirection.inbound,
+        );
+      }
+    } else {
+      await _createStockMovement(
+        companyId: companyId,
+        warehouseId: warehouse.id,
+        itemId: itemDef.id,
+        quantity: item.quantity,
+        direction: StockMovementDirection.inbound,
+      );
+    }
+  }
+
+  /// Recalculates order totals excluding voided/cancelled items.
+  Future<void> _recalculateOrderTotals(String orderId) async {
+    final items = await (_db.select(_db.orderItems)
+          ..where((t) => t.orderId.equals(orderId) & t.deletedAt.isNull()
+              & t.status.isNotIn([PrepStatus.cancelled.name, PrepStatus.voided.name])))
+        .get();
+    int gross = 0, tax = 0;
+    for (final item in items) {
+      gross += (item.salePriceAtt * item.quantity).round();
+      tax += (item.saleTaxAmount * item.quantity).round();
+    }
+    await (_db.update(_db.orders)..where((t) => t.id.equals(orderId))).write(
+      OrdersCompanion(
+        itemCount: Value(items.length),
+        subtotalGross: Value(gross),
+        subtotalNet: Value(gross - tax),
+        taxTotal: Value(tax),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+  }
+
+  /// Auto-voids an order if all its items are voided/cancelled.
+  Future<void> _autoVoidOrderIfEmpty(String orderId) async {
+    final activeItems = await (_db.select(_db.orderItems)
+          ..where((t) => t.orderId.equals(orderId) & t.deletedAt.isNull()
+              & t.status.isNotIn([PrepStatus.cancelled.name, PrepStatus.voided.name])))
+        .get();
+    if (activeItems.isEmpty) {
+      final now = DateTime.now();
+      await (_db.update(_db.orders)..where((t) => t.id.equals(orderId))).write(
+        OrdersCompanion(
+          status: const Value(PrepStatus.voided),
+          itemCount: const Value(0),
+          subtotalGross: const Value(0),
+          subtotalNet: const Value(0),
+          taxTotal: const Value(0),
+          updatedAt: Value(now),
+        ),
+      );
     }
   }
 

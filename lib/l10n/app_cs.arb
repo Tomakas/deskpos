@@ -794,5 +794,26 @@
   "voucherIdLabel": "ID",
   "billDetailVoucher": "Voucher",
 
-  "wizardWithTestData": "Vytvořit s testovacími daty"
+  "wizardWithTestData": "Vytvořit s testovacími daty",
+
+  "orderItemStorno": "Storno",
+  "orderItemStornoConfirm": "Opravdu chcete stornovat tuto položku?",
+  "ordersTitle": "Objednávky",
+  "ordersFilterActive": "Aktivní",
+  "ordersFilterCreated": "Vytvořené",
+  "ordersFilterInPrep": "Připravované",
+  "ordersFilterReady": "Hotové",
+  "ordersFilterDelivered": "Doručené",
+  "ordersFilterStorno": "Stornované",
+  "ordersFilterAll": "Vše",
+  "ordersScopeSession": "Session",
+  "ordersScopeAll": "Vše",
+  "ordersNoOrders": "Žádné objednávky",
+  "ordersStornoPrefix": "STORNO",
+  "ordersStornoRef": "→ {orderNumber}",
+  "@ordersStornoRef": {
+    "placeholders": { "orderNumber": { "type": "String" } }
+  },
+  "sellSeparator": "Oddělit",
+  "sellSeparatorLabel": "--- Další objednávka ---"
 }

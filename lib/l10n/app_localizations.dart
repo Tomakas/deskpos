@@ -3843,6 +3843,108 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Vytvořit s testovacími daty'**
   String get wizardWithTestData;
+
+  /// No description provided for @orderItemStorno.
+  ///
+  /// In cs, this message translates to:
+  /// **'Storno'**
+  String get orderItemStorno;
+
+  /// No description provided for @orderItemStornoConfirm.
+  ///
+  /// In cs, this message translates to:
+  /// **'Opravdu chcete stornovat tuto položku?'**
+  String get orderItemStornoConfirm;
+
+  /// No description provided for @ordersTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Objednávky'**
+  String get ordersTitle;
+
+  /// No description provided for @ordersFilterActive.
+  ///
+  /// In cs, this message translates to:
+  /// **'Aktivní'**
+  String get ordersFilterActive;
+
+  /// No description provided for @ordersFilterCreated.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vytvořené'**
+  String get ordersFilterCreated;
+
+  /// No description provided for @ordersFilterInPrep.
+  ///
+  /// In cs, this message translates to:
+  /// **'Připravované'**
+  String get ordersFilterInPrep;
+
+  /// No description provided for @ordersFilterReady.
+  ///
+  /// In cs, this message translates to:
+  /// **'Hotové'**
+  String get ordersFilterReady;
+
+  /// No description provided for @ordersFilterDelivered.
+  ///
+  /// In cs, this message translates to:
+  /// **'Doručené'**
+  String get ordersFilterDelivered;
+
+  /// No description provided for @ordersFilterStorno.
+  ///
+  /// In cs, this message translates to:
+  /// **'Stornované'**
+  String get ordersFilterStorno;
+
+  /// No description provided for @ordersFilterAll.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vše'**
+  String get ordersFilterAll;
+
+  /// No description provided for @ordersScopeSession.
+  ///
+  /// In cs, this message translates to:
+  /// **'Session'**
+  String get ordersScopeSession;
+
+  /// No description provided for @ordersScopeAll.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vše'**
+  String get ordersScopeAll;
+
+  /// No description provided for @ordersNoOrders.
+  ///
+  /// In cs, this message translates to:
+  /// **'Žádné objednávky'**
+  String get ordersNoOrders;
+
+  /// No description provided for @ordersStornoPrefix.
+  ///
+  /// In cs, this message translates to:
+  /// **'STORNO'**
+  String get ordersStornoPrefix;
+
+  /// No description provided for @ordersStornoRef.
+  ///
+  /// In cs, this message translates to:
+  /// **'→ {orderNumber}'**
+  String ordersStornoRef(String orderNumber);
+
+  /// No description provided for @sellSeparator.
+  ///
+  /// In cs, this message translates to:
+  /// **'Oddělit'**
+  String get sellSeparator;
+
+  /// No description provided for @sellSeparatorLabel.
+  ///
+  /// In cs, this message translates to:
+  /// **'--- Další objednávka ---'**
+  String get sellSeparatorLabel;
 }
 
 class _AppLocalizationsDelegate

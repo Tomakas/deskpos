@@ -149,7 +149,8 @@ class BillRepository {
       final activeOrderIds = orders
           .where((o) =>
               o.status != PrepStatus.cancelled &&
-              o.status != PrepStatus.voided)
+              o.status != PrepStatus.voided &&
+              !o.isStorno)
           .map((o) => o.id)
           .toSet();
 

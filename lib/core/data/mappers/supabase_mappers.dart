@@ -338,6 +338,11 @@ Map<String, dynamic> orderToSupabaseJson(OrderModel m) => {
       'subtotal_gross': m.subtotalGross,
       'subtotal_net': m.subtotalNet,
       'tax_total': m.taxTotal,
+      'is_storno': m.isStorno,
+      'storno_source_order_id': m.stornoSourceOrderId,
+      'prep_started_at': toIso8601Utc(m.prepStartedAt),
+      'ready_at': toIso8601Utc(m.readyAt),
+      'delivered_at': toIso8601Utc(m.deliveredAt),
     };
 
 Map<String, dynamic> orderItemToSupabaseJson(OrderItemModel m) => {

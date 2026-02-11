@@ -6,6 +6,7 @@ import '../../features/auth/screens/screen_login.dart';
 import '../../features/bills/screens/screen_bills.dart';
 import '../../features/catalog/screens/screen_catalog.dart';
 import '../../features/inventory/screens/screen_inventory.dart';
+import '../../features/orders/screens/screen_orders.dart';
 import '../../features/vouchers/screens/screen_vouchers.dart';
 import '../../features/onboarding/screens/screen_connect_company.dart';
 import '../../features/onboarding/screens/screen_onboarding.dart';
@@ -124,6 +125,15 @@ final routerProvider = Provider<GoRouter>((ref) {
           return null;
         },
         builder: (context, state) => const ScreenInventory(),
+      ),
+      GoRoute(
+        path: '/orders',
+        redirect: (context, state) {
+          final hasPermission = ref.read(hasPermissionProvider('bills.manage'));
+          if (!hasPermission) return '/bills';
+          return null;
+        },
+        builder: (context, state) => const ScreenOrders(),
       ),
       GoRoute(
         path: '/vouchers',

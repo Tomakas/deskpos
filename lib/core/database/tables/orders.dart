@@ -16,6 +16,11 @@ class Orders extends Table with SyncColumnsMixin {
   IntColumn get subtotalGross => integer().withDefault(const Constant(0))();
   IntColumn get subtotalNet => integer().withDefault(const Constant(0))();
   IntColumn get taxTotal => integer().withDefault(const Constant(0))();
+  BoolColumn get isStorno => boolean().withDefault(const Constant(false))();
+  TextColumn get stornoSourceOrderId => text().nullable()();
+  DateTimeColumn get prepStartedAt => dateTime().nullable()();
+  DateTimeColumn get readyAt => dateTime().nullable()();
+  DateTimeColumn get deliveredAt => dateTime().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};

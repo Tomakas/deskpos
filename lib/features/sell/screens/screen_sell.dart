@@ -27,8 +27,12 @@ class ScreenSell extends ConsumerStatefulWidget {
   ConsumerState<ScreenSell> createState() => _ScreenSellState();
 }
 
+class _CartSeparator {
+  const _CartSeparator();
+}
+
 class _ScreenSellState extends ConsumerState<ScreenSell> {
-  final List<_CartItem> _cart = [];
+  final List<Object> _cart = []; // _CartItem | _CartSeparator
   bool _isSubmitting = false;
   int _currentPage = 0;
   final List<int> _pageStack = [];
@@ -105,6 +109,12 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
           const SizedBox(width: 8),
           _toolbarChip(l.sellNote, selected: _orderNotes != null && _orderNotes!.isNotEmpty, onSelected: () => _showOrderNoteDialog(context)),
           const SizedBox(width: 8),
+          _toolbarChip(l.sellSeparator, onSelected: _cart.isEmpty ? null : () {
+            if (_cart.isNotEmpty && _cart.last is! _CartSeparator) {
+              setState(() => _cart.add(const _CartSeparator()));
+            }
+          }),
+          const SizedBox(width: 8),
           _toolbarChip(l.sellActions, onSelected: null),
           if (_currentPage > 0) ...[
             const SizedBox(width: 8),
@@ -143,8 +153,10 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
   Widget _buildCart(BuildContext context, dynamic l) {
     final theme = Theme.of(context);
     int total = 0;
-    for (final item in _cart) {
-      total += (item.unitPrice * item.quantity).round();
+    for (final entry in _cart) {
+      if (entry is _CartItem) {
+        total += (entry.unitPrice * entry.quantity).round();
+      }
     }
 
     return Container(
@@ -176,7 +188,24 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
                 : ListView.builder(
                     itemCount: _cart.length,
                     itemBuilder: (context, index) {
-                      final item = _cart[index];
+                      final entry = _cart[index];
+                      if (entry is _CartSeparator) {
+                        return InkWell(
+                          onTap: () => setState(() => _cart.removeAt(index)),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            child: Row(children: [
+                              const Expanded(child: Divider()),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 8),
+                                child: Text(l.sellSeparatorLabel, style: theme.textTheme.bodySmall),
+                              ),
+                              const Expanded(child: Divider()),
+                            ]),
+                          ),
+                        );
+                      }
+                      final item = entry as _CartItem;
                       return ListTile(
                         dense: true,
                         title: Text(item.name),
@@ -540,7 +569,16 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
 
   void _addToCart(WidgetRef ref, ItemModel item, String companyId) {
     setState(() {
-      final existing = _cart.where((c) => c.itemId == item.id).firstOrNull;
+      // Find last separator index
+      int lastSepIdx = -1;
+      for (int i = _cart.length - 1; i >= 0; i--) {
+        if (_cart[i] is _CartSeparator) { lastSepIdx = i; break; }
+      }
+      // Search only in current group
+      final existing = _cart.sublist(lastSepIdx + 1)
+          .whereType<_CartItem>()
+          .where((c) => c.itemId == item.id)
+          .firstOrNull;
       if (existing != null) {
         existing.quantity++;
       } else {
@@ -554,10 +592,10 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     });
   }
 
-  Future<List<OrderItemInput>> _buildOrderItems(WidgetRef ref) async {
+  Future<List<OrderItemInput>> _buildOrderItemsFromGroup(WidgetRef ref, List<_CartItem> group) async {
     final taxRateRepo = ref.read(taxRateRepositoryProvider);
     final orderItems = <OrderItemInput>[];
-    for (final cartItem in _cart) {
+    for (final cartItem in group) {
       int taxRateBps = 0;
       int taxAmount = 0;
 
@@ -582,6 +620,22 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     return orderItems;
   }
 
+  /// Splits the cart by separators into groups of cart items.
+  List<List<_CartItem>> _splitCartIntoGroups() {
+    final groups = <List<_CartItem>>[];
+    var current = <_CartItem>[];
+    for (final entry in _cart) {
+      if (entry is _CartSeparator) {
+        if (current.isNotEmpty) groups.add(current);
+        current = <_CartItem>[];
+      } else {
+        current.add(entry as _CartItem);
+      }
+    }
+    if (current.isNotEmpty) groups.add(current);
+    return groups;
+  }
+
   Future<String> _nextOrderNumber(WidgetRef ref) async {
     final session = ref.read(activeRegisterSessionProvider).value;
     if (session == null) return 'O-0000';
@@ -599,20 +653,27 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
       final user = ref.read(activeUserProvider);
       if (company == null || user == null) return;
 
-      final orderNumber = await _nextOrderNumber(ref);
-      final orderItems = await _buildOrderItems(ref);
+      final groups = _splitCartIntoGroups();
+      if (groups.isEmpty) return;
 
       final orderRepo = ref.read(orderRepositoryProvider);
-      final result = await orderRepo.createOrderWithItems(
-        companyId: company.id,
-        billId: widget.billId!,
-        userId: user.id,
-        orderNumber: orderNumber,
-        items: orderItems,
-        orderNotes: _orderNotes,
-      );
+      bool anySuccess = false;
 
-      if (result is Success) {
+      for (var i = 0; i < groups.length; i++) {
+        final orderNumber = await _nextOrderNumber(ref);
+        final orderItems = await _buildOrderItemsFromGroup(ref, groups[i]);
+        final result = await orderRepo.createOrderWithItems(
+          companyId: company.id,
+          billId: widget.billId!,
+          userId: user.id,
+          orderNumber: orderNumber,
+          items: orderItems,
+          orderNotes: i == 0 ? _orderNotes : null,
+        );
+        if (result is Success) anySuccess = true;
+      }
+
+      if (anySuccess) {
         await ref.read(billRepositoryProvider).updateTotals(widget.billId!);
         if (!context.mounted) return;
         context.pop();
@@ -642,18 +703,21 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     if (billResult is! Success<BillModel>) return;
     final bill = billResult.value;
 
-    // Create order
-    final orderNumber = await _nextOrderNumber(ref);
-    final orderItems = await _buildOrderItems(ref);
+    // Create order(s)
+    final groups = _splitCartIntoGroups();
     final orderRepo = ref.read(orderRepositoryProvider);
-    await orderRepo.createOrderWithItems(
-      companyId: company.id,
-      billId: bill.id,
-      userId: user.id,
-      orderNumber: orderNumber,
-      items: orderItems,
-      orderNotes: _orderNotes,
-    );
+    for (var i = 0; i < groups.length; i++) {
+      final orderNumber = await _nextOrderNumber(ref);
+      final orderItems = await _buildOrderItemsFromGroup(ref, groups[i]);
+      await orderRepo.createOrderWithItems(
+        companyId: company.id,
+        billId: bill.id,
+        userId: user.id,
+        orderNumber: orderNumber,
+        items: orderItems,
+        orderNotes: i == 0 ? _orderNotes : null,
+      );
+    }
     await billRepo.updateTotals(bill.id);
 
     if (!context.mounted) return;
@@ -702,18 +766,21 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
       if (billResult is! Success<BillModel>) return;
       final bill = billResult.value;
 
-      // Create order with cart items
-      final orderNumber = await _nextOrderNumber(ref);
-      final orderItems = await _buildOrderItems(ref);
+      // Create order(s) with cart items
+      final groups = _splitCartIntoGroups();
       final orderRepo = ref.read(orderRepositoryProvider);
-      await orderRepo.createOrderWithItems(
-        companyId: company.id,
-        billId: bill.id,
-        userId: user.id,
-        orderNumber: orderNumber,
-        items: orderItems,
-        orderNotes: _orderNotes,
-      );
+      for (var i = 0; i < groups.length; i++) {
+        final orderNumber = await _nextOrderNumber(ref);
+        final orderItems = await _buildOrderItemsFromGroup(ref, groups[i]);
+        await orderRepo.createOrderWithItems(
+          companyId: company.id,
+          billId: bill.id,
+          userId: user.id,
+          orderNumber: orderNumber,
+          items: orderItems,
+          orderNotes: i == 0 ? _orderNotes : null,
+        );
+      }
       await billRepo.updateTotals(bill.id);
 
       if (!context.mounted) return;

@@ -194,7 +194,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
     return StreamBuilder<int>(
       stream: ref.watch(orderRepositoryProvider).watchByBill(bill.id).asyncMap((orders) async {
         final activeOrders = orders.where((o) =>
-            o.status != PrepStatus.cancelled && o.status != PrepStatus.voided);
+            o.status != PrepStatus.cancelled && o.status != PrepStatus.voided && !o.isStorno);
         int total = 0;
         for (final order in activeOrders) {
           final items = await ref.read(orderRepositoryProvider).getOrderItems(order.id);
@@ -901,8 +901,41 @@ class _OrderSection extends ConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Storno order header
+            if (order.isStorno)
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+                child: Row(
+                  children: [
+                    Text(
+                      l.ordersStornoPrefix,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Colors.red,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    if (order.stornoSourceOrderId != null) ...[
+                      const SizedBox(width: 4),
+                      StreamBuilder<List<OrderModel>>(
+                        stream: ref.watch(orderRepositoryProvider).watchByBill(order.billId),
+                        builder: (context, snap) {
+                          final orders = snap.data ?? [];
+                          final source = orders.where((o) => o.id == order.stornoSourceOrderId).firstOrNull;
+                          if (source == null) return const SizedBox.shrink();
+                          return Text(
+                            l.ordersStornoRef(source.orderNumber),
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Colors.red,
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ],
+                ),
+              ),
             // Order notes (if any)
-            if (order.notes != null && order.notes!.isNotEmpty)
+            if (!order.isStorno && order.notes != null && order.notes!.isNotEmpty)
               InkWell(
                 onTap: isEditable ? () => _editOrderNotes(context, ref) : null,
                 child: Padding(
@@ -1106,6 +1139,22 @@ class _OrderSection extends ConsumerWidget {
                   child: Text(context.l10n.billDetailDiscount),
                 ),
               ),
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                height: 40,
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.red,
+                    side: const BorderSide(color: Colors.red),
+                  ),
+                  onPressed: () {
+                    Navigator.pop(context);
+                    _voidSingleItem(context, ref, item);
+                  },
+                  child: Text(context.l10n.orderItemStorno),
+                ),
+              ),
             ],
           ),
         ),
@@ -1127,6 +1176,45 @@ class _OrderSection extends ConsumerWidget {
         result.isEmpty ? null : result,
       );
     }
+  }
+
+  Future<void> _voidSingleItem(BuildContext context, WidgetRef ref, OrderItemModel item) async {
+    final l = context.l10n;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        content: Text(l.orderItemStornoConfirm),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+
+    final user = ref.read(activeUserProvider);
+    if (user == null) return;
+
+    // Generate storno order number
+    final session = ref.read(activeRegisterSessionProvider).valueOrNull;
+    String stornoNumber = 'X-0000';
+    if (session != null) {
+      final sessionRepo = ref.read(registerSessionRepositoryProvider);
+      final counter = await sessionRepo.incrementOrderCounter(session.id);
+      if (counter is Success<int>) {
+        stornoNumber = 'X-${counter.value.toString().padLeft(4, '0')}';
+      }
+    }
+
+    final orderRepo = ref.read(orderRepositoryProvider);
+    await orderRepo.voidItem(
+      orderId: order.id,
+      orderItemId: item.id,
+      companyId: order.companyId,
+      userId: user.id,
+      stornoOrderNumber: stornoNumber,
+    );
+    await ref.read(billRepositoryProvider).updateTotals(order.billId);
   }
 
   Future<void> _editItemDiscount(BuildContext context, WidgetRef ref, OrderItemModel item) async {

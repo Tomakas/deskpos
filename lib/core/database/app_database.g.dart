@@ -13459,6 +13459,66 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, Order> {
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
+  static const VerificationMeta _isStornoMeta = const VerificationMeta(
+    'isStorno',
+  );
+  @override
+  late final GeneratedColumn<bool> isStorno = GeneratedColumn<bool>(
+    'is_storno',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_storno" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _stornoSourceOrderIdMeta =
+      const VerificationMeta('stornoSourceOrderId');
+  @override
+  late final GeneratedColumn<String> stornoSourceOrderId =
+      GeneratedColumn<String>(
+        'storno_source_order_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _prepStartedAtMeta = const VerificationMeta(
+    'prepStartedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> prepStartedAt =
+      GeneratedColumn<DateTime>(
+        'prep_started_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _readyAtMeta = const VerificationMeta(
+    'readyAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> readyAt = GeneratedColumn<DateTime>(
+    'ready_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _deliveredAtMeta = const VerificationMeta(
+    'deliveredAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deliveredAt = GeneratedColumn<DateTime>(
+    'delivered_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     lastSyncedAt,
@@ -13479,6 +13539,11 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, Order> {
     subtotalGross,
     subtotalNet,
     taxTotal,
+    isStorno,
+    stornoSourceOrderId,
+    prepStartedAt,
+    readyAt,
+    deliveredAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -13622,6 +13687,45 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, Order> {
         taxTotal.isAcceptableOrUnknown(data['tax_total']!, _taxTotalMeta),
       );
     }
+    if (data.containsKey('is_storno')) {
+      context.handle(
+        _isStornoMeta,
+        isStorno.isAcceptableOrUnknown(data['is_storno']!, _isStornoMeta),
+      );
+    }
+    if (data.containsKey('storno_source_order_id')) {
+      context.handle(
+        _stornoSourceOrderIdMeta,
+        stornoSourceOrderId.isAcceptableOrUnknown(
+          data['storno_source_order_id']!,
+          _stornoSourceOrderIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('prep_started_at')) {
+      context.handle(
+        _prepStartedAtMeta,
+        prepStartedAt.isAcceptableOrUnknown(
+          data['prep_started_at']!,
+          _prepStartedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('ready_at')) {
+      context.handle(
+        _readyAtMeta,
+        readyAt.isAcceptableOrUnknown(data['ready_at']!, _readyAtMeta),
+      );
+    }
+    if (data.containsKey('delivered_at')) {
+      context.handle(
+        _deliveredAtMeta,
+        deliveredAt.isAcceptableOrUnknown(
+          data['delivered_at']!,
+          _deliveredAtMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -13705,6 +13809,26 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, Order> {
         DriftSqlType.int,
         data['${effectivePrefix}tax_total'],
       )!,
+      isStorno: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_storno'],
+      )!,
+      stornoSourceOrderId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}storno_source_order_id'],
+      ),
+      prepStartedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}prep_started_at'],
+      ),
+      readyAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}ready_at'],
+      ),
+      deliveredAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}delivered_at'],
+      ),
     );
   }
 
@@ -13736,6 +13860,11 @@ class Order extends DataClass implements Insertable<Order> {
   final int subtotalGross;
   final int subtotalNet;
   final int taxTotal;
+  final bool isStorno;
+  final String? stornoSourceOrderId;
+  final DateTime? prepStartedAt;
+  final DateTime? readyAt;
+  final DateTime? deliveredAt;
   const Order({
     this.lastSyncedAt,
     required this.version,
@@ -13755,6 +13884,11 @@ class Order extends DataClass implements Insertable<Order> {
     required this.subtotalGross,
     required this.subtotalNet,
     required this.taxTotal,
+    required this.isStorno,
+    this.stornoSourceOrderId,
+    this.prepStartedAt,
+    this.readyAt,
+    this.deliveredAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -13791,6 +13925,19 @@ class Order extends DataClass implements Insertable<Order> {
     map['subtotal_gross'] = Variable<int>(subtotalGross);
     map['subtotal_net'] = Variable<int>(subtotalNet);
     map['tax_total'] = Variable<int>(taxTotal);
+    map['is_storno'] = Variable<bool>(isStorno);
+    if (!nullToAbsent || stornoSourceOrderId != null) {
+      map['storno_source_order_id'] = Variable<String>(stornoSourceOrderId);
+    }
+    if (!nullToAbsent || prepStartedAt != null) {
+      map['prep_started_at'] = Variable<DateTime>(prepStartedAt);
+    }
+    if (!nullToAbsent || readyAt != null) {
+      map['ready_at'] = Variable<DateTime>(readyAt);
+    }
+    if (!nullToAbsent || deliveredAt != null) {
+      map['delivered_at'] = Variable<DateTime>(deliveredAt);
+    }
     return map;
   }
 
@@ -13824,6 +13971,19 @@ class Order extends DataClass implements Insertable<Order> {
       subtotalGross: Value(subtotalGross),
       subtotalNet: Value(subtotalNet),
       taxTotal: Value(taxTotal),
+      isStorno: Value(isStorno),
+      stornoSourceOrderId: stornoSourceOrderId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(stornoSourceOrderId),
+      prepStartedAt: prepStartedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(prepStartedAt),
+      readyAt: readyAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(readyAt),
+      deliveredAt: deliveredAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deliveredAt),
     );
   }
 
@@ -13853,6 +14013,13 @@ class Order extends DataClass implements Insertable<Order> {
       subtotalGross: serializer.fromJson<int>(json['subtotalGross']),
       subtotalNet: serializer.fromJson<int>(json['subtotalNet']),
       taxTotal: serializer.fromJson<int>(json['taxTotal']),
+      isStorno: serializer.fromJson<bool>(json['isStorno']),
+      stornoSourceOrderId: serializer.fromJson<String?>(
+        json['stornoSourceOrderId'],
+      ),
+      prepStartedAt: serializer.fromJson<DateTime?>(json['prepStartedAt']),
+      readyAt: serializer.fromJson<DateTime?>(json['readyAt']),
+      deliveredAt: serializer.fromJson<DateTime?>(json['deliveredAt']),
     );
   }
   @override
@@ -13879,6 +14046,11 @@ class Order extends DataClass implements Insertable<Order> {
       'subtotalGross': serializer.toJson<int>(subtotalGross),
       'subtotalNet': serializer.toJson<int>(subtotalNet),
       'taxTotal': serializer.toJson<int>(taxTotal),
+      'isStorno': serializer.toJson<bool>(isStorno),
+      'stornoSourceOrderId': serializer.toJson<String?>(stornoSourceOrderId),
+      'prepStartedAt': serializer.toJson<DateTime?>(prepStartedAt),
+      'readyAt': serializer.toJson<DateTime?>(readyAt),
+      'deliveredAt': serializer.toJson<DateTime?>(deliveredAt),
     };
   }
 
@@ -13901,6 +14073,11 @@ class Order extends DataClass implements Insertable<Order> {
     int? subtotalGross,
     int? subtotalNet,
     int? taxTotal,
+    bool? isStorno,
+    Value<String?> stornoSourceOrderId = const Value.absent(),
+    Value<DateTime?> prepStartedAt = const Value.absent(),
+    Value<DateTime?> readyAt = const Value.absent(),
+    Value<DateTime?> deliveredAt = const Value.absent(),
   }) => Order(
     lastSyncedAt: lastSyncedAt.present ? lastSyncedAt.value : this.lastSyncedAt,
     version: version ?? this.version,
@@ -13924,6 +14101,15 @@ class Order extends DataClass implements Insertable<Order> {
     subtotalGross: subtotalGross ?? this.subtotalGross,
     subtotalNet: subtotalNet ?? this.subtotalNet,
     taxTotal: taxTotal ?? this.taxTotal,
+    isStorno: isStorno ?? this.isStorno,
+    stornoSourceOrderId: stornoSourceOrderId.present
+        ? stornoSourceOrderId.value
+        : this.stornoSourceOrderId,
+    prepStartedAt: prepStartedAt.present
+        ? prepStartedAt.value
+        : this.prepStartedAt,
+    readyAt: readyAt.present ? readyAt.value : this.readyAt,
+    deliveredAt: deliveredAt.present ? deliveredAt.value : this.deliveredAt,
   );
   Order copyWithCompanion(OrdersCompanion data) {
     return Order(
@@ -13959,6 +14145,17 @@ class Order extends DataClass implements Insertable<Order> {
           ? data.subtotalNet.value
           : this.subtotalNet,
       taxTotal: data.taxTotal.present ? data.taxTotal.value : this.taxTotal,
+      isStorno: data.isStorno.present ? data.isStorno.value : this.isStorno,
+      stornoSourceOrderId: data.stornoSourceOrderId.present
+          ? data.stornoSourceOrderId.value
+          : this.stornoSourceOrderId,
+      prepStartedAt: data.prepStartedAt.present
+          ? data.prepStartedAt.value
+          : this.prepStartedAt,
+      readyAt: data.readyAt.present ? data.readyAt.value : this.readyAt,
+      deliveredAt: data.deliveredAt.present
+          ? data.deliveredAt.value
+          : this.deliveredAt,
     );
   }
 
@@ -13982,13 +14179,18 @@ class Order extends DataClass implements Insertable<Order> {
           ..write('itemCount: $itemCount, ')
           ..write('subtotalGross: $subtotalGross, ')
           ..write('subtotalNet: $subtotalNet, ')
-          ..write('taxTotal: $taxTotal')
+          ..write('taxTotal: $taxTotal, ')
+          ..write('isStorno: $isStorno, ')
+          ..write('stornoSourceOrderId: $stornoSourceOrderId, ')
+          ..write('prepStartedAt: $prepStartedAt, ')
+          ..write('readyAt: $readyAt, ')
+          ..write('deliveredAt: $deliveredAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     lastSyncedAt,
     version,
     serverCreatedAt,
@@ -14007,7 +14209,12 @@ class Order extends DataClass implements Insertable<Order> {
     subtotalGross,
     subtotalNet,
     taxTotal,
-  );
+    isStorno,
+    stornoSourceOrderId,
+    prepStartedAt,
+    readyAt,
+    deliveredAt,
+  ]);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -14029,7 +14236,12 @@ class Order extends DataClass implements Insertable<Order> {
           other.itemCount == this.itemCount &&
           other.subtotalGross == this.subtotalGross &&
           other.subtotalNet == this.subtotalNet &&
-          other.taxTotal == this.taxTotal);
+          other.taxTotal == this.taxTotal &&
+          other.isStorno == this.isStorno &&
+          other.stornoSourceOrderId == this.stornoSourceOrderId &&
+          other.prepStartedAt == this.prepStartedAt &&
+          other.readyAt == this.readyAt &&
+          other.deliveredAt == this.deliveredAt);
 }
 
 class OrdersCompanion extends UpdateCompanion<Order> {
@@ -14051,6 +14263,11 @@ class OrdersCompanion extends UpdateCompanion<Order> {
   final Value<int> subtotalGross;
   final Value<int> subtotalNet;
   final Value<int> taxTotal;
+  final Value<bool> isStorno;
+  final Value<String?> stornoSourceOrderId;
+  final Value<DateTime?> prepStartedAt;
+  final Value<DateTime?> readyAt;
+  final Value<DateTime?> deliveredAt;
   final Value<int> rowid;
   const OrdersCompanion({
     this.lastSyncedAt = const Value.absent(),
@@ -14071,6 +14288,11 @@ class OrdersCompanion extends UpdateCompanion<Order> {
     this.subtotalGross = const Value.absent(),
     this.subtotalNet = const Value.absent(),
     this.taxTotal = const Value.absent(),
+    this.isStorno = const Value.absent(),
+    this.stornoSourceOrderId = const Value.absent(),
+    this.prepStartedAt = const Value.absent(),
+    this.readyAt = const Value.absent(),
+    this.deliveredAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   OrdersCompanion.insert({
@@ -14092,6 +14314,11 @@ class OrdersCompanion extends UpdateCompanion<Order> {
     this.subtotalGross = const Value.absent(),
     this.subtotalNet = const Value.absent(),
     this.taxTotal = const Value.absent(),
+    this.isStorno = const Value.absent(),
+    this.stornoSourceOrderId = const Value.absent(),
+    this.prepStartedAt = const Value.absent(),
+    this.readyAt = const Value.absent(),
+    this.deliveredAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        companyId = Value(companyId),
@@ -14118,6 +14345,11 @@ class OrdersCompanion extends UpdateCompanion<Order> {
     Expression<int>? subtotalGross,
     Expression<int>? subtotalNet,
     Expression<int>? taxTotal,
+    Expression<bool>? isStorno,
+    Expression<String>? stornoSourceOrderId,
+    Expression<DateTime>? prepStartedAt,
+    Expression<DateTime>? readyAt,
+    Expression<DateTime>? deliveredAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -14139,6 +14371,12 @@ class OrdersCompanion extends UpdateCompanion<Order> {
       if (subtotalGross != null) 'subtotal_gross': subtotalGross,
       if (subtotalNet != null) 'subtotal_net': subtotalNet,
       if (taxTotal != null) 'tax_total': taxTotal,
+      if (isStorno != null) 'is_storno': isStorno,
+      if (stornoSourceOrderId != null)
+        'storno_source_order_id': stornoSourceOrderId,
+      if (prepStartedAt != null) 'prep_started_at': prepStartedAt,
+      if (readyAt != null) 'ready_at': readyAt,
+      if (deliveredAt != null) 'delivered_at': deliveredAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -14162,6 +14400,11 @@ class OrdersCompanion extends UpdateCompanion<Order> {
     Value<int>? subtotalGross,
     Value<int>? subtotalNet,
     Value<int>? taxTotal,
+    Value<bool>? isStorno,
+    Value<String?>? stornoSourceOrderId,
+    Value<DateTime?>? prepStartedAt,
+    Value<DateTime?>? readyAt,
+    Value<DateTime?>? deliveredAt,
     Value<int>? rowid,
   }) {
     return OrdersCompanion(
@@ -14183,6 +14426,11 @@ class OrdersCompanion extends UpdateCompanion<Order> {
       subtotalGross: subtotalGross ?? this.subtotalGross,
       subtotalNet: subtotalNet ?? this.subtotalNet,
       taxTotal: taxTotal ?? this.taxTotal,
+      isStorno: isStorno ?? this.isStorno,
+      stornoSourceOrderId: stornoSourceOrderId ?? this.stornoSourceOrderId,
+      prepStartedAt: prepStartedAt ?? this.prepStartedAt,
+      readyAt: readyAt ?? this.readyAt,
+      deliveredAt: deliveredAt ?? this.deliveredAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -14246,6 +14494,23 @@ class OrdersCompanion extends UpdateCompanion<Order> {
     if (taxTotal.present) {
       map['tax_total'] = Variable<int>(taxTotal.value);
     }
+    if (isStorno.present) {
+      map['is_storno'] = Variable<bool>(isStorno.value);
+    }
+    if (stornoSourceOrderId.present) {
+      map['storno_source_order_id'] = Variable<String>(
+        stornoSourceOrderId.value,
+      );
+    }
+    if (prepStartedAt.present) {
+      map['prep_started_at'] = Variable<DateTime>(prepStartedAt.value);
+    }
+    if (readyAt.present) {
+      map['ready_at'] = Variable<DateTime>(readyAt.value);
+    }
+    if (deliveredAt.present) {
+      map['delivered_at'] = Variable<DateTime>(deliveredAt.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -14273,6 +14538,11 @@ class OrdersCompanion extends UpdateCompanion<Order> {
           ..write('subtotalGross: $subtotalGross, ')
           ..write('subtotalNet: $subtotalNet, ')
           ..write('taxTotal: $taxTotal, ')
+          ..write('isStorno: $isStorno, ')
+          ..write('stornoSourceOrderId: $stornoSourceOrderId, ')
+          ..write('prepStartedAt: $prepStartedAt, ')
+          ..write('readyAt: $readyAt, ')
+          ..write('deliveredAt: $deliveredAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -40327,6 +40597,11 @@ typedef $$OrdersTableCreateCompanionBuilder =
       Value<int> subtotalGross,
       Value<int> subtotalNet,
       Value<int> taxTotal,
+      Value<bool> isStorno,
+      Value<String?> stornoSourceOrderId,
+      Value<DateTime?> prepStartedAt,
+      Value<DateTime?> readyAt,
+      Value<DateTime?> deliveredAt,
       Value<int> rowid,
     });
 typedef $$OrdersTableUpdateCompanionBuilder =
@@ -40349,6 +40624,11 @@ typedef $$OrdersTableUpdateCompanionBuilder =
       Value<int> subtotalGross,
       Value<int> subtotalNet,
       Value<int> taxTotal,
+      Value<bool> isStorno,
+      Value<String?> stornoSourceOrderId,
+      Value<DateTime?> prepStartedAt,
+      Value<DateTime?> readyAt,
+      Value<DateTime?> deliveredAt,
       Value<int> rowid,
     });
 
@@ -40451,6 +40731,31 @@ class $$OrdersTableFilterComposer
     column: $table.taxTotal,
     builder: (column) => ColumnFilters(column),
   );
+
+  ColumnFilters<bool> get isStorno => $composableBuilder(
+    column: $table.isStorno,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get stornoSourceOrderId => $composableBuilder(
+    column: $table.stornoSourceOrderId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get prepStartedAt => $composableBuilder(
+    column: $table.prepStartedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get readyAt => $composableBuilder(
+    column: $table.readyAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deliveredAt => $composableBuilder(
+    column: $table.deliveredAt,
+    builder: (column) => ColumnFilters(column),
+  );
 }
 
 class $$OrdersTableOrderingComposer
@@ -40551,6 +40856,31 @@ class $$OrdersTableOrderingComposer
     column: $table.taxTotal,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get isStorno => $composableBuilder(
+    column: $table.isStorno,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get stornoSourceOrderId => $composableBuilder(
+    column: $table.stornoSourceOrderId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get prepStartedAt => $composableBuilder(
+    column: $table.prepStartedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get readyAt => $composableBuilder(
+    column: $table.readyAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deliveredAt => $composableBuilder(
+    column: $table.deliveredAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$OrdersTableAnnotationComposer
@@ -40629,6 +40959,27 @@ class $$OrdersTableAnnotationComposer
 
   GeneratedColumn<int> get taxTotal =>
       $composableBuilder(column: $table.taxTotal, builder: (column) => column);
+
+  GeneratedColumn<bool> get isStorno =>
+      $composableBuilder(column: $table.isStorno, builder: (column) => column);
+
+  GeneratedColumn<String> get stornoSourceOrderId => $composableBuilder(
+    column: $table.stornoSourceOrderId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get prepStartedAt => $composableBuilder(
+    column: $table.prepStartedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get readyAt =>
+      $composableBuilder(column: $table.readyAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deliveredAt => $composableBuilder(
+    column: $table.deliveredAt,
+    builder: (column) => column,
+  );
 }
 
 class $$OrdersTableTableManager
@@ -40677,6 +41028,11 @@ class $$OrdersTableTableManager
                 Value<int> subtotalGross = const Value.absent(),
                 Value<int> subtotalNet = const Value.absent(),
                 Value<int> taxTotal = const Value.absent(),
+                Value<bool> isStorno = const Value.absent(),
+                Value<String?> stornoSourceOrderId = const Value.absent(),
+                Value<DateTime?> prepStartedAt = const Value.absent(),
+                Value<DateTime?> readyAt = const Value.absent(),
+                Value<DateTime?> deliveredAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => OrdersCompanion(
                 lastSyncedAt: lastSyncedAt,
@@ -40697,6 +41053,11 @@ class $$OrdersTableTableManager
                 subtotalGross: subtotalGross,
                 subtotalNet: subtotalNet,
                 taxTotal: taxTotal,
+                isStorno: isStorno,
+                stornoSourceOrderId: stornoSourceOrderId,
+                prepStartedAt: prepStartedAt,
+                readyAt: readyAt,
+                deliveredAt: deliveredAt,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -40719,6 +41080,11 @@ class $$OrdersTableTableManager
                 Value<int> subtotalGross = const Value.absent(),
                 Value<int> subtotalNet = const Value.absent(),
                 Value<int> taxTotal = const Value.absent(),
+                Value<bool> isStorno = const Value.absent(),
+                Value<String?> stornoSourceOrderId = const Value.absent(),
+                Value<DateTime?> prepStartedAt = const Value.absent(),
+                Value<DateTime?> readyAt = const Value.absent(),
+                Value<DateTime?> deliveredAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => OrdersCompanion.insert(
                 lastSyncedAt: lastSyncedAt,
@@ -40739,6 +41105,11 @@ class $$OrdersTableTableManager
                 subtotalGross: subtotalGross,
                 subtotalNet: subtotalNet,
                 taxTotal: taxTotal,
+                isStorno: isStorno,
+                stornoSourceOrderId: stornoSourceOrderId,
+                prepStartedAt: prepStartedAt,
+                readyAt: readyAt,
+                deliveredAt: deliveredAt,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

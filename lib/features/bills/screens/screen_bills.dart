@@ -1213,6 +1213,7 @@ void _showMoreMenu(BuildContext btnContext, bool canManageSettings, {VoidCallbac
     context: btnContext,
     position: position,
     items: [
+      PopupMenuItem(value: 'orders', height: 48, child: Text(l.ordersTitle)),
       if (canManageSettings)
         PopupMenuItem(value: 'z-reports', height: 48, child: Text(l.moreReports)),
       if (!canManageSettings)
@@ -1243,6 +1244,8 @@ void _showMoreMenu(BuildContext btnContext, bool canManageSettings, {VoidCallbac
   ).then((value) {
     if (value == null || !btnContext.mounted) return;
     switch (value) {
+      case 'orders':
+        btnContext.push('/orders');
       case 'company-settings':
         btnContext.push('/settings/company');
       case 'venue-settings':
