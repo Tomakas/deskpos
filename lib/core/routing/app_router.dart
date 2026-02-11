@@ -129,7 +129,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/orders',
         redirect: (context, state) {
-          final hasPermission = ref.read(hasPermissionProvider('bills.manage'));
+          final hasPermission = ref.read(hasPermissionProvider('orders.view'));
           if (!hasPermission) return '/bills';
           return null;
         },

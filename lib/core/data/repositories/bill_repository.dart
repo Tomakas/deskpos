@@ -33,6 +33,7 @@ class BillRepository {
     required String companyId,
     required String userId,
     required String currencyId,
+    String? sectionId,
     String? tableId,
     String? customerId,
     bool isTakeaway = false,
@@ -48,6 +49,7 @@ class BillRepository {
           id: id,
           companyId: companyId,
           customerId: Value(customerId),
+          sectionId: Value(sectionId),
           tableId: Value(tableId),
           openedByUserId: userId,
           billNumber: billNumber,
@@ -132,7 +134,10 @@ class BillRepository {
                   t.deletedAt.isNull()))
             .get();
         final tableIds = tables.map((t) => t.id).toSet();
-        bills = bills.where((b) => b.tableId != null && tableIds.contains(b.tableId)).toList();
+        bills = bills.where((b) {
+          if (b.tableId != null) return tableIds.contains(b.tableId);
+          return b.sectionId != null && sectionIds.contains(b.sectionId);
+        }).toList();
       }
       return bills;
     });

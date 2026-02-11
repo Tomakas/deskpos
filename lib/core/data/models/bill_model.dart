@@ -11,6 +11,7 @@ class BillModel with _$BillModel {
     required String id,
     required String companyId,
     String? customerId,
+    String? sectionId,
     String? tableId,
     required String openedByUserId,
     required String billNumber,

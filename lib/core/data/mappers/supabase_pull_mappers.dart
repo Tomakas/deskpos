@@ -273,6 +273,7 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
         id: Value(json['id'] as String),
         companyId: Value(json['company_id'] as String),
         customerId: Value(json['customer_id'] as String?),
+        sectionId: Value(json['section_id'] as String?),
         tableId: Value(json['table_id'] as String?),
         openedByUserId: Value(json['opened_by_user_id'] as String),
         billNumber: Value(json['bill_number'] as String),

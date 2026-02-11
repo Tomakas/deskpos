@@ -381,6 +381,7 @@ BillModel billFromEntity(Bill e) => BillModel(
       id: e.id,
       companyId: e.companyId,
       customerId: e.customerId,
+      sectionId: e.sectionId,
       tableId: e.tableId,
       openedByUserId: e.openedByUserId,
       billNumber: e.billNumber,

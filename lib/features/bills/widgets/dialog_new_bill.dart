@@ -255,6 +255,7 @@ class _DialogNewBillState extends ConsumerState<DialogNewBill> {
                           FilledButton(
                             onPressed: () {
                               Navigator.pop(context, NewBillResult(
+                                sectionId: _selectedSectionId,
                                 tableId: _selectedTableId,
                                 numberOfGuests: _guestCount,
                                 customerId: _selectedCustomer?.id,
@@ -270,6 +271,7 @@ class _DialogNewBillState extends ConsumerState<DialogNewBill> {
                               ),
                               onPressed: () {
                                 Navigator.pop(context, NewBillResult(
+                                  sectionId: _selectedSectionId,
                                   tableId: _selectedTableId,
                                   numberOfGuests: _guestCount,
                                   customerId: _selectedCustomer?.id,
@@ -312,12 +314,14 @@ class _FormRow extends StatelessWidget {
 
 class NewBillResult {
   const NewBillResult({
+    this.sectionId,
     this.tableId,
     this.customerId,
     this.numberOfGuests = 0,
     this.navigateToSell = false,
   });
 
+  final String? sectionId;
   final String? tableId;
   final String? customerId;
   final int numberOfGuests;

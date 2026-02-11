@@ -296,6 +296,7 @@ Map<String, dynamic> billToSupabaseJson(BillModel m) => {
         deletedAt: m.deletedAt,
       ),
       'customer_id': m.customerId,
+      'section_id': m.sectionId,
       'table_id': m.tableId,
       'opened_by_user_id': m.openedByUserId,
       'bill_number': m.billNumber,

@@ -232,10 +232,10 @@ Funkce, které nejsou nezbytné pro základní prodej, ale rozšiřují možnost
 
 Storno jednotlivých položek (storno order), status timestamps, oddělovač chodů v košíku, samostatná obrazovka pro přehled objednávek. Objednávka (order) je neměnný „kuchyňský ticket" — po odeslání nelze editovat položky, přidání/odebrání = nový order. Storno položky vytvoří dedikovaný storno order pro audit trail a budoucí kuchyňský tisk.
 
-- **Task3.33** Status timestamps — 3 nové nullable sloupce na `orders`: `prep_started_at` (D?, nastaví `startPreparation`), `ready_at` (D?, nastaví `markReady`), `delivered_at` (D?, nastaví `markDelivered`). Drift tabulka, Freezed model, entity/supabase/pull mappers, Supabase migrace.
-- **Task3.34** Storno order (void jednotlivé položky) — 2 nové sloupce na `orders`: `is_storno` (B, default false), `storno_source_order_id` (T? → orders). Nová metoda `OrderRepository.voidItem(orderId, orderItemId)`: validace → původní item status `voided` → stock reversal (vč. receptur) → nový storno order (`isStorno: true`, status `delivered`, `stornoSourceOrderId` = originál, order number `X-XXXX`) s kopií voidnuté položky → přepočet totals orderu (pokud všechny položky voided → auto-void celý order) → `updateTotals(billId)` (storno ordery se nepočítají) → enqueue sync. UI: tap na položku otevřeného účtu v DialogBillDetail → stávající dialog (poznámka + sleva) + tlačítko "Storno" → potvrzení → void. Storno ordery v historii červeně s prefixem "STORNO".
-- **Task3.35** Oddělovač objednávek v košíku — nový toolbar chip "Oddělit" na ScreenSell. Vizuální čára v košíku oddělující skupiny položek. Oddělovač odebíratelný. Při submit: iterace přes skupiny → `createOrderWithItems()` pro každou → N po sobě jdoucích orderů (O-0001, O-0002...). Prázdné skupiny se ignorují.
-- **Task3.36** ScreenOrders (přehled objednávek) — route `/orders`, přístup přes menu DALŠÍ → "Objednávky", permission `bills.manage`. Kartový seznam (kuchyňský lístek): hlavička (číslo, stůl, čas, status barevně), položky přímo viditelné (název, qty, cena, poznámky). Storno ordery červeně s STORNO prefixem. Akce: status přechody (created→inPrep→ready→delivered), void položek (→ storno order), cancel/void orderu. Filtry (spodní lišta): Aktivní (default: created+inPrep+ready) / Vytvořené / Připravované / Hotové / Doručené / Stornované / Vše. Scope: default aktuální register session, přepínač na "vše".
+- **Task3.33** ✅ Status timestamps — 3 nové nullable sloupce na `orders`: `prep_started_at` (D?, nastaví `startPreparation`), `ready_at` (D?, nastaví `markReady`), `delivered_at` (D?, nastaví `markDelivered`). Drift tabulka, Freezed model, entity/supabase/pull mappers, Supabase migrace.
+- **Task3.34** ✅ Storno order (void jednotlivé položky) — 2 nové sloupce na `orders`: `is_storno` (B, default false), `storno_source_order_id` (T? → orders). Nová metoda `OrderRepository.voidItem(orderId, orderItemId)`: validace → původní item status `voided` → stock reversal (vč. receptur) → nový storno order (`isStorno: true`, status `delivered`, `stornoSourceOrderId` = originál, order number `X-XXXX`) s kopií voidnuté položky → přepočet totals orderu (pokud všechny položky voided → auto-void celý order) → `updateTotals(billId)` (storno ordery se nepočítají) → enqueue sync. UI: tap na položku otevřeného účtu v DialogBillDetail → stávající dialog (poznámka + sleva) + tlačítko "Storno" → potvrzení → void. Storno ordery v historii červeně s prefixem "STORNO".
+- **Task3.35** ✅ Oddělovač objednávek v košíku — nový toolbar chip "Oddělit" na ScreenSell. Vizuální čára v košíku oddělující skupiny položek. Oddělovač odebíratelný. Při submit: iterace přes skupiny → `createOrderWithItems()` pro každou → N po sobě jdoucích orderů (O-0001, O-0002...). Prázdné skupiny se ignorují.
+- **Task3.36** ✅ ScreenOrders (přehled objednávek) — route `/orders`, přístup přes menu DALŠÍ → "Objednávky", permission `orders.view`. Kartový seznam (kuchyňský lístek): hlavička (číslo, stůl, čas, status barevně), položky přímo viditelné (název, qty, cena, poznámky). Storno ordery červeně s STORNO prefixem. Akce: status přechody (created→inPrep→ready→delivered), void položek (→ storno order). Filtry (spodní lišta): Aktivní (default: created+inPrep+ready) / Vytvořené / Připravované / Hotové / Doručené / Stornované. Scope: default aktuální register session, přepínač na "vše".
 - **Výsledek:** Obsluha může stornovat jednotlivé položky na otevřeném účtu (vznikne storno order pro audit/kuchyni). Objednávky mají timestamps pro měření doby přípravy. V košíku lze jedním odesláním vytvořit více oddělených objednávek (chody). Nová obrazovka ScreenOrders poskytuje přehled všech objednávek s filtry, akcemi a kartovým zobrazením.
 
 ---
@@ -377,7 +377,7 @@ Deklarativní routing s auth guardem:
 /settings/register   → ScreenRegisterSettings (Zobrazení mřížky) — vyžaduje settings.manage
 /catalog             → ScreenCatalog (6 tabů: Produkty, Kategorie, Dodavatelé, Výrobci, Receptury, Zákazníci) — vyžaduje settings.manage
 /inventory           → ScreenInventory (2 taby: Zásoby, Doklady) + akční tlačítka (Příjemka, Výdejka, Oprava, Inventura)
-/orders              → ScreenOrders (přehled objednávek, kartový seznam, filtry, akce) — vyžaduje bills.manage
+/orders              → ScreenOrders (přehled objednávek, kartový seznam, filtry, akce) — vyžaduje orders.view
 ```
 
 **Auth guard:** Router čeká na `appInitProvider`. Nepřihlášený uživatel je přesměrován na `/login`. Pokud neexistuje firma, přesměrování na `/onboarding`. Po přihlášení se z auth/onboarding stránek přesměruje na `/bills`.
@@ -604,7 +604,7 @@ Všechny aktivní tabulky obsahují společné sync sloupce (viz [SyncColumnsMix
 
 | Tabulka | Sloupce |
 |---------|---------|
-| **bills** | id (T), company_id →companies, table_id →tables?, opened_by_user_id →users, bill_number (T), number_of_guests (I), is_takeaway (B), status (T), currency_id →currencies, subtotal_gross (I), subtotal_net (I), discount_amount (I), discount_type (T?), tax_total (I), total_gross (I), rounding_amount (I), paid_amount (I), loyalty_points_used (I, default 0), loyalty_discount_amount (I, default 0), voucher_discount_amount (I, default 0), voucher_id →vouchers?, opened_at (D), closed_at (D?), customer_id →customers?, map_pos_x (I?), map_pos_y (I?) |
+| **bills** | id (T), company_id →companies, section_id →sections?, table_id →tables?, opened_by_user_id →users, bill_number (T), number_of_guests (I), is_takeaway (B), status (T), currency_id →currencies, subtotal_gross (I), subtotal_net (I), discount_amount (I), discount_type (T?), tax_total (I), total_gross (I), rounding_amount (I), paid_amount (I), loyalty_points_used (I, default 0), loyalty_discount_amount (I, default 0), voucher_discount_amount (I, default 0), voucher_id →vouchers?, opened_at (D), closed_at (D?), customer_id →customers?, map_pos_x (I?), map_pos_y (I?) |
 | **orders** | id (T), company_id →companies, bill_id →bills, created_by_user_id →users, order_number (T), notes (T), status (T), item_count (I), subtotal_gross (I), subtotal_net (I), tax_total (I), is_storno (B, default false), storno_source_order_id →orders?, prep_started_at (D?), ready_at (D?), delivered_at (D?) |
 | **order_items** | id (T), company_id →companies, order_id →orders, item_id →items, item_name (T), quantity (R), sale_price_att (I), sale_tax_rate_att (I), sale_tax_amount (I), discount (I), discount_type (T?), notes (T), status (T) |
 | **payments** | id (T), company_id →companies, bill_id →bills, payment_method_id →payment_methods, user_id →users?, amount (I), paid_at (D), currency_id →currencies, tip_included_amount (I), notes (T), transaction_id (T), payment_provider (T), card_last4 (T), authorization_code (T) |
@@ -1035,7 +1035,7 @@ Order.status se odvozuje z položek:
 
 Rychlý prodej je zjednodušený flow pro prodej bez stolů. Spouští se tlačítkem **Rychlý účet** na ScreenBills, naviguje na `/sell` (bez billId). Účet se vytvoří až při potvrzení platby.
 
-**Příznak:** `is_takeaway = true` v tabulce bills. V UI se zobrazuje jako "Rychlý účet".
+**Příznak:** `is_takeaway = true` v tabulce bills. V UI se zobrazuje jako "Rychlý účet". Při vytvoření se automaticky nastaví `section_id` na výchozí sekci (`isDefault=true`). Stejně tak konverze rychlého prodeje na běžný účet ("Uložit na účet") resolvuje výchozí sekci.
 
 ```mermaid
 sequenceDiagram
@@ -1048,7 +1048,7 @@ sequenceDiagram
     Note over UI: Obsluha vybere položky do košíku
     Note over UI: Tlačítko "Zaplatit" (místo "Objednat")
 
-    UI->>BR: createBill(companyId, userId, isTakeaway: true)
+    UI->>BR: createBill(companyId, userId, sectionId: default, isTakeaway: true)
     BR->>DB: INSERT bills
     DB-->>BR: BillModel
     BR-->>UI: Success(bill)
@@ -1090,7 +1090,7 @@ sequenceDiagram
     participant K as Kuchyň
 
     W->>UI: Vytvořit účet pro stůl 5
-    UI->>BR: createBill(tableId: "5", guests: 4)
+    UI->>BR: createBill(sectionId: "...", tableId: "5", guests: 4)
     BR-->>UI: Bill (opened)
 
     W->>UI: Přidat první objednávku
@@ -1147,6 +1147,7 @@ stateDiagram-v2
 | Pole | Hodnota |
 |------|---------|
 | `is_takeaway` | false (vždy) |
+| `section_id` | vybraná sekce |
 | `table_id` | vybraný stůl nebo null |
 | `number_of_guests` | vstup (výchozí 0) |
 | `currency_id` | default |
@@ -1155,7 +1156,7 @@ stateDiagram-v2
 **Pravidla:**
 - Sekce s `isDefault=true` se automaticky pre-selektuje při otevření dialogu
 - `is_takeaway=true` se nastavuje **pouze** při rychlém prodeji (automaticky)
-- Stůl je volitelný — účet může existovat bez přiřazení ke stolu
+- Stůl je volitelný — účet může existovat bez přiřazení ke stolu (filtrování v přehledu funguje přes `section_id`)
 - Stoly v dropdown jsou filtrovány podle vybrané sekce (pouze aktivní)
 - Prázdný bill je povolen (placeholder pro stůl)
 - Bill se vytvoří se statusem `opened` a `opened_at = now`
@@ -1256,8 +1257,8 @@ stateDiagram-v2
 
 #### BillRepository
 
-- **Query:** watchByCompany (s filtry status/section), watchById, watchByStatus, getById
-- **Business:** createBill (atomická transakce: `_generateBillNumber` + INSERT), updateTotals (s discount + loyalty + voucher kalkulací), recordPayment (v transakci: vytvoří Payment + aktualizuje Bill, podpora tipAmount pro přeplatky), cancelBill (v transakci: cascade cancel/void všech orders a items), updateDiscount (bill-level sleva), moveBill (přesun účtu na jiný stůl/sekci — nastaví tableId, numberOfGuests, isTakeaway=false), refundBill (záporné platby za každou orig. platbu + auto CashMovement), refundItem (záporná platba za položku + void item + auto CashMovement), mergeBill (přesun všech objednávek na cílový účet přes OrderRepository, zdrojový účet → cancelled), splitBill (přesun vybraných položek na cílový účet přes OrderRepository, přepočet totalů obou účtů), applyLoyaltyDiscount (aplikace slevy z věrnostních bodů), applyVoucher (aplikace voucheru na účet), removeVoucher (odebrání voucheru z účtu), updateCustomer (přiřazení/odebrání zákazníka)
+- **Query:** watchByCompany (s filtry status/section — filtruje účty podle `tableId` přes tabulky v dané sekci, nebo podle `sectionId` pro účty bez stolu), watchById, watchByStatus, getById
+- **Business:** createBill (atomická transakce: `_generateBillNumber` + INSERT; přijímá volitelný `sectionId` — vždy se nastavuje, i pro rychlý prodej a konverzi na účet kde se resolvuje výchozí sekce), updateTotals (s discount + loyalty + voucher kalkulací), recordPayment (v transakci: vytvoří Payment + aktualizuje Bill, podpora tipAmount pro přeplatky), cancelBill (v transakci: cascade cancel/void všech orders a items), updateDiscount (bill-level sleva), moveBill (přesun účtu na jiný stůl/sekci — nastaví tableId, numberOfGuests, isTakeaway=false), refundBill (záporné platby za každou orig. platbu + auto CashMovement), refundItem (záporná platba za položku + void item + auto CashMovement), mergeBill (přesun všech objednávek na cílový účet přes OrderRepository, zdrojový účet → cancelled), splitBill (přesun vybraných položek na cílový účet přes OrderRepository, přepočet totalů obou účtů), applyLoyaltyDiscount (aplikace slevy z věrnostních bodů), applyVoucher (aplikace voucheru na účet), removeVoucher (odebrání voucheru z účtu), updateCustomer (přiřazení/odebrání zákazníka)
 - **Závislosti:** Injektovaný `OrderRepository` (pro merge/split operace), `CustomerRepository` (pro loyalty body)
 - **Sync:** Injektovaný `SyncQueueRepository`, ruční enqueue — `_enqueueBill`, `_enqueueOrder`, `_enqueueOrderItem`, `_enqueuePayment`, `_enqueueCashMovement`. Každá mutace po sobě enqueueuje všechny dotčené entity. DB operace v transakcích, enqueue vždy mimo transakci.
 
@@ -1930,7 +1931,7 @@ Layout: **Kartový seznam s filtry**
 
 ```
 ┌──────────────────────────────────────────────────────────┐
-│ Objednávky                    [○ Session] [● Vše]        │
+│ Objednávky                    [● Session] [○ Vše]        │
 │──────────────────────────────────────────────────────────│
 │ ┌────────────────────────────────────────────────────┐   │
 │ │ O-0003  Stůl 5  14:32  ● created  [▸ Příprava]    │   │
@@ -1947,7 +1948,7 @@ Layout: **Kartový seznam s filtry**
 │ │   3× Espresso                           87 Kč      │   │
 │ └────────────────────────────────────────────────────┘   │
 │──────────────────────────────────────────────────────────│
-│ [●Aktivní] [Vytvořené] [Připr.] [Hotové] [Dor.] [Vše]  │
+│ [●Aktivní] [Vytvořené] [Připr.] [Hotové] [Dor.] [Storno]│
 └──────────────────────────────────────────────────────────┘
 ```
 
@@ -1955,14 +1956,13 @@ Layout: **Kartový seznam s filtry**
 
 **Akce na kartě:**
 - Status přechody: created→inPrep→ready→delivered (tlačítko na kartě)
-- Cancel/void celého orderu (popup menu)
-- Void jednotlivé položky → storno order (tap na položku)
+- Void jednotlivé položky → storno order (tap na položku, potvrzovací dialog)
 
-**Filtry (spodní lišta):** Aktivní (default: created+inPrep+ready) / Vytvořené / Připravované / Hotové / Doručené / Stornované / Vše. Styl: FilterChip row jako ScreenBills.
+**Filtry (spodní lišta):** Aktivní (default: created+inPrep+ready) / Vytvořené / Připravované / Hotové / Doručené / Stornované. Styl: FilterChip row jako ScreenBills.
 
 **Scope toggle (horní lišta):** Aktuální session (default) / Vše.
 
-**Přístup:** Menu DALŠÍ → "Objednávky" na ScreenBills. Permission: `bills.manage`.
+**Přístup:** Menu DALŠÍ → "Objednávky" na ScreenBills. Permission: `orders.view`.
 
 ---
 

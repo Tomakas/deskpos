@@ -206,6 +206,7 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
         companyId: company.id,
         userId: user.id,
         currencyId: company.defaultCurrencyId,
+        sectionId: result.sectionId,
         tableId: result.tableId,
         customerId: result.customerId,
         isTakeaway: false,

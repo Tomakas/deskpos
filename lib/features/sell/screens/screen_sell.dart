@@ -693,11 +693,16 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
 
     final billRepo = ref.read(billRepositoryProvider);
 
+    // Resolve default section
+    final sections = await ref.read(sectionRepositoryProvider).watchAll(company.id).first;
+    final defaultSection = sections.where((s) => s.isDefault).firstOrNull ?? sections.firstOrNull;
+
     // Create bill
     final billResult = await billRepo.createBill(
       companyId: company.id,
       userId: user.id,
       currencyId: company.defaultCurrencyId,
+      sectionId: defaultSection?.id,
       isTakeaway: true,
     );
     if (billResult is! Success<BillModel>) return;
@@ -756,11 +761,16 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
 
       final billRepo = ref.read(billRepositoryProvider);
 
+      // Resolve default section
+      final sections = await ref.read(sectionRepositoryProvider).watchAll(company.id).first;
+      final defaultSection = sections.where((s) => s.isDefault).firstOrNull ?? sections.firstOrNull;
+
       // Create regular bill on default section, no table
       final billResult = await billRepo.createBill(
         companyId: company.id,
         userId: user.id,
         currencyId: company.defaultCurrencyId,
+        sectionId: defaultSection?.id,
         isTakeaway: false,
       );
       if (billResult is! Success<BillModel>) return;

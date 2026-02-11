@@ -1,5 +1,48 @@
 # Changelog
 
+## 2026-02-11 — Add sectionId to bills
+
+### Features
+- Bills now store `section_id` directly — bills without a table are filterable by section in the bills overview
+- DialogNewBill passes selected section to bill creation
+- Quick sale and convert-to-bill resolve default section automatically
+
+### Data Layer
+- New nullable column `section_id` in `bills` Drift table + BillModel + all mappers (entity, supabase push, supabase pull)
+- BillRepository.createBill: new optional `sectionId` parameter
+- BillRepository.watchByCompany: section filter now matches bills by `tableId` (via tables in section) or by `sectionId` (for table-less bills)
+- Supabase migration: `ALTER TABLE bills ADD COLUMN section_id text REFERENCES sections(id)` + index
+
+### Documentation
+- PROJECT.md: bills schema, DialogNewBill fields, quick sale flow, BillRepository API updated
+
+## 2026-02-11 — Milestone 3.8: Order Management
+
+### Features
+- **Storno orders**: Void jednotlivé položky na otevřeném účtu → vytvoří storno order (isStorno, X-XXXX prefix, reference na zdrojový order, stock reversal, auto-void při prázdném orderu)
+- **Status timestamps**: Ordery ukládají prep_started_at, ready_at, delivered_at při změně stavu
+- **Cart separator**: Tlačítko "Oddělit" v ScreenSell — jedno odeslání vytvoří N oddělených objednávek (chodů)
+- **ScreenOrders**: Nová obrazovka `/orders` — kartový přehled objednávek, scope toggle (Session/Vše), status filtry (Aktivní/Vytvořené/Připravované/Hotové/Doručené/Stornované), akční tlačítka pro změnu stavu, void z karty
+
+### Data Layer
+- 5 nových sloupců v `orders` tabulce: is_storno, storno_source_order_id, prep_started_at, ready_at, delivered_at
+- Supabase migrace: ALTER TABLE orders + FK constraint
+- OrderRepository: voidItem(), watchByCompany(), _reverseStockForSingleItem(), _recalculateOrderTotals(), _autoVoidOrderIfEmpty()
+- BillRepository.updateTotals: filtruje storno ordery
+
+### New Files
+- `lib/features/orders/screens/screen_orders.dart`
+
+### L10n
+- +17 nových klíčů v `app_cs.arb` (storno, ordery, filtry, separator)
+
+### Routing
+- `/orders` route s permission guardem `orders.view`
+- "Objednávky" entry v DALŠÍ menu na ScreenBills
+
+### Documentation
+- PROJECT.md: oprava permission `/orders` z bills.manage na orders.view
+
 ## 2026-02-11 — Sjednocení dialogového systému
 
 ### Features
