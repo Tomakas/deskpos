@@ -622,7 +622,7 @@ Všechny aktivní tabulky obsahují společné sync sloupce (viz [SyncColumnsMix
 |---------|---------|
 | **bills** | id (T), company_id →companies, section_id →sections?, table_id →tables?, opened_by_user_id →users, bill_number (T), number_of_guests (I), is_takeaway (B), status (T), currency_id →currencies, subtotal_gross (I), subtotal_net (I), discount_amount (I), discount_type (T?), tax_total (I), total_gross (I), rounding_amount (I), paid_amount (I), loyalty_points_used (I, default 0), loyalty_discount_amount (I, default 0), voucher_discount_amount (I, default 0), voucher_id →vouchers?, opened_at (D), closed_at (D?), customer_id →customers?, map_pos_x (I?), map_pos_y (I?) |
 | **orders** | id (T), company_id →companies, bill_id →bills, created_by_user_id →users, order_number (T), notes (T), status (T), item_count (I), subtotal_gross (I), subtotal_net (I), tax_total (I), is_storno (B, default false), storno_source_order_id →orders?, prep_started_at (D?), ready_at (D?), delivered_at (D?) |
-| **order_items** | id (T), company_id →companies, order_id →orders, item_id →items, item_name (T), quantity (R), sale_price_att (I), sale_tax_rate_att (I), sale_tax_amount (I), discount (I), discount_type (T?), notes (T), status (T) |
+| **order_items** | id (T), company_id →companies, order_id →orders, item_id →items, item_name (T), quantity (R), sale_price_att (I), sale_tax_rate_att (I), sale_tax_amount (I), discount (I), discount_type (T?), notes (T), status (T), prep_started_at (D?), ready_at (D?), delivered_at (D?) |
 | **payments** | id (T), company_id →companies, bill_id →bills, payment_method_id →payment_methods, user_id →users?, amount (I), paid_at (D), currency_id →currencies, tip_included_amount (I), notes (T), transaction_id (T), payment_provider (T), card_last4 (T), authorization_code (T) |
 | **payment_methods** | id (T), company_id →companies, name (T), type (T), is_active (B) |
 
@@ -1020,18 +1020,22 @@ stateDiagram-v2
 
 #### Agregace Order.status z OrderItem.status
 
-> **E2:** Status se nastavuje na úrovni celé objednávky (Order) — všechny items mají stejný status. Agregace z individuálních item statusů se implementuje v Etapě 3.
+**Implementováno.** Status se nastavuje na úrovni jednotlivých položek (OrderItem). Order.status se automaticky odvozuje z item statusů metodou `_deriveOrderStatus()`.
 
-Cílové chování (od E3):
+`updateItemStatus(itemId, orderId, newStatus)` — změní status jedné položky a přepočte order status.
 
-Order.status se odvozuje z položek:
-- Všechny items `delivered` → Order je `delivered`
-- Všechny items `ready` nebo `delivered` → Order je `ready`
-- Jakýkoliv item `inPrep` → Order je `inPrep`
-- Všechny items `cancelled` → Order je `cancelled`
-- Všechny items `voided` → Order je `voided`
-- Mix `cancelled` + `voided` → Order je `voided`
-- Jinak → `created`
+Pravidla (vyhodnocují se v pořadí, `activeItems` = items kde status ∉ {voided, cancelled}):
+
+1. `activeItems` prázdné + všechny cancelled → Order = `cancelled`
+2. `activeItems` prázdné + všechny voided nebo mix → Order = `voided`
+3. Všechny `activeItems` delivered → Order = `delivered`
+4. Všechny `activeItems` ∈ {ready, delivered} → Order = `ready`
+5. Jakýkoliv `activeItem` ∈ {inPrep, ready, delivered} → Order = `inPrep`
+6. Jinak (všechny `activeItems` created) → Order = `created`
+
+Order-level timestamps (`prepStartedAt`, `readyAt`, `deliveredAt`) se nastaví při prvním dosažení daného agregovaného stavu.
+
+**Item-level timestamps:** Každý OrderItem má vlastní `prepStartedAt`, `readyAt`, `deliveredAt` — nastavují se při změně statusu dané položky.
 
 ### Klíčová rozhodnutí
 

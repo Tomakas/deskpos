@@ -1,6 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/database_provider.dart';
@@ -104,20 +108,20 @@ class CloudTab extends ConsumerWidget {
       ref.read(loggedInUsersProvider.notifier).state = [];
       ref.read(currentCompanyProvider.notifier).state = null;
 
-      // Small delay to let any in-flight pull finish its current table
-      await Future<void>.delayed(const Duration(milliseconds: 200));
-
+      // Close the database connection
       final db = ref.read(appDatabaseProvider);
+      await db.close();
 
-      await db.customStatement('PRAGMA foreign_keys = OFF');
-      await db.transaction(() async {
-        for (final table in db.allTables) {
-          await db.customStatement('DELETE FROM "${table.actualTableName}"');
-        }
-      });
-      await db.customStatement('PRAGMA foreign_keys = ON');
+      // Delete the database file (and WAL/SHM companions)
+      final dir = await getApplicationDocumentsDirectory();
+      final basePath = p.join(dir.path, 'epos_database.sqlite');
+      for (final suffix in ['', '-wal', '-shm', '-journal']) {
+        final file = File('$basePath$suffix');
+        if (await file.exists()) await file.delete();
+      }
 
-      // Invalidate cached init state so router re-evaluates
+      // Invalidate providers — next read creates fresh DB with current schema
+      ref.invalidate(appDatabaseProvider);
       ref.invalidate(appInitProvider);
     } catch (e, s) {
       AppLogger.error('Failed to delete local data', error: e, stackTrace: s);

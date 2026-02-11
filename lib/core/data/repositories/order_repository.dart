@@ -253,6 +253,145 @@ class OrderRepository {
   Future<Result<OrderModel>> markDelivered(String orderId) =>
       updateStatus(orderId, PrepStatus.delivered);
 
+  /// Updates the status of a single order item and derives the parent order
+  /// status from all item statuses.
+  Future<Result<OrderItemModel>> updateItemStatus(
+    String itemId,
+    String orderId,
+    PrepStatus newStatus,
+  ) async {
+    try {
+      final now = DateTime.now();
+
+      // 1. Fetch and validate item
+      final itemEntity = await (_db.select(_db.orderItems)
+            ..where((t) => t.id.equals(itemId)))
+          .getSingle();
+      if (itemEntity.status == PrepStatus.voided ||
+          itemEntity.status == PrepStatus.cancelled) {
+        return const Failure('Item is already voided or cancelled');
+      }
+
+      // 2. Update item status + timestamp
+      await (_db.update(_db.orderItems)..where((t) => t.id.equals(itemId)))
+          .write(OrderItemsCompanion(
+        status: Value(newStatus),
+        updatedAt: Value(now),
+        prepStartedAt: newStatus == PrepStatus.inPrep
+            ? Value(now)
+            : const Value.absent(),
+        readyAt: newStatus == PrepStatus.ready
+            ? Value(now)
+            : const Value.absent(),
+        deliveredAt: newStatus == PrepStatus.delivered
+            ? Value(now)
+            : const Value.absent(),
+      ));
+
+      // 3. Stock reversal if cancelled/voided
+      if (newStatus == PrepStatus.cancelled || newStatus == PrepStatus.voided) {
+        await _reverseStockForSingleItem(
+            itemEntity.companyId, itemEntity);
+      }
+
+      // 4. Derive order status from all items
+      await _deriveOrderStatus(orderId);
+
+      // 5. Enqueue item + order for sync
+      final updatedItem = await (_db.select(_db.orderItems)
+            ..where((t) => t.id.equals(itemId)))
+          .getSingle();
+      await _enqueueOrderItem('update', orderItemFromEntity(updatedItem));
+
+      final updatedOrder = await (_db.select(_db.orders)
+            ..where((t) => t.id.equals(orderId)))
+          .getSingle();
+      await _enqueueOrder('update', orderFromEntity(updatedOrder));
+
+      return Success(orderItemFromEntity(updatedItem));
+    } catch (e, s) {
+      AppLogger.error('Failed to update item status', error: e, stackTrace: s);
+      return Failure('Failed to update item status: $e');
+    }
+  }
+
+  /// Derives Order.status from the statuses of all its items.
+  ///
+  /// Rules (evaluated in order):
+  /// 1. No active items + all voided → voided
+  /// 2. No active items + all cancelled → cancelled
+  /// 3. No active items + mix → voided
+  /// 4. All active items delivered → delivered
+  /// 5. All active items ready|delivered → ready
+  /// 6. Any active item inPrep|ready|delivered (but not all ready+) → inPrep
+  /// 7. Otherwise → created
+  ///
+  /// Order-level timestamps are set on first transition to that status.
+  Future<void> _deriveOrderStatus(String orderId) async {
+    final now = DateTime.now();
+    final allItems = await (_db.select(_db.orderItems)
+          ..where((t) => t.orderId.equals(orderId) & t.deletedAt.isNull()))
+        .get();
+
+    if (allItems.isEmpty) return;
+
+    final activeItems = allItems
+        .where((i) =>
+            i.status != PrepStatus.voided && i.status != PrepStatus.cancelled)
+        .toList();
+
+    PrepStatus derived;
+    if (activeItems.isEmpty) {
+      // All items are voided or cancelled
+      final allVoided = allItems.every((i) => i.status == PrepStatus.voided);
+      final allCancelled =
+          allItems.every((i) => i.status == PrepStatus.cancelled);
+      if (allCancelled) {
+        derived = PrepStatus.cancelled;
+      } else if (allVoided) {
+        derived = PrepStatus.voided;
+      } else {
+        derived = PrepStatus.voided; // mix
+      }
+    } else if (activeItems.every((i) => i.status == PrepStatus.delivered)) {
+      derived = PrepStatus.delivered;
+    } else if (activeItems.every((i) =>
+        i.status == PrepStatus.ready || i.status == PrepStatus.delivered)) {
+      derived = PrepStatus.ready;
+    } else if (activeItems.any((i) =>
+        i.status == PrepStatus.inPrep ||
+        i.status == PrepStatus.ready ||
+        i.status == PrepStatus.delivered)) {
+      derived = PrepStatus.inPrep;
+    } else {
+      derived = PrepStatus.created;
+    }
+
+    // Read current order to set timestamps only on first transition
+    final order = await (_db.select(_db.orders)
+          ..where((t) => t.id.equals(orderId)))
+        .getSingle();
+
+    await (_db.update(_db.orders)..where((t) => t.id.equals(orderId))).write(
+      OrdersCompanion(
+        status: Value(derived),
+        updatedAt: Value(now),
+        prepStartedAt: derived == PrepStatus.inPrep && order.prepStartedAt == null
+            ? Value(now)
+            : const Value.absent(),
+        readyAt: derived == PrepStatus.ready && order.readyAt == null
+            ? Value(now)
+            : const Value.absent(),
+        deliveredAt: derived == PrepStatus.delivered && order.deliveredAt == null
+            ? Value(now)
+            : const Value.absent(),
+      ),
+    );
+
+    // Recalculate totals (exclude voided/cancelled items)
+    await _recalculateOrderTotals(orderId);
+  }
+
   Future<Result<OrderModel>> voidItem({
     required String orderId,
     required String orderItemId,

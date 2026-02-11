@@ -30,6 +30,9 @@ mixin _$OrderItemModel {
   DiscountType? get discountType => throw _privateConstructorUsedError;
   String? get notes => throw _privateConstructorUsedError;
   PrepStatus get status => throw _privateConstructorUsedError;
+  DateTime? get prepStartedAt => throw _privateConstructorUsedError;
+  DateTime? get readyAt => throw _privateConstructorUsedError;
+  DateTime? get deliveredAt => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
   DateTime get updatedAt => throw _privateConstructorUsedError;
   DateTime? get deletedAt => throw _privateConstructorUsedError;
@@ -62,6 +65,9 @@ abstract class $OrderItemModelCopyWith<$Res> {
     DiscountType? discountType,
     String? notes,
     PrepStatus status,
+    DateTime? prepStartedAt,
+    DateTime? readyAt,
+    DateTime? deliveredAt,
     DateTime createdAt,
     DateTime updatedAt,
     DateTime? deletedAt,
@@ -96,6 +102,9 @@ class _$OrderItemModelCopyWithImpl<$Res, $Val extends OrderItemModel>
     Object? discountType = freezed,
     Object? notes = freezed,
     Object? status = null,
+    Object? prepStartedAt = freezed,
+    Object? readyAt = freezed,
+    Object? deliveredAt = freezed,
     Object? createdAt = null,
     Object? updatedAt = null,
     Object? deletedAt = freezed,
@@ -154,6 +163,18 @@ class _$OrderItemModelCopyWithImpl<$Res, $Val extends OrderItemModel>
                 ? _value.status
                 : status // ignore: cast_nullable_to_non_nullable
                       as PrepStatus,
+            prepStartedAt: freezed == prepStartedAt
+                ? _value.prepStartedAt
+                : prepStartedAt // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
+            readyAt: freezed == readyAt
+                ? _value.readyAt
+                : readyAt // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
+            deliveredAt: freezed == deliveredAt
+                ? _value.deliveredAt
+                : deliveredAt // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
             createdAt: null == createdAt
                 ? _value.createdAt
                 : createdAt // ignore: cast_nullable_to_non_nullable
@@ -195,6 +216,9 @@ abstract class _$$OrderItemModelImplCopyWith<$Res>
     DiscountType? discountType,
     String? notes,
     PrepStatus status,
+    DateTime? prepStartedAt,
+    DateTime? readyAt,
+    DateTime? deliveredAt,
     DateTime createdAt,
     DateTime updatedAt,
     DateTime? deletedAt,
@@ -228,6 +252,9 @@ class __$$OrderItemModelImplCopyWithImpl<$Res>
     Object? discountType = freezed,
     Object? notes = freezed,
     Object? status = null,
+    Object? prepStartedAt = freezed,
+    Object? readyAt = freezed,
+    Object? deliveredAt = freezed,
     Object? createdAt = null,
     Object? updatedAt = null,
     Object? deletedAt = freezed,
@@ -286,6 +313,18 @@ class __$$OrderItemModelImplCopyWithImpl<$Res>
             ? _value.status
             : status // ignore: cast_nullable_to_non_nullable
                   as PrepStatus,
+        prepStartedAt: freezed == prepStartedAt
+            ? _value.prepStartedAt
+            : prepStartedAt // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
+        readyAt: freezed == readyAt
+            ? _value.readyAt
+            : readyAt // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
+        deliveredAt: freezed == deliveredAt
+            ? _value.deliveredAt
+            : deliveredAt // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
         createdAt: null == createdAt
             ? _value.createdAt
             : createdAt // ignore: cast_nullable_to_non_nullable
@@ -320,6 +359,9 @@ class _$OrderItemModelImpl implements _OrderItemModel {
     this.discountType,
     this.notes,
     required this.status,
+    this.prepStartedAt,
+    this.readyAt,
+    this.deliveredAt,
     required this.createdAt,
     required this.updatedAt,
     this.deletedAt,
@@ -353,6 +395,12 @@ class _$OrderItemModelImpl implements _OrderItemModel {
   @override
   final PrepStatus status;
   @override
+  final DateTime? prepStartedAt;
+  @override
+  final DateTime? readyAt;
+  @override
+  final DateTime? deliveredAt;
+  @override
   final DateTime createdAt;
   @override
   final DateTime updatedAt;
@@ -361,7 +409,7 @@ class _$OrderItemModelImpl implements _OrderItemModel {
 
   @override
   String toString() {
-    return 'OrderItemModel(id: $id, companyId: $companyId, orderId: $orderId, itemId: $itemId, itemName: $itemName, quantity: $quantity, salePriceAtt: $salePriceAtt, saleTaxRateAtt: $saleTaxRateAtt, saleTaxAmount: $saleTaxAmount, discount: $discount, discountType: $discountType, notes: $notes, status: $status, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+    return 'OrderItemModel(id: $id, companyId: $companyId, orderId: $orderId, itemId: $itemId, itemName: $itemName, quantity: $quantity, salePriceAtt: $salePriceAtt, saleTaxRateAtt: $saleTaxRateAtt, saleTaxAmount: $saleTaxAmount, discount: $discount, discountType: $discountType, notes: $notes, status: $status, prepStartedAt: $prepStartedAt, readyAt: $readyAt, deliveredAt: $deliveredAt, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
   }
 
   @override
@@ -390,6 +438,11 @@ class _$OrderItemModelImpl implements _OrderItemModel {
                 other.discountType == discountType) &&
             (identical(other.notes, notes) || other.notes == notes) &&
             (identical(other.status, status) || other.status == status) &&
+            (identical(other.prepStartedAt, prepStartedAt) ||
+                other.prepStartedAt == prepStartedAt) &&
+            (identical(other.readyAt, readyAt) || other.readyAt == readyAt) &&
+            (identical(other.deliveredAt, deliveredAt) ||
+                other.deliveredAt == deliveredAt) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.updatedAt, updatedAt) ||
@@ -399,7 +452,7 @@ class _$OrderItemModelImpl implements _OrderItemModel {
   }
 
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     runtimeType,
     id,
     companyId,
@@ -414,10 +467,13 @@ class _$OrderItemModelImpl implements _OrderItemModel {
     discountType,
     notes,
     status,
+    prepStartedAt,
+    readyAt,
+    deliveredAt,
     createdAt,
     updatedAt,
     deletedAt,
-  );
+  ]);
 
   /// Create a copy of OrderItemModel
   /// with the given fields replaced by the non-null parameter values.
@@ -446,6 +502,9 @@ abstract class _OrderItemModel implements OrderItemModel {
     final DiscountType? discountType,
     final String? notes,
     required final PrepStatus status,
+    final DateTime? prepStartedAt,
+    final DateTime? readyAt,
+    final DateTime? deliveredAt,
     required final DateTime createdAt,
     required final DateTime updatedAt,
     final DateTime? deletedAt,
@@ -477,6 +536,12 @@ abstract class _OrderItemModel implements OrderItemModel {
   String? get notes;
   @override
   PrepStatus get status;
+  @override
+  DateTime? get prepStartedAt;
+  @override
+  DateTime? get readyAt;
+  @override
+  DateTime? get deliveredAt;
   @override
   DateTime get createdAt;
   @override

@@ -900,7 +900,6 @@ class _OrderSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
     final timeFormat = DateFormat('HH:mm', 'cs');
-    final statusColor = _statusColor(order.status);
 
     return StreamBuilder<List<OrderItemModel>>(
       stream: ref.watch(orderRepositoryProvider).watchOrderItems(order.id),
@@ -1038,18 +1037,20 @@ class _OrderSection extends ConsumerWidget {
                             width: 8,
                             height: 8,
                             decoration: BoxDecoration(
-                              color: statusColor,
+                              color: _statusColor(item.status),
                               shape: BoxShape.circle,
                             ),
                           ),
-                          if (order.status == PrepStatus.created ||
-                              order.status == PrepStatus.inPrep ||
-                              order.status == PrepStatus.ready)
+                          if (item.status == PrepStatus.created ||
+                              item.status == PrepStatus.inPrep ||
+                              item.status == PrepStatus.ready)
                             PopupMenuButton<PrepStatus>(
                               iconSize: 16,
                               padding: EdgeInsets.zero,
-                              onSelected: (status) => _changeStatus(ref, status),
-                              itemBuilder: (_) => _availableTransitions(order.status, l),
+                              onSelected: (status) =>
+                                  _changeItemStatus(ref, item, status),
+                              itemBuilder: (_) =>
+                                  _availableTransitions(item.status, l),
                             )
                           else
                             const SizedBox(width: 32),
@@ -1270,22 +1271,10 @@ class _OrderSection extends ConsumerWidget {
     );
   }
 
-  void _changeStatus(WidgetRef ref, PrepStatus status) {
+  void _changeItemStatus(
+      WidgetRef ref, OrderItemModel item, PrepStatus status) {
     final repo = ref.read(orderRepositoryProvider);
-    switch (status) {
-      case PrepStatus.inPrep:
-        repo.startPreparation(order.id);
-      case PrepStatus.ready:
-        repo.markReady(order.id);
-      case PrepStatus.delivered:
-        repo.markDelivered(order.id);
-      case PrepStatus.cancelled:
-        repo.cancelOrder(order.id);
-      case PrepStatus.voided:
-        repo.voidOrder(order.id);
-      default:
-        break;
-    }
+    repo.updateItemStatus(item.id, order.id, status);
   }
 
   List<PopupMenuEntry<PrepStatus>> _availableTransitions(PrepStatus current, dynamic l) {

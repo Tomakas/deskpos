@@ -100,7 +100,8 @@ class _ScreenOrdersState extends ConsumerState<ScreenOrders> {
                               width: cardWidth,
                               child: _OrderCard(
                                 order: order,
-                                onStatusChange: (status) => _changeStatus(order, status),
+                                onItemStatusChange: (item, status) =>
+                                    _changeItemStatus(order, item, status),
                                 onVoidItem: (item) => _voidItem(order, item),
                               ),
                             ),
@@ -135,9 +136,10 @@ class _ScreenOrdersState extends ConsumerState<ScreenOrders> {
     return orders.where((o) => _statusFilter!.contains(o.status)).toList();
   }
 
-  Future<void> _changeStatus(OrderModel order, PrepStatus status) async {
+  Future<void> _changeItemStatus(
+      OrderModel order, OrderItemModel item, PrepStatus status) async {
     final orderRepo = ref.read(orderRepositoryProvider);
-    await orderRepo.updateStatus(order.id, status);
+    await orderRepo.updateItemStatus(item.id, order.id, status);
   }
 
   Future<void> _voidItem(OrderModel order, OrderItemModel item) async {
@@ -186,11 +188,11 @@ class _ScreenOrdersState extends ConsumerState<ScreenOrders> {
 class _OrderCard extends ConsumerWidget {
   const _OrderCard({
     required this.order,
-    required this.onStatusChange,
+    required this.onItemStatusChange,
     required this.onVoidItem,
   });
   final OrderModel order;
-  final void Function(PrepStatus) onStatusChange;
+  final void Function(OrderItemModel, PrepStatus) onItemStatusChange;
   final void Function(OrderItemModel) onVoidItem;
 
   @override
@@ -281,8 +283,11 @@ class _OrderCard extends ConsumerWidget {
                     for (final item in items)
                       _OrderItemRow(
                         item: item,
-                        canVoid: !isStorno && _isActiveStatus(order.status),
+                        canVoid: !isStorno && _isItemActive(item.status),
+                        canChangeStatus: !isStorno,
                         onVoid: () => onVoidItem(item),
+                        onStatusChange: (status) =>
+                            onItemStatusChange(item, status),
                       ),
                   ],
                 );
@@ -299,37 +304,15 @@ class _OrderCard extends ConsumerWidget {
                 ),
               ),
             ],
-            // Action button row
-            if (!isStorno && _isActiveStatus(order.status)) ...[
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  if (order.status == PrepStatus.created)
-                    FilledButton.tonal(
-                      onPressed: () => onStatusChange(PrepStatus.inPrep),
-                      child: Text(l.ordersFilterInPrep),
-                    ),
-                  if (order.status == PrepStatus.inPrep)
-                    FilledButton.tonal(
-                      onPressed: () => onStatusChange(PrepStatus.ready),
-                      child: Text(l.ordersFilterReady),
-                    ),
-                  if (order.status == PrepStatus.ready)
-                    FilledButton.tonal(
-                      onPressed: () => onStatusChange(PrepStatus.delivered),
-                      child: Text(l.ordersFilterDelivered),
-                    ),
-                ],
-              ),
-            ],
+
+
           ],
         ),
       ),
     );
   }
 
-  bool _isActiveStatus(PrepStatus status) =>
+  bool _isItemActive(PrepStatus status) =>
       status == PrepStatus.created ||
       status == PrepStatus.inPrep ||
       status == PrepStatus.ready;
@@ -437,26 +420,44 @@ class _OrderItemRow extends StatelessWidget {
   const _OrderItemRow({
     required this.item,
     required this.canVoid,
+    required this.canChangeStatus,
     required this.onVoid,
+    required this.onStatusChange,
   });
   final OrderItemModel item;
   final bool canVoid;
+  final bool canChangeStatus;
   final VoidCallback onVoid;
+  final void Function(PrepStatus) onStatusChange;
 
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
     final theme = Theme.of(context);
-    final isVoided = item.status == PrepStatus.voided || item.status == PrepStatus.cancelled;
+    final isVoided =
+        item.status == PrepStatus.voided || item.status == PrepStatus.cancelled;
     final price = (item.salePriceAtt * item.quantity).round();
+    final next = canChangeStatus ? _nextStatus(item.status) : null;
 
     return InkWell(
       onTap: canVoid && !isVoided ? onVoid : null,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
+        padding: const EdgeInsets.symmetric(vertical: 2),
         child: Row(
           children: [
+            // Status dot
+            Container(
+              width: 8,
+              height: 8,
+              margin: const EdgeInsets.only(right: 6),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: _itemStatusColor(item.status),
+              ),
+            ),
+            // Quantity
             SizedBox(
-              width: 32,
+              width: 28,
               child: Text(
                 '${item.quantity.toStringAsFixed(item.quantity == item.quantity.roundToDouble() ? 0 : 1)}x',
                 style: theme.textTheme.bodyMedium?.copyWith(
@@ -465,6 +466,7 @@ class _OrderItemRow extends StatelessWidget {
                 ),
               ),
             ),
+            // Item name
             Expanded(
               child: Text(
                 item.itemName,
@@ -474,27 +476,80 @@ class _OrderItemRow extends StatelessWidget {
                 ),
               ),
             ),
+            // Notes icon
             if (item.notes != null && item.notes!.isNotEmpty)
               Padding(
-                padding: const EdgeInsets.only(right: 8),
+                padding: const EdgeInsets.only(right: 4),
                 child: Icon(
                   Icons.note,
-                  size: 16,
+                  size: 14,
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
-            Text(
-              '${price ~/ 100},-',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                decoration: isVoided ? TextDecoration.lineThrough : null,
-                color: isVoided ? theme.colorScheme.onSurfaceVariant : null,
+            // Price
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: Text(
+                '${price ~/ 100},-',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  decoration: isVoided ? TextDecoration.lineThrough : null,
+                  color: isVoided ? theme.colorScheme.onSurfaceVariant : null,
+                ),
               ),
             ),
+            // Next-status button
+            if (next != null)
+              SizedBox(
+                height: 28,
+                child: FilledButton.tonal(
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    backgroundColor:
+                        _itemStatusColor(next).withValues(alpha: 0.15),
+                    foregroundColor: _itemStatusColor(next),
+                    textStyle: theme.textTheme.labelSmall
+                        ?.copyWith(fontWeight: FontWeight.w600),
+                  ),
+                  onPressed: () => onStatusChange(next),
+                  child: Text(_nextStatusLabel(next, l)),
+                ),
+              )
+            else if (isVoided)
+              Text(
+                l.ordersFilterStorno,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: Colors.red,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
           ],
         ),
       ),
     );
   }
+
+  PrepStatus? _nextStatus(PrepStatus current) => switch (current) {
+        PrepStatus.created => PrepStatus.inPrep,
+        PrepStatus.inPrep => PrepStatus.ready,
+        PrepStatus.ready => PrepStatus.delivered,
+        _ => null,
+      };
+
+  String _nextStatusLabel(PrepStatus status, dynamic l) => switch (status) {
+        PrepStatus.inPrep => l.ordersFilterInPrep,
+        PrepStatus.ready => l.ordersFilterReady,
+        PrepStatus.delivered => l.ordersFilterDelivered,
+        _ => '',
+      };
+
+  Color _itemStatusColor(PrepStatus status) => switch (status) {
+        PrepStatus.created => Colors.blue,
+        PrepStatus.inPrep => Colors.orange,
+        PrepStatus.ready => Colors.green,
+        PrepStatus.delivered => Colors.grey,
+        PrepStatus.cancelled => Colors.red,
+        PrepStatus.voided => Colors.red,
+      };
 }
 
 // ---------------------------------------------------------------------------

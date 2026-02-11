@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-02-11 — Per-item status transitions + order status aggregation
+
+### Features
+- **Per-item status**: Individual order items can now transition through statuses independently (created → inPrep → ready → delivered)
+- **Order status aggregation**: Order.status is automatically derived from item statuses via `_deriveOrderStatus()` — no more bulk order-level status changes
+- **ScreenOrders**: Per-item status buttons replace order-level action buttons; each item row shows status dot + next-status button
+- **DialogBillDetail**: Status popup menu now operates per-item instead of per-order
+- **Item-level timestamps**: `prep_started_at`, `ready_at`, `delivered_at` on each order item
+- **ScreenOrders grid layout**: Responsive 2–3 column grid (Wrap) instead of single-column ListView
+
+### Data Layer
+- 3 new nullable columns in `order_items` Drift table: `prep_started_at`, `ready_at`, `delivered_at`
+- OrderItemModel: 3 new optional DateTime fields
+- Entity mapper, Supabase push mapper, Supabase pull mapper updated for new fields
+- OrderRepository: new `updateItemStatus()` method + `_deriveOrderStatus()` aggregation logic
+
+### Documentation
+- PROJECT.md: order_items schema updated, aggregation rules documented as implemented
+
 ## 2026-02-11 — Add sectionId to bills
 
 ### Features

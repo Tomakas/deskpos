@@ -12445,6 +12445,40 @@ class $OrderItemsTable extends OrderItems
         type: DriftSqlType.string,
         requiredDuringInsert: true,
       ).withConverter<PrepStatus>($OrderItemsTable.$converterstatus);
+  static const VerificationMeta _prepStartedAtMeta = const VerificationMeta(
+    'prepStartedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> prepStartedAt =
+      GeneratedColumn<DateTime>(
+        'prep_started_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _readyAtMeta = const VerificationMeta(
+    'readyAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> readyAt = GeneratedColumn<DateTime>(
+    'ready_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _deliveredAtMeta = const VerificationMeta(
+    'deliveredAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deliveredAt = GeneratedColumn<DateTime>(
+    'delivered_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     lastSyncedAt,
@@ -12467,6 +12501,9 @@ class $OrderItemsTable extends OrderItems
     discountType,
     notes,
     status,
+    prepStartedAt,
+    readyAt,
+    deliveredAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -12621,6 +12658,30 @@ class $OrderItemsTable extends OrderItems
         notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
       );
     }
+    if (data.containsKey('prep_started_at')) {
+      context.handle(
+        _prepStartedAtMeta,
+        prepStartedAt.isAcceptableOrUnknown(
+          data['prep_started_at']!,
+          _prepStartedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('ready_at')) {
+      context.handle(
+        _readyAtMeta,
+        readyAt.isAcceptableOrUnknown(data['ready_at']!, _readyAtMeta),
+      );
+    }
+    if (data.containsKey('delivered_at')) {
+      context.handle(
+        _deliveredAtMeta,
+        deliveredAt.isAcceptableOrUnknown(
+          data['delivered_at']!,
+          _deliveredAtMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -12714,6 +12775,18 @@ class $OrderItemsTable extends OrderItems
           data['${effectivePrefix}status'],
         )!,
       ),
+      prepStartedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}prep_started_at'],
+      ),
+      readyAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}ready_at'],
+      ),
+      deliveredAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}delivered_at'],
+      ),
     );
   }
 
@@ -12755,6 +12828,9 @@ class OrderItem extends DataClass implements Insertable<OrderItem> {
   final DiscountType? discountType;
   final String? notes;
   final PrepStatus status;
+  final DateTime? prepStartedAt;
+  final DateTime? readyAt;
+  final DateTime? deliveredAt;
   const OrderItem({
     this.lastSyncedAt,
     required this.version,
@@ -12776,6 +12852,9 @@ class OrderItem extends DataClass implements Insertable<OrderItem> {
     this.discountType,
     this.notes,
     required this.status,
+    this.prepStartedAt,
+    this.readyAt,
+    this.deliveredAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -12818,6 +12897,15 @@ class OrderItem extends DataClass implements Insertable<OrderItem> {
         $OrderItemsTable.$converterstatus.toSql(status),
       );
     }
+    if (!nullToAbsent || prepStartedAt != null) {
+      map['prep_started_at'] = Variable<DateTime>(prepStartedAt);
+    }
+    if (!nullToAbsent || readyAt != null) {
+      map['ready_at'] = Variable<DateTime>(readyAt);
+    }
+    if (!nullToAbsent || deliveredAt != null) {
+      map['delivered_at'] = Variable<DateTime>(deliveredAt);
+    }
     return map;
   }
 
@@ -12855,6 +12943,15 @@ class OrderItem extends DataClass implements Insertable<OrderItem> {
           ? const Value.absent()
           : Value(notes),
       status: Value(status),
+      prepStartedAt: prepStartedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(prepStartedAt),
+      readyAt: readyAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(readyAt),
+      deliveredAt: deliveredAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deliveredAt),
     );
   }
 
@@ -12888,6 +12985,9 @@ class OrderItem extends DataClass implements Insertable<OrderItem> {
       status: $OrderItemsTable.$converterstatus.fromJson(
         serializer.fromJson<String>(json['status']),
       ),
+      prepStartedAt: serializer.fromJson<DateTime?>(json['prepStartedAt']),
+      readyAt: serializer.fromJson<DateTime?>(json['readyAt']),
+      deliveredAt: serializer.fromJson<DateTime?>(json['deliveredAt']),
     );
   }
   @override
@@ -12918,6 +13018,9 @@ class OrderItem extends DataClass implements Insertable<OrderItem> {
       'status': serializer.toJson<String>(
         $OrderItemsTable.$converterstatus.toJson(status),
       ),
+      'prepStartedAt': serializer.toJson<DateTime?>(prepStartedAt),
+      'readyAt': serializer.toJson<DateTime?>(readyAt),
+      'deliveredAt': serializer.toJson<DateTime?>(deliveredAt),
     };
   }
 
@@ -12942,6 +13045,9 @@ class OrderItem extends DataClass implements Insertable<OrderItem> {
     Value<DiscountType?> discountType = const Value.absent(),
     Value<String?> notes = const Value.absent(),
     PrepStatus? status,
+    Value<DateTime?> prepStartedAt = const Value.absent(),
+    Value<DateTime?> readyAt = const Value.absent(),
+    Value<DateTime?> deliveredAt = const Value.absent(),
   }) => OrderItem(
     lastSyncedAt: lastSyncedAt.present ? lastSyncedAt.value : this.lastSyncedAt,
     version: version ?? this.version,
@@ -12967,6 +13073,11 @@ class OrderItem extends DataClass implements Insertable<OrderItem> {
     discountType: discountType.present ? discountType.value : this.discountType,
     notes: notes.present ? notes.value : this.notes,
     status: status ?? this.status,
+    prepStartedAt: prepStartedAt.present
+        ? prepStartedAt.value
+        : this.prepStartedAt,
+    readyAt: readyAt.present ? readyAt.value : this.readyAt,
+    deliveredAt: deliveredAt.present ? deliveredAt.value : this.deliveredAt,
   );
   OrderItem copyWithCompanion(OrderItemsCompanion data) {
     return OrderItem(
@@ -13004,6 +13115,13 @@ class OrderItem extends DataClass implements Insertable<OrderItem> {
           : this.discountType,
       notes: data.notes.present ? data.notes.value : this.notes,
       status: data.status.present ? data.status.value : this.status,
+      prepStartedAt: data.prepStartedAt.present
+          ? data.prepStartedAt.value
+          : this.prepStartedAt,
+      readyAt: data.readyAt.present ? data.readyAt.value : this.readyAt,
+      deliveredAt: data.deliveredAt.present
+          ? data.deliveredAt.value
+          : this.deliveredAt,
     );
   }
 
@@ -13029,13 +13147,16 @@ class OrderItem extends DataClass implements Insertable<OrderItem> {
           ..write('discount: $discount, ')
           ..write('discountType: $discountType, ')
           ..write('notes: $notes, ')
-          ..write('status: $status')
+          ..write('status: $status, ')
+          ..write('prepStartedAt: $prepStartedAt, ')
+          ..write('readyAt: $readyAt, ')
+          ..write('deliveredAt: $deliveredAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     lastSyncedAt,
     version,
     serverCreatedAt,
@@ -13056,7 +13177,10 @@ class OrderItem extends DataClass implements Insertable<OrderItem> {
     discountType,
     notes,
     status,
-  );
+    prepStartedAt,
+    readyAt,
+    deliveredAt,
+  ]);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -13080,7 +13204,10 @@ class OrderItem extends DataClass implements Insertable<OrderItem> {
           other.discount == this.discount &&
           other.discountType == this.discountType &&
           other.notes == this.notes &&
-          other.status == this.status);
+          other.status == this.status &&
+          other.prepStartedAt == this.prepStartedAt &&
+          other.readyAt == this.readyAt &&
+          other.deliveredAt == this.deliveredAt);
 }
 
 class OrderItemsCompanion extends UpdateCompanion<OrderItem> {
@@ -13104,6 +13231,9 @@ class OrderItemsCompanion extends UpdateCompanion<OrderItem> {
   final Value<DiscountType?> discountType;
   final Value<String?> notes;
   final Value<PrepStatus> status;
+  final Value<DateTime?> prepStartedAt;
+  final Value<DateTime?> readyAt;
+  final Value<DateTime?> deliveredAt;
   final Value<int> rowid;
   const OrderItemsCompanion({
     this.lastSyncedAt = const Value.absent(),
@@ -13126,6 +13256,9 @@ class OrderItemsCompanion extends UpdateCompanion<OrderItem> {
     this.discountType = const Value.absent(),
     this.notes = const Value.absent(),
     this.status = const Value.absent(),
+    this.prepStartedAt = const Value.absent(),
+    this.readyAt = const Value.absent(),
+    this.deliveredAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   OrderItemsCompanion.insert({
@@ -13149,6 +13282,9 @@ class OrderItemsCompanion extends UpdateCompanion<OrderItem> {
     this.discountType = const Value.absent(),
     this.notes = const Value.absent(),
     required PrepStatus status,
+    this.prepStartedAt = const Value.absent(),
+    this.readyAt = const Value.absent(),
+    this.deliveredAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        companyId = Value(companyId),
@@ -13181,6 +13317,9 @@ class OrderItemsCompanion extends UpdateCompanion<OrderItem> {
     Expression<String>? discountType,
     Expression<String>? notes,
     Expression<String>? status,
+    Expression<DateTime>? prepStartedAt,
+    Expression<DateTime>? readyAt,
+    Expression<DateTime>? deliveredAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -13204,6 +13343,9 @@ class OrderItemsCompanion extends UpdateCompanion<OrderItem> {
       if (discountType != null) 'discount_type': discountType,
       if (notes != null) 'notes': notes,
       if (status != null) 'status': status,
+      if (prepStartedAt != null) 'prep_started_at': prepStartedAt,
+      if (readyAt != null) 'ready_at': readyAt,
+      if (deliveredAt != null) 'delivered_at': deliveredAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -13229,6 +13371,9 @@ class OrderItemsCompanion extends UpdateCompanion<OrderItem> {
     Value<DiscountType?>? discountType,
     Value<String?>? notes,
     Value<PrepStatus>? status,
+    Value<DateTime?>? prepStartedAt,
+    Value<DateTime?>? readyAt,
+    Value<DateTime?>? deliveredAt,
     Value<int>? rowid,
   }) {
     return OrderItemsCompanion(
@@ -13252,6 +13397,9 @@ class OrderItemsCompanion extends UpdateCompanion<OrderItem> {
       discountType: discountType ?? this.discountType,
       notes: notes ?? this.notes,
       status: status ?? this.status,
+      prepStartedAt: prepStartedAt ?? this.prepStartedAt,
+      readyAt: readyAt ?? this.readyAt,
+      deliveredAt: deliveredAt ?? this.deliveredAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -13323,6 +13471,15 @@ class OrderItemsCompanion extends UpdateCompanion<OrderItem> {
         $OrderItemsTable.$converterstatus.toSql(status.value),
       );
     }
+    if (prepStartedAt.present) {
+      map['prep_started_at'] = Variable<DateTime>(prepStartedAt.value);
+    }
+    if (readyAt.present) {
+      map['ready_at'] = Variable<DateTime>(readyAt.value);
+    }
+    if (deliveredAt.present) {
+      map['delivered_at'] = Variable<DateTime>(deliveredAt.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -13352,6 +13509,9 @@ class OrderItemsCompanion extends UpdateCompanion<OrderItem> {
           ..write('discountType: $discountType, ')
           ..write('notes: $notes, ')
           ..write('status: $status, ')
+          ..write('prepStartedAt: $prepStartedAt, ')
+          ..write('readyAt: $readyAt, ')
+          ..write('deliveredAt: $deliveredAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -40243,6 +40403,9 @@ typedef $$OrderItemsTableCreateCompanionBuilder =
       Value<DiscountType?> discountType,
       Value<String?> notes,
       required PrepStatus status,
+      Value<DateTime?> prepStartedAt,
+      Value<DateTime?> readyAt,
+      Value<DateTime?> deliveredAt,
       Value<int> rowid,
     });
 typedef $$OrderItemsTableUpdateCompanionBuilder =
@@ -40267,6 +40430,9 @@ typedef $$OrderItemsTableUpdateCompanionBuilder =
       Value<DiscountType?> discountType,
       Value<String?> notes,
       Value<PrepStatus> status,
+      Value<DateTime?> prepStartedAt,
+      Value<DateTime?> readyAt,
+      Value<DateTime?> deliveredAt,
       Value<int> rowid,
     });
 
@@ -40380,6 +40546,21 @@ class $$OrderItemsTableFilterComposer
         column: $table.status,
         builder: (column) => ColumnWithTypeConverterFilters(column),
       );
+
+  ColumnFilters<DateTime> get prepStartedAt => $composableBuilder(
+    column: $table.prepStartedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get readyAt => $composableBuilder(
+    column: $table.readyAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deliveredAt => $composableBuilder(
+    column: $table.deliveredAt,
+    builder: (column) => ColumnFilters(column),
+  );
 }
 
 class $$OrderItemsTableOrderingComposer
@@ -40490,6 +40671,21 @@ class $$OrderItemsTableOrderingComposer
     column: $table.status,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<DateTime> get prepStartedAt => $composableBuilder(
+    column: $table.prepStartedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get readyAt => $composableBuilder(
+    column: $table.readyAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deliveredAt => $composableBuilder(
+    column: $table.deliveredAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$OrderItemsTableAnnotationComposer
@@ -40575,6 +40771,19 @@ class $$OrderItemsTableAnnotationComposer
 
   GeneratedColumnWithTypeConverter<PrepStatus, String> get status =>
       $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get prepStartedAt => $composableBuilder(
+    column: $table.prepStartedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get readyAt =>
+      $composableBuilder(column: $table.readyAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deliveredAt => $composableBuilder(
+    column: $table.deliveredAt,
+    builder: (column) => column,
+  );
 }
 
 class $$OrderItemsTableTableManager
@@ -40628,6 +40837,9 @@ class $$OrderItemsTableTableManager
                 Value<DiscountType?> discountType = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
                 Value<PrepStatus> status = const Value.absent(),
+                Value<DateTime?> prepStartedAt = const Value.absent(),
+                Value<DateTime?> readyAt = const Value.absent(),
+                Value<DateTime?> deliveredAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => OrderItemsCompanion(
                 lastSyncedAt: lastSyncedAt,
@@ -40650,6 +40862,9 @@ class $$OrderItemsTableTableManager
                 discountType: discountType,
                 notes: notes,
                 status: status,
+                prepStartedAt: prepStartedAt,
+                readyAt: readyAt,
+                deliveredAt: deliveredAt,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -40674,6 +40889,9 @@ class $$OrderItemsTableTableManager
                 Value<DiscountType?> discountType = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
                 required PrepStatus status,
+                Value<DateTime?> prepStartedAt = const Value.absent(),
+                Value<DateTime?> readyAt = const Value.absent(),
+                Value<DateTime?> deliveredAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => OrderItemsCompanion.insert(
                 lastSyncedAt: lastSyncedAt,
@@ -40696,6 +40914,9 @@ class $$OrderItemsTableTableManager
                 discountType: discountType,
                 notes: notes,
                 status: status,
+                prepStartedAt: prepStartedAt,
+                readyAt: readyAt,
+                deliveredAt: deliveredAt,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
