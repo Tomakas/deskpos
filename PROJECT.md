@@ -1658,6 +1658,20 @@ Layout: **80/20 horizontální split**
 - **Info panel** (expandovaný, border 8px radius): Datum/čas (EEEE d.M.yyyy HH:mm:ss), Stav (Aktivní/Offline dle session), Sync (Připojeno/Odpojeno), Aktivní obsluha (username), Přihlášení uživatelé (seznam), Stav pokladny (opening_cash v Kč nebo „-")
 - **Bottom:** PŘEPNOUT OBSLUHU (tonal) + ODHLÁSIT (červená outlined)
 
+**Režim mapy (FloorMapView):**
+- Přepnutí tlačítkem MAPA → nahradí tabulku účtů interaktivní mapou podlaží
+- Mřížka 32×20 buněk, zobrazení per-sekce (single-select FilterChip nahoře, bez tlačítka Řazení)
+- **Stoly:** Obdélník/ovál dle tvaru, barva dle sekce (25% alfa výplň, 60% alfa obrys), název stolu uprostřed
+- **Dekorativní prvky:** Barevné prvky pod stoly, textové popisky nad stoly (neinteraktivní)
+- **Otevřené účty:** Modré kruhy s částkou (`totalGross ~/ 100,-`) — zobrazují se nad stoly
+  - Pozice: `mapPosX`/`mapPosY` (pokud uloženy), jinak automaticky centrované na stolu
+  - Více účtů na jednom stole: horizontálně rozloženy
+- **Interakce:**
+  - Tap na stůl → vytvoření nového účtu na stole (`onTableTap`)
+  - Tap na kruh účtu → otevření DialogBillDetail (`onBillTap`)
+  - LongPress + drag kruhu → přesun účtu (aktualizuje `mapPosX`/`mapPosY`; při přetažení na jiný stůl změní i `tableId`)
+- **Vrstvení:** grid pozadí → barevné prvky → stoly → textové prvky → kruhy účtů
+
 #### DialogBillDetail (detail účtu)
 
 Dialog (750×520px) s informacemi o účtu a historií objednávek. 3-řádkový vertikální layout.
