@@ -203,6 +203,7 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
         sectionId: result.sectionId,
         tableId: result.tableId,
         customerId: result.customerId,
+        customerName: result.customerName,
         isTakeaway: false,
         numberOfGuests: result.numberOfGuests,
       );
@@ -804,7 +805,9 @@ class _BillsTable extends ConsumerWidget {
                       return _ResolvedBill(
                         bill: bill,
                         tableName: _resolveTableName(bill, tableMap, l),
-                        customerName: customer != null ? '${customer.firstName} ${customer.lastName}' : '',
+                        customerName: customer != null
+                            ? '${customer.firstName} ${customer.lastName}'
+                            : bill.customerName ?? '',
                         staffName: userMap[bill.openedByUserId]?.username ?? '-',
                         lastOrderTime: lastOrderTimes[bill.id],
                       );

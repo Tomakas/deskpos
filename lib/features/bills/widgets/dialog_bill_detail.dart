@@ -149,6 +149,11 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
                       );
                     },
                   )
+                else if (bill.customerName != null)
+                  Text(
+                    l.billDetailCustomerName(bill.customerName!),
+                    style: Theme.of(context).textTheme.bodySmall,
+                  )
                 else
                   Text(
                     l.billDetailNoCustomer,
@@ -681,11 +686,14 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
     final result = await showCustomerSearchDialogRaw(
       context,
       ref,
-      showRemoveButton: bill.customerId != null,
+      showRemoveButton: bill.customerId != null || bill.customerName != null,
     );
     if (result == null) return;
     if (result is CustomerModel) {
       await ref.read(billRepositoryProvider).updateCustomer(bill.id, result.id);
+    } else if (result is String) {
+      // Free-text customer name
+      await ref.read(billRepositoryProvider).updateCustomerName(bill.id, result);
     } else {
       // _RemoveCustomer sentinel
       await ref.read(billRepositoryProvider).updateCustomer(bill.id, null);

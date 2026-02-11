@@ -36,6 +36,7 @@ class BillRepository {
     String? sectionId,
     String? tableId,
     String? customerId,
+    String? customerName,
     bool isTakeaway = false,
     int numberOfGuests = 0,
   }) async {
@@ -49,6 +50,7 @@ class BillRepository {
           id: id,
           companyId: companyId,
           customerId: Value(customerId),
+          customerName: Value(customerId != null ? null : customerName),
           sectionId: Value(sectionId),
           tableId: Value(tableId),
           openedByUserId: userId,
@@ -554,6 +556,7 @@ class BillRepository {
       await (_db.update(_db.bills)..where((t) => t.id.equals(billId))).write(
         BillsCompanion(
           customerId: Value(customerId),
+          customerName: const Value(null),
           updatedAt: Value(DateTime.now()),
         ),
       );
@@ -566,6 +569,27 @@ class BillRepository {
     } catch (e, s) {
       AppLogger.error('Failed to update bill customer', error: e, stackTrace: s);
       return Failure('Failed to update bill customer: $e');
+    }
+  }
+
+  Future<Result<BillModel>> updateCustomerName(String billId, String? name) async {
+    try {
+      await (_db.update(_db.bills)..where((t) => t.id.equals(billId))).write(
+        BillsCompanion(
+          customerName: Value(name),
+          customerId: const Value(null),
+          updatedAt: Value(DateTime.now()),
+        ),
+      );
+      final entity = await (_db.select(_db.bills)
+            ..where((t) => t.id.equals(billId)))
+          .getSingle();
+      final bill = billFromEntity(entity);
+      await _enqueueBill('update', bill);
+      return Success(bill);
+    } catch (e, s) {
+      AppLogger.error('Failed to update bill customer name', error: e, stackTrace: s);
+      return Failure('Failed to update bill customer name: $e');
     }
   }
 

@@ -3987,6 +3987,18 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'--- Další objednávka ---'**
   String get sellSeparatorLabel;
+
+  /// No description provided for @customerEnterName.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zadat jméno'**
+  String get customerEnterName;
+
+  /// No description provided for @customerNameHint.
+  ///
+  /// In cs, this message translates to:
+  /// **'Jméno hosta'**
+  String get customerNameHint;
 }
 
 class _AppLocalizationsDelegate

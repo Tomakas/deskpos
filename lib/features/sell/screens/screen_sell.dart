@@ -70,12 +70,19 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
   Future<void> _loadCustomerName() async {
     if (widget.billId == null) return;
     final billResult = await ref.read(billRepositoryProvider).getById(widget.billId!);
-    if (billResult is Success<BillModel> && billResult.value.customerId != null) {
-      final customer = await ref.read(customerRepositoryProvider).getById(billResult.value.customerId!);
-      if (customer != null && mounted) {
+    if (billResult is Success<BillModel>) {
+      final bill = billResult.value;
+      if (bill.customerId != null) {
+        final customer = await ref.read(customerRepositoryProvider).getById(bill.customerId!);
+        if (customer != null && mounted) {
+          setState(() {
+            _customerId = customer.id;
+            _customerName = '${customer.firstName} ${customer.lastName}';
+          });
+        }
+      } else if (bill.customerName != null && mounted) {
         setState(() {
-          _customerId = customer.id;
-          _customerName = '${customer.firstName} ${customer.lastName}';
+          _customerName = bill.customerName;
         });
       }
     }
@@ -607,6 +614,17 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
           _customerName = '${result.firstName} ${result.lastName}';
         });
       }
+    } else if (result is String) {
+      // Free-text customer name
+      if (widget.billId != null) {
+        await ref.read(billRepositoryProvider).updateCustomerName(widget.billId!, result);
+      }
+      if (mounted) {
+        setState(() {
+          _customerId = null;
+          _customerName = result;
+        });
+      }
     } else {
       // _RemoveCustomer sentinel
       if (widget.billId != null) {
@@ -818,7 +836,9 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
       currencyId: company.defaultCurrencyId,
       sectionId: defaultSection?.id,
       customerId: _customerId,
+      customerName: _customerId == null ? _customerName : null,
       isTakeaway: true,
+      numberOfGuests: 1,
     );
     if (billResult is! Success<BillModel>) return;
     final bill = billResult.value;
@@ -887,6 +907,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
         currencyId: company.defaultCurrencyId,
         sectionId: defaultSection?.id,
         customerId: _customerId,
+        customerName: _customerId == null ? _customerName : null,
         isTakeaway: false,
       );
       if (billResult is! Success<BillModel>) return;

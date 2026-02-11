@@ -16,7 +16,7 @@ class DialogNewBill extends ConsumerStatefulWidget {
     super.key,
     this.title,
     this.initialTableId,
-    this.initialNumberOfGuests = 0,
+    this.initialNumberOfGuests = 1,
   });
 
   final String? title;
@@ -32,6 +32,7 @@ class _DialogNewBillState extends ConsumerState<DialogNewBill> {
   String? _selectedTableId;
   int _guestCount = 0;
   CustomerModel? _selectedCustomer;
+  String? _customerName;
 
   @override
   void initState() {
@@ -107,7 +108,6 @@ class _DialogNewBillState extends ConsumerState<DialogNewBill> {
                             child: DropdownButton<String>(
                               value: _selectedSectionId,
                               isExpanded: true,
-                              isDense: true,
                               items: sections.map((s) => DropdownMenuItem(
                                 value: s.id,
                                 child: Text(s.name),
@@ -135,7 +135,6 @@ class _DialogNewBillState extends ConsumerState<DialogNewBill> {
                             child: DropdownButton<String?>(
                               value: _selectedTableId,
                               isExpanded: true,
-                              isDense: true,
                               items: [
                                 DropdownMenuItem<String?>(
                                   value: null,
@@ -208,7 +207,7 @@ class _DialogNewBillState extends ConsumerState<DialogNewBill> {
                                 controller: TextEditingController(
                                   text: _selectedCustomer != null
                                       ? '${_selectedCustomer!.firstName} ${_selectedCustomer!.lastName}'
-                                      : '',
+                                      : _customerName ?? '',
                                 ),
                                 decoration: const InputDecoration(
                                   isDense: true,
@@ -225,13 +224,24 @@ class _DialogNewBillState extends ConsumerState<DialogNewBill> {
                                   final result = await showCustomerSearchDialogRaw(
                                     context,
                                     ref,
-                                    showRemoveButton: _selectedCustomer != null,
+                                    showRemoveButton: _selectedCustomer != null || _customerName != null,
                                   );
                                   if (result is CustomerModel) {
-                                    setState(() => _selectedCustomer = result);
+                                    setState(() {
+                                      _selectedCustomer = result;
+                                      _customerName = null;
+                                    });
+                                  } else if (result is String) {
+                                    setState(() {
+                                      _customerName = result;
+                                      _selectedCustomer = null;
+                                    });
                                   } else if (result != null && result is! CustomerModel) {
                                     // _RemoveCustomer sentinel
-                                    setState(() => _selectedCustomer = null);
+                                    setState(() {
+                                      _selectedCustomer = null;
+                                      _customerName = null;
+                                    });
                                   }
                                 },
                                 icon: const Icon(Icons.search, size: 20),
@@ -259,6 +269,7 @@ class _DialogNewBillState extends ConsumerState<DialogNewBill> {
                                 tableId: _selectedTableId,
                                 numberOfGuests: _guestCount,
                                 customerId: _selectedCustomer?.id,
+                                customerName: _selectedCustomer != null ? null : _customerName,
                                 navigateToSell: false,
                               ));
                             },
@@ -275,6 +286,7 @@ class _DialogNewBillState extends ConsumerState<DialogNewBill> {
                                   tableId: _selectedTableId,
                                   numberOfGuests: _guestCount,
                                   customerId: _selectedCustomer?.id,
+                                  customerName: _selectedCustomer != null ? null : _customerName,
                                   navigateToSell: true,
                                 ));
                               },
@@ -317,13 +329,15 @@ class NewBillResult {
     this.sectionId,
     this.tableId,
     this.customerId,
-    this.numberOfGuests = 0,
+    this.customerName,
+    this.numberOfGuests = 1,
     this.navigateToSell = false,
   });
 
   final String? sectionId;
   final String? tableId;
   final String? customerId;
+  final String? customerName;
   final int numberOfGuests;
   final bool navigateToSell;
 }

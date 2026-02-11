@@ -2015,4 +2015,10 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get sellSeparatorLabel => '--- Další objednávka ---';
+
+  @override
+  String get customerEnterName => 'Zadat jméno';
+
+  @override
+  String get customerNameHint => 'Jméno hosta';
 }

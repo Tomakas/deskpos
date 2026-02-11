@@ -64,13 +64,16 @@ class _DialogCustomerSearch extends ConsumerStatefulWidget {
 
 class _DialogCustomerSearchState extends ConsumerState<_DialogCustomerSearch> {
   final _searchCtrl = TextEditingController();
+  final _nameCtrl = TextEditingController();
   Timer? _debounce;
   String _query = '';
+  bool _enteringName = false;
 
   @override
   void dispose() {
     _debounce?.cancel();
     _searchCtrl.dispose();
+    _nameCtrl.dispose();
     super.dispose();
   }
 
@@ -95,42 +98,79 @@ class _DialogCustomerSearchState extends ConsumerState<_DialogCustomerSearch> {
       maxHeight: 500,
       padding: const EdgeInsets.all(16),
       children: [
-        TextField(
-          controller: _searchCtrl,
-          autofocus: true,
-          decoration: InputDecoration(
-            prefixIcon: const Icon(Icons.search),
-            hintText: l.customerSearch,
-            isDense: true,
+        if (_enteringName) ...[
+          TextField(
+            controller: _nameCtrl,
+            autofocus: true,
+            decoration: InputDecoration(
+              hintText: l.customerNameHint,
+              isDense: true,
+            ),
+            onSubmitted: (value) {
+              final name = value.trim();
+              if (name.isNotEmpty) {
+                Navigator.pop(context, name);
+              }
+            },
           ),
-          onChanged: _onSearchChanged,
-        ),
-        const SizedBox(height: 8),
-        Expanded(
-          child: _query.isEmpty
-              ? StreamBuilder<List<CustomerModel>>(
-                  stream: repo.watchAll(company.id),
-                  builder: (context, snap) =>
-                      _buildList(context, snap.data ?? []),
-                )
-              : StreamBuilder<List<CustomerModel>>(
-                  stream: repo.search(company.id, _query),
-                  builder: (context, snap) =>
-                      _buildList(context, snap.data ?? []),
-                ),
-        ),
-        if (widget.showRemoveButton) ...[
+          const SizedBox(height: 12),
+          FilledButton(
+            onPressed: () {
+              final name = _nameCtrl.text.trim();
+              if (name.isNotEmpty) {
+                Navigator.pop(context, name);
+              }
+            },
+            child: Text(l.actionConfirm),
+          ),
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: () => setState(() => _enteringName = false),
+            child: Text(l.actionCancel),
+          ),
+        ] else ...[
+          TextField(
+            controller: _searchCtrl,
+            autofocus: true,
+            decoration: InputDecoration(
+              prefixIcon: const Icon(Icons.search),
+              hintText: l.customerSearch,
+              isDense: true,
+            ),
+            onChanged: _onSearchChanged,
+          ),
+          const SizedBox(height: 8),
+          Expanded(
+            child: _query.isEmpty
+                ? StreamBuilder<List<CustomerModel>>(
+                    stream: repo.watchAll(company.id),
+                    builder: (context, snap) =>
+                        _buildList(context, snap.data ?? []),
+                  )
+                : StreamBuilder<List<CustomerModel>>(
+                    stream: repo.search(company.id, _query),
+                    builder: (context, snap) =>
+                        _buildList(context, snap.data ?? []),
+                  ),
+          ),
           const SizedBox(height: 8),
           OutlinedButton(
-            onPressed: () => Navigator.pop(context, const _RemoveCustomer()),
-            child: Text(l.customerRemove),
+            onPressed: () => setState(() => _enteringName = true),
+            child: Text(l.customerEnterName),
+          ),
+          if (widget.showRemoveButton) ...[
+            const SizedBox(height: 8),
+            OutlinedButton(
+              onPressed: () => Navigator.pop(context, const _RemoveCustomer()),
+              child: Text(l.customerRemove),
+            ),
+          ],
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l.actionCancel),
           ),
         ],
-        const SizedBox(height: 8),
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text(l.actionCancel),
-        ),
       ],
     );
   }

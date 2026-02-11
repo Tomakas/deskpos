@@ -121,6 +121,17 @@ class $BillsTable extends Bills with TableInfo<$BillsTable, Bill> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _customerNameMeta = const VerificationMeta(
+    'customerName',
+  );
+  @override
+  late final GeneratedColumn<String> customerName = GeneratedColumn<String>(
+    'customer_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _sectionIdMeta = const VerificationMeta(
     'sectionId',
   );
@@ -406,6 +417,7 @@ class $BillsTable extends Bills with TableInfo<$BillsTable, Bill> {
     id,
     companyId,
     customerId,
+    customerName,
     sectionId,
     tableId,
     openedByUserId,
@@ -511,6 +523,15 @@ class $BillsTable extends Bills with TableInfo<$BillsTable, Bill> {
       context.handle(
         _customerIdMeta,
         customerId.isAcceptableOrUnknown(data['customer_id']!, _customerIdMeta),
+      );
+    }
+    if (data.containsKey('customer_name')) {
+      context.handle(
+        _customerNameMeta,
+        customerName.isAcceptableOrUnknown(
+          data['customer_name']!,
+          _customerNameMeta,
+        ),
       );
     }
     if (data.containsKey('section_id')) {
@@ -729,6 +750,10 @@ class $BillsTable extends Bills with TableInfo<$BillsTable, Bill> {
         DriftSqlType.string,
         data['${effectivePrefix}customer_id'],
       ),
+      customerName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}customer_name'],
+      ),
       sectionId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}section_id'],
@@ -860,6 +885,7 @@ class Bill extends DataClass implements Insertable<Bill> {
   final String id;
   final String companyId;
   final String? customerId;
+  final String? customerName;
   final String? sectionId;
   final String? tableId;
   final String openedByUserId;
@@ -895,6 +921,7 @@ class Bill extends DataClass implements Insertable<Bill> {
     required this.id,
     required this.companyId,
     this.customerId,
+    this.customerName,
     this.sectionId,
     this.tableId,
     required this.openedByUserId,
@@ -942,6 +969,9 @@ class Bill extends DataClass implements Insertable<Bill> {
     map['company_id'] = Variable<String>(companyId);
     if (!nullToAbsent || customerId != null) {
       map['customer_id'] = Variable<String>(customerId);
+    }
+    if (!nullToAbsent || customerName != null) {
+      map['customer_name'] = Variable<String>(customerName);
     }
     if (!nullToAbsent || sectionId != null) {
       map['section_id'] = Variable<String>(sectionId);
@@ -1012,6 +1042,9 @@ class Bill extends DataClass implements Insertable<Bill> {
       customerId: customerId == null && nullToAbsent
           ? const Value.absent()
           : Value(customerId),
+      customerName: customerName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(customerName),
       sectionId: sectionId == null && nullToAbsent
           ? const Value.absent()
           : Value(sectionId),
@@ -1069,6 +1102,7 @@ class Bill extends DataClass implements Insertable<Bill> {
       id: serializer.fromJson<String>(json['id']),
       companyId: serializer.fromJson<String>(json['companyId']),
       customerId: serializer.fromJson<String?>(json['customerId']),
+      customerName: serializer.fromJson<String?>(json['customerName']),
       sectionId: serializer.fromJson<String?>(json['sectionId']),
       tableId: serializer.fromJson<String?>(json['tableId']),
       openedByUserId: serializer.fromJson<String>(json['openedByUserId']),
@@ -1117,6 +1151,7 @@ class Bill extends DataClass implements Insertable<Bill> {
       'id': serializer.toJson<String>(id),
       'companyId': serializer.toJson<String>(companyId),
       'customerId': serializer.toJson<String?>(customerId),
+      'customerName': serializer.toJson<String?>(customerName),
       'sectionId': serializer.toJson<String?>(sectionId),
       'tableId': serializer.toJson<String?>(tableId),
       'openedByUserId': serializer.toJson<String>(openedByUserId),
@@ -1159,6 +1194,7 @@ class Bill extends DataClass implements Insertable<Bill> {
     String? id,
     String? companyId,
     Value<String?> customerId = const Value.absent(),
+    Value<String?> customerName = const Value.absent(),
     Value<String?> sectionId = const Value.absent(),
     Value<String?> tableId = const Value.absent(),
     String? openedByUserId,
@@ -1198,6 +1234,7 @@ class Bill extends DataClass implements Insertable<Bill> {
     id: id ?? this.id,
     companyId: companyId ?? this.companyId,
     customerId: customerId.present ? customerId.value : this.customerId,
+    customerName: customerName.present ? customerName.value : this.customerName,
     sectionId: sectionId.present ? sectionId.value : this.sectionId,
     tableId: tableId.present ? tableId.value : this.tableId,
     openedByUserId: openedByUserId ?? this.openedByUserId,
@@ -1243,6 +1280,9 @@ class Bill extends DataClass implements Insertable<Bill> {
       customerId: data.customerId.present
           ? data.customerId.value
           : this.customerId,
+      customerName: data.customerName.present
+          ? data.customerName.value
+          : this.customerName,
       sectionId: data.sectionId.present ? data.sectionId.value : this.sectionId,
       tableId: data.tableId.present ? data.tableId.value : this.tableId,
       openedByUserId: data.openedByUserId.present
@@ -1313,6 +1353,7 @@ class Bill extends DataClass implements Insertable<Bill> {
           ..write('id: $id, ')
           ..write('companyId: $companyId, ')
           ..write('customerId: $customerId, ')
+          ..write('customerName: $customerName, ')
           ..write('sectionId: $sectionId, ')
           ..write('tableId: $tableId, ')
           ..write('openedByUserId: $openedByUserId, ')
@@ -1353,6 +1394,7 @@ class Bill extends DataClass implements Insertable<Bill> {
     id,
     companyId,
     customerId,
+    customerName,
     sectionId,
     tableId,
     openedByUserId,
@@ -1392,6 +1434,7 @@ class Bill extends DataClass implements Insertable<Bill> {
           other.id == this.id &&
           other.companyId == this.companyId &&
           other.customerId == this.customerId &&
+          other.customerName == this.customerName &&
           other.sectionId == this.sectionId &&
           other.tableId == this.tableId &&
           other.openedByUserId == this.openedByUserId &&
@@ -1429,6 +1472,7 @@ class BillsCompanion extends UpdateCompanion<Bill> {
   final Value<String> id;
   final Value<String> companyId;
   final Value<String?> customerId;
+  final Value<String?> customerName;
   final Value<String?> sectionId;
   final Value<String?> tableId;
   final Value<String> openedByUserId;
@@ -1465,6 +1509,7 @@ class BillsCompanion extends UpdateCompanion<Bill> {
     this.id = const Value.absent(),
     this.companyId = const Value.absent(),
     this.customerId = const Value.absent(),
+    this.customerName = const Value.absent(),
     this.sectionId = const Value.absent(),
     this.tableId = const Value.absent(),
     this.openedByUserId = const Value.absent(),
@@ -1502,6 +1547,7 @@ class BillsCompanion extends UpdateCompanion<Bill> {
     required String id,
     required String companyId,
     this.customerId = const Value.absent(),
+    this.customerName = const Value.absent(),
     this.sectionId = const Value.absent(),
     this.tableId = const Value.absent(),
     required String openedByUserId,
@@ -1545,6 +1591,7 @@ class BillsCompanion extends UpdateCompanion<Bill> {
     Expression<String>? id,
     Expression<String>? companyId,
     Expression<String>? customerId,
+    Expression<String>? customerName,
     Expression<String>? sectionId,
     Expression<String>? tableId,
     Expression<String>? openedByUserId,
@@ -1582,6 +1629,7 @@ class BillsCompanion extends UpdateCompanion<Bill> {
       if (id != null) 'id': id,
       if (companyId != null) 'company_id': companyId,
       if (customerId != null) 'customer_id': customerId,
+      if (customerName != null) 'customer_name': customerName,
       if (sectionId != null) 'section_id': sectionId,
       if (tableId != null) 'table_id': tableId,
       if (openedByUserId != null) 'opened_by_user_id': openedByUserId,
@@ -1623,6 +1671,7 @@ class BillsCompanion extends UpdateCompanion<Bill> {
     Value<String>? id,
     Value<String>? companyId,
     Value<String?>? customerId,
+    Value<String?>? customerName,
     Value<String?>? sectionId,
     Value<String?>? tableId,
     Value<String>? openedByUserId,
@@ -1660,6 +1709,7 @@ class BillsCompanion extends UpdateCompanion<Bill> {
       id: id ?? this.id,
       companyId: companyId ?? this.companyId,
       customerId: customerId ?? this.customerId,
+      customerName: customerName ?? this.customerName,
       sectionId: sectionId ?? this.sectionId,
       tableId: tableId ?? this.tableId,
       openedByUserId: openedByUserId ?? this.openedByUserId,
@@ -1722,6 +1772,9 @@ class BillsCompanion extends UpdateCompanion<Bill> {
     }
     if (customerId.present) {
       map['customer_id'] = Variable<String>(customerId.value);
+    }
+    if (customerName.present) {
+      map['customer_name'] = Variable<String>(customerName.value);
     }
     if (sectionId.present) {
       map['section_id'] = Variable<String>(sectionId.value);
@@ -1822,6 +1875,7 @@ class BillsCompanion extends UpdateCompanion<Bill> {
           ..write('id: $id, ')
           ..write('companyId: $companyId, ')
           ..write('customerId: $customerId, ')
+          ..write('customerName: $customerName, ')
           ..write('sectionId: $sectionId, ')
           ..write('tableId: $tableId, ')
           ..write('openedByUserId: $openedByUserId, ')
@@ -34715,6 +34769,7 @@ typedef $$BillsTableCreateCompanionBuilder =
       required String id,
       required String companyId,
       Value<String?> customerId,
+      Value<String?> customerName,
       Value<String?> sectionId,
       Value<String?> tableId,
       required String openedByUserId,
@@ -34753,6 +34808,7 @@ typedef $$BillsTableUpdateCompanionBuilder =
       Value<String> id,
       Value<String> companyId,
       Value<String?> customerId,
+      Value<String?> customerName,
       Value<String?> sectionId,
       Value<String?> tableId,
       Value<String> openedByUserId,
@@ -34835,6 +34891,11 @@ class $$BillsTableFilterComposer extends Composer<_$AppDatabase, $BillsTable> {
 
   ColumnFilters<String> get customerId => $composableBuilder(
     column: $table.customerId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get customerName => $composableBuilder(
+    column: $table.customerName,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -35020,6 +35081,11 @@ class $$BillsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get customerName => $composableBuilder(
+    column: $table.customerName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get sectionId => $composableBuilder(
     column: $table.sectionId,
     builder: (column) => ColumnOrderings(column),
@@ -35188,6 +35254,11 @@ class $$BillsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get customerName => $composableBuilder(
+    column: $table.customerName,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get sectionId =>
       $composableBuilder(column: $table.sectionId, builder: (column) => column);
 
@@ -35330,6 +35401,7 @@ class $$BillsTableTableManager
                 Value<String> id = const Value.absent(),
                 Value<String> companyId = const Value.absent(),
                 Value<String?> customerId = const Value.absent(),
+                Value<String?> customerName = const Value.absent(),
                 Value<String?> sectionId = const Value.absent(),
                 Value<String?> tableId = const Value.absent(),
                 Value<String> openedByUserId = const Value.absent(),
@@ -35366,6 +35438,7 @@ class $$BillsTableTableManager
                 id: id,
                 companyId: companyId,
                 customerId: customerId,
+                customerName: customerName,
                 sectionId: sectionId,
                 tableId: tableId,
                 openedByUserId: openedByUserId,
@@ -35404,6 +35477,7 @@ class $$BillsTableTableManager
                 required String id,
                 required String companyId,
                 Value<String?> customerId = const Value.absent(),
+                Value<String?> customerName = const Value.absent(),
                 Value<String?> sectionId = const Value.absent(),
                 Value<String?> tableId = const Value.absent(),
                 required String openedByUserId,
@@ -35440,6 +35514,7 @@ class $$BillsTableTableManager
                 id: id,
                 companyId: companyId,
                 customerId: customerId,
+                customerName: customerName,
                 sectionId: sectionId,
                 tableId: tableId,
                 openedByUserId: openedByUserId,
