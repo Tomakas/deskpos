@@ -10,6 +10,7 @@ import '../data/repositories/payment_repository.dart';
 import '../data/repositories/table_repository.dart';
 import '../data/repositories/user_repository.dart';
 import '../data/result.dart';
+import '../logging/app_logger.dart';
 import '../../features/bills/models/z_report_data.dart';
 import 'pdf_font_loader.dart';
 import 'receipt_data.dart';
@@ -38,12 +39,18 @@ class PrintingService {
   Future<ReceiptData?> buildReceiptData(String billId) async {
     // 1. Get bill
     final billResult = await billRepo.getById(billId);
-    if (billResult is! Success) return null;
+    if (billResult is! Success) {
+      AppLogger.error('buildReceiptData: bill not found for $billId');
+      return null;
+    }
     final bill = (billResult as Success).value;
 
     // 2. Get company
     final companyResult = await companyRepo.getById(bill.companyId);
-    if (companyResult is! Success) return null;
+    if (companyResult is! Success) {
+      AppLogger.error('buildReceiptData: company not found for ${bill.companyId}');
+      return null;
+    }
     final company = (companyResult as Success).value;
 
     // 3. Get order items (only active ones)
