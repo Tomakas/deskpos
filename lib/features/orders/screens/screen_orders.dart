@@ -85,14 +85,27 @@ class _ScreenOrdersState extends ConsumerState<ScreenOrders> {
                   );
                 }
 
-                return ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  itemCount: orders.length,
-                  itemBuilder: (context, index) {
-                    return _OrderCard(
-                      order: orders[index],
-                      onStatusChange: (status) => _changeStatus(orders[index], status),
-                      onVoidItem: (item) => _voidItem(orders[index], item),
+                return LayoutBuilder(
+                  builder: (context, constraints) {
+                    final crossAxisCount = constraints.maxWidth > 900 ? 3 : 2;
+                    final cardWidth = (constraints.maxWidth - 32 - (crossAxisCount - 1) * 8) / crossAxisCount;
+                    return SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          for (final order in orders)
+                            SizedBox(
+                              width: cardWidth,
+                              child: _OrderCard(
+                                order: order,
+                                onStatusChange: (status) => _changeStatus(order, status),
+                                onVoidItem: (item) => _voidItem(order, item),
+                              ),
+                            ),
+                        ],
+                      ),
                     );
                   },
                 );
@@ -188,7 +201,6 @@ class _OrderCard extends ConsumerWidget {
     final isStorno = order.isStorno;
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 8),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
         side: isStorno
@@ -200,10 +212,9 @@ class _OrderCard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header row
+            // Header row 1: status dot + order number + storno ref ... time
             Row(
               children: [
-                // Status dot
                 Container(
                   width: 10,
                   height: 10,
@@ -213,7 +224,6 @@ class _OrderCard extends ConsumerWidget {
                     color: _statusColor(order.status),
                   ),
                 ),
-                // Order number
                 if (isStorno)
                   Text(
                     '${l.ordersStornoPrefix} ',
@@ -229,25 +239,28 @@ class _OrderCard extends ConsumerWidget {
                     color: isStorno ? Colors.red : null,
                   ),
                 ),
-                // Storno reference
                 if (isStorno && order.stornoSourceOrderId != null) ...[
                   const SizedBox(width: 8),
-                  _StornoRef(
-                    billId: order.billId,
-                    sourceOrderId: order.stornoSourceOrderId!,
+                  Flexible(
+                    child: _StornoRef(
+                      billId: order.billId,
+                      sourceOrderId: order.stornoSourceOrderId!,
+                    ),
                   ),
                 ],
                 const Spacer(),
-                // Table name
-                _TableName(billId: order.billId),
-                const SizedBox(width: 12),
-                // Time
                 Text(
                   timeFormat.format(order.createdAt),
                   style: theme.textTheme.bodySmall,
                 ),
-                const SizedBox(width: 8),
-                // Status label
+              ],
+            ),
+            const SizedBox(height: 4),
+            // Header row 2: table name ... status label
+            Row(
+              children: [
+                _TableName(billId: order.billId),
+                const Spacer(),
                 Text(
                   _statusLabel(order.status, l),
                   style: theme.textTheme.bodySmall?.copyWith(

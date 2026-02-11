@@ -263,7 +263,23 @@ Přehledy a reporty pro majitele a manažery.
 - **Task4.7** PDF export — generování PDF reportů
 - **Task4.8** Excel export — tabulkový export dat
 - **Task4.9** Účetní export — formát pro účetní software
-- **Výsledek:** Reporty a data lze exportovat do PDF, Excelu a formátu pro účetní software.
+- **Task4.10** CSV export — univerzální CSV export tabulek (produkty, zákazníci, účty, objednávky)
+- **Task4.11** Fiskalizace — export dat ve formátu pro finanční správu (připravenost na budoucí legislativu)
+- **Task4.12** API/webhook — REST API nebo webhook pro napojení na externí systémy (účetní SW, BI, e-shop)
+- **Výsledek:** Reporty a data lze exportovat do PDF, Excelu, CSV a formátu pro účetní software. Připravena infrastruktura pro fiskalizaci a napojení externích systémů.
+
+#### Milník 4.4 — Import
+
+- **Task4.13** CSV import produktů — hromadný import položek z CSV (název, SKU, cena, kategorie, DPH sazba). Validace, náhled před importem, deduplikace dle SKU.
+- **Task4.14** CSV import zákazníků — hromadný import zákazníků z CSV (jméno, email, telefon, IČO, DIČ).
+- **Task4.15** Migrace z jiného POS — import dat z konkurenčních POS systémů (Storyous, Dotykačka, iKelp apod.). Mapování kategorií, produktů, zákazníků.
+- **Výsledek:** Lze hromadně naimportovat produkty a zákazníky z CSV, případně migrovat data z jiného POS systému.
+
+#### Milník 4.5 — Zálohy
+
+- **Task4.16** Lokální záloha DB — export celé lokální SQLite databáze (šifrované) do souboru pro přenos na jiné zařízení nebo disaster recovery.
+- **Task4.17** Obnova ze zálohy — import zálohy zpět do aplikace s validací integrity a verzí schématu.
+- **Výsledek:** Uživatel může zálohovat a obnovit celou lokální databázi pro přenos dat nebo disaster recovery.
 
 ---
 
@@ -1996,7 +2012,7 @@ Funkce, které nejsou součástí aktuálního plánu. Mohou se přidat kdykoli 
 > **Pozn.:** Varianty produktů (`parent_id` ve items, item_type: variant), hierarchické kategorie (`parent_id` v categories) a alternativní SKU (`alt_sku`) jsou implementovány v Etapě 3.4.
 
 - Barcode scanner integrace
-- Hromadný import produktů (CSV)
+- ~~Hromadný import produktů (CSV)~~ → přesunuto do Milníku 4.4 (Task4.13)
 
 ### Pokladna a směny
 
