@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../core/data/enums/item_type.dart';
 import '../../../core/data/models/item_model.dart';
 import '../../../core/data/models/product_recipe_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
@@ -123,8 +124,9 @@ class RecipesTab extends ConsumerWidget {
                   decoration: InputDecoration(labelText: l.fieldParentProduct),
                   items: [
                     const DropdownMenuItem(value: null, child: Text('-')),
-                    ...items.map(
-                        (i) => DropdownMenuItem(value: i.id, child: Text(i.name))),
+                    ...items
+                        .where((i) => i.itemType == ItemType.recipe)
+                        .map((i) => DropdownMenuItem(value: i.id, child: Text(i.name))),
                   ],
                   onChanged: (v) => setDialogState(() => parentProductId = v),
                 ),
