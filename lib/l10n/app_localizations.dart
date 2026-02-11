@@ -2823,6 +2823,30 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Oprava'**
   String get documentTypeCorrection;
+
+  /// No description provided for @recipeComponents.
+  ///
+  /// In cs, this message translates to:
+  /// **'Složky'**
+  String get recipeComponents;
+
+  /// No description provided for @recipeComponentCount.
+  ///
+  /// In cs, this message translates to:
+  /// **'{count} složek'**
+  String recipeComponentCount(int count);
+
+  /// No description provided for @recipeAddComponent.
+  ///
+  /// In cs, this message translates to:
+  /// **'Přidat složku'**
+  String get recipeAddComponent;
+
+  /// No description provided for @recipeNoComponents.
+  ///
+  /// In cs, this message translates to:
+  /// **'Žádné složky. Přidejte alespoň jednu.'**
+  String get recipeNoComponents;
 }
 
 class _AppLocalizationsDelegate

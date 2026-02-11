@@ -568,5 +568,15 @@
   "documentTypeReceipt": "Příjemka",
   "documentTypeWaste": "Výdejka",
   "documentTypeInventory": "Inventura",
-  "documentTypeCorrection": "Oprava"
+  "documentTypeCorrection": "Oprava",
+
+  "recipeComponents": "Složky",
+  "recipeComponentCount": "{count} složek",
+  "@recipeComponentCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "recipeAddComponent": "Přidat složku",
+  "recipeNoComponents": "Žádné složky. Přidejte alespoň jednu."
 }

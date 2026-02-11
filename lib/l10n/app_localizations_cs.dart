@@ -1408,4 +1408,18 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get documentTypeCorrection => 'Oprava';
+
+  @override
+  String get recipeComponents => 'Složky';
+
+  @override
+  String recipeComponentCount(int count) {
+    return '$count složek';
+  }
+
+  @override
+  String get recipeAddComponent => 'Přidat složku';
+
+  @override
+  String get recipeNoComponents => 'Žádné složky. Přidejte alespoň jednu.';
 }
