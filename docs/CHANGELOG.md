@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-02-11 — Dekorativní prvky mapy + resize handles
+
+### Features
+- **MapElement entita**: Nová tabulka `map_elements` (Drift + Supabase) pro dekorativní prvky mapy — stěny, bary, zóny, popisky
+- **Editor — selection model**: Single tap = výběr se 4 rohovými resize handles (s resize kurzory), double tap = edit dialog
+- **Editor — resize**: Drag za rohový handle mění velikost prvku/stolu (grid snap, live preview, minimum 1×1)
+- **Editor — dekorativní prvky**: Dialog přidání s přepínačem Stůl/Prvek, paleta 8 barev + žádná, volitelný popisek
+- **Runtime rendering**: Neinteraktivní vrstvení — barevné prvky pod stoly, textové popisky nad stoly
+
+### New Files
+- `lib/core/database/tables/map_elements.dart` — Drift table definition
+- `lib/core/data/models/map_element_model.dart` — Freezed model
+- `lib/core/data/repositories/map_element_repository.dart` — repository
+
+### L10n
+- +8 nových klíčů v `app_cs.arb` pro prvky mapy
+
+### Documentation
+- PROJECT.md: Aktualizována sekce FloorMapEditorTab, přidán `map_elements` do schématu a Drift tabulek, aktualizována Gastro rozšíření
+
 ## 2026-02-11 — Milník 3.7: Rezervace
 
 ### Features

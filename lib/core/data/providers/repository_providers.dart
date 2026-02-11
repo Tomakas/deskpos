@@ -9,6 +9,7 @@ import '../repositories/company_repository.dart';
 import '../repositories/company_settings_repository.dart';
 import '../repositories/item_repository.dart';
 import '../repositories/layout_item_repository.dart';
+import '../repositories/map_element_repository.dart';
 import '../repositories/manufacturer_repository.dart';
 import '../repositories/order_repository.dart';
 import '../repositories/payment_method_repository.dart';
@@ -28,6 +29,7 @@ import '../repositories/supplier_repository.dart';
 import '../repositories/sync_metadata_repository.dart';
 import '../repositories/sync_queue_repository.dart';
 import '../repositories/table_repository.dart';
+import '../repositories/voucher_repository.dart';
 import '../repositories/tax_rate_repository.dart';
 import '../repositories/user_repository.dart';
 import '../repositories/warehouse_repository.dart';
@@ -86,6 +88,13 @@ final sectionRepositoryProvider = Provider<SectionRepository>((ref) {
 
 final tableRepositoryProvider = Provider<TableRepository>((ref) {
   return TableRepository(
+    ref.watch(appDatabaseProvider),
+    syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
+  );
+});
+
+final mapElementRepositoryProvider = Provider<MapElementRepository>((ref) {
+  return MapElementRepository(
     ref.watch(appDatabaseProvider),
     syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
   );
@@ -236,6 +245,13 @@ final stockLevelRepositoryProvider = Provider<StockLevelRepository>((ref) {
 
 final stockMovementRepositoryProvider = Provider<StockMovementRepository>((ref) {
   return StockMovementRepository(
+    ref.watch(appDatabaseProvider),
+    syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
+  );
+});
+
+final voucherRepositoryProvider = Provider<VoucherRepository>((ref) {
+  return VoucherRepository(
     ref.watch(appDatabaseProvider),
     syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
   );

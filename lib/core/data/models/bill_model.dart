@@ -28,6 +28,8 @@ class BillModel with _$BillModel {
     @Default(0) int paidAmount,
     @Default(0) int loyaltyPointsUsed,
     @Default(0) int loyaltyDiscountAmount,
+    @Default(0) int voucherDiscountAmount,
+    String? voucherId,
     required DateTime openedAt,
     DateTime? closedAt,
     int? mapPosX,

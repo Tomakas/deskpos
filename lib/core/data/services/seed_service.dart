@@ -251,18 +251,18 @@ class SeedService {
 
         // 9. Tables — Hlavní & Zahrádka placed on floor map, Interní off-map
         final tables = [
-          // Hlavní section — larger tables (2×2) spread across top area
-          TableModel(id: _id(), companyId: companyId, name: 'Stůl 1', sectionId: hlavniId, capacity: 4, gridRow: 1, gridCol: 2, gridWidth: 2, gridHeight: 2, createdAt: now, updatedAt: now),
-          TableModel(id: _id(), companyId: companyId, name: 'Stůl 2', sectionId: hlavniId, capacity: 4, gridRow: 1, gridCol: 5, gridWidth: 2, gridHeight: 2, createdAt: now, updatedAt: now),
-          TableModel(id: _id(), companyId: companyId, name: 'Stůl 3', sectionId: hlavniId, capacity: 4, gridRow: 1, gridCol: 9, gridWidth: 2, gridHeight: 2, createdAt: now, updatedAt: now),
-          TableModel(id: _id(), companyId: companyId, name: 'Stůl 4', sectionId: hlavniId, capacity: 4, gridRow: 4, gridCol: 3, gridWidth: 2, gridHeight: 2, createdAt: now, updatedAt: now),
-          TableModel(id: _id(), companyId: companyId, name: 'Stůl 5', sectionId: hlavniId, capacity: 4, gridRow: 4, gridCol: 7, gridWidth: 2, gridHeight: 2, createdAt: now, updatedAt: now),
-          // Zahrádka section — smaller tables (1×1) in the bottom area
-          TableModel(id: _id(), companyId: companyId, name: 'Stolek 1', sectionId: zahradkaId, capacity: 2, gridRow: 7, gridCol: 1, createdAt: now, updatedAt: now),
-          TableModel(id: _id(), companyId: companyId, name: 'Stolek 2', sectionId: zahradkaId, capacity: 2, gridRow: 7, gridCol: 4, createdAt: now, updatedAt: now),
-          TableModel(id: _id(), companyId: companyId, name: 'Stolek 3', sectionId: zahradkaId, capacity: 2, gridRow: 7, gridCol: 7, createdAt: now, updatedAt: now),
-          TableModel(id: _id(), companyId: companyId, name: 'Stolek 4', sectionId: zahradkaId, capacity: 2, gridRow: 7, gridCol: 10, createdAt: now, updatedAt: now),
-          TableModel(id: _id(), companyId: companyId, name: 'Stolek 5', sectionId: zahradkaId, capacity: 2, gridRow: 7, gridCol: 13, createdAt: now, updatedAt: now),
+          // Hlavní section — larger tables (4×4) spread across top area
+          TableModel(id: _id(), companyId: companyId, name: 'Stůl 1', sectionId: hlavniId, capacity: 4, gridRow: 2, gridCol: 4, gridWidth: 4, gridHeight: 4, createdAt: now, updatedAt: now),
+          TableModel(id: _id(), companyId: companyId, name: 'Stůl 2', sectionId: hlavniId, capacity: 4, gridRow: 2, gridCol: 10, gridWidth: 4, gridHeight: 4, createdAt: now, updatedAt: now),
+          TableModel(id: _id(), companyId: companyId, name: 'Stůl 3', sectionId: hlavniId, capacity: 4, gridRow: 2, gridCol: 18, gridWidth: 4, gridHeight: 4, createdAt: now, updatedAt: now),
+          TableModel(id: _id(), companyId: companyId, name: 'Stůl 4', sectionId: hlavniId, capacity: 4, gridRow: 8, gridCol: 6, gridWidth: 4, gridHeight: 4, createdAt: now, updatedAt: now),
+          TableModel(id: _id(), companyId: companyId, name: 'Stůl 5', sectionId: hlavniId, capacity: 4, gridRow: 8, gridCol: 14, gridWidth: 4, gridHeight: 4, createdAt: now, updatedAt: now),
+          // Zahrádka section — smaller tables (2×2) in the bottom area
+          TableModel(id: _id(), companyId: companyId, name: 'Stolek 1', sectionId: zahradkaId, capacity: 2, gridRow: 14, gridCol: 2, gridWidth: 2, gridHeight: 2, createdAt: now, updatedAt: now),
+          TableModel(id: _id(), companyId: companyId, name: 'Stolek 2', sectionId: zahradkaId, capacity: 2, gridRow: 14, gridCol: 8, gridWidth: 2, gridHeight: 2, createdAt: now, updatedAt: now),
+          TableModel(id: _id(), companyId: companyId, name: 'Stolek 3', sectionId: zahradkaId, capacity: 2, gridRow: 14, gridCol: 14, gridWidth: 2, gridHeight: 2, createdAt: now, updatedAt: now),
+          TableModel(id: _id(), companyId: companyId, name: 'Stolek 4', sectionId: zahradkaId, capacity: 2, gridRow: 14, gridCol: 20, gridWidth: 2, gridHeight: 2, createdAt: now, updatedAt: now),
+          TableModel(id: _id(), companyId: companyId, name: 'Stolek 5', sectionId: zahradkaId, capacity: 2, gridRow: 14, gridCol: 26, gridWidth: 2, gridHeight: 2, createdAt: now, updatedAt: now),
           // Interní section — off-map (gridRow: -1)
           TableModel(id: _id(), companyId: companyId, name: 'Majitel', sectionId: interniId, capacity: 0, gridRow: -1, gridCol: -1, createdAt: now, updatedAt: now),
           TableModel(id: _id(), companyId: companyId, name: 'Repre', sectionId: interniId, capacity: 0, gridRow: -1, gridCol: -1, createdAt: now, updatedAt: now),

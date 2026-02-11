@@ -1222,6 +1222,24 @@ abstract class AppLocalizations {
   /// **'Poslední objednávka: {date}'**
   String billDetailLastOrderAt(String date);
 
+  /// No description provided for @billDetailNoOrderYet.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zatím žádná objednávka'**
+  String get billDetailNoOrderYet;
+
+  /// No description provided for @billDetailCustomerName.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zákazník: {name}'**
+  String billDetailCustomerName(String name);
+
+  /// No description provided for @billDetailNoCustomer.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zákazník nepřiřazen'**
+  String get billDetailNoCustomer;
+
   /// No description provided for @itemTypeProduct.
   ///
   /// In cs, this message translates to:
@@ -3543,6 +3561,264 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Prázdné'**
   String get floorMapEmptySlot;
+
+  /// No description provided for @floorMapShapeRectangle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Obdélník'**
+  String get floorMapShapeRectangle;
+
+  /// No description provided for @floorMapShapeRound.
+  ///
+  /// In cs, this message translates to:
+  /// **'Ovál'**
+  String get floorMapShapeRound;
+
+  /// No description provided for @floorMapSegmentTable.
+  ///
+  /// In cs, this message translates to:
+  /// **'Stůl'**
+  String get floorMapSegmentTable;
+
+  /// No description provided for @floorMapSegmentElement.
+  ///
+  /// In cs, this message translates to:
+  /// **'Prvek'**
+  String get floorMapSegmentElement;
+
+  /// No description provided for @floorMapAddElement.
+  ///
+  /// In cs, this message translates to:
+  /// **'Přidat prvek na mapu'**
+  String get floorMapAddElement;
+
+  /// No description provided for @floorMapEditElement.
+  ///
+  /// In cs, this message translates to:
+  /// **'Upravit prvek'**
+  String get floorMapEditElement;
+
+  /// No description provided for @floorMapRemoveElement.
+  ///
+  /// In cs, this message translates to:
+  /// **'Odebrat z mapy'**
+  String get floorMapRemoveElement;
+
+  /// No description provided for @floorMapElementLabel.
+  ///
+  /// In cs, this message translates to:
+  /// **'Popisek'**
+  String get floorMapElementLabel;
+
+  /// No description provided for @floorMapElementColor.
+  ///
+  /// In cs, this message translates to:
+  /// **'Barva'**
+  String get floorMapElementColor;
+
+  /// No description provided for @floorMapColorNone.
+  ///
+  /// In cs, this message translates to:
+  /// **'Žádná'**
+  String get floorMapColorNone;
+
+  /// No description provided for @vouchersTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vouchery'**
+  String get vouchersTitle;
+
+  /// No description provided for @voucherCreate.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vytvořit voucher'**
+  String get voucherCreate;
+
+  /// No description provided for @voucherTypeGift.
+  ///
+  /// In cs, this message translates to:
+  /// **'Dárkový'**
+  String get voucherTypeGift;
+
+  /// No description provided for @voucherTypeDeposit.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zálohový'**
+  String get voucherTypeDeposit;
+
+  /// No description provided for @voucherTypeDiscount.
+  ///
+  /// In cs, this message translates to:
+  /// **'Slevový'**
+  String get voucherTypeDiscount;
+
+  /// No description provided for @voucherStatusActive.
+  ///
+  /// In cs, this message translates to:
+  /// **'Aktivní'**
+  String get voucherStatusActive;
+
+  /// No description provided for @voucherStatusRedeemed.
+  ///
+  /// In cs, this message translates to:
+  /// **'Uplatněný'**
+  String get voucherStatusRedeemed;
+
+  /// No description provided for @voucherStatusExpired.
+  ///
+  /// In cs, this message translates to:
+  /// **'Expirovaný'**
+  String get voucherStatusExpired;
+
+  /// No description provided for @voucherStatusCancelled.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zrušený'**
+  String get voucherStatusCancelled;
+
+  /// No description provided for @voucherCode.
+  ///
+  /// In cs, this message translates to:
+  /// **'Kód'**
+  String get voucherCode;
+
+  /// No description provided for @voucherValue.
+  ///
+  /// In cs, this message translates to:
+  /// **'Hodnota'**
+  String get voucherValue;
+
+  /// No description provided for @voucherDiscount.
+  ///
+  /// In cs, this message translates to:
+  /// **'Sleva'**
+  String get voucherDiscount;
+
+  /// No description provided for @voucherExpires.
+  ///
+  /// In cs, this message translates to:
+  /// **'Platnost do'**
+  String get voucherExpires;
+
+  /// No description provided for @voucherCustomer.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zákazník'**
+  String get voucherCustomer;
+
+  /// No description provided for @voucherNote.
+  ///
+  /// In cs, this message translates to:
+  /// **'Poznámka'**
+  String get voucherNote;
+
+  /// No description provided for @voucherScopeBill.
+  ///
+  /// In cs, this message translates to:
+  /// **'Celý účet'**
+  String get voucherScopeBill;
+
+  /// No description provided for @voucherScopeProduct.
+  ///
+  /// In cs, this message translates to:
+  /// **'Produkt'**
+  String get voucherScopeProduct;
+
+  /// No description provided for @voucherScopeCategory.
+  ///
+  /// In cs, this message translates to:
+  /// **'Kategorie'**
+  String get voucherScopeCategory;
+
+  /// No description provided for @voucherMaxUses.
+  ///
+  /// In cs, this message translates to:
+  /// **'Max. použití'**
+  String get voucherMaxUses;
+
+  /// No description provided for @voucherUsedCount.
+  ///
+  /// In cs, this message translates to:
+  /// **'Použito'**
+  String get voucherUsedCount;
+
+  /// No description provided for @voucherMinOrderValue.
+  ///
+  /// In cs, this message translates to:
+  /// **'Min. hodnota účtu'**
+  String get voucherMinOrderValue;
+
+  /// No description provided for @voucherSell.
+  ///
+  /// In cs, this message translates to:
+  /// **'Prodat'**
+  String get voucherSell;
+
+  /// No description provided for @voucherCancel.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zrušit voucher'**
+  String get voucherCancel;
+
+  /// No description provided for @voucherRedeem.
+  ///
+  /// In cs, this message translates to:
+  /// **'Uplatnit'**
+  String get voucherRedeem;
+
+  /// No description provided for @voucherEnterCode.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zadejte kód voucheru'**
+  String get voucherEnterCode;
+
+  /// No description provided for @voucherInvalid.
+  ///
+  /// In cs, this message translates to:
+  /// **'Neplatný kód voucheru'**
+  String get voucherInvalid;
+
+  /// No description provided for @voucherExpiredError.
+  ///
+  /// In cs, this message translates to:
+  /// **'Voucher expiroval'**
+  String get voucherExpiredError;
+
+  /// No description provided for @voucherAlreadyUsed.
+  ///
+  /// In cs, this message translates to:
+  /// **'Voucher byl již uplatněn'**
+  String get voucherAlreadyUsed;
+
+  /// No description provided for @voucherMinOrderNotMet.
+  ///
+  /// In cs, this message translates to:
+  /// **'Minimální hodnota účtu nesplněna'**
+  String get voucherMinOrderNotMet;
+
+  /// No description provided for @voucherCustomerMismatch.
+  ///
+  /// In cs, this message translates to:
+  /// **'Voucher je vázán na jiného zákazníka'**
+  String get voucherCustomerMismatch;
+
+  /// No description provided for @voucherDepositReturn.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vrácení přeplatku zálohy'**
+  String get voucherDepositReturn;
+
+  /// No description provided for @voucherFilterAll.
+  ///
+  /// In cs, this message translates to:
+  /// **'Všechny'**
+  String get voucherFilterAll;
+
+  /// No description provided for @billDetailVoucher.
+  ///
+  /// In cs, this message translates to:
+  /// **'Voucher'**
+  String get billDetailVoucher;
 }
 
 class _AppLocalizationsDelegate

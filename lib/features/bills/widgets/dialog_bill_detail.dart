@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../../../core/data/enums/bill_status.dart';
 import '../../../core/data/enums/discount_type.dart';
 import '../../../core/data/enums/prep_status.dart';
+import '../../../core/data/enums/voucher_type.dart';
 import '../../../core/data/models/bill_model.dart';
 import '../../../core/data/models/customer_model.dart';
 import '../../../core/data/models/order_item_model.dart';
@@ -23,6 +24,7 @@ import 'dialog_new_bill.dart';
 import 'dialog_payment.dart';
 import 'dialog_receipt_preview.dart' show showReceiptPrintDialog;
 import 'dialog_split_bill.dart';
+import 'dialog_voucher_redeem.dart';
 
 class DialogBillDetail extends ConsumerStatefulWidget {
   const DialogBillDetail({super.key, required this.billId});
@@ -104,7 +106,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
               ],
             ),
           ),
-          // Dates
+          // Dates & customer
           Expanded(
             flex: 3,
             child: Column(
@@ -119,7 +121,14 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
                   stream: ref.watch(orderRepositoryProvider).watchByBill(bill.id),
                   builder: (context, snap) {
                     final orders = snap.data ?? [];
-                    if (orders.isEmpty) return const SizedBox.shrink();
+                    if (orders.isEmpty) {
+                      return Text(
+                        l.billDetailNoOrderYet,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      );
+                    }
                     final lastOrder = orders.reduce((a, b) => a.createdAt.isAfter(b.createdAt) ? a : b);
                     return Text(
                       l.billDetailLastOrderAt(dateFormat.format(lastOrder.createdAt)),
@@ -127,6 +136,26 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
                     );
                   },
                 ),
+                const SizedBox(height: 2),
+                if (bill.customerId != null)
+                  FutureBuilder<CustomerModel?>(
+                    future: ref.watch(customerRepositoryProvider).getById(bill.customerId!),
+                    builder: (context, snap) {
+                      final customer = snap.data;
+                      if (customer == null) return const SizedBox.shrink();
+                      return Text(
+                        l.billDetailCustomerName('${customer.firstName} ${customer.lastName}'),
+                        style: Theme.of(context).textTheme.bodySmall,
+                      );
+                    },
+                  )
+                else
+                  Text(
+                    l.billDetailNoCustomer,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
               ],
             ),
           ),
@@ -416,6 +445,11 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
                   ? () => _redeemLoyalty(context, ref, bill)
                   : null,
             ),
+            const SizedBox(height: 4),
+            _SideButton(
+              label: l.billDetailVoucher,
+              onPressed: isOpened ? () => _applyVoucher(context, ref, bill) : null,
+            ),
             const Spacer(),
             _SideButton(
               label: l.billDetailPrint,
@@ -580,6 +614,67 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
         pointValueHalere: settings.loyaltyPointValueHalere,
       ),
     );
+  }
+
+  Future<void> _applyVoucher(BuildContext context, WidgetRef ref, BillModel bill) async {
+    final code = await showDialog<String>(
+      context: context,
+      builder: (_) => const DialogVoucherRedeem(),
+    );
+    if (code == null || !context.mounted) return;
+
+    final company = ref.read(currentCompanyProvider);
+    if (company == null) return;
+
+    final voucherRepo = ref.read(voucherRepositoryProvider);
+    final result = await voucherRepo.validateForBill(code, company.id, bill);
+    if (result is Failure) {
+      // Validation failed — show error text in a simple dialog
+      if (!context.mounted) return;
+      final l = context.l10n;
+      final errorKey = (result as Failure).message;
+      final errorMsg = switch (errorKey) {
+        'voucherInvalid' => l.voucherInvalid,
+        'voucherExpiredError' => l.voucherExpiredError,
+        'voucherAlreadyUsed' => l.voucherAlreadyUsed,
+        'voucherMinOrderNotMet' => l.voucherMinOrderNotMet,
+        'voucherCustomerMismatch' => l.voucherCustomerMismatch,
+        _ => errorKey,
+      };
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          content: Text(errorMsg),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK')),
+          ],
+        ),
+      );
+      return;
+    }
+
+    final voucher = (result as Success).value;
+    // Calculate discount amount based on voucher type
+    int discountAmount;
+    if (voucher.type == VoucherType.gift || voucher.type == VoucherType.deposit) {
+      // Cap at bill total
+      discountAmount = voucher.value.clamp(0, bill.totalGross);
+    } else {
+      // Discount voucher
+      if (voucher.discountType == DiscountType.percent) {
+        discountAmount = (bill.subtotalGross * voucher.value / 10000).round();
+      } else {
+        discountAmount = voucher.value.clamp(0, bill.subtotalGross);
+      }
+    }
+
+    final billRepo = ref.read(billRepositoryProvider);
+    await billRepo.applyVoucher(
+      billId: bill.id,
+      voucherId: voucher.id,
+      voucherDiscountAmount: discountAmount,
+    );
+    await voucherRepo.redeem(voucher.id, bill.id);
   }
 
   Future<void> _selectCustomer(BuildContext context, WidgetRef ref, BillModel bill) async {

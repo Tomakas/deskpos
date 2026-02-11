@@ -596,6 +596,17 @@ class AppLocalizationsCs extends AppLocalizations {
   }
 
   @override
+  String get billDetailNoOrderYet => 'Zatím žádná objednávka';
+
+  @override
+  String billDetailCustomerName(String name) {
+    return 'Zákazník: $name';
+  }
+
+  @override
+  String get billDetailNoCustomer => 'Zákazník nepřiřazen';
+
+  @override
   String get itemTypeProduct => 'Produkt';
 
   @override
@@ -1787,4 +1798,133 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get floorMapEmptySlot => 'Prázdné';
+
+  @override
+  String get floorMapShapeRectangle => 'Obdélník';
+
+  @override
+  String get floorMapShapeRound => 'Ovál';
+
+  @override
+  String get floorMapSegmentTable => 'Stůl';
+
+  @override
+  String get floorMapSegmentElement => 'Prvek';
+
+  @override
+  String get floorMapAddElement => 'Přidat prvek na mapu';
+
+  @override
+  String get floorMapEditElement => 'Upravit prvek';
+
+  @override
+  String get floorMapRemoveElement => 'Odebrat z mapy';
+
+  @override
+  String get floorMapElementLabel => 'Popisek';
+
+  @override
+  String get floorMapElementColor => 'Barva';
+
+  @override
+  String get floorMapColorNone => 'Žádná';
+
+  @override
+  String get vouchersTitle => 'Vouchery';
+
+  @override
+  String get voucherCreate => 'Vytvořit voucher';
+
+  @override
+  String get voucherTypeGift => 'Dárkový';
+
+  @override
+  String get voucherTypeDeposit => 'Zálohový';
+
+  @override
+  String get voucherTypeDiscount => 'Slevový';
+
+  @override
+  String get voucherStatusActive => 'Aktivní';
+
+  @override
+  String get voucherStatusRedeemed => 'Uplatněný';
+
+  @override
+  String get voucherStatusExpired => 'Expirovaný';
+
+  @override
+  String get voucherStatusCancelled => 'Zrušený';
+
+  @override
+  String get voucherCode => 'Kód';
+
+  @override
+  String get voucherValue => 'Hodnota';
+
+  @override
+  String get voucherDiscount => 'Sleva';
+
+  @override
+  String get voucherExpires => 'Platnost do';
+
+  @override
+  String get voucherCustomer => 'Zákazník';
+
+  @override
+  String get voucherNote => 'Poznámka';
+
+  @override
+  String get voucherScopeBill => 'Celý účet';
+
+  @override
+  String get voucherScopeProduct => 'Produkt';
+
+  @override
+  String get voucherScopeCategory => 'Kategorie';
+
+  @override
+  String get voucherMaxUses => 'Max. použití';
+
+  @override
+  String get voucherUsedCount => 'Použito';
+
+  @override
+  String get voucherMinOrderValue => 'Min. hodnota účtu';
+
+  @override
+  String get voucherSell => 'Prodat';
+
+  @override
+  String get voucherCancel => 'Zrušit voucher';
+
+  @override
+  String get voucherRedeem => 'Uplatnit';
+
+  @override
+  String get voucherEnterCode => 'Zadejte kód voucheru';
+
+  @override
+  String get voucherInvalid => 'Neplatný kód voucheru';
+
+  @override
+  String get voucherExpiredError => 'Voucher expiroval';
+
+  @override
+  String get voucherAlreadyUsed => 'Voucher byl již uplatněn';
+
+  @override
+  String get voucherMinOrderNotMet => 'Minimální hodnota účtu nesplněna';
+
+  @override
+  String get voucherCustomerMismatch => 'Voucher je vázán na jiného zákazníka';
+
+  @override
+  String get voucherDepositReturn => 'Vrácení přeplatku zálohy';
+
+  @override
+  String get voucherFilterAll => 'Všechny';
+
+  @override
+  String get billDetailVoucher => 'Voucher';
 }

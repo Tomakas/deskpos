@@ -10,6 +10,7 @@ import '../models/company_settings_model.dart';
 import '../models/currency_model.dart';
 import '../models/item_model.dart';
 import '../models/layout_item_model.dart';
+import '../models/map_element_model.dart';
 import '../models/manufacturer_model.dart';
 import '../models/order_item_model.dart';
 import '../models/order_model.dart';
@@ -19,6 +20,7 @@ import '../models/permission_model.dart';
 import '../models/product_recipe_model.dart';
 import '../models/register_model.dart';
 import '../models/reservation_model.dart';
+import '../models/voucher_model.dart';
 import '../models/register_session_model.dart';
 import '../models/role_model.dart';
 import '../models/role_permission_model.dart';
@@ -167,6 +169,24 @@ Map<String, dynamic> productRecipeToSupabaseJson(ProductRecipeModel m) => {
       'quantity_required': m.quantityRequired,
     };
 
+Map<String, dynamic> mapElementToSupabaseJson(MapElementModel m) => {
+      ..._baseSyncFields(
+        id: m.id,
+        companyId: m.companyId,
+        createdAt: m.createdAt,
+        updatedAt: m.updatedAt,
+        deletedAt: m.deletedAt,
+      ),
+      'section_id': m.sectionId,
+      'grid_row': m.gridRow,
+      'grid_col': m.gridCol,
+      'grid_width': m.gridWidth,
+      'grid_height': m.gridHeight,
+      'label': m.label,
+      'color': m.color,
+      'shape': m.shape.name,
+    };
+
 Map<String, dynamic> tableToSupabaseJson(TableModel m) => {
       ..._baseSyncFields(
         id: m.id,
@@ -293,6 +313,8 @@ Map<String, dynamic> billToSupabaseJson(BillModel m) => {
       'paid_amount': m.paidAmount,
       'loyalty_points_used': m.loyaltyPointsUsed,
       'loyalty_discount_amount': m.loyaltyDiscountAmount,
+      'voucher_discount_amount': m.voucherDiscountAmount,
+      'voucher_id': m.voucherId,
       'opened_at': toIso8601Utc(m.openedAt),
       'closed_at': toIso8601Utc(m.closedAt),
       'map_pos_x': m.mapPosX,
@@ -630,4 +652,31 @@ Map<String, dynamic> reservationToSupabaseJson(ReservationModel m) => {
       'table_id': m.tableId,
       'notes': m.notes,
       'status': m.status.name,
+    };
+
+Map<String, dynamic> voucherToSupabaseJson(VoucherModel m) => {
+      ..._baseSyncFields(
+        id: m.id,
+        companyId: m.companyId,
+        createdAt: m.createdAt,
+        updatedAt: m.updatedAt,
+        deletedAt: m.deletedAt,
+      ),
+      'code': m.code,
+      'type': m.type.name,
+      'status': m.status.name,
+      'value': m.value,
+      'discount_type': m.discountType?.name,
+      'discount_scope': m.discountScope?.name,
+      'item_id': m.itemId,
+      'category_id': m.categoryId,
+      'min_order_value': m.minOrderValue,
+      'max_uses': m.maxUses,
+      'used_count': m.usedCount,
+      'customer_id': m.customerId,
+      'expires_at': toIso8601Utc(m.expiresAt),
+      'redeemed_at': toIso8601Utc(m.redeemedAt),
+      'redeemed_on_bill_id': m.redeemedOnBillId,
+      'source_bill_id': m.sourceBillId,
+      'note': m.note,
     };

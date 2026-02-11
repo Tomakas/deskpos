@@ -199,7 +199,7 @@ class BillRepository {
       }
 
       final subtotalNet = subtotalGross - taxTotal;
-      final totalGross = subtotalGross - billDiscount - billEntity.loyaltyDiscountAmount + billEntity.roundingAmount;
+      final totalGross = subtotalGross - billDiscount - billEntity.loyaltyDiscountAmount - billEntity.voucherDiscountAmount + billEntity.roundingAmount;
 
       await (_db.update(_db.bills)..where((t) => t.id.equals(billId))).write(
         BillsCompanion(
@@ -433,12 +433,19 @@ class BillRepository {
     }
   }
 
-  Future<Result<BillModel>> updateMapPosition(String billId, int? posX, int? posY) async {
+  Future<Result<BillModel>> updateMapPosition(
+    String billId,
+    int? posX,
+    int? posY, {
+    String? tableId,
+    bool updateTable = false,
+  }) async {
     try {
       await (_db.update(_db.bills)..where((t) => t.id.equals(billId))).write(
         BillsCompanion(
           mapPosX: Value(posX),
           mapPosY: Value(posY),
+          tableId: updateTable ? Value(tableId) : const Value.absent(),
           updatedAt: Value(DateTime.now()),
         ),
       );
@@ -471,6 +478,42 @@ class BillRepository {
     } catch (e, s) {
       AppLogger.error('Failed to update bill discount', error: e, stackTrace: s);
       return Failure('Failed to update bill discount: $e');
+    }
+  }
+
+  Future<Result<BillModel>> applyVoucher({
+    required String billId,
+    required String voucherId,
+    required int voucherDiscountAmount,
+  }) async {
+    try {
+      await (_db.update(_db.bills)..where((t) => t.id.equals(billId))).write(
+        BillsCompanion(
+          voucherDiscountAmount: Value(voucherDiscountAmount),
+          voucherId: Value(voucherId),
+          updatedAt: Value(DateTime.now()),
+        ),
+      );
+      return updateTotals(billId);
+    } catch (e, s) {
+      AppLogger.error('Failed to apply voucher', error: e, stackTrace: s);
+      return Failure('Failed to apply voucher: $e');
+    }
+  }
+
+  Future<Result<BillModel>> removeVoucher(String billId) async {
+    try {
+      await (_db.update(_db.bills)..where((t) => t.id.equals(billId))).write(
+        BillsCompanion(
+          voucherDiscountAmount: const Value(0),
+          voucherId: const Value(null),
+          updatedAt: Value(DateTime.now()),
+        ),
+      );
+      return updateTotals(billId);
+    } catch (e, s) {
+      AppLogger.error('Failed to remove voucher', error: e, stackTrace: s);
+      return Failure('Failed to remove voucher: $e');
     }
   }
 

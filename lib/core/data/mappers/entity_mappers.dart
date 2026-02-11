@@ -1,7 +1,6 @@
 import 'package:drift/drift.dart';
 
 import '../../database/app_database.dart';
-import '../enums/reservation_status.dart';
 import '../models/bill_model.dart';
 import '../models/cash_movement_model.dart';
 import '../models/category_model.dart';
@@ -34,6 +33,8 @@ import '../models/table_model.dart';
 import '../models/tax_rate_model.dart';
 import '../models/user_model.dart';
 import '../models/user_permission_model.dart';
+import '../models/map_element_model.dart';
+import '../models/voucher_model.dart';
 import '../models/warehouse_model.dart';
 
 // --- Company ---
@@ -397,6 +398,8 @@ BillModel billFromEntity(Bill e) => BillModel(
       paidAmount: e.paidAmount,
       loyaltyPointsUsed: e.loyaltyPointsUsed,
       loyaltyDiscountAmount: e.loyaltyDiscountAmount,
+      voucherDiscountAmount: e.voucherDiscountAmount,
+      voucherId: e.voucherId,
       openedAt: e.openedAt,
       closedAt: e.closedAt,
       mapPosX: e.mapPosX,
@@ -569,6 +572,36 @@ TablesCompanion tableToCompanion(TableModel m) => TablesCompanion.insert(
       gridCol: Value(m.gridCol),
       gridWidth: Value(m.gridWidth),
       gridHeight: Value(m.gridHeight),
+      shape: Value(m.shape),
+    );
+
+// --- MapElement ---
+MapElementModel mapElementFromEntity(MapElementEntity e) => MapElementModel(
+      id: e.id,
+      companyId: e.companyId,
+      sectionId: e.sectionId,
+      gridRow: e.gridRow,
+      gridCol: e.gridCol,
+      gridWidth: e.gridWidth,
+      gridHeight: e.gridHeight,
+      label: e.label,
+      color: e.color,
+      shape: e.shape,
+      createdAt: e.createdAt,
+      updatedAt: e.updatedAt,
+      deletedAt: e.deletedAt,
+    );
+
+MapElementsCompanion mapElementToCompanion(MapElementModel m) => MapElementsCompanion.insert(
+      id: m.id,
+      companyId: m.companyId,
+      sectionId: Value(m.sectionId),
+      gridRow: Value(m.gridRow),
+      gridCol: Value(m.gridCol),
+      gridWidth: Value(m.gridWidth),
+      gridHeight: Value(m.gridHeight),
+      label: Value(m.label),
+      color: Value(m.color),
       shape: Value(m.shape),
     );
 
@@ -798,7 +831,7 @@ ReservationModel reservationFromEntity(Reservation e) => ReservationModel(
       partySize: e.partySize,
       tableId: e.tableId,
       notes: e.notes,
-      status: ReservationStatus.values.byName(e.status),
+      status: e.status,
       createdAt: e.createdAt,
       updatedAt: e.updatedAt,
       deletedAt: e.deletedAt,
@@ -815,5 +848,53 @@ ReservationsCompanion reservationToCompanion(ReservationModel m) =>
       partySize: Value(m.partySize),
       tableId: Value(m.tableId),
       notes: Value(m.notes),
-      status: m.status.name,
+      status: m.status,
+    );
+
+// --- Voucher ---
+VoucherModel voucherFromEntity(Voucher e) => VoucherModel(
+      id: e.id,
+      companyId: e.companyId,
+      code: e.code,
+      type: e.type,
+      status: e.status,
+      value: e.value,
+      discountType: e.discountType,
+      discountScope: e.discountScope,
+      itemId: e.itemId,
+      categoryId: e.categoryId,
+      minOrderValue: e.minOrderValue,
+      maxUses: e.maxUses,
+      usedCount: e.usedCount,
+      customerId: e.customerId,
+      expiresAt: e.expiresAt,
+      redeemedAt: e.redeemedAt,
+      redeemedOnBillId: e.redeemedOnBillId,
+      sourceBillId: e.sourceBillId,
+      note: e.note,
+      createdAt: e.createdAt,
+      updatedAt: e.updatedAt,
+      deletedAt: e.deletedAt,
+    );
+
+VouchersCompanion voucherToCompanion(VoucherModel m) => VouchersCompanion.insert(
+      id: m.id,
+      companyId: m.companyId,
+      code: m.code,
+      type: m.type,
+      status: m.status,
+      value: m.value,
+      discountType: Value(m.discountType),
+      discountScope: Value(m.discountScope),
+      itemId: Value(m.itemId),
+      categoryId: Value(m.categoryId),
+      minOrderValue: Value(m.minOrderValue),
+      maxUses: Value(m.maxUses),
+      usedCount: Value(m.usedCount),
+      customerId: Value(m.customerId),
+      expiresAt: Value(m.expiresAt),
+      redeemedAt: Value(m.redeemedAt),
+      redeemedOnBillId: Value(m.redeemedOnBillId),
+      sourceBillId: Value(m.sourceBillId),
+      note: Value(m.note),
     );

@@ -15,3 +15,6 @@ export 'stock_movement_direction.dart';
 export 'table_shape.dart';
 export 'tax_calc_type.dart';
 export 'unit_type.dart';
+export 'voucher_discount_scope.dart';
+export 'voucher_status.dart';
+export 'voucher_type.dart';

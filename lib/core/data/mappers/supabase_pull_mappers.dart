@@ -2,7 +2,6 @@
 import 'package:drift/drift.dart';
 
 import '../../database/app_database.dart';
-import '../enums/discount_type.dart';
 import '../enums/enums.dart';
 
 DateTime? _parseDateTime(dynamic v) {
@@ -195,6 +194,28 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
         lastSyncedAt: Value(now),
       );
 
+    case 'map_elements':
+      return MapElementsCompanion(
+        id: Value(json['id'] as String),
+        companyId: Value(json['company_id'] as String),
+        sectionId: Value(json['section_id'] as String?),
+        gridRow: Value(json['grid_row'] as int? ?? 0),
+        gridCol: Value(json['grid_col'] as int? ?? 0),
+        gridWidth: Value(json['grid_width'] as int? ?? 2),
+        gridHeight: Value(json['grid_height'] as int? ?? 2),
+        label: Value(json['label'] as String?),
+        color: Value(json['color'] as String?),
+        shape: Value(json['shape'] != null
+            ? _enumFromName(TableShape.values, json['shape'])
+            : TableShape.rectangle),
+        createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
+        updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
+        deletedAt: Value(_parseDateTime(json['deleted_at'])),
+        serverCreatedAt: Value(_parseDateTime(json['created_at'])),
+        serverUpdatedAt: Value(_parseDateTime(json['updated_at'])),
+        lastSyncedAt: Value(now),
+      );
+
     case 'payment_methods':
       return PaymentMethodsCompanion(
         id: Value(json['id'] as String),
@@ -271,6 +292,8 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
         paidAmount: Value(json['paid_amount'] as int? ?? 0),
         loyaltyPointsUsed: Value(json['loyalty_points_used'] as int? ?? 0),
         loyaltyDiscountAmount: Value(json['loyalty_discount_amount'] as int? ?? 0),
+        voucherDiscountAmount: Value(json['voucher_discount_amount'] as int? ?? 0),
+        voucherId: Value(json['voucher_id'] as String?),
         openedAt: Value(_requireDateTime(json['opened_at'])),
         closedAt: Value(_parseDateTime(json['closed_at'])),
         mapPosX: Value(json['map_pos_x'] as int?),
@@ -635,7 +658,40 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
         partySize: Value(json['party_size'] as int? ?? 2),
         tableId: Value(json['table_id'] as String?),
         notes: Value(json['notes'] as String?),
-        status: Value(_enumFromName(ReservationStatus.values, json['status']).name),
+        status: Value(_enumFromName(ReservationStatus.values, json['status'])),
+        createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
+        updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
+        deletedAt: Value(_parseDateTime(json['deleted_at'])),
+        serverCreatedAt: Value(_parseDateTime(json['created_at'])),
+        serverUpdatedAt: Value(_parseDateTime(json['updated_at'])),
+        lastSyncedAt: Value(now),
+      );
+
+    case 'vouchers':
+      return VouchersCompanion(
+        id: Value(json['id'] as String),
+        companyId: Value(json['company_id'] as String),
+        code: Value(json['code'] as String),
+        type: Value(_enumFromName(VoucherType.values, json['type'])),
+        status: Value(_enumFromName(VoucherStatus.values, json['status'])),
+        value: Value(json['value'] as int),
+        discountType: Value(json['discount_type'] != null
+            ? _enumFromName(DiscountType.values, json['discount_type'])
+            : null),
+        discountScope: Value(json['discount_scope'] != null
+            ? _enumFromName(VoucherDiscountScope.values, json['discount_scope'])
+            : null),
+        itemId: Value(json['item_id'] as String?),
+        categoryId: Value(json['category_id'] as String?),
+        minOrderValue: Value(json['min_order_value'] as int?),
+        maxUses: Value(json['max_uses'] as int? ?? 1),
+        usedCount: Value(json['used_count'] as int? ?? 0),
+        customerId: Value(json['customer_id'] as String?),
+        expiresAt: Value(_parseDateTime(json['expires_at'])),
+        redeemedAt: Value(_parseDateTime(json['redeemed_at'])),
+        redeemedOnBillId: Value(json['redeemed_on_bill_id'] as String?),
+        sourceBillId: Value(json['source_bill_id'] as String?),
+        note: Value(json['note'] as String?),
         createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
         updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
         deletedAt: Value(_parseDateTime(json['deleted_at'])),

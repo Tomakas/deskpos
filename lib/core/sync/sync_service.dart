@@ -52,6 +52,7 @@ class SyncService {
     'users',
     'user_permissions',
     'tables',
+    'map_elements',
     'suppliers',
     'manufacturers',
     'items',
@@ -69,6 +70,7 @@ class SyncService {
     'cash_movements',
     'shifts',
     'customer_transactions',
+    'vouchers',
     'stock_levels',
     'stock_documents',
     'stock_movements',
@@ -240,6 +242,8 @@ class SyncService {
         return _db.productRecipes;
       case 'tables':
         return _db.tables;
+      case 'map_elements':
+        return _db.mapElements;
       case 'payment_methods':
         return _db.paymentMethods;
       case 'tax_rates':
@@ -268,6 +272,8 @@ class SyncService {
         return _db.shifts;
       case 'warehouses':
         return _db.warehouses;
+      case 'vouchers':
+        return _db.vouchers;
       case 'stock_levels':
         return _db.stockLevels;
       case 'stock_documents':

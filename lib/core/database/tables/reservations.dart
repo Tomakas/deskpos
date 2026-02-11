@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 
+import '../../data/enums/reservation_status.dart';
 import 'sync_columns_mixin.dart';
 
 @TableIndex(name: 'idx_reservations_company_updated', columns: {#companyId, #updatedAt})
@@ -13,7 +14,7 @@ class Reservations extends Table with SyncColumnsMixin {
   IntColumn get partySize => integer().withDefault(const Constant(2))();
   TextColumn get tableId => text().nullable()();
   TextColumn get notes => text().nullable()();
-  TextColumn get status => text()();
+  TextColumn get status => textEnum<ReservationStatus>()();
 
   @override
   Set<Column> get primaryKey => {id};

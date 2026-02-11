@@ -16,6 +16,7 @@ import 'tables/company_settings.dart';
 import 'tables/currencies.dart';
 import 'tables/items.dart';
 import 'tables/layout_items.dart';
+import 'tables/map_elements.dart';
 import 'tables/manufacturers.dart';
 import 'tables/order_items.dart';
 import 'tables/orders.dart';
@@ -35,6 +36,7 @@ import 'tables/stock_movements.dart';
 import 'tables/suppliers.dart';
 import 'tables/sync_metadata.dart';
 import 'tables/reservations.dart';
+import 'tables/vouchers.dart';
 import 'tables/warehouses.dart';
 import 'tables/sync_queue.dart';
 import 'tables/table_entities.dart';
@@ -55,6 +57,7 @@ part 'app_database.g.dart';
   Currencies,
   Items,
   LayoutItems,
+  MapElements,
   Manufacturers,
   OrderItems,
   Orders,
@@ -79,6 +82,7 @@ part 'app_database.g.dart';
   TaxRates,
   UserPermissions,
   Users,
+  Vouchers,
   Warehouses,
 ])
 class AppDatabase extends _$AppDatabase {

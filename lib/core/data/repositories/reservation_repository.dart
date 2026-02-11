@@ -48,7 +48,7 @@ class ReservationRepository
         partySize: Value(m.partySize),
         tableId: Value(m.tableId),
         notes: Value(m.notes),
-        status: Value(m.status.name),
+        status: Value(m.status),
         updatedAt: Value(DateTime.now()),
       );
 

@@ -317,6 +317,28 @@ class $BillsTable extends Bills with TableInfo<$BillsTable, Bill> {
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
+  static const VerificationMeta _voucherDiscountAmountMeta =
+      const VerificationMeta('voucherDiscountAmount');
+  @override
+  late final GeneratedColumn<int> voucherDiscountAmount = GeneratedColumn<int>(
+    'voucher_discount_amount',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _voucherIdMeta = const VerificationMeta(
+    'voucherId',
+  );
+  @override
+  late final GeneratedColumn<String> voucherId = GeneratedColumn<String>(
+    'voucher_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _openedAtMeta = const VerificationMeta(
     'openedAt',
   );
@@ -390,6 +412,8 @@ class $BillsTable extends Bills with TableInfo<$BillsTable, Bill> {
     paidAmount,
     loyaltyPointsUsed,
     loyaltyDiscountAmount,
+    voucherDiscountAmount,
+    voucherId,
     openedAt,
     closedAt,
     mapPosX,
@@ -597,6 +621,21 @@ class $BillsTable extends Bills with TableInfo<$BillsTable, Bill> {
         ),
       );
     }
+    if (data.containsKey('voucher_discount_amount')) {
+      context.handle(
+        _voucherDiscountAmountMeta,
+        voucherDiscountAmount.isAcceptableOrUnknown(
+          data['voucher_discount_amount']!,
+          _voucherDiscountAmountMeta,
+        ),
+      );
+    }
+    if (data.containsKey('voucher_id')) {
+      context.handle(
+        _voucherIdMeta,
+        voucherId.isAcceptableOrUnknown(data['voucher_id']!, _voucherIdMeta),
+      );
+    }
     if (data.containsKey('opened_at')) {
       context.handle(
         _openedAtMeta,
@@ -744,6 +783,14 @@ class $BillsTable extends Bills with TableInfo<$BillsTable, Bill> {
         DriftSqlType.int,
         data['${effectivePrefix}loyalty_discount_amount'],
       )!,
+      voucherDiscountAmount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}voucher_discount_amount'],
+      )!,
+      voucherId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}voucher_id'],
+      ),
       openedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}opened_at'],
@@ -808,6 +855,8 @@ class Bill extends DataClass implements Insertable<Bill> {
   final int paidAmount;
   final int loyaltyPointsUsed;
   final int loyaltyDiscountAmount;
+  final int voucherDiscountAmount;
+  final String? voucherId;
   final DateTime openedAt;
   final DateTime? closedAt;
   final int? mapPosX;
@@ -840,6 +889,8 @@ class Bill extends DataClass implements Insertable<Bill> {
     required this.paidAmount,
     required this.loyaltyPointsUsed,
     required this.loyaltyDiscountAmount,
+    required this.voucherDiscountAmount,
+    this.voucherId,
     required this.openedAt,
     this.closedAt,
     this.mapPosX,
@@ -895,6 +946,10 @@ class Bill extends DataClass implements Insertable<Bill> {
     map['paid_amount'] = Variable<int>(paidAmount);
     map['loyalty_points_used'] = Variable<int>(loyaltyPointsUsed);
     map['loyalty_discount_amount'] = Variable<int>(loyaltyDiscountAmount);
+    map['voucher_discount_amount'] = Variable<int>(voucherDiscountAmount);
+    if (!nullToAbsent || voucherId != null) {
+      map['voucher_id'] = Variable<String>(voucherId);
+    }
     map['opened_at'] = Variable<DateTime>(openedAt);
     if (!nullToAbsent || closedAt != null) {
       map['closed_at'] = Variable<DateTime>(closedAt);
@@ -951,6 +1006,10 @@ class Bill extends DataClass implements Insertable<Bill> {
       paidAmount: Value(paidAmount),
       loyaltyPointsUsed: Value(loyaltyPointsUsed),
       loyaltyDiscountAmount: Value(loyaltyDiscountAmount),
+      voucherDiscountAmount: Value(voucherDiscountAmount),
+      voucherId: voucherId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(voucherId),
       openedAt: Value(openedAt),
       closedAt: closedAt == null && nullToAbsent
           ? const Value.absent()
@@ -1003,6 +1062,10 @@ class Bill extends DataClass implements Insertable<Bill> {
       loyaltyDiscountAmount: serializer.fromJson<int>(
         json['loyaltyDiscountAmount'],
       ),
+      voucherDiscountAmount: serializer.fromJson<int>(
+        json['voucherDiscountAmount'],
+      ),
+      voucherId: serializer.fromJson<String?>(json['voucherId']),
       openedAt: serializer.fromJson<DateTime>(json['openedAt']),
       closedAt: serializer.fromJson<DateTime?>(json['closedAt']),
       mapPosX: serializer.fromJson<int?>(json['mapPosX']),
@@ -1044,6 +1107,8 @@ class Bill extends DataClass implements Insertable<Bill> {
       'paidAmount': serializer.toJson<int>(paidAmount),
       'loyaltyPointsUsed': serializer.toJson<int>(loyaltyPointsUsed),
       'loyaltyDiscountAmount': serializer.toJson<int>(loyaltyDiscountAmount),
+      'voucherDiscountAmount': serializer.toJson<int>(voucherDiscountAmount),
+      'voucherId': serializer.toJson<String?>(voucherId),
       'openedAt': serializer.toJson<DateTime>(openedAt),
       'closedAt': serializer.toJson<DateTime?>(closedAt),
       'mapPosX': serializer.toJson<int?>(mapPosX),
@@ -1079,6 +1144,8 @@ class Bill extends DataClass implements Insertable<Bill> {
     int? paidAmount,
     int? loyaltyPointsUsed,
     int? loyaltyDiscountAmount,
+    int? voucherDiscountAmount,
+    Value<String?> voucherId = const Value.absent(),
     DateTime? openedAt,
     Value<DateTime?> closedAt = const Value.absent(),
     Value<int?> mapPosX = const Value.absent(),
@@ -1115,6 +1182,8 @@ class Bill extends DataClass implements Insertable<Bill> {
     paidAmount: paidAmount ?? this.paidAmount,
     loyaltyPointsUsed: loyaltyPointsUsed ?? this.loyaltyPointsUsed,
     loyaltyDiscountAmount: loyaltyDiscountAmount ?? this.loyaltyDiscountAmount,
+    voucherDiscountAmount: voucherDiscountAmount ?? this.voucherDiscountAmount,
+    voucherId: voucherId.present ? voucherId.value : this.voucherId,
     openedAt: openedAt ?? this.openedAt,
     closedAt: closedAt.present ? closedAt.value : this.closedAt,
     mapPosX: mapPosX.present ? mapPosX.value : this.mapPosX,
@@ -1185,6 +1254,10 @@ class Bill extends DataClass implements Insertable<Bill> {
       loyaltyDiscountAmount: data.loyaltyDiscountAmount.present
           ? data.loyaltyDiscountAmount.value
           : this.loyaltyDiscountAmount,
+      voucherDiscountAmount: data.voucherDiscountAmount.present
+          ? data.voucherDiscountAmount.value
+          : this.voucherDiscountAmount,
+      voucherId: data.voucherId.present ? data.voucherId.value : this.voucherId,
       openedAt: data.openedAt.present ? data.openedAt.value : this.openedAt,
       closedAt: data.closedAt.present ? data.closedAt.value : this.closedAt,
       mapPosX: data.mapPosX.present ? data.mapPosX.value : this.mapPosX,
@@ -1222,6 +1295,8 @@ class Bill extends DataClass implements Insertable<Bill> {
           ..write('paidAmount: $paidAmount, ')
           ..write('loyaltyPointsUsed: $loyaltyPointsUsed, ')
           ..write('loyaltyDiscountAmount: $loyaltyDiscountAmount, ')
+          ..write('voucherDiscountAmount: $voucherDiscountAmount, ')
+          ..write('voucherId: $voucherId, ')
           ..write('openedAt: $openedAt, ')
           ..write('closedAt: $closedAt, ')
           ..write('mapPosX: $mapPosX, ')
@@ -1259,6 +1334,8 @@ class Bill extends DataClass implements Insertable<Bill> {
     paidAmount,
     loyaltyPointsUsed,
     loyaltyDiscountAmount,
+    voucherDiscountAmount,
+    voucherId,
     openedAt,
     closedAt,
     mapPosX,
@@ -1295,6 +1372,8 @@ class Bill extends DataClass implements Insertable<Bill> {
           other.paidAmount == this.paidAmount &&
           other.loyaltyPointsUsed == this.loyaltyPointsUsed &&
           other.loyaltyDiscountAmount == this.loyaltyDiscountAmount &&
+          other.voucherDiscountAmount == this.voucherDiscountAmount &&
+          other.voucherId == this.voucherId &&
           other.openedAt == this.openedAt &&
           other.closedAt == this.closedAt &&
           other.mapPosX == this.mapPosX &&
@@ -1329,6 +1408,8 @@ class BillsCompanion extends UpdateCompanion<Bill> {
   final Value<int> paidAmount;
   final Value<int> loyaltyPointsUsed;
   final Value<int> loyaltyDiscountAmount;
+  final Value<int> voucherDiscountAmount;
+  final Value<String?> voucherId;
   final Value<DateTime> openedAt;
   final Value<DateTime?> closedAt;
   final Value<int?> mapPosX;
@@ -1362,6 +1443,8 @@ class BillsCompanion extends UpdateCompanion<Bill> {
     this.paidAmount = const Value.absent(),
     this.loyaltyPointsUsed = const Value.absent(),
     this.loyaltyDiscountAmount = const Value.absent(),
+    this.voucherDiscountAmount = const Value.absent(),
+    this.voucherId = const Value.absent(),
     this.openedAt = const Value.absent(),
     this.closedAt = const Value.absent(),
     this.mapPosX = const Value.absent(),
@@ -1396,6 +1479,8 @@ class BillsCompanion extends UpdateCompanion<Bill> {
     this.paidAmount = const Value.absent(),
     this.loyaltyPointsUsed = const Value.absent(),
     this.loyaltyDiscountAmount = const Value.absent(),
+    this.voucherDiscountAmount = const Value.absent(),
+    this.voucherId = const Value.absent(),
     required DateTime openedAt,
     this.closedAt = const Value.absent(),
     this.mapPosX = const Value.absent(),
@@ -1436,6 +1521,8 @@ class BillsCompanion extends UpdateCompanion<Bill> {
     Expression<int>? paidAmount,
     Expression<int>? loyaltyPointsUsed,
     Expression<int>? loyaltyDiscountAmount,
+    Expression<int>? voucherDiscountAmount,
+    Expression<String>? voucherId,
     Expression<DateTime>? openedAt,
     Expression<DateTime>? closedAt,
     Expression<int>? mapPosX,
@@ -1471,6 +1558,9 @@ class BillsCompanion extends UpdateCompanion<Bill> {
       if (loyaltyPointsUsed != null) 'loyalty_points_used': loyaltyPointsUsed,
       if (loyaltyDiscountAmount != null)
         'loyalty_discount_amount': loyaltyDiscountAmount,
+      if (voucherDiscountAmount != null)
+        'voucher_discount_amount': voucherDiscountAmount,
+      if (voucherId != null) 'voucher_id': voucherId,
       if (openedAt != null) 'opened_at': openedAt,
       if (closedAt != null) 'closed_at': closedAt,
       if (mapPosX != null) 'map_pos_x': mapPosX,
@@ -1507,6 +1597,8 @@ class BillsCompanion extends UpdateCompanion<Bill> {
     Value<int>? paidAmount,
     Value<int>? loyaltyPointsUsed,
     Value<int>? loyaltyDiscountAmount,
+    Value<int>? voucherDiscountAmount,
+    Value<String?>? voucherId,
     Value<DateTime>? openedAt,
     Value<DateTime?>? closedAt,
     Value<int?>? mapPosX,
@@ -1542,6 +1634,9 @@ class BillsCompanion extends UpdateCompanion<Bill> {
       loyaltyPointsUsed: loyaltyPointsUsed ?? this.loyaltyPointsUsed,
       loyaltyDiscountAmount:
           loyaltyDiscountAmount ?? this.loyaltyDiscountAmount,
+      voucherDiscountAmount:
+          voucherDiscountAmount ?? this.voucherDiscountAmount,
+      voucherId: voucherId ?? this.voucherId,
       openedAt: openedAt ?? this.openedAt,
       closedAt: closedAt ?? this.closedAt,
       mapPosX: mapPosX ?? this.mapPosX,
@@ -1640,6 +1735,14 @@ class BillsCompanion extends UpdateCompanion<Bill> {
         loyaltyDiscountAmount.value,
       );
     }
+    if (voucherDiscountAmount.present) {
+      map['voucher_discount_amount'] = Variable<int>(
+        voucherDiscountAmount.value,
+      );
+    }
+    if (voucherId.present) {
+      map['voucher_id'] = Variable<String>(voucherId.value);
+    }
     if (openedAt.present) {
       map['opened_at'] = Variable<DateTime>(openedAt.value);
     }
@@ -1688,6 +1791,8 @@ class BillsCompanion extends UpdateCompanion<Bill> {
           ..write('paidAmount: $paidAmount, ')
           ..write('loyaltyPointsUsed: $loyaltyPointsUsed, ')
           ..write('loyaltyDiscountAmount: $loyaltyDiscountAmount, ')
+          ..write('voucherDiscountAmount: $voucherDiscountAmount, ')
+          ..write('voucherId: $voucherId, ')
           ..write('openedAt: $openedAt, ')
           ..write('closedAt: $closedAt, ')
           ..write('mapPosX: $mapPosX, ')
@@ -10428,6 +10533,968 @@ class LayoutItemsCompanion extends UpdateCompanion<LayoutItem> {
   }
 }
 
+class $MapElementsTable extends MapElements
+    with TableInfo<$MapElementsTable, MapElementEntity> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $MapElementsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _lastSyncedAtMeta = const VerificationMeta(
+    'lastSyncedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> lastSyncedAt = GeneratedColumn<DateTime>(
+    'last_synced_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _versionMeta = const VerificationMeta(
+    'version',
+  );
+  @override
+  late final GeneratedColumn<int> version = GeneratedColumn<int>(
+    'version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _serverCreatedAtMeta = const VerificationMeta(
+    'serverCreatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> serverCreatedAt =
+      GeneratedColumn<DateTime>(
+        'server_created_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _serverUpdatedAtMeta = const VerificationMeta(
+    'serverUpdatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> serverUpdatedAt =
+      GeneratedColumn<DateTime>(
+        'server_updated_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _companyIdMeta = const VerificationMeta(
+    'companyId',
+  );
+  @override
+  late final GeneratedColumn<String> companyId = GeneratedColumn<String>(
+    'company_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sectionIdMeta = const VerificationMeta(
+    'sectionId',
+  );
+  @override
+  late final GeneratedColumn<String> sectionId = GeneratedColumn<String>(
+    'section_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _gridRowMeta = const VerificationMeta(
+    'gridRow',
+  );
+  @override
+  late final GeneratedColumn<int> gridRow = GeneratedColumn<int>(
+    'grid_row',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _gridColMeta = const VerificationMeta(
+    'gridCol',
+  );
+  @override
+  late final GeneratedColumn<int> gridCol = GeneratedColumn<int>(
+    'grid_col',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _gridWidthMeta = const VerificationMeta(
+    'gridWidth',
+  );
+  @override
+  late final GeneratedColumn<int> gridWidth = GeneratedColumn<int>(
+    'grid_width',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(2),
+  );
+  static const VerificationMeta _gridHeightMeta = const VerificationMeta(
+    'gridHeight',
+  );
+  @override
+  late final GeneratedColumn<int> gridHeight = GeneratedColumn<int>(
+    'grid_height',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(2),
+  );
+  static const VerificationMeta _labelMeta = const VerificationMeta('label');
+  @override
+  late final GeneratedColumn<String> label = GeneratedColumn<String>(
+    'label',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _colorMeta = const VerificationMeta('color');
+  @override
+  late final GeneratedColumn<String> color = GeneratedColumn<String>(
+    'color',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<TableShape, String> shape =
+      GeneratedColumn<String>(
+        'shape',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultValue: Constant(TableShape.rectangle.name),
+      ).withConverter<TableShape>($MapElementsTable.$convertershape);
+  @override
+  List<GeneratedColumn> get $columns => [
+    lastSyncedAt,
+    version,
+    serverCreatedAt,
+    serverUpdatedAt,
+    createdAt,
+    updatedAt,
+    deletedAt,
+    id,
+    companyId,
+    sectionId,
+    gridRow,
+    gridCol,
+    gridWidth,
+    gridHeight,
+    label,
+    color,
+    shape,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'map_elements';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<MapElementEntity> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('last_synced_at')) {
+      context.handle(
+        _lastSyncedAtMeta,
+        lastSyncedAt.isAcceptableOrUnknown(
+          data['last_synced_at']!,
+          _lastSyncedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('version')) {
+      context.handle(
+        _versionMeta,
+        version.isAcceptableOrUnknown(data['version']!, _versionMeta),
+      );
+    }
+    if (data.containsKey('server_created_at')) {
+      context.handle(
+        _serverCreatedAtMeta,
+        serverCreatedAt.isAcceptableOrUnknown(
+          data['server_created_at']!,
+          _serverCreatedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('server_updated_at')) {
+      context.handle(
+        _serverUpdatedAtMeta,
+        serverUpdatedAt.isAcceptableOrUnknown(
+          data['server_updated_at']!,
+          _serverUpdatedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('company_id')) {
+      context.handle(
+        _companyIdMeta,
+        companyId.isAcceptableOrUnknown(data['company_id']!, _companyIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_companyIdMeta);
+    }
+    if (data.containsKey('section_id')) {
+      context.handle(
+        _sectionIdMeta,
+        sectionId.isAcceptableOrUnknown(data['section_id']!, _sectionIdMeta),
+      );
+    }
+    if (data.containsKey('grid_row')) {
+      context.handle(
+        _gridRowMeta,
+        gridRow.isAcceptableOrUnknown(data['grid_row']!, _gridRowMeta),
+      );
+    }
+    if (data.containsKey('grid_col')) {
+      context.handle(
+        _gridColMeta,
+        gridCol.isAcceptableOrUnknown(data['grid_col']!, _gridColMeta),
+      );
+    }
+    if (data.containsKey('grid_width')) {
+      context.handle(
+        _gridWidthMeta,
+        gridWidth.isAcceptableOrUnknown(data['grid_width']!, _gridWidthMeta),
+      );
+    }
+    if (data.containsKey('grid_height')) {
+      context.handle(
+        _gridHeightMeta,
+        gridHeight.isAcceptableOrUnknown(data['grid_height']!, _gridHeightMeta),
+      );
+    }
+    if (data.containsKey('label')) {
+      context.handle(
+        _labelMeta,
+        label.isAcceptableOrUnknown(data['label']!, _labelMeta),
+      );
+    }
+    if (data.containsKey('color')) {
+      context.handle(
+        _colorMeta,
+        color.isAcceptableOrUnknown(data['color']!, _colorMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  MapElementEntity map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return MapElementEntity(
+      lastSyncedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_synced_at'],
+      ),
+      version: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}version'],
+      )!,
+      serverCreatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}server_created_at'],
+      ),
+      serverUpdatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}server_updated_at'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      companyId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}company_id'],
+      )!,
+      sectionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}section_id'],
+      ),
+      gridRow: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}grid_row'],
+      )!,
+      gridCol: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}grid_col'],
+      )!,
+      gridWidth: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}grid_width'],
+      )!,
+      gridHeight: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}grid_height'],
+      )!,
+      label: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}label'],
+      ),
+      color: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}color'],
+      ),
+      shape: $MapElementsTable.$convertershape.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}shape'],
+        )!,
+      ),
+    );
+  }
+
+  @override
+  $MapElementsTable createAlias(String alias) {
+    return $MapElementsTable(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<TableShape, String, String> $convertershape =
+      const EnumNameConverter<TableShape>(TableShape.values);
+}
+
+class MapElementEntity extends DataClass
+    implements Insertable<MapElementEntity> {
+  final DateTime? lastSyncedAt;
+  final int version;
+  final DateTime? serverCreatedAt;
+  final DateTime? serverUpdatedAt;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  final String id;
+  final String companyId;
+  final String? sectionId;
+  final int gridRow;
+  final int gridCol;
+  final int gridWidth;
+  final int gridHeight;
+  final String? label;
+  final String? color;
+  final TableShape shape;
+  const MapElementEntity({
+    this.lastSyncedAt,
+    required this.version,
+    this.serverCreatedAt,
+    this.serverUpdatedAt,
+    required this.createdAt,
+    required this.updatedAt,
+    this.deletedAt,
+    required this.id,
+    required this.companyId,
+    this.sectionId,
+    required this.gridRow,
+    required this.gridCol,
+    required this.gridWidth,
+    required this.gridHeight,
+    this.label,
+    this.color,
+    required this.shape,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (!nullToAbsent || lastSyncedAt != null) {
+      map['last_synced_at'] = Variable<DateTime>(lastSyncedAt);
+    }
+    map['version'] = Variable<int>(version);
+    if (!nullToAbsent || serverCreatedAt != null) {
+      map['server_created_at'] = Variable<DateTime>(serverCreatedAt);
+    }
+    if (!nullToAbsent || serverUpdatedAt != null) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    map['id'] = Variable<String>(id);
+    map['company_id'] = Variable<String>(companyId);
+    if (!nullToAbsent || sectionId != null) {
+      map['section_id'] = Variable<String>(sectionId);
+    }
+    map['grid_row'] = Variable<int>(gridRow);
+    map['grid_col'] = Variable<int>(gridCol);
+    map['grid_width'] = Variable<int>(gridWidth);
+    map['grid_height'] = Variable<int>(gridHeight);
+    if (!nullToAbsent || label != null) {
+      map['label'] = Variable<String>(label);
+    }
+    if (!nullToAbsent || color != null) {
+      map['color'] = Variable<String>(color);
+    }
+    {
+      map['shape'] = Variable<String>(
+        $MapElementsTable.$convertershape.toSql(shape),
+      );
+    }
+    return map;
+  }
+
+  MapElementsCompanion toCompanion(bool nullToAbsent) {
+    return MapElementsCompanion(
+      lastSyncedAt: lastSyncedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastSyncedAt),
+      version: Value(version),
+      serverCreatedAt: serverCreatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(serverCreatedAt),
+      serverUpdatedAt: serverUpdatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(serverUpdatedAt),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+      id: Value(id),
+      companyId: Value(companyId),
+      sectionId: sectionId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(sectionId),
+      gridRow: Value(gridRow),
+      gridCol: Value(gridCol),
+      gridWidth: Value(gridWidth),
+      gridHeight: Value(gridHeight),
+      label: label == null && nullToAbsent
+          ? const Value.absent()
+          : Value(label),
+      color: color == null && nullToAbsent
+          ? const Value.absent()
+          : Value(color),
+      shape: Value(shape),
+    );
+  }
+
+  factory MapElementEntity.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MapElementEntity(
+      lastSyncedAt: serializer.fromJson<DateTime?>(json['lastSyncedAt']),
+      version: serializer.fromJson<int>(json['version']),
+      serverCreatedAt: serializer.fromJson<DateTime?>(json['serverCreatedAt']),
+      serverUpdatedAt: serializer.fromJson<DateTime?>(json['serverUpdatedAt']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      id: serializer.fromJson<String>(json['id']),
+      companyId: serializer.fromJson<String>(json['companyId']),
+      sectionId: serializer.fromJson<String?>(json['sectionId']),
+      gridRow: serializer.fromJson<int>(json['gridRow']),
+      gridCol: serializer.fromJson<int>(json['gridCol']),
+      gridWidth: serializer.fromJson<int>(json['gridWidth']),
+      gridHeight: serializer.fromJson<int>(json['gridHeight']),
+      label: serializer.fromJson<String?>(json['label']),
+      color: serializer.fromJson<String?>(json['color']),
+      shape: $MapElementsTable.$convertershape.fromJson(
+        serializer.fromJson<String>(json['shape']),
+      ),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'lastSyncedAt': serializer.toJson<DateTime?>(lastSyncedAt),
+      'version': serializer.toJson<int>(version),
+      'serverCreatedAt': serializer.toJson<DateTime?>(serverCreatedAt),
+      'serverUpdatedAt': serializer.toJson<DateTime?>(serverUpdatedAt),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'id': serializer.toJson<String>(id),
+      'companyId': serializer.toJson<String>(companyId),
+      'sectionId': serializer.toJson<String?>(sectionId),
+      'gridRow': serializer.toJson<int>(gridRow),
+      'gridCol': serializer.toJson<int>(gridCol),
+      'gridWidth': serializer.toJson<int>(gridWidth),
+      'gridHeight': serializer.toJson<int>(gridHeight),
+      'label': serializer.toJson<String?>(label),
+      'color': serializer.toJson<String?>(color),
+      'shape': serializer.toJson<String>(
+        $MapElementsTable.$convertershape.toJson(shape),
+      ),
+    };
+  }
+
+  MapElementEntity copyWith({
+    Value<DateTime?> lastSyncedAt = const Value.absent(),
+    int? version,
+    Value<DateTime?> serverCreatedAt = const Value.absent(),
+    Value<DateTime?> serverUpdatedAt = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+    String? id,
+    String? companyId,
+    Value<String?> sectionId = const Value.absent(),
+    int? gridRow,
+    int? gridCol,
+    int? gridWidth,
+    int? gridHeight,
+    Value<String?> label = const Value.absent(),
+    Value<String?> color = const Value.absent(),
+    TableShape? shape,
+  }) => MapElementEntity(
+    lastSyncedAt: lastSyncedAt.present ? lastSyncedAt.value : this.lastSyncedAt,
+    version: version ?? this.version,
+    serverCreatedAt: serverCreatedAt.present
+        ? serverCreatedAt.value
+        : this.serverCreatedAt,
+    serverUpdatedAt: serverUpdatedAt.present
+        ? serverUpdatedAt.value
+        : this.serverUpdatedAt,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+    id: id ?? this.id,
+    companyId: companyId ?? this.companyId,
+    sectionId: sectionId.present ? sectionId.value : this.sectionId,
+    gridRow: gridRow ?? this.gridRow,
+    gridCol: gridCol ?? this.gridCol,
+    gridWidth: gridWidth ?? this.gridWidth,
+    gridHeight: gridHeight ?? this.gridHeight,
+    label: label.present ? label.value : this.label,
+    color: color.present ? color.value : this.color,
+    shape: shape ?? this.shape,
+  );
+  MapElementEntity copyWithCompanion(MapElementsCompanion data) {
+    return MapElementEntity(
+      lastSyncedAt: data.lastSyncedAt.present
+          ? data.lastSyncedAt.value
+          : this.lastSyncedAt,
+      version: data.version.present ? data.version.value : this.version,
+      serverCreatedAt: data.serverCreatedAt.present
+          ? data.serverCreatedAt.value
+          : this.serverCreatedAt,
+      serverUpdatedAt: data.serverUpdatedAt.present
+          ? data.serverUpdatedAt.value
+          : this.serverUpdatedAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      id: data.id.present ? data.id.value : this.id,
+      companyId: data.companyId.present ? data.companyId.value : this.companyId,
+      sectionId: data.sectionId.present ? data.sectionId.value : this.sectionId,
+      gridRow: data.gridRow.present ? data.gridRow.value : this.gridRow,
+      gridCol: data.gridCol.present ? data.gridCol.value : this.gridCol,
+      gridWidth: data.gridWidth.present ? data.gridWidth.value : this.gridWidth,
+      gridHeight: data.gridHeight.present
+          ? data.gridHeight.value
+          : this.gridHeight,
+      label: data.label.present ? data.label.value : this.label,
+      color: data.color.present ? data.color.value : this.color,
+      shape: data.shape.present ? data.shape.value : this.shape,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MapElementEntity(')
+          ..write('lastSyncedAt: $lastSyncedAt, ')
+          ..write('version: $version, ')
+          ..write('serverCreatedAt: $serverCreatedAt, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('id: $id, ')
+          ..write('companyId: $companyId, ')
+          ..write('sectionId: $sectionId, ')
+          ..write('gridRow: $gridRow, ')
+          ..write('gridCol: $gridCol, ')
+          ..write('gridWidth: $gridWidth, ')
+          ..write('gridHeight: $gridHeight, ')
+          ..write('label: $label, ')
+          ..write('color: $color, ')
+          ..write('shape: $shape')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    lastSyncedAt,
+    version,
+    serverCreatedAt,
+    serverUpdatedAt,
+    createdAt,
+    updatedAt,
+    deletedAt,
+    id,
+    companyId,
+    sectionId,
+    gridRow,
+    gridCol,
+    gridWidth,
+    gridHeight,
+    label,
+    color,
+    shape,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MapElementEntity &&
+          other.lastSyncedAt == this.lastSyncedAt &&
+          other.version == this.version &&
+          other.serverCreatedAt == this.serverCreatedAt &&
+          other.serverUpdatedAt == this.serverUpdatedAt &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt &&
+          other.id == this.id &&
+          other.companyId == this.companyId &&
+          other.sectionId == this.sectionId &&
+          other.gridRow == this.gridRow &&
+          other.gridCol == this.gridCol &&
+          other.gridWidth == this.gridWidth &&
+          other.gridHeight == this.gridHeight &&
+          other.label == this.label &&
+          other.color == this.color &&
+          other.shape == this.shape);
+}
+
+class MapElementsCompanion extends UpdateCompanion<MapElementEntity> {
+  final Value<DateTime?> lastSyncedAt;
+  final Value<int> version;
+  final Value<DateTime?> serverCreatedAt;
+  final Value<DateTime?> serverUpdatedAt;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<String> id;
+  final Value<String> companyId;
+  final Value<String?> sectionId;
+  final Value<int> gridRow;
+  final Value<int> gridCol;
+  final Value<int> gridWidth;
+  final Value<int> gridHeight;
+  final Value<String?> label;
+  final Value<String?> color;
+  final Value<TableShape> shape;
+  final Value<int> rowid;
+  const MapElementsCompanion({
+    this.lastSyncedAt = const Value.absent(),
+    this.version = const Value.absent(),
+    this.serverCreatedAt = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.id = const Value.absent(),
+    this.companyId = const Value.absent(),
+    this.sectionId = const Value.absent(),
+    this.gridRow = const Value.absent(),
+    this.gridCol = const Value.absent(),
+    this.gridWidth = const Value.absent(),
+    this.gridHeight = const Value.absent(),
+    this.label = const Value.absent(),
+    this.color = const Value.absent(),
+    this.shape = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  MapElementsCompanion.insert({
+    this.lastSyncedAt = const Value.absent(),
+    this.version = const Value.absent(),
+    this.serverCreatedAt = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    required String id,
+    required String companyId,
+    this.sectionId = const Value.absent(),
+    this.gridRow = const Value.absent(),
+    this.gridCol = const Value.absent(),
+    this.gridWidth = const Value.absent(),
+    this.gridHeight = const Value.absent(),
+    this.label = const Value.absent(),
+    this.color = const Value.absent(),
+    this.shape = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       companyId = Value(companyId);
+  static Insertable<MapElementEntity> custom({
+    Expression<DateTime>? lastSyncedAt,
+    Expression<int>? version,
+    Expression<DateTime>? serverCreatedAt,
+    Expression<DateTime>? serverUpdatedAt,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<String>? id,
+    Expression<String>? companyId,
+    Expression<String>? sectionId,
+    Expression<int>? gridRow,
+    Expression<int>? gridCol,
+    Expression<int>? gridWidth,
+    Expression<int>? gridHeight,
+    Expression<String>? label,
+    Expression<String>? color,
+    Expression<String>? shape,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (lastSyncedAt != null) 'last_synced_at': lastSyncedAt,
+      if (version != null) 'version': version,
+      if (serverCreatedAt != null) 'server_created_at': serverCreatedAt,
+      if (serverUpdatedAt != null) 'server_updated_at': serverUpdatedAt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (id != null) 'id': id,
+      if (companyId != null) 'company_id': companyId,
+      if (sectionId != null) 'section_id': sectionId,
+      if (gridRow != null) 'grid_row': gridRow,
+      if (gridCol != null) 'grid_col': gridCol,
+      if (gridWidth != null) 'grid_width': gridWidth,
+      if (gridHeight != null) 'grid_height': gridHeight,
+      if (label != null) 'label': label,
+      if (color != null) 'color': color,
+      if (shape != null) 'shape': shape,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  MapElementsCompanion copyWith({
+    Value<DateTime?>? lastSyncedAt,
+    Value<int>? version,
+    Value<DateTime?>? serverCreatedAt,
+    Value<DateTime?>? serverUpdatedAt,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? deletedAt,
+    Value<String>? id,
+    Value<String>? companyId,
+    Value<String?>? sectionId,
+    Value<int>? gridRow,
+    Value<int>? gridCol,
+    Value<int>? gridWidth,
+    Value<int>? gridHeight,
+    Value<String?>? label,
+    Value<String?>? color,
+    Value<TableShape>? shape,
+    Value<int>? rowid,
+  }) {
+    return MapElementsCompanion(
+      lastSyncedAt: lastSyncedAt ?? this.lastSyncedAt,
+      version: version ?? this.version,
+      serverCreatedAt: serverCreatedAt ?? this.serverCreatedAt,
+      serverUpdatedAt: serverUpdatedAt ?? this.serverUpdatedAt,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      id: id ?? this.id,
+      companyId: companyId ?? this.companyId,
+      sectionId: sectionId ?? this.sectionId,
+      gridRow: gridRow ?? this.gridRow,
+      gridCol: gridCol ?? this.gridCol,
+      gridWidth: gridWidth ?? this.gridWidth,
+      gridHeight: gridHeight ?? this.gridHeight,
+      label: label ?? this.label,
+      color: color ?? this.color,
+      shape: shape ?? this.shape,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (lastSyncedAt.present) {
+      map['last_synced_at'] = Variable<DateTime>(lastSyncedAt.value);
+    }
+    if (version.present) {
+      map['version'] = Variable<int>(version.value);
+    }
+    if (serverCreatedAt.present) {
+      map['server_created_at'] = Variable<DateTime>(serverCreatedAt.value);
+    }
+    if (serverUpdatedAt.present) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (companyId.present) {
+      map['company_id'] = Variable<String>(companyId.value);
+    }
+    if (sectionId.present) {
+      map['section_id'] = Variable<String>(sectionId.value);
+    }
+    if (gridRow.present) {
+      map['grid_row'] = Variable<int>(gridRow.value);
+    }
+    if (gridCol.present) {
+      map['grid_col'] = Variable<int>(gridCol.value);
+    }
+    if (gridWidth.present) {
+      map['grid_width'] = Variable<int>(gridWidth.value);
+    }
+    if (gridHeight.present) {
+      map['grid_height'] = Variable<int>(gridHeight.value);
+    }
+    if (label.present) {
+      map['label'] = Variable<String>(label.value);
+    }
+    if (color.present) {
+      map['color'] = Variable<String>(color.value);
+    }
+    if (shape.present) {
+      map['shape'] = Variable<String>(
+        $MapElementsTable.$convertershape.toSql(shape.value),
+      );
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MapElementsCompanion(')
+          ..write('lastSyncedAt: $lastSyncedAt, ')
+          ..write('version: $version, ')
+          ..write('serverCreatedAt: $serverCreatedAt, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('id: $id, ')
+          ..write('companyId: $companyId, ')
+          ..write('sectionId: $sectionId, ')
+          ..write('gridRow: $gridRow, ')
+          ..write('gridCol: $gridCol, ')
+          ..write('gridWidth: $gridWidth, ')
+          ..write('gridHeight: $gridHeight, ')
+          ..write('label: $label, ')
+          ..write('color: $color, ')
+          ..write('shape: $shape, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $ManufacturersTable extends Manufacturers
     with TableInfo<$ManufacturersTable, Manufacturer> {
   @override
@@ -19085,15 +20152,15 @@ class $ReservationsTable extends Reservations
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _statusMeta = const VerificationMeta('status');
   @override
-  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+  late final GeneratedColumnWithTypeConverter<ReservationStatus, String>
+  status = GeneratedColumn<String>(
     'status',
     aliasedName,
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
-  );
+  ).withConverter<ReservationStatus>($ReservationsTable.$converterstatus);
   @override
   List<GeneratedColumn> get $columns => [
     lastSyncedAt,
@@ -19245,14 +20312,6 @@ class $ReservationsTable extends Reservations
         notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
       );
     }
-    if (data.containsKey('status')) {
-      context.handle(
-        _statusMeta,
-        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_statusMeta);
-    }
     return context;
   }
 
@@ -19326,10 +20385,12 @@ class $ReservationsTable extends Reservations
         DriftSqlType.string,
         data['${effectivePrefix}notes'],
       ),
-      status: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}status'],
-      )!,
+      status: $ReservationsTable.$converterstatus.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}status'],
+        )!,
+      ),
     );
   }
 
@@ -19337,6 +20398,11 @@ class $ReservationsTable extends Reservations
   $ReservationsTable createAlias(String alias) {
     return $ReservationsTable(attachedDatabase, alias);
   }
+
+  static JsonTypeConverter2<ReservationStatus, String, String>
+  $converterstatus = const EnumNameConverter<ReservationStatus>(
+    ReservationStatus.values,
+  );
 }
 
 class Reservation extends DataClass implements Insertable<Reservation> {
@@ -19356,7 +20422,7 @@ class Reservation extends DataClass implements Insertable<Reservation> {
   final int partySize;
   final String? tableId;
   final String? notes;
-  final String status;
+  final ReservationStatus status;
   const Reservation({
     this.lastSyncedAt,
     required this.version,
@@ -19411,7 +20477,11 @@ class Reservation extends DataClass implements Insertable<Reservation> {
     if (!nullToAbsent || notes != null) {
       map['notes'] = Variable<String>(notes);
     }
-    map['status'] = Variable<String>(status);
+    {
+      map['status'] = Variable<String>(
+        $ReservationsTable.$converterstatus.toSql(status),
+      );
+    }
     return map;
   }
 
@@ -19475,7 +20545,9 @@ class Reservation extends DataClass implements Insertable<Reservation> {
       partySize: serializer.fromJson<int>(json['partySize']),
       tableId: serializer.fromJson<String?>(json['tableId']),
       notes: serializer.fromJson<String?>(json['notes']),
-      status: serializer.fromJson<String>(json['status']),
+      status: $ReservationsTable.$converterstatus.fromJson(
+        serializer.fromJson<String>(json['status']),
+      ),
     );
   }
   @override
@@ -19498,7 +20570,9 @@ class Reservation extends DataClass implements Insertable<Reservation> {
       'partySize': serializer.toJson<int>(partySize),
       'tableId': serializer.toJson<String?>(tableId),
       'notes': serializer.toJson<String?>(notes),
-      'status': serializer.toJson<String>(status),
+      'status': serializer.toJson<String>(
+        $ReservationsTable.$converterstatus.toJson(status),
+      ),
     };
   }
 
@@ -19519,7 +20593,7 @@ class Reservation extends DataClass implements Insertable<Reservation> {
     int? partySize,
     Value<String?> tableId = const Value.absent(),
     Value<String?> notes = const Value.absent(),
-    String? status,
+    ReservationStatus? status,
   }) => Reservation(
     lastSyncedAt: lastSyncedAt.present ? lastSyncedAt.value : this.lastSyncedAt,
     version: version ?? this.version,
@@ -19665,7 +20739,7 @@ class ReservationsCompanion extends UpdateCompanion<Reservation> {
   final Value<int> partySize;
   final Value<String?> tableId;
   final Value<String?> notes;
-  final Value<String> status;
+  final Value<ReservationStatus> status;
   final Value<int> rowid;
   const ReservationsCompanion({
     this.lastSyncedAt = const Value.absent(),
@@ -19704,7 +20778,7 @@ class ReservationsCompanion extends UpdateCompanion<Reservation> {
     this.partySize = const Value.absent(),
     this.tableId = const Value.absent(),
     this.notes = const Value.absent(),
-    required String status,
+    required ReservationStatus status,
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        companyId = Value(companyId),
@@ -19770,7 +20844,7 @@ class ReservationsCompanion extends UpdateCompanion<Reservation> {
     Value<int>? partySize,
     Value<String?>? tableId,
     Value<String?>? notes,
-    Value<String>? status,
+    Value<ReservationStatus>? status,
     Value<int>? rowid,
   }) {
     return ReservationsCompanion(
@@ -19847,7 +20921,9 @@ class ReservationsCompanion extends UpdateCompanion<Reservation> {
       map['notes'] = Variable<String>(notes.value);
     }
     if (status.present) {
-      map['status'] = Variable<String>(status.value);
+      map['status'] = Variable<String>(
+        $ReservationsTable.$converterstatus.toSql(status.value),
+      );
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -27513,7 +28589,7 @@ class $TablesTable extends Tables with TableInfo<$TablesTable, TableEntity> {
     false,
     type: DriftSqlType.int,
     requiredDuringInsert: false,
-    defaultValue: const Constant(1),
+    defaultValue: const Constant(3),
   );
   static const VerificationMeta _gridHeightMeta = const VerificationMeta(
     'gridHeight',
@@ -27525,7 +28601,7 @@ class $TablesTable extends Tables with TableInfo<$TablesTable, TableEntity> {
     false,
     type: DriftSqlType.int,
     requiredDuringInsert: false,
-    defaultValue: const Constant(1),
+    defaultValue: const Constant(3),
   );
   @override
   late final GeneratedColumnWithTypeConverter<TableShape, String> shape =
@@ -30844,6 +31920,1458 @@ class UsersCompanion extends UpdateCompanion<User> {
   }
 }
 
+class $VouchersTable extends Vouchers with TableInfo<$VouchersTable, Voucher> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $VouchersTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _lastSyncedAtMeta = const VerificationMeta(
+    'lastSyncedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> lastSyncedAt = GeneratedColumn<DateTime>(
+    'last_synced_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _versionMeta = const VerificationMeta(
+    'version',
+  );
+  @override
+  late final GeneratedColumn<int> version = GeneratedColumn<int>(
+    'version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _serverCreatedAtMeta = const VerificationMeta(
+    'serverCreatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> serverCreatedAt =
+      GeneratedColumn<DateTime>(
+        'server_created_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _serverUpdatedAtMeta = const VerificationMeta(
+    'serverUpdatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> serverUpdatedAt =
+      GeneratedColumn<DateTime>(
+        'server_updated_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _companyIdMeta = const VerificationMeta(
+    'companyId',
+  );
+  @override
+  late final GeneratedColumn<String> companyId = GeneratedColumn<String>(
+    'company_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _codeMeta = const VerificationMeta('code');
+  @override
+  late final GeneratedColumn<String> code = GeneratedColumn<String>(
+    'code',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<VoucherType, String> type =
+      GeneratedColumn<String>(
+        'type',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<VoucherType>($VouchersTable.$convertertype);
+  @override
+  late final GeneratedColumnWithTypeConverter<VoucherStatus, String> status =
+      GeneratedColumn<String>(
+        'status',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<VoucherStatus>($VouchersTable.$converterstatus);
+  static const VerificationMeta _valueMeta = const VerificationMeta('value');
+  @override
+  late final GeneratedColumn<int> value = GeneratedColumn<int>(
+    'value',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<DiscountType?, String>
+  discountType = GeneratedColumn<String>(
+    'discount_type',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  ).withConverter<DiscountType?>($VouchersTable.$converterdiscountTypen);
+  @override
+  late final GeneratedColumnWithTypeConverter<VoucherDiscountScope?, String>
+  discountScope =
+      GeneratedColumn<String>(
+        'discount_scope',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      ).withConverter<VoucherDiscountScope?>(
+        $VouchersTable.$converterdiscountScopen,
+      );
+  static const VerificationMeta _itemIdMeta = const VerificationMeta('itemId');
+  @override
+  late final GeneratedColumn<String> itemId = GeneratedColumn<String>(
+    'item_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _categoryIdMeta = const VerificationMeta(
+    'categoryId',
+  );
+  @override
+  late final GeneratedColumn<String> categoryId = GeneratedColumn<String>(
+    'category_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _minOrderValueMeta = const VerificationMeta(
+    'minOrderValue',
+  );
+  @override
+  late final GeneratedColumn<int> minOrderValue = GeneratedColumn<int>(
+    'min_order_value',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _maxUsesMeta = const VerificationMeta(
+    'maxUses',
+  );
+  @override
+  late final GeneratedColumn<int> maxUses = GeneratedColumn<int>(
+    'max_uses',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _usedCountMeta = const VerificationMeta(
+    'usedCount',
+  );
+  @override
+  late final GeneratedColumn<int> usedCount = GeneratedColumn<int>(
+    'used_count',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _customerIdMeta = const VerificationMeta(
+    'customerId',
+  );
+  @override
+  late final GeneratedColumn<String> customerId = GeneratedColumn<String>(
+    'customer_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _expiresAtMeta = const VerificationMeta(
+    'expiresAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> expiresAt = GeneratedColumn<DateTime>(
+    'expires_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _redeemedAtMeta = const VerificationMeta(
+    'redeemedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> redeemedAt = GeneratedColumn<DateTime>(
+    'redeemed_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _redeemedOnBillIdMeta = const VerificationMeta(
+    'redeemedOnBillId',
+  );
+  @override
+  late final GeneratedColumn<String> redeemedOnBillId = GeneratedColumn<String>(
+    'redeemed_on_bill_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _sourceBillIdMeta = const VerificationMeta(
+    'sourceBillId',
+  );
+  @override
+  late final GeneratedColumn<String> sourceBillId = GeneratedColumn<String>(
+    'source_bill_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+    'note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    lastSyncedAt,
+    version,
+    serverCreatedAt,
+    serverUpdatedAt,
+    createdAt,
+    updatedAt,
+    deletedAt,
+    id,
+    companyId,
+    code,
+    type,
+    status,
+    value,
+    discountType,
+    discountScope,
+    itemId,
+    categoryId,
+    minOrderValue,
+    maxUses,
+    usedCount,
+    customerId,
+    expiresAt,
+    redeemedAt,
+    redeemedOnBillId,
+    sourceBillId,
+    note,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'vouchers';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Voucher> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('last_synced_at')) {
+      context.handle(
+        _lastSyncedAtMeta,
+        lastSyncedAt.isAcceptableOrUnknown(
+          data['last_synced_at']!,
+          _lastSyncedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('version')) {
+      context.handle(
+        _versionMeta,
+        version.isAcceptableOrUnknown(data['version']!, _versionMeta),
+      );
+    }
+    if (data.containsKey('server_created_at')) {
+      context.handle(
+        _serverCreatedAtMeta,
+        serverCreatedAt.isAcceptableOrUnknown(
+          data['server_created_at']!,
+          _serverCreatedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('server_updated_at')) {
+      context.handle(
+        _serverUpdatedAtMeta,
+        serverUpdatedAt.isAcceptableOrUnknown(
+          data['server_updated_at']!,
+          _serverUpdatedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('company_id')) {
+      context.handle(
+        _companyIdMeta,
+        companyId.isAcceptableOrUnknown(data['company_id']!, _companyIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_companyIdMeta);
+    }
+    if (data.containsKey('code')) {
+      context.handle(
+        _codeMeta,
+        code.isAcceptableOrUnknown(data['code']!, _codeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_codeMeta);
+    }
+    if (data.containsKey('value')) {
+      context.handle(
+        _valueMeta,
+        value.isAcceptableOrUnknown(data['value']!, _valueMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_valueMeta);
+    }
+    if (data.containsKey('item_id')) {
+      context.handle(
+        _itemIdMeta,
+        itemId.isAcceptableOrUnknown(data['item_id']!, _itemIdMeta),
+      );
+    }
+    if (data.containsKey('category_id')) {
+      context.handle(
+        _categoryIdMeta,
+        categoryId.isAcceptableOrUnknown(data['category_id']!, _categoryIdMeta),
+      );
+    }
+    if (data.containsKey('min_order_value')) {
+      context.handle(
+        _minOrderValueMeta,
+        minOrderValue.isAcceptableOrUnknown(
+          data['min_order_value']!,
+          _minOrderValueMeta,
+        ),
+      );
+    }
+    if (data.containsKey('max_uses')) {
+      context.handle(
+        _maxUsesMeta,
+        maxUses.isAcceptableOrUnknown(data['max_uses']!, _maxUsesMeta),
+      );
+    }
+    if (data.containsKey('used_count')) {
+      context.handle(
+        _usedCountMeta,
+        usedCount.isAcceptableOrUnknown(data['used_count']!, _usedCountMeta),
+      );
+    }
+    if (data.containsKey('customer_id')) {
+      context.handle(
+        _customerIdMeta,
+        customerId.isAcceptableOrUnknown(data['customer_id']!, _customerIdMeta),
+      );
+    }
+    if (data.containsKey('expires_at')) {
+      context.handle(
+        _expiresAtMeta,
+        expiresAt.isAcceptableOrUnknown(data['expires_at']!, _expiresAtMeta),
+      );
+    }
+    if (data.containsKey('redeemed_at')) {
+      context.handle(
+        _redeemedAtMeta,
+        redeemedAt.isAcceptableOrUnknown(data['redeemed_at']!, _redeemedAtMeta),
+      );
+    }
+    if (data.containsKey('redeemed_on_bill_id')) {
+      context.handle(
+        _redeemedOnBillIdMeta,
+        redeemedOnBillId.isAcceptableOrUnknown(
+          data['redeemed_on_bill_id']!,
+          _redeemedOnBillIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('source_bill_id')) {
+      context.handle(
+        _sourceBillIdMeta,
+        sourceBillId.isAcceptableOrUnknown(
+          data['source_bill_id']!,
+          _sourceBillIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('note')) {
+      context.handle(
+        _noteMeta,
+        note.isAcceptableOrUnknown(data['note']!, _noteMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Voucher map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Voucher(
+      lastSyncedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_synced_at'],
+      ),
+      version: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}version'],
+      )!,
+      serverCreatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}server_created_at'],
+      ),
+      serverUpdatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}server_updated_at'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      companyId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}company_id'],
+      )!,
+      code: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}code'],
+      )!,
+      type: $VouchersTable.$convertertype.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}type'],
+        )!,
+      ),
+      status: $VouchersTable.$converterstatus.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}status'],
+        )!,
+      ),
+      value: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}value'],
+      )!,
+      discountType: $VouchersTable.$converterdiscountTypen.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}discount_type'],
+        ),
+      ),
+      discountScope: $VouchersTable.$converterdiscountScopen.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}discount_scope'],
+        ),
+      ),
+      itemId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}item_id'],
+      ),
+      categoryId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}category_id'],
+      ),
+      minOrderValue: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}min_order_value'],
+      ),
+      maxUses: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}max_uses'],
+      )!,
+      usedCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}used_count'],
+      )!,
+      customerId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}customer_id'],
+      ),
+      expiresAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}expires_at'],
+      ),
+      redeemedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}redeemed_at'],
+      ),
+      redeemedOnBillId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}redeemed_on_bill_id'],
+      ),
+      sourceBillId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source_bill_id'],
+      ),
+      note: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}note'],
+      ),
+    );
+  }
+
+  @override
+  $VouchersTable createAlias(String alias) {
+    return $VouchersTable(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<VoucherType, String, String> $convertertype =
+      const EnumNameConverter<VoucherType>(VoucherType.values);
+  static JsonTypeConverter2<VoucherStatus, String, String> $converterstatus =
+      const EnumNameConverter<VoucherStatus>(VoucherStatus.values);
+  static JsonTypeConverter2<DiscountType, String, String>
+  $converterdiscountType = const EnumNameConverter<DiscountType>(
+    DiscountType.values,
+  );
+  static JsonTypeConverter2<DiscountType?, String?, String?>
+  $converterdiscountTypen = JsonTypeConverter2.asNullable(
+    $converterdiscountType,
+  );
+  static JsonTypeConverter2<VoucherDiscountScope, String, String>
+  $converterdiscountScope = const EnumNameConverter<VoucherDiscountScope>(
+    VoucherDiscountScope.values,
+  );
+  static JsonTypeConverter2<VoucherDiscountScope?, String?, String?>
+  $converterdiscountScopen = JsonTypeConverter2.asNullable(
+    $converterdiscountScope,
+  );
+}
+
+class Voucher extends DataClass implements Insertable<Voucher> {
+  final DateTime? lastSyncedAt;
+  final int version;
+  final DateTime? serverCreatedAt;
+  final DateTime? serverUpdatedAt;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  final String id;
+  final String companyId;
+  final String code;
+  final VoucherType type;
+  final VoucherStatus status;
+  final int value;
+  final DiscountType? discountType;
+  final VoucherDiscountScope? discountScope;
+  final String? itemId;
+  final String? categoryId;
+  final int? minOrderValue;
+  final int maxUses;
+  final int usedCount;
+  final String? customerId;
+  final DateTime? expiresAt;
+  final DateTime? redeemedAt;
+  final String? redeemedOnBillId;
+  final String? sourceBillId;
+  final String? note;
+  const Voucher({
+    this.lastSyncedAt,
+    required this.version,
+    this.serverCreatedAt,
+    this.serverUpdatedAt,
+    required this.createdAt,
+    required this.updatedAt,
+    this.deletedAt,
+    required this.id,
+    required this.companyId,
+    required this.code,
+    required this.type,
+    required this.status,
+    required this.value,
+    this.discountType,
+    this.discountScope,
+    this.itemId,
+    this.categoryId,
+    this.minOrderValue,
+    required this.maxUses,
+    required this.usedCount,
+    this.customerId,
+    this.expiresAt,
+    this.redeemedAt,
+    this.redeemedOnBillId,
+    this.sourceBillId,
+    this.note,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (!nullToAbsent || lastSyncedAt != null) {
+      map['last_synced_at'] = Variable<DateTime>(lastSyncedAt);
+    }
+    map['version'] = Variable<int>(version);
+    if (!nullToAbsent || serverCreatedAt != null) {
+      map['server_created_at'] = Variable<DateTime>(serverCreatedAt);
+    }
+    if (!nullToAbsent || serverUpdatedAt != null) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    map['id'] = Variable<String>(id);
+    map['company_id'] = Variable<String>(companyId);
+    map['code'] = Variable<String>(code);
+    {
+      map['type'] = Variable<String>($VouchersTable.$convertertype.toSql(type));
+    }
+    {
+      map['status'] = Variable<String>(
+        $VouchersTable.$converterstatus.toSql(status),
+      );
+    }
+    map['value'] = Variable<int>(value);
+    if (!nullToAbsent || discountType != null) {
+      map['discount_type'] = Variable<String>(
+        $VouchersTable.$converterdiscountTypen.toSql(discountType),
+      );
+    }
+    if (!nullToAbsent || discountScope != null) {
+      map['discount_scope'] = Variable<String>(
+        $VouchersTable.$converterdiscountScopen.toSql(discountScope),
+      );
+    }
+    if (!nullToAbsent || itemId != null) {
+      map['item_id'] = Variable<String>(itemId);
+    }
+    if (!nullToAbsent || categoryId != null) {
+      map['category_id'] = Variable<String>(categoryId);
+    }
+    if (!nullToAbsent || minOrderValue != null) {
+      map['min_order_value'] = Variable<int>(minOrderValue);
+    }
+    map['max_uses'] = Variable<int>(maxUses);
+    map['used_count'] = Variable<int>(usedCount);
+    if (!nullToAbsent || customerId != null) {
+      map['customer_id'] = Variable<String>(customerId);
+    }
+    if (!nullToAbsent || expiresAt != null) {
+      map['expires_at'] = Variable<DateTime>(expiresAt);
+    }
+    if (!nullToAbsent || redeemedAt != null) {
+      map['redeemed_at'] = Variable<DateTime>(redeemedAt);
+    }
+    if (!nullToAbsent || redeemedOnBillId != null) {
+      map['redeemed_on_bill_id'] = Variable<String>(redeemedOnBillId);
+    }
+    if (!nullToAbsent || sourceBillId != null) {
+      map['source_bill_id'] = Variable<String>(sourceBillId);
+    }
+    if (!nullToAbsent || note != null) {
+      map['note'] = Variable<String>(note);
+    }
+    return map;
+  }
+
+  VouchersCompanion toCompanion(bool nullToAbsent) {
+    return VouchersCompanion(
+      lastSyncedAt: lastSyncedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastSyncedAt),
+      version: Value(version),
+      serverCreatedAt: serverCreatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(serverCreatedAt),
+      serverUpdatedAt: serverUpdatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(serverUpdatedAt),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+      id: Value(id),
+      companyId: Value(companyId),
+      code: Value(code),
+      type: Value(type),
+      status: Value(status),
+      value: Value(value),
+      discountType: discountType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(discountType),
+      discountScope: discountScope == null && nullToAbsent
+          ? const Value.absent()
+          : Value(discountScope),
+      itemId: itemId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(itemId),
+      categoryId: categoryId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(categoryId),
+      minOrderValue: minOrderValue == null && nullToAbsent
+          ? const Value.absent()
+          : Value(minOrderValue),
+      maxUses: Value(maxUses),
+      usedCount: Value(usedCount),
+      customerId: customerId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(customerId),
+      expiresAt: expiresAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(expiresAt),
+      redeemedAt: redeemedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(redeemedAt),
+      redeemedOnBillId: redeemedOnBillId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(redeemedOnBillId),
+      sourceBillId: sourceBillId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(sourceBillId),
+      note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+    );
+  }
+
+  factory Voucher.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Voucher(
+      lastSyncedAt: serializer.fromJson<DateTime?>(json['lastSyncedAt']),
+      version: serializer.fromJson<int>(json['version']),
+      serverCreatedAt: serializer.fromJson<DateTime?>(json['serverCreatedAt']),
+      serverUpdatedAt: serializer.fromJson<DateTime?>(json['serverUpdatedAt']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      id: serializer.fromJson<String>(json['id']),
+      companyId: serializer.fromJson<String>(json['companyId']),
+      code: serializer.fromJson<String>(json['code']),
+      type: $VouchersTable.$convertertype.fromJson(
+        serializer.fromJson<String>(json['type']),
+      ),
+      status: $VouchersTable.$converterstatus.fromJson(
+        serializer.fromJson<String>(json['status']),
+      ),
+      value: serializer.fromJson<int>(json['value']),
+      discountType: $VouchersTable.$converterdiscountTypen.fromJson(
+        serializer.fromJson<String?>(json['discountType']),
+      ),
+      discountScope: $VouchersTable.$converterdiscountScopen.fromJson(
+        serializer.fromJson<String?>(json['discountScope']),
+      ),
+      itemId: serializer.fromJson<String?>(json['itemId']),
+      categoryId: serializer.fromJson<String?>(json['categoryId']),
+      minOrderValue: serializer.fromJson<int?>(json['minOrderValue']),
+      maxUses: serializer.fromJson<int>(json['maxUses']),
+      usedCount: serializer.fromJson<int>(json['usedCount']),
+      customerId: serializer.fromJson<String?>(json['customerId']),
+      expiresAt: serializer.fromJson<DateTime?>(json['expiresAt']),
+      redeemedAt: serializer.fromJson<DateTime?>(json['redeemedAt']),
+      redeemedOnBillId: serializer.fromJson<String?>(json['redeemedOnBillId']),
+      sourceBillId: serializer.fromJson<String?>(json['sourceBillId']),
+      note: serializer.fromJson<String?>(json['note']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'lastSyncedAt': serializer.toJson<DateTime?>(lastSyncedAt),
+      'version': serializer.toJson<int>(version),
+      'serverCreatedAt': serializer.toJson<DateTime?>(serverCreatedAt),
+      'serverUpdatedAt': serializer.toJson<DateTime?>(serverUpdatedAt),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'id': serializer.toJson<String>(id),
+      'companyId': serializer.toJson<String>(companyId),
+      'code': serializer.toJson<String>(code),
+      'type': serializer.toJson<String>(
+        $VouchersTable.$convertertype.toJson(type),
+      ),
+      'status': serializer.toJson<String>(
+        $VouchersTable.$converterstatus.toJson(status),
+      ),
+      'value': serializer.toJson<int>(value),
+      'discountType': serializer.toJson<String?>(
+        $VouchersTable.$converterdiscountTypen.toJson(discountType),
+      ),
+      'discountScope': serializer.toJson<String?>(
+        $VouchersTable.$converterdiscountScopen.toJson(discountScope),
+      ),
+      'itemId': serializer.toJson<String?>(itemId),
+      'categoryId': serializer.toJson<String?>(categoryId),
+      'minOrderValue': serializer.toJson<int?>(minOrderValue),
+      'maxUses': serializer.toJson<int>(maxUses),
+      'usedCount': serializer.toJson<int>(usedCount),
+      'customerId': serializer.toJson<String?>(customerId),
+      'expiresAt': serializer.toJson<DateTime?>(expiresAt),
+      'redeemedAt': serializer.toJson<DateTime?>(redeemedAt),
+      'redeemedOnBillId': serializer.toJson<String?>(redeemedOnBillId),
+      'sourceBillId': serializer.toJson<String?>(sourceBillId),
+      'note': serializer.toJson<String?>(note),
+    };
+  }
+
+  Voucher copyWith({
+    Value<DateTime?> lastSyncedAt = const Value.absent(),
+    int? version,
+    Value<DateTime?> serverCreatedAt = const Value.absent(),
+    Value<DateTime?> serverUpdatedAt = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+    String? id,
+    String? companyId,
+    String? code,
+    VoucherType? type,
+    VoucherStatus? status,
+    int? value,
+    Value<DiscountType?> discountType = const Value.absent(),
+    Value<VoucherDiscountScope?> discountScope = const Value.absent(),
+    Value<String?> itemId = const Value.absent(),
+    Value<String?> categoryId = const Value.absent(),
+    Value<int?> minOrderValue = const Value.absent(),
+    int? maxUses,
+    int? usedCount,
+    Value<String?> customerId = const Value.absent(),
+    Value<DateTime?> expiresAt = const Value.absent(),
+    Value<DateTime?> redeemedAt = const Value.absent(),
+    Value<String?> redeemedOnBillId = const Value.absent(),
+    Value<String?> sourceBillId = const Value.absent(),
+    Value<String?> note = const Value.absent(),
+  }) => Voucher(
+    lastSyncedAt: lastSyncedAt.present ? lastSyncedAt.value : this.lastSyncedAt,
+    version: version ?? this.version,
+    serverCreatedAt: serverCreatedAt.present
+        ? serverCreatedAt.value
+        : this.serverCreatedAt,
+    serverUpdatedAt: serverUpdatedAt.present
+        ? serverUpdatedAt.value
+        : this.serverUpdatedAt,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+    id: id ?? this.id,
+    companyId: companyId ?? this.companyId,
+    code: code ?? this.code,
+    type: type ?? this.type,
+    status: status ?? this.status,
+    value: value ?? this.value,
+    discountType: discountType.present ? discountType.value : this.discountType,
+    discountScope: discountScope.present
+        ? discountScope.value
+        : this.discountScope,
+    itemId: itemId.present ? itemId.value : this.itemId,
+    categoryId: categoryId.present ? categoryId.value : this.categoryId,
+    minOrderValue: minOrderValue.present
+        ? minOrderValue.value
+        : this.minOrderValue,
+    maxUses: maxUses ?? this.maxUses,
+    usedCount: usedCount ?? this.usedCount,
+    customerId: customerId.present ? customerId.value : this.customerId,
+    expiresAt: expiresAt.present ? expiresAt.value : this.expiresAt,
+    redeemedAt: redeemedAt.present ? redeemedAt.value : this.redeemedAt,
+    redeemedOnBillId: redeemedOnBillId.present
+        ? redeemedOnBillId.value
+        : this.redeemedOnBillId,
+    sourceBillId: sourceBillId.present ? sourceBillId.value : this.sourceBillId,
+    note: note.present ? note.value : this.note,
+  );
+  Voucher copyWithCompanion(VouchersCompanion data) {
+    return Voucher(
+      lastSyncedAt: data.lastSyncedAt.present
+          ? data.lastSyncedAt.value
+          : this.lastSyncedAt,
+      version: data.version.present ? data.version.value : this.version,
+      serverCreatedAt: data.serverCreatedAt.present
+          ? data.serverCreatedAt.value
+          : this.serverCreatedAt,
+      serverUpdatedAt: data.serverUpdatedAt.present
+          ? data.serverUpdatedAt.value
+          : this.serverUpdatedAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      id: data.id.present ? data.id.value : this.id,
+      companyId: data.companyId.present ? data.companyId.value : this.companyId,
+      code: data.code.present ? data.code.value : this.code,
+      type: data.type.present ? data.type.value : this.type,
+      status: data.status.present ? data.status.value : this.status,
+      value: data.value.present ? data.value.value : this.value,
+      discountType: data.discountType.present
+          ? data.discountType.value
+          : this.discountType,
+      discountScope: data.discountScope.present
+          ? data.discountScope.value
+          : this.discountScope,
+      itemId: data.itemId.present ? data.itemId.value : this.itemId,
+      categoryId: data.categoryId.present
+          ? data.categoryId.value
+          : this.categoryId,
+      minOrderValue: data.minOrderValue.present
+          ? data.minOrderValue.value
+          : this.minOrderValue,
+      maxUses: data.maxUses.present ? data.maxUses.value : this.maxUses,
+      usedCount: data.usedCount.present ? data.usedCount.value : this.usedCount,
+      customerId: data.customerId.present
+          ? data.customerId.value
+          : this.customerId,
+      expiresAt: data.expiresAt.present ? data.expiresAt.value : this.expiresAt,
+      redeemedAt: data.redeemedAt.present
+          ? data.redeemedAt.value
+          : this.redeemedAt,
+      redeemedOnBillId: data.redeemedOnBillId.present
+          ? data.redeemedOnBillId.value
+          : this.redeemedOnBillId,
+      sourceBillId: data.sourceBillId.present
+          ? data.sourceBillId.value
+          : this.sourceBillId,
+      note: data.note.present ? data.note.value : this.note,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Voucher(')
+          ..write('lastSyncedAt: $lastSyncedAt, ')
+          ..write('version: $version, ')
+          ..write('serverCreatedAt: $serverCreatedAt, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('id: $id, ')
+          ..write('companyId: $companyId, ')
+          ..write('code: $code, ')
+          ..write('type: $type, ')
+          ..write('status: $status, ')
+          ..write('value: $value, ')
+          ..write('discountType: $discountType, ')
+          ..write('discountScope: $discountScope, ')
+          ..write('itemId: $itemId, ')
+          ..write('categoryId: $categoryId, ')
+          ..write('minOrderValue: $minOrderValue, ')
+          ..write('maxUses: $maxUses, ')
+          ..write('usedCount: $usedCount, ')
+          ..write('customerId: $customerId, ')
+          ..write('expiresAt: $expiresAt, ')
+          ..write('redeemedAt: $redeemedAt, ')
+          ..write('redeemedOnBillId: $redeemedOnBillId, ')
+          ..write('sourceBillId: $sourceBillId, ')
+          ..write('note: $note')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hashAll([
+    lastSyncedAt,
+    version,
+    serverCreatedAt,
+    serverUpdatedAt,
+    createdAt,
+    updatedAt,
+    deletedAt,
+    id,
+    companyId,
+    code,
+    type,
+    status,
+    value,
+    discountType,
+    discountScope,
+    itemId,
+    categoryId,
+    minOrderValue,
+    maxUses,
+    usedCount,
+    customerId,
+    expiresAt,
+    redeemedAt,
+    redeemedOnBillId,
+    sourceBillId,
+    note,
+  ]);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Voucher &&
+          other.lastSyncedAt == this.lastSyncedAt &&
+          other.version == this.version &&
+          other.serverCreatedAt == this.serverCreatedAt &&
+          other.serverUpdatedAt == this.serverUpdatedAt &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt &&
+          other.id == this.id &&
+          other.companyId == this.companyId &&
+          other.code == this.code &&
+          other.type == this.type &&
+          other.status == this.status &&
+          other.value == this.value &&
+          other.discountType == this.discountType &&
+          other.discountScope == this.discountScope &&
+          other.itemId == this.itemId &&
+          other.categoryId == this.categoryId &&
+          other.minOrderValue == this.minOrderValue &&
+          other.maxUses == this.maxUses &&
+          other.usedCount == this.usedCount &&
+          other.customerId == this.customerId &&
+          other.expiresAt == this.expiresAt &&
+          other.redeemedAt == this.redeemedAt &&
+          other.redeemedOnBillId == this.redeemedOnBillId &&
+          other.sourceBillId == this.sourceBillId &&
+          other.note == this.note);
+}
+
+class VouchersCompanion extends UpdateCompanion<Voucher> {
+  final Value<DateTime?> lastSyncedAt;
+  final Value<int> version;
+  final Value<DateTime?> serverCreatedAt;
+  final Value<DateTime?> serverUpdatedAt;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<String> id;
+  final Value<String> companyId;
+  final Value<String> code;
+  final Value<VoucherType> type;
+  final Value<VoucherStatus> status;
+  final Value<int> value;
+  final Value<DiscountType?> discountType;
+  final Value<VoucherDiscountScope?> discountScope;
+  final Value<String?> itemId;
+  final Value<String?> categoryId;
+  final Value<int?> minOrderValue;
+  final Value<int> maxUses;
+  final Value<int> usedCount;
+  final Value<String?> customerId;
+  final Value<DateTime?> expiresAt;
+  final Value<DateTime?> redeemedAt;
+  final Value<String?> redeemedOnBillId;
+  final Value<String?> sourceBillId;
+  final Value<String?> note;
+  final Value<int> rowid;
+  const VouchersCompanion({
+    this.lastSyncedAt = const Value.absent(),
+    this.version = const Value.absent(),
+    this.serverCreatedAt = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.id = const Value.absent(),
+    this.companyId = const Value.absent(),
+    this.code = const Value.absent(),
+    this.type = const Value.absent(),
+    this.status = const Value.absent(),
+    this.value = const Value.absent(),
+    this.discountType = const Value.absent(),
+    this.discountScope = const Value.absent(),
+    this.itemId = const Value.absent(),
+    this.categoryId = const Value.absent(),
+    this.minOrderValue = const Value.absent(),
+    this.maxUses = const Value.absent(),
+    this.usedCount = const Value.absent(),
+    this.customerId = const Value.absent(),
+    this.expiresAt = const Value.absent(),
+    this.redeemedAt = const Value.absent(),
+    this.redeemedOnBillId = const Value.absent(),
+    this.sourceBillId = const Value.absent(),
+    this.note = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  VouchersCompanion.insert({
+    this.lastSyncedAt = const Value.absent(),
+    this.version = const Value.absent(),
+    this.serverCreatedAt = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    required String id,
+    required String companyId,
+    required String code,
+    required VoucherType type,
+    required VoucherStatus status,
+    required int value,
+    this.discountType = const Value.absent(),
+    this.discountScope = const Value.absent(),
+    this.itemId = const Value.absent(),
+    this.categoryId = const Value.absent(),
+    this.minOrderValue = const Value.absent(),
+    this.maxUses = const Value.absent(),
+    this.usedCount = const Value.absent(),
+    this.customerId = const Value.absent(),
+    this.expiresAt = const Value.absent(),
+    this.redeemedAt = const Value.absent(),
+    this.redeemedOnBillId = const Value.absent(),
+    this.sourceBillId = const Value.absent(),
+    this.note = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       companyId = Value(companyId),
+       code = Value(code),
+       type = Value(type),
+       status = Value(status),
+       value = Value(value);
+  static Insertable<Voucher> custom({
+    Expression<DateTime>? lastSyncedAt,
+    Expression<int>? version,
+    Expression<DateTime>? serverCreatedAt,
+    Expression<DateTime>? serverUpdatedAt,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<String>? id,
+    Expression<String>? companyId,
+    Expression<String>? code,
+    Expression<String>? type,
+    Expression<String>? status,
+    Expression<int>? value,
+    Expression<String>? discountType,
+    Expression<String>? discountScope,
+    Expression<String>? itemId,
+    Expression<String>? categoryId,
+    Expression<int>? minOrderValue,
+    Expression<int>? maxUses,
+    Expression<int>? usedCount,
+    Expression<String>? customerId,
+    Expression<DateTime>? expiresAt,
+    Expression<DateTime>? redeemedAt,
+    Expression<String>? redeemedOnBillId,
+    Expression<String>? sourceBillId,
+    Expression<String>? note,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (lastSyncedAt != null) 'last_synced_at': lastSyncedAt,
+      if (version != null) 'version': version,
+      if (serverCreatedAt != null) 'server_created_at': serverCreatedAt,
+      if (serverUpdatedAt != null) 'server_updated_at': serverUpdatedAt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (id != null) 'id': id,
+      if (companyId != null) 'company_id': companyId,
+      if (code != null) 'code': code,
+      if (type != null) 'type': type,
+      if (status != null) 'status': status,
+      if (value != null) 'value': value,
+      if (discountType != null) 'discount_type': discountType,
+      if (discountScope != null) 'discount_scope': discountScope,
+      if (itemId != null) 'item_id': itemId,
+      if (categoryId != null) 'category_id': categoryId,
+      if (minOrderValue != null) 'min_order_value': minOrderValue,
+      if (maxUses != null) 'max_uses': maxUses,
+      if (usedCount != null) 'used_count': usedCount,
+      if (customerId != null) 'customer_id': customerId,
+      if (expiresAt != null) 'expires_at': expiresAt,
+      if (redeemedAt != null) 'redeemed_at': redeemedAt,
+      if (redeemedOnBillId != null) 'redeemed_on_bill_id': redeemedOnBillId,
+      if (sourceBillId != null) 'source_bill_id': sourceBillId,
+      if (note != null) 'note': note,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  VouchersCompanion copyWith({
+    Value<DateTime?>? lastSyncedAt,
+    Value<int>? version,
+    Value<DateTime?>? serverCreatedAt,
+    Value<DateTime?>? serverUpdatedAt,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? deletedAt,
+    Value<String>? id,
+    Value<String>? companyId,
+    Value<String>? code,
+    Value<VoucherType>? type,
+    Value<VoucherStatus>? status,
+    Value<int>? value,
+    Value<DiscountType?>? discountType,
+    Value<VoucherDiscountScope?>? discountScope,
+    Value<String?>? itemId,
+    Value<String?>? categoryId,
+    Value<int?>? minOrderValue,
+    Value<int>? maxUses,
+    Value<int>? usedCount,
+    Value<String?>? customerId,
+    Value<DateTime?>? expiresAt,
+    Value<DateTime?>? redeemedAt,
+    Value<String?>? redeemedOnBillId,
+    Value<String?>? sourceBillId,
+    Value<String?>? note,
+    Value<int>? rowid,
+  }) {
+    return VouchersCompanion(
+      lastSyncedAt: lastSyncedAt ?? this.lastSyncedAt,
+      version: version ?? this.version,
+      serverCreatedAt: serverCreatedAt ?? this.serverCreatedAt,
+      serverUpdatedAt: serverUpdatedAt ?? this.serverUpdatedAt,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      id: id ?? this.id,
+      companyId: companyId ?? this.companyId,
+      code: code ?? this.code,
+      type: type ?? this.type,
+      status: status ?? this.status,
+      value: value ?? this.value,
+      discountType: discountType ?? this.discountType,
+      discountScope: discountScope ?? this.discountScope,
+      itemId: itemId ?? this.itemId,
+      categoryId: categoryId ?? this.categoryId,
+      minOrderValue: minOrderValue ?? this.minOrderValue,
+      maxUses: maxUses ?? this.maxUses,
+      usedCount: usedCount ?? this.usedCount,
+      customerId: customerId ?? this.customerId,
+      expiresAt: expiresAt ?? this.expiresAt,
+      redeemedAt: redeemedAt ?? this.redeemedAt,
+      redeemedOnBillId: redeemedOnBillId ?? this.redeemedOnBillId,
+      sourceBillId: sourceBillId ?? this.sourceBillId,
+      note: note ?? this.note,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (lastSyncedAt.present) {
+      map['last_synced_at'] = Variable<DateTime>(lastSyncedAt.value);
+    }
+    if (version.present) {
+      map['version'] = Variable<int>(version.value);
+    }
+    if (serverCreatedAt.present) {
+      map['server_created_at'] = Variable<DateTime>(serverCreatedAt.value);
+    }
+    if (serverUpdatedAt.present) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (companyId.present) {
+      map['company_id'] = Variable<String>(companyId.value);
+    }
+    if (code.present) {
+      map['code'] = Variable<String>(code.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<String>(
+        $VouchersTable.$convertertype.toSql(type.value),
+      );
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(
+        $VouchersTable.$converterstatus.toSql(status.value),
+      );
+    }
+    if (value.present) {
+      map['value'] = Variable<int>(value.value);
+    }
+    if (discountType.present) {
+      map['discount_type'] = Variable<String>(
+        $VouchersTable.$converterdiscountTypen.toSql(discountType.value),
+      );
+    }
+    if (discountScope.present) {
+      map['discount_scope'] = Variable<String>(
+        $VouchersTable.$converterdiscountScopen.toSql(discountScope.value),
+      );
+    }
+    if (itemId.present) {
+      map['item_id'] = Variable<String>(itemId.value);
+    }
+    if (categoryId.present) {
+      map['category_id'] = Variable<String>(categoryId.value);
+    }
+    if (minOrderValue.present) {
+      map['min_order_value'] = Variable<int>(minOrderValue.value);
+    }
+    if (maxUses.present) {
+      map['max_uses'] = Variable<int>(maxUses.value);
+    }
+    if (usedCount.present) {
+      map['used_count'] = Variable<int>(usedCount.value);
+    }
+    if (customerId.present) {
+      map['customer_id'] = Variable<String>(customerId.value);
+    }
+    if (expiresAt.present) {
+      map['expires_at'] = Variable<DateTime>(expiresAt.value);
+    }
+    if (redeemedAt.present) {
+      map['redeemed_at'] = Variable<DateTime>(redeemedAt.value);
+    }
+    if (redeemedOnBillId.present) {
+      map['redeemed_on_bill_id'] = Variable<String>(redeemedOnBillId.value);
+    }
+    if (sourceBillId.present) {
+      map['source_bill_id'] = Variable<String>(sourceBillId.value);
+    }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('VouchersCompanion(')
+          ..write('lastSyncedAt: $lastSyncedAt, ')
+          ..write('version: $version, ')
+          ..write('serverCreatedAt: $serverCreatedAt, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('id: $id, ')
+          ..write('companyId: $companyId, ')
+          ..write('code: $code, ')
+          ..write('type: $type, ')
+          ..write('status: $status, ')
+          ..write('value: $value, ')
+          ..write('discountType: $discountType, ')
+          ..write('discountScope: $discountScope, ')
+          ..write('itemId: $itemId, ')
+          ..write('categoryId: $categoryId, ')
+          ..write('minOrderValue: $minOrderValue, ')
+          ..write('maxUses: $maxUses, ')
+          ..write('usedCount: $usedCount, ')
+          ..write('customerId: $customerId, ')
+          ..write('expiresAt: $expiresAt, ')
+          ..write('redeemedAt: $redeemedAt, ')
+          ..write('redeemedOnBillId: $redeemedOnBillId, ')
+          ..write('sourceBillId: $sourceBillId, ')
+          ..write('note: $note, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $WarehousesTable extends Warehouses
     with TableInfo<$WarehousesTable, Warehouse> {
   @override
@@ -31583,6 +34111,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $CurrenciesTable currencies = $CurrenciesTable(this);
   late final $ItemsTable items = $ItemsTable(this);
   late final $LayoutItemsTable layoutItems = $LayoutItemsTable(this);
+  late final $MapElementsTable mapElements = $MapElementsTable(this);
   late final $ManufacturersTable manufacturers = $ManufacturersTable(this);
   late final $OrderItemsTable orderItems = $OrderItemsTable(this);
   late final $OrdersTable orders = $OrdersTable(this);
@@ -31613,6 +34142,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     this,
   );
   late final $UsersTable users = $UsersTable(this);
+  late final $VouchersTable vouchers = $VouchersTable(this);
   late final $WarehousesTable warehouses = $WarehousesTable(this);
   late final Index idxBillsCompanyUpdated = Index(
     'idx_bills_company_updated',
@@ -31649,6 +34179,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final Index idxLayoutItemsCompanyUpdated = Index(
     'idx_layout_items_company_updated',
     'CREATE INDEX idx_layout_items_company_updated ON layout_items (company_id, updated_at)',
+  );
+  late final Index idxMapElementsCompanyUpdated = Index(
+    'idx_map_elements_company_updated',
+    'CREATE INDEX idx_map_elements_company_updated ON map_elements (company_id, updated_at)',
   );
   late final Index idxManufacturersCompanyUpdated = Index(
     'idx_manufacturers_company_updated',
@@ -31754,6 +34288,14 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     'idx_users_company_updated',
     'CREATE INDEX idx_users_company_updated ON users (company_id, updated_at)',
   );
+  late final Index idxVouchersCompanyUpdated = Index(
+    'idx_vouchers_company_updated',
+    'CREATE INDEX idx_vouchers_company_updated ON vouchers (company_id, updated_at)',
+  );
+  late final Index idxVouchersCode = Index(
+    'idx_vouchers_code',
+    'CREATE INDEX idx_vouchers_code ON vouchers (code)',
+  );
   late final Index idxWarehousesCompanyUpdated = Index(
     'idx_warehouses_company_updated',
     'CREATE INDEX idx_warehouses_company_updated ON warehouses (company_id, updated_at)',
@@ -31773,6 +34315,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     currencies,
     items,
     layoutItems,
+    mapElements,
     manufacturers,
     orderItems,
     orders,
@@ -31797,6 +34340,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     taxRates,
     userPermissions,
     users,
+    vouchers,
     warehouses,
     idxBillsCompanyUpdated,
     idxCashMovementsCompanyUpdated,
@@ -31807,6 +34351,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     idxCompanySettingsCompanyUpdated,
     idxItemsCompanyUpdated,
     idxLayoutItemsCompanyUpdated,
+    idxMapElementsCompanyUpdated,
     idxManufacturersCompanyUpdated,
     idxOrderItemsCompanyUpdated,
     idxOrdersCompanyUpdated,
@@ -31833,6 +34378,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     idxTaxRatesCompanyUpdated,
     idxUserPermissionsCompanyUpdated,
     idxUsersCompanyUpdated,
+    idxVouchersCompanyUpdated,
+    idxVouchersCode,
     idxWarehousesCompanyUpdated,
   ];
 }
@@ -31866,6 +34413,8 @@ typedef $$BillsTableCreateCompanionBuilder =
       Value<int> paidAmount,
       Value<int> loyaltyPointsUsed,
       Value<int> loyaltyDiscountAmount,
+      Value<int> voucherDiscountAmount,
+      Value<String?> voucherId,
       required DateTime openedAt,
       Value<DateTime?> closedAt,
       Value<int?> mapPosX,
@@ -31901,6 +34450,8 @@ typedef $$BillsTableUpdateCompanionBuilder =
       Value<int> paidAmount,
       Value<int> loyaltyPointsUsed,
       Value<int> loyaltyDiscountAmount,
+      Value<int> voucherDiscountAmount,
+      Value<String?> voucherId,
       Value<DateTime> openedAt,
       Value<DateTime?> closedAt,
       Value<int?> mapPosX,
@@ -32050,6 +34601,16 @@ class $$BillsTableFilterComposer extends Composer<_$AppDatabase, $BillsTable> {
 
   ColumnFilters<int> get loyaltyDiscountAmount => $composableBuilder(
     column: $table.loyaltyDiscountAmount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get voucherDiscountAmount => $composableBuilder(
+    column: $table.voucherDiscountAmount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get voucherId => $composableBuilder(
+    column: $table.voucherId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -32218,6 +34779,16 @@ class $$BillsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get voucherDiscountAmount => $composableBuilder(
+    column: $table.voucherDiscountAmount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get voucherId => $composableBuilder(
+    column: $table.voucherId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get openedAt => $composableBuilder(
     column: $table.openedAt,
     builder: (column) => ColumnOrderings(column),
@@ -32366,6 +34937,14 @@ class $$BillsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<int> get voucherDiscountAmount => $composableBuilder(
+    column: $table.voucherDiscountAmount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get voucherId =>
+      $composableBuilder(column: $table.voucherId, builder: (column) => column);
+
   GeneratedColumn<DateTime> get openedAt =>
       $composableBuilder(column: $table.openedAt, builder: (column) => column);
 
@@ -32434,6 +35013,8 @@ class $$BillsTableTableManager
                 Value<int> paidAmount = const Value.absent(),
                 Value<int> loyaltyPointsUsed = const Value.absent(),
                 Value<int> loyaltyDiscountAmount = const Value.absent(),
+                Value<int> voucherDiscountAmount = const Value.absent(),
+                Value<String?> voucherId = const Value.absent(),
                 Value<DateTime> openedAt = const Value.absent(),
                 Value<DateTime?> closedAt = const Value.absent(),
                 Value<int?> mapPosX = const Value.absent(),
@@ -32467,6 +35048,8 @@ class $$BillsTableTableManager
                 paidAmount: paidAmount,
                 loyaltyPointsUsed: loyaltyPointsUsed,
                 loyaltyDiscountAmount: loyaltyDiscountAmount,
+                voucherDiscountAmount: voucherDiscountAmount,
+                voucherId: voucherId,
                 openedAt: openedAt,
                 closedAt: closedAt,
                 mapPosX: mapPosX,
@@ -32502,6 +35085,8 @@ class $$BillsTableTableManager
                 Value<int> paidAmount = const Value.absent(),
                 Value<int> loyaltyPointsUsed = const Value.absent(),
                 Value<int> loyaltyDiscountAmount = const Value.absent(),
+                Value<int> voucherDiscountAmount = const Value.absent(),
+                Value<String?> voucherId = const Value.absent(),
                 required DateTime openedAt,
                 Value<DateTime?> closedAt = const Value.absent(),
                 Value<int?> mapPosX = const Value.absent(),
@@ -32535,6 +35120,8 @@ class $$BillsTableTableManager
                 paidAmount: paidAmount,
                 loyaltyPointsUsed: loyaltyPointsUsed,
                 loyaltyDiscountAmount: loyaltyDiscountAmount,
+                voucherDiscountAmount: voucherDiscountAmount,
+                voucherId: voucherId,
                 openedAt: openedAt,
                 closedAt: closedAt,
                 mapPosX: mapPosX,
@@ -36483,6 +39070,443 @@ typedef $$LayoutItemsTableProcessedTableManager =
       LayoutItem,
       PrefetchHooks Function()
     >;
+typedef $$MapElementsTableCreateCompanionBuilder =
+    MapElementsCompanion Function({
+      Value<DateTime?> lastSyncedAt,
+      Value<int> version,
+      Value<DateTime?> serverCreatedAt,
+      Value<DateTime?> serverUpdatedAt,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      required String id,
+      required String companyId,
+      Value<String?> sectionId,
+      Value<int> gridRow,
+      Value<int> gridCol,
+      Value<int> gridWidth,
+      Value<int> gridHeight,
+      Value<String?> label,
+      Value<String?> color,
+      Value<TableShape> shape,
+      Value<int> rowid,
+    });
+typedef $$MapElementsTableUpdateCompanionBuilder =
+    MapElementsCompanion Function({
+      Value<DateTime?> lastSyncedAt,
+      Value<int> version,
+      Value<DateTime?> serverCreatedAt,
+      Value<DateTime?> serverUpdatedAt,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<String> id,
+      Value<String> companyId,
+      Value<String?> sectionId,
+      Value<int> gridRow,
+      Value<int> gridCol,
+      Value<int> gridWidth,
+      Value<int> gridHeight,
+      Value<String?> label,
+      Value<String?> color,
+      Value<TableShape> shape,
+      Value<int> rowid,
+    });
+
+class $$MapElementsTableFilterComposer
+    extends Composer<_$AppDatabase, $MapElementsTable> {
+  $$MapElementsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<DateTime> get lastSyncedAt => $composableBuilder(
+    column: $table.lastSyncedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get version => $composableBuilder(
+    column: $table.version,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get serverCreatedAt => $composableBuilder(
+    column: $table.serverCreatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get companyId => $composableBuilder(
+    column: $table.companyId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sectionId => $composableBuilder(
+    column: $table.sectionId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get gridRow => $composableBuilder(
+    column: $table.gridRow,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get gridCol => $composableBuilder(
+    column: $table.gridCol,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get gridWidth => $composableBuilder(
+    column: $table.gridWidth,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get gridHeight => $composableBuilder(
+    column: $table.gridHeight,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get label => $composableBuilder(
+    column: $table.label,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get color => $composableBuilder(
+    column: $table.color,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<TableShape, TableShape, String> get shape =>
+      $composableBuilder(
+        column: $table.shape,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+}
+
+class $$MapElementsTableOrderingComposer
+    extends Composer<_$AppDatabase, $MapElementsTable> {
+  $$MapElementsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<DateTime> get lastSyncedAt => $composableBuilder(
+    column: $table.lastSyncedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get version => $composableBuilder(
+    column: $table.version,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get serverCreatedAt => $composableBuilder(
+    column: $table.serverCreatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get companyId => $composableBuilder(
+    column: $table.companyId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sectionId => $composableBuilder(
+    column: $table.sectionId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get gridRow => $composableBuilder(
+    column: $table.gridRow,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get gridCol => $composableBuilder(
+    column: $table.gridCol,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get gridWidth => $composableBuilder(
+    column: $table.gridWidth,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get gridHeight => $composableBuilder(
+    column: $table.gridHeight,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get label => $composableBuilder(
+    column: $table.label,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get color => $composableBuilder(
+    column: $table.color,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get shape => $composableBuilder(
+    column: $table.shape,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$MapElementsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $MapElementsTable> {
+  $$MapElementsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<DateTime> get lastSyncedAt => $composableBuilder(
+    column: $table.lastSyncedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get version =>
+      $composableBuilder(column: $table.version, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get serverCreatedAt => $composableBuilder(
+    column: $table.serverCreatedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get companyId =>
+      $composableBuilder(column: $table.companyId, builder: (column) => column);
+
+  GeneratedColumn<String> get sectionId =>
+      $composableBuilder(column: $table.sectionId, builder: (column) => column);
+
+  GeneratedColumn<int> get gridRow =>
+      $composableBuilder(column: $table.gridRow, builder: (column) => column);
+
+  GeneratedColumn<int> get gridCol =>
+      $composableBuilder(column: $table.gridCol, builder: (column) => column);
+
+  GeneratedColumn<int> get gridWidth =>
+      $composableBuilder(column: $table.gridWidth, builder: (column) => column);
+
+  GeneratedColumn<int> get gridHeight => $composableBuilder(
+    column: $table.gridHeight,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get label =>
+      $composableBuilder(column: $table.label, builder: (column) => column);
+
+  GeneratedColumn<String> get color =>
+      $composableBuilder(column: $table.color, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<TableShape, String> get shape =>
+      $composableBuilder(column: $table.shape, builder: (column) => column);
+}
+
+class $$MapElementsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $MapElementsTable,
+          MapElementEntity,
+          $$MapElementsTableFilterComposer,
+          $$MapElementsTableOrderingComposer,
+          $$MapElementsTableAnnotationComposer,
+          $$MapElementsTableCreateCompanionBuilder,
+          $$MapElementsTableUpdateCompanionBuilder,
+          (
+            MapElementEntity,
+            BaseReferences<_$AppDatabase, $MapElementsTable, MapElementEntity>,
+          ),
+          MapElementEntity,
+          PrefetchHooks Function()
+        > {
+  $$MapElementsTableTableManager(_$AppDatabase db, $MapElementsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$MapElementsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$MapElementsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$MapElementsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<DateTime?> lastSyncedAt = const Value.absent(),
+                Value<int> version = const Value.absent(),
+                Value<DateTime?> serverCreatedAt = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<String> id = const Value.absent(),
+                Value<String> companyId = const Value.absent(),
+                Value<String?> sectionId = const Value.absent(),
+                Value<int> gridRow = const Value.absent(),
+                Value<int> gridCol = const Value.absent(),
+                Value<int> gridWidth = const Value.absent(),
+                Value<int> gridHeight = const Value.absent(),
+                Value<String?> label = const Value.absent(),
+                Value<String?> color = const Value.absent(),
+                Value<TableShape> shape = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MapElementsCompanion(
+                lastSyncedAt: lastSyncedAt,
+                version: version,
+                serverCreatedAt: serverCreatedAt,
+                serverUpdatedAt: serverUpdatedAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                id: id,
+                companyId: companyId,
+                sectionId: sectionId,
+                gridRow: gridRow,
+                gridCol: gridCol,
+                gridWidth: gridWidth,
+                gridHeight: gridHeight,
+                label: label,
+                color: color,
+                shape: shape,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                Value<DateTime?> lastSyncedAt = const Value.absent(),
+                Value<int> version = const Value.absent(),
+                Value<DateTime?> serverCreatedAt = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                required String id,
+                required String companyId,
+                Value<String?> sectionId = const Value.absent(),
+                Value<int> gridRow = const Value.absent(),
+                Value<int> gridCol = const Value.absent(),
+                Value<int> gridWidth = const Value.absent(),
+                Value<int> gridHeight = const Value.absent(),
+                Value<String?> label = const Value.absent(),
+                Value<String?> color = const Value.absent(),
+                Value<TableShape> shape = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MapElementsCompanion.insert(
+                lastSyncedAt: lastSyncedAt,
+                version: version,
+                serverCreatedAt: serverCreatedAt,
+                serverUpdatedAt: serverUpdatedAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                id: id,
+                companyId: companyId,
+                sectionId: sectionId,
+                gridRow: gridRow,
+                gridCol: gridCol,
+                gridWidth: gridWidth,
+                gridHeight: gridHeight,
+                label: label,
+                color: color,
+                shape: shape,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$MapElementsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $MapElementsTable,
+      MapElementEntity,
+      $$MapElementsTableFilterComposer,
+      $$MapElementsTableOrderingComposer,
+      $$MapElementsTableAnnotationComposer,
+      $$MapElementsTableCreateCompanionBuilder,
+      $$MapElementsTableUpdateCompanionBuilder,
+      (
+        MapElementEntity,
+        BaseReferences<_$AppDatabase, $MapElementsTable, MapElementEntity>,
+      ),
+      MapElementEntity,
+      PrefetchHooks Function()
+    >;
 typedef $$ManufacturersTableCreateCompanionBuilder =
     ManufacturersCompanion Function({
       Value<DateTime?> lastSyncedAt,
@@ -40312,7 +43336,7 @@ typedef $$ReservationsTableCreateCompanionBuilder =
       Value<int> partySize,
       Value<String?> tableId,
       Value<String?> notes,
-      required String status,
+      required ReservationStatus status,
       Value<int> rowid,
     });
 typedef $$ReservationsTableUpdateCompanionBuilder =
@@ -40333,7 +43357,7 @@ typedef $$ReservationsTableUpdateCompanionBuilder =
       Value<int> partySize,
       Value<String?> tableId,
       Value<String?> notes,
-      Value<String> status,
+      Value<ReservationStatus> status,
       Value<int> rowid,
     });
 
@@ -40426,9 +43450,10 @@ class $$ReservationsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get status => $composableBuilder(
+  ColumnWithTypeConverterFilters<ReservationStatus, ReservationStatus, String>
+  get status => $composableBuilder(
     column: $table.status,
-    builder: (column) => ColumnFilters(column),
+    builder: (column) => ColumnWithTypeConverterFilters(column),
   );
 }
 
@@ -40598,7 +43623,7 @@ class $$ReservationsTableAnnotationComposer
   GeneratedColumn<String> get notes =>
       $composableBuilder(column: $table.notes, builder: (column) => column);
 
-  GeneratedColumn<String> get status =>
+  GeneratedColumnWithTypeConverter<ReservationStatus, String> get status =>
       $composableBuilder(column: $table.status, builder: (column) => column);
 }
 
@@ -40649,7 +43674,7 @@ class $$ReservationsTableTableManager
                 Value<int> partySize = const Value.absent(),
                 Value<String?> tableId = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
-                Value<String> status = const Value.absent(),
+                Value<ReservationStatus> status = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ReservationsCompanion(
                 lastSyncedAt: lastSyncedAt,
@@ -40689,7 +43714,7 @@ class $$ReservationsTableTableManager
                 Value<int> partySize = const Value.absent(),
                 Value<String?> tableId = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
-                required String status,
+                required ReservationStatus status,
                 Value<int> rowid = const Value.absent(),
               }) => ReservationsCompanion.insert(
                 lastSyncedAt: lastSyncedAt,
@@ -45810,6 +48835,633 @@ typedef $$UsersTableProcessedTableManager =
       User,
       PrefetchHooks Function()
     >;
+typedef $$VouchersTableCreateCompanionBuilder =
+    VouchersCompanion Function({
+      Value<DateTime?> lastSyncedAt,
+      Value<int> version,
+      Value<DateTime?> serverCreatedAt,
+      Value<DateTime?> serverUpdatedAt,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      required String id,
+      required String companyId,
+      required String code,
+      required VoucherType type,
+      required VoucherStatus status,
+      required int value,
+      Value<DiscountType?> discountType,
+      Value<VoucherDiscountScope?> discountScope,
+      Value<String?> itemId,
+      Value<String?> categoryId,
+      Value<int?> minOrderValue,
+      Value<int> maxUses,
+      Value<int> usedCount,
+      Value<String?> customerId,
+      Value<DateTime?> expiresAt,
+      Value<DateTime?> redeemedAt,
+      Value<String?> redeemedOnBillId,
+      Value<String?> sourceBillId,
+      Value<String?> note,
+      Value<int> rowid,
+    });
+typedef $$VouchersTableUpdateCompanionBuilder =
+    VouchersCompanion Function({
+      Value<DateTime?> lastSyncedAt,
+      Value<int> version,
+      Value<DateTime?> serverCreatedAt,
+      Value<DateTime?> serverUpdatedAt,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<String> id,
+      Value<String> companyId,
+      Value<String> code,
+      Value<VoucherType> type,
+      Value<VoucherStatus> status,
+      Value<int> value,
+      Value<DiscountType?> discountType,
+      Value<VoucherDiscountScope?> discountScope,
+      Value<String?> itemId,
+      Value<String?> categoryId,
+      Value<int?> minOrderValue,
+      Value<int> maxUses,
+      Value<int> usedCount,
+      Value<String?> customerId,
+      Value<DateTime?> expiresAt,
+      Value<DateTime?> redeemedAt,
+      Value<String?> redeemedOnBillId,
+      Value<String?> sourceBillId,
+      Value<String?> note,
+      Value<int> rowid,
+    });
+
+class $$VouchersTableFilterComposer
+    extends Composer<_$AppDatabase, $VouchersTable> {
+  $$VouchersTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<DateTime> get lastSyncedAt => $composableBuilder(
+    column: $table.lastSyncedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get version => $composableBuilder(
+    column: $table.version,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get serverCreatedAt => $composableBuilder(
+    column: $table.serverCreatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get companyId => $composableBuilder(
+    column: $table.companyId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get code => $composableBuilder(
+    column: $table.code,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<VoucherType, VoucherType, String> get type =>
+      $composableBuilder(
+        column: $table.type,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnWithTypeConverterFilters<VoucherStatus, VoucherStatus, String>
+  get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<int> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<DiscountType?, DiscountType, String>
+  get discountType => $composableBuilder(
+    column: $table.discountType,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<
+    VoucherDiscountScope?,
+    VoucherDiscountScope,
+    String
+  >
+  get discountScope => $composableBuilder(
+    column: $table.discountScope,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<String> get itemId => $composableBuilder(
+    column: $table.itemId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get categoryId => $composableBuilder(
+    column: $table.categoryId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get minOrderValue => $composableBuilder(
+    column: $table.minOrderValue,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get maxUses => $composableBuilder(
+    column: $table.maxUses,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get usedCount => $composableBuilder(
+    column: $table.usedCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get customerId => $composableBuilder(
+    column: $table.customerId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get expiresAt => $composableBuilder(
+    column: $table.expiresAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get redeemedAt => $composableBuilder(
+    column: $table.redeemedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get redeemedOnBillId => $composableBuilder(
+    column: $table.redeemedOnBillId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sourceBillId => $composableBuilder(
+    column: $table.sourceBillId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$VouchersTableOrderingComposer
+    extends Composer<_$AppDatabase, $VouchersTable> {
+  $$VouchersTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<DateTime> get lastSyncedAt => $composableBuilder(
+    column: $table.lastSyncedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get version => $composableBuilder(
+    column: $table.version,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get serverCreatedAt => $composableBuilder(
+    column: $table.serverCreatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get companyId => $composableBuilder(
+    column: $table.companyId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get code => $composableBuilder(
+    column: $table.code,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get discountType => $composableBuilder(
+    column: $table.discountType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get discountScope => $composableBuilder(
+    column: $table.discountScope,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get itemId => $composableBuilder(
+    column: $table.itemId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get categoryId => $composableBuilder(
+    column: $table.categoryId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get minOrderValue => $composableBuilder(
+    column: $table.minOrderValue,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get maxUses => $composableBuilder(
+    column: $table.maxUses,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get usedCount => $composableBuilder(
+    column: $table.usedCount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get customerId => $composableBuilder(
+    column: $table.customerId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get expiresAt => $composableBuilder(
+    column: $table.expiresAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get redeemedAt => $composableBuilder(
+    column: $table.redeemedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get redeemedOnBillId => $composableBuilder(
+    column: $table.redeemedOnBillId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sourceBillId => $composableBuilder(
+    column: $table.sourceBillId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$VouchersTableAnnotationComposer
+    extends Composer<_$AppDatabase, $VouchersTable> {
+  $$VouchersTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<DateTime> get lastSyncedAt => $composableBuilder(
+    column: $table.lastSyncedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get version =>
+      $composableBuilder(column: $table.version, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get serverCreatedAt => $composableBuilder(
+    column: $table.serverCreatedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get companyId =>
+      $composableBuilder(column: $table.companyId, builder: (column) => column);
+
+  GeneratedColumn<String> get code =>
+      $composableBuilder(column: $table.code, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<VoucherType, String> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<VoucherStatus, String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<int> get value =>
+      $composableBuilder(column: $table.value, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<DiscountType?, String> get discountType =>
+      $composableBuilder(
+        column: $table.discountType,
+        builder: (column) => column,
+      );
+
+  GeneratedColumnWithTypeConverter<VoucherDiscountScope?, String>
+  get discountScope => $composableBuilder(
+    column: $table.discountScope,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get itemId =>
+      $composableBuilder(column: $table.itemId, builder: (column) => column);
+
+  GeneratedColumn<String> get categoryId => $composableBuilder(
+    column: $table.categoryId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get minOrderValue => $composableBuilder(
+    column: $table.minOrderValue,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get maxUses =>
+      $composableBuilder(column: $table.maxUses, builder: (column) => column);
+
+  GeneratedColumn<int> get usedCount =>
+      $composableBuilder(column: $table.usedCount, builder: (column) => column);
+
+  GeneratedColumn<String> get customerId => $composableBuilder(
+    column: $table.customerId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get expiresAt =>
+      $composableBuilder(column: $table.expiresAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get redeemedAt => $composableBuilder(
+    column: $table.redeemedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get redeemedOnBillId => $composableBuilder(
+    column: $table.redeemedOnBillId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get sourceBillId => $composableBuilder(
+    column: $table.sourceBillId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get note =>
+      $composableBuilder(column: $table.note, builder: (column) => column);
+}
+
+class $$VouchersTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $VouchersTable,
+          Voucher,
+          $$VouchersTableFilterComposer,
+          $$VouchersTableOrderingComposer,
+          $$VouchersTableAnnotationComposer,
+          $$VouchersTableCreateCompanionBuilder,
+          $$VouchersTableUpdateCompanionBuilder,
+          (Voucher, BaseReferences<_$AppDatabase, $VouchersTable, Voucher>),
+          Voucher,
+          PrefetchHooks Function()
+        > {
+  $$VouchersTableTableManager(_$AppDatabase db, $VouchersTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$VouchersTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$VouchersTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$VouchersTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<DateTime?> lastSyncedAt = const Value.absent(),
+                Value<int> version = const Value.absent(),
+                Value<DateTime?> serverCreatedAt = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<String> id = const Value.absent(),
+                Value<String> companyId = const Value.absent(),
+                Value<String> code = const Value.absent(),
+                Value<VoucherType> type = const Value.absent(),
+                Value<VoucherStatus> status = const Value.absent(),
+                Value<int> value = const Value.absent(),
+                Value<DiscountType?> discountType = const Value.absent(),
+                Value<VoucherDiscountScope?> discountScope =
+                    const Value.absent(),
+                Value<String?> itemId = const Value.absent(),
+                Value<String?> categoryId = const Value.absent(),
+                Value<int?> minOrderValue = const Value.absent(),
+                Value<int> maxUses = const Value.absent(),
+                Value<int> usedCount = const Value.absent(),
+                Value<String?> customerId = const Value.absent(),
+                Value<DateTime?> expiresAt = const Value.absent(),
+                Value<DateTime?> redeemedAt = const Value.absent(),
+                Value<String?> redeemedOnBillId = const Value.absent(),
+                Value<String?> sourceBillId = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => VouchersCompanion(
+                lastSyncedAt: lastSyncedAt,
+                version: version,
+                serverCreatedAt: serverCreatedAt,
+                serverUpdatedAt: serverUpdatedAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                id: id,
+                companyId: companyId,
+                code: code,
+                type: type,
+                status: status,
+                value: value,
+                discountType: discountType,
+                discountScope: discountScope,
+                itemId: itemId,
+                categoryId: categoryId,
+                minOrderValue: minOrderValue,
+                maxUses: maxUses,
+                usedCount: usedCount,
+                customerId: customerId,
+                expiresAt: expiresAt,
+                redeemedAt: redeemedAt,
+                redeemedOnBillId: redeemedOnBillId,
+                sourceBillId: sourceBillId,
+                note: note,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                Value<DateTime?> lastSyncedAt = const Value.absent(),
+                Value<int> version = const Value.absent(),
+                Value<DateTime?> serverCreatedAt = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                required String id,
+                required String companyId,
+                required String code,
+                required VoucherType type,
+                required VoucherStatus status,
+                required int value,
+                Value<DiscountType?> discountType = const Value.absent(),
+                Value<VoucherDiscountScope?> discountScope =
+                    const Value.absent(),
+                Value<String?> itemId = const Value.absent(),
+                Value<String?> categoryId = const Value.absent(),
+                Value<int?> minOrderValue = const Value.absent(),
+                Value<int> maxUses = const Value.absent(),
+                Value<int> usedCount = const Value.absent(),
+                Value<String?> customerId = const Value.absent(),
+                Value<DateTime?> expiresAt = const Value.absent(),
+                Value<DateTime?> redeemedAt = const Value.absent(),
+                Value<String?> redeemedOnBillId = const Value.absent(),
+                Value<String?> sourceBillId = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => VouchersCompanion.insert(
+                lastSyncedAt: lastSyncedAt,
+                version: version,
+                serverCreatedAt: serverCreatedAt,
+                serverUpdatedAt: serverUpdatedAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                id: id,
+                companyId: companyId,
+                code: code,
+                type: type,
+                status: status,
+                value: value,
+                discountType: discountType,
+                discountScope: discountScope,
+                itemId: itemId,
+                categoryId: categoryId,
+                minOrderValue: minOrderValue,
+                maxUses: maxUses,
+                usedCount: usedCount,
+                customerId: customerId,
+                expiresAt: expiresAt,
+                redeemedAt: redeemedAt,
+                redeemedOnBillId: redeemedOnBillId,
+                sourceBillId: sourceBillId,
+                note: note,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$VouchersTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $VouchersTable,
+      Voucher,
+      $$VouchersTableFilterComposer,
+      $$VouchersTableOrderingComposer,
+      $$VouchersTableAnnotationComposer,
+      $$VouchersTableCreateCompanionBuilder,
+      $$VouchersTableUpdateCompanionBuilder,
+      (Voucher, BaseReferences<_$AppDatabase, $VouchersTable, Voucher>),
+      Voucher,
+      PrefetchHooks Function()
+    >;
 typedef $$WarehousesTableCreateCompanionBuilder =
     WarehousesCompanion Function({
       Value<DateTime?> lastSyncedAt,
@@ -46170,6 +49822,8 @@ class $AppDatabaseManager {
       $$ItemsTableTableManager(_db, _db.items);
   $$LayoutItemsTableTableManager get layoutItems =>
       $$LayoutItemsTableTableManager(_db, _db.layoutItems);
+  $$MapElementsTableTableManager get mapElements =>
+      $$MapElementsTableTableManager(_db, _db.mapElements);
   $$ManufacturersTableTableManager get manufacturers =>
       $$ManufacturersTableTableManager(_db, _db.manufacturers);
   $$OrderItemsTableTableManager get orderItems =>
@@ -46218,6 +49872,8 @@ class $AppDatabaseManager {
       $$UserPermissionsTableTableManager(_db, _db.userPermissions);
   $$UsersTableTableManager get users =>
       $$UsersTableTableManager(_db, _db.users);
+  $$VouchersTableTableManager get vouchers =>
+      $$VouchersTableTableManager(_db, _db.vouchers);
   $$WarehousesTableTableManager get warehouses =>
       $$WarehousesTableTableManager(_db, _db.warehouses);
 }

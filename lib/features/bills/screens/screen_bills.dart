@@ -589,12 +589,17 @@ class _SectionTabBar extends ConsumerWidget {
       builder: (context, snap) {
         final sections = snap.data ?? [];
 
-        // Auto-select first section in single-select mode if none selected
-        if (singleSelect && sections.isNotEmpty) {
-          final hasValidSelection = sections.any((s) => selectedSectionIds.contains(s.id));
-          if (!hasValidSelection) {
+        if (sections.isNotEmpty) {
+          final validSelected = sections.where((s) => selectedSectionIds.contains(s.id)).toList();
+          if (validSelected.isEmpty) {
+            // Auto-select first section if none selected
             WidgetsBinding.instance.addPostFrameCallback((_) {
               onChanged({sections.first.id});
+            });
+          } else if (singleSelect && validSelected.length > 1) {
+            // In single-select mode, reduce to one
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              onChanged({validSelected.first.id});
             });
           }
         }
@@ -614,7 +619,7 @@ class _SectionTabBar extends ConsumerWidget {
                   child: SizedBox(
                     height: 40,
                     child: FilterChip(
-                      showCheckmark: !singleSelect,
+                      showCheckmark: true,
                       label: SizedBox(
                         width: double.infinity,
                         child: Text(sections[i].name, textAlign: TextAlign.center),
@@ -962,7 +967,7 @@ class _StatusFilterBar extends StatelessWidget {
                   showCheckmark: true,
                   backgroundColor: filters[i].$3.withValues(alpha: 0.08),
                   selectedColor: filters[i].$3.withValues(alpha: 0.2),
-                  checkmarkColor: filters[i].$3,
+                  checkmarkColor: Theme.of(context).colorScheme.onSecondaryContainer,
                   label: SizedBox(
                     width: double.infinity,
                     child: Text(filters[i].$2, textAlign: TextAlign.center),
@@ -1217,6 +1222,10 @@ void _showMoreMenu(BuildContext btnContext, bool canManageSettings, {VoidCallbac
       PopupMenuItem(enabled: false, height: 48, child: Text(l.moreStatistics)),
       PopupMenuItem(value: 'reservations', height: 48, child: Text(l.moreReservations)),
       if (canManageSettings)
+        PopupMenuItem(value: 'vouchers', height: 48, child: Text(l.vouchersTitle)),
+      if (!canManageSettings)
+        PopupMenuItem(enabled: false, height: 48, child: Text(l.vouchersTitle)),
+      if (canManageSettings)
         PopupMenuItem(value: 'company-settings', height: 48, child: Text(l.moreCompanySettings)),
       if (!canManageSettings)
         PopupMenuItem(enabled: false, height: 48, child: Text(l.moreCompanySettings)),
@@ -1244,6 +1253,8 @@ void _showMoreMenu(BuildContext btnContext, bool canManageSettings, {VoidCallbac
         onShifts?.call();
       case 'reservations':
         onReservations?.call();
+      case 'vouchers':
+        btnContext.push('/vouchers');
     }
   });
 }
