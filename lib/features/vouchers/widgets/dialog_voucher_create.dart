@@ -13,6 +13,9 @@ import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/repositories/order_repository.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/widgets/pos_dialog_actions.dart';
+import '../../../core/widgets/pos_dialog_shell.dart';
+import '../../../core/widgets/pos_numpad.dart';
 import '../../bills/widgets/dialog_payment.dart';
 
 class DialogVoucherCreate extends ConsumerStatefulWidget {
@@ -41,178 +44,180 @@ class _DialogVoucherCreateState extends ConsumerState<DialogVoucherCreate> {
     final l = context.l10n;
     final theme = Theme.of(context);
 
-    return Dialog(
-      child: SizedBox(
-        width: 400,
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+    return PosDialogShell(
+      title: l.voucherCreate,
+      maxWidth: 400,
+      padding: const EdgeInsets.all(20),
+      children: [
+        // Type selection
+        Row(
+          children: [
+            for (final entry in {
+              VoucherType.gift: l.voucherTypeGift,
+              VoucherType.deposit: l.voucherTypeDeposit,
+              VoucherType.discount: l.voucherTypeDiscount,
+            }.entries) ...[
+              if (entry.key != VoucherType.gift) const SizedBox(width: 8),
+              Expanded(
+                child: SizedBox(
+                  height: 40,
+                  child: FilterChip(
+                    label: SizedBox(
+                      width: double.infinity,
+                      child: Text(entry.value, textAlign: TextAlign.center),
+                    ),
+                    selected: _type == entry.key,
+                    onSelected: (_) => setState(() => _type = entry.key),
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+        const SizedBox(height: 12),
+        // Discount-specific: scope + discount type
+        if (_type == VoucherType.discount) ...[
+          Row(
             children: [
-              Text(l.voucherCreate, style: theme.textTheme.titleLarge),
-              const SizedBox(height: 16),
-              // Type selection
-              Row(
-                children: [
-                  for (final entry in {
-                    VoucherType.gift: l.voucherTypeGift,
-                    VoucherType.deposit: l.voucherTypeDeposit,
-                    VoucherType.discount: l.voucherTypeDiscount,
-                  }.entries) ...[
-                    if (entry.key != VoucherType.gift) const SizedBox(width: 8),
-                    Expanded(
-                      child: SizedBox(
-                        height: 40,
-                        child: FilterChip(
-                          label: SizedBox(
-                            width: double.infinity,
-                            child: Text(entry.value, textAlign: TextAlign.center),
-                          ),
-                          selected: _type == entry.key,
-                          onSelected: (_) => setState(() => _type = entry.key),
-                        ),
+              for (final entry in {
+                VoucherDiscountScope.bill: l.voucherScopeBill,
+                VoucherDiscountScope.product: l.voucherScopeProduct,
+                VoucherDiscountScope.category: l.voucherScopeCategory,
+              }.entries) ...[
+                if (entry.key != VoucherDiscountScope.bill) const SizedBox(width: 8),
+                Expanded(
+                  child: SizedBox(
+                    height: 40,
+                    child: FilterChip(
+                      label: SizedBox(
+                        width: double.infinity,
+                        child: Text(entry.value, textAlign: TextAlign.center),
                       ),
-                    ),
-                  ],
-                ],
-              ),
-              const SizedBox(height: 12),
-              // Discount-specific: scope + discount type
-              if (_type == VoucherType.discount) ...[
-                Row(
-                  children: [
-                    for (final entry in {
-                      VoucherDiscountScope.bill: l.voucherScopeBill,
-                      VoucherDiscountScope.product: l.voucherScopeProduct,
-                      VoucherDiscountScope.category: l.voucherScopeCategory,
-                    }.entries) ...[
-                      if (entry.key != VoucherDiscountScope.bill) const SizedBox(width: 8),
-                      Expanded(
-                        child: SizedBox(
-                          height: 40,
-                          child: FilterChip(
-                            label: SizedBox(
-                              width: double.infinity,
-                              child: Text(entry.value, textAlign: TextAlign.center),
-                            ),
-                            selected: _scope == entry.key,
-                            onSelected: (_) => setState(() => _scope = entry.key),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-                const SizedBox(height: 8),
-              ],
-              // Value input
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                decoration: BoxDecoration(
-                  border: Border.all(color: theme.dividerColor),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  _valueInput.isEmpty ? '0' : _valueInput,
-                  style: theme.textTheme.headlineMedium,
-                  textAlign: TextAlign.right,
-                ),
-              ),
-              const SizedBox(height: 12),
-              // Numpad
-              _buildNumpad(),
-              const SizedBox(height: 12),
-              // Max uses (discount only)
-              if (_type == VoucherType.discount) ...[
-                Row(
-                  children: [
-                    Text(l.voucherMaxUses),
-                    const Spacer(),
-                    IconButton(
-                      onPressed: _maxUses > 1 ? () => setState(() => _maxUses--) : null,
-                      icon: const Icon(Icons.remove),
-                    ),
-                    Text('$_maxUses', style: theme.textTheme.titleMedium),
-                    IconButton(
-                      onPressed: () => setState(() => _maxUses++),
-                      icon: const Icon(Icons.add),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-              ],
-              // Expiration
-              Row(
-                children: [
-                  Text(l.voucherExpires),
-                  const Spacer(),
-                  if (_expiresAt != null)
-                    TextButton(
-                      onPressed: () => setState(() => _expiresAt = null),
-                      child: const Text('X'),
-                    ),
-                  TextButton(
-                    onPressed: () async {
-                      final date = await showDatePicker(
-                        context: context,
-                        initialDate: _expiresAt ?? DateTime.now().add(const Duration(days: 365)),
-                        firstDate: DateTime.now(),
-                        lastDate: DateTime.now().add(const Duration(days: 3650)),
-                      );
-                      if (date != null) setState(() => _expiresAt = date);
-                    },
-                    child: Text(_expiresAt != null
-                        ? '${_expiresAt!.day}.${_expiresAt!.month}.${_expiresAt!.year}'
-                        : '-'),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              // Actions
-              Row(
-                children: [
-                  Expanded(
-                    child: SizedBox(
-                      height: 48,
-                      child: OutlinedButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: Text(l.actionCancel),
-                      ),
+                      selected: _scope == entry.key,
+                      onSelected: (_) => setState(() => _scope = entry.key),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  if (_type == VoucherType.discount)
-                    Expanded(
-                      child: SizedBox(
-                        height: 48,
-                        child: FilledButton(
-                          onPressed: _rawValue > 0 ? _createDiscountVoucher : null,
-                          child: Text(l.voucherCreate),
-                        ),
-                      ),
-                    )
-                  else ...[
-                    Expanded(
-                      child: SizedBox(
-                        height: 48,
-                        child: FilledButton(
-                          onPressed: _rawValue > 0 ? () => _confirmAbsolute() : null,
-                          child: Text(
-                            _rawValue > 0
-                                ? '${l.voucherSell} ${_rawValue ~/ 100} Kč'
-                                : l.voucherSell,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ],
+                ),
+              ],
+            ],
+          ),
+          const SizedBox(height: 8),
+        ],
+        // Value input
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          decoration: BoxDecoration(
+            border: Border.all(color: theme.dividerColor),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            _valueInput.isEmpty ? '0' : _valueInput,
+            style: theme.textTheme.headlineMedium,
+            textAlign: TextAlign.right,
+          ),
+        ),
+        const SizedBox(height: 12),
+        // Numpad
+        PosNumpad(
+          size: PosNumpadSize.compact,
+          onDigit: (d) => setState(() => _valueInput += d),
+          onBackspace: () {
+            if (_valueInput.isNotEmpty) {
+              setState(() => _valueInput = _valueInput.substring(0, _valueInput.length - 1));
+            }
+          },
+          bottomLeftChild: _type == VoucherType.discount
+              ? Text(
+                  _discountType == DiscountType.absolute ? '%' : 'Kč',
+                  style: const TextStyle(fontSize: 20),
+                )
+              : const Text('.', style: TextStyle(fontSize: 20)),
+          onBottomLeft: _type == VoucherType.discount
+              ? () => setState(() => _discountType =
+                  _discountType == DiscountType.absolute
+                      ? DiscountType.percent
+                      : DiscountType.absolute)
+              : () {
+                  if (!_valueInput.contains('.')) {
+                    setState(
+                        () => _valueInput = _valueInput.isEmpty ? '0.' : '$_valueInput.');
+                  }
+                },
+        ),
+        const SizedBox(height: 12),
+        // Max uses (discount only)
+        if (_type == VoucherType.discount) ...[
+          Row(
+            children: [
+              Text(l.voucherMaxUses),
+              const Spacer(),
+              IconButton(
+                onPressed: _maxUses > 1 ? () => setState(() => _maxUses--) : null,
+                icon: const Icon(Icons.remove),
+              ),
+              Text('$_maxUses', style: theme.textTheme.titleMedium),
+              IconButton(
+                onPressed: () => setState(() => _maxUses++),
+                icon: const Icon(Icons.add),
               ),
             ],
           ),
+          const SizedBox(height: 8),
+        ],
+        // Expiration
+        Row(
+          children: [
+            Text(l.voucherExpires),
+            const Spacer(),
+            if (_expiresAt != null)
+              TextButton(
+                onPressed: () => setState(() => _expiresAt = null),
+                child: const Text('X'),
+              ),
+            TextButton(
+              onPressed: () async {
+                final date = await showDatePicker(
+                  context: context,
+                  initialDate: _expiresAt ?? DateTime.now().add(const Duration(days: 365)),
+                  firstDate: DateTime.now(),
+                  lastDate: DateTime.now().add(const Duration(days: 3650)),
+                );
+                if (date != null) setState(() => _expiresAt = date);
+              },
+              child: Text(_expiresAt != null
+                  ? '${_expiresAt!.day}.${_expiresAt!.month}.${_expiresAt!.year}'
+                  : '-'),
+            ),
+          ],
         ),
-      ),
+        const SizedBox(height: 16),
+        // Actions
+        PosDialogActions(
+          height: 48,
+          spacing: 12,
+          actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(l.actionCancel),
+            ),
+            if (_type == VoucherType.discount)
+              FilledButton(
+                onPressed: _rawValue > 0 ? _createDiscountVoucher : null,
+                child: Text(l.voucherCreate),
+              )
+            else
+              FilledButton(
+                onPressed: _rawValue > 0 ? () => _confirmAbsolute() : null,
+                child: Text(
+                  _rawValue > 0
+                      ? '${l.voucherSell} ${_rawValue ~/ 100} Kč'
+                      : l.voucherSell,
+                ),
+              ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -337,86 +342,5 @@ class _DialogVoucherCreateState extends ConsumerState<DialogVoucherCreate> {
     if (result is Success && mounted) {
       Navigator.pop(context, model);
     }
-  }
-
-  Widget _buildNumpad() {
-    return Column(
-      children: [
-        _numpadRow(['1', '2', '3']),
-        const SizedBox(height: 4),
-        _numpadRow(['4', '5', '6']),
-        const SizedBox(height: 4),
-        _numpadRow(['7', '8', '9']),
-        const SizedBox(height: 4),
-        Row(
-          children: [
-            if (_type == VoucherType.discount) ...[
-              _numpadButton(
-                child: Text(_discountType == DiscountType.absolute ? '%' : 'Kč',
-                    style: const TextStyle(fontSize: 20)),
-                onTap: () => setState(() => _discountType =
-                    _discountType == DiscountType.absolute
-                        ? DiscountType.percent
-                        : DiscountType.absolute),
-              ),
-            ] else ...[
-              _numpadButton(
-                child: const Text('.', style: TextStyle(fontSize: 20)),
-                onTap: () {
-                  if (!_valueInput.contains('.')) {
-                    setState(
-                        () => _valueInput = _valueInput.isEmpty ? '0.' : '$_valueInput.');
-                  }
-                },
-              ),
-            ],
-            const SizedBox(width: 4),
-            _numpadButton(
-              child: const Text('0', style: TextStyle(fontSize: 20)),
-              onTap: () => setState(() => _valueInput += '0'),
-            ),
-            const SizedBox(width: 4),
-            _numpadButton(
-              child: const Icon(Icons.backspace_outlined, size: 20),
-              onTap: () {
-                if (_valueInput.isNotEmpty) {
-                  setState(() => _valueInput = _valueInput.substring(0, _valueInput.length - 1));
-                }
-              },
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _numpadRow(List<String> digits) {
-    return Row(
-      children: [
-        for (var i = 0; i < digits.length; i++) ...[
-          if (i > 0) const SizedBox(width: 4),
-          _numpadButton(
-            child: Text(digits[i], style: const TextStyle(fontSize: 20)),
-            onTap: () => setState(() => _valueInput += digits[i]),
-          ),
-        ],
-      ],
-    );
-  }
-
-  Widget _numpadButton({required Widget child, required VoidCallback onTap}) {
-    return Expanded(
-      child: SizedBox(
-        height: 48,
-        child: OutlinedButton(
-          onPressed: onTap,
-          style: OutlinedButton.styleFrom(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            padding: EdgeInsets.zero,
-          ),
-          child: child,
-        ),
-      ),
-    );
   }
 }

@@ -7,6 +7,7 @@ import '../../../core/data/models/customer_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/widgets/pos_dialog_shell.dart';
 
 /// Sentinel value returned when user wants to remove the customer.
 class _RemoveCustomer {
@@ -23,9 +24,7 @@ Future<CustomerModel?> showCustomerSearchDialog(
 }) async {
   final result = await showDialog<Object>(
     context: context,
-    builder: (_) => _DialogCustomerSearch(
-      showRemoveButton: showRemoveButton,
-    ),
+    builder: (_) => _DialogCustomerSearch(showRemoveButton: showRemoveButton),
   );
   if (result is _RemoveCustomer) {
     // Caller should interpret null customerId as "remove"
@@ -50,9 +49,7 @@ Future<Object?> showCustomerSearchDialogRaw(
 }) async {
   return showDialog<Object>(
     context: context,
-    builder: (_) => _DialogCustomerSearch(
-      showRemoveButton: showRemoveButton,
-    ),
+    builder: (_) => _DialogCustomerSearch(showRemoveButton: showRemoveButton),
   );
 }
 
@@ -61,7 +58,8 @@ class _DialogCustomerSearch extends ConsumerStatefulWidget {
   final bool showRemoveButton;
 
   @override
-  ConsumerState<_DialogCustomerSearch> createState() => _DialogCustomerSearchState();
+  ConsumerState<_DialogCustomerSearch> createState() =>
+      _DialogCustomerSearchState();
 }
 
 class _DialogCustomerSearchState extends ConsumerState<_DialogCustomerSearch> {
@@ -91,59 +89,49 @@ class _DialogCustomerSearchState extends ConsumerState<_DialogCustomerSearch> {
 
     final repo = ref.watch(customerRepositoryProvider);
 
-    return Dialog(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 420, maxHeight: 500),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                l.customerSearch,
-                style: Theme.of(context).textTheme.titleLarge,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _searchCtrl,
-                autofocus: true,
-                decoration: InputDecoration(
-                  prefixIcon: const Icon(Icons.search),
-                  hintText: l.customerSearch,
-                  isDense: true,
-                ),
-                onChanged: _onSearchChanged,
-              ),
-              const SizedBox(height: 8),
-              Expanded(
-                child: _query.isEmpty
-                    ? StreamBuilder<List<CustomerModel>>(
-                        stream: repo.watchAll(company.id),
-                        builder: (context, snap) => _buildList(context, snap.data ?? []),
-                      )
-                    : StreamBuilder<List<CustomerModel>>(
-                        stream: repo.search(company.id, _query),
-                        builder: (context, snap) => _buildList(context, snap.data ?? []),
-                      ),
-              ),
-              if (widget.showRemoveButton) ...[
-                const SizedBox(height: 8),
-                OutlinedButton(
-                  onPressed: () => Navigator.pop(context, const _RemoveCustomer()),
-                  child: Text(l.customerRemove),
-                ),
-              ],
-              const SizedBox(height: 8),
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(l.actionCancel),
-              ),
-            ],
+    return PosDialogShell(
+      title: l.customerSearch,
+      maxWidth: 420,
+      maxHeight: 500,
+      padding: const EdgeInsets.all(16),
+      children: [
+        TextField(
+          controller: _searchCtrl,
+          autofocus: true,
+          decoration: InputDecoration(
+            prefixIcon: const Icon(Icons.search),
+            hintText: l.customerSearch,
+            isDense: true,
           ),
+          onChanged: _onSearchChanged,
         ),
-      ),
+        const SizedBox(height: 8),
+        Expanded(
+          child: _query.isEmpty
+              ? StreamBuilder<List<CustomerModel>>(
+                  stream: repo.watchAll(company.id),
+                  builder: (context, snap) =>
+                      _buildList(context, snap.data ?? []),
+                )
+              : StreamBuilder<List<CustomerModel>>(
+                  stream: repo.search(company.id, _query),
+                  builder: (context, snap) =>
+                      _buildList(context, snap.data ?? []),
+                ),
+        ),
+        if (widget.showRemoveButton) ...[
+          const SizedBox(height: 8),
+          OutlinedButton(
+            onPressed: () => Navigator.pop(context, const _RemoveCustomer()),
+            child: Text(l.customerRemove),
+          ),
+        ],
+        const SizedBox(height: 8),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(l.actionCancel),
+        ),
+      ],
     );
   }
 
@@ -168,7 +156,9 @@ class _DialogCustomerSearchState extends ConsumerState<_DialogCustomerSearch> {
         );
         return ListTile(
           title: Text('${c.firstName} ${c.lastName}'),
-          subtitle: Text(contactInfo.isNotEmpty ? '$contactInfo\n$loyaltyInfo' : loyaltyInfo),
+          subtitle: Text(
+            contactInfo.isNotEmpty ? '$contactInfo\n$loyaltyInfo' : loyaltyInfo,
+          ),
           isThreeLine: contactInfo.isNotEmpty,
           onTap: () => Navigator.pop(context, c),
         );

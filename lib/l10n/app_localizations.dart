@@ -514,6 +514,12 @@ abstract class AppLocalizations {
   /// **'Zavřít'**
   String get actionClose;
 
+  /// No description provided for @actionConfirm.
+  ///
+  /// In cs, this message translates to:
+  /// **'OK'**
+  String get actionConfirm;
+
   /// No description provided for @fieldName.
   ///
   /// In cs, this message translates to:
@@ -3813,6 +3819,18 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Všechny'**
   String get voucherFilterAll;
+
+  /// No description provided for @voucherRedeemedAt.
+  ///
+  /// In cs, this message translates to:
+  /// **'Uplatněno'**
+  String get voucherRedeemedAt;
+
+  /// No description provided for @voucherIdLabel.
+  ///
+  /// In cs, this message translates to:
+  /// **'ID'**
+  String get voucherIdLabel;
 
   /// No description provided for @billDetailVoucher.
   ///

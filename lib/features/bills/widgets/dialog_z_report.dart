@@ -9,6 +9,7 @@ import '../../../core/data/providers/printing_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/printing/receipt_data.dart';
+import '../../../core/widgets/pos_dialog_shell.dart';
 import '../models/z_report_data.dart';
 
 class DialogZReport extends ConsumerWidget {
@@ -77,20 +78,13 @@ class DialogZReport extends ConsumerWidget {
     final dateFormat = DateFormat('d.M.yyyy', 'cs');
     final timeFormat = DateFormat('HH:mm', 'cs');
 
-    return Dialog(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 520),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(child: Text(l.zReportTitle, style: theme.textTheme.headlineSmall)),
-                const SizedBox(height: 16),
-
-                // --- Session info ---
+    return PosDialogShell(
+      title: l.zReportTitle,
+      titleStyle: theme.textTheme.headlineSmall,
+      maxWidth: 520,
+      scrollable: true,
+      children: [
+        // --- Session info ---
                 Text(l.zReportSessionInfo, style: theme.textTheme.titleSmall),
                 const SizedBox(height: 8),
                 _row(context, l.zReportOpenedAt,
@@ -238,10 +232,6 @@ class DialogZReport extends ConsumerWidget {
                   ],
                 ),
               ],
-            ),
-          ),
-        ),
-      ),
     );
   }
 

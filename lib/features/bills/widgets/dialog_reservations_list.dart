@@ -8,6 +8,7 @@ import '../../../core/data/models/table_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_table.dart';
 import 'dialog_reservation_edit.dart';
 
@@ -93,106 +94,97 @@ class _DialogReservationsListState extends ConsumerState<DialogReservationsList>
 
     if (company == null) return const SizedBox.shrink();
 
-    return Dialog(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 800),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(l.reservationsTitle, style: theme.textTheme.headlineSmall),
-              const SizedBox(height: 16),
+    return PosDialogShell(
+      title: l.reservationsTitle,
+      titleStyle: theme.textTheme.headlineSmall,
+      maxWidth: 800,
+      children: [
+        // Date filter row
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            TextButton(
+              onPressed: () => _pickDate(context, true),
+              child: Text(dateFormat.format(_dateFrom)),
+            ),
+            const Text(' — '),
+            TextButton(
+              onPressed: () => _pickDate(context, false),
+              child: Text(dateFormat.format(_dateTo)),
+            ),
+            const SizedBox(width: 16),
+            FilledButton.tonalIcon(
+              onPressed: _openCreateDialog,
+              icon: const Icon(Icons.add, size: 18),
+              label: Text(l.reservationNew),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
 
-              // Date filter row
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  TextButton(
-                    onPressed: () => _pickDate(context, true),
-                    child: Text(dateFormat.format(_dateFrom)),
-                  ),
-                  const Text(' — '),
-                  TextButton(
-                    onPressed: () => _pickDate(context, false),
-                    child: Text(dateFormat.format(_dateTo)),
-                  ),
-                  const SizedBox(width: 16),
-                  FilledButton.tonalIcon(
-                    onPressed: _openCreateDialog,
-                    icon: const Icon(Icons.add, size: 18),
-                    label: Text(l.reservationNew),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
+        // Table
+        SizedBox(
+          height: 400,
+          child: StreamBuilder<List<ReservationModel>>(
+            stream: ref.watch(reservationRepositoryProvider).watchByDateRange(
+                  company.id,
+                  _dateFrom,
+                  _dateTo,
+                ),
+            builder: (context, snap) {
+              final reservations = snap.data ?? [];
 
-              // Table
-              SizedBox(
-                height: 400,
-                child: StreamBuilder<List<ReservationModel>>(
-                  stream: ref.watch(reservationRepositoryProvider).watchByDateRange(
-                        company.id,
-                        _dateFrom,
-                        _dateTo,
+              // Load tables for name lookup
+              return StreamBuilder<List<TableModel>>(
+                stream: ref.watch(tableRepositoryProvider).watchAll(company.id),
+                builder: (context, tablesnap) {
+                  final tables = tablesnap.data ?? [];
+                  final tableMap = {for (final t in tables) t.id: t.name};
+
+                  return PosTable<ReservationModel>(
+                    columns: [
+                      PosColumn(label: l.reservationColumnDate, width: 80, cellBuilder: (r) => Text(dateFormat.format(r.reservationDate))),
+                      PosColumn(label: l.reservationColumnTime, width: 50, cellBuilder: (r) => Text(timeFormat.format(r.reservationDate))),
+                      PosColumn(label: l.reservationColumnName, cellBuilder: (r) => Text(r.customerName)),
+                      PosColumn(label: l.reservationColumnPhone, width: 100, cellBuilder: (r) => Text(r.customerPhone ?? '')),
+                      PosColumn(label: l.reservationColumnPartySize, width: 50, cellBuilder: (r) => Text('${r.partySize}', textAlign: TextAlign.center)),
+                      PosColumn(label: l.reservationColumnTable, width: 80, cellBuilder: (r) => Text(r.tableId != null ? (tableMap[r.tableId] ?? '-') : '-')),
+                      PosColumn(
+                        label: l.reservationColumnStatus,
+                        width: 90,
+                        numeric: true,
+                        cellBuilder: (r) => Text(
+                          _statusLabel(context, r.status),
+                          textAlign: TextAlign.right,
+                          style: TextStyle(
+                            color: r.status == ReservationStatus.cancelled
+                                ? theme.colorScheme.error
+                                : r.status == ReservationStatus.confirmed
+                                    ? theme.colorScheme.primary
+                                    : null,
+                          ),
+                        ),
                       ),
-                  builder: (context, snap) {
-                    final reservations = snap.data ?? [];
-
-                    // Load tables for name lookup
-                    return StreamBuilder<List<TableModel>>(
-                      stream: ref.watch(tableRepositoryProvider).watchAll(company.id),
-                      builder: (context, tablesnap) {
-                        final tables = tablesnap.data ?? [];
-                        final tableMap = {for (final t in tables) t.id: t.name};
-
-                        return PosTable<ReservationModel>(
-                          columns: [
-                            PosColumn(label: l.reservationColumnDate, width: 80, cellBuilder: (r) => Text(dateFormat.format(r.reservationDate))),
-                            PosColumn(label: l.reservationColumnTime, width: 50, cellBuilder: (r) => Text(timeFormat.format(r.reservationDate))),
-                            PosColumn(label: l.reservationColumnName, cellBuilder: (r) => Text(r.customerName)),
-                            PosColumn(label: l.reservationColumnPhone, width: 100, cellBuilder: (r) => Text(r.customerPhone ?? '')),
-                            PosColumn(label: l.reservationColumnPartySize, width: 50, cellBuilder: (r) => Text('${r.partySize}', textAlign: TextAlign.center)),
-                            PosColumn(label: l.reservationColumnTable, width: 80, cellBuilder: (r) => Text(r.tableId != null ? (tableMap[r.tableId] ?? '-') : '-')),
-                            PosColumn(
-                              label: l.reservationColumnStatus,
-                              width: 90,
-                              numeric: true,
-                              cellBuilder: (r) => Text(
-                                _statusLabel(context, r.status),
-                                textAlign: TextAlign.right,
-                                style: TextStyle(
-                                  color: r.status == ReservationStatus.cancelled
-                                      ? theme.colorScheme.error
-                                      : r.status == ReservationStatus.confirmed
-                                          ? theme.colorScheme.primary
-                                          : null,
-                                ),
-                              ),
-                            ),
-                          ],
-                          items: reservations,
-                          onRowTap: (r) => _openEditDialog(r),
-                          emptyMessage: l.reservationsEmpty,
-                        );
-                      },
-                    );
-                  },
-                ),
-              ),
-
-              const SizedBox(height: 16),
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text(l.actionClose),
-                ),
-              ),
-            ],
+                    ],
+                    items: reservations,
+                    onRowTap: (r) => _openEditDialog(r),
+                    emptyMessage: l.reservationsEmpty,
+                  );
+                },
+              );
+            },
           ),
         ),
-      ),
+
+        const SizedBox(height: 16),
+        Align(
+          alignment: Alignment.centerRight,
+          child: TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l.actionClose),
+          ),
+        ),
+      ],
     );
   }
 }

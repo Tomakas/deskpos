@@ -1,5 +1,26 @@
 # Changelog
 
+## 2026-02-11 — Sjednocení dialogového systému
+
+### Features
+- **PosDialogTheme**: Nové konstanty pro unified dialog system (padding, spacing, button heights, numpad profily)
+- **PosDialogShell**: Shared wrapper nahrazující opakovaný `Dialog > ConstrainedBox > Padding > Column` pattern
+- **PosDialogActions**: Shared akční tlačítková řada s rovnoměrným rozložením
+- **PosNumpad**: Sdílený numpad widget se dvěma velikostmi (large/compact), konfigurovatelnými tlačítky (clear, dot, bottomLeftChild)
+- Migrace 22 z 26 dialogů na sdílené widgety (4 ponechány s vlastním layoutem: bill_detail, payment, grid_editor, cash_journal)
+
+### New Files
+- `lib/core/widgets/pos_dialog_theme.dart` — konstanty
+- `lib/core/widgets/pos_dialog_shell.dart` — dialog wrapper
+- `lib/core/widgets/pos_dialog_actions.dart` — button row
+- `lib/core/widgets/pos_numpad.dart` — sdílený numpad
+
+### L10n
+- +3 nové klíče: `actionConfirm`, `voucherRedeemedAt`, `voucherIdLabel`
+
+### Documentation
+- PROJECT.md: Přidána sekce Dialog System do Core Widgets
+
 ## 2026-02-11 — Dekorativní prvky mapy + resize handles
 
 ### Features

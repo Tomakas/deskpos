@@ -9,6 +9,7 @@ import '../../../core/data/models/table_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/widgets/pos_dialog_shell.dart';
 import 'dialog_customer_search.dart';
 
 class DialogReservationEdit extends ConsumerStatefulWidget {
@@ -182,24 +183,13 @@ class _DialogReservationEditState extends ConsumerState<DialogReservationEdit> {
     final dateFormat = DateFormat('d.M.yyyy', 'cs');
     final company = ref.watch(currentCompanyProvider);
 
-    return Dialog(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 480),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  _isEdit ? l.reservationEdit : l.reservationNew,
-                  style: theme.textTheme.headlineSmall,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 20),
-
-                // Customer name
+    return PosDialogShell(
+      title: _isEdit ? l.reservationEdit : l.reservationNew,
+      titleStyle: theme.textTheme.headlineSmall,
+      maxWidth: 480,
+      scrollable: true,
+      children: [
+        // Customer name
                 TextField(
                   controller: _nameCtrl,
                   decoration: InputDecoration(labelText: l.reservationCustomerName),
@@ -333,10 +323,6 @@ class _DialogReservationEditState extends ConsumerState<DialogReservationEdit> {
                   ],
                 ),
               ],
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

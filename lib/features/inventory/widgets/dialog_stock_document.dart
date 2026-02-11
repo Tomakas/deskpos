@@ -11,6 +11,7 @@ import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/repositories/stock_document_repository.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/widgets/pos_dialog_shell.dart';
 
 class DialogStockDocument extends ConsumerStatefulWidget {
   const DialogStockDocument({
@@ -25,7 +26,8 @@ class DialogStockDocument extends ConsumerStatefulWidget {
   final StockDocumentType type;
 
   @override
-  ConsumerState<DialogStockDocument> createState() => _DialogStockDocumentState();
+  ConsumerState<DialogStockDocument> createState() =>
+      _DialogStockDocumentState();
 }
 
 class _DialogStockDocumentState extends ConsumerState<DialogStockDocument> {
@@ -57,170 +59,195 @@ class _DialogStockDocumentState extends ConsumerState<DialogStockDocument> {
       StockDocumentType.inventory => l.inventoryInventory,
     };
 
-    return Dialog(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 700, maxHeight: 700),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(title, style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: 16),
+    return PosDialogShell(
+      title: title,
+      maxWidth: 700,
+      maxHeight: 700,
+      children: [
+        // Supplier dropdown (receipt only)
+        if (isReceipt) ...[
+          StreamBuilder<List<SupplierModel>>(
+            stream: ref
+                .watch(supplierRepositoryProvider)
+                .watchAll(widget.companyId),
+            builder: (context, snap) {
+              final suppliers = snap.data ?? [];
+              return DropdownButtonFormField<String>(
+                decoration: InputDecoration(labelText: l.stockDocumentSupplier),
+                initialValue: _selectedSupplierId,
+                items: [
+                  DropdownMenuItem<String>(value: null, child: Text('-')),
+                  ...suppliers.map(
+                    (s) => DropdownMenuItem(
+                      value: s.id,
+                      child: Text(s.supplierName),
+                    ),
+                  ),
+                ],
+                onChanged: (v) => setState(() => _selectedSupplierId = v),
+              );
+            },
+          ),
+          const SizedBox(height: 12),
 
-              // Supplier dropdown (receipt only)
-              if (isReceipt) ...[
-                StreamBuilder<List<SupplierModel>>(
-                  stream: ref.watch(supplierRepositoryProvider).watchAll(widget.companyId),
-                  builder: (context, snap) {
-                    final suppliers = snap.data ?? [];
-                    return DropdownButtonFormField<String>(
-                      decoration: InputDecoration(labelText: l.stockDocumentSupplier),
-                      initialValue: _selectedSupplierId,
-                      items: [
-                        DropdownMenuItem<String>(value: null, child: Text('-')),
-                        ...suppliers.map((s) => DropdownMenuItem(
-                              value: s.id,
-                              child: Text(s.supplierName),
-                            )),
-                      ],
-                      onChanged: (v) => setState(() => _selectedSupplierId = v),
-                    );
-                  },
-                ),
-                const SizedBox(height: 12),
+          // Price strategy dropdown
+          DropdownButtonFormField<PurchasePriceStrategy>(
+            decoration: InputDecoration(
+              labelText: l.stockDocumentPriceStrategy,
+            ),
+            initialValue: _documentStrategy,
+            items: PurchasePriceStrategy.values.map((s) {
+              return DropdownMenuItem(
+                value: s,
+                child: Text(_strategyLabel(l, s)),
+              );
+            }).toList(),
+            onChanged: (v) {
+              if (v != null) setState(() => _documentStrategy = v);
+            },
+          ),
+          const SizedBox(height: 12),
+        ],
 
-                // Price strategy dropdown
-                DropdownButtonFormField<PurchasePriceStrategy>(
-                  decoration: InputDecoration(labelText: l.stockDocumentPriceStrategy),
-                  initialValue: _documentStrategy,
-                  items: PurchasePriceStrategy.values.map((s) {
-                    return DropdownMenuItem(
-                      value: s,
-                      child: Text(_strategyLabel(l, s)),
-                    );
-                  }).toList(),
-                  onChanged: (v) {
-                    if (v != null) setState(() => _documentStrategy = v);
-                  },
-                ),
-                const SizedBox(height: 12),
-              ],
+        // Note field
+        TextField(
+          controller: _noteController,
+          decoration: InputDecoration(labelText: l.stockDocumentNote),
+        ),
+        const SizedBox(height: 16),
 
-              // Note field
-              TextField(
-                controller: _noteController,
-                decoration: InputDecoration(labelText: l.stockDocumentNote),
-              ),
-              const SizedBox(height: 16),
-
-              // Items list
-              Expanded(
-                child: _lines.isEmpty
-                    ? Center(child: Text(l.stockDocumentNoItems))
-                    : ListView.builder(
-                        itemCount: _lines.length,
-                        itemBuilder: (context, i) {
-                          final line = _lines[i];
-                          return Card(
-                            child: Padding(
-                              padding: const EdgeInsets.all(8),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    flex: 3,
-                                    child: Text(line.itemName, overflow: TextOverflow.ellipsis),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  SizedBox(
-                                    width: 80,
-                                    child: TextField(
-                                      controller: line.quantityController,
-                                      decoration: InputDecoration(
-                                        labelText: l.stockDocumentQuantity,
-                                        isDense: true,
-                                      ),
-                                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                      inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[\d.,]'))],
+        // Items list
+        Expanded(
+          child: _lines.isEmpty
+              ? Center(child: Text(l.stockDocumentNoItems))
+              : ListView.builder(
+                  itemCount: _lines.length,
+                  itemBuilder: (context, i) {
+                    final line = _lines[i];
+                    return Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              flex: 3,
+                              child: Text(
+                                line.itemName,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            SizedBox(
+                              width: 80,
+                              child: TextField(
+                                controller: line.quantityController,
+                                decoration: InputDecoration(
+                                  labelText: l.stockDocumentQuantity,
+                                  isDense: true,
+                                ),
+                                keyboardType:
+                                    const TextInputType.numberWithOptions(
+                                      decimal: true,
                                     ),
-                                  ),
-                                  if (isReceipt) ...[
-                                    const SizedBox(width: 8),
-                                    SizedBox(
-                                      width: 100,
-                                      child: TextField(
-                                        controller: line.priceController,
-                                        decoration: InputDecoration(
-                                          labelText: l.stockDocumentPrice,
-                                          isDense: true,
-                                        ),
-                                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                        inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[\d.,]'))],
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    // Per-item strategy override
-                                    SizedBox(
-                                      width: 130,
-                                      child: DropdownButtonFormField<PurchasePriceStrategy?>(
-                                        decoration: InputDecoration(
-                                          labelText: l.stockDocumentItemOverrideStrategy,
-                                          isDense: true,
-                                        ),
-                                        initialValue: line.strategyOverride,
-                                        items: [
-                                          DropdownMenuItem<PurchasePriceStrategy?>(value: null, child: Text('-')),
-                                          ...PurchasePriceStrategy.values.map((s) => DropdownMenuItem(
-                                                value: s,
-                                                child: Text(_strategyLabel(l, s)),
-                                              )),
-                                        ],
-                                        onChanged: (v) => setState(() => line.strategyOverride = v),
-                                      ),
-                                    ),
-                                  ],
-                                  IconButton(
-                                    icon: const Icon(Icons.close),
-                                    onPressed: () => setState(() {
-                                      _lines[i].quantityController.dispose();
-                                      _lines[i].priceController.dispose();
-                                      _lines.removeAt(i);
-                                    }),
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.allow(
+                                    RegExp(r'[\d.,]'),
                                   ),
                                 ],
                               ),
                             ),
-                          );
-                        },
+                            if (isReceipt) ...[
+                              const SizedBox(width: 8),
+                              SizedBox(
+                                width: 100,
+                                child: TextField(
+                                  controller: line.priceController,
+                                  decoration: InputDecoration(
+                                    labelText: l.stockDocumentPrice,
+                                    isDense: true,
+                                  ),
+                                  keyboardType:
+                                      const TextInputType.numberWithOptions(
+                                        decimal: true,
+                                      ),
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.allow(
+                                      RegExp(r'[\d.,]'),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              // Per-item strategy override
+                              SizedBox(
+                                width: 130,
+                                child:
+                                    DropdownButtonFormField<
+                                      PurchasePriceStrategy?
+                                    >(
+                                      decoration: InputDecoration(
+                                        labelText:
+                                            l.stockDocumentItemOverrideStrategy,
+                                        isDense: true,
+                                      ),
+                                      initialValue: line.strategyOverride,
+                                      items: [
+                                        DropdownMenuItem<
+                                          PurchasePriceStrategy?
+                                        >(value: null, child: Text('-')),
+                                        ...PurchasePriceStrategy.values.map(
+                                          (s) => DropdownMenuItem(
+                                            value: s,
+                                            child: Text(_strategyLabel(l, s)),
+                                          ),
+                                        ),
+                                      ],
+                                      onChanged: (v) => setState(
+                                        () => line.strategyOverride = v,
+                                      ),
+                                    ),
+                              ),
+                            ],
+                            IconButton(
+                              icon: const Icon(Icons.close),
+                              onPressed: () => setState(() {
+                                _lines[i].quantityController.dispose();
+                                _lines[i].priceController.dispose();
+                                _lines.removeAt(i);
+                              }),
+                            ),
+                          ],
+                        ),
                       ),
-              ),
-              const SizedBox(height: 12),
-
-              // Add item button + save
-              Row(
-                children: [
-                  OutlinedButton.icon(
-                    onPressed: () => _addItem(context),
-                    icon: const Icon(Icons.add),
-                    label: Text(l.stockDocumentAddItem),
-                  ),
-                  const Spacer(),
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: Text(l.actionCancel),
-                  ),
-                  const SizedBox(width: 8),
-                  FilledButton(
-                    onPressed: _lines.isEmpty || _saving ? null : () => _save(context),
-                    child: Text(l.stockDocumentSave),
-                  ),
-                ],
-              ),
-            ],
-          ),
+                    );
+                  },
+                ),
         ),
-      ),
+        const SizedBox(height: 12),
+
+        // Add item button + save
+        Row(
+          children: [
+            OutlinedButton.icon(
+              onPressed: () => _addItem(context),
+              icon: const Icon(Icons.add),
+              label: Text(l.stockDocumentAddItem),
+            ),
+            const Spacer(),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(l.actionCancel),
+            ),
+            const SizedBox(width: 8),
+            FilledButton(
+              onPressed: _lines.isEmpty || _saving
+                  ? null
+                  : () => _save(context),
+              child: Text(l.stockDocumentSave),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -233,19 +260,26 @@ class _DialogStockDocumentState extends ConsumerState<DialogStockDocument> {
       for (final item in items) {
         // Avoid duplicates
         if (_lines.any((line) => line.itemId == item.id)) continue;
-        _lines.add(_LineItem(
-          itemId: item.id,
-          itemName: item.name,
-          quantityController: TextEditingController(text: '1'),
-          priceController: TextEditingController(
-            text: item.purchasePrice != null ? (item.purchasePrice! / 100).toStringAsFixed(2) : '',
+        _lines.add(
+          _LineItem(
+            itemId: item.id,
+            itemName: item.name,
+            quantityController: TextEditingController(text: '1'),
+            priceController: TextEditingController(
+              text: item.purchasePrice != null
+                  ? (item.purchasePrice! / 100).toStringAsFixed(2)
+                  : '',
+            ),
           ),
-        ));
+        );
       }
     });
   }
 
-  Future<List<ItemModel>?> _searchItemDialog(BuildContext context, dynamic l) async {
+  Future<List<ItemModel>?> _searchItemDialog(
+    BuildContext context,
+    dynamic l,
+  ) async {
     return showDialog<List<ItemModel>>(
       context: context,
       builder: (context) => _ItemSearchDialog(companyId: widget.companyId),
@@ -264,7 +298,9 @@ class _DialogStockDocumentState extends ConsumerState<DialogStockDocument> {
     final isReceipt = widget.type == StockDocumentType.receipt;
 
     final lines = _lines.map((line) {
-      final qty = double.tryParse(line.quantityController.text.replaceAll(',', '.')) ?? 0;
+      final qty =
+          double.tryParse(line.quantityController.text.replaceAll(',', '.')) ??
+          0;
       final priceText = line.priceController.text.replaceAll(',', '.');
       final price = isReceipt && priceText.isNotEmpty
           ? (double.tryParse(priceText) ?? 0) * 100
@@ -278,16 +314,18 @@ class _DialogStockDocumentState extends ConsumerState<DialogStockDocument> {
       );
     }).toList();
 
-    final result = await ref.read(stockDocumentRepositoryProvider).createDocument(
-      companyId: widget.companyId,
-      warehouseId: widget.warehouseId,
-      userId: user.id,
-      type: widget.type,
-      documentStrategy: isReceipt ? _documentStrategy : null,
-      supplierId: _selectedSupplierId,
-      note: _noteController.text.isEmpty ? null : _noteController.text,
-      lines: lines,
-    );
+    final result = await ref
+        .read(stockDocumentRepositoryProvider)
+        .createDocument(
+          companyId: widget.companyId,
+          warehouseId: widget.warehouseId,
+          userId: user.id,
+          type: widget.type,
+          documentStrategy: isReceipt ? _documentStrategy : null,
+          supplierId: _selectedSupplierId,
+          note: _noteController.text.isEmpty ? null : _noteController.text,
+          lines: lines,
+        );
 
     if (!context.mounted) return;
     setState(() => _saving = false);
@@ -302,7 +340,8 @@ class _DialogStockDocumentState extends ConsumerState<DialogStockDocument> {
       PurchasePriceStrategy.overwrite => context.l10n.stockStrategyOverwrite,
       PurchasePriceStrategy.keep => context.l10n.stockStrategyKeep,
       PurchasePriceStrategy.average => context.l10n.stockStrategyAverage,
-      PurchasePriceStrategy.weightedAverage => context.l10n.stockStrategyWeightedAverage,
+      PurchasePriceStrategy.weightedAverage =>
+        context.l10n.stockStrategyWeightedAverage,
     };
   }
 }
@@ -365,7 +404,9 @@ class _ItemSearchDialogState extends ConsumerState<_ItemSearchDialog> {
               const SizedBox(height: 8),
               Expanded(
                 child: StreamBuilder<List<ItemModel>>(
-                  stream: ref.watch(itemRepositoryProvider).watchAll(widget.companyId),
+                  stream: ref
+                      .watch(itemRepositoryProvider)
+                      .watchAll(widget.companyId),
                   builder: (context, snap) {
                     final allItems = snap.data ?? [];
                     // Filter to stock-tracked items matching query

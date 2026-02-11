@@ -92,6 +92,7 @@
   "actionCancel": "Zrušit",
   "actionDelete": "Smazat",
   "actionClose": "Zavřít",
+  "actionConfirm": "OK",
 
   "fieldName": "Název",
   "fieldUsername": "Username",
@@ -789,6 +790,8 @@
   "voucherCustomerMismatch": "Voucher je vázán na jiného zákazníka",
   "voucherDepositReturn": "Vrácení přeplatku zálohy",
   "voucherFilterAll": "Všechny",
+  "voucherRedeemedAt": "Uplatněno",
+  "voucherIdLabel": "ID",
   "billDetailVoucher": "Voucher",
 
   "wizardWithTestData": "Vytvořit s testovacími daty"

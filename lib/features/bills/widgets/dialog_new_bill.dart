@@ -7,6 +7,8 @@ import '../../../core/data/models/table_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/widgets/pos_dialog_actions.dart';
+import '../../../core/widgets/pos_dialog_shell.dart';
 import 'dialog_customer_search.dart';
 
 class DialogNewBill extends ConsumerStatefulWidget {
@@ -43,12 +45,14 @@ class _DialogNewBillState extends ConsumerState<DialogNewBill> {
     final company = ref.watch(currentCompanyProvider);
     if (company == null) return const SizedBox.shrink();
 
-    return Dialog(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 420),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: StreamBuilder<List<SectionModel>>(
+    return PosDialogShell(
+      title: '${widget.title ?? l.newBillTitle}:',
+      titleStyle: Theme.of(context).textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+      maxWidth: 420,
+      children: [
+        StreamBuilder<List<SectionModel>>(
             stream: ref.watch(sectionRepositoryProvider).watchAll(company.id),
             builder: (context, sectionSnap) {
               final sections = sectionSnap.data ?? [];
@@ -91,15 +95,6 @@ class _DialogNewBillState extends ConsumerState<DialogNewBill> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Title
-                      Text(
-                        '${widget.title ?? l.newBillTitle}:',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 24),
                       // Section dropdown
                       _FormRow(
                         label: '${l.newBillSelectSection}:',
@@ -247,60 +242,42 @@ class _DialogNewBillState extends ConsumerState<DialogNewBill> {
                       ),
                       const SizedBox(height: 24),
                       // Bottom buttons
-                      Row(
-                        children: [
-                          Expanded(
-                            child: SizedBox(
-                              height: 44,
-                              child: OutlinedButton(
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: Colors.red,
-                                  side: const BorderSide(color: Colors.red),
-                                ),
-                                onPressed: () => Navigator.pop(context),
-                                child: Text(l.actionCancel.toUpperCase()),
-                              ),
+                      PosDialogActions(
+                        actions: [
+                          OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.red,
+                              side: const BorderSide(color: Colors.red),
                             ),
+                            onPressed: () => Navigator.pop(context),
+                            child: Text(l.actionCancel.toUpperCase()),
                           ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: SizedBox(
-                              height: 44,
-                              child: FilledButton(
-                                onPressed: () {
-                                  Navigator.pop(context, NewBillResult(
-                                    tableId: _selectedTableId,
-                                    numberOfGuests: _guestCount,
-                                    customerId: _selectedCustomer?.id,
-                                    navigateToSell: false,
-                                  ));
-                                },
-                                child: Text(l.newBillSave.toUpperCase()),
-                              ),
-                            ),
+                          FilledButton(
+                            onPressed: () {
+                              Navigator.pop(context, NewBillResult(
+                                tableId: _selectedTableId,
+                                numberOfGuests: _guestCount,
+                                customerId: _selectedCustomer?.id,
+                                navigateToSell: false,
+                              ));
+                            },
+                            child: Text(l.newBillSave.toUpperCase()),
                           ),
-                          if (widget.title == null) ...[
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: SizedBox(
-                                height: 44,
-                                child: FilledButton(
-                                  style: FilledButton.styleFrom(
-                                    backgroundColor: Colors.green.shade700,
-                                  ),
-                                  onPressed: () {
-                                    Navigator.pop(context, NewBillResult(
-                                      tableId: _selectedTableId,
-                                      numberOfGuests: _guestCount,
-                                      customerId: _selectedCustomer?.id,
-                                      navigateToSell: true,
-                                    ));
-                                  },
-                                  child: Text(l.newBillOrder.toUpperCase()),
-                                ),
+                          if (widget.title == null)
+                            FilledButton(
+                              style: FilledButton.styleFrom(
+                                backgroundColor: Colors.green.shade700,
                               ),
+                              onPressed: () {
+                                Navigator.pop(context, NewBillResult(
+                                  tableId: _selectedTableId,
+                                  numberOfGuests: _guestCount,
+                                  customerId: _selectedCustomer?.id,
+                                  navigateToSell: true,
+                                ));
+                              },
+                              child: Text(l.newBillOrder.toUpperCase()),
                             ),
-                          ],
                         ],
                       ),
                     ],
@@ -309,8 +286,7 @@ class _DialogNewBillState extends ConsumerState<DialogNewBill> {
               );
             },
           ),
-        ),
-      ),
+      ],
     );
   }
 }

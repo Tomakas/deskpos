@@ -11,6 +11,7 @@ import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/widgets/pos_numpad.dart';
 
 class ScreenLogin extends ConsumerStatefulWidget {
   const ScreenLogin({super.key});
@@ -158,72 +159,19 @@ class _ScreenLoginState extends ConsumerState<ScreenLogin> {
           ),
         const SizedBox(height: 16),
         // Numpad
-        SizedBox(
+        PosNumpad(
           width: 280,
-          child: Column(
-            children: [
-              _numpadRow(['1', '2', '3']),
-              const SizedBox(height: 8),
-              _numpadRow(['4', '5', '6']),
-              const SizedBox(height: 8),
-              _numpadRow(['7', '8', '9']),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(
-                    child: _numpadButton(
-                      child: const Icon(Icons.arrow_back),
-                      onTap: () => setState(() {
-                        _selectedUser = null;
-                        _error = null;
-                        _pinCtrl.clear();
-                      }),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(child: _numpadButton(child: const Text('0', style: TextStyle(fontSize: 24)), onTap: () => _numpadTap('0'))),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: _numpadButton(
-                      child: const Icon(Icons.backspace_outlined),
-                      onTap: _numpadBackspace,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+          enabled: _lockSeconds == null && !_isLoggingIn,
+          onDigit: _numpadTap,
+          onBackspace: _numpadBackspace,
+          bottomLeftChild: const Icon(Icons.arrow_back),
+          onBottomLeft: () => setState(() {
+            _selectedUser = null;
+            _error = null;
+            _pinCtrl.clear();
+          }),
         ),
       ],
-    );
-  }
-
-  Widget _numpadRow(List<String> digits) {
-    return Row(
-      children: digits.asMap().entries.map((e) {
-        final widget = _numpadButton(
-          child: Text(e.value, style: const TextStyle(fontSize: 24)),
-          onTap: () => _numpadTap(e.value),
-        );
-        if (e.key < digits.length - 1) {
-          return Expanded(child: Padding(padding: const EdgeInsets.only(right: 8), child: widget));
-        }
-        return Expanded(child: widget);
-      }).toList(),
-    );
-  }
-
-  Widget _numpadButton({required Widget child, required VoidCallback onTap}) {
-    return SizedBox(
-      height: 64,
-      child: OutlinedButton(
-        onPressed: (_lockSeconds != null || _isLoggingIn) ? null : onTap,
-        style: OutlinedButton.styleFrom(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          padding: EdgeInsets.zero,
-        ),
-        child: child,
-      ),
     );
   }
 

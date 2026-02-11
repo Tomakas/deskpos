@@ -223,6 +223,9 @@ class AppLocalizationsCs extends AppLocalizations {
   String get actionClose => 'Zavřít';
 
   @override
+  String get actionConfirm => 'OK';
+
+  @override
   String get fieldName => 'Název';
 
   @override
@@ -1924,6 +1927,12 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get voucherFilterAll => 'Všechny';
+
+  @override
+  String get voucherRedeemedAt => 'Uplatněno';
+
+  @override
+  String get voucherIdLabel => 'ID';
 
   @override
   String get billDetailVoucher => 'Voucher';

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_table.dart';
 import '../models/z_report_data.dart';
 
@@ -66,92 +67,84 @@ class _DialogZReportListState extends State<DialogZReportList> {
     final timeFormat = DateFormat('HH:mm', 'cs');
     final filtered = _filteredSessions;
 
-    return Dialog(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 640),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(l.zReportListTitle, style: theme.textTheme.headlineSmall),
-              const SizedBox(height: 16),
-              // Date filter row
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  TextButton(
-                    onPressed: () => _pickDate(context, true),
-                    child: Text(dateFormat.format(_dateFrom)),
-                  ),
-                  const Text(' — '),
-                  TextButton(
-                    onPressed: () => _pickDate(context, false),
-                    child: Text(dateFormat.format(_dateTo)),
-                  ),
-                ],
+    return PosDialogShell(
+      title: l.zReportListTitle,
+      titleStyle: theme.textTheme.headlineSmall,
+      maxWidth: 640,
+      children: [
+        // Date filter row
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            TextButton(
+              onPressed: () => _pickDate(context, true),
+              child: Text(dateFormat.format(_dateFrom)),
+            ),
+            const Text(' — '),
+            TextButton(
+              onPressed: () => _pickDate(context, false),
+              child: Text(dateFormat.format(_dateTo)),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        // Table
+        SizedBox(
+          height: 400,
+          child: PosTable<ZReportSessionSummary>(
+            columns: [
+              PosColumn(
+                label: l.zReportColumnDate,
+                width: 100,
+                cellBuilder: (s) => Text(dateFormat.format(s.closedAt ?? s.openedAt)),
               ),
-              const SizedBox(height: 8),
-              // Table
-              SizedBox(
-                height: 400,
-                child: PosTable<ZReportSessionSummary>(
-                  columns: [
-                    PosColumn(
-                      label: l.zReportColumnDate,
-                      width: 100,
-                      cellBuilder: (s) => Text(dateFormat.format(s.closedAt ?? s.openedAt)),
-                    ),
-                    PosColumn(
-                      label: l.zReportColumnTime,
-                      width: 60,
-                      cellBuilder: (s) => Text(timeFormat.format(s.closedAt ?? s.openedAt)),
-                    ),
-                    PosColumn(label: l.zReportColumnUser, cellBuilder: (s) => Text(s.userName)),
-                    PosColumn(
-                      label: l.zReportColumnRevenue,
-                      width: 100,
-                      numeric: true,
-                      cellBuilder: (s) => Text(_fmtKc(s.totalRevenue), textAlign: TextAlign.right),
-                    ),
-                    PosColumn(
-                      label: l.zReportColumnDifference,
-                      width: 80,
-                      numeric: true,
-                      cellBuilder: (s) {
-                        final diff = s.difference;
-                        final diffColor = diff == null
-                            ? null
-                            : diff == 0
-                                ? Colors.green
-                                : diff > 0
-                                    ? Colors.blue
-                                    : theme.colorScheme.error;
-                        return Text(
-                          diff != null ? '${diff >= 0 ? '+' : ''}${diff ~/ 100} Kč' : '-',
-                          textAlign: TextAlign.right,
-                          style: TextStyle(color: diffColor),
-                        );
-                      },
-                    ),
-                  ],
-                  items: filtered,
-                  onRowTap: (s) => widget.onSessionSelected(s.sessionId),
-                  emptyMessage: l.zReportListEmpty,
-                ),
+              PosColumn(
+                label: l.zReportColumnTime,
+                width: 60,
+                cellBuilder: (s) => Text(timeFormat.format(s.closedAt ?? s.openedAt)),
               ),
-              const SizedBox(height: 16),
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text(l.actionClose),
-                ),
+              PosColumn(label: l.zReportColumnUser, cellBuilder: (s) => Text(s.userName)),
+              PosColumn(
+                label: l.zReportColumnRevenue,
+                width: 100,
+                numeric: true,
+                cellBuilder: (s) => Text(_fmtKc(s.totalRevenue), textAlign: TextAlign.right),
+              ),
+              PosColumn(
+                label: l.zReportColumnDifference,
+                width: 80,
+                numeric: true,
+                cellBuilder: (s) {
+                  final diff = s.difference;
+                  final diffColor = diff == null
+                      ? null
+                      : diff == 0
+                          ? Colors.green
+                          : diff > 0
+                              ? Colors.blue
+                              : theme.colorScheme.error;
+                  return Text(
+                    diff != null ? '${diff >= 0 ? '+' : ''}${diff ~/ 100} Kč' : '-',
+                    textAlign: TextAlign.right,
+                    style: TextStyle(color: diffColor),
+                  );
+                },
               ),
             ],
+            items: filtered,
+            onRowTap: (s) => widget.onSessionSelected(s.sessionId),
+            emptyMessage: l.zReportListEmpty,
           ),
         ),
-      ),
+        const SizedBox(height: 16),
+        Align(
+          alignment: Alignment.centerRight,
+          child: TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l.actionClose),
+          ),
+        ),
+      ],
     );
   }
 }

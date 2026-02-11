@@ -8,6 +8,9 @@ import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/widgets/pos_dialog_shell.dart';
+import '../../../core/widgets/pos_dialog_theme.dart';
+import '../../../core/widgets/pos_numpad.dart';
 
 class DialogCustomerCredit extends ConsumerStatefulWidget {
   const DialogCustomerCredit({super.key, required this.customer});
@@ -93,72 +96,67 @@ class _DialogCustomerCreditState extends ConsumerState<DialogCustomerCredit> {
     final l = context.l10n;
     final theme = Theme.of(context);
 
-    return Dialog(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 500, maxHeight: 600),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(l.loyaltyCredit, style: theme.textTheme.titleLarge),
-              const SizedBox(height: 8),
-              Text(
-                '${_customer.firstName} ${_customer.lastName}',
-                style: theme.textTheme.titleMedium,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                '${l.loyaltyCreditBalance}: ${_formatKc(_customer.credit)}',
-                style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
-              // Amount display
-              Container(
-                height: 48,
-                decoration: BoxDecoration(
-                  border: Border.all(color: theme.dividerColor),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                alignment: Alignment.centerRight,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Text(
-                  '$_amountKc Kč',
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              // Numpad + action buttons
-              _buildNumpadAndActions(theme, l),
-              const SizedBox(height: 16),
-              // Transaction history
-              Text(l.loyaltyTransactionHistory, style: theme.textTheme.titleSmall),
-              const SizedBox(height: 8),
-              SizedBox(
-                height: 120,
-                child: _buildTransactionHistory(context),
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                height: 44,
-                child: OutlinedButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text(l.actionClose),
-                ),
-              ),
-            ],
+    return PosDialogShell(
+      title: l.loyaltyCredit,
+      maxWidth: 500,
+      children: [
+        Center(
+          child: Text(
+            '${_customer.firstName} ${_customer.lastName}',
+            style: theme.textTheme.titleMedium,
           ),
         ),
-      ),
+        const SizedBox(height: 4),
+        Center(
+          child: Text(
+            '${l.loyaltyCreditBalance}: ${_formatKc(_customer.credit)}',
+            style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
+          ),
+        ),
+        const SizedBox(height: 16),
+        // Amount display
+        Container(
+          height: 48,
+          decoration: BoxDecoration(
+            border: Border.all(color: theme.dividerColor),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          alignment: Alignment.centerRight,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Text(
+            '$_amountKc Kč',
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        // Numpad + action buttons
+        _buildNumpadAndActions(theme, l),
+        const SizedBox(height: 16),
+        // Transaction history
+        Text(l.loyaltyTransactionHistory, style: theme.textTheme.titleSmall),
+        const SizedBox(height: 8),
+        SizedBox(
+          height: 120,
+          child: _buildTransactionHistory(context),
+        ),
+        const SizedBox(height: 16),
+        SizedBox(
+          width: double.infinity,
+          height: PosDialogTheme.actionHeight,
+          child: OutlinedButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l.actionClose),
+          ),
+        ),
+      ],
     );
   }
 
   Widget _buildNumpadAndActions(ThemeData theme, dynamic l) {
-    const rowHeight = 48.0;
-    const gap = 8.0;
+    const rowHeight = PosDialogTheme.numpadLargeHeight;
+    const gap = PosDialogTheme.numpadLargeGap;
     const totalHeight = rowHeight * 4 + gap * 3;
     const actionHeight = (totalHeight - gap) / 2;
 
@@ -169,16 +167,10 @@ class _DialogCustomerCreditState extends ConsumerState<DialogCustomerCredit> {
         children: [
           SizedBox(
             width: 230,
-            child: Column(
-              children: [
-                _numpadRow(['1', '2', '3'], rowHeight),
-                const SizedBox(height: gap),
-                _numpadRow(['4', '5', '6'], rowHeight),
-                const SizedBox(height: gap),
-                _numpadRow(['7', '8', '9'], rowHeight),
-                const SizedBox(height: gap),
-                _numpadRow(['⌫', '0', 'C'], rowHeight),
-              ],
+            child: PosNumpad(
+              onDigit: _numpadTap,
+              onBackspace: _numpadBackspace,
+              onClear: _numpadClear,
             ),
           ),
           const SizedBox(width: 12),
@@ -193,14 +185,14 @@ class _DialogCustomerCreditState extends ConsumerState<DialogCustomerCredit> {
                     style: FilledButton.styleFrom(
                       backgroundColor: Colors.green,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(PosDialogTheme.numpadLargeRadius),
                       ),
                     ),
                     onPressed: _hasAmount ? _topUp : null,
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(l.loyaltyCreditTopUp, style: const TextStyle(fontSize: 13)),
+                        Text(l.loyaltyCreditTopUp, style: const TextStyle(fontSize: PosDialogTheme.actionFontSize)),
                         const SizedBox(height: 4),
                         const Icon(Icons.add_circle_outline, size: 32),
                       ],
@@ -215,7 +207,7 @@ class _DialogCustomerCreditState extends ConsumerState<DialogCustomerCredit> {
                     style: FilledButton.styleFrom(
                       backgroundColor: theme.colorScheme.error,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(PosDialogTheme.numpadLargeRadius),
                       ),
                     ),
                     onPressed: _hasAmount && _amountKc * 100 <= _customer.credit
@@ -224,7 +216,7 @@ class _DialogCustomerCreditState extends ConsumerState<DialogCustomerCredit> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(l.loyaltyCreditDeduct, style: const TextStyle(fontSize: 13)),
+                        Text(l.loyaltyCreditDeduct, style: const TextStyle(fontSize: PosDialogTheme.actionFontSize)),
                         const SizedBox(height: 4),
                         const Icon(Icons.remove_circle_outline, size: 32),
                       ],
@@ -294,47 +286,6 @@ class _DialogCustomerCreditState extends ConsumerState<DialogCustomerCredit> {
           },
         );
       },
-    );
-  }
-
-  Widget _numpadRow(List<String> keys, double height) {
-    return SizedBox(
-      height: height,
-      child: Row(
-        children: [
-          for (int i = 0; i < keys.length; i++) ...[
-            if (i > 0) const SizedBox(width: 8),
-            Expanded(child: _numpadButton(keys[i])),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _numpadButton(String key) {
-    final Widget child;
-    final VoidCallback onTap;
-    switch (key) {
-      case '⌫':
-        child = const Icon(Icons.backspace_outlined);
-        onTap = _numpadBackspace;
-      case 'C':
-        child = const Text('C', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold));
-        onTap = _numpadClear;
-      default:
-        child = Text(key, style: const TextStyle(fontSize: 24));
-        onTap = () => _numpadTap(key);
-    }
-    return SizedBox(
-      height: double.infinity,
-      child: OutlinedButton(
-        onPressed: onTap,
-        style: OutlinedButton.styleFrom(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          padding: EdgeInsets.zero,
-        ),
-        child: child,
-      ),
     );
   }
 }

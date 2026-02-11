@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/widgets/pos_dialog_actions.dart';
+import '../../../core/widgets/pos_dialog_shell.dart';
 
 // ---------------------------------------------------------------------------
 // Data classes
@@ -202,23 +204,13 @@ class _DialogClosingSessionState extends State<DialogClosingSession> {
     final l = context.l10n;
     final theme = Theme.of(context);
 
-    return Dialog(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 500),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Title
-                Center(
-                  child: Text(l.closingTitle, style: theme.textTheme.headlineSmall),
-                ),
-                const SizedBox(height: 16),
-
-                // --- Session info ---
+    return PosDialogShell(
+      title: l.closingTitle,
+      titleStyle: theme.textTheme.headlineSmall,
+      maxWidth: 500,
+      scrollable: true,
+      children: [
+        // --- Session info ---
                 _buildSessionInfo(l, theme),
                 const Divider(height: 24),
 
@@ -237,10 +229,6 @@ class _DialogClosingSessionState extends State<DialogClosingSession> {
                 // --- Actions ---
                 _buildActions(l, theme),
               ],
-            ),
-          ),
-        ),
-      ),
     );
   }
 
@@ -410,62 +398,41 @@ class _DialogClosingSessionState extends State<DialogClosingSession> {
   // ---------------------------------------------------------------------------
 
   Widget _buildActions(dynamic l, ThemeData theme) {
-    return Row(
-      children: [
-        Expanded(
-          child: SizedBox(
-            height: 40,
-            child: FilledButton.tonal(
-              onPressed: _showNoteDialog,
-              style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 8)),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(l.cashMovementNote, style: const TextStyle(fontSize: 12)),
-                  if (_note != null) ...[
-                    const SizedBox(width: 4),
-                    Icon(Icons.check, size: 14, color: theme.colorScheme.primary),
-                  ],
-                ],
-              ),
-            ),
+    return PosDialogActions(
+      height: 40,
+      spacing: 6,
+      actions: [
+        FilledButton.tonal(
+          onPressed: _showNoteDialog,
+          style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 8)),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(l.cashMovementNote, style: const TextStyle(fontSize: 12)),
+              if (_note != null) ...[
+                const SizedBox(width: 4),
+                Icon(Icons.check, size: 14, color: theme.colorScheme.primary),
+              ],
+            ],
           ),
         ),
-        const SizedBox(width: 6),
-        Expanded(
-          child: SizedBox(
-            height: 40,
-            child: OutlinedButton(
-              onPressed: null,
-              style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 8)),
-              child: Text(l.closingPrint, style: const TextStyle(fontSize: 12)),
-            ),
-          ),
+        OutlinedButton(
+          onPressed: null,
+          style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 8)),
+          child: Text(l.closingPrint, style: const TextStyle(fontSize: 12)),
         ),
-        const SizedBox(width: 6),
-        Expanded(
-          child: SizedBox(
-            height: 40,
-            child: OutlinedButton(
-              onPressed: () => Navigator.pop(context),
-              style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 8)),
-              child: Text(l.actionCancel, style: const TextStyle(fontSize: 12)),
-            ),
-          ),
+        OutlinedButton(
+          onPressed: () => Navigator.pop(context),
+          style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 8)),
+          child: Text(l.actionCancel, style: const TextStyle(fontSize: 12)),
         ),
-        const SizedBox(width: 6),
-        Expanded(
-          child: SizedBox(
-            height: 40,
-            child: FilledButton(
-              style: FilledButton.styleFrom(
-                backgroundColor: Colors.green,
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-              ),
-              onPressed: _closingCashHalere != null ? _confirm : null,
-              child: Text(l.closingConfirm, style: const TextStyle(fontSize: 12)),
-            ),
+        FilledButton(
+          style: FilledButton.styleFrom(
+            backgroundColor: Colors.green,
+            padding: const EdgeInsets.symmetric(horizontal: 8),
           ),
+          onPressed: _closingCashHalere != null ? _confirm : null,
+          child: Text(l.closingConfirm, style: const TextStyle(fontSize: 12)),
         ),
       ],
     );

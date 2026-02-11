@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../../core/data/enums/discount_type.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/widgets/pos_dialog_actions.dart';
+import '../../../core/widgets/pos_dialog_shell.dart';
+import '../../../core/widgets/pos_numpad.dart';
 
 class DialogDiscount extends StatefulWidget {
   const DialogDiscount({
@@ -59,171 +62,92 @@ class _DialogDiscountState extends State<DialogDiscount> {
     return (basisPoints / 100).toStringAsFixed(2);
   }
 
+  void _onDot() {
+    if (!_input.contains('.')) {
+      setState(() => _input = _input.isEmpty ? '0.' : '$_input.');
+    }
+  }
+
+  void _onBackspace() {
+    if (_input.isNotEmpty) {
+      setState(() => _input = _input.substring(0, _input.length - 1));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
     final theme = Theme.of(context);
     final hasValue = _discountValue > 0;
 
-    return Dialog(
-      child: SizedBox(
-        width: 340,
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                l.billDetailDiscount,
-                style: theme.textTheme.titleLarge,
-              ),
-              const SizedBox(height: 16),
-              // Display
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                decoration: BoxDecoration(
-                  border: Border.all(color: theme.dividerColor),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  _input.isEmpty ? '0' : _input,
-                  style: theme.textTheme.headlineMedium,
-                  textAlign: TextAlign.right,
-                ),
-              ),
-              const SizedBox(height: 12),
-              // Numpad
-              _buildNumpad(),
-              const SizedBox(height: 16),
-              // Actions: [Kč] [Zpět] [%]
-              Row(
-                children: [
-                  Expanded(
-                    child: SizedBox(
-                      height: 52,
-                      child: FilledButton(
-                        onPressed: () => Navigator.pop(
-                          context,
-                          (DiscountType.absolute, _cappedAbsolute),
-                        ),
-                        child: hasValue
-                            ? Text('-${_formatKc(_cappedAbsolute)} Kč')
-                            : const Text('Kč'),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: SizedBox(
-                      height: 52,
-                      child: OutlinedButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: Text(l.wizardBack),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: SizedBox(
-                      height: 52,
-                      child: FilledButton(
-                        onPressed: () => Navigator.pop(
-                          context,
-                          (DiscountType.percent, _cappedPercent),
-                        ),
-                        child: hasValue
-                            ? Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text('${_formatPercent(_cappedPercent)} %'),
-                                  Text(
-                                    '-${_formatKc(_percentEffective)} Kč',
-                                    style: theme.textTheme.bodySmall?.copyWith(
-                                      color: theme.colorScheme.onPrimary,
-                                    ),
-                                  ),
-                                ],
-                              )
-                            : const Text('%'),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
+    return PosDialogShell(
+      title: l.billDetailDiscount,
+      maxWidth: 340,
+      padding: const EdgeInsets.all(20),
+      children: [
+        // Display
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          decoration: BoxDecoration(
+            border: Border.all(color: theme.dividerColor),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            _input.isEmpty ? '0' : _input,
+            style: theme.textTheme.headlineMedium,
+            textAlign: TextAlign.right,
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildNumpad() {
-    return Column(
-      children: [
-        _numpadRow(['1', '2', '3']),
-        const SizedBox(height: 4),
-        _numpadRow(['4', '5', '6']),
-        const SizedBox(height: 4),
-        _numpadRow(['7', '8', '9']),
-        const SizedBox(height: 4),
-        Row(
-          children: [
-            _numpadButton(
-              child: const Text('.', style: TextStyle(fontSize: 20)),
-              onTap: () {
-                if (!_input.contains('.')) {
-                  setState(() => _input = _input.isEmpty ? '0.' : '$_input.');
-                }
-              },
+        const SizedBox(height: 12),
+        // Numpad
+        PosNumpad(
+          size: PosNumpadSize.compact,
+          onDigit: (d) => setState(() => _input += d),
+          onBackspace: _onBackspace,
+          onDot: _onDot,
+        ),
+        const SizedBox(height: 16),
+        // Actions: [Kč] [Zpět] [%]
+        PosDialogActions(
+          height: 52,
+          actions: [
+            FilledButton(
+              onPressed: () => Navigator.pop(
+                context,
+                (DiscountType.absolute, _cappedAbsolute),
+              ),
+              child: hasValue
+                  ? Text('-${_formatKc(_cappedAbsolute)} Kč')
+                  : const Text('Kč'),
             ),
-            const SizedBox(width: 4),
-            _numpadButton(
-              child: const Text('0', style: TextStyle(fontSize: 20)),
-              onTap: () => setState(() => _input += '0'),
+            OutlinedButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(l.wizardBack),
             ),
-            const SizedBox(width: 4),
-            _numpadButton(
-              child: const Icon(Icons.backspace_outlined, size: 20),
-              onTap: () {
-                if (_input.isNotEmpty) {
-                  setState(() => _input = _input.substring(0, _input.length - 1));
-                }
-              },
+            FilledButton(
+              onPressed: () => Navigator.pop(
+                context,
+                (DiscountType.percent, _cappedPercent),
+              ),
+              child: hasValue
+                  ? Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text('${_formatPercent(_cappedPercent)} %'),
+                        Text(
+                          '-${_formatKc(_percentEffective)} Kč',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onPrimary,
+                          ),
+                        ),
+                      ],
+                    )
+                  : const Text('%'),
             ),
           ],
         ),
       ],
-    );
-  }
-
-  Widget _numpadRow(List<String> digits) {
-    return Row(
-      children: [
-        for (var i = 0; i < digits.length; i++) ...[
-          if (i > 0) const SizedBox(width: 4),
-          _numpadButton(
-            child: Text(digits[i], style: const TextStyle(fontSize: 20)),
-            onTap: () => setState(() => _input += digits[i]),
-          ),
-        ],
-      ],
-    );
-  }
-
-  Widget _numpadButton({required Widget child, required VoidCallback onTap}) {
-    return Expanded(
-      child: SizedBox(
-        height: 48,
-        child: OutlinedButton(
-          onPressed: onTap,
-          style: OutlinedButton.styleFrom(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            padding: EdgeInsets.zero,
-          ),
-          child: child,
-        ),
-      ),
     );
   }
 }

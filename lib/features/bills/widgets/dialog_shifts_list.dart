@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_table.dart';
 
 class ShiftDisplayRow {
@@ -76,81 +77,73 @@ class _DialogShiftsListState extends State<DialogShiftsList> {
     final timeFormat = DateFormat('HH:mm', 'cs');
     final filtered = _filteredShifts;
 
-    return Dialog(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 640),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(l.shiftsListTitle, style: theme.textTheme.headlineSmall),
-              const SizedBox(height: 16),
-              // Date filter row
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  TextButton(
-                    onPressed: () => _pickDate(context, true),
-                    child: Text(dateFormat.format(_dateFrom)),
-                  ),
-                  const Text(' — '),
-                  TextButton(
-                    onPressed: () => _pickDate(context, false),
-                    child: Text(dateFormat.format(_dateTo)),
-                  ),
-                ],
+    return PosDialogShell(
+      title: l.shiftsListTitle,
+      titleStyle: theme.textTheme.headlineSmall,
+      maxWidth: 640,
+      children: [
+        // Date filter row
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            TextButton(
+              onPressed: () => _pickDate(context, true),
+              child: Text(dateFormat.format(_dateFrom)),
+            ),
+            const Text(' — '),
+            TextButton(
+              onPressed: () => _pickDate(context, false),
+              child: Text(dateFormat.format(_dateTo)),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        // Table
+        SizedBox(
+          height: 400,
+          child: PosTable<ShiftDisplayRow>(
+            columns: [
+              PosColumn(label: l.shiftsColumnDate, width: 90, cellBuilder: (s) => Text(dateFormat.format(s.loginAt))),
+              PosColumn(label: l.shiftsColumnUser, cellBuilder: (s) => Text(s.username)),
+              PosColumn(label: l.shiftsColumnLogin, width: 60, cellBuilder: (s) => Text(timeFormat.format(s.loginAt))),
+              PosColumn(
+                label: l.shiftsColumnLogout,
+                width: 80,
+                numeric: true,
+                cellBuilder: (s) {
+                  final isOngoing = s.logoutAt == null;
+                  return Text(
+                    isOngoing ? l.shiftsOngoing : timeFormat.format(s.logoutAt!),
+                    textAlign: TextAlign.right,
+                    style: isOngoing
+                        ? TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold)
+                        : null,
+                  );
+                },
               ),
-              const SizedBox(height: 8),
-              // Table
-              SizedBox(
-                height: 400,
-                child: PosTable<ShiftDisplayRow>(
-                  columns: [
-                    PosColumn(label: l.shiftsColumnDate, width: 90, cellBuilder: (s) => Text(dateFormat.format(s.loginAt))),
-                    PosColumn(label: l.shiftsColumnUser, cellBuilder: (s) => Text(s.username)),
-                    PosColumn(label: l.shiftsColumnLogin, width: 60, cellBuilder: (s) => Text(timeFormat.format(s.loginAt))),
-                    PosColumn(
-                      label: l.shiftsColumnLogout,
-                      width: 80,
-                      numeric: true,
-                      cellBuilder: (s) {
-                        final isOngoing = s.logoutAt == null;
-                        return Text(
-                          isOngoing ? l.shiftsOngoing : timeFormat.format(s.logoutAt!),
-                          textAlign: TextAlign.right,
-                          style: isOngoing
-                              ? TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold)
-                              : null,
-                        );
-                      },
-                    ),
-                    PosColumn(
-                      label: l.shiftsColumnDuration,
-                      width: 80,
-                      numeric: true,
-                      cellBuilder: (s) {
-                        final duration = (s.logoutAt ?? DateTime.now()).difference(s.loginAt);
-                        return Text(_fmtDuration(duration), textAlign: TextAlign.right);
-                      },
-                    ),
-                  ],
-                  items: filtered,
-                  emptyMessage: l.shiftsListEmpty,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text(l.actionClose),
-                ),
+              PosColumn(
+                label: l.shiftsColumnDuration,
+                width: 80,
+                numeric: true,
+                cellBuilder: (s) {
+                  final duration = (s.logoutAt ?? DateTime.now()).difference(s.loginAt);
+                  return Text(_fmtDuration(duration), textAlign: TextAlign.right);
+                },
               ),
             ],
+            items: filtered,
+            emptyMessage: l.shiftsListEmpty,
           ),
         ),
-      ),
+        const SizedBox(height: 16),
+        Align(
+          alignment: Alignment.centerRight,
+          child: TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l.actionClose),
+          ),
+        ),
+      ],
     );
   }
 }
