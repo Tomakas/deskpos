@@ -789,5 +789,7 @@
   "voucherCustomerMismatch": "Voucher je vázán na jiného zákazníka",
   "voucherDepositReturn": "Vrácení přeplatku zálohy",
   "voucherFilterAll": "Všechny",
-  "billDetailVoucher": "Voucher"
+  "billDetailVoucher": "Voucher",
+
+  "wizardWithTestData": "Vytvořit s testovacími daty"
 }

@@ -21,6 +21,7 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
   bool _showWizard = false;
   int _step = 0;
   bool _isSubmitting = false;
+  bool _withTestData = false;
 
   // Step 1: Company
   final _companyNameCtrl = TextEditingController();
@@ -176,6 +177,14 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
         decoration: InputDecoration(labelText: l.wizardPhone),
         keyboardType: TextInputType.phone,
       ),
+      const SizedBox(height: 16),
+      CheckboxListTile(
+        value: _withTestData,
+        onChanged: (v) => setState(() => _withTestData = v ?? false),
+        title: Text(l.wizardWithTestData),
+        controlAffinity: ListTileControlAffinity.leading,
+        contentPadding: EdgeInsets.zero,
+      ),
     ];
   }
 
@@ -249,6 +258,7 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
       adminFullName: _fullNameCtrl.text.trim(),
       adminUsername: _usernameCtrl.text.trim(),
       adminPin: _pinCtrl.text,
+      withTestData: _withTestData,
     );
 
     if (!mounted) return;

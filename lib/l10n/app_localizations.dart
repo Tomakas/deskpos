@@ -3819,6 +3819,12 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Voucher'**
   String get billDetailVoucher;
+
+  /// No description provided for @wizardWithTestData.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vytvořit s testovacími daty'**
+  String get wizardWithTestData;
 }
 
 class _AppLocalizationsDelegate

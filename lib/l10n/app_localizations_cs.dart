@@ -1927,4 +1927,7 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get billDetailVoucher => 'Voucher';
+
+  @override
+  String get wizardWithTestData => 'Vytvořit s testovacími daty';
 }
