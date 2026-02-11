@@ -439,14 +439,14 @@ class _OrderItemRow extends StatelessWidget {
     return InkWell(
       onTap: canVoid && !isVoided ? onVoid : null,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 2),
+        padding: const EdgeInsets.symmetric(vertical: 4),
         child: Row(
           children: [
             SizedBox(
               width: 32,
               child: Text(
                 '${item.quantity.toStringAsFixed(item.quantity == item.quantity.roundToDouble() ? 0 : 1)}x',
-                style: theme.textTheme.bodySmall?.copyWith(
+                style: theme.textTheme.bodyMedium?.copyWith(
                   decoration: isVoided ? TextDecoration.lineThrough : null,
                   color: isVoided ? theme.colorScheme.onSurfaceVariant : null,
                 ),
@@ -455,7 +455,7 @@ class _OrderItemRow extends StatelessWidget {
             Expanded(
               child: Text(
                 item.itemName,
-                style: theme.textTheme.bodySmall?.copyWith(
+                style: theme.textTheme.bodyMedium?.copyWith(
                   decoration: isVoided ? TextDecoration.lineThrough : null,
                   color: isVoided ? theme.colorScheme.onSurfaceVariant : null,
                 ),
@@ -466,13 +466,13 @@ class _OrderItemRow extends StatelessWidget {
                 padding: const EdgeInsets.only(right: 8),
                 child: Icon(
                   Icons.note,
-                  size: 14,
+                  size: 16,
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
             Text(
               '${price ~/ 100},-',
-              style: theme.textTheme.bodySmall?.copyWith(
+              style: theme.textTheme.bodyMedium?.copyWith(
                 decoration: isVoided ? TextDecoration.lineThrough : null,
                 color: isVoided ? theme.colorScheme.onSurfaceVariant : null,
               ),
