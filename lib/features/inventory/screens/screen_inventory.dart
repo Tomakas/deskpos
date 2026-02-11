@@ -9,6 +9,7 @@ import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/repositories/stock_level_repository.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../l10n/app_localizations.dart';
 import '../widgets/dialog_inventory.dart';
 import '../widgets/dialog_stock_document.dart';
 
@@ -340,12 +341,12 @@ class _StockDocumentsTab extends ConsumerWidget {
     );
   }
 
-  String _documentTypeLabel(dynamic l, StockDocumentType type) {
+  String _documentTypeLabel(AppLocalizations l, StockDocumentType type) {
     return switch (type) {
-      StockDocumentType.receipt => (l as dynamic).documentTypeReceipt as String,
-      StockDocumentType.waste => (l as dynamic).documentTypeWaste as String,
-      StockDocumentType.inventory => (l as dynamic).documentTypeInventory as String,
-      StockDocumentType.correction => (l as dynamic).documentTypeCorrection as String,
+      StockDocumentType.receipt => l.documentTypeReceipt,
+      StockDocumentType.waste => l.documentTypeWaste,
+      StockDocumentType.inventory => l.documentTypeInventory,
+      StockDocumentType.correction => l.documentTypeCorrection,
     };
   }
 }
