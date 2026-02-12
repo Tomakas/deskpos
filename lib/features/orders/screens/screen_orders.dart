@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../../../core/data/enums/prep_status.dart';
 import '../../../core/data/models/bill_model.dart';
+import '../../../core/data/models/customer_model.dart';
 import '../../../core/data/models/order_item_model.dart';
 import '../../../core/data/models/order_model.dart';
 import '../../../core/data/models/table_model.dart';
@@ -21,7 +22,7 @@ class ScreenOrders extends ConsumerStatefulWidget {
 
 class _ScreenOrdersState extends ConsumerState<ScreenOrders> {
   bool _sessionScope = true;
-  Set<PrepStatus>? _statusFilter; // null = active (created+inPrep+ready)
+  Set<PrepStatus> _statusFilter = {PrepStatus.created, PrepStatus.inPrep, PrepStatus.ready};
 
   @override
   Widget build(BuildContext context) {
@@ -85,30 +86,16 @@ class _ScreenOrdersState extends ConsumerState<ScreenOrders> {
                   );
                 }
 
-                return LayoutBuilder(
-                  builder: (context, constraints) {
-                    final crossAxisCount = constraints.maxWidth > 900 ? 3 : 2;
-                    final cardWidth = (constraints.maxWidth - 32 - (crossAxisCount - 1) * 8) / crossAxisCount;
-                    return SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      child: Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          for (final order in orders)
-                            SizedBox(
-                              width: cardWidth,
-                              child: _OrderCard(
-                                order: order,
-                                onItemStatusChange: (item, status) =>
-                                    _changeItemStatus(order, item, status),
-                                onVoidItem: (item) => _voidItem(order, item),
-                              ),
-                            ),
-                        ],
-                      ),
-                    );
-                  },
+                return ListView.separated(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  itemCount: orders.length,
+                  separatorBuilder: (_, _) => const SizedBox(height: 8),
+                  itemBuilder: (_, i) => _OrderCard(
+                    order: orders[i],
+                    onItemStatusChange: (item, status) =>
+                        _changeItemStatus(orders[i], item, status),
+                    onVoidItem: (item) => _voidItem(orders[i], item),
+                  ),
                 );
               },
             ),
@@ -124,16 +111,8 @@ class _ScreenOrdersState extends ConsumerState<ScreenOrders> {
   }
 
   List<OrderModel> _applyStatusFilter(List<OrderModel> orders) {
-    if (_statusFilter == null) {
-      // Active = created + inPrep + ready
-      return orders
-          .where((o) =>
-              o.status == PrepStatus.created ||
-              o.status == PrepStatus.inPrep ||
-              o.status == PrepStatus.ready)
-          .toList();
-    }
-    return orders.where((o) => _statusFilter!.contains(o.status)).toList();
+    if (_statusFilter.isEmpty) return orders;
+    return orders.where((o) => _statusFilter.contains(o.status)).toList();
   }
 
   Future<void> _changeItemStatus(
@@ -202,8 +181,8 @@ class _OrderCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
     final theme = Theme.of(context);
-    final timeFormat = DateFormat('HH:mm');
     final isStorno = order.isStorno;
+    final statusColor = _statusColor(order.status);
 
     return Card(
       shape: RoundedRectangleBorder(
@@ -214,129 +193,166 @@ class _OrderCard extends ConsumerWidget {
       ),
       child: Padding(
         padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header row 1: status dot + order number + storno ref ... time
-            Row(
+        child: StreamBuilder<List<OrderItemModel>>(
+          stream: ref.watch(orderRepositoryProvider).watchOrderItems(order.id),
+          builder: (context, snap) {
+            final items = snap.data ?? [];
+
+            // Find lowest active item status for the order-level button
+            final activeItems = items.where((i) =>
+                i.status != PrepStatus.voided &&
+                i.status != PrepStatus.cancelled);
+            final lowestStatus = !isStorno && activeItems.isNotEmpty
+                ? activeItems
+                    .map((i) => i.status)
+                    .reduce((a, b) => a.index < b.index ? a : b)
+                : null;
+            final lowestNext = lowestStatus != null
+                ? _nextStatus(lowestStatus)
+                : null;
+            final lowestColor = lowestStatus != null
+                ? _statusColor(lowestStatus)
+                : statusColor;
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 10,
-                  height: 10,
-                  margin: const EdgeInsets.only(right: 8),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: _statusColor(order.status),
-                  ),
-                ),
-                if (isStorno)
-                  Text(
-                    '${l.ordersStornoPrefix} ',
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      color: Colors.red,
-                      fontWeight: FontWeight.bold,
+                // Header: 3 columns
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Col 1: order identity + status button (horizontal)
+                    Expanded(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 10,
+                            height: 10,
+                            margin: const EdgeInsets.only(right: 8),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: statusColor,
+                            ),
+                          ),
+                        if (isStorno)
+                          Text(
+                            '${l.ordersStornoPrefix} ',
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              color: Colors.red,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        Text(
+                          order.orderNumber,
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: isStorno ? Colors.red : null,
+                          ),
+                        ),
+                        if (isStorno && order.stornoSourceOrderId != null) ...[
+                          const SizedBox(width: 8),
+                          _StornoRef(
+                            billId: order.billId,
+                            sourceOrderId: order.stornoSourceOrderId!,
+                          ),
+                        ],
+                        const SizedBox(width: 8),
+                        if (lowestNext != null)
+                          SizedBox(
+                            height: 40,
+                            child: FilledButton.tonal(
+                              style: FilledButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(horizontal: 12),
+                                backgroundColor: lowestColor.withValues(alpha: 0.15),
+                                foregroundColor: lowestColor,
+                                textStyle: theme.textTheme.labelSmall
+                                    ?.copyWith(fontWeight: FontWeight.w600),
+                              ),
+                              onPressed: () {
+                                for (final item in items) {
+                                  if (item.status == lowestStatus) {
+                                    onItemStatusChange(item, lowestNext);
+                                  }
+                                }
+                              },
+                              child: Text(_statusLabel(lowestStatus!, l)),
+                            ),
+                          )
+                        else
+                          Container(
+                            height: 40,
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: statusColor.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              _statusLabel(order.status, l),
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: statusColor,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                Text(
-                  order.orderNumber,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: isStorno ? Colors.red : null,
-                  ),
+                    const SizedBox(width: 16),
+                    // Col 2: table + customer
+                    Expanded(
+                      child: _BillInfoTable(billId: order.billId),
+                    ),
+                    const SizedBox(width: 16),
+                    // Col 3: times
+                    Expanded(
+                      child: Align(
+                        alignment: Alignment.centerRight,
+                        child: _TimeTable(
+                          createdAt: order.createdAt,
+                          updatedAt: order.updatedAt,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                if (isStorno && order.stornoSourceOrderId != null) ...[
-                  const SizedBox(width: 8),
-                  Flexible(
-                    child: _StornoRef(
-                      billId: order.billId,
-                      sourceOrderId: order.stornoSourceOrderId!,
+                const SizedBox(height: 10),
+                // Items
+                Column(
+                  children: [
+                    for (var i = 0; i < items.length; i++) ...[
+                      if (i > 0) const SizedBox(height: 4),
+                      _OrderItemCard(
+                        item: items[i],
+                        isStorno: isStorno,
+                        canVoid: !isStorno && _isItemActive(items[i].status),
+                        canChangeStatus: !isStorno,
+                        onVoid: () => onVoidItem(items[i]),
+                        onStatusChange: (status) =>
+                            onItemStatusChange(items[i], status),
+                      ),
+                    ],
+                  ],
+                ),
+                // Notes
+                if (order.notes != null && order.notes!.isNotEmpty && !isStorno) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    order.notes!,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      fontStyle: FontStyle.italic,
+                      color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ],
-                const Spacer(),
-                Text(
-                  timeFormat.format(order.createdAt),
-                  style: theme.textTheme.bodySmall,
-                ),
               ],
-            ),
-            const SizedBox(height: 4),
-            // Header row 2: table name ... status label
-            Row(
-              children: [
-                _TableName(billId: order.billId),
-                const Spacer(),
-                Text(
-                  _statusLabel(order.status, l),
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: _statusColor(order.status),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            // Items
-            StreamBuilder<List<OrderItemModel>>(
-              stream: ref.watch(orderRepositoryProvider).watchOrderItems(order.id),
-              builder: (context, snap) {
-                final items = snap.data ?? [];
-                return Column(
-                  children: [
-                    for (final item in items)
-                      _OrderItemRow(
-                        item: item,
-                        canVoid: !isStorno && _isItemActive(item.status),
-                        canChangeStatus: !isStorno,
-                        onVoid: () => onVoidItem(item),
-                        onStatusChange: (status) =>
-                            onItemStatusChange(item, status),
-                      ),
-                  ],
-                );
-              },
-            ),
-            // Notes
-            if (order.notes != null && order.notes!.isNotEmpty && !isStorno) ...[
-              const SizedBox(height: 4),
-              Text(
-                order.notes!,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  fontStyle: FontStyle.italic,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-
-
-          ],
+            );
+          },
         ),
       ),
     );
   }
-
-  bool _isItemActive(PrepStatus status) =>
-      status == PrepStatus.created ||
-      status == PrepStatus.inPrep ||
-      status == PrepStatus.ready;
-
-  Color _statusColor(PrepStatus status) => switch (status) {
-        PrepStatus.created => Colors.blue,
-        PrepStatus.inPrep => Colors.orange,
-        PrepStatus.ready => Colors.green,
-        PrepStatus.delivered => Colors.grey,
-        PrepStatus.cancelled => Colors.pink,
-        PrepStatus.voided => Colors.red,
-      };
-
-  String _statusLabel(PrepStatus status, dynamic l) => switch (status) {
-        PrepStatus.created => l.ordersFilterCreated,
-        PrepStatus.inPrep => l.ordersFilterInPrep,
-        PrepStatus.ready => l.ordersFilterReady,
-        PrepStatus.delivered => l.ordersFilterDelivered,
-        PrepStatus.cancelled => l.ordersFilterStorno,
-        PrepStatus.voided => l.ordersFilterStorno,
-      };
 }
 
 // ---------------------------------------------------------------------------
@@ -369,17 +385,23 @@ class _StornoRef extends ConsumerWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Table name resolver
+// Bill info table (table + customer, colons aligned)
 // ---------------------------------------------------------------------------
-class _TableName extends ConsumerWidget {
-  const _TableName({required this.billId});
+class _BillInfoTable extends ConsumerWidget {
+  const _BillInfoTable({required this.billId});
   final String billId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
+    final theme = Theme.of(context);
     final company = ref.watch(currentCompanyProvider);
     if (company == null) return const SizedBox.shrink();
+
+    final labelStyle = theme.textTheme.bodySmall?.copyWith(
+      color: theme.colorScheme.onSurfaceVariant,
+    );
+    final valueStyle = theme.textTheme.bodySmall;
 
     return StreamBuilder<List<BillModel>>(
       stream: ref.watch(billRepositoryProvider).watchByCompany(company.id),
@@ -388,46 +410,117 @@ class _TableName extends ConsumerWidget {
         final bill = bills.where((b) => b.id == billId).firstOrNull;
         if (bill == null) return const SizedBox.shrink();
 
-        if (bill.isTakeaway) {
-          return Text(
-            l.billsQuickBill,
-            style: Theme.of(context).textTheme.bodySmall,
-          );
-        }
-
-        if (bill.tableId == null) return const SizedBox.shrink();
-
         return StreamBuilder<List<TableModel>>(
           stream: ref.watch(tableRepositoryProvider).watchAll(company.id),
           builder: (context, tableSnap) {
             final tables = tableSnap.data ?? [];
-            final table = tables.where((t) => t.id == bill.tableId).firstOrNull;
-            if (table == null) return const SizedBox.shrink();
-            return Text(
-              table.name,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+
+            return StreamBuilder<List<CustomerModel>>(
+              stream: ref.watch(customerRepositoryProvider).watchAll(company.id),
+              builder: (context, customerSnap) {
+                final table = bill.tableId != null
+                    ? tables.where((t) => t.id == bill.tableId).firstOrNull
+                    : null;
+
+                final tableName = bill.isTakeaway
+                    ? l.billsQuickBill
+                    : table?.name;
+
+                // Resolve customer: linked record takes priority, then bill.customerName
+                String? resolvedCustomer;
+                if (bill.customerId != null) {
+                  final customers = customerSnap.data ?? [];
+                  final customer = customers
+                      .where((c) => c.id == bill.customerId)
+                      .firstOrNull;
+                  if (customer != null) {
+                    resolvedCustomer = '${customer.firstName} ${customer.lastName}'.trim();
+                  }
+                }
+                resolvedCustomer ??= bill.customerName;
+                final customerDisplay = (resolvedCustomer != null && resolvedCustomer.isNotEmpty)
+                    ? resolvedCustomer
+                    : '–';
+
+                final tableDisplay = (tableName != null && tableName.isNotEmpty)
+                    ? tableName
+                    : '–';
+
+                return Table(
+                  defaultColumnWidth: const IntrinsicColumnWidth(),
+                  children: [
+                    TableRow(children: [
+                      Text('${l.ordersTableLabel}: ', style: labelStyle),
+                      Text(tableDisplay, style: valueStyle),
+                    ]),
+                    TableRow(children: [
+                      Text('${l.ordersCustomerLabel}: ', style: labelStyle),
+                      Text(customerDisplay, style: valueStyle),
+                    ]),
+                  ],
+                );
+              },
             );
           },
         );
       },
     );
   }
+
 }
 
 // ---------------------------------------------------------------------------
-// Order item row
+// Time table (created + updated, colons aligned)
 // ---------------------------------------------------------------------------
-class _OrderItemRow extends StatelessWidget {
-  const _OrderItemRow({
+class _TimeTable extends StatelessWidget {
+  const _TimeTable({
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    final theme = Theme.of(context);
+    final timeFormat = DateFormat('HH:mm');
+
+    final labelStyle = theme.textTheme.bodySmall?.copyWith(
+      color: theme.colorScheme.onSurfaceVariant,
+    );
+    final valueStyle = theme.textTheme.bodySmall;
+
+    return Table(
+      defaultColumnWidth: const IntrinsicColumnWidth(),
+      children: [
+        TableRow(children: [
+          Text('${l.ordersTimeCreated}: ', style: labelStyle, textAlign: TextAlign.right),
+          Text(timeFormat.format(createdAt), style: valueStyle),
+        ]),
+        TableRow(children: [
+          Text('${l.ordersTimeUpdated}: ', style: labelStyle, textAlign: TextAlign.right),
+          Text(timeFormat.format(updatedAt), style: valueStyle),
+        ]),
+      ],
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Order item sub-card
+// ---------------------------------------------------------------------------
+class _OrderItemCard extends StatelessWidget {
+  const _OrderItemCard({
     required this.item,
+    required this.isStorno,
     required this.canVoid,
     required this.canChangeStatus,
     required this.onVoid,
     required this.onStatusChange,
   });
   final OrderItemModel item;
+  final bool isStorno;
   final bool canVoid;
   final bool canChangeStatus;
   final VoidCallback onVoid;
@@ -440,120 +533,207 @@ class _OrderItemRow extends StatelessWidget {
     final isVoided =
         item.status == PrepStatus.voided || item.status == PrepStatus.cancelled;
     final price = (item.salePriceAtt * item.quantity).round();
+    final prev = canChangeStatus ? _prevStatus(item.status) : null;
     final next = canChangeStatus ? _nextStatus(item.status) : null;
 
-    return InkWell(
-      onTap: canVoid && !isVoided ? onVoid : null,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 2),
-        child: Row(
-          children: [
-            // Status dot
-            Container(
-              width: 8,
-              height: 8,
-              margin: const EdgeInsets.only(right: 6),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: _itemStatusColor(item.status),
-              ),
-            ),
-            // Quantity
-            SizedBox(
-              width: 28,
-              child: Text(
-                '${item.quantity.toStringAsFixed(item.quantity == item.quantity.roundToDouble() ? 0 : 1)}x',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  decoration: isVoided ? TextDecoration.lineThrough : null,
-                  color: isVoided ? theme.colorScheme.onSurfaceVariant : null,
-                ),
-              ),
-            ),
-            // Item name
-            Expanded(
-              child: Text(
-                item.itemName,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  decoration: isVoided ? TextDecoration.lineThrough : null,
-                  color: isVoided ? theme.colorScheme.onSurfaceVariant : null,
-                ),
-              ),
-            ),
-            // Notes icon
-            if (item.notes != null && item.notes!.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(right: 4),
-                child: Icon(
-                  Icons.note,
-                  size: 14,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-            // Price
-            Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: Text(
-                '${price ~/ 100},-',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  decoration: isVoided ? TextDecoration.lineThrough : null,
-                  color: isVoided ? theme.colorScheme.onSurfaceVariant : null,
-                ),
-              ),
-            ),
-            // Next-status button
-            if (next != null)
-              SizedBox(
-                height: 28,
-                child: FilledButton.tonal(
-                  style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    backgroundColor:
-                        _itemStatusColor(next).withValues(alpha: 0.15),
-                    foregroundColor: _itemStatusColor(next),
-                    textStyle: theme.textTheme.labelSmall
-                        ?.copyWith(fontWeight: FontWeight.w600),
+    // Left strip color: grey for storno orders and voided items, status color otherwise
+    final stripColor = isStorno || isVoided
+        ? Colors.grey
+        : _statusColor(item.status);
+
+    // Background tint: none for storno/voided, subtle status color otherwise
+    final bgColor = isStorno || isVoided
+        ? Colors.transparent
+        : stripColor.withValues(alpha: 0.05);
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(6),
+      child: Container(
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(6),
+          onTap: canVoid && !isVoided ? onVoid : null,
+          child: IntrinsicHeight(
+            child: Row(
+              children: [
+                // Left colored strip
+                Container(
+                  width: 4,
+                  decoration: BoxDecoration(
+                    color: stripColor,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(6),
+                      bottomLeft: Radius.circular(6),
+                    ),
                   ),
-                  onPressed: () => onStatusChange(next),
-                  child: Text(_nextStatusLabel(next, l)),
                 ),
-              )
-            else if (isVoided)
-              Text(
-                l.ordersFilterStorno,
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: Colors.red,
-                  fontWeight: FontWeight.w600,
+                // Content
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                    child: Row(
+                      children: [
+                        // Status dot
+                        Container(
+                          width: 10,
+                          height: 10,
+                          margin: const EdgeInsets.only(right: 6),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: _statusColor(item.status),
+                          ),
+                        ),
+                        // Quantity
+                        SizedBox(
+                          width: 32,
+                          child: Text(
+                            '${item.quantity.toStringAsFixed(item.quantity == item.quantity.roundToDouble() ? 0 : 1)}x',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              decoration: isVoided ? TextDecoration.lineThrough : null,
+                              color: isVoided ? theme.colorScheme.onSurfaceVariant : null,
+                            ),
+                          ),
+                        ),
+                        // Item name
+                        Expanded(
+                          child: Text(
+                            item.itemName,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              decoration: isVoided ? TextDecoration.lineThrough : null,
+                              color: isVoided ? theme.colorScheme.onSurfaceVariant : null,
+                            ),
+                          ),
+                        ),
+                        // Notes icon
+                        if (item.notes != null && item.notes!.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(right: 4),
+                            child: Icon(
+                              Icons.note,
+                              size: 14,
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        // Price
+                        Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: Text(
+                            '${price ~/ 100},-',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              decoration: isVoided ? TextDecoration.lineThrough : null,
+                              color: isVoided ? theme.colorScheme.onSurfaceVariant : null,
+                            ),
+                          ),
+                        ),
+                        // Prev-status button (always present for layout stability)
+                        SizedBox(
+                          height: 40,
+                          width: 40,
+                          child: prev != null
+                              ? IconButton.filled(
+                                  style: IconButton.styleFrom(
+                                    backgroundColor:
+                                        _statusColor(prev).withValues(alpha: 0.15),
+                                    foregroundColor: _statusColor(prev),
+                                  ),
+                                  onPressed: () => onStatusChange(prev),
+                                  icon: const Icon(Icons.undo, size: 18),
+                                )
+                              : null,
+                        ),
+                        const SizedBox(width: 4),
+                        // Next-status button / voided label (fixed-width slot)
+                        SizedBox(
+                          height: 40,
+                          width: 100,
+                          child: next != null
+                              ? FilledButton.tonal(
+                                  style: FilledButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                                    backgroundColor:
+                                        _statusColor(next).withValues(alpha: 0.15),
+                                    foregroundColor: _statusColor(next),
+                                    textStyle: theme.textTheme.labelSmall
+                                        ?.copyWith(fontWeight: FontWeight.w600),
+                                  ),
+                                  onPressed: () => onStatusChange(next),
+                                  child: Text(_nextStatusLabel(next, l)),
+                                )
+                              : isVoided
+                                  ? Center(
+                                      child: Text(
+                                        l.ordersFilterStorno,
+                                        style: theme.textTheme.labelSmall?.copyWith(
+                                          color: Colors.red,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    )
+                                  : null,
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
-          ],
+              ],
+            ),
+          ),
         ),
       ),
     );
   }
-
-  PrepStatus? _nextStatus(PrepStatus current) => switch (current) {
-        PrepStatus.created => PrepStatus.inPrep,
-        PrepStatus.inPrep => PrepStatus.ready,
-        PrepStatus.ready => PrepStatus.delivered,
-        _ => null,
-      };
-
-  String _nextStatusLabel(PrepStatus status, dynamic l) => switch (status) {
-        PrepStatus.inPrep => l.ordersFilterInPrep,
-        PrepStatus.ready => l.ordersFilterReady,
-        PrepStatus.delivered => l.ordersFilterDelivered,
-        _ => '',
-      };
-
-  Color _itemStatusColor(PrepStatus status) => switch (status) {
-        PrepStatus.created => Colors.blue,
-        PrepStatus.inPrep => Colors.orange,
-        PrepStatus.ready => Colors.green,
-        PrepStatus.delivered => Colors.grey,
-        PrepStatus.cancelled => Colors.pink,
-        PrepStatus.voided => Colors.red,
-      };
 }
+
+// ---------------------------------------------------------------------------
+// Shared helpers
+// ---------------------------------------------------------------------------
+Color _statusColor(PrepStatus status) => switch (status) {
+      PrepStatus.created => Colors.blue,
+      PrepStatus.inPrep => Colors.orange,
+      PrepStatus.ready => Colors.green,
+      PrepStatus.delivered => Colors.grey,
+      PrepStatus.cancelled => Colors.pink,
+      PrepStatus.voided => Colors.red,
+    };
+
+String _statusLabel(PrepStatus status, dynamic l) => switch (status) {
+      PrepStatus.created => l.ordersFilterCreated,
+      PrepStatus.inPrep => l.ordersFilterInPrep,
+      PrepStatus.ready => l.ordersFilterReady,
+      PrepStatus.delivered => l.ordersFilterDelivered,
+      PrepStatus.cancelled => l.ordersFilterStorno,
+      PrepStatus.voided => l.ordersFilterStorno,
+    };
+
+bool _isItemActive(PrepStatus status) =>
+    status == PrepStatus.created ||
+    status == PrepStatus.inPrep ||
+    status == PrepStatus.ready;
+
+PrepStatus? _nextStatus(PrepStatus current) => switch (current) {
+      PrepStatus.created => PrepStatus.inPrep,
+      PrepStatus.inPrep => PrepStatus.ready,
+      PrepStatus.ready => PrepStatus.delivered,
+      _ => null,
+    };
+
+PrepStatus? _prevStatus(PrepStatus current) => switch (current) {
+      PrepStatus.inPrep => PrepStatus.created,
+      PrepStatus.ready => PrepStatus.inPrep,
+      PrepStatus.delivered => PrepStatus.ready,
+      _ => null,
+    };
+
+String _nextStatusLabel(PrepStatus status, dynamic l) => switch (status) {
+      PrepStatus.inPrep => l.ordersFilterInPrep,
+      PrepStatus.ready => l.ordersFilterReady,
+      PrepStatus.delivered => l.ordersFilterDelivered,
+      _ => '',
+    };
 
 // ---------------------------------------------------------------------------
 // Status Filter Bar
@@ -563,15 +743,14 @@ class _OrderStatusFilterBar extends StatelessWidget {
     required this.selected,
     required this.onChanged,
   });
-  final Set<PrepStatus>? selected; // null = active
-  final ValueChanged<Set<PrepStatus>?> onChanged;
+  final Set<PrepStatus> selected;
+  final ValueChanged<Set<PrepStatus>> onChanged;
 
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
-    // (filterKey, label, color)
-    final filters = <(Set<PrepStatus>?, String, Color)>[
-      (null, l.ordersFilterActive, Colors.blue),
+    // (statuses, label, color)
+    final filters = <(Set<PrepStatus>, String, Color)>[
       ({PrepStatus.created}, l.ordersFilterCreated, Colors.blue),
       ({PrepStatus.inPrep}, l.ordersFilterInPrep, Colors.orange),
       ({PrepStatus.ready}, l.ordersFilterReady, Colors.green),
@@ -593,15 +772,24 @@ class _OrderStatusFilterBar extends StatelessWidget {
               child: SizedBox(
                 height: 40,
                 child: FilterChip(
-                  showCheckmark: false,
+                  showCheckmark: true,
                   backgroundColor: filters[i].$3.withValues(alpha: 0.08),
                   selectedColor: filters[i].$3.withValues(alpha: 0.2),
+                  checkmarkColor: Theme.of(context).colorScheme.onSecondaryContainer,
                   label: SizedBox(
                     width: double.infinity,
                     child: Text(filters[i].$2, textAlign: TextAlign.center),
                   ),
-                  selected: _isSelected(filters[i].$1),
-                  onSelected: (_) => onChanged(filters[i].$1),
+                  selected: filters[i].$1.every((s) => selected.contains(s)),
+                  onSelected: (on) {
+                    final next = Set<PrepStatus>.from(selected);
+                    if (on) {
+                      next.addAll(filters[i].$1);
+                    } else {
+                      next.removeAll(filters[i].$1);
+                    }
+                    onChanged(next);
+                  },
                 ),
               ),
             ),
@@ -609,12 +797,5 @@ class _OrderStatusFilterBar extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  bool _isSelected(Set<PrepStatus>? filterKey) {
-    if (filterKey == null && selected == null) return true;
-    if (filterKey == null || selected == null) return false;
-    return filterKey.length == selected!.length &&
-        filterKey.every((s) => selected!.contains(s));
   }
 }

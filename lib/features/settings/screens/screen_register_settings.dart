@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
-import '../../../core/data/enums/hardware_type.dart';
-import '../../../core/data/models/device_registration_model.dart';
 import '../../../core/data/models/register_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../widgets/register_tab.dart';
-import '../widgets/registers_tab.dart';
 
 class ScreenRegisterSettings extends ConsumerWidget {
   const ScreenRegisterSettings({super.key});
@@ -18,23 +16,21 @@ class ScreenRegisterSettings extends ConsumerWidget {
     final l = context.l10n;
 
     return DefaultTabController(
-      length: 3,
+      length: 2,
       child: Scaffold(
         appBar: AppBar(
           title: Text(l.settingsRegisterTitle),
           bottom: TabBar(
             tabs: [
-              Tab(text: l.settingsTabRegister),
-              Tab(text: l.settingsRegisters),
-              Tab(text: l.registerDeviceBinding),
+              Tab(text: l.settingsRegisterTitle),
+              Tab(text: l.modeTitle),
             ],
           ),
         ),
-        body: TabBarView(
+        body: const TabBarView(
           children: [
-            const RegisterTab(),
-            const RegistersTab(),
-            _DeviceBindingTab(),
+            RegisterTab(),
+            _ModeTab(),
           ],
         ),
       ),
@@ -42,147 +38,165 @@ class ScreenRegisterSettings extends ConsumerWidget {
   }
 }
 
-class _DeviceBindingTab extends ConsumerWidget {
+class _ModeTab extends ConsumerStatefulWidget {
+  const _ModeTab();
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final company = ref.watch(currentCompanyProvider);
-    if (company == null) return const SizedBox.shrink();
+  ConsumerState<_ModeTab> createState() => _ModeTabState();
+}
 
-    final deviceRegAsync = ref.watch(deviceRegistrationProvider);
+class _ModeTabState extends ConsumerState<_ModeTab> {
+  String? _selectedRegisterId;
 
-    return deviceRegAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, _) => const SizedBox.shrink(),
-      data: (deviceReg) {
-        return ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            _buildCurrentBinding(context, ref, deviceReg, company.id),
-            const SizedBox(height: 24),
-            _buildRegisterSelection(context, ref, company.id, deviceReg),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildCurrentBinding(
-    BuildContext context,
-    WidgetRef ref,
-    DeviceRegistrationModel? deviceReg,
-    String companyId,
-  ) {
+  @override
+  Widget build(BuildContext context) {
     final l = context.l10n;
     final theme = Theme.of(context);
+    final company = ref.watch(currentCompanyProvider);
+    final activeReg = ref.watch(activeRegisterProvider).value;
+    final effectiveRegisterId = _selectedRegisterId ?? activeReg?.id;
 
-    if (deviceReg == null) {
-      return Card(
-        child: ListTile(
-          leading: const Icon(Icons.link_off, color: Colors.orange),
-          title: Text(l.registerNotBound),
-          subtitle: Text(l.registerSelectTitle),
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: Text(
+            l.modeTitle,
+            style: theme.textTheme.titleMedium,
+          ),
         ),
-      );
-    }
-
-    final registerAsync = ref.watch(activeRegisterProvider);
-    final registerName = registerAsync.whenOrNull(
-      data: (r) => r?.name.isNotEmpty == true ? r!.name : r?.code,
+        _ModeCard(
+          icon: Icons.point_of_sale,
+          title: l.modePOS,
+          subtitle: l.modePOSDescription,
+          selected: true,
+          onTap: null,
+        ),
+        const SizedBox(height: 8),
+        _ModeCard(
+          icon: Icons.restaurant,
+          title: l.modeKDS,
+          subtitle: l.modeKDSDescription,
+          selected: false,
+          onTap: () => context.go('/kds'),
+        ),
+        const SizedBox(height: 8),
+        _ModeCard(
+          icon: Icons.tv,
+          title: l.modeCustomerDisplay,
+          subtitle: l.modeCustomerDisplayDescription,
+          selected: false,
+          onTap: () {
+            final regId = _selectedRegisterId ??
+                ref.read(activeRegisterProvider).value?.id;
+            if (regId != null) {
+              context.go('/customer-display/$regId');
+            } else {
+              context.go('/customer-display');
+            }
+          },
+          bottom: company == null
+              ? null
+              : StreamBuilder<List<RegisterModel>>(
+                  stream: ref
+                      .watch(registerRepositoryProvider)
+                      .watchAll(company.id),
+                  builder: (context, snap) {
+                    final registers = snap.data ?? [];
+                    if (registers.isEmpty) return const SizedBox.shrink();
+                    return DropdownButton<String>(
+                      value: registers.any((r) => r.id == effectiveRegisterId)
+                          ? effectiveRegisterId
+                          : null,
+                      isExpanded: true,
+                      hint: Text(l.modeCustomerDisplaySelectRegister),
+                      items: [
+                        for (final r in registers)
+                          DropdownMenuItem(
+                            value: r.id,
+                            child: Text(
+                                r.name.isNotEmpty ? r.name : r.code),
+                          ),
+                      ],
+                      onChanged: (v) =>
+                          setState(() => _selectedRegisterId = v),
+                    );
+                  },
+                ),
+        ),
+      ],
     );
+  }
+}
+
+class _ModeCard extends StatelessWidget {
+  const _ModeCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.selected,
+    required this.onTap,
+    this.bottom,
+  });
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final bool selected;
+  final VoidCallback? onTap;
+  final Widget? bottom;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final color = selected
+        ? theme.colorScheme.primaryContainer
+        : theme.colorScheme.surfaceContainerHighest;
 
     return Card(
-      child: ListTile(
-        leading: const Icon(Icons.link, color: Colors.green),
-        title: Text(l.registerBound(registerName ?? '...')),
-        trailing: TextButton(
-          onPressed: () async {
-            await ref
-                .read(deviceRegistrationRepositoryProvider)
-                .unbind(companyId);
-            ref.invalidate(deviceRegistrationProvider);
-            ref.invalidate(activeRegisterProvider);
-            ref.invalidate(activeRegisterSessionProvider);
-          },
-          child: Text(
-            l.registerUnbind,
-            style: TextStyle(color: theme.colorScheme.error),
+      color: color,
+      elevation: selected ? 2 : 0,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Icon(icon, size: 32),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: theme.textTheme.bodySmall,
+                    ),
+                    ?bottom,
+                  ],
+                ),
+              ),
+              if (selected)
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Icon(Icons.check_circle, color: theme.colorScheme.primary),
+                ),
+            ],
           ),
         ),
       ),
     );
-  }
-
-  Widget _buildRegisterSelection(
-    BuildContext context,
-    WidgetRef ref,
-    String companyId,
-    DeviceRegistrationModel? deviceReg,
-  ) {
-    final l = context.l10n;
-
-    return StreamBuilder<List<RegisterModel>>(
-      stream: ref.watch(registerRepositoryProvider).watchAll(companyId),
-      builder: (context, snap) {
-        final registers = snap.data ?? [];
-        if (registers.isEmpty) return const SizedBox.shrink();
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l.registerSelectTitle,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            ...registers.map((r) {
-              final isBound = deviceReg?.registerId == r.id;
-              return Card(
-                color: isBound
-                    ? Theme.of(context)
-                        .colorScheme
-                        .primaryContainer
-                        .withValues(alpha: 0.3)
-                    : null,
-                child: ListTile(
-                  leading: Icon(
-                    r.type == HardwareType.local
-                        ? Icons.point_of_sale
-                        : r.type == HardwareType.mobile
-                            ? Icons.phone_android
-                            : Icons.computer,
-                  ),
-                  title: Text(r.name.isEmpty ? r.code : r.name),
-                  subtitle: Text('${_typeLabel(l, r.type)} #${r.registerNumber}'),
-                  trailing: isBound
-                      ? const Icon(Icons.check_circle, color: Colors.green)
-                      : FilledButton(
-                          onPressed: () async {
-                            await ref
-                                .read(deviceRegistrationRepositoryProvider)
-                                .bind(
-                                  companyId: companyId,
-                                  registerId: r.id,
-                                );
-                            ref.invalidate(deviceRegistrationProvider);
-                            ref.invalidate(activeRegisterProvider);
-                            ref.invalidate(activeRegisterSessionProvider);
-                          },
-                          child: Text(l.registerBind),
-                        ),
-                ),
-              );
-            }),
-          ],
-        );
-      },
-    );
-  }
-
-  String _typeLabel(dynamic l, HardwareType type) {
-    return switch (type) {
-      HardwareType.local => l.registerTypeLocal,
-      HardwareType.mobile => l.registerTypeMobile,
-      HardwareType.virtual => l.registerTypeVirtual,
-    };
   }
 }

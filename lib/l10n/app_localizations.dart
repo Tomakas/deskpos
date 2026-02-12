@@ -1126,6 +1126,18 @@ abstract class AppLocalizations {
   /// **'Pokladna'**
   String get infoPanelRegisterTotal;
 
+  /// No description provided for @infoPanelRevenue.
+  ///
+  /// In cs, this message translates to:
+  /// **'Tržba'**
+  String get infoPanelRevenue;
+
+  /// No description provided for @infoPanelSalesCount.
+  ///
+  /// In cs, this message translates to:
+  /// **'Počet prodejů'**
+  String get infoPanelSalesCount;
+
   /// No description provided for @sellCartSummary.
   ///
   /// In cs, this message translates to:
@@ -3994,6 +4006,30 @@ abstract class AppLocalizations {
   /// **'Žádné objednávky'**
   String get ordersNoOrders;
 
+  /// No description provided for @ordersTimeCreated.
+  ///
+  /// In cs, this message translates to:
+  /// **'Čas vytvoření objednávky'**
+  String get ordersTimeCreated;
+
+  /// No description provided for @ordersTimeUpdated.
+  ///
+  /// In cs, this message translates to:
+  /// **'Čas poslední změny'**
+  String get ordersTimeUpdated;
+
+  /// No description provided for @ordersTableLabel.
+  ///
+  /// In cs, this message translates to:
+  /// **'Stůl'**
+  String get ordersTableLabel;
+
+  /// No description provided for @ordersCustomerLabel.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zákazník'**
+  String get ordersCustomerLabel;
+
   /// No description provided for @ordersStornoPrefix.
   ///
   /// In cs, this message translates to:
@@ -4005,6 +4041,12 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'→ {orderNumber}'**
   String ordersStornoRef(String orderNumber);
+
+  /// No description provided for @customerDisplayTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zákaznický displej'**
+  String get customerDisplayTitle;
 
   /// No description provided for @customerDisplayWelcome.
   ///
@@ -4203,6 +4245,138 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Žádná'**
   String get registerNone;
+
+  /// No description provided for @registerIsMain.
+  ///
+  /// In cs, this message translates to:
+  /// **'Hlavní'**
+  String get registerIsMain;
+
+  /// No description provided for @registerSetMain.
+  ///
+  /// In cs, this message translates to:
+  /// **'Nastavit jako hlavní'**
+  String get registerSetMain;
+
+  /// No description provided for @registerBoundHere.
+  ///
+  /// In cs, this message translates to:
+  /// **'Toto zařízení'**
+  String get registerBoundHere;
+
+  /// No description provided for @registerBindAction.
+  ///
+  /// In cs, this message translates to:
+  /// **'Svázat'**
+  String get registerBindAction;
+
+  /// No description provided for @registerSessionActiveCannotChange.
+  ///
+  /// In cs, this message translates to:
+  /// **'Nelze změnit svázání během aktivní směny.'**
+  String get registerSessionActiveCannotChange;
+
+  /// No description provided for @registerBoundOnOtherDevice.
+  ///
+  /// In cs, this message translates to:
+  /// **'Používá jiné zařízení'**
+  String get registerBoundOnOtherDevice;
+
+  /// No description provided for @infoPanelRegisterName.
+  ///
+  /// In cs, this message translates to:
+  /// **'Název pokladny'**
+  String get infoPanelRegisterName;
+
+  /// No description provided for @connectCompanySelectRegister.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vyberte pokladnu'**
+  String get connectCompanySelectRegister;
+
+  /// No description provided for @connectCompanySelectRegisterSubtitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vyberte pokladnu pro toto zařízení'**
+  String get connectCompanySelectRegisterSubtitle;
+
+  /// No description provided for @connectCompanyNoRegisters.
+  ///
+  /// In cs, this message translates to:
+  /// **'Žádné pokladny k dispozici'**
+  String get connectCompanyNoRegisters;
+
+  /// No description provided for @connectCompanyCreateRegister.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vytvořit novou pokladnu'**
+  String get connectCompanyCreateRegister;
+
+  /// No description provided for @registerNotBoundMessage.
+  ///
+  /// In cs, this message translates to:
+  /// **'Pokladna není přiřazena k tomuto zařízení. Přiřaďte pokladnu v Nastavení.'**
+  String get registerNotBoundMessage;
+
+  /// No description provided for @modeTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Režim'**
+  String get modeTitle;
+
+  /// No description provided for @modePOS.
+  ///
+  /// In cs, this message translates to:
+  /// **'Pokladna'**
+  String get modePOS;
+
+  /// No description provided for @modePOSDescription.
+  ///
+  /// In cs, this message translates to:
+  /// **'Standardní prodejní režim'**
+  String get modePOSDescription;
+
+  /// No description provided for @modeKDS.
+  ///
+  /// In cs, this message translates to:
+  /// **'Objednávkový displej'**
+  String get modeKDS;
+
+  /// No description provided for @modeKDSDescription.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zobrazuje aktivní objednávky pro kuchyni'**
+  String get modeKDSDescription;
+
+  /// No description provided for @modeCustomerDisplay.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zákaznický displej'**
+  String get modeCustomerDisplay;
+
+  /// No description provided for @modeCustomerDisplayDescription.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zobrazuje účet zákazníkovi'**
+  String get modeCustomerDisplayDescription;
+
+  /// No description provided for @modeCustomerDisplaySelectRegister.
+  ///
+  /// In cs, this message translates to:
+  /// **'Sledovaná pokladna'**
+  String get modeCustomerDisplaySelectRegister;
+
+  /// No description provided for @customerDisplayThankYou.
+  ///
+  /// In cs, this message translates to:
+  /// **'Děkujeme!'**
+  String get customerDisplayThankYou;
+
+  /// No description provided for @customerDisplayPaid.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zaplaceno'**
+  String get customerDisplayPaid;
 }
 
 class _AppLocalizationsDelegate

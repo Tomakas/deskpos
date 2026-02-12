@@ -8599,6 +8599,461 @@ class DeviceRegistrationsCompanion extends UpdateCompanion<DeviceRegistration> {
   }
 }
 
+class $DisplayCartItemsTable extends DisplayCartItems
+    with TableInfo<$DisplayCartItemsTable, DisplayCartItem> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DisplayCartItemsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _registerIdMeta = const VerificationMeta(
+    'registerId',
+  );
+  @override
+  late final GeneratedColumn<String> registerId = GeneratedColumn<String>(
+    'register_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _itemNameMeta = const VerificationMeta(
+    'itemName',
+  );
+  @override
+  late final GeneratedColumn<String> itemName = GeneratedColumn<String>(
+    'item_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _quantityMeta = const VerificationMeta(
+    'quantity',
+  );
+  @override
+  late final GeneratedColumn<double> quantity = GeneratedColumn<double>(
+    'quantity',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _unitPriceMeta = const VerificationMeta(
+    'unitPrice',
+  );
+  @override
+  late final GeneratedColumn<int> unitPrice = GeneratedColumn<int>(
+    'unit_price',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+    'notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _sortOrderMeta = const VerificationMeta(
+    'sortOrder',
+  );
+  @override
+  late final GeneratedColumn<int> sortOrder = GeneratedColumn<int>(
+    'sort_order',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    registerId,
+    itemName,
+    quantity,
+    unitPrice,
+    notes,
+    sortOrder,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'display_cart_items';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<DisplayCartItem> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('register_id')) {
+      context.handle(
+        _registerIdMeta,
+        registerId.isAcceptableOrUnknown(data['register_id']!, _registerIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_registerIdMeta);
+    }
+    if (data.containsKey('item_name')) {
+      context.handle(
+        _itemNameMeta,
+        itemName.isAcceptableOrUnknown(data['item_name']!, _itemNameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_itemNameMeta);
+    }
+    if (data.containsKey('quantity')) {
+      context.handle(
+        _quantityMeta,
+        quantity.isAcceptableOrUnknown(data['quantity']!, _quantityMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_quantityMeta);
+    }
+    if (data.containsKey('unit_price')) {
+      context.handle(
+        _unitPriceMeta,
+        unitPrice.isAcceptableOrUnknown(data['unit_price']!, _unitPriceMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_unitPriceMeta);
+    }
+    if (data.containsKey('notes')) {
+      context.handle(
+        _notesMeta,
+        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
+    if (data.containsKey('sort_order')) {
+      context.handle(
+        _sortOrderMeta,
+        sortOrder.isAcceptableOrUnknown(data['sort_order']!, _sortOrderMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sortOrderMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  DisplayCartItem map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DisplayCartItem(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      registerId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}register_id'],
+      )!,
+      itemName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}item_name'],
+      )!,
+      quantity: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}quantity'],
+      )!,
+      unitPrice: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}unit_price'],
+      )!,
+      notes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notes'],
+      ),
+      sortOrder: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}sort_order'],
+      )!,
+    );
+  }
+
+  @override
+  $DisplayCartItemsTable createAlias(String alias) {
+    return $DisplayCartItemsTable(attachedDatabase, alias);
+  }
+}
+
+class DisplayCartItem extends DataClass implements Insertable<DisplayCartItem> {
+  final int id;
+  final String registerId;
+  final String itemName;
+  final double quantity;
+  final int unitPrice;
+  final String? notes;
+  final int sortOrder;
+  const DisplayCartItem({
+    required this.id,
+    required this.registerId,
+    required this.itemName,
+    required this.quantity,
+    required this.unitPrice,
+    this.notes,
+    required this.sortOrder,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['register_id'] = Variable<String>(registerId);
+    map['item_name'] = Variable<String>(itemName);
+    map['quantity'] = Variable<double>(quantity);
+    map['unit_price'] = Variable<int>(unitPrice);
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
+    }
+    map['sort_order'] = Variable<int>(sortOrder);
+    return map;
+  }
+
+  DisplayCartItemsCompanion toCompanion(bool nullToAbsent) {
+    return DisplayCartItemsCompanion(
+      id: Value(id),
+      registerId: Value(registerId),
+      itemName: Value(itemName),
+      quantity: Value(quantity),
+      unitPrice: Value(unitPrice),
+      notes: notes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notes),
+      sortOrder: Value(sortOrder),
+    );
+  }
+
+  factory DisplayCartItem.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DisplayCartItem(
+      id: serializer.fromJson<int>(json['id']),
+      registerId: serializer.fromJson<String>(json['registerId']),
+      itemName: serializer.fromJson<String>(json['itemName']),
+      quantity: serializer.fromJson<double>(json['quantity']),
+      unitPrice: serializer.fromJson<int>(json['unitPrice']),
+      notes: serializer.fromJson<String?>(json['notes']),
+      sortOrder: serializer.fromJson<int>(json['sortOrder']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'registerId': serializer.toJson<String>(registerId),
+      'itemName': serializer.toJson<String>(itemName),
+      'quantity': serializer.toJson<double>(quantity),
+      'unitPrice': serializer.toJson<int>(unitPrice),
+      'notes': serializer.toJson<String?>(notes),
+      'sortOrder': serializer.toJson<int>(sortOrder),
+    };
+  }
+
+  DisplayCartItem copyWith({
+    int? id,
+    String? registerId,
+    String? itemName,
+    double? quantity,
+    int? unitPrice,
+    Value<String?> notes = const Value.absent(),
+    int? sortOrder,
+  }) => DisplayCartItem(
+    id: id ?? this.id,
+    registerId: registerId ?? this.registerId,
+    itemName: itemName ?? this.itemName,
+    quantity: quantity ?? this.quantity,
+    unitPrice: unitPrice ?? this.unitPrice,
+    notes: notes.present ? notes.value : this.notes,
+    sortOrder: sortOrder ?? this.sortOrder,
+  );
+  DisplayCartItem copyWithCompanion(DisplayCartItemsCompanion data) {
+    return DisplayCartItem(
+      id: data.id.present ? data.id.value : this.id,
+      registerId: data.registerId.present
+          ? data.registerId.value
+          : this.registerId,
+      itemName: data.itemName.present ? data.itemName.value : this.itemName,
+      quantity: data.quantity.present ? data.quantity.value : this.quantity,
+      unitPrice: data.unitPrice.present ? data.unitPrice.value : this.unitPrice,
+      notes: data.notes.present ? data.notes.value : this.notes,
+      sortOrder: data.sortOrder.present ? data.sortOrder.value : this.sortOrder,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DisplayCartItem(')
+          ..write('id: $id, ')
+          ..write('registerId: $registerId, ')
+          ..write('itemName: $itemName, ')
+          ..write('quantity: $quantity, ')
+          ..write('unitPrice: $unitPrice, ')
+          ..write('notes: $notes, ')
+          ..write('sortOrder: $sortOrder')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    registerId,
+    itemName,
+    quantity,
+    unitPrice,
+    notes,
+    sortOrder,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DisplayCartItem &&
+          other.id == this.id &&
+          other.registerId == this.registerId &&
+          other.itemName == this.itemName &&
+          other.quantity == this.quantity &&
+          other.unitPrice == this.unitPrice &&
+          other.notes == this.notes &&
+          other.sortOrder == this.sortOrder);
+}
+
+class DisplayCartItemsCompanion extends UpdateCompanion<DisplayCartItem> {
+  final Value<int> id;
+  final Value<String> registerId;
+  final Value<String> itemName;
+  final Value<double> quantity;
+  final Value<int> unitPrice;
+  final Value<String?> notes;
+  final Value<int> sortOrder;
+  const DisplayCartItemsCompanion({
+    this.id = const Value.absent(),
+    this.registerId = const Value.absent(),
+    this.itemName = const Value.absent(),
+    this.quantity = const Value.absent(),
+    this.unitPrice = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.sortOrder = const Value.absent(),
+  });
+  DisplayCartItemsCompanion.insert({
+    this.id = const Value.absent(),
+    required String registerId,
+    required String itemName,
+    required double quantity,
+    required int unitPrice,
+    this.notes = const Value.absent(),
+    required int sortOrder,
+  }) : registerId = Value(registerId),
+       itemName = Value(itemName),
+       quantity = Value(quantity),
+       unitPrice = Value(unitPrice),
+       sortOrder = Value(sortOrder);
+  static Insertable<DisplayCartItem> custom({
+    Expression<int>? id,
+    Expression<String>? registerId,
+    Expression<String>? itemName,
+    Expression<double>? quantity,
+    Expression<int>? unitPrice,
+    Expression<String>? notes,
+    Expression<int>? sortOrder,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (registerId != null) 'register_id': registerId,
+      if (itemName != null) 'item_name': itemName,
+      if (quantity != null) 'quantity': quantity,
+      if (unitPrice != null) 'unit_price': unitPrice,
+      if (notes != null) 'notes': notes,
+      if (sortOrder != null) 'sort_order': sortOrder,
+    });
+  }
+
+  DisplayCartItemsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? registerId,
+    Value<String>? itemName,
+    Value<double>? quantity,
+    Value<int>? unitPrice,
+    Value<String?>? notes,
+    Value<int>? sortOrder,
+  }) {
+    return DisplayCartItemsCompanion(
+      id: id ?? this.id,
+      registerId: registerId ?? this.registerId,
+      itemName: itemName ?? this.itemName,
+      quantity: quantity ?? this.quantity,
+      unitPrice: unitPrice ?? this.unitPrice,
+      notes: notes ?? this.notes,
+      sortOrder: sortOrder ?? this.sortOrder,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (registerId.present) {
+      map['register_id'] = Variable<String>(registerId.value);
+    }
+    if (itemName.present) {
+      map['item_name'] = Variable<String>(itemName.value);
+    }
+    if (quantity.present) {
+      map['quantity'] = Variable<double>(quantity.value);
+    }
+    if (unitPrice.present) {
+      map['unit_price'] = Variable<int>(unitPrice.value);
+    }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
+    if (sortOrder.present) {
+      map['sort_order'] = Variable<int>(sortOrder.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DisplayCartItemsCompanion(')
+          ..write('id: $id, ')
+          ..write('registerId: $registerId, ')
+          ..write('itemName: $itemName, ')
+          ..write('quantity: $quantity, ')
+          ..write('unitPrice: $unitPrice, ')
+          ..write('notes: $notes, ')
+          ..write('sortOrder: $sortOrder')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -20313,6 +20768,19 @@ class $RegistersTable extends Registers
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _isMainMeta = const VerificationMeta('isMain');
+  @override
+  late final GeneratedColumn<bool> isMain = GeneratedColumn<bool>(
+    'is_main',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_main" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   static const VerificationMeta _isActiveMeta = const VerificationMeta(
     'isActive',
   );
@@ -20397,6 +20865,28 @@ class $RegistersTable extends Registers
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _boundDeviceIdMeta = const VerificationMeta(
+    'boundDeviceId',
+  );
+  @override
+  late final GeneratedColumn<String> boundDeviceId = GeneratedColumn<String>(
+    'bound_device_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _activeBillIdMeta = const VerificationMeta(
+    'activeBillId',
+  );
+  @override
+  late final GeneratedColumn<String> activeBillId = GeneratedColumn<String>(
+    'active_bill_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _gridRowsMeta = const VerificationMeta(
     'gridRows',
   );
@@ -20436,12 +20926,15 @@ class $RegistersTable extends Registers
     name,
     registerNumber,
     parentRegisterId,
+    isMain,
     isActive,
     type,
     allowCash,
     allowCard,
     allowTransfer,
     allowRefunds,
+    boundDeviceId,
+    activeBillId,
     gridRows,
     gridCols,
   ];
@@ -20553,6 +21046,12 @@ class $RegistersTable extends Registers
         ),
       );
     }
+    if (data.containsKey('is_main')) {
+      context.handle(
+        _isMainMeta,
+        isMain.isAcceptableOrUnknown(data['is_main']!, _isMainMeta),
+      );
+    }
     if (data.containsKey('is_active')) {
       context.handle(
         _isActiveMeta,
@@ -20586,6 +21085,24 @@ class $RegistersTable extends Registers
         allowRefunds.isAcceptableOrUnknown(
           data['allow_refunds']!,
           _allowRefundsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('bound_device_id')) {
+      context.handle(
+        _boundDeviceIdMeta,
+        boundDeviceId.isAcceptableOrUnknown(
+          data['bound_device_id']!,
+          _boundDeviceIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('active_bill_id')) {
+      context.handle(
+        _activeBillIdMeta,
+        activeBillId.isAcceptableOrUnknown(
+          data['active_bill_id']!,
+          _activeBillIdMeta,
         ),
       );
     }
@@ -20662,6 +21179,10 @@ class $RegistersTable extends Registers
         DriftSqlType.string,
         data['${effectivePrefix}parent_register_id'],
       ),
+      isMain: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_main'],
+      )!,
       isActive: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}is_active'],
@@ -20688,6 +21209,14 @@ class $RegistersTable extends Registers
         DriftSqlType.bool,
         data['${effectivePrefix}allow_refunds'],
       )!,
+      boundDeviceId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}bound_device_id'],
+      ),
+      activeBillId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}active_bill_id'],
+      ),
       gridRows: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}grid_rows'],
@@ -20722,12 +21251,15 @@ class Register extends DataClass implements Insertable<Register> {
   final String name;
   final int registerNumber;
   final String? parentRegisterId;
+  final bool isMain;
   final bool isActive;
   final HardwareType type;
   final bool allowCash;
   final bool allowCard;
   final bool allowTransfer;
   final bool allowRefunds;
+  final String? boundDeviceId;
+  final String? activeBillId;
   final int gridRows;
   final int gridCols;
   const Register({
@@ -20744,12 +21276,15 @@ class Register extends DataClass implements Insertable<Register> {
     required this.name,
     required this.registerNumber,
     this.parentRegisterId,
+    required this.isMain,
     required this.isActive,
     required this.type,
     required this.allowCash,
     required this.allowCard,
     required this.allowTransfer,
     required this.allowRefunds,
+    this.boundDeviceId,
+    this.activeBillId,
     required this.gridRows,
     required this.gridCols,
   });
@@ -20779,6 +21314,7 @@ class Register extends DataClass implements Insertable<Register> {
     if (!nullToAbsent || parentRegisterId != null) {
       map['parent_register_id'] = Variable<String>(parentRegisterId);
     }
+    map['is_main'] = Variable<bool>(isMain);
     map['is_active'] = Variable<bool>(isActive);
     {
       map['type'] = Variable<String>(
@@ -20789,6 +21325,12 @@ class Register extends DataClass implements Insertable<Register> {
     map['allow_card'] = Variable<bool>(allowCard);
     map['allow_transfer'] = Variable<bool>(allowTransfer);
     map['allow_refunds'] = Variable<bool>(allowRefunds);
+    if (!nullToAbsent || boundDeviceId != null) {
+      map['bound_device_id'] = Variable<String>(boundDeviceId);
+    }
+    if (!nullToAbsent || activeBillId != null) {
+      map['active_bill_id'] = Variable<String>(activeBillId);
+    }
     map['grid_rows'] = Variable<int>(gridRows);
     map['grid_cols'] = Variable<int>(gridCols);
     return map;
@@ -20819,12 +21361,19 @@ class Register extends DataClass implements Insertable<Register> {
       parentRegisterId: parentRegisterId == null && nullToAbsent
           ? const Value.absent()
           : Value(parentRegisterId),
+      isMain: Value(isMain),
       isActive: Value(isActive),
       type: Value(type),
       allowCash: Value(allowCash),
       allowCard: Value(allowCard),
       allowTransfer: Value(allowTransfer),
       allowRefunds: Value(allowRefunds),
+      boundDeviceId: boundDeviceId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(boundDeviceId),
+      activeBillId: activeBillId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(activeBillId),
       gridRows: Value(gridRows),
       gridCols: Value(gridCols),
     );
@@ -20849,6 +21398,7 @@ class Register extends DataClass implements Insertable<Register> {
       name: serializer.fromJson<String>(json['name']),
       registerNumber: serializer.fromJson<int>(json['registerNumber']),
       parentRegisterId: serializer.fromJson<String?>(json['parentRegisterId']),
+      isMain: serializer.fromJson<bool>(json['isMain']),
       isActive: serializer.fromJson<bool>(json['isActive']),
       type: $RegistersTable.$convertertype.fromJson(
         serializer.fromJson<String>(json['type']),
@@ -20857,6 +21407,8 @@ class Register extends DataClass implements Insertable<Register> {
       allowCard: serializer.fromJson<bool>(json['allowCard']),
       allowTransfer: serializer.fromJson<bool>(json['allowTransfer']),
       allowRefunds: serializer.fromJson<bool>(json['allowRefunds']),
+      boundDeviceId: serializer.fromJson<String?>(json['boundDeviceId']),
+      activeBillId: serializer.fromJson<String?>(json['activeBillId']),
       gridRows: serializer.fromJson<int>(json['gridRows']),
       gridCols: serializer.fromJson<int>(json['gridCols']),
     );
@@ -20878,6 +21430,7 @@ class Register extends DataClass implements Insertable<Register> {
       'name': serializer.toJson<String>(name),
       'registerNumber': serializer.toJson<int>(registerNumber),
       'parentRegisterId': serializer.toJson<String?>(parentRegisterId),
+      'isMain': serializer.toJson<bool>(isMain),
       'isActive': serializer.toJson<bool>(isActive),
       'type': serializer.toJson<String>(
         $RegistersTable.$convertertype.toJson(type),
@@ -20886,6 +21439,8 @@ class Register extends DataClass implements Insertable<Register> {
       'allowCard': serializer.toJson<bool>(allowCard),
       'allowTransfer': serializer.toJson<bool>(allowTransfer),
       'allowRefunds': serializer.toJson<bool>(allowRefunds),
+      'boundDeviceId': serializer.toJson<String?>(boundDeviceId),
+      'activeBillId': serializer.toJson<String?>(activeBillId),
       'gridRows': serializer.toJson<int>(gridRows),
       'gridCols': serializer.toJson<int>(gridCols),
     };
@@ -20905,12 +21460,15 @@ class Register extends DataClass implements Insertable<Register> {
     String? name,
     int? registerNumber,
     Value<String?> parentRegisterId = const Value.absent(),
+    bool? isMain,
     bool? isActive,
     HardwareType? type,
     bool? allowCash,
     bool? allowCard,
     bool? allowTransfer,
     bool? allowRefunds,
+    Value<String?> boundDeviceId = const Value.absent(),
+    Value<String?> activeBillId = const Value.absent(),
     int? gridRows,
     int? gridCols,
   }) => Register(
@@ -20933,12 +21491,17 @@ class Register extends DataClass implements Insertable<Register> {
     parentRegisterId: parentRegisterId.present
         ? parentRegisterId.value
         : this.parentRegisterId,
+    isMain: isMain ?? this.isMain,
     isActive: isActive ?? this.isActive,
     type: type ?? this.type,
     allowCash: allowCash ?? this.allowCash,
     allowCard: allowCard ?? this.allowCard,
     allowTransfer: allowTransfer ?? this.allowTransfer,
     allowRefunds: allowRefunds ?? this.allowRefunds,
+    boundDeviceId: boundDeviceId.present
+        ? boundDeviceId.value
+        : this.boundDeviceId,
+    activeBillId: activeBillId.present ? activeBillId.value : this.activeBillId,
     gridRows: gridRows ?? this.gridRows,
     gridCols: gridCols ?? this.gridCols,
   );
@@ -20967,6 +21530,7 @@ class Register extends DataClass implements Insertable<Register> {
       parentRegisterId: data.parentRegisterId.present
           ? data.parentRegisterId.value
           : this.parentRegisterId,
+      isMain: data.isMain.present ? data.isMain.value : this.isMain,
       isActive: data.isActive.present ? data.isActive.value : this.isActive,
       type: data.type.present ? data.type.value : this.type,
       allowCash: data.allowCash.present ? data.allowCash.value : this.allowCash,
@@ -20977,6 +21541,12 @@ class Register extends DataClass implements Insertable<Register> {
       allowRefunds: data.allowRefunds.present
           ? data.allowRefunds.value
           : this.allowRefunds,
+      boundDeviceId: data.boundDeviceId.present
+          ? data.boundDeviceId.value
+          : this.boundDeviceId,
+      activeBillId: data.activeBillId.present
+          ? data.activeBillId.value
+          : this.activeBillId,
       gridRows: data.gridRows.present ? data.gridRows.value : this.gridRows,
       gridCols: data.gridCols.present ? data.gridCols.value : this.gridCols,
     );
@@ -20998,12 +21568,15 @@ class Register extends DataClass implements Insertable<Register> {
           ..write('name: $name, ')
           ..write('registerNumber: $registerNumber, ')
           ..write('parentRegisterId: $parentRegisterId, ')
+          ..write('isMain: $isMain, ')
           ..write('isActive: $isActive, ')
           ..write('type: $type, ')
           ..write('allowCash: $allowCash, ')
           ..write('allowCard: $allowCard, ')
           ..write('allowTransfer: $allowTransfer, ')
           ..write('allowRefunds: $allowRefunds, ')
+          ..write('boundDeviceId: $boundDeviceId, ')
+          ..write('activeBillId: $activeBillId, ')
           ..write('gridRows: $gridRows, ')
           ..write('gridCols: $gridCols')
           ..write(')'))
@@ -21025,12 +21598,15 @@ class Register extends DataClass implements Insertable<Register> {
     name,
     registerNumber,
     parentRegisterId,
+    isMain,
     isActive,
     type,
     allowCash,
     allowCard,
     allowTransfer,
     allowRefunds,
+    boundDeviceId,
+    activeBillId,
     gridRows,
     gridCols,
   ]);
@@ -21051,12 +21627,15 @@ class Register extends DataClass implements Insertable<Register> {
           other.name == this.name &&
           other.registerNumber == this.registerNumber &&
           other.parentRegisterId == this.parentRegisterId &&
+          other.isMain == this.isMain &&
           other.isActive == this.isActive &&
           other.type == this.type &&
           other.allowCash == this.allowCash &&
           other.allowCard == this.allowCard &&
           other.allowTransfer == this.allowTransfer &&
           other.allowRefunds == this.allowRefunds &&
+          other.boundDeviceId == this.boundDeviceId &&
+          other.activeBillId == this.activeBillId &&
           other.gridRows == this.gridRows &&
           other.gridCols == this.gridCols);
 }
@@ -21075,12 +21654,15 @@ class RegistersCompanion extends UpdateCompanion<Register> {
   final Value<String> name;
   final Value<int> registerNumber;
   final Value<String?> parentRegisterId;
+  final Value<bool> isMain;
   final Value<bool> isActive;
   final Value<HardwareType> type;
   final Value<bool> allowCash;
   final Value<bool> allowCard;
   final Value<bool> allowTransfer;
   final Value<bool> allowRefunds;
+  final Value<String?> boundDeviceId;
+  final Value<String?> activeBillId;
   final Value<int> gridRows;
   final Value<int> gridCols;
   final Value<int> rowid;
@@ -21098,12 +21680,15 @@ class RegistersCompanion extends UpdateCompanion<Register> {
     this.name = const Value.absent(),
     this.registerNumber = const Value.absent(),
     this.parentRegisterId = const Value.absent(),
+    this.isMain = const Value.absent(),
     this.isActive = const Value.absent(),
     this.type = const Value.absent(),
     this.allowCash = const Value.absent(),
     this.allowCard = const Value.absent(),
     this.allowTransfer = const Value.absent(),
     this.allowRefunds = const Value.absent(),
+    this.boundDeviceId = const Value.absent(),
+    this.activeBillId = const Value.absent(),
     this.gridRows = const Value.absent(),
     this.gridCols = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -21122,12 +21707,15 @@ class RegistersCompanion extends UpdateCompanion<Register> {
     this.name = const Value.absent(),
     this.registerNumber = const Value.absent(),
     this.parentRegisterId = const Value.absent(),
+    this.isMain = const Value.absent(),
     this.isActive = const Value.absent(),
     required HardwareType type,
     this.allowCash = const Value.absent(),
     this.allowCard = const Value.absent(),
     this.allowTransfer = const Value.absent(),
     this.allowRefunds = const Value.absent(),
+    this.boundDeviceId = const Value.absent(),
+    this.activeBillId = const Value.absent(),
     this.gridRows = const Value.absent(),
     this.gridCols = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -21149,12 +21737,15 @@ class RegistersCompanion extends UpdateCompanion<Register> {
     Expression<String>? name,
     Expression<int>? registerNumber,
     Expression<String>? parentRegisterId,
+    Expression<bool>? isMain,
     Expression<bool>? isActive,
     Expression<String>? type,
     Expression<bool>? allowCash,
     Expression<bool>? allowCard,
     Expression<bool>? allowTransfer,
     Expression<bool>? allowRefunds,
+    Expression<String>? boundDeviceId,
+    Expression<String>? activeBillId,
     Expression<int>? gridRows,
     Expression<int>? gridCols,
     Expression<int>? rowid,
@@ -21173,12 +21764,15 @@ class RegistersCompanion extends UpdateCompanion<Register> {
       if (name != null) 'name': name,
       if (registerNumber != null) 'register_number': registerNumber,
       if (parentRegisterId != null) 'parent_register_id': parentRegisterId,
+      if (isMain != null) 'is_main': isMain,
       if (isActive != null) 'is_active': isActive,
       if (type != null) 'type': type,
       if (allowCash != null) 'allow_cash': allowCash,
       if (allowCard != null) 'allow_card': allowCard,
       if (allowTransfer != null) 'allow_transfer': allowTransfer,
       if (allowRefunds != null) 'allow_refunds': allowRefunds,
+      if (boundDeviceId != null) 'bound_device_id': boundDeviceId,
+      if (activeBillId != null) 'active_bill_id': activeBillId,
       if (gridRows != null) 'grid_rows': gridRows,
       if (gridCols != null) 'grid_cols': gridCols,
       if (rowid != null) 'rowid': rowid,
@@ -21199,12 +21793,15 @@ class RegistersCompanion extends UpdateCompanion<Register> {
     Value<String>? name,
     Value<int>? registerNumber,
     Value<String?>? parentRegisterId,
+    Value<bool>? isMain,
     Value<bool>? isActive,
     Value<HardwareType>? type,
     Value<bool>? allowCash,
     Value<bool>? allowCard,
     Value<bool>? allowTransfer,
     Value<bool>? allowRefunds,
+    Value<String?>? boundDeviceId,
+    Value<String?>? activeBillId,
     Value<int>? gridRows,
     Value<int>? gridCols,
     Value<int>? rowid,
@@ -21223,12 +21820,15 @@ class RegistersCompanion extends UpdateCompanion<Register> {
       name: name ?? this.name,
       registerNumber: registerNumber ?? this.registerNumber,
       parentRegisterId: parentRegisterId ?? this.parentRegisterId,
+      isMain: isMain ?? this.isMain,
       isActive: isActive ?? this.isActive,
       type: type ?? this.type,
       allowCash: allowCash ?? this.allowCash,
       allowCard: allowCard ?? this.allowCard,
       allowTransfer: allowTransfer ?? this.allowTransfer,
       allowRefunds: allowRefunds ?? this.allowRefunds,
+      boundDeviceId: boundDeviceId ?? this.boundDeviceId,
+      activeBillId: activeBillId ?? this.activeBillId,
       gridRows: gridRows ?? this.gridRows,
       gridCols: gridCols ?? this.gridCols,
       rowid: rowid ?? this.rowid,
@@ -21277,6 +21877,9 @@ class RegistersCompanion extends UpdateCompanion<Register> {
     if (parentRegisterId.present) {
       map['parent_register_id'] = Variable<String>(parentRegisterId.value);
     }
+    if (isMain.present) {
+      map['is_main'] = Variable<bool>(isMain.value);
+    }
     if (isActive.present) {
       map['is_active'] = Variable<bool>(isActive.value);
     }
@@ -21296,6 +21899,12 @@ class RegistersCompanion extends UpdateCompanion<Register> {
     }
     if (allowRefunds.present) {
       map['allow_refunds'] = Variable<bool>(allowRefunds.value);
+    }
+    if (boundDeviceId.present) {
+      map['bound_device_id'] = Variable<String>(boundDeviceId.value);
+    }
+    if (activeBillId.present) {
+      map['active_bill_id'] = Variable<String>(activeBillId.value);
     }
     if (gridRows.present) {
       map['grid_rows'] = Variable<int>(gridRows.value);
@@ -21325,12 +21934,15 @@ class RegistersCompanion extends UpdateCompanion<Register> {
           ..write('name: $name, ')
           ..write('registerNumber: $registerNumber, ')
           ..write('parentRegisterId: $parentRegisterId, ')
+          ..write('isMain: $isMain, ')
           ..write('isActive: $isActive, ')
           ..write('type: $type, ')
           ..write('allowCash: $allowCash, ')
           ..write('allowCard: $allowCard, ')
           ..write('allowTransfer: $allowTransfer, ')
           ..write('allowRefunds: $allowRefunds, ')
+          ..write('boundDeviceId: $boundDeviceId, ')
+          ..write('activeBillId: $activeBillId, ')
           ..write('gridRows: $gridRows, ')
           ..write('gridCols: $gridCols, ')
           ..write('rowid: $rowid')
@@ -35483,6 +36095,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $CurrenciesTable currencies = $CurrenciesTable(this);
   late final $DeviceRegistrationsTable deviceRegistrations =
       $DeviceRegistrationsTable(this);
+  late final $DisplayCartItemsTable displayCartItems = $DisplayCartItemsTable(
+    this,
+  );
   late final $ItemsTable items = $ItemsTable(this);
   late final $LayoutItemsTable layoutItems = $LayoutItemsTable(this);
   late final $MapElementsTable mapElements = $MapElementsTable(this);
@@ -35688,6 +36303,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     companySettings,
     currencies,
     deviceRegistrations,
+    displayCartItems,
     items,
     layoutItems,
     mapElements,
@@ -39650,6 +40266,246 @@ typedef $$DeviceRegistrationsTableProcessedTableManager =
         >,
       ),
       DeviceRegistration,
+      PrefetchHooks Function()
+    >;
+typedef $$DisplayCartItemsTableCreateCompanionBuilder =
+    DisplayCartItemsCompanion Function({
+      Value<int> id,
+      required String registerId,
+      required String itemName,
+      required double quantity,
+      required int unitPrice,
+      Value<String?> notes,
+      required int sortOrder,
+    });
+typedef $$DisplayCartItemsTableUpdateCompanionBuilder =
+    DisplayCartItemsCompanion Function({
+      Value<int> id,
+      Value<String> registerId,
+      Value<String> itemName,
+      Value<double> quantity,
+      Value<int> unitPrice,
+      Value<String?> notes,
+      Value<int> sortOrder,
+    });
+
+class $$DisplayCartItemsTableFilterComposer
+    extends Composer<_$AppDatabase, $DisplayCartItemsTable> {
+  $$DisplayCartItemsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get registerId => $composableBuilder(
+    column: $table.registerId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get itemName => $composableBuilder(
+    column: $table.itemName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get quantity => $composableBuilder(
+    column: $table.quantity,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get unitPrice => $composableBuilder(
+    column: $table.unitPrice,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$DisplayCartItemsTableOrderingComposer
+    extends Composer<_$AppDatabase, $DisplayCartItemsTable> {
+  $$DisplayCartItemsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get registerId => $composableBuilder(
+    column: $table.registerId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get itemName => $composableBuilder(
+    column: $table.itemName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get quantity => $composableBuilder(
+    column: $table.quantity,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get unitPrice => $composableBuilder(
+    column: $table.unitPrice,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$DisplayCartItemsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DisplayCartItemsTable> {
+  $$DisplayCartItemsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get registerId => $composableBuilder(
+    column: $table.registerId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get itemName =>
+      $composableBuilder(column: $table.itemName, builder: (column) => column);
+
+  GeneratedColumn<double> get quantity =>
+      $composableBuilder(column: $table.quantity, builder: (column) => column);
+
+  GeneratedColumn<int> get unitPrice =>
+      $composableBuilder(column: $table.unitPrice, builder: (column) => column);
+
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<int> get sortOrder =>
+      $composableBuilder(column: $table.sortOrder, builder: (column) => column);
+}
+
+class $$DisplayCartItemsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $DisplayCartItemsTable,
+          DisplayCartItem,
+          $$DisplayCartItemsTableFilterComposer,
+          $$DisplayCartItemsTableOrderingComposer,
+          $$DisplayCartItemsTableAnnotationComposer,
+          $$DisplayCartItemsTableCreateCompanionBuilder,
+          $$DisplayCartItemsTableUpdateCompanionBuilder,
+          (
+            DisplayCartItem,
+            BaseReferences<
+              _$AppDatabase,
+              $DisplayCartItemsTable,
+              DisplayCartItem
+            >,
+          ),
+          DisplayCartItem,
+          PrefetchHooks Function()
+        > {
+  $$DisplayCartItemsTableTableManager(
+    _$AppDatabase db,
+    $DisplayCartItemsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DisplayCartItemsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DisplayCartItemsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$DisplayCartItemsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> registerId = const Value.absent(),
+                Value<String> itemName = const Value.absent(),
+                Value<double> quantity = const Value.absent(),
+                Value<int> unitPrice = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<int> sortOrder = const Value.absent(),
+              }) => DisplayCartItemsCompanion(
+                id: id,
+                registerId: registerId,
+                itemName: itemName,
+                quantity: quantity,
+                unitPrice: unitPrice,
+                notes: notes,
+                sortOrder: sortOrder,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String registerId,
+                required String itemName,
+                required double quantity,
+                required int unitPrice,
+                Value<String?> notes = const Value.absent(),
+                required int sortOrder,
+              }) => DisplayCartItemsCompanion.insert(
+                id: id,
+                registerId: registerId,
+                itemName: itemName,
+                quantity: quantity,
+                unitPrice: unitPrice,
+                notes: notes,
+                sortOrder: sortOrder,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$DisplayCartItemsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $DisplayCartItemsTable,
+      DisplayCartItem,
+      $$DisplayCartItemsTableFilterComposer,
+      $$DisplayCartItemsTableOrderingComposer,
+      $$DisplayCartItemsTableAnnotationComposer,
+      $$DisplayCartItemsTableCreateCompanionBuilder,
+      $$DisplayCartItemsTableUpdateCompanionBuilder,
+      (
+        DisplayCartItem,
+        BaseReferences<_$AppDatabase, $DisplayCartItemsTable, DisplayCartItem>,
+      ),
+      DisplayCartItem,
       PrefetchHooks Function()
     >;
 typedef $$ItemsTableCreateCompanionBuilder =
@@ -44804,12 +45660,15 @@ typedef $$RegistersTableCreateCompanionBuilder =
       Value<String> name,
       Value<int> registerNumber,
       Value<String?> parentRegisterId,
+      Value<bool> isMain,
       Value<bool> isActive,
       required HardwareType type,
       Value<bool> allowCash,
       Value<bool> allowCard,
       Value<bool> allowTransfer,
       Value<bool> allowRefunds,
+      Value<String?> boundDeviceId,
+      Value<String?> activeBillId,
       Value<int> gridRows,
       Value<int> gridCols,
       Value<int> rowid,
@@ -44829,12 +45688,15 @@ typedef $$RegistersTableUpdateCompanionBuilder =
       Value<String> name,
       Value<int> registerNumber,
       Value<String?> parentRegisterId,
+      Value<bool> isMain,
       Value<bool> isActive,
       Value<HardwareType> type,
       Value<bool> allowCash,
       Value<bool> allowCard,
       Value<bool> allowTransfer,
       Value<bool> allowRefunds,
+      Value<String?> boundDeviceId,
+      Value<String?> activeBillId,
       Value<int> gridRows,
       Value<int> gridCols,
       Value<int> rowid,
@@ -44914,6 +45776,11 @@ class $$RegistersTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<bool> get isMain => $composableBuilder(
+    column: $table.isMain,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<bool> get isActive => $composableBuilder(
     column: $table.isActive,
     builder: (column) => ColumnFilters(column),
@@ -44942,6 +45809,16 @@ class $$RegistersTableFilterComposer
 
   ColumnFilters<bool> get allowRefunds => $composableBuilder(
     column: $table.allowRefunds,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get boundDeviceId => $composableBuilder(
+    column: $table.boundDeviceId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get activeBillId => $composableBuilder(
+    column: $table.activeBillId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -45030,6 +45907,11 @@ class $$RegistersTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get isMain => $composableBuilder(
+    column: $table.isMain,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<bool> get isActive => $composableBuilder(
     column: $table.isActive,
     builder: (column) => ColumnOrderings(column),
@@ -45057,6 +45939,16 @@ class $$RegistersTableOrderingComposer
 
   ColumnOrderings<bool> get allowRefunds => $composableBuilder(
     column: $table.allowRefunds,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get boundDeviceId => $composableBuilder(
+    column: $table.boundDeviceId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get activeBillId => $composableBuilder(
+    column: $table.activeBillId,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -45129,6 +46021,9 @@ class $$RegistersTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<bool> get isMain =>
+      $composableBuilder(column: $table.isMain, builder: (column) => column);
+
   GeneratedColumn<bool> get isActive =>
       $composableBuilder(column: $table.isActive, builder: (column) => column);
 
@@ -45148,6 +46043,16 @@ class $$RegistersTableAnnotationComposer
 
   GeneratedColumn<bool> get allowRefunds => $composableBuilder(
     column: $table.allowRefunds,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get boundDeviceId => $composableBuilder(
+    column: $table.boundDeviceId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get activeBillId => $composableBuilder(
+    column: $table.activeBillId,
     builder: (column) => column,
   );
 
@@ -45199,12 +46104,15 @@ class $$RegistersTableTableManager
                 Value<String> name = const Value.absent(),
                 Value<int> registerNumber = const Value.absent(),
                 Value<String?> parentRegisterId = const Value.absent(),
+                Value<bool> isMain = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
                 Value<HardwareType> type = const Value.absent(),
                 Value<bool> allowCash = const Value.absent(),
                 Value<bool> allowCard = const Value.absent(),
                 Value<bool> allowTransfer = const Value.absent(),
                 Value<bool> allowRefunds = const Value.absent(),
+                Value<String?> boundDeviceId = const Value.absent(),
+                Value<String?> activeBillId = const Value.absent(),
                 Value<int> gridRows = const Value.absent(),
                 Value<int> gridCols = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -45222,12 +46130,15 @@ class $$RegistersTableTableManager
                 name: name,
                 registerNumber: registerNumber,
                 parentRegisterId: parentRegisterId,
+                isMain: isMain,
                 isActive: isActive,
                 type: type,
                 allowCash: allowCash,
                 allowCard: allowCard,
                 allowTransfer: allowTransfer,
                 allowRefunds: allowRefunds,
+                boundDeviceId: boundDeviceId,
+                activeBillId: activeBillId,
                 gridRows: gridRows,
                 gridCols: gridCols,
                 rowid: rowid,
@@ -45247,12 +46158,15 @@ class $$RegistersTableTableManager
                 Value<String> name = const Value.absent(),
                 Value<int> registerNumber = const Value.absent(),
                 Value<String?> parentRegisterId = const Value.absent(),
+                Value<bool> isMain = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
                 required HardwareType type,
                 Value<bool> allowCash = const Value.absent(),
                 Value<bool> allowCard = const Value.absent(),
                 Value<bool> allowTransfer = const Value.absent(),
                 Value<bool> allowRefunds = const Value.absent(),
+                Value<String?> boundDeviceId = const Value.absent(),
+                Value<String?> activeBillId = const Value.absent(),
                 Value<int> gridRows = const Value.absent(),
                 Value<int> gridCols = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -45270,12 +46184,15 @@ class $$RegistersTableTableManager
                 name: name,
                 registerNumber: registerNumber,
                 parentRegisterId: parentRegisterId,
+                isMain: isMain,
                 isActive: isActive,
                 type: type,
                 allowCash: allowCash,
                 allowCard: allowCard,
                 allowTransfer: allowTransfer,
                 allowRefunds: allowRefunds,
+                boundDeviceId: boundDeviceId,
+                activeBillId: activeBillId,
                 gridRows: gridRows,
                 gridCols: gridCols,
                 rowid: rowid,
@@ -51804,6 +52721,8 @@ class $AppDatabaseManager {
       $$CurrenciesTableTableManager(_db, _db.currencies);
   $$DeviceRegistrationsTableTableManager get deviceRegistrations =>
       $$DeviceRegistrationsTableTableManager(_db, _db.deviceRegistrations);
+  $$DisplayCartItemsTableTableManager get displayCartItems =>
+      $$DisplayCartItemsTableTableManager(_db, _db.displayCartItems);
   $$ItemsTableTableManager get items =>
       $$ItemsTableTableManager(_db, _db.items);
   $$LayoutItemsTableTableManager get layoutItems =>

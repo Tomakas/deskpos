@@ -542,6 +542,12 @@ class AppLocalizationsCs extends AppLocalizations {
   String get infoPanelRegisterTotal => 'Pokladna';
 
   @override
+  String get infoPanelRevenue => 'Tržba';
+
+  @override
+  String get infoPanelSalesCount => 'Počet prodejů';
+
+  @override
   String get sellCartSummary => 'Souhrn položek';
 
   @override
@@ -2022,12 +2028,27 @@ class AppLocalizationsCs extends AppLocalizations {
   String get ordersNoOrders => 'Žádné objednávky';
 
   @override
+  String get ordersTimeCreated => 'Čas vytvoření objednávky';
+
+  @override
+  String get ordersTimeUpdated => 'Čas poslední změny';
+
+  @override
+  String get ordersTableLabel => 'Stůl';
+
+  @override
+  String get ordersCustomerLabel => 'Zákazník';
+
+  @override
   String get ordersStornoPrefix => 'STORNO';
 
   @override
   String ordersStornoRef(String orderNumber) {
     return '→ $orderNumber';
   }
+
+  @override
+  String get customerDisplayTitle => 'Zákaznický displej';
 
   @override
   String get customerDisplayWelcome => 'Vítejte';
@@ -2131,4 +2152,73 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get registerNone => 'Žádná';
+
+  @override
+  String get registerIsMain => 'Hlavní';
+
+  @override
+  String get registerSetMain => 'Nastavit jako hlavní';
+
+  @override
+  String get registerBoundHere => 'Toto zařízení';
+
+  @override
+  String get registerBindAction => 'Svázat';
+
+  @override
+  String get registerSessionActiveCannotChange =>
+      'Nelze změnit svázání během aktivní směny.';
+
+  @override
+  String get registerBoundOnOtherDevice => 'Používá jiné zařízení';
+
+  @override
+  String get infoPanelRegisterName => 'Název pokladny';
+
+  @override
+  String get connectCompanySelectRegister => 'Vyberte pokladnu';
+
+  @override
+  String get connectCompanySelectRegisterSubtitle =>
+      'Vyberte pokladnu pro toto zařízení';
+
+  @override
+  String get connectCompanyNoRegisters => 'Žádné pokladny k dispozici';
+
+  @override
+  String get connectCompanyCreateRegister => 'Vytvořit novou pokladnu';
+
+  @override
+  String get registerNotBoundMessage =>
+      'Pokladna není přiřazena k tomuto zařízení. Přiřaďte pokladnu v Nastavení.';
+
+  @override
+  String get modeTitle => 'Režim';
+
+  @override
+  String get modePOS => 'Pokladna';
+
+  @override
+  String get modePOSDescription => 'Standardní prodejní režim';
+
+  @override
+  String get modeKDS => 'Objednávkový displej';
+
+  @override
+  String get modeKDSDescription => 'Zobrazuje aktivní objednávky pro kuchyni';
+
+  @override
+  String get modeCustomerDisplay => 'Zákaznický displej';
+
+  @override
+  String get modeCustomerDisplayDescription => 'Zobrazuje účet zákazníkovi';
+
+  @override
+  String get modeCustomerDisplaySelectRegister => 'Sledovaná pokladna';
+
+  @override
+  String get customerDisplayThankYou => 'Děkujeme!';
+
+  @override
+  String get customerDisplayPaid => 'Zaplaceno';
 }

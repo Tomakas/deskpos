@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/data/enums/hardware_type.dart';
+import '../../../core/data/models/register_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/providers/sync_providers.dart';
@@ -9,7 +11,7 @@ import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/logging/app_logger.dart';
 
-enum _Step { credentials, searching, companyPreview, syncing, done }
+enum _Step { credentials, searching, companyPreview, syncing, selectRegister, done }
 
 class ScreenConnectCompany extends ConsumerStatefulWidget {
   const ScreenConnectCompany({super.key});
@@ -27,6 +29,7 @@ class _ScreenConnectCompanyState extends ConsumerState<ScreenConnectCompany> {
   String? _error;
   String? _companyName;
   String? _companyId;
+  List<RegisterModel> _registers = [];
 
   @override
   void dispose() {
@@ -126,12 +129,17 @@ class _ScreenConnectCompanyState extends ConsumerState<ScreenConnectCompany> {
 
       if (!mounted) return;
 
-      setState(() => _step = _Step.done);
+      // Load ALL registers for selection — never auto-bind, never skip
+      final registerRepo = ref.read(registerRepositoryProvider);
+      final allRegisters = await registerRepo.getAll(_companyId!);
 
-      // Navigate to login — appInitProvider will see the company in local DB
-      ref.invalidate(appInitProvider);
-      await ref.read(appInitProvider.future);
-      if (mounted) context.go('/login');
+      if (!mounted) return;
+
+      // Always show register selection (user explicitly picks or creates)
+      setState(() {
+        _registers = allRegisters;
+        _step = _Step.selectRegister;
+      });
     } catch (e, s) {
       AppLogger.error('Initial sync failed', error: e, stackTrace: s);
       if (!mounted) return;
@@ -140,6 +148,44 @@ class _ScreenConnectCompanyState extends ConsumerState<ScreenConnectCompany> {
         _error = context.l10n.connectCompanySyncFailed;
       });
     }
+  }
+
+  Future<void> _selectRegister(RegisterModel register) async {
+    final myDeviceId = await ref.read(deviceIdProvider.future);
+    await ref.read(deviceRegistrationRepositoryProvider).bind(
+      companyId: _companyId!,
+      registerId: register.id,
+      deviceId: myDeviceId,
+    );
+    if (!mounted) return;
+    _finalize();
+  }
+
+  Future<void> _createAndSelectRegister() async {
+    final registerRepo = ref.read(registerRepositoryProvider);
+    final result = await registerRepo.create(
+      companyId: _companyId!,
+      name: '',
+      type: HardwareType.local,
+    );
+
+    if (!mounted) return;
+
+    if (result case Success(value: final newRegister)) {
+      await _selectRegister(newRegister);
+    }
+  }
+
+  void _finalize() {
+    setState(() => _step = _Step.done);
+
+    // Navigate to login — appInitProvider will see the company in local DB
+    ref.invalidate(appInitProvider);
+    ref.invalidate(deviceRegistrationProvider);
+    ref.invalidate(activeRegisterProvider);
+    ref.read(appInitProvider.future).then((_) {
+      if (mounted) context.go('/login');
+    });
   }
 
   @override
@@ -172,6 +218,9 @@ class _ScreenConnectCompanyState extends ConsumerState<ScreenConnectCompany> {
                 ],
                 if (_step == _Step.syncing) ...[
                   _buildLoading(l.connectCompanySyncing),
+                ],
+                if (_step == _Step.selectRegister) ...[
+                  _buildRegisterSelection(l),
                 ],
                 if (_step == _Step.done) ...[
                   _buildLoading(l.connectCompanySyncComplete),
@@ -271,6 +320,101 @@ class _ScreenConnectCompanyState extends ConsumerState<ScreenConnectCompany> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildRegisterSelection(dynamic l) {
+    final theme = Theme.of(context);
+
+    return FutureBuilder<String>(
+      future: ref.read(deviceIdProvider.future),
+      builder: (context, snap) {
+        final myDeviceId = snap.data;
+        if (myDeviceId == null) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final unbound = _registers
+            .where((r) =>
+                r.boundDeviceId == null || r.boundDeviceId == myDeviceId)
+            .toList();
+        final boundElsewhere = _registers
+            .where((r) =>
+                r.boundDeviceId != null && r.boundDeviceId != myDeviceId)
+            .toList();
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              l.connectCompanySelectRegister,
+              style: theme.textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              l.connectCompanySelectRegisterSubtitle,
+              style: theme.textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 16),
+            // Selectable registers (unbound or bound to this device)
+            for (final register in unbound) ...[
+              Card(
+                child: ListTile(
+                  leading: Icon(
+                    register.type == HardwareType.local
+                        ? Icons.point_of_sale
+                        : register.type == HardwareType.mobile
+                            ? Icons.phone_android
+                            : Icons.computer,
+                  ),
+                  title: Text(
+                      register.name.isEmpty ? register.code : register.name),
+                  subtitle: Text('#${register.registerNumber}'),
+                  trailing: register.isMain
+                      ? Icon(Icons.star, color: Colors.amber.shade700)
+                      : null,
+                  onTap: () => _selectRegister(register),
+                ),
+              ),
+              const SizedBox(height: 4),
+            ],
+            // Non-selectable registers (bound to other devices)
+            for (final register in boundElsewhere) ...[
+              Opacity(
+                opacity: 0.5,
+                child: Card(
+                  child: ListTile(
+                    leading: Icon(
+                      register.type == HardwareType.local
+                          ? Icons.point_of_sale
+                          : register.type == HardwareType.mobile
+                              ? Icons.phone_android
+                              : Icons.computer,
+                    ),
+                    title: Text(
+                        register.name.isEmpty ? register.code : register.name),
+                    subtitle: Text(l.registerBoundOnOtherDevice),
+                    trailing:
+                        Icon(Icons.lock, size: 18, color: Colors.orange.shade700),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 4),
+            ],
+            const SizedBox(height: 8),
+            const Divider(),
+            const SizedBox(height: 8),
+            // Create new register option
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.add_circle_outline),
+                title: Text(l.connectCompanyCreateRegister),
+                onTap: _createAndSelectRegister,
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

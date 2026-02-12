@@ -1,4 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../auth/auth_service.dart';
 import '../../auth/session_manager.dart';
@@ -22,6 +27,19 @@ final authServiceProvider = Provider<AuthService>((ref) {
 
 final seedServiceProvider = Provider<SeedService>((ref) {
   return SeedService(ref.watch(appDatabaseProvider));
+});
+
+/// Persistent device UUID — identifies this physical device across sessions.
+/// Stored in a file next to the database.
+final deviceIdProvider = FutureProvider<String>((ref) async {
+  final dir = await getApplicationDocumentsDirectory();
+  final file = File(p.join(dir.path, 'epos_device_id.txt'));
+  if (file.existsSync()) {
+    return file.readAsStringSync().trim();
+  }
+  final id = const Uuid().v7();
+  await file.writeAsString(id);
+  return id;
 });
 
 final activeUserProvider = StateProvider<UserModel?>((ref) {
@@ -67,19 +85,17 @@ final deviceRegistrationProvider = FutureProvider<DeviceRegistrationModel?>((ref
 });
 
 /// Provides the active register for the current company.
-/// Uses device binding if available, otherwise falls back to first active register.
+/// Returns null if no device binding exists (register selection required).
 final activeRegisterProvider = FutureProvider<RegisterModel?>((ref) async {
   final company = ref.watch(currentCompanyProvider);
   if (company == null) return null;
 
-  // Try device binding first
   final deviceReg = await ref.watch(deviceRegistrationProvider.future);
   if (deviceReg != null) {
     return ref.watch(registerRepositoryProvider).getById(deviceReg.registerId);
   }
 
-  // Fallback for legacy/unbound devices
-  return ref.watch(registerRepositoryProvider).getFirstActive(company.id);
+  return null;
 });
 
 /// Watches the active register session (open, not closed).

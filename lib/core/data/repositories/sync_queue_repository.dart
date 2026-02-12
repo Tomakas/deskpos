@@ -92,6 +92,23 @@ class SyncQueueRepository {
     }
   }
 
+  /// Resets permanently failed entries back to pending so they can be retried.
+  /// This is needed after fixing Supabase schema mismatches that caused
+  /// PGRST errors (unknown columns) to be marked as permanent failures.
+  Future<void> resetFailed() async {
+    final count = await (_db.update(_db.syncQueue)
+          ..where((t) => t.status.equals('failed')))
+        .write(const SyncQueueCompanion(
+      status: Value('pending'),
+      retryCount: Value(0),
+      errorMessage: Value(null),
+      lastErrorAt: Value(null),
+    ));
+    if (count > 0) {
+      AppLogger.warn('Reset $count failed sync queue entries for retry', tag: 'SYNC');
+    }
+  }
+
   Future<bool> hasPendingForEntity(String entityType, String entityId) async {
     final result = await (_db.select(_db.syncQueue)
           ..where((t) =>

@@ -88,9 +88,9 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const ScreenCustomerDisplay(),
       ),
       GoRoute(
-        path: '/customer-display/:billId',
+        path: '/customer-display/:registerId',
         builder: (context, state) => ScreenCustomerDisplay(
-          billId: state.pathParameters['billId'],
+          registerId: state.pathParameters['registerId'],
         ),
       ),
       GoRoute(

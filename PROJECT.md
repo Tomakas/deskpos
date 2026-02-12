@@ -293,6 +293,354 @@ Přehledy a reporty pro majitele a manažery.
 - **Task4.17** Obnova ze zálohy — import zálohy zpět do aplikace s validací integrity a verzí schématu.
 - **Výsledek:** Uživatel může zálohovat a obnovit celou lokální databázi pro přenos dat nebo disaster recovery.
 
+#### Milník 4.6 — Licencování a povinná registrace
+
+Registrace (email+heslo) je povinná při vytvoření firmy — spouští 30denní trial. Po vypršení trialu je nutné prodloužení licence (v1: aktivační kód; budoucnost: Play/App Store, online nákup). Licence má lokální expiraci obnovenou ze serveru při sync pull. Sync je jednoduchý on/off toggle per zařízení (SharedPreferences, ne databáze). Supabase session zůstává aktivní vždy — toggle ovládá pouze sync engine. Bez limitu zařízení.
+
+| Parametr | Hodnota |
+|----------|---------|
+| Délka trialu | 30 dní |
+| Grace period (trial) | 3 dny |
+| Grace period (placený) | 7 dní |
+| Platba v1 | Aktivační kód |
+| Platba budoucí | Play Store, App Store, online nákup |
+| Potvrzení e-mailu | Vypnuto v Supabase |
+| Sync default | Uživatel volí při onboardingu (per-device) |
+| Limit zařízení | Žádný |
+
+##### Architekturní rozhodnutí (z 5-agentového security review)
+
+1. **Licenční pole + status jsou server-autoritativní**: `trial_expires_at`, `license_expires_at`, `license_last_check_at` a `status` nastavuje server (triggery/Edge Functions). BEFORE UPDATE trigger na `companies` tiše zachovává tyto hodnoty z klientských pushů. Trigger používá `current_user NOT IN ('service_role', 'postgres', 'supabase_admin')` pro spolehlivou detekci role v Supabase.
+2. **Supabase session zůstává aktivní permanentně** po registraci. Sync on/off používá per-device lokální preferenci (SharedPreferences), NE synchronizovaný DB sloupec. Tím se zabrání paradoxu synchronizace sync toggleu.
+3. **signUp() probíhá atomicky se seedem** v `_finish()`, ne v samostatném kroku. Zabraňuje osiřelým Supabase účtům.
+4. **`trialExpiresAt` nastavuje server** prostřednictvím PostgreSQL INSERT triggeru na `companies`. Klient nastaví lokálně pro okamžité zobrazení; server přepíše při prvním push; pull sync opraví klientskou hodnotu.
+5. **`licenseLastCheckAt` se aktualizuje po každém úspěšném sync pull** přímým zápisem do DB v `SyncService.pullAll()`. Poskytuje monotónní kotvu hodin pro detekci manipulace s časem.
+6. **Aktivace licence přes CompanyRepository** — Edge Function volání jdou přes `CompanyRepository.activateLicense()` (respektuje pravidlo "žádný přímý síťový přístup mimo repozitáře").
+7. **`updateLicenseFromServer()` obchází outbox** — odůvodněná výjimka: data přišla ZE serveru, pushovat je zpět je redundantní. Server trigger by je ignoroval.
+8. **Aktivace kódu je atomická** — `UPDATE ... WHERE used_by_company_id IS NULL RETURNING ...` zabraňuje race conditions.
+9. **Edge Function odvozuje firmu z JWT** — lookup `companies.auth_user_id` odpovídající JWT `sub` claim. Nikdy nevěří client-supplied company ID.
+10. **"Přihlásit se" flow kontroluje server PŘED kroky 1+2** — uživatelé s existujícím účtem nevyplňují zbytečně info o firmě.
+
+##### Akceptovaná rizika (v1)
+
+- **Lokální SQLite tampering**: Odhodlaný uživatel může modifikovat lokální expiry data. Mitigace: `licenseLastCheckAt` detekce hodin + periodická online verifikace. Plná mitigace vyžaduje app integrity checks (budoucnost).
+- **Fresh trial přes nový email**: Žádné server-side omezení bránící neomezeným firmám per osoba. Mitigace pro budoucnost: rate limiting na vytváření firem, omezení e-mailových domén, telefonní verifikace.
+
+##### Task4.18 — Schema: Licenční pole na companies
+
+**Drift tabulka `companies.dart`** — přidat 3 sloupce:
+- `DateTimeColumn get trialExpiresAt => dateTime().nullable()();`
+- `DateTimeColumn get licenseExpiresAt => dateTime().nullable()();`
+- `DateTimeColumn get licenseLastCheckAt => dateTime().nullable()();`
+
+**CompanyModel** (`company_model.dart`) — přidat 3 nullable DateTime pole.
+
+**Entity mappers** (`entity_mappers.dart`) — `companyFromEntity`/`companyToCompanion`: +3 pole.
+
+**Supabase push mapper** (`supabase_mappers.dart`) — `companyToSupabaseJson`: +3 pole (klient pushuje, server trigger ignoruje).
+
+**Supabase pull mapper** (`supabase_pull_mappers.dart`) — `case 'companies'`: +3 pole (pull přináší server-autoritativní hodnoty).
+
+**SeedService** (`seed_service.dart`) — nový parametr `required String authUserId`. Nahradit `authUserId: ''` za `authUserId: authUserId`. Nastavit `trialExpiresAt: DateTime.now().add(Duration(days: 30))` lokálně (server přepíše). Nastavit `licenseLastCheckAt: DateTime.now()`. `syncEnabled` nejde do seedu — jde do SharedPreferences.
+
+##### Task4.19 — Supabase migrace: Licenční sloupce + triggery
+
+**Migrace 1:** 3 sloupce na `companies`:
+```sql
+ALTER TABLE public.companies ADD COLUMN trial_expires_at timestamptz;
+ALTER TABLE public.companies ADD COLUMN license_expires_at timestamptz;
+ALTER TABLE public.companies ADD COLUMN license_last_check_at timestamptz;
+```
+
+**Trigger `aa_protect_license_fields`** (BEFORE UPDATE na companies):
+- Prefix `aa_` zajišťuje spuštění PŘED ostatními BEFORE UPDATE triggery (PostgreSQL alphabetical ordering).
+- Pokud `current_user NOT IN ('service_role', 'postgres', 'supabase_admin')`:
+  - `NEW.trial_expires_at := OLD.trial_expires_at;`
+  - `NEW.license_expires_at := OLD.license_expires_at;`
+  - `NEW.license_last_check_at := OLD.license_last_check_at;`
+  - `NEW.status := OLD.status;` ← **KRITICKÉ: chrání i status, ne jen licenční pole**
+
+**Trigger `set_trial_expiry_trigger`** (BEFORE INSERT na companies):
+- Pokud `NEW.status = 'trial'`:
+  - `NEW.trial_expires_at := now() + interval '30 days';`
+  - `NEW.license_last_check_at := now();`
+
+##### Task4.20 — Supabase migrace: activation_codes + rate limiting
+
+**Tabulka `activation_codes`:**
+```sql
+CREATE TABLE public.activation_codes (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  code text UNIQUE NOT NULL,
+  duration_days integer NOT NULL DEFAULT 365,
+  used_by_company_id uuid REFERENCES companies(id),
+  used_at timestamptz,
+  created_by uuid,        -- admin který kód vygeneroval (audit)
+  created_at timestamptz DEFAULT now(),
+  expires_at timestamptz  -- NULL = nikdy nevyprší
+);
+ALTER TABLE public.activation_codes ENABLE ROW LEVEL SECURITY;
+-- RLS enabled + žádné policies = blokuje veškerý klientský přístup
+-- Edge Function používá service_role pro bypass
+```
+
+**Tabulka `license_activation_attempts`** (rate limiting):
+```sql
+CREATE TABLE public.license_activation_attempts (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  auth_user_id uuid NOT NULL,
+  attempted_at timestamptz DEFAULT now(),
+  success boolean DEFAULT false
+);
+ALTER TABLE public.license_activation_attempts ENABLE ROW LEVEL SECURITY;
+CREATE INDEX idx_activation_attempts_user_time
+  ON license_activation_attempts(auth_user_id, attempted_at);
+```
+
+##### Task4.21 — LicenseService (čistá lokální logika)
+
+**Nový soubor:** `lib/core/auth/license_service.dart`
+Reference: vzor pure-logic service jako `lib/core/auth/auth_service.dart`.
+
+```dart
+enum LicenseState { active, grace, expired }
+```
+
+**Metoda `checkLicense(CompanyModel)`:**
+- `effectiveExpiry = licenseExpiresAt ?? trialExpiresAt`
+- Pokud `null` → `expired`
+- Pokud `isClockSuspicious()` → `expired`
+- Pokud `now < effectiveExpiry` → `active`
+- Grace: trial 3 dny, placený 7 dní → pokud v grace → `grace`, jinak `expired`
+
+**Metoda `daysRemaining(CompanyModel)`:** Počet dní do expirace.
+
+**Metoda `isClockSuspicious(CompanyModel)`:**
+- Pokud `licenseLastCheckAt == null` → false
+- Pokud `DateTime.now() < licenseLastCheckAt - 1 hodina` → true (hodiny nastaveny zpět)
+
+##### Task4.22 — License providers + AppInitState
+
+**Soubor:** `lib/core/data/providers/auth_providers.dart`
+
+**`licenseServiceProvider`** — `Provider((ref) => LicenseService())`
+
+**`licenseStateProvider`** — `Provider<LicenseState>` derivovaný z `companyStreamProvider` přes `.when()`. Reaktivní na DB změny ze sync pull. Pattern konzistentní s `isSupabaseAuthenticatedProvider`.
+
+**`_AppInitState` enum rozšíření:**
+```dart
+enum _AppInitState { needsOnboarding, licenseExpired, needsLogin }
+```
+
+**`appInitProvider` logika:** Po nalezení company zkontrolovat `licenseService.checkLicense(company)`. Pokud `expired` → `licenseExpired`. Jinak → `needsLogin`.
+
+##### Task4.23 — Router: License redirect + ScreenLicenseExpired
+
+**Soubor:** `lib/core/routing/app_router.dart`
+
+- Přidat `licenseStateProvider` do `_RouterNotifier` listeners
+- V redirect funkci: pokud `licenseState == expired` a cesta != `/license-expired` a != `/onboarding` → redirect na `/license-expired`
+- Nová route: `GoRoute(path: '/license-expired', builder: (_, __) => const ScreenLicenseExpired())`
+- License check běží na každé navigaci (jednodušší a spolehlivější než Timer.periodic)
+
+**Nový soubor:** `lib/features/auth/screens/screen_license_expired.dart`
+Reference: vzor `lib/features/auth/screens/screen_login.dart`.
+
+Layout (centered, max-width 420, SingleChildScrollView):
+- Warning ikona
+- Titul: `l.licenseExpiredTrialTitle` nebo `l.licenseExpiredTitle` (dle `company.licenseExpiresAt == null`)
+- Podnázev: `l.licenseExpiredMessage`
+- **Sekce 1: Aktivační kód** — TextField + "Aktivovat" button → `companyRepo.activateLicense(code)`. Error inline pod polem (žádné snackbary). Loading state na buttonu.
+- **Sekce 2: Re-autentizace** (zobrazena pouze pokud JWT expired) — Kontrola: `Supabase.instance.client.auth.currentSession == null`. Email pre-filled + password pole + "Přihlásit se" button. Link: zapomenuté heslo. **KRITICKÉ: zabraňuje deadlocku session expired + license expired.**
+
+##### Task4.24 — Onboarding redesign: 3-krokový wizard
+
+**Soubor:** `lib/features/onboarding/screens/screen_onboarding.dart`
+
+**Krok 0 — Registrace / Přihlášení** (NOVÝ):
+
+Dva režimy (flag `_isSignIn`):
+
+**Režim nový účet** (default):
+- Email pole (povinné)
+- Heslo pole (povinné, min 6 znaků)
+- Checkbox: `l.registrationEnableSync` (default: off)
+- "Pokračovat" button → validace, uloží email+heslo+syncEnabled do widget state, přejde na Krok 1
+- Link: `l.registrationHaveAccount` → přepne do přihlášení
+- Link: `l.registrationForgotPassword` → `supabase.auth.resetPasswordForEmail(email)`, inline potvrzení
+
+**Režim přihlášení**:
+- Email + heslo pole
+- "Přihlásit se" button → volá `signIn(email, password)` IHNED (bez Kroků 1+2):
+  - Úspěch: kontrola `companyRepo.findRemoteByAuthUserId(authUserId)`
+  - Firma nalezena → navigate na `/connect-company`
+  - Firma nenalezena → přepne do nového účtu, přejde na Krok 1 (email+heslo zachovány)
+  - Selhání: inline error pod buttonem
+- Link: `l.registrationNoAccount` → přepne do nového účtu
+- Link: `l.registrationForgotPassword` → reset hesla
+
+**DŮLEŽITÉ: Žádný auto-fallback signUp→signIn** — při chybě "user already registered" zobrazit jasnou chybovou hlášku `l.registrationEmailExists`, NE automaticky zkusit signIn.
+
+**Krok 1 — Info o firmě** (beze změn oproti aktuálnímu Kroku 0)
+
+**Krok 2 — Admin uživatel** (beze změn oproti aktuálnímu Kroku 1)
+
+**`_finish()` — atomická registrace + seed:**
+1. Loading indicator, disable button
+2. `supabaseAuthService.signUp(email, password)`
+3. Selhání → inline error (`l.registrationEmailExists` / `l.registrationNetworkError`), re-enable button
+4. Úspěch → `authUserId` z response
+5. `seedService.seedOnboarding(authUserId: authUserId, ...)`
+6. Uložit `syncEnabled` do SharedPreferences
+7. Invalidovat `appInitProvider`, navigate na `/login`
+
+##### Task4.25 — Sync toggle (per-device SharedPreferences)
+
+**`syncEnabled` NENÍ databázový sloupec.** Uloženo per-device v SharedPreferences.
+
+**Důvod:** Pokud by `syncEnabled` bylo v synchronizované tabulce, zařízení B se sync off by nikdy nepullovalo změnu z A — paradox. Per-device storage se tomu vyhne.
+
+**`syncEnabledProvider`** (`sync_providers.dart`) — `StateProvider<bool>`, initial value z SharedPreferences.
+
+**`syncLifecycleWatcherProvider` změna:**
+```dart
+if (isAuthenticated && company != null && syncEnabled) {
+  manager.start(company.id);
+} else {
+  manager.stop();
+}
+```
+
+##### Task4.26 — Cloud tab redesign
+
+**Soubor:** `lib/features/settings/screens/screen_cloud_auth.dart`
+
+Nahradit stávající `_buildAuthForm()`/`_signUp()`/`_signIn()`/`_saveAuthUserId()` (~150 řádků) třemi sekcemi:
+
+**Sekce Účet:**
+- Email (z `Supabase.instance.client.auth.currentUser?.email`)
+- Status připojení
+- Pokud session expired: inline heslo pole + "Přihlásit se" + zapomenuté heslo link
+
+**Sekce Licence:**
+- Plán: `l.licenseTrial` / `l.licenseActive` (dle `company.status`)
+- Expirace: datum + `l.licenseExpiresIn(daysRemaining)`
+- "Zadat aktivační kód" button → inline TextField + "Aktivovat"
+
+**Sekce Synchronizace:**
+- Switch toggle pro sync on/off → zápis do SharedPreferences + update `syncEnabledProvider`
+- `syncLifecycleWatcherProvider` reaguje automaticky
+- Podnázev: `l.syncToggleOn` / `l.syncToggleOff`
+- Čas posledního sync
+
+##### Task4.27 — CompanyRepository: activateLicense + updateLicenseFromServer
+
+**Soubor:** `lib/core/data/repositories/company_repository.dart`
+
+**`activateLicense(String code)`:** Volá Edge Function `activate-license` s `{method: 'activation_code', payload: {code: code}}`. Parsuje response, extrahuje `license_expires_at`. Volá `updateLicenseFromServer()` pro lokální zápis. Vrací `Result<DateTime>`.
+
+**`updateLicenseFromServer(companyId, expiresAt, status)`:** Zapíše licenční pole do lokální DB BEZ enqueue do outboxu. Prominentně zdokumentováno jako odůvodněná výjimka z outbox patternu (data přišla ze serveru).
+
+**Poznámka:** `CompanyRepository` již má `_supabase` klienta (používá ho `findRemoteByAuthUserId()`). Následovat stejný injection pattern.
+
+##### Task4.28 — Edge Function: activate-license
+
+**Deploy:** Supabase Edge Function via MCP.
+
+**Input:** `{ "method": "activation_code", "payload": { "code": "XXXX-XXXX-XXXX" } }`
+**Auth:** Vyžaduje validní Supabase JWT. Firma odvozena z JWT (`auth.uid()` → lookup `companies.auth_user_id`).
+
+**V1 logika:**
+1. Extrahovat `auth_user_id` z JWT
+2. Lookup firma: `SELECT id FROM companies WHERE auth_user_id = auth.uid()`
+3. Rate limit check: `SELECT count(*) FROM license_activation_attempts WHERE auth_user_id = ... AND attempted_at > now() - interval '1 hour'` — reject >= 5
+4. Log pokus do `license_activation_attempts`
+5. **Atomická aktivace kódu:** `UPDATE activation_codes SET used_by_company_id = $cid, used_at = now() WHERE code = $code AND used_by_company_id IS NULL AND (expires_at IS NULL OR expires_at > now()) RETURNING duration_days;`
+6. Žádné řádky → neplatný/použitý kód → error
+7. Update company (service_role, bypass trigger): `UPDATE companies SET license_expires_at = COALESCE(license_expires_at, now()) + (duration_days || ' days')::interval, status = 'subscribed', license_last_check_at = now(), updated_at = now() WHERE id = $cid;` ← **KRITICKÉ: `updated_at = now()` explicitně, aby pull sync detekoval změnu**
+8. Return `{ success: true, license_expires_at: "..." }`
+
+**CORS headers:** Nutné pro web platformu (Access-Control-Allow-Origin, preflight OPTIONS).
+
+**Budoucí `method` hodnoty:** `play_store`, `app_store`, `stripe` — stejný response formát.
+
+##### Task4.29 — SyncService: licenseLastCheckAt update po pull
+
+**Soubor:** `lib/core/sync/sync_service.dart`
+
+V `pullAll()`, po úspěšném dokončení for-loopu, aktualizovat timestamp:
+```dart
+await (_db.update(_db.companies)
+  ..where((t) => t.id.equals(companyId)))
+  .write(CompaniesCompanion(
+    licenseLastCheckAt: Value(DateTime.now()),
+  ));
+```
+Běží bez ohledu na to, zda se companies řádky změnily. Zaznamenává "úspěšně jsme kontaktovali server v tomto čase". Bez outbox entry (server trigger hodnotu chrání).
+
+##### Task4.30 — Grace period banner
+
+**Soubor:** `lib/app.dart`
+
+Když `licenseState == grace`: zobrazit tenký amber banner pod routerem. Zobrazuje `l.licenseBannerGrace(daysRemaining)`. Tap naviguje do Cloud tabu v Settings. Dismissible per session.
+
+##### Task4.31 — L10n: Licenční klíče
+
+**Soubor:** `lib/l10n/app_cs.arb` — ~30 nových klíčů:
+
+Registrace: `registrationTitle`, `registrationSubtitle`, `registrationEmail`, `registrationPassword`, `registrationContinue`, `registrationHaveAccount`, `registrationNoAccount`, `registrationForgotPassword`, `registrationPasswordResetSent`, `registrationEnableSync`, `registrationEmailExists`, `registrationNetworkError`, `registrationSignIn`, `registrationSignInFailed`
+
+Licence: `licenseExpiredTitle`, `licenseExpiredTrialTitle`, `licenseExpiredMessage`, `licenseActivationCode`, `licenseActivate`, `licenseActivateInvalidCode`, `licenseActivateUsedCode`, `licenseActivateNetworkError`, `licenseActivateRateLimit`, `licenseTrial`, `licenseActive`, `licenseExpiresIn` (plural), `licenseBannerGrace` (plural), `licenseReauthNeeded`
+
+Cloud/Sync: `syncToggleLabel`, `syncToggleOn`, `syncToggleOff`, `syncReauthNeeded`, `cloudAccountSection`, `cloudLicenseSection`, `cloudSyncSection`, `cloudEnterActivationCode`
+
+##### Pořadí implementace
+
+1. Schema + model + mappers (Task4.18)
+2. Supabase migrace + triggery (Task4.19)
+3. Supabase migrace: activation_codes + rate limiting (Task4.20)
+4. SeedService update (Task4.18)
+5. LicenseService + providers (Task4.21, Task4.22)
+6. AppInitState + router + ScreenLicenseExpired (Task4.23)
+7. Onboarding redesign (Task4.24)
+8. Sync toggle SharedPreferences (Task4.25)
+9. Cloud tab redesign (Task4.26)
+10. CompanyRepository: activateLicense + updateLicenseFromServer (Task4.27)
+11. Edge Function: activate-license (Task4.28)
+12. SyncService: licenseLastCheckAt update (Task4.29)
+13. Grace period banner (Task4.30)
+14. L10n (Task4.31)
+15. Build runner + delete DB
+
+##### Soubory
+
+**Modifikované (14):** `companies.dart` (Drift), `company_model.dart`, `entity_mappers.dart`, `supabase_mappers.dart`, `supabase_pull_mappers.dart`, `seed_service.dart`, `auth_providers.dart`, `sync_providers.dart`, `company_repository.dart`, `sync_service.dart`, `app_router.dart`, `screen_onboarding.dart`, `screen_cloud_auth.dart`, `app_cs.arb`
+
+**Nové (2):** `lib/core/auth/license_service.dart`, `lib/features/auth/screens/screen_license_expired.dart`
+
+**Server-side (5):** 3 sloupce na companies, trigger `aa_protect_license_fields`, trigger `set_trial_expiry_trigger`, tabulka `activation_codes`, tabulka `license_activation_attempts`, Edge Function `activate-license`
+
+##### Verifikace
+
+1. Delete DB, launch → onboarding s registračními poli
+2. Email+heslo offline → inline error
+3. Email+heslo online → Supabase účet + seed s real authUserId
+4. Supabase: `trial_expires_at` nastaveno serverem (ne klientem)
+5. App normálně funguje, `licenseState == active`
+6. Toggle sync ON → sync startuje. OFF → sync stopuje. Session aktivní.
+7. SET `trial_expires_at` na minulost v Supabase → pull → redirect na `/license-expired`
+8. Aktivační kód → Edge Function → `license_expires_at` → app funguje
+9. Client push company NEPŘEPÍŠE licenční pole (trigger)
+10. Grace period: expirace za 2 dny → banner na všech obrazovkách
+11. Druhé zařízení: "Přihlásit se" → `/connect-company` → pull → licence zděděna
+12. Clock manipulace → `isClockSuspicious` → expired
+13. Session expired + license expired → re-auth sekce → signIn → aktivace kódu
+14. Reset hesla: "Zapomenuté heslo" → email odeslán
+15. Rate limiting: 6 pokusů → 6. odmítnut
+16. Konkurenční kód: 2 zařízení, stejný kód → pouze 1 uspěje (atomický UPDATE)
+
+- **Výsledek:** Aplikace vyžaduje registraci se startem 30denního trialu. Po expiraci licence je uživatel zablokován na expiry obrazovce s možností zadat aktivační kód. Sync je per-device toggle. Licenční pole jsou server-autoritativní a chráněná triggery. Systém je rozšiřitelný pro Play/App Store/online platby.
+
 ---
 
 ### Infrastruktura (odloženo — lze implementovat kdykoliv před produkčním nasazením)

@@ -1,13 +1,19 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/data/enums/bill_status.dart';
 import '../../../core/data/enums/prep_status.dart';
 import '../../../core/data/models/bill_model.dart';
+import '../../../core/data/models/display_cart_item_model.dart';
 import '../../../core/data/models/order_item_model.dart';
 import '../../../core/data/models/order_model.dart';
+import '../../../core/data/models/register_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../settings/widgets/dialog_mode_selector.dart';
 
 /// Customer-facing display that shows the current bill items and total.
 ///
@@ -16,20 +22,48 @@ import '../../../core/l10n/app_localizations_ext.dart';
 /// streamed reactively from the local database so it updates in real-time
 /// as the cashier adds items on the sell screen.
 class ScreenCustomerDisplay extends ConsumerWidget {
-  const ScreenCustomerDisplay({super.key, this.billId});
-  final String? billId;
+  const ScreenCustomerDisplay({super.key, this.registerId});
+  final String? registerId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final company = ref.watch(currentCompanyProvider);
     if (company == null) return const SizedBox.shrink();
 
-    // No active bill → show welcome / idle screen
-    if (billId == null) {
-      return _IdleDisplay(companyName: company.name);
-    }
+    final l = context.l10n;
 
-    return _ActiveDisplay(billId: billId!);
+    final child = registerId == null
+        ? _IdleDisplay(companyName: company.name)
+        : _ActiveDisplay(registerId: registerId!);
+
+    return Stack(
+      children: [
+        Scaffold(
+          appBar: AppBar(title: Text(l.customerDisplayTitle)),
+          body: child,
+        ),
+        // Mode-switch button — absolute top-right, over AppBar
+        Positioned(
+          top: 0,
+          right: 0,
+          child: SafeArea(
+            child: IconButton.filled(
+              iconSize: 32,
+              style: IconButton.styleFrom(
+                minimumSize: const Size(64, 64),
+              ),
+              icon: const Icon(Icons.swap_horiz),
+              onPressed: () => showDialog(
+                context: context,
+                builder: (_) => const DialogModeSelector(
+                  currentMode: RegisterMode.customerDisplay,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }
 
@@ -45,104 +79,134 @@ class _IdleDisplay extends StatelessWidget {
     final l = context.l10n;
     final theme = Theme.of(context);
 
-    return Scaffold(
-      backgroundColor: theme.colorScheme.surface,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              companyName,
-              style: theme.textTheme.headlineLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: theme.colorScheme.primary,
-              ),
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            companyName,
+            style: theme.textTheme.headlineLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: theme.colorScheme.primary,
             ),
-            const SizedBox(height: 16),
-            Text(
-              l.customerDisplayWelcome,
-              style: theme.textTheme.headlineSmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            l.customerDisplayWelcome,
+            style: theme.textTheme.headlineSmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
             ),
+          ),
           ],
         ),
-      ),
     );
   }
 }
 
 // ---------------------------------------------------------------------------
-// Active display — shows bill items and totals
+// Active display — watches register's activeBillId
 // ---------------------------------------------------------------------------
 class _ActiveDisplay extends ConsumerWidget {
-  const _ActiveDisplay({required this.billId});
+  const _ActiveDisplay({required this.registerId});
+  final String registerId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final company = ref.watch(currentCompanyProvider);
+
+    return StreamBuilder<RegisterModel?>(
+      stream: ref.watch(registerRepositoryProvider).watchById(registerId),
+      builder: (context, regSnap) {
+        final register = regSnap.data;
+        final activeBillId = register?.activeBillId;
+
+        if (activeBillId == null) {
+          return _IdleDisplay(companyName: company?.name ?? '');
+        }
+
+        return _BillDisplay(billId: activeBillId, registerId: registerId);
+      },
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Bill display — shows a specific bill's items and totals
+// ---------------------------------------------------------------------------
+class _BillDisplay extends ConsumerWidget {
+  const _BillDisplay({required this.billId, required this.registerId});
   final String billId;
+  final String registerId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
     final theme = Theme.of(context);
+    final company = ref.watch(currentCompanyProvider);
 
-    return Scaffold(
-      backgroundColor: theme.colorScheme.surface,
-      body: StreamBuilder<BillModel?>(
-        stream: ref.watch(billRepositoryProvider).watchById(billId),
-        builder: (context, billSnap) {
-          final bill = billSnap.data;
-          if (bill == null) {
-            return Center(
-              child: Text(
-                l.customerDisplayWelcome,
-                style: theme.textTheme.headlineSmall,
+    return StreamBuilder<BillModel?>(
+      stream: ref.watch(billRepositoryProvider).watchById(billId),
+      builder: (context, billSnap) {
+        final bill = billSnap.data;
+        if (bill == null) {
+          return _IdleDisplay(companyName: company?.name ?? '');
+        }
+
+        // Show "Thank you" for paid bills
+        if (bill.status == BillStatus.paid) {
+          return _ThankYouDisplay(
+            bill: bill,
+            registerId: registerId,
+          );
+        }
+
+        // Show idle for cancelled or refunded bills
+        if (bill.status != BillStatus.opened) {
+          return _IdleDisplay(companyName: company?.name ?? '');
+        }
+
+        return Column(
+          children: [
+            // Header
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primaryContainer,
               ),
-            );
-          }
-
-          return Column(
-            children: [
-              // Header
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primaryContainer,
-                ),
-                child: Row(
-                  children: [
-                    Text(
-                      l.customerDisplayHeader,
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: theme.colorScheme.onPrimaryContainer,
-                      ),
+              child: Row(
+                children: [
+                  Text(
+                    l.customerDisplayHeader,
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: theme.colorScheme.onPrimaryContainer,
                     ),
-                    const Spacer(),
-                    Text(
-                      bill.billNumber,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        color: theme.colorScheme.onPrimaryContainer,
-                      ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    bill.billNumber,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: theme.colorScheme.onPrimaryContainer,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              // Items list
-              Expanded(
-                child: StreamBuilder<List<OrderModel>>(
-                  stream: ref
-                      .watch(orderRepositoryProvider)
-                      .watchByBill(billId),
-                  builder: (context, orderSnap) {
-                    final orders = orderSnap.data ?? [];
-                    // Filter out storno orders
-                    final activeOrders =
-                        orders.where((o) => !o.isStorno).toList();
+            ),
+            // Items list — real orders or preview cart items
+            Expanded(
+              child: StreamBuilder<List<OrderModel>>(
+                stream: ref
+                    .watch(orderRepositoryProvider)
+                    .watchByBill(bill.id),
+                builder: (context, orderSnap) {
+                  final orders = orderSnap.data ?? [];
+                  // Filter out storno orders
+                  final activeOrders =
+                      orders.where((o) => !o.isStorno).toList();
 
-                    if (activeOrders.isEmpty) {
-                      return const SizedBox.shrink();
-                    }
-
+                  if (activeOrders.isNotEmpty) {
+                    // Show real order items
                     return ListView(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 24, vertical: 12),
@@ -151,16 +215,175 @@ class _ActiveDisplay extends ConsumerWidget {
                           _OrderItemsList(orderId: order.id),
                       ],
                     );
-                  },
-                ),
+                  }
+
+                  // No real orders yet — show preview cart items
+                  return _DisplayCartPreview(registerId: registerId);
+                },
               ),
-              // Totals footer
-              _TotalsFooter(bill: bill),
-            ],
-          );
-        },
+            ),
+            // Totals footer
+            _TotalsFooter(bill: bill, registerId: registerId),
+          ],
+        );
+      },
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Preview cart items from DisplayCartItems table
+// ---------------------------------------------------------------------------
+class _DisplayCartPreview extends ConsumerWidget {
+  const _DisplayCartPreview({required this.registerId});
+  final String registerId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return StreamBuilder<List<DisplayCartItemModel>>(
+      stream: ref.watch(displayCartRepositoryProvider).watchByRegister(registerId),
+      builder: (context, snap) {
+        final items = snap.data ?? [];
+        if (items.isEmpty) return const SizedBox.shrink();
+
+        return ListView.builder(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          itemCount: items.length,
+          itemBuilder: (context, index) {
+            final item = items[index];
+            return _PreviewItemRow(item: item);
+          },
+        );
+      },
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Single preview item row — mirrors _CustomerItemRow style
+// ---------------------------------------------------------------------------
+class _PreviewItemRow extends StatelessWidget {
+  const _PreviewItemRow({required this.item});
+  final DisplayCartItemModel item;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final lineTotal = (item.unitPrice * item.quantity).round();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.baseline,
+        textBaseline: TextBaseline.alphabetic,
+        children: [
+          SizedBox(
+            width: 48,
+            child: Text(
+              '${item.quantity.toStringAsFixed(item.quantity == item.quantity.roundToDouble() ? 0 : 1)}x',
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              item.itemName,
+              style: theme.textTheme.titleMedium,
+            ),
+          ),
+          Text(
+            _formatPrice(lineTotal),
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
       ),
     );
+  }
+
+  String _formatPrice(int amountCents) {
+    final whole = amountCents ~/ 100;
+    return '$whole,-';
+  }
+}
+
+// ---------------------------------------------------------------------------
+// "Thank you" display — shown after payment for ~5 seconds
+// ---------------------------------------------------------------------------
+class _ThankYouDisplay extends ConsumerStatefulWidget {
+  const _ThankYouDisplay({required this.bill, required this.registerId});
+  final BillModel bill;
+  final String registerId;
+
+  @override
+  ConsumerState<_ThankYouDisplay> createState() => _ThankYouDisplayState();
+}
+
+class _ThankYouDisplayState extends ConsumerState<_ThankYouDisplay> {
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer(const Duration(seconds: 5), () {
+      ref
+          .read(registerRepositoryProvider)
+          .setActiveBill(widget.registerId, null);
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    final theme = Theme.of(context);
+
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.check_circle_outline,
+            size: 80,
+            color: Colors.green.shade600,
+          ),
+          const SizedBox(height: 24),
+          Text(
+            l.customerDisplayPaid,
+            style: theme.textTheme.headlineMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            _formatPrice(widget.bill.totalGross),
+            style: theme.textTheme.displaySmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            l.customerDisplayThankYou,
+            style: theme.textTheme.headlineLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: theme.colorScheme.primary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatPrice(int amountCents) {
+    final whole = amountCents ~/ 100;
+    return '$whole,-';
   }
 }
 
@@ -250,20 +473,37 @@ class _CustomerItemRow extends StatelessWidget {
 // ---------------------------------------------------------------------------
 // Totals footer
 // ---------------------------------------------------------------------------
-class _TotalsFooter extends StatelessWidget {
-  const _TotalsFooter({required this.bill});
+class _TotalsFooter extends ConsumerWidget {
+  const _TotalsFooter({required this.bill, required this.registerId});
   final BillModel bill;
+  final String registerId;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
     final theme = Theme.of(context);
 
-    // Derive the actual discount in cents from computed totals.
-    // bill.discountAmount may store basis points (for percentage discounts),
-    // so we cannot sum it directly — instead compute from authoritative totals.
-    final totalDiscount =
-        bill.subtotalGross - bill.totalGross + bill.roundingAmount;
+    // If the bill has real totals, use them directly
+    if (bill.totalGross > 0) {
+      return _buildFooter(context, l, theme, bill.subtotalGross, bill.totalGross, bill.roundingAmount);
+    }
+
+    // Otherwise compute from preview cart items
+    return StreamBuilder<List<DisplayCartItemModel>>(
+      stream: ref.watch(displayCartRepositoryProvider).watchByRegister(registerId),
+      builder: (context, snap) {
+        final items = snap.data ?? [];
+        int previewTotal = 0;
+        for (final item in items) {
+          previewTotal += (item.unitPrice * item.quantity).round();
+        }
+        return _buildFooter(context, l, theme, previewTotal, previewTotal, 0);
+      },
+    );
+  }
+
+  Widget _buildFooter(BuildContext context, dynamic l, ThemeData theme, int subtotal, int total, int rounding) {
+    final totalDiscount = subtotal - total + rounding;
     final hasDiscount = totalDiscount > 0;
 
     return Container(
@@ -282,7 +522,7 @@ class _TotalsFooter extends StatelessWidget {
           // Subtotal
           _TotalRow(
             label: l.customerDisplaySubtotal,
-            amount: bill.subtotalGross,
+            amount: subtotal,
             style: theme.textTheme.titleMedium,
           ),
           // Discount (only if applicable)
@@ -302,7 +542,7 @@ class _TotalsFooter extends StatelessWidget {
           // Total
           _TotalRow(
             label: l.customerDisplayTotal,
-            amount: bill.totalGross,
+            amount: total,
             style: theme.textTheme.headlineMedium?.copyWith(
               fontWeight: FontWeight.bold,
             ),

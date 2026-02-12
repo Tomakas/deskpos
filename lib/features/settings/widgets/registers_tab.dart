@@ -8,6 +8,9 @@ import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/widgets/pos_table.dart';
 
+/// Merged Registers management + Device binding tab.
+/// Shows a PosTable with all registers, bind indicator, isMain flag,
+/// and CRUD actions. Binding change is only allowed when no active session.
 class RegistersTab extends ConsumerWidget {
   const RegistersTab({super.key});
 
@@ -17,12 +20,43 @@ class RegistersTab extends ConsumerWidget {
     final company = ref.watch(currentCompanyProvider);
     if (company == null) return const SizedBox.shrink();
 
+    final deviceRegAsync = ref.watch(deviceRegistrationProvider);
+    final sessionAsync = ref.watch(activeRegisterSessionProvider);
+    final hasActiveSession = sessionAsync.valueOrNull != null;
+    final myDeviceId = ref.watch(deviceIdProvider).valueOrNull;
+
     return StreamBuilder<List<RegisterModel>>(
       stream: ref.watch(registerRepositoryProvider).watchAll(company.id),
       builder: (context, snap) {
         final registers = snap.data ?? [];
+        final deviceReg = deviceRegAsync.valueOrNull;
+
         return Column(
           children: [
+            if (hasActiveSession)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                color: Theme.of(context).colorScheme.errorContainer,
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.info_outline,
+                      size: 18,
+                      color: Theme.of(context).colorScheme.onErrorContainer,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        l.registerSessionActiveCannotChange,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onErrorContainer,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             PosTableToolbar(
               trailing: [
                 FilledButton.icon(
@@ -43,9 +77,19 @@ class RegistersTab extends ConsumerWidget {
                   PosColumn(
                     label: l.registerName,
                     flex: 3,
-                    cellBuilder: (r) => Text(
-                      r.name.isEmpty ? r.code : r.name,
-                      overflow: TextOverflow.ellipsis,
+                    cellBuilder: (r) => Row(
+                      children: [
+                        if (r.isMain) ...[
+                          Icon(Icons.star, size: 16, color: Colors.amber.shade700),
+                          const SizedBox(width: 4),
+                        ],
+                        Expanded(
+                          child: Text(
+                            r.name.isEmpty ? r.code : r.name,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   PosColumn(
@@ -62,13 +106,55 @@ class RegistersTab extends ConsumerWidget {
                     cellBuilder: (r) => _PaymentFlags(register: r, l: l),
                   ),
                   PosColumn(
-                    label: l.fieldActive,
-                    flex: 1,
-                    cellBuilder: (r) => Icon(
-                      r.isActive ? Icons.check_circle : Icons.cancel,
-                      color: r.isActive ? Colors.green : Colors.grey,
-                      size: 20,
-                    ),
+                    label: l.registerBoundHere,
+                    flex: 2,
+                    cellBuilder: (r) {
+                      final isBound = deviceReg?.registerId == r.id;
+                      if (isBound) {
+                        return Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.link, size: 18, color: Colors.green),
+                            const SizedBox(width: 4),
+                            Text(
+                              l.registerBoundHere,
+                              style: const TextStyle(
+                                color: Colors.green,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        );
+                      }
+                      // Check if bound on another device
+                      final boundElsewhere = r.boundDeviceId != null &&
+                          r.boundDeviceId != myDeviceId;
+                      if (boundElsewhere) {
+                        return Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.lock, size: 16, color: Colors.orange.shade700),
+                            const SizedBox(width: 4),
+                            Flexible(
+                              child: Text(
+                                l.registerBoundOnOtherDevice,
+                                style: TextStyle(
+                                  color: Colors.orange.shade700,
+                                  fontSize: 12,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        );
+                      }
+                      return TextButton(
+                        onPressed: hasActiveSession
+                            ? null
+                            : () => _bindRegister(context, ref, company.id, r.id),
+                        child: Text(l.registerBindAction),
+                      );
+                    },
                   ),
                   PosColumn(
                     label: l.fieldActions,
@@ -83,7 +169,7 @@ class RegistersTab extends ConsumerWidget {
                         ),
                         IconButton(
                           icon: const Icon(Icons.delete, size: 20),
-                          onPressed: () => _delete(context, ref, r),
+                          onPressed: r.isMain ? null : () => _delete(context, ref, r),
                         ),
                       ],
                     ),
@@ -106,6 +192,23 @@ class RegistersTab extends ConsumerWidget {
     };
   }
 
+  Future<void> _bindRegister(
+    BuildContext context,
+    WidgetRef ref,
+    String companyId,
+    String registerId,
+  ) async {
+    final myDeviceId = await ref.read(deviceIdProvider.future);
+    await ref.read(deviceRegistrationRepositoryProvider).bind(
+      companyId: companyId,
+      registerId: registerId,
+      deviceId: myDeviceId,
+    );
+    ref.invalidate(deviceRegistrationProvider);
+    ref.invalidate(activeRegisterProvider);
+    ref.invalidate(activeRegisterSessionProvider);
+  }
+
   Future<void> _showEditDialog(
     BuildContext context,
     WidgetRef ref,
@@ -115,17 +218,12 @@ class RegistersTab extends ConsumerWidget {
     final l = context.l10n;
     final nameCtrl = TextEditingController(text: existing?.name ?? '');
     var type = existing?.type ?? HardwareType.local;
-    var parentRegisterId = existing?.parentRegisterId;
+    var isMain = existing?.isMain ?? false;
     var isActive = existing?.isActive ?? true;
     var allowCash = existing?.allowCash ?? true;
     var allowCard = existing?.allowCard ?? true;
     var allowTransfer = existing?.allowTransfer ?? true;
     var allowRefunds = existing?.allowRefunds ?? false;
-
-    // For parent register dropdown, exclude self
-    final parentCandidates = allRegisters
-        .where((r) => r.type == HardwareType.local && r.id != existing?.id)
-        .toList();
 
     final result = await showDialog<bool>(
       context: context,
@@ -152,32 +250,16 @@ class RegistersTab extends ConsumerWidget {
                               child: Text(_typeLabel(l, t)),
                             ))
                         .toList(),
-                    onChanged: (v) => setDialogState(() {
-                      type = v!;
-                      if (type == HardwareType.local) {
-                        parentRegisterId = null;
-                      }
-                    }),
+                    onChanged: (v) => setDialogState(() => type = v!),
                   ),
-                  if (type == HardwareType.mobile &&
-                      parentCandidates.isNotEmpty) ...[
-                    const SizedBox(height: 12),
-                    DropdownButtonFormField<String?>(
-                      initialValue: parentRegisterId,
-                      decoration:
-                          InputDecoration(labelText: l.registerParent),
-                      items: [
-                        DropdownMenuItem<String?>(
-                          value: null,
-                          child: Text(l.registerNone),
-                        ),
-                        ...parentCandidates.map((r) => DropdownMenuItem(
-                              value: r.id,
-                              child: Text(r.name.isEmpty ? r.code : r.name),
-                            )),
-                      ],
-                      onChanged: (v) =>
-                          setDialogState(() => parentRegisterId = v),
+                  if (existing != null && type == HardwareType.local) ...[
+                    const SizedBox(height: 16),
+                    SwitchListTile(
+                      title: Text(l.registerIsMain),
+                      value: isMain,
+                      onChanged: isMain
+                          ? null
+                          : (v) => setDialogState(() => isMain = v),
                     ),
                   ],
                   const SizedBox(height: 16),
@@ -241,20 +323,26 @@ class RegistersTab extends ConsumerWidget {
       await repo.update(existing.copyWith(
         name: nameCtrl.text.trim(),
         type: type,
-        parentRegisterId: type == HardwareType.mobile ? parentRegisterId : null,
         isActive: isActive,
         allowCash: allowCash,
         allowCard: allowCard,
         allowTransfer: allowTransfer,
         allowRefunds: allowRefunds,
       ));
+      // Handle isMain change separately (clears other registers)
+      if (isMain && !existing.isMain) {
+        await repo.setMain(company.id, existing.id);
+      }
     } else {
+      // Determine parent: auto-assign main register as parent for non-local types
+      final mainReg = allRegisters.where((r) => r.isMain).firstOrNull;
+      final parentId = type != HardwareType.local ? mainReg?.id : null;
+
       await repo.create(
         companyId: company.id,
         name: nameCtrl.text.trim(),
         type: type,
-        parentRegisterId:
-            type == HardwareType.mobile ? parentRegisterId : null,
+        parentRegisterId: parentId,
         allowCash: allowCash,
         allowCard: allowCard,
         allowTransfer: allowTransfer,

@@ -10,6 +10,7 @@ import '../models/company_model.dart';
 import '../models/company_settings_model.dart';
 import '../models/currency_model.dart';
 import '../models/device_registration_model.dart';
+import '../models/display_cart_item_model.dart';
 import '../models/item_model.dart';
 import '../models/layout_item_model.dart';
 import '../models/manufacturer_model.dart';
@@ -513,12 +514,15 @@ RegisterModel registerFromEntity(Register e) => RegisterModel(
       name: e.name,
       registerNumber: e.registerNumber,
       parentRegisterId: e.parentRegisterId,
+      isMain: e.isMain,
       isActive: e.isActive,
       type: e.type,
       allowCash: e.allowCash,
       allowCard: e.allowCard,
       allowTransfer: e.allowTransfer,
       allowRefunds: e.allowRefunds,
+      boundDeviceId: e.boundDeviceId,
+      activeBillId: e.activeBillId,
       gridRows: e.gridRows,
       gridCols: e.gridCols,
       createdAt: e.createdAt,
@@ -571,6 +575,18 @@ DeviceRegistrationModel deviceRegistrationFromEntity(DeviceRegistration e) =>
       companyId: e.companyId,
       registerId: e.registerId,
       createdAt: e.createdAt,
+    );
+
+// --- DisplayCartItem ---
+DisplayCartItemModel displayCartItemFromEntity(DisplayCartItem e) =>
+    DisplayCartItemModel(
+      id: e.id,
+      registerId: e.registerId,
+      itemName: e.itemName,
+      quantity: e.quantity,
+      unitPrice: e.unitPrice,
+      notes: e.notes,
+      sortOrder: e.sortOrder,
     );
 
 // --- TableEntity ---

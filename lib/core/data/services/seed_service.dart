@@ -50,6 +50,7 @@ class SeedService {
     required String adminUsername,
     required String adminPin,
     bool withTestData = false,
+    String? deviceId,
   }) async {
     try {
       final companyId = _id();
@@ -279,6 +280,7 @@ class SeedService {
           code: 'REG-1',
           name: 'Hlavní pokladna',
           registerNumber: 1,
+          isMain: true,
           type: HardwareType.local,
           allowCash: true,
           allowCard: true,
@@ -295,8 +297,20 @@ class SeedService {
               code: register.code,
               name: Value(register.name),
               registerNumber: Value(register.registerNumber),
+              isMain: const Value(true),
+              boundDeviceId: Value(deviceId),
               type: register.type,
             ));
+
+        // 9b. Auto-bind device to the main register
+        await _db.into(_db.deviceRegistrations).insert(
+          DeviceRegistrationsCompanion.insert(
+            id: _id(),
+            companyId: companyId,
+            registerId: registerId,
+            createdAt: now,
+          ),
+        );
 
         // 10. Admin user
         final user = UserModel(

@@ -11,12 +11,15 @@ class Registers extends Table with SyncColumnsMixin {
   TextColumn get name => text().withDefault(const Constant(''))();
   IntColumn get registerNumber => integer().withDefault(const Constant(1))();
   TextColumn get parentRegisterId => text().nullable()();
+  BoolColumn get isMain => boolean().withDefault(const Constant(false))();
   BoolColumn get isActive => boolean().withDefault(const Constant(true))();
   TextColumn get type => textEnum<HardwareType>()();
   BoolColumn get allowCash => boolean().withDefault(const Constant(true))();
   BoolColumn get allowCard => boolean().withDefault(const Constant(true))();
   BoolColumn get allowTransfer => boolean().withDefault(const Constant(true))();
   BoolColumn get allowRefunds => boolean().withDefault(const Constant(false))();
+  TextColumn get boundDeviceId => text().nullable()();
+  TextColumn get activeBillId => text().nullable()();
   IntColumn get gridRows => integer().withDefault(const Constant(5))();
   IntColumn get gridCols => integer().withDefault(const Constant(8))();
 

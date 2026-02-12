@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/data/enums/bill_status.dart';
+import '../../../core/data/enums/prep_status.dart';
+import '../../../core/data/models/order_model.dart';
 import '../../../core/data/enums/cash_movement_type.dart';
 import '../../../core/data/enums/hardware_type.dart';
 import '../../../core/data/enums/payment_type.dart';
@@ -51,6 +53,7 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
   bool _isProcessing = false;
   bool _isCreatingBill = false;
   bool _showMap = false;
+  bool _isPanelVisible = true;
 
   @override
   Widget build(BuildContext context) {
@@ -79,6 +82,8 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
                   }),
                   singleSelect: _showMap,
                   showSort: !_showMap,
+                  isPanelVisible: _isPanelVisible,
+                  onTogglePanel: () => setState(() => _isPanelVisible = !_isPanelVisible),
                 ),
                 Expanded(
                   child: _showMap
@@ -103,26 +108,33 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
               ],
             ),
           ),
-          // Right panel (20%)
-          SizedBox(
-            width: 290,
-            child: _RightPanel(
-              activeUser: activeUser,
-              loggedInUsers: loggedIn,
-              canManageSettings: canManageSettings,
-              hasSession: hasSession,
-              sessionAsync: sessionAsync,
-              showMap: _showMap,
-              onToggleMap: () => setState(() => _showMap = !_showMap),
-              onLogout: () => _logout(context),
-              onSwitchUser: () => _showSwitchUserDialog(context),
-              onNewBill: hasSession ? () => _createNewBill(context) : null,
-              onQuickBill: hasSession ? () => _createQuickBill(context) : null,
-              onToggleSession: () => _toggleSession(context, hasSession),
-              onCashMovement: hasSession ? () => _showCashMovement(context) : null,
-              onZReports: () => _showZReports(context),
-              onShifts: () => _showShifts(context),
-              onReservations: () => _showReservations(context),
+          // Right panel – collapsible
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeInOut,
+            width: _isPanelVisible ? 290 : 0,
+            clipBehavior: Clip.hardEdge,
+            decoration: const BoxDecoration(),
+            child: SizedBox(
+              width: 290,
+              child: _RightPanel(
+                activeUser: activeUser,
+                loggedInUsers: loggedIn,
+                canManageSettings: canManageSettings,
+                hasSession: hasSession,
+                sessionAsync: sessionAsync,
+                showMap: _showMap,
+                onToggleMap: () => setState(() => _showMap = !_showMap),
+                onLogout: () => _logout(context),
+                onSwitchUser: () => _showSwitchUserDialog(context),
+                onNewBill: hasSession ? () => _createNewBill(context) : null,
+                onQuickBill: hasSession ? () => _createQuickBill(context) : null,
+                onToggleSession: () => _toggleSession(context, hasSession),
+                onCashMovement: hasSession ? () => _showCashMovement(context) : null,
+                onZReports: () => _showZReports(context),
+                onShifts: () => _showShifts(context),
+                onReservations: () => _showReservations(context),
+              ),
             ),
           ),
         ],
@@ -197,7 +209,7 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
 
       final billRepo = ref.read(billRepositoryProvider);
 
-      final register = ref.read(activeRegisterProvider).value;
+      final register = await ref.read(activeRegisterProvider.future);
       final session = ref.read(activeRegisterSessionProvider).value;
       final createResult = await billRepo.createBill(
         companyId: company.id,
@@ -366,7 +378,7 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
       );
 
       // Cash handover: if mobile register with parent, transfer cash to parent session
-      final register = ref.read(activeRegisterProvider).value;
+      final register = await ref.read(activeRegisterProvider.future);
       if (register != null &&
           register.type == HardwareType.mobile &&
           register.parentRegisterId != null &&
@@ -618,6 +630,8 @@ class _SectionTabBar extends ConsumerWidget {
     required this.onSortChanged,
     this.singleSelect = false,
     this.showSort = true,
+    required this.isPanelVisible,
+    required this.onTogglePanel,
   });
   final Set<String> selectedSectionIds;
   final ValueChanged<Set<String>> onChanged;
@@ -626,6 +640,8 @@ class _SectionTabBar extends ConsumerWidget {
   final void Function(_SortField field, bool ascending) onSortChanged;
   final bool singleSelect;
   final bool showSort;
+  final bool isPanelVisible;
+  final VoidCallback onTogglePanel;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -655,7 +671,7 @@ class _SectionTabBar extends ConsumerWidget {
 
         return Container(
           height: 48,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.only(left: 16),
           alignment: Alignment.centerLeft,
           decoration: BoxDecoration(
             border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor)),
@@ -733,6 +749,32 @@ class _SectionTabBar extends ConsumerWidget {
                   ),
                 ),
               ],
+              // Panel toggle ear – styled as a tab protruding from the panel
+              const SizedBox(width: 8),
+              GestureDetector(
+                onTap: onTogglePanel,
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceContainer,
+                    border: Border(
+                      left: BorderSide(color: Theme.of(context).dividerColor),
+                      top: BorderSide(color: Theme.of(context).dividerColor),
+                      bottom: BorderSide(color: Theme.of(context).dividerColor),
+                    ),
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(8),
+                      bottomLeft: Radius.circular(8),
+                    ),
+                  ),
+                  child: Icon(
+                    isPanelVisible ? Icons.chevron_right : Icons.chevron_left,
+                    size: 18,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
             ],
           ),
         );
@@ -914,8 +956,8 @@ class _BillsTable extends ConsumerWidget {
   }
 
   String _resolveTableName(BillModel bill, Map<String, TableModel> tableMap, dynamic l) {
-    if (bill.isTakeaway) return l.billsQuickBill;
-    if (bill.tableId == null) return l.billDetailNoTable;
+    if (bill.isTakeaway) return '${bill.billNumber} — ${l.billsQuickBill}';
+    if (bill.tableId == null) return '${bill.billNumber} — ${l.billDetailNoTable}';
     final table = tableMap[bill.tableId];
     return table?.name ?? '-';
   }
@@ -1088,14 +1130,16 @@ class _RightPanel extends ConsumerWidget {
     final l = context.l10n;
     final theme = Theme.of(context);
 
-    return Container(
-      decoration: BoxDecoration(
-        border: Border(left: BorderSide(color: theme.dividerColor)),
-        color: theme.colorScheme.surfaceContainerLow,
-      ),
-      child: Column(
-        children: [
-          const SizedBox(height: 8),
+    return Stack(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            border: Border(left: BorderSide(color: theme.dividerColor)),
+            color: theme.colorScheme.surfaceContainer,
+          ),
+          child: Column(
+            children: [
+              const SizedBox(height: 8),
           // Row 1: RYCHLÝ ÚČET | VYTVOŘIT ÚČET
           _ButtonRow(
             left: l.billsQuickBill,
@@ -1110,12 +1154,12 @@ class _RightPanel extends ConsumerWidget {
             onLeft: onCashMovement,
             onRight: canManageSettings ? () => context.push('/catalog') : null,
           ),
-          // Row 3: OBJEDNÁVKY | KUCHYNĚ
+          // Row 3: OBJEDNÁVKY | REZERVACE
           _ButtonRow(
             left: l.ordersTitle,
-            right: l.kdsTitle,
+            right: l.moreReservations,
             onLeft: () => context.push('/orders'),
-            onRight: () => context.push('/kds'),
+            onRight: onReservations,
           ),
           // Row 4: SKLAD | DALŠÍ (→ menu near button)
           Padding(
@@ -1142,7 +1186,6 @@ class _RightPanel extends ConsumerWidget {
                           canManageSettings,
                           onZReports: onZReports,
                           onShifts: onShifts,
-                          onReservations: onReservations,
                         ),
                         child: Text(l.billsMore, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12)),
                       );
@@ -1184,6 +1227,18 @@ class _RightPanel extends ConsumerWidget {
           const SizedBox(height: 8),
         ],
       ),
+    ),
+    // Cover the left border at the top 48px where the toggle ear sits
+    Positioned(
+      left: 0,
+      top: 5,
+      child: Container(
+        width: 1,
+        height: 38,
+        color: theme.colorScheme.surfaceContainer,
+      ),
+    ),
+  ],
     );
   }
 
@@ -1253,7 +1308,7 @@ class _ButtonRow extends StatelessWidget {
   }
 }
 
-void _showMoreMenu(BuildContext btnContext, bool canManageSettings, {VoidCallback? onZReports, VoidCallback? onShifts, VoidCallback? onReservations}) {
+void _showMoreMenu(BuildContext btnContext, bool canManageSettings, {VoidCallback? onZReports, VoidCallback? onShifts}) {
   final l = btnContext.l10n;
   final button = btnContext.findRenderObject()! as RenderBox;
   final overlay = Overlay.of(btnContext).context.findRenderObject()! as RenderBox;
@@ -1277,7 +1332,6 @@ void _showMoreMenu(BuildContext btnContext, bool canManageSettings, {VoidCallbac
         PopupMenuItem(value: 'shifts', height: 48, child: Text(l.moreShifts)),
       if (!canManageSettings)
         PopupMenuItem(enabled: false, height: 48, child: Text(l.moreShifts)),
-      PopupMenuItem(value: 'reservations', height: 48, child: Text(l.moreReservations)),
       PopupMenuItem(enabled: false, height: 48, child: Text(l.moreStatistics)),
       if (canManageSettings)
         PopupMenuItem(value: 'vouchers', height: 48, child: Text(l.vouchersTitle)),
@@ -1311,8 +1365,6 @@ void _showMoreMenu(BuildContext btnContext, bool canManageSettings, {VoidCallbac
         onShifts?.call();
       case 'vouchers':
         btnContext.push('/vouchers');
-      case 'reservations':
-        onReservations?.call();
     }
   });
 }
@@ -1335,24 +1387,26 @@ class _InfoPanel extends ConsumerWidget {
     final timeFormat = DateFormat('HH:mm:ss', 'cs');
     final isSyncConnected = ref.watch(isSupabaseAuthenticatedProvider);
     final session = ref.watch(activeRegisterSessionProvider).valueOrNull;
+    final register = ref.watch(activeRegisterProvider).valueOrNull;
 
-    // Compute register total when session is active
-    String registerTotal = '-';
-    if (session != null) {
-      final openingCash = session.openingCash ?? 0;
-      registerTotal = '${openingCash ~/ 100} Kč';
-    }
+    final company = ref.watch(currentCompanyProvider);
+
+    final registerName = register != null
+        ? (register.name.isNotEmpty ? register.name : register.code)
+        : '-';
 
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerLow,
         border: Border.all(color: theme.dividerColor),
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Date & time (ticks every second via Stream.periodic)
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Date & time (ticks every second via Stream.periodic)
           StreamBuilder<DateTime>(
             stream: Stream.periodic(const Duration(seconds: 1), (_) => DateTime.now()),
             builder: (context, snap) {
@@ -1364,6 +1418,9 @@ class _InfoPanel extends ConsumerWidget {
             },
           ),
           const Divider(),
+          // Active register
+          _InfoRow(l.infoPanelRegisterName, registerName),
+          const Divider(),
           // Status
           _InfoRow(l.infoPanelStatus, hasSession ? l.registerSessionActive : l.infoPanelStatusOffline),
           const SizedBox(height: 2),
@@ -1373,10 +1430,56 @@ class _InfoPanel extends ConsumerWidget {
           _InfoRow(l.infoPanelActiveUser, activeUser?.username ?? '-'),
           const SizedBox(height: 2),
           _InfoRow(l.infoPanelLoggedIn, loggedInUsers.where((u) => u.id != activeUser?.id).map((u) => u.username).join(', ')),
-          const Divider(),
-          // Register total
-          _InfoRow(l.infoPanelRegisterTotal, registerTotal),
+          if (session != null && company != null) ...[
+            const Divider(),
+            // Orders by PrepStatus
+            StreamBuilder<List<OrderModel>>(
+              stream: ref.watch(orderRepositoryProvider).watchByCompany(
+                company.id,
+                since: session.openedAt,
+              ),
+              builder: (context, snap) {
+                final orders = snap.data ?? [];
+                int count(PrepStatus s) => orders.where((o) => o.status == s).length;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _InfoRow(l.prepStatusCreated, '${count(PrepStatus.created)}'),
+                    const SizedBox(height: 2),
+                    _InfoRow(l.prepStatusInPrep, '${count(PrepStatus.inPrep)}'),
+                    const SizedBox(height: 2),
+                    _InfoRow(l.prepStatusReady, '${count(PrepStatus.ready)}'),
+                    const SizedBox(height: 2),
+                    _InfoRow(l.prepStatusDelivered, '${count(PrepStatus.delivered)}'),
+                    const SizedBox(height: 2),
+                    _InfoRow(l.prepStatusCancelled, '${count(PrepStatus.cancelled)}'),
+                  ],
+                );
+              },
+            ),
+            const Divider(),
+            // Revenue stats
+            StreamBuilder<List<BillModel>>(
+              stream: ref.watch(billRepositoryProvider).watchByCompany(company.id),
+              builder: (context, snap) {
+                final allBills = snap.data ?? [];
+                final sessionBills = allBills.where((b) =>
+                    b.closedAt != null && b.closedAt!.isAfter(session.openedAt));
+                final paidBills = sessionBills.where((b) => b.status == BillStatus.paid);
+                final revenue = paidBills.fold(0, (sum, b) => sum + b.totalGross);
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _InfoRow(l.infoPanelRevenue, '${revenue ~/ 100},-'),
+                    const SizedBox(height: 2),
+                    _InfoRow(l.infoPanelSalesCount, '${paidBills.length}'),
+                  ],
+                );
+              },
+            ),
+          ],
         ],
+      ),
       ),
     );
   }

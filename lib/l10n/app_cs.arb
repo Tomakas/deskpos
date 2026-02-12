@@ -228,6 +228,8 @@
   "billsMore": "Další",
   "billsTableMap": "Mapa",
   "infoPanelRegisterTotal": "Pokladna",
+  "infoPanelRevenue": "Tržba",
+  "infoPanelSalesCount": "Počet prodejů",
 
   "sellCartSummary": "Souhrn položek",
   "sellScan": "Skenovat",
@@ -832,11 +834,16 @@
   "ordersScopeSession": "Session",
   "ordersScopeAll": "Vše",
   "ordersNoOrders": "Žádné objednávky",
+  "ordersTimeCreated": "Čas vytvoření objednávky",
+  "ordersTimeUpdated": "Čas poslední změny",
+  "ordersTableLabel": "Stůl",
+  "ordersCustomerLabel": "Zákazník",
   "ordersStornoPrefix": "STORNO",
   "ordersStornoRef": "→ {orderNumber}",
   "@ordersStornoRef": {
     "placeholders": { "orderNumber": { "type": "String" } }
   },
+  "customerDisplayTitle": "Zákaznický displej",
   "customerDisplayWelcome": "Vítejte",
   "customerDisplayHeader": "Váš účet",
   "customerDisplaySubtotal": "Mezisoučet",
@@ -879,5 +886,31 @@
   "registerBind": "Vybrat pokladnu",
   "registerUnbind": "Odpojit",
   "registerSelectTitle": "Vyberte pokladnu",
-  "registerNone": "Žádná"
+  "registerNone": "Žádná",
+
+  "registerIsMain": "Hlavní",
+  "registerSetMain": "Nastavit jako hlavní",
+  "registerBoundHere": "Toto zařízení",
+  "registerBindAction": "Svázat",
+  "registerSessionActiveCannotChange": "Nelze změnit svázání během aktivní směny.",
+  "registerBoundOnOtherDevice": "Používá jiné zařízení",
+  "infoPanelRegisterName": "Název pokladny",
+
+  "connectCompanySelectRegister": "Vyberte pokladnu",
+  "connectCompanySelectRegisterSubtitle": "Vyberte pokladnu pro toto zařízení",
+  "connectCompanyNoRegisters": "Žádné pokladny k dispozici",
+  "connectCompanyCreateRegister": "Vytvořit novou pokladnu",
+  "registerNotBoundMessage": "Pokladna není přiřazena k tomuto zařízení. Přiřaďte pokladnu v Nastavení.",
+
+  "modeTitle": "Režim",
+  "modePOS": "Pokladna",
+  "modePOSDescription": "Standardní prodejní režim",
+  "modeKDS": "Objednávkový displej",
+  "modeKDSDescription": "Zobrazuje aktivní objednávky pro kuchyni",
+  "modeCustomerDisplay": "Zákaznický displej",
+  "modeCustomerDisplayDescription": "Zobrazuje účet zákazníkovi",
+  "modeCustomerDisplaySelectRegister": "Sledovaná pokladna",
+
+  "customerDisplayThankYou": "Děkujeme!",
+  "customerDisplayPaid": "Zaplaceno"
 }

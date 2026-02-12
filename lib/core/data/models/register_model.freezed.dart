@@ -23,12 +23,15 @@ mixin _$RegisterModel {
   String get name => throw _privateConstructorUsedError;
   int get registerNumber => throw _privateConstructorUsedError;
   String? get parentRegisterId => throw _privateConstructorUsedError;
+  bool get isMain => throw _privateConstructorUsedError;
   bool get isActive => throw _privateConstructorUsedError;
   HardwareType get type => throw _privateConstructorUsedError;
   bool get allowCash => throw _privateConstructorUsedError;
   bool get allowCard => throw _privateConstructorUsedError;
   bool get allowTransfer => throw _privateConstructorUsedError;
   bool get allowRefunds => throw _privateConstructorUsedError;
+  String? get boundDeviceId => throw _privateConstructorUsedError;
+  String? get activeBillId => throw _privateConstructorUsedError;
   int get gridRows => throw _privateConstructorUsedError;
   int get gridCols => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
@@ -56,12 +59,15 @@ abstract class $RegisterModelCopyWith<$Res> {
     String name,
     int registerNumber,
     String? parentRegisterId,
+    bool isMain,
     bool isActive,
     HardwareType type,
     bool allowCash,
     bool allowCard,
     bool allowTransfer,
     bool allowRefunds,
+    String? boundDeviceId,
+    String? activeBillId,
     int gridRows,
     int gridCols,
     DateTime createdAt,
@@ -91,12 +97,15 @@ class _$RegisterModelCopyWithImpl<$Res, $Val extends RegisterModel>
     Object? name = null,
     Object? registerNumber = null,
     Object? parentRegisterId = freezed,
+    Object? isMain = null,
     Object? isActive = null,
     Object? type = null,
     Object? allowCash = null,
     Object? allowCard = null,
     Object? allowTransfer = null,
     Object? allowRefunds = null,
+    Object? boundDeviceId = freezed,
+    Object? activeBillId = freezed,
     Object? gridRows = null,
     Object? gridCols = null,
     Object? createdAt = null,
@@ -129,6 +138,10 @@ class _$RegisterModelCopyWithImpl<$Res, $Val extends RegisterModel>
                 ? _value.parentRegisterId
                 : parentRegisterId // ignore: cast_nullable_to_non_nullable
                       as String?,
+            isMain: null == isMain
+                ? _value.isMain
+                : isMain // ignore: cast_nullable_to_non_nullable
+                      as bool,
             isActive: null == isActive
                 ? _value.isActive
                 : isActive // ignore: cast_nullable_to_non_nullable
@@ -153,6 +166,14 @@ class _$RegisterModelCopyWithImpl<$Res, $Val extends RegisterModel>
                 ? _value.allowRefunds
                 : allowRefunds // ignore: cast_nullable_to_non_nullable
                       as bool,
+            boundDeviceId: freezed == boundDeviceId
+                ? _value.boundDeviceId
+                : boundDeviceId // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            activeBillId: freezed == activeBillId
+                ? _value.activeBillId
+                : activeBillId // ignore: cast_nullable_to_non_nullable
+                      as String?,
             gridRows: null == gridRows
                 ? _value.gridRows
                 : gridRows // ignore: cast_nullable_to_non_nullable
@@ -195,12 +216,15 @@ abstract class _$$RegisterModelImplCopyWith<$Res>
     String name,
     int registerNumber,
     String? parentRegisterId,
+    bool isMain,
     bool isActive,
     HardwareType type,
     bool allowCash,
     bool allowCard,
     bool allowTransfer,
     bool allowRefunds,
+    String? boundDeviceId,
+    String? activeBillId,
     int gridRows,
     int gridCols,
     DateTime createdAt,
@@ -229,12 +253,15 @@ class __$$RegisterModelImplCopyWithImpl<$Res>
     Object? name = null,
     Object? registerNumber = null,
     Object? parentRegisterId = freezed,
+    Object? isMain = null,
     Object? isActive = null,
     Object? type = null,
     Object? allowCash = null,
     Object? allowCard = null,
     Object? allowTransfer = null,
     Object? allowRefunds = null,
+    Object? boundDeviceId = freezed,
+    Object? activeBillId = freezed,
     Object? gridRows = null,
     Object? gridCols = null,
     Object? createdAt = null,
@@ -267,6 +294,10 @@ class __$$RegisterModelImplCopyWithImpl<$Res>
             ? _value.parentRegisterId
             : parentRegisterId // ignore: cast_nullable_to_non_nullable
                   as String?,
+        isMain: null == isMain
+            ? _value.isMain
+            : isMain // ignore: cast_nullable_to_non_nullable
+                  as bool,
         isActive: null == isActive
             ? _value.isActive
             : isActive // ignore: cast_nullable_to_non_nullable
@@ -291,6 +322,14 @@ class __$$RegisterModelImplCopyWithImpl<$Res>
             ? _value.allowRefunds
             : allowRefunds // ignore: cast_nullable_to_non_nullable
                   as bool,
+        boundDeviceId: freezed == boundDeviceId
+            ? _value.boundDeviceId
+            : boundDeviceId // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        activeBillId: freezed == activeBillId
+            ? _value.activeBillId
+            : activeBillId // ignore: cast_nullable_to_non_nullable
+                  as String?,
         gridRows: null == gridRows
             ? _value.gridRows
             : gridRows // ignore: cast_nullable_to_non_nullable
@@ -326,12 +365,15 @@ class _$RegisterModelImpl implements _RegisterModel {
     this.name = '',
     this.registerNumber = 1,
     this.parentRegisterId,
+    this.isMain = false,
     this.isActive = true,
     required this.type,
     this.allowCash = true,
     this.allowCard = true,
     this.allowTransfer = true,
     this.allowRefunds = false,
+    this.boundDeviceId,
+    this.activeBillId,
     this.gridRows = 5,
     this.gridCols = 8,
     required this.createdAt,
@@ -355,6 +397,9 @@ class _$RegisterModelImpl implements _RegisterModel {
   final String? parentRegisterId;
   @override
   @JsonKey()
+  final bool isMain;
+  @override
+  @JsonKey()
   final bool isActive;
   @override
   final HardwareType type;
@@ -371,6 +416,10 @@ class _$RegisterModelImpl implements _RegisterModel {
   @JsonKey()
   final bool allowRefunds;
   @override
+  final String? boundDeviceId;
+  @override
+  final String? activeBillId;
+  @override
   @JsonKey()
   final int gridRows;
   @override
@@ -385,7 +434,7 @@ class _$RegisterModelImpl implements _RegisterModel {
 
   @override
   String toString() {
-    return 'RegisterModel(id: $id, companyId: $companyId, code: $code, name: $name, registerNumber: $registerNumber, parentRegisterId: $parentRegisterId, isActive: $isActive, type: $type, allowCash: $allowCash, allowCard: $allowCard, allowTransfer: $allowTransfer, allowRefunds: $allowRefunds, gridRows: $gridRows, gridCols: $gridCols, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+    return 'RegisterModel(id: $id, companyId: $companyId, code: $code, name: $name, registerNumber: $registerNumber, parentRegisterId: $parentRegisterId, isMain: $isMain, isActive: $isActive, type: $type, allowCash: $allowCash, allowCard: $allowCard, allowTransfer: $allowTransfer, allowRefunds: $allowRefunds, boundDeviceId: $boundDeviceId, activeBillId: $activeBillId, gridRows: $gridRows, gridCols: $gridCols, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
   }
 
   @override
@@ -402,6 +451,7 @@ class _$RegisterModelImpl implements _RegisterModel {
                 other.registerNumber == registerNumber) &&
             (identical(other.parentRegisterId, parentRegisterId) ||
                 other.parentRegisterId == parentRegisterId) &&
+            (identical(other.isMain, isMain) || other.isMain == isMain) &&
             (identical(other.isActive, isActive) ||
                 other.isActive == isActive) &&
             (identical(other.type, type) || other.type == type) &&
@@ -413,6 +463,10 @@ class _$RegisterModelImpl implements _RegisterModel {
                 other.allowTransfer == allowTransfer) &&
             (identical(other.allowRefunds, allowRefunds) ||
                 other.allowRefunds == allowRefunds) &&
+            (identical(other.boundDeviceId, boundDeviceId) ||
+                other.boundDeviceId == boundDeviceId) &&
+            (identical(other.activeBillId, activeBillId) ||
+                other.activeBillId == activeBillId) &&
             (identical(other.gridRows, gridRows) ||
                 other.gridRows == gridRows) &&
             (identical(other.gridCols, gridCols) ||
@@ -426,7 +480,7 @@ class _$RegisterModelImpl implements _RegisterModel {
   }
 
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     runtimeType,
     id,
     companyId,
@@ -434,18 +488,21 @@ class _$RegisterModelImpl implements _RegisterModel {
     name,
     registerNumber,
     parentRegisterId,
+    isMain,
     isActive,
     type,
     allowCash,
     allowCard,
     allowTransfer,
     allowRefunds,
+    boundDeviceId,
+    activeBillId,
     gridRows,
     gridCols,
     createdAt,
     updatedAt,
     deletedAt,
-  );
+  ]);
 
   /// Create a copy of RegisterModel
   /// with the given fields replaced by the non-null parameter values.
@@ -464,12 +521,15 @@ abstract class _RegisterModel implements RegisterModel {
     final String name,
     final int registerNumber,
     final String? parentRegisterId,
+    final bool isMain,
     final bool isActive,
     required final HardwareType type,
     final bool allowCash,
     final bool allowCard,
     final bool allowTransfer,
     final bool allowRefunds,
+    final String? boundDeviceId,
+    final String? activeBillId,
     final int gridRows,
     final int gridCols,
     required final DateTime createdAt,
@@ -490,6 +550,8 @@ abstract class _RegisterModel implements RegisterModel {
   @override
   String? get parentRegisterId;
   @override
+  bool get isMain;
+  @override
   bool get isActive;
   @override
   HardwareType get type;
@@ -501,6 +563,10 @@ abstract class _RegisterModel implements RegisterModel {
   bool get allowTransfer;
   @override
   bool get allowRefunds;
+  @override
+  String? get boundDeviceId;
+  @override
+  String? get activeBillId;
   @override
   int get gridRows;
   @override

@@ -48,25 +48,38 @@ class SyncLifecycleManager {
     if (_isRunning) return;
     _isRunning = true;
 
-    AppLogger.info('SyncLifecycleManager: starting', tag: 'SYNC');
+    try {
+      AppLogger.info('SyncLifecycleManager: starting', tag: 'SYNC');
 
-    // Crash recovery: reset stuck processing entries
-    await _syncQueueRepo.resetStuck();
+      // Crash recovery: reset stuck processing entries
+      await _syncQueueRepo.resetStuck();
 
-    // Cleanup old completed entries
-    await _syncQueueRepo.deleteCompleted();
+      // Retry recovery: reset permanently failed entries (e.g. after schema fix)
+      await _syncQueueRepo.resetFailed();
 
-    // Initial push: enqueue all existing entities that have never been synced
-    await _initialPush(companyId);
+      // Cleanup old completed entries
+      await _syncQueueRepo.deleteCompleted();
 
-    // Start outbox push
-    _outboxProcessor.start();
+      // Initial push: enqueue all existing entities that have never been synced
+      await _initialPush(companyId);
 
-    // Start pull sync (5-min polling as fallback)
-    _syncService.startAutoSync(companyId);
+      // Start outbox push
+      _outboxProcessor.start();
 
-    // Start realtime subscriptions (<2s latency)
-    _realtimeService.start(companyId);
+      // Start pull sync (5-min polling as fallback)
+      _syncService.startAutoSync(companyId);
+
+      // Start realtime subscriptions (<2s latency)
+      _realtimeService.start(companyId);
+    } catch (e, s) {
+      _isRunning = false;
+      AppLogger.error(
+        'SyncLifecycleManager: start failed, will retry on next trigger',
+        tag: 'SYNC',
+        error: e,
+        stackTrace: s,
+      );
+    }
   }
 
   void stop() {

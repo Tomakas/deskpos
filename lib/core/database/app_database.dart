@@ -15,6 +15,7 @@ import 'tables/companies.dart';
 import 'tables/company_settings.dart';
 import 'tables/currencies.dart';
 import 'tables/device_registrations.dart';
+import 'tables/display_cart_items.dart';
 import 'tables/items.dart';
 import 'tables/layout_items.dart';
 import 'tables/map_elements.dart';
@@ -57,6 +58,7 @@ part 'app_database.g.dart';
   CompanySettings,
   Currencies,
   DeviceRegistrations,
+  DisplayCartItems,
   Items,
   LayoutItems,
   MapElements,

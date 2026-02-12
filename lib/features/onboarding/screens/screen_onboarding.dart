@@ -249,6 +249,7 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
     }
 
     final seedService = ref.read(seedServiceProvider);
+    final myDeviceId = await ref.read(deviceIdProvider.future);
     final result = await seedService.seedOnboarding(
       companyName: _companyNameCtrl.text.trim(),
       businessId: _businessIdCtrl.text.trim().isEmpty ? null : _businessIdCtrl.text.trim(),
@@ -259,6 +260,7 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
       adminUsername: _usernameCtrl.text.trim(),
       adminPin: _pinCtrl.text,
       withTestData: _withTestData,
+      deviceId: myDeviceId,
     );
 
     if (!mounted) return;

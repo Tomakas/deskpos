@@ -36,6 +36,35 @@ class DialogBillDetail extends ConsumerStatefulWidget {
 
 class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
   bool _showSummary = false;
+  bool _didSetActiveBill = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _setActiveBill());
+  }
+
+  @override
+  void dispose() {
+    _clearActiveBill();
+    super.dispose();
+  }
+
+  void _setActiveBill() {
+    final register = ref.read(activeRegisterProvider).value;
+    if (register != null) {
+      ref.read(registerRepositoryProvider).setActiveBill(register.id, widget.billId);
+      _didSetActiveBill = true;
+    }
+  }
+
+  void _clearActiveBill() {
+    if (!_didSetActiveBill) return;
+    final register = ref.read(activeRegisterProvider).value;
+    if (register != null) {
+      ref.read(registerRepositoryProvider).setActiveBill(register.id, null);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -170,12 +199,17 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
   }
 
   Widget _buildBillTitle(BuildContext context, WidgetRef ref, BillModel bill, dynamic l) {
+    final billNum = l.billDetailBillNumber(bill.billNumber);
+
     if (bill.isTakeaway) {
-      return Text(l.billsQuickBill, style: Theme.of(context).textTheme.titleLarge);
+      return Text(
+        '$billNum — ${l.billsQuickBill}',
+        style: Theme.of(context).textTheme.titleLarge,
+      );
     }
     if (bill.tableId == null) {
       return Text(
-        '${l.billDetailBillNumber(bill.billNumber)} - ${l.billDetailNoTable}',
+        '$billNum — ${l.billDetailNoTable}',
         style: Theme.of(context).textTheme.titleLarge,
       );
     }
@@ -187,8 +221,9 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
       builder: (context, snap) {
         final tables = snap.data ?? [];
         final table = tables.where((t) => t.id == bill.tableId).firstOrNull;
+        final tableName = table?.name ?? '-';
         return Text(
-          table?.name ?? bill.billNumber,
+          '$billNum — $tableName',
           style: Theme.of(context).textTheme.titleLarge,
         );
       },
