@@ -1,5 +1,84 @@
 # Changelog
 
+## 2026-02-12 — Milník 3.9: Multi-register architektura (6 fází)
+
+### Phase 1 — Schema + Device Binding
+- **device_registrations** — nová lokální tabulka (nesync) pro vazbu zařízení↔pokladna
+- **registers** — přidáno: `name`, `register_number`, `parent_register_id` (pro mobile→local hierarchii)
+- **register_sessions** — přidáno: `bill_counter`
+- **orders** — přidáno: `register_id` (atribuce objednávky k pokladně)
+- **payments** — přidáno: `register_id` (atribuce platby k pokladně)
+- `DeviceRegistrationRepository` — bind/unbind/getForCompany (lokální, bez sync)
+- `activeRegisterProvider` — device binding lookup s fallback na první aktivní registr
+- `deviceRegistrationProvider` — lokální lookup pro aktuální firmu
+
+### Phase 2 — CRUD pokladen + Payment Enforcement
+- `RegistersTab` — nový PosTable widget se správou pokladen (add/edit/delete, HardwareType, parent register, payment flags)
+- `ScreenRegisterSettings` — rozšířen z 1 sekce na 3 taby (Aktuální pokladna, Správa pokladen, Device binding)
+- `RegisterRepository` — create (auto `registerNumber` + `code` REG-N), update, delete, getFirstActive, watchAll, getNextRegisterNumber
+- `DialogPayment` — filtruje platební metody dle `register.allowCash/Card/Transfer`
+- `DialogVoucherCreate` — respektuje `register.allowRefunds`
+
+### Phase 3 — Z-report per register + Cash Handover
+- `CashMovementType.handover` — nová enum hodnota pro mobile→local předání hotovosti
+- `ZReportService.buildVenueZReport` — agregace N sessions s per-register breakdowns
+- `ZReportService.getSessionSummaries` — filtrovatelné dle registeru a data
+- `RegisterSessionRepository` — `incrementBillCounter`, rozšířený `getClosedSessions`
+- `DialogZReport` — sekce per-register breakdown, shift durations, open bills
+- `DialogZReportList` — filtrování dle registeru
+- `DialogCashJournal` — typ `handover` pro cash movements
+
+### Phase 4 — Supabase Realtime <2s Sync
+- `RealtimeService` — subscribuje PostgresChanges na 21 company-scoped tabulek
+- `SyncService.mergeRow` — LWW merge přes `insertOnConflictUpdate`
+- Reconnect → okamžitý `pullAll` (flag `_wasSubscribed`)
+- Dual sync strategie: polling 5min (fallback) + Realtime (instant)
+- `realtimeServiceProvider` + integrace do `SyncLifecycleManager`
+
+### Phase 5 — KDS (Kitchen Display System)
+- `ScreenKds` — touch-optimized grid karet s objednávkami, elapsed-time badge
+- Per-item a full-order status bumping (created→inPrep→ready→delivered)
+- `_isBumping` guard proti double-tap přeskočení statusu
+- Status filter chips (Připravuje se/Hotové/Doručené)
+- Storno ordery vyloučeny z KDS
+
+### Phase 6 — Customer Display
+- `ScreenCustomerDisplay` — read-only zákaznický displej pro sekundární monitor
+- Idle mód (jméno firmy + uvítání) a active mód (položky + totaly)
+- Discount výpočet z `subtotalGross - totalGross + roundingAmount`
+- Filtrování storno orderů a voided/cancelled položek
+
+### Routing
+- `/kds` — permission `orders.view`
+- `/customer-display` a `/customer-display/:billId` — bez permission guardu
+- `/settings/register` — rozšířen na 3 taby
+
+### Schema
+- 38 tabulek v @DriftDatabase (35 doménových + 1 lokální + 2 sync)
+- `CashMovementType` enum — přidáno `handover`
+
+### New Files
+- `lib/core/database/tables/device_registrations.dart`
+- `lib/core/data/models/device_registration_model.dart`
+- `lib/core/data/repositories/device_registration_repository.dart`
+- `lib/core/sync/realtime_service.dart`
+- `lib/features/orders/screens/screen_kds.dart`
+- `lib/features/sell/screens/screen_customer_display.dart`
+- `lib/features/settings/widgets/registers_tab.dart`
+
+### L10n
+- +55 nových klíčů v `app_cs.arb` (registr, KDS, customer display, Z-report, device binding)
+- Odstraněny nepoužité klíče: `kdsAllCategories`, `ordersFilterAll`
+
+### Fixes
+- `ScreenOrders` + `ScreenKds` — sjednocení barvy `PrepStatus.cancelled` na `Colors.pink`
+- `ScreenCustomerDisplay` — oprava CRITICAL bugu: discount počítán z computed totals místo raw `discountAmount` (který ukládá basis points pro procentní slevy)
+
+### Documentation
+- PROJECT.md: Milník 3.9, aktualizace schématu, routes, providers, Realtime sync, KDS/Customer Display layouty, ScreenRegisterSettings 3 taby, device_registrations tabulka, Supabase deployment requirements
+
+---
+
 ## 2026-02-11 — Per-item status transitions + order status aggregation
 
 ### Features

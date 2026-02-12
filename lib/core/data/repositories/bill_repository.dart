@@ -37,6 +37,8 @@ class BillRepository {
     String? tableId,
     String? customerId,
     String? customerName,
+    String? registerId,
+    String? registerSessionId,
     bool isTakeaway = false,
     int numberOfGuests = 0,
   }) async {
@@ -45,7 +47,7 @@ class BillRepository {
       final id = const Uuid().v7();
 
       await _db.transaction(() async {
-        final billNumber = await _generateBillNumber(companyId);
+        final billNumber = await _generateBillNumber(companyId, registerId: registerId);
         await _db.into(_db.bills).insert(BillsCompanion.insert(
           id: id,
           companyId: companyId,
@@ -53,6 +55,9 @@ class BillRepository {
           customerName: Value(customerId != null ? null : customerName),
           sectionId: Value(sectionId),
           tableId: Value(tableId),
+          registerId: Value(registerId),
+          lastRegisterId: Value(registerId),
+          registerSessionId: Value(registerSessionId),
           openedByUserId: userId,
           billNumber: billNumber,
           numberOfGuests: Value(numberOfGuests),
@@ -277,6 +282,7 @@ class BillRepository {
     required int amount,
     int tipAmount = 0,
     String? userId,
+    String? registerId,
     int loyaltyEarnPerHundredCzk = 0,
   }) async {
     try {
@@ -289,6 +295,7 @@ class BillRepository {
           id: paymentId,
           companyId: companyId,
           billId: billId,
+          registerId: Value(registerId),
           userId: Value(userId),
           paymentMethodId: paymentMethodId,
           amount: amount,
@@ -306,6 +313,7 @@ class BillRepository {
         await (_db.update(_db.bills)..where((t) => t.id.equals(billId))).write(
           BillsCompanion(
             paidAmount: Value(newPaidAmount),
+            lastRegisterId: registerId != null ? Value(registerId) : const Value.absent(),
             status: isPaid ? const Value(BillStatus.paid) : const Value.absent(),
             closedAt: isPaid ? Value(now) : const Value.absent(),
             updatedAt: Value(now),
@@ -597,6 +605,7 @@ class BillRepository {
     required String billId,
     required String registerSessionId,
     required String userId,
+    String? registerId,
   }) async {
     try {
       final bill = await (_db.select(_db.bills)
@@ -642,6 +651,7 @@ class BillRepository {
             paidAt: now,
             currencyId: payment.currencyId,
             tipIncludedAmount: Value(-payment.tipIncludedAmount),
+            registerId: Value(registerId),
           ));
 
           if (cashMethodIds.contains(payment.paymentMethodId)) {
@@ -888,6 +898,7 @@ class BillRepository {
     required String targetBillId,
     required List<String> orderItemIds,
     required String userId,
+    String? registerId,
   }) async {
     try {
       if (orderRepo == null) return const Failure('OrderRepository not available');
@@ -903,6 +914,7 @@ class BillRepository {
         companyId: sourceBill.companyId,
         userId: userId,
         orderItemIds: orderItemIds,
+        registerId: registerId,
       );
 
       // Recalculate both bill totals
@@ -919,7 +931,32 @@ class BillRepository {
     }
   }
 
-  Future<String> _generateBillNumber(String companyId) async {
+  Future<String> _generateBillNumber(String companyId, {String? registerId}) async {
+    // If we have a registerId, use register-based numbering: B{n}-{counter}
+    if (registerId != null) {
+      final register = await (_db.select(_db.registers)
+            ..where((t) => t.id.equals(registerId)))
+          .getSingleOrNull();
+      if (register != null) {
+        final regNum = register.registerNumber;
+        final today = DateTime.now();
+        final startOfDay = DateTime(today.year, today.month, today.day);
+        final endOfDay = startOfDay.add(const Duration(days: 1));
+
+        final count = await (_db.select(_db.bills)
+              ..where((t) =>
+                  t.companyId.equals(companyId) &
+                  t.registerId.equals(registerId) &
+                  t.openedAt.isBiggerOrEqualValue(startOfDay) &
+                  t.openedAt.isSmallerThanValue(endOfDay)))
+            .get();
+
+        final number = count.length + 1;
+        return 'B$regNum-${number.toString().padLeft(3, '0')}';
+      }
+    }
+
+    // Fallback: legacy numbering for bills without register
     final today = DateTime.now();
     final startOfDay = DateTime(today.year, today.month, today.day);
     final endOfDay = startOfDay.add(const Duration(days: 1));

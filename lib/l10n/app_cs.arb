@@ -637,6 +637,22 @@
   "zReportCashReportTitle": "Stav hotovosti",
   "zReportShiftsReportTitle": "Směny",
 
+  "zReportRegisterBreakdown": "Rozpad dle pokladen",
+  "zReportRegisterColumn": "Pokladna",
+  "zReportVenueReport": "Report provozovny",
+  "zReportVenueReportTitle": "Report provozovny",
+  "zReportRegisterName": "Pokladna: {name}",
+  "@zReportRegisterName": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "cashHandoverReason": "Předání hotovosti z {registerName}",
+  "@cashHandoverReason": {
+    "placeholders": {
+      "registerName": { "type": "String" }
+    }
+  },
   "reservationsTitle": "Rezervace",
   "reservationNew": "Nová rezervace",
   "reservationEdit": "Upravit rezervaci",
@@ -813,7 +829,6 @@
   "ordersFilterReady": "Hotové",
   "ordersFilterDelivered": "Doručené",
   "ordersFilterStorno": "Stornované",
-  "ordersFilterAll": "Vše",
   "ordersScopeSession": "Session",
   "ordersScopeAll": "Vše",
   "ordersNoOrders": "Žádné objednávky",
@@ -822,9 +837,47 @@
   "@ordersStornoRef": {
     "placeholders": { "orderNumber": { "type": "String" } }
   },
+  "customerDisplayWelcome": "Vítejte",
+  "customerDisplayHeader": "Váš účet",
+  "customerDisplaySubtotal": "Mezisoučet",
+  "customerDisplayDiscount": "Sleva",
+  "customerDisplayTotal": "Celkem",
+
+  "kdsTitle": "Kuchyně",
+  "kdsNoOrders": "Žádné objednávky k přípravě",
+  "kdsBump": "Další",
+  "kdsMinAgo": "{minutes} min",
+  "@kdsMinAgo": {
+    "placeholders": { "minutes": { "type": "String" } }
+  },
+
   "sellSeparator": "Oddělit",
   "sellSeparatorLabel": "--- Další objednávka ---",
 
   "customerEnterName": "Zadat jméno",
-  "customerNameHint": "Jméno hosta"
+  "customerNameHint": "Jméno hosta",
+
+  "settingsRegisters": "Pokladny",
+  "registerName": "Název",
+  "registerType": "Typ",
+  "registerNumber": "Číslo",
+  "registerParent": "Nadřazená pokladna",
+  "registerAllowCash": "Hotovost",
+  "registerAllowCard": "Karta",
+  "registerAllowTransfer": "Převod",
+  "registerAllowRefunds": "Refundy",
+  "registerPaymentFlags": "Povolené platby",
+  "registerTypeLocal": "Stacionární",
+  "registerTypeMobile": "Mobilní",
+  "registerTypeVirtual": "Virtuální",
+  "registerDeviceBinding": "Svázání zařízení",
+  "registerBound": "Svázáno s: {name}",
+  "@registerBound": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "registerNotBound": "Nesvázáno",
+  "registerBind": "Vybrat pokladnu",
+  "registerUnbind": "Odpojit",
+  "registerSelectTitle": "Vyberte pokladnu",
+  "registerNone": "Žádná"
 }

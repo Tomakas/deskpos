@@ -38,6 +38,7 @@ class OrderRepository {
     required String orderNumber,
     required List<OrderItemInput> items,
     String? orderNotes,
+    String? registerId,
   }) async {
     try {
       final now = DateTime.now();
@@ -52,6 +53,7 @@ class OrderRepository {
           id: orderId,
           companyId: companyId,
           billId: billId,
+          registerId: Value(registerId),
           createdByUserId: userId,
           orderNumber: orderNumber,
           notes: Value(orderNotes),
@@ -398,6 +400,7 @@ class OrderRepository {
     required String companyId,
     required String userId,
     required String stornoOrderNumber,
+    String? registerId,
   }) async {
     try {
       final now = DateTime.now();
@@ -435,6 +438,7 @@ class OrderRepository {
         id: stornoOrderId,
         companyId: companyId,
         billId: orderEntity.billId,
+        registerId: Value(registerId),
         createdByUserId: userId,
         orderNumber: stornoOrderNumber,
         status: PrepStatus.delivered,
@@ -594,6 +598,7 @@ class OrderRepository {
     required String companyId,
     required String userId,
     required List<String> orderItemIds,
+    String? registerId,
   }) async {
     final now = DateTime.now();
     final newOrderId = const Uuid().v7();
@@ -615,6 +620,7 @@ class OrderRepository {
       createdByUserId: userId,
       orderNumber: 'S-${now.millisecondsSinceEpoch}',
       status: PrepStatus.delivered,
+      registerId: Value(registerId),
     ));
 
     // Move items to new order

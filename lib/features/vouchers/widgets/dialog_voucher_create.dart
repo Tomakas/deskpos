@@ -272,10 +272,14 @@ class _DialogVoucherCreateState extends ConsumerState<DialogVoucherCreate> {
     final code = voucherRepo.generateCode(_type);
 
     // 2. Create bill for voucher sale
+    final register = ref.read(activeRegisterProvider).value;
+    final session = ref.read(activeRegisterSessionProvider).value;
     final billResult = await billRepo.createBill(
       companyId: company.id,
       userId: user.id,
       currencyId: company.defaultCurrencyId,
+      registerId: register?.id,
+      registerSessionId: session?.id,
       isTakeaway: true,
     );
     if (billResult is! Success<BillModel>) return;
@@ -291,6 +295,7 @@ class _DialogVoucherCreateState extends ConsumerState<DialogVoucherCreate> {
       billId: bill.id,
       userId: user.id,
       orderNumber: orderNumber,
+      registerId: register?.id,
       items: [
         OrderItemInput(
           itemId: 'voucher:$code',
@@ -348,7 +353,9 @@ class _DialogVoucherCreateState extends ConsumerState<DialogVoucherCreate> {
     final sessionRepo = ref.read(registerSessionRepositoryProvider);
     final counterResult = await sessionRepo.incrementOrderCounter(session.id);
     if (counterResult is! Success<int>) return 'O-0000';
-    return 'O-${counterResult.value.toString().padLeft(4, '0')}';
+    final registerModel = ref.read(activeRegisterProvider).value;
+    final regNum = registerModel?.registerNumber ?? 0;
+    return 'O$regNum-${counterResult.value.toString().padLeft(4, '0')}';
   }
 
   bool get _isScopeValid {

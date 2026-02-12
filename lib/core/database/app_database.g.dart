@@ -154,6 +154,40 @@ class $BillsTable extends Bills with TableInfo<$BillsTable, Bill> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _registerIdMeta = const VerificationMeta(
+    'registerId',
+  );
+  @override
+  late final GeneratedColumn<String> registerId = GeneratedColumn<String>(
+    'register_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _lastRegisterIdMeta = const VerificationMeta(
+    'lastRegisterId',
+  );
+  @override
+  late final GeneratedColumn<String> lastRegisterId = GeneratedColumn<String>(
+    'last_register_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _registerSessionIdMeta = const VerificationMeta(
+    'registerSessionId',
+  );
+  @override
+  late final GeneratedColumn<String> registerSessionId =
+      GeneratedColumn<String>(
+        'register_session_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
   static const VerificationMeta _openedByUserIdMeta = const VerificationMeta(
     'openedByUserId',
   );
@@ -420,6 +454,9 @@ class $BillsTable extends Bills with TableInfo<$BillsTable, Bill> {
     customerName,
     sectionId,
     tableId,
+    registerId,
+    lastRegisterId,
+    registerSessionId,
     openedByUserId,
     billNumber,
     numberOfGuests,
@@ -544,6 +581,30 @@ class $BillsTable extends Bills with TableInfo<$BillsTable, Bill> {
       context.handle(
         _tableIdMeta,
         tableId.isAcceptableOrUnknown(data['table_id']!, _tableIdMeta),
+      );
+    }
+    if (data.containsKey('register_id')) {
+      context.handle(
+        _registerIdMeta,
+        registerId.isAcceptableOrUnknown(data['register_id']!, _registerIdMeta),
+      );
+    }
+    if (data.containsKey('last_register_id')) {
+      context.handle(
+        _lastRegisterIdMeta,
+        lastRegisterId.isAcceptableOrUnknown(
+          data['last_register_id']!,
+          _lastRegisterIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('register_session_id')) {
+      context.handle(
+        _registerSessionIdMeta,
+        registerSessionId.isAcceptableOrUnknown(
+          data['register_session_id']!,
+          _registerSessionIdMeta,
+        ),
       );
     }
     if (data.containsKey('opened_by_user_id')) {
@@ -762,6 +823,18 @@ class $BillsTable extends Bills with TableInfo<$BillsTable, Bill> {
         DriftSqlType.string,
         data['${effectivePrefix}table_id'],
       ),
+      registerId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}register_id'],
+      ),
+      lastRegisterId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}last_register_id'],
+      ),
+      registerSessionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}register_session_id'],
+      ),
       openedByUserId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}opened_by_user_id'],
@@ -888,6 +961,9 @@ class Bill extends DataClass implements Insertable<Bill> {
   final String? customerName;
   final String? sectionId;
   final String? tableId;
+  final String? registerId;
+  final String? lastRegisterId;
+  final String? registerSessionId;
   final String openedByUserId;
   final String billNumber;
   final int numberOfGuests;
@@ -924,6 +1000,9 @@ class Bill extends DataClass implements Insertable<Bill> {
     this.customerName,
     this.sectionId,
     this.tableId,
+    this.registerId,
+    this.lastRegisterId,
+    this.registerSessionId,
     required this.openedByUserId,
     required this.billNumber,
     required this.numberOfGuests,
@@ -978,6 +1057,15 @@ class Bill extends DataClass implements Insertable<Bill> {
     }
     if (!nullToAbsent || tableId != null) {
       map['table_id'] = Variable<String>(tableId);
+    }
+    if (!nullToAbsent || registerId != null) {
+      map['register_id'] = Variable<String>(registerId);
+    }
+    if (!nullToAbsent || lastRegisterId != null) {
+      map['last_register_id'] = Variable<String>(lastRegisterId);
+    }
+    if (!nullToAbsent || registerSessionId != null) {
+      map['register_session_id'] = Variable<String>(registerSessionId);
     }
     map['opened_by_user_id'] = Variable<String>(openedByUserId);
     map['bill_number'] = Variable<String>(billNumber);
@@ -1051,6 +1139,15 @@ class Bill extends DataClass implements Insertable<Bill> {
       tableId: tableId == null && nullToAbsent
           ? const Value.absent()
           : Value(tableId),
+      registerId: registerId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(registerId),
+      lastRegisterId: lastRegisterId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastRegisterId),
+      registerSessionId: registerSessionId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(registerSessionId),
       openedByUserId: Value(openedByUserId),
       billNumber: Value(billNumber),
       numberOfGuests: Value(numberOfGuests),
@@ -1105,6 +1202,11 @@ class Bill extends DataClass implements Insertable<Bill> {
       customerName: serializer.fromJson<String?>(json['customerName']),
       sectionId: serializer.fromJson<String?>(json['sectionId']),
       tableId: serializer.fromJson<String?>(json['tableId']),
+      registerId: serializer.fromJson<String?>(json['registerId']),
+      lastRegisterId: serializer.fromJson<String?>(json['lastRegisterId']),
+      registerSessionId: serializer.fromJson<String?>(
+        json['registerSessionId'],
+      ),
       openedByUserId: serializer.fromJson<String>(json['openedByUserId']),
       billNumber: serializer.fromJson<String>(json['billNumber']),
       numberOfGuests: serializer.fromJson<int>(json['numberOfGuests']),
@@ -1154,6 +1256,9 @@ class Bill extends DataClass implements Insertable<Bill> {
       'customerName': serializer.toJson<String?>(customerName),
       'sectionId': serializer.toJson<String?>(sectionId),
       'tableId': serializer.toJson<String?>(tableId),
+      'registerId': serializer.toJson<String?>(registerId),
+      'lastRegisterId': serializer.toJson<String?>(lastRegisterId),
+      'registerSessionId': serializer.toJson<String?>(registerSessionId),
       'openedByUserId': serializer.toJson<String>(openedByUserId),
       'billNumber': serializer.toJson<String>(billNumber),
       'numberOfGuests': serializer.toJson<int>(numberOfGuests),
@@ -1197,6 +1302,9 @@ class Bill extends DataClass implements Insertable<Bill> {
     Value<String?> customerName = const Value.absent(),
     Value<String?> sectionId = const Value.absent(),
     Value<String?> tableId = const Value.absent(),
+    Value<String?> registerId = const Value.absent(),
+    Value<String?> lastRegisterId = const Value.absent(),
+    Value<String?> registerSessionId = const Value.absent(),
     String? openedByUserId,
     String? billNumber,
     int? numberOfGuests,
@@ -1237,6 +1345,13 @@ class Bill extends DataClass implements Insertable<Bill> {
     customerName: customerName.present ? customerName.value : this.customerName,
     sectionId: sectionId.present ? sectionId.value : this.sectionId,
     tableId: tableId.present ? tableId.value : this.tableId,
+    registerId: registerId.present ? registerId.value : this.registerId,
+    lastRegisterId: lastRegisterId.present
+        ? lastRegisterId.value
+        : this.lastRegisterId,
+    registerSessionId: registerSessionId.present
+        ? registerSessionId.value
+        : this.registerSessionId,
     openedByUserId: openedByUserId ?? this.openedByUserId,
     billNumber: billNumber ?? this.billNumber,
     numberOfGuests: numberOfGuests ?? this.numberOfGuests,
@@ -1285,6 +1400,15 @@ class Bill extends DataClass implements Insertable<Bill> {
           : this.customerName,
       sectionId: data.sectionId.present ? data.sectionId.value : this.sectionId,
       tableId: data.tableId.present ? data.tableId.value : this.tableId,
+      registerId: data.registerId.present
+          ? data.registerId.value
+          : this.registerId,
+      lastRegisterId: data.lastRegisterId.present
+          ? data.lastRegisterId.value
+          : this.lastRegisterId,
+      registerSessionId: data.registerSessionId.present
+          ? data.registerSessionId.value
+          : this.registerSessionId,
       openedByUserId: data.openedByUserId.present
           ? data.openedByUserId.value
           : this.openedByUserId,
@@ -1356,6 +1480,9 @@ class Bill extends DataClass implements Insertable<Bill> {
           ..write('customerName: $customerName, ')
           ..write('sectionId: $sectionId, ')
           ..write('tableId: $tableId, ')
+          ..write('registerId: $registerId, ')
+          ..write('lastRegisterId: $lastRegisterId, ')
+          ..write('registerSessionId: $registerSessionId, ')
           ..write('openedByUserId: $openedByUserId, ')
           ..write('billNumber: $billNumber, ')
           ..write('numberOfGuests: $numberOfGuests, ')
@@ -1397,6 +1524,9 @@ class Bill extends DataClass implements Insertable<Bill> {
     customerName,
     sectionId,
     tableId,
+    registerId,
+    lastRegisterId,
+    registerSessionId,
     openedByUserId,
     billNumber,
     numberOfGuests,
@@ -1437,6 +1567,9 @@ class Bill extends DataClass implements Insertable<Bill> {
           other.customerName == this.customerName &&
           other.sectionId == this.sectionId &&
           other.tableId == this.tableId &&
+          other.registerId == this.registerId &&
+          other.lastRegisterId == this.lastRegisterId &&
+          other.registerSessionId == this.registerSessionId &&
           other.openedByUserId == this.openedByUserId &&
           other.billNumber == this.billNumber &&
           other.numberOfGuests == this.numberOfGuests &&
@@ -1475,6 +1608,9 @@ class BillsCompanion extends UpdateCompanion<Bill> {
   final Value<String?> customerName;
   final Value<String?> sectionId;
   final Value<String?> tableId;
+  final Value<String?> registerId;
+  final Value<String?> lastRegisterId;
+  final Value<String?> registerSessionId;
   final Value<String> openedByUserId;
   final Value<String> billNumber;
   final Value<int> numberOfGuests;
@@ -1512,6 +1648,9 @@ class BillsCompanion extends UpdateCompanion<Bill> {
     this.customerName = const Value.absent(),
     this.sectionId = const Value.absent(),
     this.tableId = const Value.absent(),
+    this.registerId = const Value.absent(),
+    this.lastRegisterId = const Value.absent(),
+    this.registerSessionId = const Value.absent(),
     this.openedByUserId = const Value.absent(),
     this.billNumber = const Value.absent(),
     this.numberOfGuests = const Value.absent(),
@@ -1550,6 +1689,9 @@ class BillsCompanion extends UpdateCompanion<Bill> {
     this.customerName = const Value.absent(),
     this.sectionId = const Value.absent(),
     this.tableId = const Value.absent(),
+    this.registerId = const Value.absent(),
+    this.lastRegisterId = const Value.absent(),
+    this.registerSessionId = const Value.absent(),
     required String openedByUserId,
     required String billNumber,
     this.numberOfGuests = const Value.absent(),
@@ -1594,6 +1736,9 @@ class BillsCompanion extends UpdateCompanion<Bill> {
     Expression<String>? customerName,
     Expression<String>? sectionId,
     Expression<String>? tableId,
+    Expression<String>? registerId,
+    Expression<String>? lastRegisterId,
+    Expression<String>? registerSessionId,
     Expression<String>? openedByUserId,
     Expression<String>? billNumber,
     Expression<int>? numberOfGuests,
@@ -1632,6 +1777,9 @@ class BillsCompanion extends UpdateCompanion<Bill> {
       if (customerName != null) 'customer_name': customerName,
       if (sectionId != null) 'section_id': sectionId,
       if (tableId != null) 'table_id': tableId,
+      if (registerId != null) 'register_id': registerId,
+      if (lastRegisterId != null) 'last_register_id': lastRegisterId,
+      if (registerSessionId != null) 'register_session_id': registerSessionId,
       if (openedByUserId != null) 'opened_by_user_id': openedByUserId,
       if (billNumber != null) 'bill_number': billNumber,
       if (numberOfGuests != null) 'number_of_guests': numberOfGuests,
@@ -1674,6 +1822,9 @@ class BillsCompanion extends UpdateCompanion<Bill> {
     Value<String?>? customerName,
     Value<String?>? sectionId,
     Value<String?>? tableId,
+    Value<String?>? registerId,
+    Value<String?>? lastRegisterId,
+    Value<String?>? registerSessionId,
     Value<String>? openedByUserId,
     Value<String>? billNumber,
     Value<int>? numberOfGuests,
@@ -1712,6 +1863,9 @@ class BillsCompanion extends UpdateCompanion<Bill> {
       customerName: customerName ?? this.customerName,
       sectionId: sectionId ?? this.sectionId,
       tableId: tableId ?? this.tableId,
+      registerId: registerId ?? this.registerId,
+      lastRegisterId: lastRegisterId ?? this.lastRegisterId,
+      registerSessionId: registerSessionId ?? this.registerSessionId,
       openedByUserId: openedByUserId ?? this.openedByUserId,
       billNumber: billNumber ?? this.billNumber,
       numberOfGuests: numberOfGuests ?? this.numberOfGuests,
@@ -1781,6 +1935,15 @@ class BillsCompanion extends UpdateCompanion<Bill> {
     }
     if (tableId.present) {
       map['table_id'] = Variable<String>(tableId.value);
+    }
+    if (registerId.present) {
+      map['register_id'] = Variable<String>(registerId.value);
+    }
+    if (lastRegisterId.present) {
+      map['last_register_id'] = Variable<String>(lastRegisterId.value);
+    }
+    if (registerSessionId.present) {
+      map['register_session_id'] = Variable<String>(registerSessionId.value);
     }
     if (openedByUserId.present) {
       map['opened_by_user_id'] = Variable<String>(openedByUserId.value);
@@ -1878,6 +2041,9 @@ class BillsCompanion extends UpdateCompanion<Bill> {
           ..write('customerName: $customerName, ')
           ..write('sectionId: $sectionId, ')
           ..write('tableId: $tableId, ')
+          ..write('registerId: $registerId, ')
+          ..write('lastRegisterId: $lastRegisterId, ')
+          ..write('registerSessionId: $registerSessionId, ')
           ..write('openedByUserId: $openedByUserId, ')
           ..write('billNumber: $billNumber, ')
           ..write('numberOfGuests: $numberOfGuests, ')
@@ -8120,6 +8286,319 @@ class CurrenciesCompanion extends UpdateCompanion<Currency> {
   }
 }
 
+class $DeviceRegistrationsTable extends DeviceRegistrations
+    with TableInfo<$DeviceRegistrationsTable, DeviceRegistration> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DeviceRegistrationsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _companyIdMeta = const VerificationMeta(
+    'companyId',
+  );
+  @override
+  late final GeneratedColumn<String> companyId = GeneratedColumn<String>(
+    'company_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _registerIdMeta = const VerificationMeta(
+    'registerId',
+  );
+  @override
+  late final GeneratedColumn<String> registerId = GeneratedColumn<String>(
+    'register_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, companyId, registerId, createdAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'device_registrations';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<DeviceRegistration> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('company_id')) {
+      context.handle(
+        _companyIdMeta,
+        companyId.isAcceptableOrUnknown(data['company_id']!, _companyIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_companyIdMeta);
+    }
+    if (data.containsKey('register_id')) {
+      context.handle(
+        _registerIdMeta,
+        registerId.isAcceptableOrUnknown(data['register_id']!, _registerIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_registerIdMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  DeviceRegistration map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DeviceRegistration(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      companyId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}company_id'],
+      )!,
+      registerId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}register_id'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $DeviceRegistrationsTable createAlias(String alias) {
+    return $DeviceRegistrationsTable(attachedDatabase, alias);
+  }
+}
+
+class DeviceRegistration extends DataClass
+    implements Insertable<DeviceRegistration> {
+  final String id;
+  final String companyId;
+  final String registerId;
+  final DateTime createdAt;
+  const DeviceRegistration({
+    required this.id,
+    required this.companyId,
+    required this.registerId,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['company_id'] = Variable<String>(companyId);
+    map['register_id'] = Variable<String>(registerId);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  DeviceRegistrationsCompanion toCompanion(bool nullToAbsent) {
+    return DeviceRegistrationsCompanion(
+      id: Value(id),
+      companyId: Value(companyId),
+      registerId: Value(registerId),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory DeviceRegistration.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DeviceRegistration(
+      id: serializer.fromJson<String>(json['id']),
+      companyId: serializer.fromJson<String>(json['companyId']),
+      registerId: serializer.fromJson<String>(json['registerId']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'companyId': serializer.toJson<String>(companyId),
+      'registerId': serializer.toJson<String>(registerId),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  DeviceRegistration copyWith({
+    String? id,
+    String? companyId,
+    String? registerId,
+    DateTime? createdAt,
+  }) => DeviceRegistration(
+    id: id ?? this.id,
+    companyId: companyId ?? this.companyId,
+    registerId: registerId ?? this.registerId,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  DeviceRegistration copyWithCompanion(DeviceRegistrationsCompanion data) {
+    return DeviceRegistration(
+      id: data.id.present ? data.id.value : this.id,
+      companyId: data.companyId.present ? data.companyId.value : this.companyId,
+      registerId: data.registerId.present
+          ? data.registerId.value
+          : this.registerId,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DeviceRegistration(')
+          ..write('id: $id, ')
+          ..write('companyId: $companyId, ')
+          ..write('registerId: $registerId, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, companyId, registerId, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DeviceRegistration &&
+          other.id == this.id &&
+          other.companyId == this.companyId &&
+          other.registerId == this.registerId &&
+          other.createdAt == this.createdAt);
+}
+
+class DeviceRegistrationsCompanion extends UpdateCompanion<DeviceRegistration> {
+  final Value<String> id;
+  final Value<String> companyId;
+  final Value<String> registerId;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const DeviceRegistrationsCompanion({
+    this.id = const Value.absent(),
+    this.companyId = const Value.absent(),
+    this.registerId = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  DeviceRegistrationsCompanion.insert({
+    required String id,
+    required String companyId,
+    required String registerId,
+    required DateTime createdAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       companyId = Value(companyId),
+       registerId = Value(registerId),
+       createdAt = Value(createdAt);
+  static Insertable<DeviceRegistration> custom({
+    Expression<String>? id,
+    Expression<String>? companyId,
+    Expression<String>? registerId,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (companyId != null) 'company_id': companyId,
+      if (registerId != null) 'register_id': registerId,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  DeviceRegistrationsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? companyId,
+    Value<String>? registerId,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return DeviceRegistrationsCompanion(
+      id: id ?? this.id,
+      companyId: companyId ?? this.companyId,
+      registerId: registerId ?? this.registerId,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (companyId.present) {
+      map['company_id'] = Variable<String>(companyId.value);
+    }
+    if (registerId.present) {
+      map['register_id'] = Variable<String>(registerId.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DeviceRegistrationsCompanion(')
+          ..write('id: $id, ')
+          ..write('companyId: $companyId, ')
+          ..write('registerId: $registerId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -13634,6 +14113,17 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, Order> {
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _registerIdMeta = const VerificationMeta(
+    'registerId',
+  );
+  @override
+  late final GeneratedColumn<String> registerId = GeneratedColumn<String>(
+    'register_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _createdByUserIdMeta = const VerificationMeta(
     'createdByUserId',
   );
@@ -13794,6 +14284,7 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, Order> {
     id,
     companyId,
     billId,
+    registerId,
     createdByUserId,
     orderNumber,
     notes,
@@ -13891,6 +14382,12 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, Order> {
       );
     } else if (isInserting) {
       context.missing(_billIdMeta);
+    }
+    if (data.containsKey('register_id')) {
+      context.handle(
+        _registerIdMeta,
+        registerId.isAcceptableOrUnknown(data['register_id']!, _registerIdMeta),
+      );
     }
     if (data.containsKey('created_by_user_id')) {
       context.handle(
@@ -14038,6 +14535,10 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, Order> {
         DriftSqlType.string,
         data['${effectivePrefix}bill_id'],
       )!,
+      registerId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}register_id'],
+      ),
       createdByUserId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}created_by_user_id'],
@@ -14115,6 +14616,7 @@ class Order extends DataClass implements Insertable<Order> {
   final String id;
   final String companyId;
   final String billId;
+  final String? registerId;
   final String createdByUserId;
   final String orderNumber;
   final String? notes;
@@ -14139,6 +14641,7 @@ class Order extends DataClass implements Insertable<Order> {
     required this.id,
     required this.companyId,
     required this.billId,
+    this.registerId,
     required this.createdByUserId,
     required this.orderNumber,
     this.notes,
@@ -14174,6 +14677,9 @@ class Order extends DataClass implements Insertable<Order> {
     map['id'] = Variable<String>(id);
     map['company_id'] = Variable<String>(companyId);
     map['bill_id'] = Variable<String>(billId);
+    if (!nullToAbsent || registerId != null) {
+      map['register_id'] = Variable<String>(registerId);
+    }
     map['created_by_user_id'] = Variable<String>(createdByUserId);
     map['order_number'] = Variable<String>(orderNumber);
     if (!nullToAbsent || notes != null) {
@@ -14224,6 +14730,9 @@ class Order extends DataClass implements Insertable<Order> {
       id: Value(id),
       companyId: Value(companyId),
       billId: Value(billId),
+      registerId: registerId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(registerId),
       createdByUserId: Value(createdByUserId),
       orderNumber: Value(orderNumber),
       notes: notes == null && nullToAbsent
@@ -14266,6 +14775,7 @@ class Order extends DataClass implements Insertable<Order> {
       id: serializer.fromJson<String>(json['id']),
       companyId: serializer.fromJson<String>(json['companyId']),
       billId: serializer.fromJson<String>(json['billId']),
+      registerId: serializer.fromJson<String?>(json['registerId']),
       createdByUserId: serializer.fromJson<String>(json['createdByUserId']),
       orderNumber: serializer.fromJson<String>(json['orderNumber']),
       notes: serializer.fromJson<String?>(json['notes']),
@@ -14299,6 +14809,7 @@ class Order extends DataClass implements Insertable<Order> {
       'id': serializer.toJson<String>(id),
       'companyId': serializer.toJson<String>(companyId),
       'billId': serializer.toJson<String>(billId),
+      'registerId': serializer.toJson<String?>(registerId),
       'createdByUserId': serializer.toJson<String>(createdByUserId),
       'orderNumber': serializer.toJson<String>(orderNumber),
       'notes': serializer.toJson<String?>(notes),
@@ -14328,6 +14839,7 @@ class Order extends DataClass implements Insertable<Order> {
     String? id,
     String? companyId,
     String? billId,
+    Value<String?> registerId = const Value.absent(),
     String? createdByUserId,
     String? orderNumber,
     Value<String?> notes = const Value.absent(),
@@ -14356,6 +14868,7 @@ class Order extends DataClass implements Insertable<Order> {
     id: id ?? this.id,
     companyId: companyId ?? this.companyId,
     billId: billId ?? this.billId,
+    registerId: registerId.present ? registerId.value : this.registerId,
     createdByUserId: createdByUserId ?? this.createdByUserId,
     orderNumber: orderNumber ?? this.orderNumber,
     notes: notes.present ? notes.value : this.notes,
@@ -14392,6 +14905,9 @@ class Order extends DataClass implements Insertable<Order> {
       id: data.id.present ? data.id.value : this.id,
       companyId: data.companyId.present ? data.companyId.value : this.companyId,
       billId: data.billId.present ? data.billId.value : this.billId,
+      registerId: data.registerId.present
+          ? data.registerId.value
+          : this.registerId,
       createdByUserId: data.createdByUserId.present
           ? data.createdByUserId.value
           : this.createdByUserId,
@@ -14435,6 +14951,7 @@ class Order extends DataClass implements Insertable<Order> {
           ..write('id: $id, ')
           ..write('companyId: $companyId, ')
           ..write('billId: $billId, ')
+          ..write('registerId: $registerId, ')
           ..write('createdByUserId: $createdByUserId, ')
           ..write('orderNumber: $orderNumber, ')
           ..write('notes: $notes, ')
@@ -14464,6 +14981,7 @@ class Order extends DataClass implements Insertable<Order> {
     id,
     companyId,
     billId,
+    registerId,
     createdByUserId,
     orderNumber,
     notes,
@@ -14492,6 +15010,7 @@ class Order extends DataClass implements Insertable<Order> {
           other.id == this.id &&
           other.companyId == this.companyId &&
           other.billId == this.billId &&
+          other.registerId == this.registerId &&
           other.createdByUserId == this.createdByUserId &&
           other.orderNumber == this.orderNumber &&
           other.notes == this.notes &&
@@ -14518,6 +15037,7 @@ class OrdersCompanion extends UpdateCompanion<Order> {
   final Value<String> id;
   final Value<String> companyId;
   final Value<String> billId;
+  final Value<String?> registerId;
   final Value<String> createdByUserId;
   final Value<String> orderNumber;
   final Value<String?> notes;
@@ -14543,6 +15063,7 @@ class OrdersCompanion extends UpdateCompanion<Order> {
     this.id = const Value.absent(),
     this.companyId = const Value.absent(),
     this.billId = const Value.absent(),
+    this.registerId = const Value.absent(),
     this.createdByUserId = const Value.absent(),
     this.orderNumber = const Value.absent(),
     this.notes = const Value.absent(),
@@ -14569,6 +15090,7 @@ class OrdersCompanion extends UpdateCompanion<Order> {
     required String id,
     required String companyId,
     required String billId,
+    this.registerId = const Value.absent(),
     required String createdByUserId,
     required String orderNumber,
     this.notes = const Value.absent(),
@@ -14600,6 +15122,7 @@ class OrdersCompanion extends UpdateCompanion<Order> {
     Expression<String>? id,
     Expression<String>? companyId,
     Expression<String>? billId,
+    Expression<String>? registerId,
     Expression<String>? createdByUserId,
     Expression<String>? orderNumber,
     Expression<String>? notes,
@@ -14626,6 +15149,7 @@ class OrdersCompanion extends UpdateCompanion<Order> {
       if (id != null) 'id': id,
       if (companyId != null) 'company_id': companyId,
       if (billId != null) 'bill_id': billId,
+      if (registerId != null) 'register_id': registerId,
       if (createdByUserId != null) 'created_by_user_id': createdByUserId,
       if (orderNumber != null) 'order_number': orderNumber,
       if (notes != null) 'notes': notes,
@@ -14655,6 +15179,7 @@ class OrdersCompanion extends UpdateCompanion<Order> {
     Value<String>? id,
     Value<String>? companyId,
     Value<String>? billId,
+    Value<String?>? registerId,
     Value<String>? createdByUserId,
     Value<String>? orderNumber,
     Value<String?>? notes,
@@ -14681,6 +15206,7 @@ class OrdersCompanion extends UpdateCompanion<Order> {
       id: id ?? this.id,
       companyId: companyId ?? this.companyId,
       billId: billId ?? this.billId,
+      registerId: registerId ?? this.registerId,
       createdByUserId: createdByUserId ?? this.createdByUserId,
       orderNumber: orderNumber ?? this.orderNumber,
       notes: notes ?? this.notes,
@@ -14730,6 +15256,9 @@ class OrdersCompanion extends UpdateCompanion<Order> {
     }
     if (billId.present) {
       map['bill_id'] = Variable<String>(billId.value);
+    }
+    if (registerId.present) {
+      map['register_id'] = Variable<String>(registerId.value);
     }
     if (createdByUserId.present) {
       map['created_by_user_id'] = Variable<String>(createdByUserId.value);
@@ -14793,6 +15322,7 @@ class OrdersCompanion extends UpdateCompanion<Order> {
           ..write('id: $id, ')
           ..write('companyId: $companyId, ')
           ..write('billId: $billId, ')
+          ..write('registerId: $registerId, ')
           ..write('createdByUserId: $createdByUserId, ')
           ..write('orderNumber: $orderNumber, ')
           ..write('notes: $notes, ')
@@ -15655,6 +16185,17 @@ class $PaymentsTable extends Payments with TableInfo<$PaymentsTable, Payment> {
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _registerIdMeta = const VerificationMeta(
+    'registerId',
+  );
+  @override
+  late final GeneratedColumn<String> registerId = GeneratedColumn<String>(
+    'register_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
   @override
   late final GeneratedColumn<String> userId = GeneratedColumn<String>(
@@ -15782,6 +16323,7 @@ class $PaymentsTable extends Payments with TableInfo<$PaymentsTable, Payment> {
     id,
     companyId,
     billId,
+    registerId,
     userId,
     paymentMethodId,
     amount,
@@ -15877,6 +16419,12 @@ class $PaymentsTable extends Payments with TableInfo<$PaymentsTable, Payment> {
       );
     } else if (isInserting) {
       context.missing(_billIdMeta);
+    }
+    if (data.containsKey('register_id')) {
+      context.handle(
+        _registerIdMeta,
+        registerId.isAcceptableOrUnknown(data['register_id']!, _registerIdMeta),
+      );
     }
     if (data.containsKey('user_id')) {
       context.handle(
@@ -16016,6 +16564,10 @@ class $PaymentsTable extends Payments with TableInfo<$PaymentsTable, Payment> {
         DriftSqlType.string,
         data['${effectivePrefix}bill_id'],
       )!,
+      registerId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}register_id'],
+      ),
       userId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}user_id'],
@@ -16080,6 +16632,7 @@ class Payment extends DataClass implements Insertable<Payment> {
   final String id;
   final String companyId;
   final String billId;
+  final String? registerId;
   final String? userId;
   final String paymentMethodId;
   final int amount;
@@ -16102,6 +16655,7 @@ class Payment extends DataClass implements Insertable<Payment> {
     required this.id,
     required this.companyId,
     required this.billId,
+    this.registerId,
     this.userId,
     required this.paymentMethodId,
     required this.amount,
@@ -16135,6 +16689,9 @@ class Payment extends DataClass implements Insertable<Payment> {
     map['id'] = Variable<String>(id);
     map['company_id'] = Variable<String>(companyId);
     map['bill_id'] = Variable<String>(billId);
+    if (!nullToAbsent || registerId != null) {
+      map['register_id'] = Variable<String>(registerId);
+    }
     if (!nullToAbsent || userId != null) {
       map['user_id'] = Variable<String>(userId);
     }
@@ -16181,6 +16738,9 @@ class Payment extends DataClass implements Insertable<Payment> {
       id: Value(id),
       companyId: Value(companyId),
       billId: Value(billId),
+      registerId: registerId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(registerId),
       userId: userId == null && nullToAbsent
           ? const Value.absent()
           : Value(userId),
@@ -16223,6 +16783,7 @@ class Payment extends DataClass implements Insertable<Payment> {
       id: serializer.fromJson<String>(json['id']),
       companyId: serializer.fromJson<String>(json['companyId']),
       billId: serializer.fromJson<String>(json['billId']),
+      registerId: serializer.fromJson<String?>(json['registerId']),
       userId: serializer.fromJson<String?>(json['userId']),
       paymentMethodId: serializer.fromJson<String>(json['paymentMethodId']),
       amount: serializer.fromJson<int>(json['amount']),
@@ -16252,6 +16813,7 @@ class Payment extends DataClass implements Insertable<Payment> {
       'id': serializer.toJson<String>(id),
       'companyId': serializer.toJson<String>(companyId),
       'billId': serializer.toJson<String>(billId),
+      'registerId': serializer.toJson<String?>(registerId),
       'userId': serializer.toJson<String?>(userId),
       'paymentMethodId': serializer.toJson<String>(paymentMethodId),
       'amount': serializer.toJson<int>(amount),
@@ -16277,6 +16839,7 @@ class Payment extends DataClass implements Insertable<Payment> {
     String? id,
     String? companyId,
     String? billId,
+    Value<String?> registerId = const Value.absent(),
     Value<String?> userId = const Value.absent(),
     String? paymentMethodId,
     int? amount,
@@ -16303,6 +16866,7 @@ class Payment extends DataClass implements Insertable<Payment> {
     id: id ?? this.id,
     companyId: companyId ?? this.companyId,
     billId: billId ?? this.billId,
+    registerId: registerId.present ? registerId.value : this.registerId,
     userId: userId.present ? userId.value : this.userId,
     paymentMethodId: paymentMethodId ?? this.paymentMethodId,
     amount: amount ?? this.amount,
@@ -16339,6 +16903,9 @@ class Payment extends DataClass implements Insertable<Payment> {
       id: data.id.present ? data.id.value : this.id,
       companyId: data.companyId.present ? data.companyId.value : this.companyId,
       billId: data.billId.present ? data.billId.value : this.billId,
+      registerId: data.registerId.present
+          ? data.registerId.value
+          : this.registerId,
       userId: data.userId.present ? data.userId.value : this.userId,
       paymentMethodId: data.paymentMethodId.present
           ? data.paymentMethodId.value
@@ -16378,6 +16945,7 @@ class Payment extends DataClass implements Insertable<Payment> {
           ..write('id: $id, ')
           ..write('companyId: $companyId, ')
           ..write('billId: $billId, ')
+          ..write('registerId: $registerId, ')
           ..write('userId: $userId, ')
           ..write('paymentMethodId: $paymentMethodId, ')
           ..write('amount: $amount, ')
@@ -16405,6 +16973,7 @@ class Payment extends DataClass implements Insertable<Payment> {
     id,
     companyId,
     billId,
+    registerId,
     userId,
     paymentMethodId,
     amount,
@@ -16431,6 +17000,7 @@ class Payment extends DataClass implements Insertable<Payment> {
           other.id == this.id &&
           other.companyId == this.companyId &&
           other.billId == this.billId &&
+          other.registerId == this.registerId &&
           other.userId == this.userId &&
           other.paymentMethodId == this.paymentMethodId &&
           other.amount == this.amount &&
@@ -16455,6 +17025,7 @@ class PaymentsCompanion extends UpdateCompanion<Payment> {
   final Value<String> id;
   final Value<String> companyId;
   final Value<String> billId;
+  final Value<String?> registerId;
   final Value<String?> userId;
   final Value<String> paymentMethodId;
   final Value<int> amount;
@@ -16478,6 +17049,7 @@ class PaymentsCompanion extends UpdateCompanion<Payment> {
     this.id = const Value.absent(),
     this.companyId = const Value.absent(),
     this.billId = const Value.absent(),
+    this.registerId = const Value.absent(),
     this.userId = const Value.absent(),
     this.paymentMethodId = const Value.absent(),
     this.amount = const Value.absent(),
@@ -16502,6 +17074,7 @@ class PaymentsCompanion extends UpdateCompanion<Payment> {
     required String id,
     required String companyId,
     required String billId,
+    this.registerId = const Value.absent(),
     this.userId = const Value.absent(),
     required String paymentMethodId,
     required int amount,
@@ -16532,6 +17105,7 @@ class PaymentsCompanion extends UpdateCompanion<Payment> {
     Expression<String>? id,
     Expression<String>? companyId,
     Expression<String>? billId,
+    Expression<String>? registerId,
     Expression<String>? userId,
     Expression<String>? paymentMethodId,
     Expression<int>? amount,
@@ -16556,6 +17130,7 @@ class PaymentsCompanion extends UpdateCompanion<Payment> {
       if (id != null) 'id': id,
       if (companyId != null) 'company_id': companyId,
       if (billId != null) 'bill_id': billId,
+      if (registerId != null) 'register_id': registerId,
       if (userId != null) 'user_id': userId,
       if (paymentMethodId != null) 'payment_method_id': paymentMethodId,
       if (amount != null) 'amount': amount,
@@ -16582,6 +17157,7 @@ class PaymentsCompanion extends UpdateCompanion<Payment> {
     Value<String>? id,
     Value<String>? companyId,
     Value<String>? billId,
+    Value<String?>? registerId,
     Value<String?>? userId,
     Value<String>? paymentMethodId,
     Value<int>? amount,
@@ -16606,6 +17182,7 @@ class PaymentsCompanion extends UpdateCompanion<Payment> {
       id: id ?? this.id,
       companyId: companyId ?? this.companyId,
       billId: billId ?? this.billId,
+      registerId: registerId ?? this.registerId,
       userId: userId ?? this.userId,
       paymentMethodId: paymentMethodId ?? this.paymentMethodId,
       amount: amount ?? this.amount,
@@ -16653,6 +17230,9 @@ class PaymentsCompanion extends UpdateCompanion<Payment> {
     }
     if (billId.present) {
       map['bill_id'] = Variable<String>(billId.value);
+    }
+    if (registerId.present) {
+      map['register_id'] = Variable<String>(registerId.value);
     }
     if (userId.present) {
       map['user_id'] = Variable<String>(userId.value);
@@ -16706,6 +17286,7 @@ class PaymentsCompanion extends UpdateCompanion<Payment> {
           ..write('id: $id, ')
           ..write('companyId: $companyId, ')
           ..write('billId: $billId, ')
+          ..write('registerId: $registerId, ')
           ..write('userId: $userId, ')
           ..write('paymentMethodId: $paymentMethodId, ')
           ..write('amount: $amount, ')
@@ -18353,6 +18934,29 @@ class $RegisterSessionsTable extends RegisterSessions
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
+  static const VerificationMeta _billCounterMeta = const VerificationMeta(
+    'billCounter',
+  );
+  @override
+  late final GeneratedColumn<int> billCounter = GeneratedColumn<int>(
+    'bill_counter',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _parentSessionIdMeta = const VerificationMeta(
+    'parentSessionId',
+  );
+  @override
+  late final GeneratedColumn<String> parentSessionId = GeneratedColumn<String>(
+    'parent_session_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _openingCashMeta = const VerificationMeta(
     'openingCash',
   );
@@ -18453,6 +19057,8 @@ class $RegisterSessionsTable extends RegisterSessions
     openedAt,
     closedAt,
     orderCounter,
+    billCounter,
+    parentSessionId,
     openingCash,
     closingCash,
     expectedCash,
@@ -18577,6 +19183,24 @@ class $RegisterSessionsTable extends RegisterSessions
         orderCounter.isAcceptableOrUnknown(
           data['order_counter']!,
           _orderCounterMeta,
+        ),
+      );
+    }
+    if (data.containsKey('bill_counter')) {
+      context.handle(
+        _billCounterMeta,
+        billCounter.isAcceptableOrUnknown(
+          data['bill_counter']!,
+          _billCounterMeta,
+        ),
+      );
+    }
+    if (data.containsKey('parent_session_id')) {
+      context.handle(
+        _parentSessionIdMeta,
+        parentSessionId.isAcceptableOrUnknown(
+          data['parent_session_id']!,
+          _parentSessionIdMeta,
         ),
       );
     }
@@ -18714,6 +19338,14 @@ class $RegisterSessionsTable extends RegisterSessions
         DriftSqlType.int,
         data['${effectivePrefix}order_counter'],
       )!,
+      billCounter: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}bill_counter'],
+      )!,
+      parentSessionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}parent_session_id'],
+      ),
       openingCash: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}opening_cash'],
@@ -18770,6 +19402,8 @@ class RegisterSession extends DataClass implements Insertable<RegisterSession> {
   final DateTime openedAt;
   final DateTime? closedAt;
   final int orderCounter;
+  final int billCounter;
+  final String? parentSessionId;
   final int? openingCash;
   final int? closingCash;
   final int? expectedCash;
@@ -18793,6 +19427,8 @@ class RegisterSession extends DataClass implements Insertable<RegisterSession> {
     required this.openedAt,
     this.closedAt,
     required this.orderCounter,
+    required this.billCounter,
+    this.parentSessionId,
     this.openingCash,
     this.closingCash,
     this.expectedCash,
@@ -18829,6 +19465,10 @@ class RegisterSession extends DataClass implements Insertable<RegisterSession> {
       map['closed_at'] = Variable<DateTime>(closedAt);
     }
     map['order_counter'] = Variable<int>(orderCounter);
+    map['bill_counter'] = Variable<int>(billCounter);
+    if (!nullToAbsent || parentSessionId != null) {
+      map['parent_session_id'] = Variable<String>(parentSessionId);
+    }
     if (!nullToAbsent || openingCash != null) {
       map['opening_cash'] = Variable<int>(openingCash);
     }
@@ -18882,6 +19522,10 @@ class RegisterSession extends DataClass implements Insertable<RegisterSession> {
           ? const Value.absent()
           : Value(closedAt),
       orderCounter: Value(orderCounter),
+      billCounter: Value(billCounter),
+      parentSessionId: parentSessionId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(parentSessionId),
       openingCash: openingCash == null && nullToAbsent
           ? const Value.absent()
           : Value(openingCash),
@@ -18929,6 +19573,8 @@ class RegisterSession extends DataClass implements Insertable<RegisterSession> {
       openedAt: serializer.fromJson<DateTime>(json['openedAt']),
       closedAt: serializer.fromJson<DateTime?>(json['closedAt']),
       orderCounter: serializer.fromJson<int>(json['orderCounter']),
+      billCounter: serializer.fromJson<int>(json['billCounter']),
+      parentSessionId: serializer.fromJson<String?>(json['parentSessionId']),
       openingCash: serializer.fromJson<int?>(json['openingCash']),
       closingCash: serializer.fromJson<int?>(json['closingCash']),
       expectedCash: serializer.fromJson<int?>(json['expectedCash']),
@@ -18965,6 +19611,8 @@ class RegisterSession extends DataClass implements Insertable<RegisterSession> {
       'openedAt': serializer.toJson<DateTime>(openedAt),
       'closedAt': serializer.toJson<DateTime?>(closedAt),
       'orderCounter': serializer.toJson<int>(orderCounter),
+      'billCounter': serializer.toJson<int>(billCounter),
+      'parentSessionId': serializer.toJson<String?>(parentSessionId),
       'openingCash': serializer.toJson<int?>(openingCash),
       'closingCash': serializer.toJson<int?>(closingCash),
       'expectedCash': serializer.toJson<int?>(expectedCash),
@@ -18991,6 +19639,8 @@ class RegisterSession extends DataClass implements Insertable<RegisterSession> {
     DateTime? openedAt,
     Value<DateTime?> closedAt = const Value.absent(),
     int? orderCounter,
+    int? billCounter,
+    Value<String?> parentSessionId = const Value.absent(),
     Value<int?> openingCash = const Value.absent(),
     Value<int?> closingCash = const Value.absent(),
     Value<int?> expectedCash = const Value.absent(),
@@ -19018,6 +19668,10 @@ class RegisterSession extends DataClass implements Insertable<RegisterSession> {
     openedAt: openedAt ?? this.openedAt,
     closedAt: closedAt.present ? closedAt.value : this.closedAt,
     orderCounter: orderCounter ?? this.orderCounter,
+    billCounter: billCounter ?? this.billCounter,
+    parentSessionId: parentSessionId.present
+        ? parentSessionId.value
+        : this.parentSessionId,
     openingCash: openingCash.present ? openingCash.value : this.openingCash,
     closingCash: closingCash.present ? closingCash.value : this.closingCash,
     expectedCash: expectedCash.present ? expectedCash.value : this.expectedCash,
@@ -19063,6 +19717,12 @@ class RegisterSession extends DataClass implements Insertable<RegisterSession> {
       orderCounter: data.orderCounter.present
           ? data.orderCounter.value
           : this.orderCounter,
+      billCounter: data.billCounter.present
+          ? data.billCounter.value
+          : this.billCounter,
+      parentSessionId: data.parentSessionId.present
+          ? data.parentSessionId.value
+          : this.parentSessionId,
       openingCash: data.openingCash.present
           ? data.openingCash.value
           : this.openingCash,
@@ -19107,6 +19767,8 @@ class RegisterSession extends DataClass implements Insertable<RegisterSession> {
           ..write('openedAt: $openedAt, ')
           ..write('closedAt: $closedAt, ')
           ..write('orderCounter: $orderCounter, ')
+          ..write('billCounter: $billCounter, ')
+          ..write('parentSessionId: $parentSessionId, ')
           ..write('openingCash: $openingCash, ')
           ..write('closingCash: $closingCash, ')
           ..write('expectedCash: $expectedCash, ')
@@ -19135,6 +19797,8 @@ class RegisterSession extends DataClass implements Insertable<RegisterSession> {
     openedAt,
     closedAt,
     orderCounter,
+    billCounter,
+    parentSessionId,
     openingCash,
     closingCash,
     expectedCash,
@@ -19162,6 +19826,8 @@ class RegisterSession extends DataClass implements Insertable<RegisterSession> {
           other.openedAt == this.openedAt &&
           other.closedAt == this.closedAt &&
           other.orderCounter == this.orderCounter &&
+          other.billCounter == this.billCounter &&
+          other.parentSessionId == this.parentSessionId &&
           other.openingCash == this.openingCash &&
           other.closingCash == this.closingCash &&
           other.expectedCash == this.expectedCash &&
@@ -19187,6 +19853,8 @@ class RegisterSessionsCompanion extends UpdateCompanion<RegisterSession> {
   final Value<DateTime> openedAt;
   final Value<DateTime?> closedAt;
   final Value<int> orderCounter;
+  final Value<int> billCounter;
+  final Value<String?> parentSessionId;
   final Value<int?> openingCash;
   final Value<int?> closingCash;
   final Value<int?> expectedCash;
@@ -19211,6 +19879,8 @@ class RegisterSessionsCompanion extends UpdateCompanion<RegisterSession> {
     this.openedAt = const Value.absent(),
     this.closedAt = const Value.absent(),
     this.orderCounter = const Value.absent(),
+    this.billCounter = const Value.absent(),
+    this.parentSessionId = const Value.absent(),
     this.openingCash = const Value.absent(),
     this.closingCash = const Value.absent(),
     this.expectedCash = const Value.absent(),
@@ -19236,6 +19906,8 @@ class RegisterSessionsCompanion extends UpdateCompanion<RegisterSession> {
     required DateTime openedAt,
     this.closedAt = const Value.absent(),
     this.orderCounter = const Value.absent(),
+    this.billCounter = const Value.absent(),
+    this.parentSessionId = const Value.absent(),
     this.openingCash = const Value.absent(),
     this.closingCash = const Value.absent(),
     this.expectedCash = const Value.absent(),
@@ -19265,6 +19937,8 @@ class RegisterSessionsCompanion extends UpdateCompanion<RegisterSession> {
     Expression<DateTime>? openedAt,
     Expression<DateTime>? closedAt,
     Expression<int>? orderCounter,
+    Expression<int>? billCounter,
+    Expression<String>? parentSessionId,
     Expression<int>? openingCash,
     Expression<int>? closingCash,
     Expression<int>? expectedCash,
@@ -19290,6 +19964,8 @@ class RegisterSessionsCompanion extends UpdateCompanion<RegisterSession> {
       if (openedAt != null) 'opened_at': openedAt,
       if (closedAt != null) 'closed_at': closedAt,
       if (orderCounter != null) 'order_counter': orderCounter,
+      if (billCounter != null) 'bill_counter': billCounter,
+      if (parentSessionId != null) 'parent_session_id': parentSessionId,
       if (openingCash != null) 'opening_cash': openingCash,
       if (closingCash != null) 'closing_cash': closingCash,
       if (expectedCash != null) 'expected_cash': expectedCash,
@@ -19321,6 +19997,8 @@ class RegisterSessionsCompanion extends UpdateCompanion<RegisterSession> {
     Value<DateTime>? openedAt,
     Value<DateTime?>? closedAt,
     Value<int>? orderCounter,
+    Value<int>? billCounter,
+    Value<String?>? parentSessionId,
     Value<int?>? openingCash,
     Value<int?>? closingCash,
     Value<int?>? expectedCash,
@@ -19346,6 +20024,8 @@ class RegisterSessionsCompanion extends UpdateCompanion<RegisterSession> {
       openedAt: openedAt ?? this.openedAt,
       closedAt: closedAt ?? this.closedAt,
       orderCounter: orderCounter ?? this.orderCounter,
+      billCounter: billCounter ?? this.billCounter,
+      parentSessionId: parentSessionId ?? this.parentSessionId,
       openingCash: openingCash ?? this.openingCash,
       closingCash: closingCash ?? this.closingCash,
       expectedCash: expectedCash ?? this.expectedCash,
@@ -19406,6 +20086,12 @@ class RegisterSessionsCompanion extends UpdateCompanion<RegisterSession> {
     if (orderCounter.present) {
       map['order_counter'] = Variable<int>(orderCounter.value);
     }
+    if (billCounter.present) {
+      map['bill_counter'] = Variable<int>(billCounter.value);
+    }
+    if (parentSessionId.present) {
+      map['parent_session_id'] = Variable<String>(parentSessionId.value);
+    }
     if (openingCash.present) {
       map['opening_cash'] = Variable<int>(openingCash.value);
     }
@@ -19461,6 +20147,8 @@ class RegisterSessionsCompanion extends UpdateCompanion<RegisterSession> {
           ..write('openedAt: $openedAt, ')
           ..write('closedAt: $closedAt, ')
           ..write('orderCounter: $orderCounter, ')
+          ..write('billCounter: $billCounter, ')
+          ..write('parentSessionId: $parentSessionId, ')
           ..write('openingCash: $openingCash, ')
           ..write('closingCash: $closingCash, ')
           ..write('expectedCash: $expectedCash, ')
@@ -19592,6 +20280,39 @@ class $RegistersTable extends Registers
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _registerNumberMeta = const VerificationMeta(
+    'registerNumber',
+  );
+  @override
+  late final GeneratedColumn<int> registerNumber = GeneratedColumn<int>(
+    'register_number',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _parentRegisterIdMeta = const VerificationMeta(
+    'parentRegisterId',
+  );
+  @override
+  late final GeneratedColumn<String> parentRegisterId = GeneratedColumn<String>(
+    'parent_register_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _isActiveMeta = const VerificationMeta(
     'isActive',
   );
@@ -19712,6 +20433,9 @@ class $RegistersTable extends Registers
     id,
     companyId,
     code,
+    name,
+    registerNumber,
+    parentRegisterId,
     isActive,
     type,
     allowCash,
@@ -19804,6 +20528,30 @@ class $RegistersTable extends Registers
       );
     } else if (isInserting) {
       context.missing(_codeMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    }
+    if (data.containsKey('register_number')) {
+      context.handle(
+        _registerNumberMeta,
+        registerNumber.isAcceptableOrUnknown(
+          data['register_number']!,
+          _registerNumberMeta,
+        ),
+      );
+    }
+    if (data.containsKey('parent_register_id')) {
+      context.handle(
+        _parentRegisterIdMeta,
+        parentRegisterId.isAcceptableOrUnknown(
+          data['parent_register_id']!,
+          _parentRegisterIdMeta,
+        ),
+      );
     }
     if (data.containsKey('is_active')) {
       context.handle(
@@ -19902,6 +20650,18 @@ class $RegistersTable extends Registers
         DriftSqlType.string,
         data['${effectivePrefix}code'],
       )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      registerNumber: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}register_number'],
+      )!,
+      parentRegisterId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}parent_register_id'],
+      ),
       isActive: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}is_active'],
@@ -19959,6 +20719,9 @@ class Register extends DataClass implements Insertable<Register> {
   final String id;
   final String companyId;
   final String code;
+  final String name;
+  final int registerNumber;
+  final String? parentRegisterId;
   final bool isActive;
   final HardwareType type;
   final bool allowCash;
@@ -19978,6 +20741,9 @@ class Register extends DataClass implements Insertable<Register> {
     required this.id,
     required this.companyId,
     required this.code,
+    required this.name,
+    required this.registerNumber,
+    this.parentRegisterId,
     required this.isActive,
     required this.type,
     required this.allowCash,
@@ -20008,6 +20774,11 @@ class Register extends DataClass implements Insertable<Register> {
     map['id'] = Variable<String>(id);
     map['company_id'] = Variable<String>(companyId);
     map['code'] = Variable<String>(code);
+    map['name'] = Variable<String>(name);
+    map['register_number'] = Variable<int>(registerNumber);
+    if (!nullToAbsent || parentRegisterId != null) {
+      map['parent_register_id'] = Variable<String>(parentRegisterId);
+    }
     map['is_active'] = Variable<bool>(isActive);
     {
       map['type'] = Variable<String>(
@@ -20043,6 +20814,11 @@ class Register extends DataClass implements Insertable<Register> {
       id: Value(id),
       companyId: Value(companyId),
       code: Value(code),
+      name: Value(name),
+      registerNumber: Value(registerNumber),
+      parentRegisterId: parentRegisterId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(parentRegisterId),
       isActive: Value(isActive),
       type: Value(type),
       allowCash: Value(allowCash),
@@ -20070,6 +20846,9 @@ class Register extends DataClass implements Insertable<Register> {
       id: serializer.fromJson<String>(json['id']),
       companyId: serializer.fromJson<String>(json['companyId']),
       code: serializer.fromJson<String>(json['code']),
+      name: serializer.fromJson<String>(json['name']),
+      registerNumber: serializer.fromJson<int>(json['registerNumber']),
+      parentRegisterId: serializer.fromJson<String?>(json['parentRegisterId']),
       isActive: serializer.fromJson<bool>(json['isActive']),
       type: $RegistersTable.$convertertype.fromJson(
         serializer.fromJson<String>(json['type']),
@@ -20096,6 +20875,9 @@ class Register extends DataClass implements Insertable<Register> {
       'id': serializer.toJson<String>(id),
       'companyId': serializer.toJson<String>(companyId),
       'code': serializer.toJson<String>(code),
+      'name': serializer.toJson<String>(name),
+      'registerNumber': serializer.toJson<int>(registerNumber),
+      'parentRegisterId': serializer.toJson<String?>(parentRegisterId),
       'isActive': serializer.toJson<bool>(isActive),
       'type': serializer.toJson<String>(
         $RegistersTable.$convertertype.toJson(type),
@@ -20120,6 +20902,9 @@ class Register extends DataClass implements Insertable<Register> {
     String? id,
     String? companyId,
     String? code,
+    String? name,
+    int? registerNumber,
+    Value<String?> parentRegisterId = const Value.absent(),
     bool? isActive,
     HardwareType? type,
     bool? allowCash,
@@ -20143,6 +20928,11 @@ class Register extends DataClass implements Insertable<Register> {
     id: id ?? this.id,
     companyId: companyId ?? this.companyId,
     code: code ?? this.code,
+    name: name ?? this.name,
+    registerNumber: registerNumber ?? this.registerNumber,
+    parentRegisterId: parentRegisterId.present
+        ? parentRegisterId.value
+        : this.parentRegisterId,
     isActive: isActive ?? this.isActive,
     type: type ?? this.type,
     allowCash: allowCash ?? this.allowCash,
@@ -20170,6 +20960,13 @@ class Register extends DataClass implements Insertable<Register> {
       id: data.id.present ? data.id.value : this.id,
       companyId: data.companyId.present ? data.companyId.value : this.companyId,
       code: data.code.present ? data.code.value : this.code,
+      name: data.name.present ? data.name.value : this.name,
+      registerNumber: data.registerNumber.present
+          ? data.registerNumber.value
+          : this.registerNumber,
+      parentRegisterId: data.parentRegisterId.present
+          ? data.parentRegisterId.value
+          : this.parentRegisterId,
       isActive: data.isActive.present ? data.isActive.value : this.isActive,
       type: data.type.present ? data.type.value : this.type,
       allowCash: data.allowCash.present ? data.allowCash.value : this.allowCash,
@@ -20198,6 +20995,9 @@ class Register extends DataClass implements Insertable<Register> {
           ..write('id: $id, ')
           ..write('companyId: $companyId, ')
           ..write('code: $code, ')
+          ..write('name: $name, ')
+          ..write('registerNumber: $registerNumber, ')
+          ..write('parentRegisterId: $parentRegisterId, ')
           ..write('isActive: $isActive, ')
           ..write('type: $type, ')
           ..write('allowCash: $allowCash, ')
@@ -20211,7 +21011,7 @@ class Register extends DataClass implements Insertable<Register> {
   }
 
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     lastSyncedAt,
     version,
     serverCreatedAt,
@@ -20222,6 +21022,9 @@ class Register extends DataClass implements Insertable<Register> {
     id,
     companyId,
     code,
+    name,
+    registerNumber,
+    parentRegisterId,
     isActive,
     type,
     allowCash,
@@ -20230,7 +21033,7 @@ class Register extends DataClass implements Insertable<Register> {
     allowRefunds,
     gridRows,
     gridCols,
-  );
+  ]);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -20245,6 +21048,9 @@ class Register extends DataClass implements Insertable<Register> {
           other.id == this.id &&
           other.companyId == this.companyId &&
           other.code == this.code &&
+          other.name == this.name &&
+          other.registerNumber == this.registerNumber &&
+          other.parentRegisterId == this.parentRegisterId &&
           other.isActive == this.isActive &&
           other.type == this.type &&
           other.allowCash == this.allowCash &&
@@ -20266,6 +21072,9 @@ class RegistersCompanion extends UpdateCompanion<Register> {
   final Value<String> id;
   final Value<String> companyId;
   final Value<String> code;
+  final Value<String> name;
+  final Value<int> registerNumber;
+  final Value<String?> parentRegisterId;
   final Value<bool> isActive;
   final Value<HardwareType> type;
   final Value<bool> allowCash;
@@ -20286,6 +21095,9 @@ class RegistersCompanion extends UpdateCompanion<Register> {
     this.id = const Value.absent(),
     this.companyId = const Value.absent(),
     this.code = const Value.absent(),
+    this.name = const Value.absent(),
+    this.registerNumber = const Value.absent(),
+    this.parentRegisterId = const Value.absent(),
     this.isActive = const Value.absent(),
     this.type = const Value.absent(),
     this.allowCash = const Value.absent(),
@@ -20307,6 +21119,9 @@ class RegistersCompanion extends UpdateCompanion<Register> {
     required String id,
     required String companyId,
     required String code,
+    this.name = const Value.absent(),
+    this.registerNumber = const Value.absent(),
+    this.parentRegisterId = const Value.absent(),
     this.isActive = const Value.absent(),
     required HardwareType type,
     this.allowCash = const Value.absent(),
@@ -20331,6 +21146,9 @@ class RegistersCompanion extends UpdateCompanion<Register> {
     Expression<String>? id,
     Expression<String>? companyId,
     Expression<String>? code,
+    Expression<String>? name,
+    Expression<int>? registerNumber,
+    Expression<String>? parentRegisterId,
     Expression<bool>? isActive,
     Expression<String>? type,
     Expression<bool>? allowCash,
@@ -20352,6 +21170,9 @@ class RegistersCompanion extends UpdateCompanion<Register> {
       if (id != null) 'id': id,
       if (companyId != null) 'company_id': companyId,
       if (code != null) 'code': code,
+      if (name != null) 'name': name,
+      if (registerNumber != null) 'register_number': registerNumber,
+      if (parentRegisterId != null) 'parent_register_id': parentRegisterId,
       if (isActive != null) 'is_active': isActive,
       if (type != null) 'type': type,
       if (allowCash != null) 'allow_cash': allowCash,
@@ -20375,6 +21196,9 @@ class RegistersCompanion extends UpdateCompanion<Register> {
     Value<String>? id,
     Value<String>? companyId,
     Value<String>? code,
+    Value<String>? name,
+    Value<int>? registerNumber,
+    Value<String?>? parentRegisterId,
     Value<bool>? isActive,
     Value<HardwareType>? type,
     Value<bool>? allowCash,
@@ -20396,6 +21220,9 @@ class RegistersCompanion extends UpdateCompanion<Register> {
       id: id ?? this.id,
       companyId: companyId ?? this.companyId,
       code: code ?? this.code,
+      name: name ?? this.name,
+      registerNumber: registerNumber ?? this.registerNumber,
+      parentRegisterId: parentRegisterId ?? this.parentRegisterId,
       isActive: isActive ?? this.isActive,
       type: type ?? this.type,
       allowCash: allowCash ?? this.allowCash,
@@ -20440,6 +21267,15 @@ class RegistersCompanion extends UpdateCompanion<Register> {
     }
     if (code.present) {
       map['code'] = Variable<String>(code.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (registerNumber.present) {
+      map['register_number'] = Variable<int>(registerNumber.value);
+    }
+    if (parentRegisterId.present) {
+      map['parent_register_id'] = Variable<String>(parentRegisterId.value);
     }
     if (isActive.present) {
       map['is_active'] = Variable<bool>(isActive.value);
@@ -20486,6 +21322,9 @@ class RegistersCompanion extends UpdateCompanion<Register> {
           ..write('id: $id, ')
           ..write('companyId: $companyId, ')
           ..write('code: $code, ')
+          ..write('name: $name, ')
+          ..write('registerNumber: $registerNumber, ')
+          ..write('parentRegisterId: $parentRegisterId, ')
           ..write('isActive: $isActive, ')
           ..write('type: $type, ')
           ..write('allowCash: $allowCash, ')
@@ -34642,6 +35481,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     this,
   );
   late final $CurrenciesTable currencies = $CurrenciesTable(this);
+  late final $DeviceRegistrationsTable deviceRegistrations =
+      $DeviceRegistrationsTable(this);
   late final $ItemsTable items = $ItemsTable(this);
   late final $LayoutItemsTable layoutItems = $LayoutItemsTable(this);
   late final $MapElementsTable mapElements = $MapElementsTable(this);
@@ -34846,6 +35687,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     customers,
     companySettings,
     currencies,
+    deviceRegistrations,
     items,
     layoutItems,
     mapElements,
@@ -34932,6 +35774,9 @@ typedef $$BillsTableCreateCompanionBuilder =
       Value<String?> customerName,
       Value<String?> sectionId,
       Value<String?> tableId,
+      Value<String?> registerId,
+      Value<String?> lastRegisterId,
+      Value<String?> registerSessionId,
       required String openedByUserId,
       required String billNumber,
       Value<int> numberOfGuests,
@@ -34971,6 +35816,9 @@ typedef $$BillsTableUpdateCompanionBuilder =
       Value<String?> customerName,
       Value<String?> sectionId,
       Value<String?> tableId,
+      Value<String?> registerId,
+      Value<String?> lastRegisterId,
+      Value<String?> registerSessionId,
       Value<String> openedByUserId,
       Value<String> billNumber,
       Value<int> numberOfGuests,
@@ -35066,6 +35914,21 @@ class $$BillsTableFilterComposer extends Composer<_$AppDatabase, $BillsTable> {
 
   ColumnFilters<String> get tableId => $composableBuilder(
     column: $table.tableId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get registerId => $composableBuilder(
+    column: $table.registerId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get lastRegisterId => $composableBuilder(
+    column: $table.lastRegisterId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get registerSessionId => $composableBuilder(
+    column: $table.registerSessionId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -35256,6 +36119,21 @@ class $$BillsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get registerId => $composableBuilder(
+    column: $table.registerId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get lastRegisterId => $composableBuilder(
+    column: $table.lastRegisterId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get registerSessionId => $composableBuilder(
+    column: $table.registerSessionId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get openedByUserId => $composableBuilder(
     column: $table.openedByUserId,
     builder: (column) => ColumnOrderings(column),
@@ -35425,6 +36303,21 @@ class $$BillsTableAnnotationComposer
   GeneratedColumn<String> get tableId =>
       $composableBuilder(column: $table.tableId, builder: (column) => column);
 
+  GeneratedColumn<String> get registerId => $composableBuilder(
+    column: $table.registerId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get lastRegisterId => $composableBuilder(
+    column: $table.lastRegisterId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get registerSessionId => $composableBuilder(
+    column: $table.registerSessionId,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get openedByUserId => $composableBuilder(
     column: $table.openedByUserId,
     builder: (column) => column,
@@ -35564,6 +36457,9 @@ class $$BillsTableTableManager
                 Value<String?> customerName = const Value.absent(),
                 Value<String?> sectionId = const Value.absent(),
                 Value<String?> tableId = const Value.absent(),
+                Value<String?> registerId = const Value.absent(),
+                Value<String?> lastRegisterId = const Value.absent(),
+                Value<String?> registerSessionId = const Value.absent(),
                 Value<String> openedByUserId = const Value.absent(),
                 Value<String> billNumber = const Value.absent(),
                 Value<int> numberOfGuests = const Value.absent(),
@@ -35601,6 +36497,9 @@ class $$BillsTableTableManager
                 customerName: customerName,
                 sectionId: sectionId,
                 tableId: tableId,
+                registerId: registerId,
+                lastRegisterId: lastRegisterId,
+                registerSessionId: registerSessionId,
                 openedByUserId: openedByUserId,
                 billNumber: billNumber,
                 numberOfGuests: numberOfGuests,
@@ -35640,6 +36539,9 @@ class $$BillsTableTableManager
                 Value<String?> customerName = const Value.absent(),
                 Value<String?> sectionId = const Value.absent(),
                 Value<String?> tableId = const Value.absent(),
+                Value<String?> registerId = const Value.absent(),
+                Value<String?> lastRegisterId = const Value.absent(),
+                Value<String?> registerSessionId = const Value.absent(),
                 required String openedByUserId,
                 required String billNumber,
                 Value<int> numberOfGuests = const Value.absent(),
@@ -35677,6 +36579,9 @@ class $$BillsTableTableManager
                 customerName: customerName,
                 sectionId: sectionId,
                 tableId: tableId,
+                registerId: registerId,
+                lastRegisterId: lastRegisterId,
+                registerSessionId: registerSessionId,
                 openedByUserId: openedByUserId,
                 billNumber: billNumber,
                 numberOfGuests: numberOfGuests,
@@ -38548,6 +39453,205 @@ typedef $$CurrenciesTableProcessedTableManager =
       Currency,
       PrefetchHooks Function()
     >;
+typedef $$DeviceRegistrationsTableCreateCompanionBuilder =
+    DeviceRegistrationsCompanion Function({
+      required String id,
+      required String companyId,
+      required String registerId,
+      required DateTime createdAt,
+      Value<int> rowid,
+    });
+typedef $$DeviceRegistrationsTableUpdateCompanionBuilder =
+    DeviceRegistrationsCompanion Function({
+      Value<String> id,
+      Value<String> companyId,
+      Value<String> registerId,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+class $$DeviceRegistrationsTableFilterComposer
+    extends Composer<_$AppDatabase, $DeviceRegistrationsTable> {
+  $$DeviceRegistrationsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get companyId => $composableBuilder(
+    column: $table.companyId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get registerId => $composableBuilder(
+    column: $table.registerId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$DeviceRegistrationsTableOrderingComposer
+    extends Composer<_$AppDatabase, $DeviceRegistrationsTable> {
+  $$DeviceRegistrationsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get companyId => $composableBuilder(
+    column: $table.companyId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get registerId => $composableBuilder(
+    column: $table.registerId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$DeviceRegistrationsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DeviceRegistrationsTable> {
+  $$DeviceRegistrationsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get companyId =>
+      $composableBuilder(column: $table.companyId, builder: (column) => column);
+
+  GeneratedColumn<String> get registerId => $composableBuilder(
+    column: $table.registerId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$DeviceRegistrationsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $DeviceRegistrationsTable,
+          DeviceRegistration,
+          $$DeviceRegistrationsTableFilterComposer,
+          $$DeviceRegistrationsTableOrderingComposer,
+          $$DeviceRegistrationsTableAnnotationComposer,
+          $$DeviceRegistrationsTableCreateCompanionBuilder,
+          $$DeviceRegistrationsTableUpdateCompanionBuilder,
+          (
+            DeviceRegistration,
+            BaseReferences<
+              _$AppDatabase,
+              $DeviceRegistrationsTable,
+              DeviceRegistration
+            >,
+          ),
+          DeviceRegistration,
+          PrefetchHooks Function()
+        > {
+  $$DeviceRegistrationsTableTableManager(
+    _$AppDatabase db,
+    $DeviceRegistrationsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DeviceRegistrationsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DeviceRegistrationsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$DeviceRegistrationsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> companyId = const Value.absent(),
+                Value<String> registerId = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => DeviceRegistrationsCompanion(
+                id: id,
+                companyId: companyId,
+                registerId: registerId,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String companyId,
+                required String registerId,
+                required DateTime createdAt,
+                Value<int> rowid = const Value.absent(),
+              }) => DeviceRegistrationsCompanion.insert(
+                id: id,
+                companyId: companyId,
+                registerId: registerId,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$DeviceRegistrationsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $DeviceRegistrationsTable,
+      DeviceRegistration,
+      $$DeviceRegistrationsTableFilterComposer,
+      $$DeviceRegistrationsTableOrderingComposer,
+      $$DeviceRegistrationsTableAnnotationComposer,
+      $$DeviceRegistrationsTableCreateCompanionBuilder,
+      $$DeviceRegistrationsTableUpdateCompanionBuilder,
+      (
+        DeviceRegistration,
+        BaseReferences<
+          _$AppDatabase,
+          $DeviceRegistrationsTable,
+          DeviceRegistration
+        >,
+      ),
+      DeviceRegistration,
+      PrefetchHooks Function()
+    >;
 typedef $$ItemsTableCreateCompanionBuilder =
     ItemsCompanion Function({
       Value<DateTime?> lastSyncedAt,
@@ -40953,6 +42057,7 @@ typedef $$OrdersTableCreateCompanionBuilder =
       required String id,
       required String companyId,
       required String billId,
+      Value<String?> registerId,
       required String createdByUserId,
       required String orderNumber,
       Value<String?> notes,
@@ -40980,6 +42085,7 @@ typedef $$OrdersTableUpdateCompanionBuilder =
       Value<String> id,
       Value<String> companyId,
       Value<String> billId,
+      Value<String?> registerId,
       Value<String> createdByUserId,
       Value<String> orderNumber,
       Value<String?> notes,
@@ -41052,6 +42158,11 @@ class $$OrdersTableFilterComposer
 
   ColumnFilters<String> get billId => $composableBuilder(
     column: $table.billId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get registerId => $composableBuilder(
+    column: $table.registerId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -41181,6 +42292,11 @@ class $$OrdersTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get registerId => $composableBuilder(
+    column: $table.registerId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get createdByUserId => $composableBuilder(
     column: $table.createdByUserId,
     builder: (column) => ColumnOrderings(column),
@@ -41292,6 +42408,11 @@ class $$OrdersTableAnnotationComposer
   GeneratedColumn<String> get billId =>
       $composableBuilder(column: $table.billId, builder: (column) => column);
 
+  GeneratedColumn<String> get registerId => $composableBuilder(
+    column: $table.registerId,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get createdByUserId => $composableBuilder(
     column: $table.createdByUserId,
     builder: (column) => column,
@@ -41384,6 +42505,7 @@ class $$OrdersTableTableManager
                 Value<String> id = const Value.absent(),
                 Value<String> companyId = const Value.absent(),
                 Value<String> billId = const Value.absent(),
+                Value<String?> registerId = const Value.absent(),
                 Value<String> createdByUserId = const Value.absent(),
                 Value<String> orderNumber = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
@@ -41409,6 +42531,7 @@ class $$OrdersTableTableManager
                 id: id,
                 companyId: companyId,
                 billId: billId,
+                registerId: registerId,
                 createdByUserId: createdByUserId,
                 orderNumber: orderNumber,
                 notes: notes,
@@ -41436,6 +42559,7 @@ class $$OrdersTableTableManager
                 required String id,
                 required String companyId,
                 required String billId,
+                Value<String?> registerId = const Value.absent(),
                 required String createdByUserId,
                 required String orderNumber,
                 Value<String?> notes = const Value.absent(),
@@ -41461,6 +42585,7 @@ class $$OrdersTableTableManager
                 id: id,
                 companyId: companyId,
                 billId: billId,
+                registerId: registerId,
                 createdByUserId: createdByUserId,
                 orderNumber: orderNumber,
                 notes: notes,
@@ -41852,6 +42977,7 @@ typedef $$PaymentsTableCreateCompanionBuilder =
       required String id,
       required String companyId,
       required String billId,
+      Value<String?> registerId,
       Value<String?> userId,
       required String paymentMethodId,
       required int amount,
@@ -41877,6 +43003,7 @@ typedef $$PaymentsTableUpdateCompanionBuilder =
       Value<String> id,
       Value<String> companyId,
       Value<String> billId,
+      Value<String?> registerId,
       Value<String?> userId,
       Value<String> paymentMethodId,
       Value<int> amount,
@@ -41947,6 +43074,11 @@ class $$PaymentsTableFilterComposer
 
   ColumnFilters<String> get billId => $composableBuilder(
     column: $table.billId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get registerId => $composableBuilder(
+    column: $table.registerId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -42065,6 +43197,11 @@ class $$PaymentsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get registerId => $composableBuilder(
+    column: $table.registerId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get userId => $composableBuilder(
     column: $table.userId,
     builder: (column) => ColumnOrderings(column),
@@ -42166,6 +43303,11 @@ class $$PaymentsTableAnnotationComposer
   GeneratedColumn<String> get billId =>
       $composableBuilder(column: $table.billId, builder: (column) => column);
 
+  GeneratedColumn<String> get registerId => $composableBuilder(
+    column: $table.registerId,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get userId =>
       $composableBuilder(column: $table.userId, builder: (column) => column);
 
@@ -42250,6 +43392,7 @@ class $$PaymentsTableTableManager
                 Value<String> id = const Value.absent(),
                 Value<String> companyId = const Value.absent(),
                 Value<String> billId = const Value.absent(),
+                Value<String?> registerId = const Value.absent(),
                 Value<String?> userId = const Value.absent(),
                 Value<String> paymentMethodId = const Value.absent(),
                 Value<int> amount = const Value.absent(),
@@ -42273,6 +43416,7 @@ class $$PaymentsTableTableManager
                 id: id,
                 companyId: companyId,
                 billId: billId,
+                registerId: registerId,
                 userId: userId,
                 paymentMethodId: paymentMethodId,
                 amount: amount,
@@ -42298,6 +43442,7 @@ class $$PaymentsTableTableManager
                 required String id,
                 required String companyId,
                 required String billId,
+                Value<String?> registerId = const Value.absent(),
                 Value<String?> userId = const Value.absent(),
                 required String paymentMethodId,
                 required int amount,
@@ -42321,6 +43466,7 @@ class $$PaymentsTableTableManager
                 id: id,
                 companyId: companyId,
                 billId: billId,
+                registerId: registerId,
                 userId: userId,
                 paymentMethodId: paymentMethodId,
                 amount: amount,
@@ -43060,6 +44206,8 @@ typedef $$RegisterSessionsTableCreateCompanionBuilder =
       required DateTime openedAt,
       Value<DateTime?> closedAt,
       Value<int> orderCounter,
+      Value<int> billCounter,
+      Value<String?> parentSessionId,
       Value<int?> openingCash,
       Value<int?> closingCash,
       Value<int?> expectedCash,
@@ -43086,6 +44234,8 @@ typedef $$RegisterSessionsTableUpdateCompanionBuilder =
       Value<DateTime> openedAt,
       Value<DateTime?> closedAt,
       Value<int> orderCounter,
+      Value<int> billCounter,
+      Value<String?> parentSessionId,
       Value<int?> openingCash,
       Value<int?> closingCash,
       Value<int?> expectedCash,
@@ -43173,6 +44323,16 @@ class $$RegisterSessionsTableFilterComposer
 
   ColumnFilters<int> get orderCounter => $composableBuilder(
     column: $table.orderCounter,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get billCounter => $composableBuilder(
+    column: $table.billCounter,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get parentSessionId => $composableBuilder(
+    column: $table.parentSessionId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -43296,6 +44456,16 @@ class $$RegisterSessionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get billCounter => $composableBuilder(
+    column: $table.billCounter,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get parentSessionId => $composableBuilder(
+    column: $table.parentSessionId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get openingCash => $composableBuilder(
     column: $table.openingCash,
     builder: (column) => ColumnOrderings(column),
@@ -43400,6 +44570,16 @@ class $$RegisterSessionsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<int> get billCounter => $composableBuilder(
+    column: $table.billCounter,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get parentSessionId => $composableBuilder(
+    column: $table.parentSessionId,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<int> get openingCash => $composableBuilder(
     column: $table.openingCash,
     builder: (column) => column,
@@ -43492,6 +44672,8 @@ class $$RegisterSessionsTableTableManager
                 Value<DateTime> openedAt = const Value.absent(),
                 Value<DateTime?> closedAt = const Value.absent(),
                 Value<int> orderCounter = const Value.absent(),
+                Value<int> billCounter = const Value.absent(),
+                Value<String?> parentSessionId = const Value.absent(),
                 Value<int?> openingCash = const Value.absent(),
                 Value<int?> closingCash = const Value.absent(),
                 Value<int?> expectedCash = const Value.absent(),
@@ -43516,6 +44698,8 @@ class $$RegisterSessionsTableTableManager
                 openedAt: openedAt,
                 closedAt: closedAt,
                 orderCounter: orderCounter,
+                billCounter: billCounter,
+                parentSessionId: parentSessionId,
                 openingCash: openingCash,
                 closingCash: closingCash,
                 expectedCash: expectedCash,
@@ -43542,6 +44726,8 @@ class $$RegisterSessionsTableTableManager
                 required DateTime openedAt,
                 Value<DateTime?> closedAt = const Value.absent(),
                 Value<int> orderCounter = const Value.absent(),
+                Value<int> billCounter = const Value.absent(),
+                Value<String?> parentSessionId = const Value.absent(),
                 Value<int?> openingCash = const Value.absent(),
                 Value<int?> closingCash = const Value.absent(),
                 Value<int?> expectedCash = const Value.absent(),
@@ -43566,6 +44752,8 @@ class $$RegisterSessionsTableTableManager
                 openedAt: openedAt,
                 closedAt: closedAt,
                 orderCounter: orderCounter,
+                billCounter: billCounter,
+                parentSessionId: parentSessionId,
                 openingCash: openingCash,
                 closingCash: closingCash,
                 expectedCash: expectedCash,
@@ -43613,6 +44801,9 @@ typedef $$RegistersTableCreateCompanionBuilder =
       required String id,
       required String companyId,
       required String code,
+      Value<String> name,
+      Value<int> registerNumber,
+      Value<String?> parentRegisterId,
       Value<bool> isActive,
       required HardwareType type,
       Value<bool> allowCash,
@@ -43635,6 +44826,9 @@ typedef $$RegistersTableUpdateCompanionBuilder =
       Value<String> id,
       Value<String> companyId,
       Value<String> code,
+      Value<String> name,
+      Value<int> registerNumber,
+      Value<String?> parentRegisterId,
       Value<bool> isActive,
       Value<HardwareType> type,
       Value<bool> allowCash,
@@ -43702,6 +44896,21 @@ class $$RegistersTableFilterComposer
 
   ColumnFilters<String> get code => $composableBuilder(
     column: $table.code,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get registerNumber => $composableBuilder(
+    column: $table.registerNumber,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get parentRegisterId => $composableBuilder(
+    column: $table.parentRegisterId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -43806,6 +45015,21 @@ class $$RegistersTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get registerNumber => $composableBuilder(
+    column: $table.registerNumber,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get parentRegisterId => $composableBuilder(
+    column: $table.parentRegisterId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<bool> get isActive => $composableBuilder(
     column: $table.isActive,
     builder: (column) => ColumnOrderings(column),
@@ -43892,6 +45116,19 @@ class $$RegistersTableAnnotationComposer
   GeneratedColumn<String> get code =>
       $composableBuilder(column: $table.code, builder: (column) => column);
 
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<int> get registerNumber => $composableBuilder(
+    column: $table.registerNumber,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get parentRegisterId => $composableBuilder(
+    column: $table.parentRegisterId,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<bool> get isActive =>
       $composableBuilder(column: $table.isActive, builder: (column) => column);
 
@@ -43959,6 +45196,9 @@ class $$RegistersTableTableManager
                 Value<String> id = const Value.absent(),
                 Value<String> companyId = const Value.absent(),
                 Value<String> code = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<int> registerNumber = const Value.absent(),
+                Value<String?> parentRegisterId = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
                 Value<HardwareType> type = const Value.absent(),
                 Value<bool> allowCash = const Value.absent(),
@@ -43979,6 +45219,9 @@ class $$RegistersTableTableManager
                 id: id,
                 companyId: companyId,
                 code: code,
+                name: name,
+                registerNumber: registerNumber,
+                parentRegisterId: parentRegisterId,
                 isActive: isActive,
                 type: type,
                 allowCash: allowCash,
@@ -44001,6 +45244,9 @@ class $$RegistersTableTableManager
                 required String id,
                 required String companyId,
                 required String code,
+                Value<String> name = const Value.absent(),
+                Value<int> registerNumber = const Value.absent(),
+                Value<String?> parentRegisterId = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
                 required HardwareType type,
                 Value<bool> allowCash = const Value.absent(),
@@ -44021,6 +45267,9 @@ class $$RegistersTableTableManager
                 id: id,
                 companyId: companyId,
                 code: code,
+                name: name,
+                registerNumber: registerNumber,
+                parentRegisterId: parentRegisterId,
                 isActive: isActive,
                 type: type,
                 allowCash: allowCash,
@@ -50553,6 +51802,8 @@ class $AppDatabaseManager {
       $$CompanySettingsTableTableManager(_db, _db.companySettings);
   $$CurrenciesTableTableManager get currencies =>
       $$CurrenciesTableTableManager(_db, _db.currencies);
+  $$DeviceRegistrationsTableTableManager get deviceRegistrations =>
+      $$DeviceRegistrationsTableTableManager(_db, _db.deviceRegistrations);
   $$ItemsTableTableManager get items =>
       $$ItemsTableTableManager(_db, _db.items);
   $$LayoutItemsTableTableManager get layoutItems =>

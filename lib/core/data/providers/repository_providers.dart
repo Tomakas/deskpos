@@ -7,6 +7,7 @@ import '../repositories/customer_repository.dart';
 import '../repositories/customer_transaction_repository.dart';
 import '../repositories/company_repository.dart';
 import '../repositories/company_settings_repository.dart';
+import '../repositories/device_registration_repository.dart';
 import '../repositories/item_repository.dart';
 import '../repositories/layout_item_repository.dart';
 import '../repositories/map_element_repository.dart';
@@ -43,6 +44,12 @@ final syncQueueRepositoryProvider = Provider<SyncQueueRepository>((ref) {
 
 final syncMetadataRepositoryProvider = Provider<SyncMetadataRepository>((ref) {
   return SyncMetadataRepository(ref.watch(appDatabaseProvider));
+});
+
+// --- Local-only repositories ---
+
+final deviceRegistrationRepositoryProvider = Provider<DeviceRegistrationRepository>((ref) {
+  return DeviceRegistrationRepository(ref.watch(appDatabaseProvider));
 });
 
 // --- Domain repositories ---

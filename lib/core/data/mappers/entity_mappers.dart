@@ -9,6 +9,7 @@ import '../models/customer_transaction_model.dart';
 import '../models/company_model.dart';
 import '../models/company_settings_model.dart';
 import '../models/currency_model.dart';
+import '../models/device_registration_model.dart';
 import '../models/item_model.dart';
 import '../models/layout_item_model.dart';
 import '../models/manufacturer_model.dart';
@@ -384,6 +385,9 @@ BillModel billFromEntity(Bill e) => BillModel(
       customerName: e.customerName,
       sectionId: e.sectionId,
       tableId: e.tableId,
+      registerId: e.registerId,
+      lastRegisterId: e.lastRegisterId,
+      registerSessionId: e.registerSessionId,
       openedByUserId: e.openedByUserId,
       billNumber: e.billNumber,
       numberOfGuests: e.numberOfGuests,
@@ -416,6 +420,7 @@ OrderModel orderFromEntity(Order e) => OrderModel(
       id: e.id,
       companyId: e.companyId,
       billId: e.billId,
+      registerId: e.registerId,
       createdByUserId: e.createdByUserId,
       orderNumber: e.orderNumber,
       notes: e.notes,
@@ -462,6 +467,7 @@ PaymentModel paymentFromEntity(Payment e) => PaymentModel(
       id: e.id,
       companyId: e.companyId,
       billId: e.billId,
+      registerId: e.registerId,
       userId: e.userId,
       paymentMethodId: e.paymentMethodId,
       amount: e.amount,
@@ -504,6 +510,9 @@ RegisterModel registerFromEntity(Register e) => RegisterModel(
       id: e.id,
       companyId: e.companyId,
       code: e.code,
+      name: e.name,
+      registerNumber: e.registerNumber,
+      parentRegisterId: e.parentRegisterId,
       isActive: e.isActive,
       type: e.type,
       allowCash: e.allowCash,
@@ -526,6 +535,8 @@ RegisterSessionModel registerSessionFromEntity(RegisterSession e) => RegisterSes
       openedAt: e.openedAt,
       closedAt: e.closedAt,
       orderCounter: e.orderCounter,
+      billCounter: e.billCounter,
+      parentSessionId: e.parentSessionId,
       openingCash: e.openingCash,
       closingCash: e.closingCash,
       expectedCash: e.expectedCash,
@@ -551,6 +562,15 @@ CashMovementModel cashMovementFromEntity(CashMovement e) => CashMovementModel(
       createdAt: e.createdAt,
       updatedAt: e.updatedAt,
       deletedAt: e.deletedAt,
+    );
+
+// --- DeviceRegistration ---
+DeviceRegistrationModel deviceRegistrationFromEntity(DeviceRegistration e) =>
+    DeviceRegistrationModel(
+      id: e.id,
+      companyId: e.companyId,
+      registerId: e.registerId,
+      createdAt: e.createdAt,
     );
 
 // --- TableEntity ---

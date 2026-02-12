@@ -12,6 +12,9 @@ class Bills extends Table with SyncColumnsMixin {
   TextColumn get customerName => text().nullable()();
   TextColumn get sectionId => text().nullable()();
   TextColumn get tableId => text().nullable()();
+  TextColumn get registerId => text().nullable()();
+  TextColumn get lastRegisterId => text().nullable()();
+  TextColumn get registerSessionId => text().nullable()();
   TextColumn get openedByUserId => text()();
   TextColumn get billNumber => text()();
   IntColumn get numberOfGuests => integer().withDefault(const Constant(0))();

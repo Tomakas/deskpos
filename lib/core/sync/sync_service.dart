@@ -151,7 +151,7 @@ class SyncService {
         maxUpdatedAt = serverUpdatedAt;
       }
 
-      await _mergeRow(companyId, tableName, entityId, json);
+      await mergeRow(companyId, tableName, entityId, json);
     }
 
     if (maxUpdatedAt != null) {
@@ -159,7 +159,8 @@ class SyncService {
     }
   }
 
-  Future<void> _mergeRow(
+  /// Merge a single row from Supabase (pull or realtime) into local DB using LWW.
+  Future<void> mergeRow(
     String companyId,
     String tableName,
     String entityId,
@@ -186,8 +187,8 @@ class SyncService {
     ).getSingleOrNull();
 
     if (existing == null) {
-      // Entity not in local DB -> INSERT
-      await _db.into(driftTable).insert(companion);
+      // Entity not in local DB -> INSERT (or update if a concurrent mergeRow already inserted)
+      await _db.into(driftTable).insertOnConflictUpdate(companion);
       return;
     }
 

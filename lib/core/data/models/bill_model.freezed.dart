@@ -23,6 +23,9 @@ mixin _$BillModel {
   String? get customerName => throw _privateConstructorUsedError;
   String? get sectionId => throw _privateConstructorUsedError;
   String? get tableId => throw _privateConstructorUsedError;
+  String? get registerId => throw _privateConstructorUsedError;
+  String? get lastRegisterId => throw _privateConstructorUsedError;
+  String? get registerSessionId => throw _privateConstructorUsedError;
   String get openedByUserId => throw _privateConstructorUsedError;
   String get billNumber => throw _privateConstructorUsedError;
   int get numberOfGuests => throw _privateConstructorUsedError;
@@ -68,6 +71,9 @@ abstract class $BillModelCopyWith<$Res> {
     String? customerName,
     String? sectionId,
     String? tableId,
+    String? registerId,
+    String? lastRegisterId,
+    String? registerSessionId,
     String openedByUserId,
     String billNumber,
     int numberOfGuests,
@@ -117,6 +123,9 @@ class _$BillModelCopyWithImpl<$Res, $Val extends BillModel>
     Object? customerName = freezed,
     Object? sectionId = freezed,
     Object? tableId = freezed,
+    Object? registerId = freezed,
+    Object? lastRegisterId = freezed,
+    Object? registerSessionId = freezed,
     Object? openedByUserId = null,
     Object? billNumber = null,
     Object? numberOfGuests = null,
@@ -168,6 +177,18 @@ class _$BillModelCopyWithImpl<$Res, $Val extends BillModel>
             tableId: freezed == tableId
                 ? _value.tableId
                 : tableId // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            registerId: freezed == registerId
+                ? _value.registerId
+                : registerId // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            lastRegisterId: freezed == lastRegisterId
+                ? _value.lastRegisterId
+                : lastRegisterId // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            registerSessionId: freezed == registerSessionId
+                ? _value.registerSessionId
+                : registerSessionId // ignore: cast_nullable_to_non_nullable
                       as String?,
             openedByUserId: null == openedByUserId
                 ? _value.openedByUserId
@@ -291,6 +312,9 @@ abstract class _$$BillModelImplCopyWith<$Res>
     String? customerName,
     String? sectionId,
     String? tableId,
+    String? registerId,
+    String? lastRegisterId,
+    String? registerSessionId,
     String openedByUserId,
     String billNumber,
     int numberOfGuests,
@@ -339,6 +363,9 @@ class __$$BillModelImplCopyWithImpl<$Res>
     Object? customerName = freezed,
     Object? sectionId = freezed,
     Object? tableId = freezed,
+    Object? registerId = freezed,
+    Object? lastRegisterId = freezed,
+    Object? registerSessionId = freezed,
     Object? openedByUserId = null,
     Object? billNumber = null,
     Object? numberOfGuests = null,
@@ -390,6 +417,18 @@ class __$$BillModelImplCopyWithImpl<$Res>
         tableId: freezed == tableId
             ? _value.tableId
             : tableId // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        registerId: freezed == registerId
+            ? _value.registerId
+            : registerId // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        lastRegisterId: freezed == lastRegisterId
+            ? _value.lastRegisterId
+            : lastRegisterId // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        registerSessionId: freezed == registerSessionId
+            ? _value.registerSessionId
+            : registerSessionId // ignore: cast_nullable_to_non_nullable
                   as String?,
         openedByUserId: null == openedByUserId
             ? _value.openedByUserId
@@ -506,6 +545,9 @@ class _$BillModelImpl implements _BillModel {
     this.customerName,
     this.sectionId,
     this.tableId,
+    this.registerId,
+    this.lastRegisterId,
+    this.registerSessionId,
     required this.openedByUserId,
     required this.billNumber,
     this.numberOfGuests = 0,
@@ -545,6 +587,12 @@ class _$BillModelImpl implements _BillModel {
   final String? sectionId;
   @override
   final String? tableId;
+  @override
+  final String? registerId;
+  @override
+  final String? lastRegisterId;
+  @override
+  final String? registerSessionId;
   @override
   final String openedByUserId;
   @override
@@ -610,7 +658,7 @@ class _$BillModelImpl implements _BillModel {
 
   @override
   String toString() {
-    return 'BillModel(id: $id, companyId: $companyId, customerId: $customerId, customerName: $customerName, sectionId: $sectionId, tableId: $tableId, openedByUserId: $openedByUserId, billNumber: $billNumber, numberOfGuests: $numberOfGuests, isTakeaway: $isTakeaway, status: $status, currencyId: $currencyId, subtotalGross: $subtotalGross, subtotalNet: $subtotalNet, discountAmount: $discountAmount, discountType: $discountType, taxTotal: $taxTotal, totalGross: $totalGross, roundingAmount: $roundingAmount, paidAmount: $paidAmount, loyaltyPointsUsed: $loyaltyPointsUsed, loyaltyDiscountAmount: $loyaltyDiscountAmount, voucherDiscountAmount: $voucherDiscountAmount, voucherId: $voucherId, openedAt: $openedAt, closedAt: $closedAt, mapPosX: $mapPosX, mapPosY: $mapPosY, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+    return 'BillModel(id: $id, companyId: $companyId, customerId: $customerId, customerName: $customerName, sectionId: $sectionId, tableId: $tableId, registerId: $registerId, lastRegisterId: $lastRegisterId, registerSessionId: $registerSessionId, openedByUserId: $openedByUserId, billNumber: $billNumber, numberOfGuests: $numberOfGuests, isTakeaway: $isTakeaway, status: $status, currencyId: $currencyId, subtotalGross: $subtotalGross, subtotalNet: $subtotalNet, discountAmount: $discountAmount, discountType: $discountType, taxTotal: $taxTotal, totalGross: $totalGross, roundingAmount: $roundingAmount, paidAmount: $paidAmount, loyaltyPointsUsed: $loyaltyPointsUsed, loyaltyDiscountAmount: $loyaltyDiscountAmount, voucherDiscountAmount: $voucherDiscountAmount, voucherId: $voucherId, openedAt: $openedAt, closedAt: $closedAt, mapPosX: $mapPosX, mapPosY: $mapPosY, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
   }
 
   @override
@@ -628,6 +676,12 @@ class _$BillModelImpl implements _BillModel {
             (identical(other.sectionId, sectionId) ||
                 other.sectionId == sectionId) &&
             (identical(other.tableId, tableId) || other.tableId == tableId) &&
+            (identical(other.registerId, registerId) ||
+                other.registerId == registerId) &&
+            (identical(other.lastRegisterId, lastRegisterId) ||
+                other.lastRegisterId == lastRegisterId) &&
+            (identical(other.registerSessionId, registerSessionId) ||
+                other.registerSessionId == registerSessionId) &&
             (identical(other.openedByUserId, openedByUserId) ||
                 other.openedByUserId == openedByUserId) &&
             (identical(other.billNumber, billNumber) ||
@@ -686,6 +740,9 @@ class _$BillModelImpl implements _BillModel {
     customerName,
     sectionId,
     tableId,
+    registerId,
+    lastRegisterId,
+    registerSessionId,
     openedByUserId,
     billNumber,
     numberOfGuests,
@@ -730,6 +787,9 @@ abstract class _BillModel implements BillModel {
     final String? customerName,
     final String? sectionId,
     final String? tableId,
+    final String? registerId,
+    final String? lastRegisterId,
+    final String? registerSessionId,
     required final String openedByUserId,
     required final String billNumber,
     final int numberOfGuests,
@@ -769,6 +829,12 @@ abstract class _BillModel implements BillModel {
   String? get sectionId;
   @override
   String? get tableId;
+  @override
+  String? get registerId;
+  @override
+  String? get lastRegisterId;
+  @override
+  String? get registerSessionId;
   @override
   String get openedByUserId;
   @override

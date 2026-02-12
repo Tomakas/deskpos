@@ -193,8 +193,20 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
                     stream: ref.watch(paymentMethodRepositoryProvider).watchAll(company.id),
                     builder: (context, snap) {
                       final methods = (snap.data ?? []).where((m) => m.isActive).toList();
-                      // Separate credit methods from regular methods
-                      final regularMethods = methods.where((m) => m.type != PaymentType.credit).toList();
+                      final register = ref.watch(activeRegisterProvider).value;
+                      // Separate credit methods from regular methods,
+                      // filtering by register payment flags
+                      final regularMethods = methods
+                          .where((m) => m.type != PaymentType.credit)
+                          .where((m) {
+                        if (register == null) return true;
+                        return switch (m.type) {
+                          PaymentType.cash => register.allowCash,
+                          PaymentType.card => register.allowCard,
+                          PaymentType.bank => register.allowTransfer,
+                          _ => true,
+                        };
+                      }).toList();
                       final creditMethod = methods.where((m) => m.type == PaymentType.credit).firstOrNull;
                       return Column(
                         children: [
@@ -308,6 +320,7 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
     }
 
     final repo = ref.read(billRepositoryProvider);
+    final register = ref.read(activeRegisterProvider).value;
     final result = await repo.recordPayment(
       companyId: _bill.companyId,
       billId: _bill.id,
@@ -316,6 +329,7 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
       amount: effectiveAmount,
       tipAmount: tipAmount,
       userId: ref.read(activeUserProvider)?.id,
+      registerId: register?.id,
       loyaltyEarnPerHundredCzk: loyaltyEarn,
     );
 
@@ -362,6 +376,7 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
 
     // Record the payment
     final repo = ref.read(billRepositoryProvider);
+    final register2 = ref.read(activeRegisterProvider).value;
     final result = await repo.recordPayment(
       companyId: _bill.companyId,
       billId: _bill.id,
@@ -370,6 +385,7 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
       amount: effectiveAmount,
       tipAmount: 0,
       userId: ref.read(activeUserProvider)?.id,
+      registerId: register2?.id,
     );
 
     if (!context.mounted) return;

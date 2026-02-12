@@ -774,7 +774,11 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     final sessionRepo = ref.read(registerSessionRepositoryProvider);
     final counterResult = await sessionRepo.incrementOrderCounter(session.id);
     if (counterResult is! Success<int>) return 'O-0000';
-    return 'O-${counterResult.value.toString().padLeft(4, '0')}';
+
+    // Register-based numbering: O{n}-{counter}
+    final register = ref.read(activeRegisterProvider).value;
+    final regNum = register?.registerNumber ?? 0;
+    return 'O$regNum-${counterResult.value.toString().padLeft(4, '0')}';
   }
 
   Future<void> _submitOrder(BuildContext context, WidgetRef ref) async {
@@ -794,6 +798,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
       for (var i = 0; i < groups.length; i++) {
         final orderNumber = await _nextOrderNumber(ref);
         final orderItems = await _buildOrderItemsFromGroup(ref, groups[i]);
+        final register = ref.read(activeRegisterProvider).value;
         final result = await orderRepo.createOrderWithItems(
           companyId: company.id,
           billId: widget.billId!,
@@ -801,6 +806,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
           orderNumber: orderNumber,
           items: orderItems,
           orderNotes: i == 0 ? _orderNotes : null,
+          registerId: register?.id,
         );
         if (result is Success) anySuccess = true;
       }
@@ -830,6 +836,8 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     final defaultSection = sections.where((s) => s.isDefault).firstOrNull ?? sections.firstOrNull;
 
     // Create bill
+    final register = ref.read(activeRegisterProvider).value;
+    final session = ref.read(activeRegisterSessionProvider).value;
     final billResult = await billRepo.createBill(
       companyId: company.id,
       userId: user.id,
@@ -837,6 +845,8 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
       sectionId: defaultSection?.id,
       customerId: _customerId,
       customerName: _customerId == null ? _customerName : null,
+      registerId: register?.id,
+      registerSessionId: session?.id,
       isTakeaway: true,
       numberOfGuests: 1,
     );
@@ -856,6 +866,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
         orderNumber: orderNumber,
         items: orderItems,
         orderNotes: i == 0 ? _orderNotes : null,
+        registerId: register?.id,
       );
     }
     await billRepo.updateTotals(bill.id);
@@ -901,6 +912,8 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
       final defaultSection = sections.where((s) => s.isDefault).firstOrNull ?? sections.firstOrNull;
 
       // Create regular bill on default section, no table
+      final register = ref.read(activeRegisterProvider).value;
+      final session = ref.read(activeRegisterSessionProvider).value;
       final billResult = await billRepo.createBill(
         companyId: company.id,
         userId: user.id,
@@ -908,6 +921,8 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
         sectionId: defaultSection?.id,
         customerId: _customerId,
         customerName: _customerId == null ? _customerName : null,
+        registerId: register?.id,
+        registerSessionId: session?.id,
         isTakeaway: false,
       );
       if (billResult is! Success<BillModel>) return;
@@ -926,6 +941,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
           orderNumber: orderNumber,
           items: orderItems,
           orderNotes: i == 0 ? _orderNotes : null,
+          registerId: register?.id,
         );
       }
       await billRepo.updateTotals(bill.id);

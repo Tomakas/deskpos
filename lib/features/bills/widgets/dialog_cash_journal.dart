@@ -113,7 +113,7 @@ class _DialogCashJournalState extends State<DialogCashJournal> {
 
     if (_showWithdrawals) {
       for (final m in widget.movements) {
-        if (m.type == CashMovementType.withdrawal || m.type == CashMovementType.expense) {
+        if (m.type == CashMovementType.withdrawal || m.type == CashMovementType.expense || m.type == CashMovementType.handover) {
           entries.add(_JournalEntry(
             createdAt: m.createdAt,
             kind: _EntryKind.withdrawal,

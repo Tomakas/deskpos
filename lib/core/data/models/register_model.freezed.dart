@@ -20,6 +20,9 @@ mixin _$RegisterModel {
   String get id => throw _privateConstructorUsedError;
   String get companyId => throw _privateConstructorUsedError;
   String get code => throw _privateConstructorUsedError;
+  String get name => throw _privateConstructorUsedError;
+  int get registerNumber => throw _privateConstructorUsedError;
+  String? get parentRegisterId => throw _privateConstructorUsedError;
   bool get isActive => throw _privateConstructorUsedError;
   HardwareType get type => throw _privateConstructorUsedError;
   bool get allowCash => throw _privateConstructorUsedError;
@@ -50,6 +53,9 @@ abstract class $RegisterModelCopyWith<$Res> {
     String id,
     String companyId,
     String code,
+    String name,
+    int registerNumber,
+    String? parentRegisterId,
     bool isActive,
     HardwareType type,
     bool allowCash,
@@ -82,6 +88,9 @@ class _$RegisterModelCopyWithImpl<$Res, $Val extends RegisterModel>
     Object? id = null,
     Object? companyId = null,
     Object? code = null,
+    Object? name = null,
+    Object? registerNumber = null,
+    Object? parentRegisterId = freezed,
     Object? isActive = null,
     Object? type = null,
     Object? allowCash = null,
@@ -108,6 +117,18 @@ class _$RegisterModelCopyWithImpl<$Res, $Val extends RegisterModel>
                 ? _value.code
                 : code // ignore: cast_nullable_to_non_nullable
                       as String,
+            name: null == name
+                ? _value.name
+                : name // ignore: cast_nullable_to_non_nullable
+                      as String,
+            registerNumber: null == registerNumber
+                ? _value.registerNumber
+                : registerNumber // ignore: cast_nullable_to_non_nullable
+                      as int,
+            parentRegisterId: freezed == parentRegisterId
+                ? _value.parentRegisterId
+                : parentRegisterId // ignore: cast_nullable_to_non_nullable
+                      as String?,
             isActive: null == isActive
                 ? _value.isActive
                 : isActive // ignore: cast_nullable_to_non_nullable
@@ -171,6 +192,9 @@ abstract class _$$RegisterModelImplCopyWith<$Res>
     String id,
     String companyId,
     String code,
+    String name,
+    int registerNumber,
+    String? parentRegisterId,
     bool isActive,
     HardwareType type,
     bool allowCash,
@@ -202,6 +226,9 @@ class __$$RegisterModelImplCopyWithImpl<$Res>
     Object? id = null,
     Object? companyId = null,
     Object? code = null,
+    Object? name = null,
+    Object? registerNumber = null,
+    Object? parentRegisterId = freezed,
     Object? isActive = null,
     Object? type = null,
     Object? allowCash = null,
@@ -228,6 +255,18 @@ class __$$RegisterModelImplCopyWithImpl<$Res>
             ? _value.code
             : code // ignore: cast_nullable_to_non_nullable
                   as String,
+        name: null == name
+            ? _value.name
+            : name // ignore: cast_nullable_to_non_nullable
+                  as String,
+        registerNumber: null == registerNumber
+            ? _value.registerNumber
+            : registerNumber // ignore: cast_nullable_to_non_nullable
+                  as int,
+        parentRegisterId: freezed == parentRegisterId
+            ? _value.parentRegisterId
+            : parentRegisterId // ignore: cast_nullable_to_non_nullable
+                  as String?,
         isActive: null == isActive
             ? _value.isActive
             : isActive // ignore: cast_nullable_to_non_nullable
@@ -284,6 +323,9 @@ class _$RegisterModelImpl implements _RegisterModel {
     required this.id,
     required this.companyId,
     required this.code,
+    this.name = '',
+    this.registerNumber = 1,
+    this.parentRegisterId,
     this.isActive = true,
     required this.type,
     this.allowCash = true,
@@ -303,6 +345,14 @@ class _$RegisterModelImpl implements _RegisterModel {
   final String companyId;
   @override
   final String code;
+  @override
+  @JsonKey()
+  final String name;
+  @override
+  @JsonKey()
+  final int registerNumber;
+  @override
+  final String? parentRegisterId;
   @override
   @JsonKey()
   final bool isActive;
@@ -335,7 +385,7 @@ class _$RegisterModelImpl implements _RegisterModel {
 
   @override
   String toString() {
-    return 'RegisterModel(id: $id, companyId: $companyId, code: $code, isActive: $isActive, type: $type, allowCash: $allowCash, allowCard: $allowCard, allowTransfer: $allowTransfer, allowRefunds: $allowRefunds, gridRows: $gridRows, gridCols: $gridCols, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+    return 'RegisterModel(id: $id, companyId: $companyId, code: $code, name: $name, registerNumber: $registerNumber, parentRegisterId: $parentRegisterId, isActive: $isActive, type: $type, allowCash: $allowCash, allowCard: $allowCard, allowTransfer: $allowTransfer, allowRefunds: $allowRefunds, gridRows: $gridRows, gridCols: $gridCols, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
   }
 
   @override
@@ -347,6 +397,11 @@ class _$RegisterModelImpl implements _RegisterModel {
             (identical(other.companyId, companyId) ||
                 other.companyId == companyId) &&
             (identical(other.code, code) || other.code == code) &&
+            (identical(other.name, name) || other.name == name) &&
+            (identical(other.registerNumber, registerNumber) ||
+                other.registerNumber == registerNumber) &&
+            (identical(other.parentRegisterId, parentRegisterId) ||
+                other.parentRegisterId == parentRegisterId) &&
             (identical(other.isActive, isActive) ||
                 other.isActive == isActive) &&
             (identical(other.type, type) || other.type == type) &&
@@ -376,6 +431,9 @@ class _$RegisterModelImpl implements _RegisterModel {
     id,
     companyId,
     code,
+    name,
+    registerNumber,
+    parentRegisterId,
     isActive,
     type,
     allowCash,
@@ -403,6 +461,9 @@ abstract class _RegisterModel implements RegisterModel {
     required final String id,
     required final String companyId,
     required final String code,
+    final String name,
+    final int registerNumber,
+    final String? parentRegisterId,
     final bool isActive,
     required final HardwareType type,
     final bool allowCash,
@@ -422,6 +483,12 @@ abstract class _RegisterModel implements RegisterModel {
   String get companyId;
   @override
   String get code;
+  @override
+  String get name;
+  @override
+  int get registerNumber;
+  @override
+  String? get parentRegisterId;
   @override
   bool get isActive;
   @override

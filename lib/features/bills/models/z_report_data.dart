@@ -28,6 +28,8 @@ class ZReportData {
     required this.openBillsAtOpenAmount,
     required this.openBillsAtCloseCount,
     required this.openBillsAtCloseAmount,
+    this.registerBreakdowns = const [],
+    this.registerName,
   });
 
   final String sessionId;
@@ -64,6 +66,43 @@ class ZReportData {
   final int openBillsAtOpenAmount;
   final int openBillsAtCloseCount;
   final int openBillsAtCloseAmount;
+
+  /// Per-register breakdown (populated in venue reports)
+  final List<RegisterBreakdown> registerBreakdowns;
+
+  /// Name of the register for this session
+  final String? registerName;
+}
+
+/// Per-register summary within a venue Z-report
+class RegisterBreakdown {
+  const RegisterBreakdown({
+    required this.registerId,
+    required this.registerName,
+    required this.registerNumber,
+    required this.paymentSummaries,
+    required this.totalRevenue,
+    required this.totalTips,
+    required this.cashRevenue,
+    required this.openingCash,
+    required this.closingCash,
+    required this.expectedCash,
+    required this.difference,
+    required this.billsPaid,
+  });
+
+  final String registerId;
+  final String registerName;
+  final int registerNumber;
+  final List<PaymentTypeSummary> paymentSummaries;
+  final int totalRevenue;
+  final int totalTips;
+  final int cashRevenue;
+  final int openingCash;
+  final int closingCash;
+  final int expectedCash;
+  final int difference;
+  final int billsPaid;
 }
 
 class TaxBreakdownRow {
@@ -91,6 +130,7 @@ class ZReportSessionSummary {
     required this.userName,
     required this.totalRevenue,
     this.difference,
+    this.registerName,
   });
 
   final String sessionId;
@@ -99,4 +139,5 @@ class ZReportSessionSummary {
   final String userName;
   final int totalRevenue;
   final int? difference;
+  final String? registerName;
 }

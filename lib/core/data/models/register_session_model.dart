@@ -12,6 +12,8 @@ class RegisterSessionModel with _$RegisterSessionModel {
     required DateTime openedAt,
     DateTime? closedAt,
     @Default(0) int orderCounter,
+    @Default(0) int billCounter,
+    String? parentSessionId,
     int? openingCash,
     int? closingCash,
     int? expectedCash,

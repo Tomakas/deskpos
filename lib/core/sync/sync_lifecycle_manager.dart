@@ -12,18 +12,21 @@ import '../data/result.dart';
 import '../database/app_database.dart';
 import '../logging/app_logger.dart';
 import 'outbox_processor.dart';
+import 'realtime_service.dart';
 import 'sync_service.dart';
 
 class SyncLifecycleManager {
   SyncLifecycleManager({
     required OutboxProcessor outboxProcessor,
     required SyncService syncService,
+    required RealtimeService realtimeService,
     required SyncQueueRepository syncQueueRepo,
     required CompanyRepository companyRepo,
     required List<BaseCompanyScopedRepository> companyRepos,
     required AppDatabase db,
   })  : _outboxProcessor = outboxProcessor,
         _syncService = syncService,
+        _realtimeService = realtimeService,
         _syncQueueRepo = syncQueueRepo,
         _companyRepo = companyRepo,
         _companyRepos = companyRepos,
@@ -31,6 +34,7 @@ class SyncLifecycleManager {
 
   final OutboxProcessor _outboxProcessor;
   final SyncService _syncService;
+  final RealtimeService _realtimeService;
   final SyncQueueRepository _syncQueueRepo;
   final CompanyRepository _companyRepo;
   final List<BaseCompanyScopedRepository> _companyRepos;
@@ -58,8 +62,11 @@ class SyncLifecycleManager {
     // Start outbox push
     _outboxProcessor.start();
 
-    // Start pull sync
+    // Start pull sync (5-min polling as fallback)
     _syncService.startAutoSync(companyId);
+
+    // Start realtime subscriptions (<2s latency)
+    _realtimeService.start(companyId);
   }
 
   void stop() {
@@ -67,6 +74,7 @@ class SyncLifecycleManager {
     _isRunning = false;
 
     AppLogger.info('SyncLifecycleManager: stopping', tag: 'SYNC');
+    _realtimeService.stop();
     _outboxProcessor.stop();
     _syncService.stop();
   }

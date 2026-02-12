@@ -277,6 +277,8 @@ class SeedService {
           id: registerId,
           companyId: companyId,
           code: 'REG-1',
+          name: 'Hlavní pokladna',
+          registerNumber: 1,
           type: HardwareType.local,
           allowCash: true,
           allowCard: true,
@@ -291,6 +293,8 @@ class SeedService {
               id: register.id,
               companyId: register.companyId,
               code: register.code,
+              name: Value(register.name),
+              registerNumber: Value(register.registerNumber),
               type: register.type,
             ));
 

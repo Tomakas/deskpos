@@ -6,6 +6,8 @@ import '../../features/auth/screens/screen_login.dart';
 import '../../features/bills/screens/screen_bills.dart';
 import '../../features/catalog/screens/screen_catalog.dart';
 import '../../features/inventory/screens/screen_inventory.dart';
+import '../../features/orders/screens/screen_kds.dart';
+import '../../features/sell/screens/screen_customer_display.dart';
 import '../../features/orders/screens/screen_orders.dart';
 import '../../features/vouchers/screens/screen_vouchers.dart';
 import '../../features/onboarding/screens/screen_connect_company.dart';
@@ -82,6 +84,16 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => ScreenSell(billId: state.pathParameters['billId']),
       ),
       GoRoute(
+        path: '/customer-display',
+        builder: (context, state) => const ScreenCustomerDisplay(),
+      ),
+      GoRoute(
+        path: '/customer-display/:billId',
+        builder: (context, state) => ScreenCustomerDisplay(
+          billId: state.pathParameters['billId'],
+        ),
+      ),
+      GoRoute(
         path: '/settings/company',
         redirect: (context, state) {
           final hasPermission = ref.read(hasPermissionProvider('settings.manage'));
@@ -134,6 +146,15 @@ final routerProvider = Provider<GoRouter>((ref) {
           return null;
         },
         builder: (context, state) => const ScreenOrders(),
+      ),
+      GoRoute(
+        path: '/kds',
+        redirect: (context, state) {
+          final hasPermission = ref.read(hasPermissionProvider('orders.view'));
+          if (!hasPermission) return '/bills';
+          return null;
+        },
+        builder: (context, state) => const ScreenKds(),
       ),
       GoRoute(
         path: '/vouchers',

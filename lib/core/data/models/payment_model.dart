@@ -8,6 +8,7 @@ class PaymentModel with _$PaymentModel {
     required String id,
     required String companyId,
     required String billId,
+    String? registerId,
     String? userId,
     required String paymentMethodId,
     required int amount,

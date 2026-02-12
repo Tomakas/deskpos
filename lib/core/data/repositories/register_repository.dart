@@ -1,11 +1,15 @@
 import 'dart:convert';
 
 import 'package:drift/drift.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../database/app_database.dart';
+import '../../logging/app_logger.dart';
+import '../enums/hardware_type.dart';
 import '../mappers/entity_mappers.dart';
 import '../mappers/supabase_mappers.dart';
 import '../models/register_model.dart';
+import '../result.dart';
 import 'sync_queue_repository.dart';
 
 class RegisterRepository {
@@ -35,6 +39,141 @@ class RegisterRepository {
         .map((e) => e == null ? null : registerFromEntity(e));
   }
 
+  Future<RegisterModel?> getById(String registerId) async {
+    final entity = await (_db.select(_db.registers)
+          ..where((t) => t.id.equals(registerId)))
+        .getSingleOrNull();
+    return entity == null ? null : registerFromEntity(entity);
+  }
+
+  Future<List<RegisterModel>> getAll(String companyId) async {
+    final entities = await (_db.select(_db.registers)
+          ..where((t) =>
+              t.companyId.equals(companyId) &
+              t.isActive.equals(true) &
+              t.deletedAt.isNull())
+          ..orderBy([(t) => OrderingTerm.asc(t.registerNumber)]))
+        .get();
+    return entities.map(registerFromEntity).toList();
+  }
+
+  Stream<List<RegisterModel>> watchAll(String companyId) {
+    return (_db.select(_db.registers)
+          ..where((t) =>
+              t.companyId.equals(companyId) &
+              t.isActive.equals(true) &
+              t.deletedAt.isNull())
+          ..orderBy([(t) => OrderingTerm.asc(t.registerNumber)]))
+        .watch()
+        .map((rows) => rows.map(registerFromEntity).toList());
+  }
+
+  Future<int> getNextRegisterNumber(String companyId) async {
+    final entities = await (_db.select(_db.registers)
+          ..where((t) =>
+              t.companyId.equals(companyId) &
+              t.deletedAt.isNull())
+          ..orderBy([(t) => OrderingTerm.desc(t.registerNumber)])
+          ..limit(1))
+        .get();
+    if (entities.isEmpty) return 1;
+    return entities.first.registerNumber + 1;
+  }
+
+  Future<Result<RegisterModel>> create({
+    required String companyId,
+    required String name,
+    required HardwareType type,
+    String? parentRegisterId,
+    bool allowCash = true,
+    bool allowCard = true,
+    bool allowTransfer = true,
+    bool allowRefunds = false,
+    int gridRows = 5,
+    int gridCols = 8,
+  }) async {
+    try {
+      final id = const Uuid().v7();
+      final registerNumber = await getNextRegisterNumber(companyId);
+      final code = 'REG-$registerNumber';
+
+      await _db.into(_db.registers).insert(RegistersCompanion.insert(
+        id: id,
+        companyId: companyId,
+        code: code,
+        name: Value(name),
+        registerNumber: Value(registerNumber),
+        parentRegisterId: Value(parentRegisterId),
+        type: type,
+        allowCash: Value(allowCash),
+        allowCard: Value(allowCard),
+        allowTransfer: Value(allowTransfer),
+        allowRefunds: Value(allowRefunds),
+        gridRows: Value(gridRows),
+        gridCols: Value(gridCols),
+      ));
+
+      final entity = await (_db.select(_db.registers)
+            ..where((t) => t.id.equals(id)))
+          .getSingle();
+      final model = registerFromEntity(entity);
+      await _enqueue('insert', model);
+      return Success(model);
+    } catch (e, s) {
+      AppLogger.error('Failed to create register', error: e, stackTrace: s);
+      return Failure('Failed to create register: $e');
+    }
+  }
+
+  Future<Result<RegisterModel>> update(RegisterModel model) async {
+    try {
+      final now = DateTime.now();
+      await (_db.update(_db.registers)..where((t) => t.id.equals(model.id)))
+          .write(RegistersCompanion(
+        name: Value(model.name),
+        type: Value(model.type),
+        parentRegisterId: Value(model.parentRegisterId),
+        isActive: Value(model.isActive),
+        allowCash: Value(model.allowCash),
+        allowCard: Value(model.allowCard),
+        allowTransfer: Value(model.allowTransfer),
+        allowRefunds: Value(model.allowRefunds),
+        gridRows: Value(model.gridRows),
+        gridCols: Value(model.gridCols),
+        updatedAt: Value(now),
+      ));
+      final entity = await (_db.select(_db.registers)
+            ..where((t) => t.id.equals(model.id)))
+          .getSingle();
+      final updated = registerFromEntity(entity);
+      await _enqueue('update', updated);
+      return Success(updated);
+    } catch (e, s) {
+      AppLogger.error('Failed to update register', error: e, stackTrace: s);
+      return Failure('Failed to update register: $e');
+    }
+  }
+
+  Future<Result<void>> delete(String registerId) async {
+    try {
+      final now = DateTime.now();
+      await (_db.update(_db.registers)..where((t) => t.id.equals(registerId)))
+          .write(RegistersCompanion(
+        deletedAt: Value(now),
+        updatedAt: Value(now),
+      ));
+      final entity = await (_db.select(_db.registers)
+            ..where((t) => t.id.equals(registerId)))
+          .getSingle();
+      final model = registerFromEntity(entity);
+      await _enqueue('delete', model);
+      return const Success(null);
+    } catch (e, s) {
+      AppLogger.error('Failed to delete register', error: e, stackTrace: s);
+      return Failure('Failed to delete register: $e');
+    }
+  }
+
   Future<RegisterModel?> updateGrid(String registerId, int gridRows, int gridCols) async {
     final now = DateTime.now();
     await (_db.update(_db.registers)..where((t) => t.id.equals(registerId)))
@@ -48,15 +187,18 @@ class RegisterRepository {
         .getSingleOrNull();
     if (entity == null) return null;
     final model = registerFromEntity(entity);
-    if (syncQueueRepo != null) {
-      await syncQueueRepo!.enqueue(
-        companyId: model.companyId,
-        entityType: 'registers',
-        entityId: model.id,
-        operation: 'update',
-        payload: jsonEncode(registerToSupabaseJson(model)),
-      );
-    }
+    await _enqueue('update', model);
     return model;
+  }
+
+  Future<void> _enqueue(String operation, RegisterModel model) async {
+    if (syncQueueRepo == null) return;
+    await syncQueueRepo!.enqueue(
+      companyId: model.companyId,
+      entityType: 'registers',
+      entityId: model.id,
+      operation: operation,
+      payload: jsonEncode(registerToSupabaseJson(model)),
+    );
   }
 }

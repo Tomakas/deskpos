@@ -507,7 +507,8 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
               child: Text(l.billDetailPrint),
             ),
           ),
-          if (isPaid) ...[
+          if (isPaid &&
+              (ref.read(activeRegisterProvider).value?.allowRefunds ?? true)) ...[
             const SizedBox(width: 12),
             // Refund
             SizedBox(
@@ -757,11 +758,15 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
 
     if (splitResult.payImmediately) {
       // Create new bill (same table, 0 guests)
+      final register = ref.read(activeRegisterProvider).value;
+      final activeSession = ref.read(activeRegisterSessionProvider).value;
       final newBillResult = await ref.read(billRepositoryProvider).createBill(
         companyId: company.id,
         userId: user.id,
         currencyId: bill.currencyId,
         tableId: bill.tableId,
+        registerId: register?.id,
+        registerSessionId: activeSession?.id,
       );
       if (newBillResult is! Success<BillModel> || !context.mounted) return;
       final newBill = newBillResult.value;
@@ -772,6 +777,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
         targetBillId: newBill.id,
         orderItemIds: splitResult.orderItemIds,
         userId: user.id,
+        registerId: register?.id,
       );
 
       // Get updated new bill for payment
@@ -806,12 +812,16 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
       if (newBillConfig == null || !context.mounted) return;
 
       // Create new bill
+      final register2 = ref.read(activeRegisterProvider).value;
+      final activeSession2 = ref.read(activeRegisterSessionProvider).value;
       final newBillResult = await ref.read(billRepositoryProvider).createBill(
         companyId: company.id,
         userId: user.id,
         currencyId: bill.currencyId,
         tableId: newBillConfig.tableId,
         numberOfGuests: newBillConfig.numberOfGuests,
+        registerId: register2?.id,
+        registerSessionId: activeSession2?.id,
       );
       if (newBillResult is! Success<BillModel> || !context.mounted) return;
 
@@ -821,6 +831,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
         targetBillId: newBillResult.value.id,
         orderItemIds: splitResult.orderItemIds,
         userId: user.id,
+        registerId: register2?.id,
       );
       // Stay on original bill detail (auto-refreshed via stream)
     }
@@ -844,11 +855,13 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
     final user = ref.read(activeUserProvider);
     if (session == null || user == null) return;
 
+    final register = ref.read(activeRegisterProvider).value;
     final repo = ref.read(billRepositoryProvider);
     await repo.refundBill(
       billId: bill.id,
       registerSessionId: session.id,
       userId: user.id,
+      registerId: register?.id,
     );
   }
 
@@ -974,7 +987,9 @@ class _OrderSection extends ConsumerWidget {
               InkWell(
                 onTap: isEditable
                     ? () => _editItemNotes(context, ref, item)
-                    : (isPaid && item.status != PrepStatus.voided)
+                    : (isPaid &&
+                            item.status != PrepStatus.voided &&
+                            (ref.read(activeRegisterProvider).value?.allowRefunds ?? true))
                         ? () => _refundItem(context, ref, item)
                         : null,
                 child: Container(
@@ -1212,12 +1227,14 @@ class _OrderSection extends ConsumerWidget {
 
     // Generate storno order number
     final session = ref.read(activeRegisterSessionProvider).valueOrNull;
-    String stornoNumber = 'X-0000';
+    final registerModel = ref.read(activeRegisterProvider).value;
+    final regNum = registerModel?.registerNumber ?? 0;
+    String stornoNumber = 'X$regNum-0000';
     if (session != null) {
       final sessionRepo = ref.read(registerSessionRepositoryProvider);
       final counter = await sessionRepo.incrementOrderCounter(session.id);
       if (counter is Success<int>) {
-        stornoNumber = 'X-${counter.value.toString().padLeft(4, '0')}';
+        stornoNumber = 'X$regNum-${counter.value.toString().padLeft(4, '0')}';
       }
     }
 
@@ -1228,6 +1245,7 @@ class _OrderSection extends ConsumerWidget {
       companyId: order.companyId,
       userId: user.id,
       stornoOrderNumber: stornoNumber,
+      registerId: registerModel?.id,
     );
     await ref.read(billRepositoryProvider).updateTotals(order.billId);
   }

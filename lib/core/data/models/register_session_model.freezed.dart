@@ -24,6 +24,8 @@ mixin _$RegisterSessionModel {
   DateTime get openedAt => throw _privateConstructorUsedError;
   DateTime? get closedAt => throw _privateConstructorUsedError;
   int get orderCounter => throw _privateConstructorUsedError;
+  int get billCounter => throw _privateConstructorUsedError;
+  String? get parentSessionId => throw _privateConstructorUsedError;
   int? get openingCash => throw _privateConstructorUsedError;
   int? get closingCash => throw _privateConstructorUsedError;
   int? get expectedCash => throw _privateConstructorUsedError;
@@ -58,6 +60,8 @@ abstract class $RegisterSessionModelCopyWith<$Res> {
     DateTime openedAt,
     DateTime? closedAt,
     int orderCounter,
+    int billCounter,
+    String? parentSessionId,
     int? openingCash,
     int? closingCash,
     int? expectedCash,
@@ -97,6 +101,8 @@ class _$RegisterSessionModelCopyWithImpl<
     Object? openedAt = null,
     Object? closedAt = freezed,
     Object? orderCounter = null,
+    Object? billCounter = null,
+    Object? parentSessionId = freezed,
     Object? openingCash = freezed,
     Object? closingCash = freezed,
     Object? expectedCash = freezed,
@@ -139,6 +145,14 @@ class _$RegisterSessionModelCopyWithImpl<
                 ? _value.orderCounter
                 : orderCounter // ignore: cast_nullable_to_non_nullable
                       as int,
+            billCounter: null == billCounter
+                ? _value.billCounter
+                : billCounter // ignore: cast_nullable_to_non_nullable
+                      as int,
+            parentSessionId: freezed == parentSessionId
+                ? _value.parentSessionId
+                : parentSessionId // ignore: cast_nullable_to_non_nullable
+                      as String?,
             openingCash: freezed == openingCash
                 ? _value.openingCash
                 : openingCash // ignore: cast_nullable_to_non_nullable
@@ -206,6 +220,8 @@ abstract class _$$RegisterSessionModelImplCopyWith<$Res>
     DateTime openedAt,
     DateTime? closedAt,
     int orderCounter,
+    int billCounter,
+    String? parentSessionId,
     int? openingCash,
     int? closingCash,
     int? expectedCash,
@@ -241,6 +257,8 @@ class __$$RegisterSessionModelImplCopyWithImpl<$Res>
     Object? openedAt = null,
     Object? closedAt = freezed,
     Object? orderCounter = null,
+    Object? billCounter = null,
+    Object? parentSessionId = freezed,
     Object? openingCash = freezed,
     Object? closingCash = freezed,
     Object? expectedCash = freezed,
@@ -283,6 +301,14 @@ class __$$RegisterSessionModelImplCopyWithImpl<$Res>
             ? _value.orderCounter
             : orderCounter // ignore: cast_nullable_to_non_nullable
                   as int,
+        billCounter: null == billCounter
+            ? _value.billCounter
+            : billCounter // ignore: cast_nullable_to_non_nullable
+                  as int,
+        parentSessionId: freezed == parentSessionId
+            ? _value.parentSessionId
+            : parentSessionId // ignore: cast_nullable_to_non_nullable
+                  as String?,
         openingCash: freezed == openingCash
             ? _value.openingCash
             : openingCash // ignore: cast_nullable_to_non_nullable
@@ -343,6 +369,8 @@ class _$RegisterSessionModelImpl implements _RegisterSessionModel {
     required this.openedAt,
     this.closedAt,
     this.orderCounter = 0,
+    this.billCounter = 0,
+    this.parentSessionId,
     this.openingCash,
     this.closingCash,
     this.expectedCash,
@@ -372,6 +400,11 @@ class _$RegisterSessionModelImpl implements _RegisterSessionModel {
   @JsonKey()
   final int orderCounter;
   @override
+  @JsonKey()
+  final int billCounter;
+  @override
+  final String? parentSessionId;
+  @override
   final int? openingCash;
   @override
   final int? closingCash;
@@ -396,7 +429,7 @@ class _$RegisterSessionModelImpl implements _RegisterSessionModel {
 
   @override
   String toString() {
-    return 'RegisterSessionModel(id: $id, companyId: $companyId, registerId: $registerId, openedByUserId: $openedByUserId, openedAt: $openedAt, closedAt: $closedAt, orderCounter: $orderCounter, openingCash: $openingCash, closingCash: $closingCash, expectedCash: $expectedCash, difference: $difference, openBillsAtOpenCount: $openBillsAtOpenCount, openBillsAtOpenAmount: $openBillsAtOpenAmount, openBillsAtCloseCount: $openBillsAtCloseCount, openBillsAtCloseAmount: $openBillsAtCloseAmount, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+    return 'RegisterSessionModel(id: $id, companyId: $companyId, registerId: $registerId, openedByUserId: $openedByUserId, openedAt: $openedAt, closedAt: $closedAt, orderCounter: $orderCounter, billCounter: $billCounter, parentSessionId: $parentSessionId, openingCash: $openingCash, closingCash: $closingCash, expectedCash: $expectedCash, difference: $difference, openBillsAtOpenCount: $openBillsAtOpenCount, openBillsAtOpenAmount: $openBillsAtOpenAmount, openBillsAtCloseCount: $openBillsAtCloseCount, openBillsAtCloseAmount: $openBillsAtCloseAmount, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
   }
 
   @override
@@ -417,6 +450,10 @@ class _$RegisterSessionModelImpl implements _RegisterSessionModel {
                 other.closedAt == closedAt) &&
             (identical(other.orderCounter, orderCounter) ||
                 other.orderCounter == orderCounter) &&
+            (identical(other.billCounter, billCounter) ||
+                other.billCounter == billCounter) &&
+            (identical(other.parentSessionId, parentSessionId) ||
+                other.parentSessionId == parentSessionId) &&
             (identical(other.openingCash, openingCash) ||
                 other.openingCash == openingCash) &&
             (identical(other.closingCash, closingCash) ||
@@ -442,7 +479,7 @@ class _$RegisterSessionModelImpl implements _RegisterSessionModel {
   }
 
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     runtimeType,
     id,
     companyId,
@@ -451,6 +488,8 @@ class _$RegisterSessionModelImpl implements _RegisterSessionModel {
     openedAt,
     closedAt,
     orderCounter,
+    billCounter,
+    parentSessionId,
     openingCash,
     closingCash,
     expectedCash,
@@ -462,7 +501,7 @@ class _$RegisterSessionModelImpl implements _RegisterSessionModel {
     createdAt,
     updatedAt,
     deletedAt,
-  );
+  ]);
 
   /// Create a copy of RegisterSessionModel
   /// with the given fields replaced by the non-null parameter values.
@@ -486,6 +525,8 @@ abstract class _RegisterSessionModel implements RegisterSessionModel {
     required final DateTime openedAt,
     final DateTime? closedAt,
     final int orderCounter,
+    final int billCounter,
+    final String? parentSessionId,
     final int? openingCash,
     final int? closingCash,
     final int? expectedCash,
@@ -513,6 +554,10 @@ abstract class _RegisterSessionModel implements RegisterSessionModel {
   DateTime? get closedAt;
   @override
   int get orderCounter;
+  @override
+  int get billCounter;
+  @override
+  String? get parentSessionId;
   @override
   int? get openingCash;
   @override

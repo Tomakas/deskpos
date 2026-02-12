@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../auth/auth_service.dart';
 import '../../auth/session_manager.dart';
 import '../models/company_model.dart';
+import '../models/device_registration_model.dart';
 import '../models/register_model.dart';
 import '../models/register_session_model.dart';
 import '../models/user_model.dart';
@@ -58,18 +59,42 @@ enum _AppInitState { needsOnboarding, needsLogin }
 /// Re-export for use in routing
 typedef AppInitState = _AppInitState;
 
-/// Provides the active register for the current company
+/// Provides the device registration for the current company (local-only binding)
+final deviceRegistrationProvider = FutureProvider<DeviceRegistrationModel?>((ref) async {
+  final company = ref.watch(currentCompanyProvider);
+  if (company == null) return null;
+  return ref.watch(deviceRegistrationRepositoryProvider).getForCompany(company.id);
+});
+
+/// Provides the active register for the current company.
+/// Uses device binding if available, otherwise falls back to first active register.
 final activeRegisterProvider = FutureProvider<RegisterModel?>((ref) async {
   final company = ref.watch(currentCompanyProvider);
   if (company == null) return null;
+
+  // Try device binding first
+  final deviceReg = await ref.watch(deviceRegistrationProvider.future);
+  if (deviceReg != null) {
+    return ref.watch(registerRepositoryProvider).getById(deviceReg.registerId);
+  }
+
+  // Fallback for legacy/unbound devices
   return ref.watch(registerRepositoryProvider).getFirstActive(company.id);
 });
 
-/// Watches the active register session (open, not closed)
+/// Watches the active register session (open, not closed).
+/// Filters by registerId from device binding when available.
 final activeRegisterSessionProvider = StreamProvider<RegisterSessionModel?>((ref) {
   final company = ref.watch(currentCompanyProvider);
   if (company == null) return Stream.value(null);
-  return ref.watch(registerSessionRepositoryProvider).watchActiveSession(company.id);
+
+  final deviceReg = ref.watch(deviceRegistrationProvider).value;
+  final registerId = deviceReg?.registerId;
+
+  return ref.watch(registerSessionRepositoryProvider).watchActiveSession(
+    company.id,
+    registerId: registerId,
+  );
 });
 
 /// Manual lock trigger — set to true to show lock overlay (e.g. from "Switch/Lock" button)

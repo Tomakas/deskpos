@@ -8,6 +8,7 @@ class Orders extends Table with SyncColumnsMixin {
   TextColumn get id => text()();
   TextColumn get companyId => text()();
   TextColumn get billId => text()();
+  TextColumn get registerId => text().nullable()();
   TextColumn get createdByUserId => text()();
   TextColumn get orderNumber => text()();
   TextColumn get notes => text().nullable()();

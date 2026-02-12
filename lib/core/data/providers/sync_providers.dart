@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../auth/supabase_auth_service.dart';
 import '../../sync/outbox_processor.dart';
+import '../../sync/realtime_service.dart';
 import '../../sync/sync_lifecycle_manager.dart';
 import '../../sync/sync_service.dart';
 import 'auth_providers.dart';
@@ -43,10 +44,18 @@ final syncServiceProvider = Provider<SyncService>((ref) {
   );
 });
 
+final realtimeServiceProvider = Provider<RealtimeService>((ref) {
+  return RealtimeService(
+    supabaseClient: Supabase.instance.client,
+    syncService: ref.watch(syncServiceProvider),
+  );
+});
+
 final syncLifecycleManagerProvider = Provider<SyncLifecycleManager>((ref) {
   final manager = SyncLifecycleManager(
     outboxProcessor: ref.watch(outboxProcessorProvider),
     syncService: ref.watch(syncServiceProvider),
+    realtimeService: ref.watch(realtimeServiceProvider),
     syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
     companyRepo: ref.watch(companyRepositoryProvider),
     companyRepos: [

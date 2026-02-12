@@ -78,8 +78,11 @@ class DialogZReport extends ConsumerWidget {
     final dateFormat = DateFormat('d.M.yyyy', 'cs');
     final timeFormat = DateFormat('HH:mm', 'cs');
 
+    final isVenueReport = data.registerBreakdowns.isNotEmpty;
+    final title = isVenueReport ? l.zReportVenueReportTitle : l.zReportTitle;
+
     return PosDialogShell(
-      title: l.zReportTitle,
+      title: title,
       titleStyle: theme.textTheme.headlineSmall,
       maxWidth: 520,
       scrollable: true,
@@ -87,6 +90,8 @@ class DialogZReport extends ConsumerWidget {
         // --- Session info ---
                 Text(l.zReportSessionInfo, style: theme.textTheme.titleSmall),
                 const SizedBox(height: 8),
+                if (data.registerName != null)
+                  _row(context, l.zReportRegisterColumn, data.registerName!),
                 _row(context, l.zReportOpenedAt,
                     '${dateFormat.format(data.openedAt)} ${timeFormat.format(data.openedAt)}'),
                 if (data.closedAt != null)
@@ -193,6 +198,50 @@ class DialogZReport extends ConsumerWidget {
                           : Theme.of(context).colorScheme.error,
                 ),
                 const Divider(height: 24),
+
+                // --- Per-register breakdown (venue reports) ---
+                if (data.registerBreakdowns.length > 1) ...[
+                  Text(l.zReportRegisterBreakdown, style: theme.textTheme.titleSmall),
+                  const SizedBox(height: 8),
+                  for (final rb in data.registerBreakdowns) ...[
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: theme.dividerColor),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l.zReportRegisterName(rb.registerName),
+                            style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 4),
+                          for (final ps in rb.paymentSummaries)
+                            _revenueRow(context, ps.name, ps.amount, ps.count),
+                          const Divider(height: 8),
+                          _row(context, l.zReportRevenueTotal, _fmtKc(rb.totalRevenue), bold: true),
+                          _row(context, l.zReportBillsPaid, '${rb.billsPaid}'),
+                          _row(context, l.zReportCashOpening, _fmtKc(rb.openingCash)),
+                          _row(context, l.zReportCashClosing, _fmtKc(rb.closingCash)),
+                          _row(
+                            context,
+                            l.zReportCashDifference,
+                            '${rb.difference >= 0 ? '+' : ''}${rb.difference ~/ 100} Kč',
+                            valueColor: rb.difference == 0
+                                ? Colors.green
+                                : rb.difference > 0
+                                    ? Colors.blue
+                                    : theme.colorScheme.error,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                  const Divider(height: 24),
+                ],
 
                 // --- Shift durations ---
                 if (data.shiftDurations.isNotEmpty) ...[

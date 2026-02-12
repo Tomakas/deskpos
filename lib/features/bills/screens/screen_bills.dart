@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 
 import '../../../core/data/enums/bill_status.dart';
 import '../../../core/data/enums/cash_movement_type.dart';
+import '../../../core/data/enums/hardware_type.dart';
 import '../../../core/data/enums/payment_type.dart';
 import '../../../core/data/models/bill_model.dart';
 import '../../../core/data/models/customer_model.dart';
@@ -196,6 +197,8 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
 
       final billRepo = ref.read(billRepositoryProvider);
 
+      final register = ref.read(activeRegisterProvider).value;
+      final session = ref.read(activeRegisterSessionProvider).value;
       final createResult = await billRepo.createBill(
         companyId: company.id,
         userId: user.id,
@@ -204,6 +207,8 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
         tableId: result.tableId,
         customerId: result.customerId,
         customerName: result.customerName,
+        registerId: register?.id,
+        registerSessionId: session?.id,
         isTakeaway: false,
         numberOfGuests: result.numberOfGuests,
       );
@@ -239,7 +244,7 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
           .where((m) => m.type == CashMovementType.deposit)
           .fold(0, (sum, m) => sum + m.amount);
       final cashWithdrawals = cashMovements
-          .where((m) => m.type == CashMovementType.withdrawal || m.type == CashMovementType.expense)
+          .where((m) => m.type == CashMovementType.withdrawal || m.type == CashMovementType.expense || m.type == CashMovementType.handover)
           .fold(0, (sum, m) => sum + m.amount);
 
       // Payment summaries: get all bills paid during this session
@@ -359,13 +364,47 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
         openBillsAtCloseCount: openBillsCount,
         openBillsAtCloseAmount: openBillsAmount,
       );
+
+      // Cash handover: if mobile register with parent, transfer cash to parent session
+      final register = ref.read(activeRegisterProvider).value;
+      if (register != null &&
+          register.type == HardwareType.mobile &&
+          register.parentRegisterId != null &&
+          result.closingCash > 0) {
+        final parentSession = await ref.read(registerSessionRepositoryProvider)
+            .getActiveSession(company.id, registerId: register.parentRegisterId);
+        if (parentSession != null) {
+          final cashMovementRepo = ref.read(cashMovementRepositoryProvider);
+          final registerName = register.name.isNotEmpty ? register.name : register.code;
+
+          // Withdrawal from mobile register (on the now-closed session)
+          await cashMovementRepo.create(
+            companyId: company.id,
+            registerSessionId: session.id,
+            userId: user.id,
+            type: CashMovementType.handover,
+            amount: result.closingCash,
+            reason: l.cashHandoverReason(registerName),
+          );
+
+          // Deposit on parent register session
+          await cashMovementRepo.create(
+            companyId: company.id,
+            registerSessionId: parentSession.id,
+            userId: user.id,
+            type: CashMovementType.deposit,
+            amount: result.closingCash,
+            reason: l.cashHandoverReason(registerName),
+          );
+        }
+      }
     } else {
       // --- Opening session ---
       final register = await ref.read(activeRegisterProvider.future);
       if (register == null) return;
 
       final sessionRepo = ref.read(registerSessionRepositoryProvider);
-      final lastClosingCash = await sessionRepo.getLastClosingCash(company.id);
+      final lastClosingCash = await sessionRepo.getLastClosingCash(company.id, registerId: register.id);
 
       if (!context.mounted) return;
 
@@ -433,7 +472,7 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
         .where((m) => m.type == CashMovementType.deposit)
         .fold(0, (sum, m) => sum + m.amount);
     final withdrawals = movements
-        .where((m) => m.type == CashMovementType.withdrawal || m.type == CashMovementType.expense)
+        .where((m) => m.type == CashMovementType.withdrawal || m.type == CashMovementType.expense || m.type == CashMovementType.handover)
         .fold(0, (sum, m) => sum + m.amount);
 
     // Cash revenue from sales paid during this session
@@ -515,6 +554,18 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
             showDialog(
               context: context,
               builder: (_) => DialogZReport(data: zReport),
+            );
+          }
+        },
+        onVenueReport: (dateFrom, dateTo) async {
+          Navigator.pop(context);
+          final venueReport = await zReportService.buildVenueZReport(
+            company.id, dateFrom, dateTo,
+          );
+          if (venueReport != null && context.mounted) {
+            showDialog(
+              context: context,
+              builder: (_) => DialogZReport(data: venueReport),
             );
           }
         },
@@ -1059,12 +1110,12 @@ class _RightPanel extends ConsumerWidget {
             onLeft: onCashMovement,
             onRight: canManageSettings ? () => context.push('/catalog') : null,
           ),
-          // Row 3: OBJEDNÁVKY | REZERVACE
+          // Row 3: OBJEDNÁVKY | KUCHYNĚ
           _ButtonRow(
             left: l.ordersTitle,
-            right: l.moreReservations,
+            right: l.kdsTitle,
             onLeft: () => context.push('/orders'),
-            onRight: onReservations,
+            onRight: () => context.push('/kds'),
           ),
           // Row 4: SKLAD | DALŠÍ (→ menu near button)
           Padding(
@@ -1091,6 +1142,7 @@ class _RightPanel extends ConsumerWidget {
                           canManageSettings,
                           onZReports: onZReports,
                           onShifts: onShifts,
+                          onReservations: onReservations,
                         ),
                         child: Text(l.billsMore, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12)),
                       );
@@ -1201,7 +1253,7 @@ class _ButtonRow extends StatelessWidget {
   }
 }
 
-void _showMoreMenu(BuildContext btnContext, bool canManageSettings, {VoidCallback? onZReports, VoidCallback? onShifts}) {
+void _showMoreMenu(BuildContext btnContext, bool canManageSettings, {VoidCallback? onZReports, VoidCallback? onShifts, VoidCallback? onReservations}) {
   final l = btnContext.l10n;
   final button = btnContext.findRenderObject()! as RenderBox;
   final overlay = Overlay.of(btnContext).context.findRenderObject()! as RenderBox;
@@ -1225,6 +1277,7 @@ void _showMoreMenu(BuildContext btnContext, bool canManageSettings, {VoidCallbac
         PopupMenuItem(value: 'shifts', height: 48, child: Text(l.moreShifts)),
       if (!canManageSettings)
         PopupMenuItem(enabled: false, height: 48, child: Text(l.moreShifts)),
+      PopupMenuItem(value: 'reservations', height: 48, child: Text(l.moreReservations)),
       PopupMenuItem(enabled: false, height: 48, child: Text(l.moreStatistics)),
       if (canManageSettings)
         PopupMenuItem(value: 'vouchers', height: 48, child: Text(l.vouchersTitle)),
@@ -1258,6 +1311,8 @@ void _showMoreMenu(BuildContext btnContext, bool canManageSettings, {VoidCallbac
         onShifts?.call();
       case 'vouchers':
         btnContext.push('/vouchers');
+      case 'reservations':
+        onReservations?.call();
     }
   });
 }

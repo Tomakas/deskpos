@@ -161,12 +161,14 @@ class _ScreenOrdersState extends ConsumerState<ScreenOrders> {
 
     // Generate storno order number
     final session = ref.read(activeRegisterSessionProvider).valueOrNull;
-    String stornoNumber = 'X-0000';
+    final registerModel = ref.read(activeRegisterProvider).value;
+    final regNum = registerModel?.registerNumber ?? 0;
+    String stornoNumber = 'X$regNum-0000';
     if (session != null) {
       final sessionRepo = ref.read(registerSessionRepositoryProvider);
       final counter = await sessionRepo.incrementOrderCounter(session.id);
       if (counter is Success<int>) {
-        stornoNumber = 'X-${counter.value.toString().padLeft(4, '0')}';
+        stornoNumber = 'X$regNum-${counter.value.toString().padLeft(4, '0')}';
       }
     }
 
@@ -177,6 +179,7 @@ class _ScreenOrdersState extends ConsumerState<ScreenOrders> {
       companyId: order.companyId,
       userId: user.id,
       stornoOrderNumber: stornoNumber,
+      registerId: registerModel?.id,
     );
     await ref.read(billRepositoryProvider).updateTotals(order.billId);
   }
@@ -547,7 +550,7 @@ class _OrderItemRow extends StatelessWidget {
         PrepStatus.inPrep => Colors.orange,
         PrepStatus.ready => Colors.green,
         PrepStatus.delivered => Colors.grey,
-        PrepStatus.cancelled => Colors.red,
+        PrepStatus.cancelled => Colors.pink,
         PrepStatus.voided => Colors.red,
       };
 }

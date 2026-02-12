@@ -11,9 +11,11 @@ class DialogZReportList extends StatefulWidget {
     super.key,
     required this.sessions,
     required this.onSessionSelected,
+    this.onVenueReport,
   });
   final List<ZReportSessionSummary> sessions;
   final ValueChanged<String> onSessionSelected;
+  final void Function(DateTime dateFrom, DateTime dateTo)? onVenueReport;
 
   @override
   State<DialogZReportList> createState() => _DialogZReportListState();
@@ -70,7 +72,7 @@ class _DialogZReportListState extends State<DialogZReportList> {
     return PosDialogShell(
       title: l.zReportListTitle,
       titleStyle: theme.textTheme.headlineSmall,
-      maxWidth: 640,
+      maxWidth: 720,
       children: [
         // Date filter row
         Row(
@@ -102,6 +104,13 @@ class _DialogZReportListState extends State<DialogZReportList> {
                 label: l.zReportColumnTime,
                 width: 60,
                 cellBuilder: (s) => Text(timeFormat.format(s.closedAt ?? s.openedAt)),
+              ),
+              PosColumn(
+                label: l.zReportRegisterColumn,
+                cellBuilder: (s) => Text(
+                  s.registerName ?? '-',
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
               PosColumn(label: l.zReportColumnUser, cellBuilder: (s) => Text(s.userName)),
               PosColumn(
@@ -137,12 +146,20 @@ class _DialogZReportListState extends State<DialogZReportList> {
           ),
         ),
         const SizedBox(height: 16),
-        Align(
-          alignment: Alignment.centerRight,
-          child: TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l.actionClose),
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            if (widget.onVenueReport != null)
+              OutlinedButton(
+                onPressed: () => widget.onVenueReport!(_dateFrom, _dateTo),
+                child: Text(l.zReportVenueReport),
+              ),
+            if (widget.onVenueReport != null) const SizedBox(width: 8),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(l.actionClose),
+            ),
+          ],
         ),
       ],
     );

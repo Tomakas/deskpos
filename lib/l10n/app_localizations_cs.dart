@@ -1575,6 +1575,28 @@ class AppLocalizationsCs extends AppLocalizations {
   String get zReportShiftsReportTitle => 'Směny';
 
   @override
+  String get zReportRegisterBreakdown => 'Rozpad dle pokladen';
+
+  @override
+  String get zReportRegisterColumn => 'Pokladna';
+
+  @override
+  String get zReportVenueReport => 'Report provozovny';
+
+  @override
+  String get zReportVenueReportTitle => 'Report provozovny';
+
+  @override
+  String zReportRegisterName(String name) {
+    return 'Pokladna: $name';
+  }
+
+  @override
+  String cashHandoverReason(String registerName) {
+    return 'Předání hotovosti z $registerName';
+  }
+
+  @override
   String get reservationsTitle => 'Rezervace';
 
   @override
@@ -1991,9 +2013,6 @@ class AppLocalizationsCs extends AppLocalizations {
   String get ordersFilterStorno => 'Stornované';
 
   @override
-  String get ordersFilterAll => 'Vše';
-
-  @override
   String get ordersScopeSession => 'Session';
 
   @override
@@ -2011,6 +2030,35 @@ class AppLocalizationsCs extends AppLocalizations {
   }
 
   @override
+  String get customerDisplayWelcome => 'Vítejte';
+
+  @override
+  String get customerDisplayHeader => 'Váš účet';
+
+  @override
+  String get customerDisplaySubtotal => 'Mezisoučet';
+
+  @override
+  String get customerDisplayDiscount => 'Sleva';
+
+  @override
+  String get customerDisplayTotal => 'Celkem';
+
+  @override
+  String get kdsTitle => 'Kuchyně';
+
+  @override
+  String get kdsNoOrders => 'Žádné objednávky k přípravě';
+
+  @override
+  String get kdsBump => 'Další';
+
+  @override
+  String kdsMinAgo(String minutes) {
+    return '$minutes min';
+  }
+
+  @override
   String get sellSeparator => 'Oddělit';
 
   @override
@@ -2021,4 +2069,66 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get customerNameHint => 'Jméno hosta';
+
+  @override
+  String get settingsRegisters => 'Pokladny';
+
+  @override
+  String get registerName => 'Název';
+
+  @override
+  String get registerType => 'Typ';
+
+  @override
+  String get registerNumber => 'Číslo';
+
+  @override
+  String get registerParent => 'Nadřazená pokladna';
+
+  @override
+  String get registerAllowCash => 'Hotovost';
+
+  @override
+  String get registerAllowCard => 'Karta';
+
+  @override
+  String get registerAllowTransfer => 'Převod';
+
+  @override
+  String get registerAllowRefunds => 'Refundy';
+
+  @override
+  String get registerPaymentFlags => 'Povolené platby';
+
+  @override
+  String get registerTypeLocal => 'Stacionární';
+
+  @override
+  String get registerTypeMobile => 'Mobilní';
+
+  @override
+  String get registerTypeVirtual => 'Virtuální';
+
+  @override
+  String get registerDeviceBinding => 'Svázání zařízení';
+
+  @override
+  String registerBound(String name) {
+    return 'Svázáno s: $name';
+  }
+
+  @override
+  String get registerNotBound => 'Nesvázáno';
+
+  @override
+  String get registerBind => 'Vybrat pokladnu';
+
+  @override
+  String get registerUnbind => 'Odpojit';
+
+  @override
+  String get registerSelectTitle => 'Vyberte pokladnu';
+
+  @override
+  String get registerNone => 'Žádná';
 }

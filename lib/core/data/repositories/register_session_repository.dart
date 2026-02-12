@@ -23,6 +23,7 @@ class RegisterSessionRepository {
     int? openingCash,
     int? openBillsAtOpenCount,
     int? openBillsAtOpenAmount,
+    String? parentSessionId,
   }) async {
     try {
       final now = DateTime.now();
@@ -37,6 +38,7 @@ class RegisterSessionRepository {
           openingCash: Value(openingCash),
           openBillsAtOpenCount: Value(openBillsAtOpenCount),
           openBillsAtOpenAmount: Value(openBillsAtOpenAmount),
+          parentSessionId: Value(parentSessionId),
         ),
       );
       final entity = await (_db.select(_db.registerSessions)
@@ -83,35 +85,50 @@ class RegisterSessionRepository {
     }
   }
 
-  Future<int?> getLastClosingCash(String companyId) async {
-    final entity = await (_db.select(_db.registerSessions)
-          ..where((t) =>
-              t.companyId.equals(companyId) &
-              t.closedAt.isNotNull() &
-              t.deletedAt.isNull())
-          ..orderBy([(t) => OrderingTerm.desc(t.closedAt)])
-          ..limit(1))
-        .getSingleOrNull();
+  Future<int?> getLastClosingCash(String companyId, {String? registerId}) async {
+    final query = _db.select(_db.registerSessions)
+      ..where((t) {
+        var expr = t.companyId.equals(companyId) &
+            t.closedAt.isNotNull() &
+            t.deletedAt.isNull();
+        if (registerId != null) {
+          expr = expr & t.registerId.equals(registerId);
+        }
+        return expr;
+      })
+      ..orderBy([(t) => OrderingTerm.desc(t.closedAt)])
+      ..limit(1);
+    final entity = await query.getSingleOrNull();
     return entity?.closingCash;
   }
 
-  Future<RegisterSessionModel?> getActiveSession(String companyId) async {
-    final entity = await (_db.select(_db.registerSessions)
-          ..where((t) =>
-              t.companyId.equals(companyId) &
-              t.closedAt.isNull() &
-              t.deletedAt.isNull())
-          ..limit(1))
-        .getSingleOrNull();
+  Future<RegisterSessionModel?> getActiveSession(String companyId, {String? registerId}) async {
+    final query = _db.select(_db.registerSessions)
+      ..where((t) {
+        var expr = t.companyId.equals(companyId) &
+            t.closedAt.isNull() &
+            t.deletedAt.isNull();
+        if (registerId != null) {
+          expr = expr & t.registerId.equals(registerId);
+        }
+        return expr;
+      })
+      ..limit(1);
+    final entity = await query.getSingleOrNull();
     return entity == null ? null : registerSessionFromEntity(entity);
   }
 
-  Stream<RegisterSessionModel?> watchActiveSession(String companyId) {
+  Stream<RegisterSessionModel?> watchActiveSession(String companyId, {String? registerId}) {
     return (_db.select(_db.registerSessions)
-          ..where((t) =>
-              t.companyId.equals(companyId) &
-              t.closedAt.isNull() &
-              t.deletedAt.isNull())
+          ..where((t) {
+            var expr = t.companyId.equals(companyId) &
+                t.closedAt.isNull() &
+                t.deletedAt.isNull();
+            if (registerId != null) {
+              expr = expr & t.registerId.equals(registerId);
+            }
+            return expr;
+          })
           ..limit(1))
         .watchSingleOrNull()
         .map((e) => e == null ? null : registerSessionFromEntity(e));
@@ -141,6 +158,33 @@ class RegisterSessionRepository {
     } catch (e, s) {
       AppLogger.error('Failed to increment order counter', error: e, stackTrace: s);
       return Failure('Failed to increment order counter: $e');
+    }
+  }
+
+  Future<Result<int>> incrementBillCounter(String sessionId) async {
+    try {
+      late int newCounter;
+      await _db.transaction(() async {
+        final entity = await (_db.select(_db.registerSessions)
+              ..where((t) => t.id.equals(sessionId)))
+            .getSingle();
+        newCounter = entity.billCounter + 1;
+        await (_db.update(_db.registerSessions)..where((t) => t.id.equals(sessionId)))
+            .write(RegisterSessionsCompanion(
+          billCounter: Value(newCounter),
+          updatedAt: Value(DateTime.now()),
+        ));
+      });
+
+      // Enqueue outside transaction
+      final updated = await (_db.select(_db.registerSessions)
+            ..where((t) => t.id.equals(sessionId)))
+          .getSingle();
+      await _enqueueSession('update', registerSessionFromEntity(updated));
+      return Success(newCounter);
+    } catch (e, s) {
+      AppLogger.error('Failed to increment bill counter', error: e, stackTrace: s);
+      return Failure('Failed to increment bill counter: $e');
     }
   }
 

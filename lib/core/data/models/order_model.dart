@@ -10,6 +10,7 @@ class OrderModel with _$OrderModel {
     required String id,
     required String companyId,
     required String billId,
+    String? registerId,
     required String createdByUserId,
     required String orderNumber,
     String? notes,

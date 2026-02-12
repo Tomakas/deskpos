@@ -20,6 +20,7 @@ mixin _$OrderModel {
   String get id => throw _privateConstructorUsedError;
   String get companyId => throw _privateConstructorUsedError;
   String get billId => throw _privateConstructorUsedError;
+  String? get registerId => throw _privateConstructorUsedError;
   String get createdByUserId => throw _privateConstructorUsedError;
   String get orderNumber => throw _privateConstructorUsedError;
   String? get notes => throw _privateConstructorUsedError;
@@ -55,6 +56,7 @@ abstract class $OrderModelCopyWith<$Res> {
     String id,
     String companyId,
     String billId,
+    String? registerId,
     String createdByUserId,
     String orderNumber,
     String? notes,
@@ -92,6 +94,7 @@ class _$OrderModelCopyWithImpl<$Res, $Val extends OrderModel>
     Object? id = null,
     Object? companyId = null,
     Object? billId = null,
+    Object? registerId = freezed,
     Object? createdByUserId = null,
     Object? orderNumber = null,
     Object? notes = freezed,
@@ -123,6 +126,10 @@ class _$OrderModelCopyWithImpl<$Res, $Val extends OrderModel>
                 ? _value.billId
                 : billId // ignore: cast_nullable_to_non_nullable
                       as String,
+            registerId: freezed == registerId
+                ? _value.registerId
+                : registerId // ignore: cast_nullable_to_non_nullable
+                      as String?,
             createdByUserId: null == createdByUserId
                 ? _value.createdByUserId
                 : createdByUserId // ignore: cast_nullable_to_non_nullable
@@ -206,6 +213,7 @@ abstract class _$$OrderModelImplCopyWith<$Res>
     String id,
     String companyId,
     String billId,
+    String? registerId,
     String createdByUserId,
     String orderNumber,
     String? notes,
@@ -242,6 +250,7 @@ class __$$OrderModelImplCopyWithImpl<$Res>
     Object? id = null,
     Object? companyId = null,
     Object? billId = null,
+    Object? registerId = freezed,
     Object? createdByUserId = null,
     Object? orderNumber = null,
     Object? notes = freezed,
@@ -273,6 +282,10 @@ class __$$OrderModelImplCopyWithImpl<$Res>
             ? _value.billId
             : billId // ignore: cast_nullable_to_non_nullable
                   as String,
+        registerId: freezed == registerId
+            ? _value.registerId
+            : registerId // ignore: cast_nullable_to_non_nullable
+                  as String?,
         createdByUserId: null == createdByUserId
             ? _value.createdByUserId
             : createdByUserId // ignore: cast_nullable_to_non_nullable
@@ -349,6 +362,7 @@ class _$OrderModelImpl implements _OrderModel {
     required this.id,
     required this.companyId,
     required this.billId,
+    this.registerId,
     required this.createdByUserId,
     required this.orderNumber,
     this.notes,
@@ -373,6 +387,8 @@ class _$OrderModelImpl implements _OrderModel {
   final String companyId;
   @override
   final String billId;
+  @override
+  final String? registerId;
   @override
   final String createdByUserId;
   @override
@@ -413,7 +429,7 @@ class _$OrderModelImpl implements _OrderModel {
 
   @override
   String toString() {
-    return 'OrderModel(id: $id, companyId: $companyId, billId: $billId, createdByUserId: $createdByUserId, orderNumber: $orderNumber, notes: $notes, status: $status, itemCount: $itemCount, subtotalGross: $subtotalGross, subtotalNet: $subtotalNet, taxTotal: $taxTotal, isStorno: $isStorno, stornoSourceOrderId: $stornoSourceOrderId, prepStartedAt: $prepStartedAt, readyAt: $readyAt, deliveredAt: $deliveredAt, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+    return 'OrderModel(id: $id, companyId: $companyId, billId: $billId, registerId: $registerId, createdByUserId: $createdByUserId, orderNumber: $orderNumber, notes: $notes, status: $status, itemCount: $itemCount, subtotalGross: $subtotalGross, subtotalNet: $subtotalNet, taxTotal: $taxTotal, isStorno: $isStorno, stornoSourceOrderId: $stornoSourceOrderId, prepStartedAt: $prepStartedAt, readyAt: $readyAt, deliveredAt: $deliveredAt, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
   }
 
   @override
@@ -425,6 +441,8 @@ class _$OrderModelImpl implements _OrderModel {
             (identical(other.companyId, companyId) ||
                 other.companyId == companyId) &&
             (identical(other.billId, billId) || other.billId == billId) &&
+            (identical(other.registerId, registerId) ||
+                other.registerId == registerId) &&
             (identical(other.createdByUserId, createdByUserId) ||
                 other.createdByUserId == createdByUserId) &&
             (identical(other.orderNumber, orderNumber) ||
@@ -462,6 +480,7 @@ class _$OrderModelImpl implements _OrderModel {
     id,
     companyId,
     billId,
+    registerId,
     createdByUserId,
     orderNumber,
     notes,
@@ -494,6 +513,7 @@ abstract class _OrderModel implements OrderModel {
     required final String id,
     required final String companyId,
     required final String billId,
+    final String? registerId,
     required final String createdByUserId,
     required final String orderNumber,
     final String? notes,
@@ -518,6 +538,8 @@ abstract class _OrderModel implements OrderModel {
   String get companyId;
   @override
   String get billId;
+  @override
+  String? get registerId;
   @override
   String get createdByUserId;
   @override

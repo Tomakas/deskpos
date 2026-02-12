@@ -3142,6 +3142,42 @@ abstract class AppLocalizations {
   /// **'Směny'**
   String get zReportShiftsReportTitle;
 
+  /// No description provided for @zReportRegisterBreakdown.
+  ///
+  /// In cs, this message translates to:
+  /// **'Rozpad dle pokladen'**
+  String get zReportRegisterBreakdown;
+
+  /// No description provided for @zReportRegisterColumn.
+  ///
+  /// In cs, this message translates to:
+  /// **'Pokladna'**
+  String get zReportRegisterColumn;
+
+  /// No description provided for @zReportVenueReport.
+  ///
+  /// In cs, this message translates to:
+  /// **'Report provozovny'**
+  String get zReportVenueReport;
+
+  /// No description provided for @zReportVenueReportTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Report provozovny'**
+  String get zReportVenueReportTitle;
+
+  /// No description provided for @zReportRegisterName.
+  ///
+  /// In cs, this message translates to:
+  /// **'Pokladna: {name}'**
+  String zReportRegisterName(String name);
+
+  /// No description provided for @cashHandoverReason.
+  ///
+  /// In cs, this message translates to:
+  /// **'Předání hotovosti z {registerName}'**
+  String cashHandoverReason(String registerName);
+
   /// No description provided for @reservationsTitle.
   ///
   /// In cs, this message translates to:
@@ -3940,12 +3976,6 @@ abstract class AppLocalizations {
   /// **'Stornované'**
   String get ordersFilterStorno;
 
-  /// No description provided for @ordersFilterAll.
-  ///
-  /// In cs, this message translates to:
-  /// **'Vše'**
-  String get ordersFilterAll;
-
   /// No description provided for @ordersScopeSession.
   ///
   /// In cs, this message translates to:
@@ -3976,6 +4006,60 @@ abstract class AppLocalizations {
   /// **'→ {orderNumber}'**
   String ordersStornoRef(String orderNumber);
 
+  /// No description provided for @customerDisplayWelcome.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vítejte'**
+  String get customerDisplayWelcome;
+
+  /// No description provided for @customerDisplayHeader.
+  ///
+  /// In cs, this message translates to:
+  /// **'Váš účet'**
+  String get customerDisplayHeader;
+
+  /// No description provided for @customerDisplaySubtotal.
+  ///
+  /// In cs, this message translates to:
+  /// **'Mezisoučet'**
+  String get customerDisplaySubtotal;
+
+  /// No description provided for @customerDisplayDiscount.
+  ///
+  /// In cs, this message translates to:
+  /// **'Sleva'**
+  String get customerDisplayDiscount;
+
+  /// No description provided for @customerDisplayTotal.
+  ///
+  /// In cs, this message translates to:
+  /// **'Celkem'**
+  String get customerDisplayTotal;
+
+  /// No description provided for @kdsTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Kuchyně'**
+  String get kdsTitle;
+
+  /// No description provided for @kdsNoOrders.
+  ///
+  /// In cs, this message translates to:
+  /// **'Žádné objednávky k přípravě'**
+  String get kdsNoOrders;
+
+  /// No description provided for @kdsBump.
+  ///
+  /// In cs, this message translates to:
+  /// **'Další'**
+  String get kdsBump;
+
+  /// No description provided for @kdsMinAgo.
+  ///
+  /// In cs, this message translates to:
+  /// **'{minutes} min'**
+  String kdsMinAgo(String minutes);
+
   /// No description provided for @sellSeparator.
   ///
   /// In cs, this message translates to:
@@ -3999,6 +4083,126 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Jméno hosta'**
   String get customerNameHint;
+
+  /// No description provided for @settingsRegisters.
+  ///
+  /// In cs, this message translates to:
+  /// **'Pokladny'**
+  String get settingsRegisters;
+
+  /// No description provided for @registerName.
+  ///
+  /// In cs, this message translates to:
+  /// **'Název'**
+  String get registerName;
+
+  /// No description provided for @registerType.
+  ///
+  /// In cs, this message translates to:
+  /// **'Typ'**
+  String get registerType;
+
+  /// No description provided for @registerNumber.
+  ///
+  /// In cs, this message translates to:
+  /// **'Číslo'**
+  String get registerNumber;
+
+  /// No description provided for @registerParent.
+  ///
+  /// In cs, this message translates to:
+  /// **'Nadřazená pokladna'**
+  String get registerParent;
+
+  /// No description provided for @registerAllowCash.
+  ///
+  /// In cs, this message translates to:
+  /// **'Hotovost'**
+  String get registerAllowCash;
+
+  /// No description provided for @registerAllowCard.
+  ///
+  /// In cs, this message translates to:
+  /// **'Karta'**
+  String get registerAllowCard;
+
+  /// No description provided for @registerAllowTransfer.
+  ///
+  /// In cs, this message translates to:
+  /// **'Převod'**
+  String get registerAllowTransfer;
+
+  /// No description provided for @registerAllowRefunds.
+  ///
+  /// In cs, this message translates to:
+  /// **'Refundy'**
+  String get registerAllowRefunds;
+
+  /// No description provided for @registerPaymentFlags.
+  ///
+  /// In cs, this message translates to:
+  /// **'Povolené platby'**
+  String get registerPaymentFlags;
+
+  /// No description provided for @registerTypeLocal.
+  ///
+  /// In cs, this message translates to:
+  /// **'Stacionární'**
+  String get registerTypeLocal;
+
+  /// No description provided for @registerTypeMobile.
+  ///
+  /// In cs, this message translates to:
+  /// **'Mobilní'**
+  String get registerTypeMobile;
+
+  /// No description provided for @registerTypeVirtual.
+  ///
+  /// In cs, this message translates to:
+  /// **'Virtuální'**
+  String get registerTypeVirtual;
+
+  /// No description provided for @registerDeviceBinding.
+  ///
+  /// In cs, this message translates to:
+  /// **'Svázání zařízení'**
+  String get registerDeviceBinding;
+
+  /// No description provided for @registerBound.
+  ///
+  /// In cs, this message translates to:
+  /// **'Svázáno s: {name}'**
+  String registerBound(String name);
+
+  /// No description provided for @registerNotBound.
+  ///
+  /// In cs, this message translates to:
+  /// **'Nesvázáno'**
+  String get registerNotBound;
+
+  /// No description provided for @registerBind.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vybrat pokladnu'**
+  String get registerBind;
+
+  /// No description provided for @registerUnbind.
+  ///
+  /// In cs, this message translates to:
+  /// **'Odpojit'**
+  String get registerUnbind;
+
+  /// No description provided for @registerSelectTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vyberte pokladnu'**
+  String get registerSelectTitle;
+
+  /// No description provided for @registerNone.
+  ///
+  /// In cs, this message translates to:
+  /// **'Žádná'**
+  String get registerNone;
 }
 
 class _AppLocalizationsDelegate

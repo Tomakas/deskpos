@@ -11,6 +11,8 @@ class RegisterSessions extends Table with SyncColumnsMixin {
   DateTimeColumn get openedAt => dateTime()();
   DateTimeColumn get closedAt => dateTime().nullable()();
   IntColumn get orderCounter => integer().withDefault(const Constant(0))();
+  IntColumn get billCounter => integer().withDefault(const Constant(0))();
+  TextColumn get parentSessionId => text().nullable()();
   IntColumn get openingCash => integer().nullable()();
   IntColumn get closingCash => integer().nullable()();
   IntColumn get expectedCash => integer().nullable()();

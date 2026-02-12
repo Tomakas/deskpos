@@ -8,6 +8,9 @@ class Registers extends Table with SyncColumnsMixin {
   TextColumn get id => text()();
   TextColumn get companyId => text()();
   TextColumn get code => text()();
+  TextColumn get name => text().withDefault(const Constant(''))();
+  IntColumn get registerNumber => integer().withDefault(const Constant(1))();
+  TextColumn get parentRegisterId => text().nullable()();
   BoolColumn get isActive => boolean().withDefault(const Constant(true))();
   TextColumn get type => textEnum<HardwareType>()();
   BoolColumn get allowCash => boolean().withDefault(const Constant(true))();
