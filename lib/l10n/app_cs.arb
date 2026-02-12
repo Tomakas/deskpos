@@ -912,5 +912,7 @@
   "modeCustomerDisplaySelectRegister": "Sledovaná pokladna",
 
   "customerDisplayThankYou": "Děkujeme!",
-  "customerDisplayPaid": "Zaplaceno"
+  "customerDisplayPaid": "Zaplaceno",
+
+  "billDetailShowOnDisplay": "Displej"
 }

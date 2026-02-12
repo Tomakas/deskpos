@@ -24,6 +24,7 @@ class RegisterModel with _$RegisterModel {
     String? activeBillId,
     @Default(5) int gridRows,
     @Default(8) int gridCols,
+    String? displayCartJson,
     required DateTime createdAt,
     required DateTime updatedAt,
     DateTime? deletedAt,

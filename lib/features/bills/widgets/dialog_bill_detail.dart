@@ -36,35 +36,6 @@ class DialogBillDetail extends ConsumerStatefulWidget {
 
 class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
   bool _showSummary = false;
-  bool _didSetActiveBill = false;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _setActiveBill());
-  }
-
-  @override
-  void dispose() {
-    _clearActiveBill();
-    super.dispose();
-  }
-
-  void _setActiveBill() {
-    final register = ref.read(activeRegisterProvider).value;
-    if (register != null) {
-      ref.read(registerRepositoryProvider).setActiveBill(register.id, widget.billId);
-      _didSetActiveBill = true;
-    }
-  }
-
-  void _clearActiveBill() {
-    if (!_didSetActiveBill) return;
-    final register = ref.read(activeRegisterProvider).value;
-    if (register != null) {
-      ref.read(registerRepositoryProvider).setActiveBill(register.id, null);
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -507,6 +478,16 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
             _SideButton(
               label: l.billDetailVoucher,
               onPressed: isOpened ? () => _applyVoucher(context, ref, bill) : null,
+            ),
+            const SizedBox(height: 4),
+            _SideButton(
+              label: l.billDetailShowOnDisplay,
+              onPressed: () {
+                final registerId = ref.read(activeRegisterProvider).value?.id;
+                if (registerId != null) {
+                  ref.read(registerRepositoryProvider).setActiveBill(registerId, bill.id);
+                }
+              },
             ),
           ],
         ),

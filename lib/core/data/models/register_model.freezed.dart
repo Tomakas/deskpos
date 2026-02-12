@@ -34,6 +34,7 @@ mixin _$RegisterModel {
   String? get activeBillId => throw _privateConstructorUsedError;
   int get gridRows => throw _privateConstructorUsedError;
   int get gridCols => throw _privateConstructorUsedError;
+  String? get displayCartJson => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
   DateTime get updatedAt => throw _privateConstructorUsedError;
   DateTime? get deletedAt => throw _privateConstructorUsedError;
@@ -70,6 +71,7 @@ abstract class $RegisterModelCopyWith<$Res> {
     String? activeBillId,
     int gridRows,
     int gridCols,
+    String? displayCartJson,
     DateTime createdAt,
     DateTime updatedAt,
     DateTime? deletedAt,
@@ -108,6 +110,7 @@ class _$RegisterModelCopyWithImpl<$Res, $Val extends RegisterModel>
     Object? activeBillId = freezed,
     Object? gridRows = null,
     Object? gridCols = null,
+    Object? displayCartJson = freezed,
     Object? createdAt = null,
     Object? updatedAt = null,
     Object? deletedAt = freezed,
@@ -182,6 +185,10 @@ class _$RegisterModelCopyWithImpl<$Res, $Val extends RegisterModel>
                 ? _value.gridCols
                 : gridCols // ignore: cast_nullable_to_non_nullable
                       as int,
+            displayCartJson: freezed == displayCartJson
+                ? _value.displayCartJson
+                : displayCartJson // ignore: cast_nullable_to_non_nullable
+                      as String?,
             createdAt: null == createdAt
                 ? _value.createdAt
                 : createdAt // ignore: cast_nullable_to_non_nullable
@@ -227,6 +234,7 @@ abstract class _$$RegisterModelImplCopyWith<$Res>
     String? activeBillId,
     int gridRows,
     int gridCols,
+    String? displayCartJson,
     DateTime createdAt,
     DateTime updatedAt,
     DateTime? deletedAt,
@@ -264,6 +272,7 @@ class __$$RegisterModelImplCopyWithImpl<$Res>
     Object? activeBillId = freezed,
     Object? gridRows = null,
     Object? gridCols = null,
+    Object? displayCartJson = freezed,
     Object? createdAt = null,
     Object? updatedAt = null,
     Object? deletedAt = freezed,
@@ -338,6 +347,10 @@ class __$$RegisterModelImplCopyWithImpl<$Res>
             ? _value.gridCols
             : gridCols // ignore: cast_nullable_to_non_nullable
                   as int,
+        displayCartJson: freezed == displayCartJson
+            ? _value.displayCartJson
+            : displayCartJson // ignore: cast_nullable_to_non_nullable
+                  as String?,
         createdAt: null == createdAt
             ? _value.createdAt
             : createdAt // ignore: cast_nullable_to_non_nullable
@@ -376,6 +389,7 @@ class _$RegisterModelImpl implements _RegisterModel {
     this.activeBillId,
     this.gridRows = 5,
     this.gridCols = 8,
+    this.displayCartJson,
     required this.createdAt,
     required this.updatedAt,
     this.deletedAt,
@@ -426,6 +440,8 @@ class _$RegisterModelImpl implements _RegisterModel {
   @JsonKey()
   final int gridCols;
   @override
+  final String? displayCartJson;
+  @override
   final DateTime createdAt;
   @override
   final DateTime updatedAt;
@@ -434,7 +450,7 @@ class _$RegisterModelImpl implements _RegisterModel {
 
   @override
   String toString() {
-    return 'RegisterModel(id: $id, companyId: $companyId, code: $code, name: $name, registerNumber: $registerNumber, parentRegisterId: $parentRegisterId, isMain: $isMain, isActive: $isActive, type: $type, allowCash: $allowCash, allowCard: $allowCard, allowTransfer: $allowTransfer, allowRefunds: $allowRefunds, boundDeviceId: $boundDeviceId, activeBillId: $activeBillId, gridRows: $gridRows, gridCols: $gridCols, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+    return 'RegisterModel(id: $id, companyId: $companyId, code: $code, name: $name, registerNumber: $registerNumber, parentRegisterId: $parentRegisterId, isMain: $isMain, isActive: $isActive, type: $type, allowCash: $allowCash, allowCard: $allowCard, allowTransfer: $allowTransfer, allowRefunds: $allowRefunds, boundDeviceId: $boundDeviceId, activeBillId: $activeBillId, gridRows: $gridRows, gridCols: $gridCols, displayCartJson: $displayCartJson, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
   }
 
   @override
@@ -471,6 +487,8 @@ class _$RegisterModelImpl implements _RegisterModel {
                 other.gridRows == gridRows) &&
             (identical(other.gridCols, gridCols) ||
                 other.gridCols == gridCols) &&
+            (identical(other.displayCartJson, displayCartJson) ||
+                other.displayCartJson == displayCartJson) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.updatedAt, updatedAt) ||
@@ -499,6 +517,7 @@ class _$RegisterModelImpl implements _RegisterModel {
     activeBillId,
     gridRows,
     gridCols,
+    displayCartJson,
     createdAt,
     updatedAt,
     deletedAt,
@@ -532,6 +551,7 @@ abstract class _RegisterModel implements RegisterModel {
     final String? activeBillId,
     final int gridRows,
     final int gridCols,
+    final String? displayCartJson,
     required final DateTime createdAt,
     required final DateTime updatedAt,
     final DateTime? deletedAt,
@@ -571,6 +591,8 @@ abstract class _RegisterModel implements RegisterModel {
   int get gridRows;
   @override
   int get gridCols;
+  @override
+  String? get displayCartJson;
   @override
   DateTime get createdAt;
   @override

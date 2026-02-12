@@ -2221,4 +2221,7 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get customerDisplayPaid => 'Zaplaceno';
+
+  @override
+  String get billDetailShowOnDisplay => 'Displej';
 }

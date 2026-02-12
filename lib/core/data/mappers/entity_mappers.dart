@@ -10,7 +10,6 @@ import '../models/company_model.dart';
 import '../models/company_settings_model.dart';
 import '../models/currency_model.dart';
 import '../models/device_registration_model.dart';
-import '../models/display_cart_item_model.dart';
 import '../models/item_model.dart';
 import '../models/layout_item_model.dart';
 import '../models/manufacturer_model.dart';
@@ -525,6 +524,7 @@ RegisterModel registerFromEntity(Register e) => RegisterModel(
       activeBillId: e.activeBillId,
       gridRows: e.gridRows,
       gridCols: e.gridCols,
+      displayCartJson: e.displayCartJson,
       createdAt: e.createdAt,
       updatedAt: e.updatedAt,
       deletedAt: e.deletedAt,
@@ -575,18 +575,6 @@ DeviceRegistrationModel deviceRegistrationFromEntity(DeviceRegistration e) =>
       companyId: e.companyId,
       registerId: e.registerId,
       createdAt: e.createdAt,
-    );
-
-// --- DisplayCartItem ---
-DisplayCartItemModel displayCartItemFromEntity(DisplayCartItem e) =>
-    DisplayCartItemModel(
-      id: e.id,
-      registerId: e.registerId,
-      itemName: e.itemName,
-      quantity: e.quantity,
-      unitPrice: e.unitPrice,
-      notes: e.notes,
-      sortOrder: e.sortOrder,
     );
 
 // --- TableEntity ---

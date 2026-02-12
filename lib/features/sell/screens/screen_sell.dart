@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,7 +14,6 @@ import '../../../core/data/models/layout_item_model.dart';
 import '../../../core/data/models/register_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
-import '../../../core/data/repositories/display_cart_repository.dart';
 import '../../../core/data/repositories/order_repository.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
@@ -94,33 +94,32 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
 
   void _scheduleDisplaySync() {
     _displaySyncTimer?.cancel();
-    _displaySyncTimer = Timer(const Duration(milliseconds: 200), _syncCartToDisplay);
+    _displaySyncTimer = Timer(const Duration(milliseconds: 300), _syncCartToDisplay);
   }
 
   Future<void> _syncCartToDisplay() async {
     final registerId = ref.read(activeRegisterProvider).value?.id;
     if (registerId == null) return;
 
-    final inputs = <DisplayCartItemInput>[];
-    var sortOrder = 0;
+    final items = <Map<String, dynamic>>[];
     for (final entry in _cart) {
       if (entry is _CartItem) {
-        inputs.add(DisplayCartItemInput(
-          itemName: entry.name,
-          quantity: entry.quantity,
-          unitPrice: entry.unitPrice,
-          notes: entry.notes,
-          sortOrder: sortOrder++,
-        ));
+        items.add({
+          'name': entry.name,
+          'qty': entry.quantity,
+          'price': entry.unitPrice,
+          if (entry.notes != null) 'notes': entry.notes,
+        });
       }
     }
-    await ref.read(displayCartRepositoryProvider).replaceAll(registerId, inputs);
+    final json = items.isEmpty ? null : jsonEncode(items);
+    await ref.read(registerRepositoryProvider).setDisplayCart(registerId, json);
   }
 
   void _clearDisplayCart() {
     final registerId = ref.read(activeRegisterProvider).value?.id;
     if (registerId == null) return;
-    ref.read(displayCartRepositoryProvider).clear(registerId);
+    ref.read(registerRepositoryProvider).setDisplayCart(registerId, null);
   }
 
   Future<void> _createQuickBill() async {

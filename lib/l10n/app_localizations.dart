@@ -4377,6 +4377,12 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Zaplaceno'**
   String get customerDisplayPaid;
+
+  /// No description provided for @billDetailShowOnDisplay.
+  ///
+  /// In cs, this message translates to:
+  /// **'Displej'**
+  String get billDetailShowOnDisplay;
 }
 
 class _AppLocalizationsDelegate

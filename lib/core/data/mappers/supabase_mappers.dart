@@ -507,6 +507,7 @@ Map<String, dynamic> registerToSupabaseJson(RegisterModel m) => {
       'allow_refunds': m.allowRefunds,
       'grid_rows': m.gridRows,
       'grid_cols': m.gridCols,
+      'display_cart_json': m.displayCartJson,
     };
 
 Map<String, dynamic> registerSessionToSupabaseJson(RegisterSessionModel m) => {

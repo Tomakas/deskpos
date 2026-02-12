@@ -22,6 +22,7 @@ class Registers extends Table with SyncColumnsMixin {
   TextColumn get activeBillId => text().nullable()();
   IntColumn get gridRows => integer().withDefault(const Constant(5))();
   IntColumn get gridCols => integer().withDefault(const Constant(8))();
+  TextColumn get displayCartJson => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};

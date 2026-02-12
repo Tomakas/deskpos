@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,7 +7,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/data/enums/bill_status.dart';
 import '../../../core/data/enums/prep_status.dart';
 import '../../../core/data/models/bill_model.dart';
-import '../../../core/data/models/display_cart_item_model.dart';
 import '../../../core/data/models/order_item_model.dart';
 import '../../../core/data/models/order_model.dart';
 import '../../../core/data/models/register_model.dart';
@@ -124,7 +124,11 @@ class _ActiveDisplay extends ConsumerWidget {
           return _IdleDisplay(companyName: company?.name ?? '');
         }
 
-        return _BillDisplay(billId: activeBillId, registerId: registerId);
+        return _BillDisplay(
+          billId: activeBillId,
+          registerId: registerId,
+          displayCartJson: register?.displayCartJson,
+        );
       },
     );
   }
@@ -134,9 +138,14 @@ class _ActiveDisplay extends ConsumerWidget {
 // Bill display — shows a specific bill's items and totals
 // ---------------------------------------------------------------------------
 class _BillDisplay extends ConsumerWidget {
-  const _BillDisplay({required this.billId, required this.registerId});
+  const _BillDisplay({
+    required this.billId,
+    required this.registerId,
+    this.displayCartJson,
+  });
   final String billId;
   final String registerId;
+  final String? displayCartJson;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -164,6 +173,9 @@ class _BillDisplay extends ConsumerWidget {
         if (bill.status != BillStatus.opened) {
           return _IdleDisplay(companyName: company?.name ?? '');
         }
+
+        // Parse preview cart items from register's displayCartJson
+        final previewItems = _parseCartJson(displayCartJson);
 
         return Column(
           children: [
@@ -218,42 +230,67 @@ class _BillDisplay extends ConsumerWidget {
                   }
 
                   // No real orders yet — show preview cart items
-                  return _DisplayCartPreview(registerId: registerId);
+                  return _DisplayCartPreview(items: previewItems);
                 },
               ),
             ),
             // Totals footer
-            _TotalsFooter(bill: bill, registerId: registerId),
+            _TotalsFooter(bill: bill, previewItems: previewItems),
           ],
         );
       },
     );
   }
+
+  static List<_PreviewItem> _parseCartJson(String? json) {
+    if (json == null || json.isEmpty) return [];
+    try {
+      final list = jsonDecode(json) as List<dynamic>;
+      return list.map((e) {
+        final map = e as Map<String, dynamic>;
+        return _PreviewItem(
+          name: map['name'] as String,
+          quantity: (map['qty'] as num).toDouble(),
+          unitPrice: map['price'] as int,
+          notes: map['notes'] as String?,
+        );
+      }).toList();
+    } catch (_) {
+      return [];
+    }
+  }
+}
+
+class _PreviewItem {
+  const _PreviewItem({
+    required this.name,
+    required this.quantity,
+    required this.unitPrice,
+    this.notes,
+  });
+  final String name;
+  final double quantity;
+  final int unitPrice;
+  final String? notes;
 }
 
 // ---------------------------------------------------------------------------
-// Preview cart items from DisplayCartItems table
+// Preview cart items from register's displayCartJson
 // ---------------------------------------------------------------------------
-class _DisplayCartPreview extends ConsumerWidget {
-  const _DisplayCartPreview({required this.registerId});
-  final String registerId;
+class _DisplayCartPreview extends StatelessWidget {
+  const _DisplayCartPreview({required this.items});
+  final List<_PreviewItem> items;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return StreamBuilder<List<DisplayCartItemModel>>(
-      stream: ref.watch(displayCartRepositoryProvider).watchByRegister(registerId),
-      builder: (context, snap) {
-        final items = snap.data ?? [];
-        if (items.isEmpty) return const SizedBox.shrink();
+  Widget build(BuildContext context) {
+    if (items.isEmpty) return const SizedBox.shrink();
 
-        return ListView.builder(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          itemCount: items.length,
-          itemBuilder: (context, index) {
-            final item = items[index];
-            return _PreviewItemRow(item: item);
-          },
-        );
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+      itemCount: items.length,
+      itemBuilder: (context, index) {
+        final item = items[index];
+        return _PreviewItemRow(item: item);
       },
     );
   }
@@ -264,7 +301,7 @@ class _DisplayCartPreview extends ConsumerWidget {
 // ---------------------------------------------------------------------------
 class _PreviewItemRow extends StatelessWidget {
   const _PreviewItemRow({required this.item});
-  final DisplayCartItemModel item;
+  final _PreviewItem item;
 
   @override
   Widget build(BuildContext context) {
@@ -288,7 +325,7 @@ class _PreviewItemRow extends StatelessWidget {
           ),
           Expanded(
             child: Text(
-              item.itemName,
+              item.name,
               style: theme.textTheme.titleMedium,
             ),
           ),
@@ -473,13 +510,13 @@ class _CustomerItemRow extends StatelessWidget {
 // ---------------------------------------------------------------------------
 // Totals footer
 // ---------------------------------------------------------------------------
-class _TotalsFooter extends ConsumerWidget {
-  const _TotalsFooter({required this.bill, required this.registerId});
+class _TotalsFooter extends StatelessWidget {
+  const _TotalsFooter({required this.bill, required this.previewItems});
   final BillModel bill;
-  final String registerId;
+  final List<_PreviewItem> previewItems;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final l = context.l10n;
     final theme = Theme.of(context);
 
@@ -489,17 +526,11 @@ class _TotalsFooter extends ConsumerWidget {
     }
 
     // Otherwise compute from preview cart items
-    return StreamBuilder<List<DisplayCartItemModel>>(
-      stream: ref.watch(displayCartRepositoryProvider).watchByRegister(registerId),
-      builder: (context, snap) {
-        final items = snap.data ?? [];
-        int previewTotal = 0;
-        for (final item in items) {
-          previewTotal += (item.unitPrice * item.quantity).round();
-        }
-        return _buildFooter(context, l, theme, previewTotal, previewTotal, 0);
-      },
-    );
+    int previewTotal = 0;
+    for (final item in previewItems) {
+      previewTotal += (item.unitPrice * item.quantity).round();
+    }
+    return _buildFooter(context, l, theme, previewTotal, previewTotal, 0);
   }
 
   Widget _buildFooter(BuildContext context, dynamic l, ThemeData theme, int subtotal, int total, int rounding) {

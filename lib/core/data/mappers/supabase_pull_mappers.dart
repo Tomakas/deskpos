@@ -510,6 +510,7 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
         allowRefunds: Value(json['allow_refunds'] as bool? ?? false),
         gridRows: Value(json['grid_rows'] as int? ?? 5),
         gridCols: Value(json['grid_cols'] as int? ?? 8),
+        displayCartJson: Value(json['display_cart_json'] as String?),
         createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
         updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
         deletedAt: Value(_parseDateTime(json['deleted_at'])),
