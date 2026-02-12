@@ -36,6 +36,18 @@ class DialogBillDetail extends ConsumerStatefulWidget {
 
 class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
   bool _showSummary = false;
+  bool _didShowOnDisplay = false;
+
+  @override
+  void dispose() {
+    if (_didShowOnDisplay) {
+      final registerId = ref.read(activeRegisterProvider).value?.id;
+      if (registerId != null) {
+        ref.read(registerRepositoryProvider).setActiveBill(registerId, null);
+      }
+    }
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -486,6 +498,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
                 final registerId = ref.read(activeRegisterProvider).value?.id;
                 if (registerId != null) {
                   ref.read(registerRepositoryProvider).setActiveBill(registerId, bill.id);
+                  _didShowOnDisplay = true;
                 }
               },
             ),

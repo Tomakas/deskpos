@@ -66,11 +66,11 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
   @override
   void dispose() {
     _displaySyncTimer?.cancel();
+    _clearActiveBill();
     _clearDisplayCart();
     if (_quickBillId != null) {
       ref.read(billRepositoryProvider).cancelBill(_quickBillId!);
     }
-    _clearActiveBill();
     _debounce?.cancel();
     _searchController.dispose();
     super.dispose();

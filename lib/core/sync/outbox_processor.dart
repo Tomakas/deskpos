@@ -71,38 +71,54 @@ class OutboxProcessor {
       final entityType = entry.entityType as String;
       final operation = entry.operation as String;
 
-      if (operation == 'delete') {
-        // Soft delete: upsert with deleted_at set
-        await _supabaseClient.from(entityType).upsert(payload, onConflict: 'id');
-      } else {
-        // insert or update: upsert
-        await _supabaseClient.from(entityType).upsert(payload, onConflict: 'id');
-      }
+      // Route all writes through the ingest Edge Function.
+      // The EF validates JWT, verifies company ownership, writes via
+      // service_role (bypassing RLS), and logs to audit_log.
+      final response = await _supabaseClient.functions.invoke(
+        'ingest',
+        body: {
+          'table': entityType,
+          'operation': operation,
+          'payload': payload,
+          'idempotency_key': entry.idempotencyKey as String,
+        },
+      );
 
-      await _syncQueueRepo.markCompleted(entry.id as String);
-      AppLogger.debug('Pushed $operation $entityType/${entry.entityId}', tag: 'SYNC');
-    } on PostgrestException catch (e) {
-      // LWW_CONFLICT = server rejected stale update → mark completed, next pull wins
-      if (e.code == 'P0001' && e.message.contains('LWW_CONFLICT')) {
-        await _syncQueueRepo.markCompleted(entry.id as String);
-        AppLogger.info('LWW conflict for ${entry.entityType}/${entry.entityId} — marked completed', tag: 'SYNC');
+      final data = response.data;
+      if (data is Map<String, dynamic>) {
+        if (data['ok'] == true) {
+          await _syncQueueRepo.markCompleted(entry.id as String);
+          AppLogger.debug('Pushed $operation $entityType/${entry.entityId}', tag: 'SYNC');
+        } else {
+          final errorType = data['error_type'] as String? ?? 'unknown';
+          final message = data['message'] as String? ?? errorType;
+
+          if (errorType == 'lww_conflict') {
+            await _syncQueueRepo.markCompleted(entry.id as String);
+            AppLogger.info(
+              'LWW conflict for $entityType/${entry.entityId} — marked completed',
+              tag: 'SYNC',
+            );
+          } else if (errorType == 'permanent' || errorType == 'rejected') {
+            await _handleError(entry, message, true);
+          } else {
+            // transient — retry
+            await _handleError(entry, message, false);
+          }
+        }
       } else {
-        await _handleError(entry, e.message, _isPermanentError(e));
+        // Unexpected response format — treat as transient
+        await _handleError(entry, 'Unexpected EF response: $data', false);
       }
+    } on FunctionException catch (e) {
+      // EF returned 500 or network error — transient, retry
+      await _handleError(entry, 'EF error: ${e.reasonPhrase ?? e.toString()}', false);
     } on AuthException catch (e) {
       await _handleError(entry, e.message, true);
     } catch (e) {
-      // Network or transient error
+      // Network or other transient error
       await _handleError(entry, e.toString(), false);
     }
-  }
-
-  bool _isPermanentError(PostgrestException e) {
-    final code = e.code;
-    if (code == null) return false;
-    return code.startsWith('23') ||     // 23xxx constraint violations
-        code.startsWith('PGRST') ||     // PostgREST errors (PGRST116, PGRST204...)
-        code.startsWith('42');          // syntax/access errors (42501, 42P01...)
   }
 
   Future<void> _handleError(dynamic entry, String error, bool permanent) async {
