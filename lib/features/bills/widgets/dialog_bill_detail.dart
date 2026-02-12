@@ -266,14 +266,28 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Header
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          color: Theme.of(context).colorScheme.surfaceContainerHighest,
-          child: Text(
-            _showSummary ? l.billDetailSummary : l.billDetailOrderHistory,
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.titleSmall,
+        // Header — tap to toggle summary/order history
+        InkWell(
+          onTap: () => setState(() => _showSummary = !_showSummary),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    _showSummary ? l.billDetailSummary : l.billDetailOrderHistory,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                ),
+                Icon(
+                  _showSummary ? Icons.list : Icons.functions,
+                  size: 22,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ],
+            ),
           ),
         ),
         // Order items
@@ -314,8 +328,15 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
   }
 
   Widget _buildSummaryList(BuildContext context, WidgetRef ref, List<OrderModel> orders, BillModel bill) {
-    final activeOrders = orders.where((o) =>
-        o.status != PrepStatus.cancelled && o.status != PrepStatus.voided).toList();
+    if (orders.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final isCancelled = bill.status == BillStatus.cancelled;
+    final activeOrders = isCancelled
+        ? orders
+        : orders.where((o) =>
+            o.status != PrepStatus.cancelled && o.status != PrepStatus.voided).toList();
 
     if (activeOrders.isEmpty) {
       return const SizedBox.shrink();
@@ -327,8 +348,10 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
       future: Future.wait(activeOrders.map((o) => orderRepo.getOrderItems(o.id)))
           .then((lists) => lists.expand((l) => l).toList()),
       builder: (context, snap) {
-        final allItems = (snap.data ?? []).where((item) =>
-            item.status != PrepStatus.cancelled && item.status != PrepStatus.voided).toList();
+        final allItems = isCancelled
+            ? (snap.data ?? [])
+            : (snap.data ?? []).where((item) =>
+                item.status != PrepStatus.cancelled && item.status != PrepStatus.voided).toList();
 
         if (allItems.isEmpty) return const SizedBox.shrink();
 
@@ -435,11 +458,6 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
             ),
             const SizedBox(height: 4),
             _SideButton(
-              label: _showSummary ? l.billDetailItemList : l.billDetailSummary,
-              onPressed: () => setState(() => _showSummary = !_showSummary),
-            ),
-            const SizedBox(height: 4),
-            _SideButton(
               label: l.billDetailDiscount,
               onPressed: isOpened ? () => _applyBillDiscount(context, ref, bill) : null,
             ),
@@ -454,12 +472,6 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
             _SideButton(
               label: l.billDetailVoucher,
               onPressed: isOpened ? () => _applyVoucher(context, ref, bill) : null,
-            ),
-            const Spacer(),
-            _SideButton(
-              label: l.billDetailPrint,
-              onPressed: () => showReceiptPrintDialog(context, ref, bill.id),
-              color: Colors.blue,
             ),
           ],
         ),
@@ -481,24 +493,21 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
             height: 44,
             width: 130,
             child: FilledButton(
-              style: FilledButton.styleFrom(
-                backgroundColor: isClosed ? null : Colors.red.shade400,
-              ),
               onPressed: () => Navigator.pop(context),
               child: Text(l.actionClose),
             ),
           ),
-          if (isPaid) ...[
-            const SizedBox(width: 12),
-            // Print receipt
-            SizedBox(
-              height: 44,
-              width: 130,
-              child: FilledButton(
-                onPressed: () => showReceiptPrintDialog(context, ref, bill.id),
-                child: Text(l.paymentPrintReceipt),
-              ),
+          const SizedBox(width: 12),
+          // Print receipt
+          SizedBox(
+            height: 44,
+            width: 130,
+            child: FilledButton(
+              onPressed: () => showReceiptPrintDialog(context, ref, bill.id),
+              child: Text(l.billDetailPrint),
             ),
+          ),
+          if (isPaid) ...[
             const SizedBox(width: 12),
             // Refund
             SizedBox(
@@ -866,10 +875,9 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
 // Side button for right panel
 // ---------------------------------------------------------------------------
 class _SideButton extends StatelessWidget {
-  const _SideButton({required this.label, required this.onPressed, this.color});
+  const _SideButton({required this.label, required this.onPressed});
   final String label;
   final VoidCallback? onPressed;
-  final Color? color;
 
   @override
   Widget build(BuildContext context) {
@@ -878,9 +886,7 @@ class _SideButton extends StatelessWidget {
       height: 40,
       child: FilledButton.tonal(
         onPressed: onPressed,
-        style: color != null
-            ? FilledButton.styleFrom(backgroundColor: color!.withValues(alpha: 0.2))
-            : null,
+        style: null,
         child: Text(label, style: const TextStyle(fontSize: 11), textAlign: TextAlign.center),
       ),
     );

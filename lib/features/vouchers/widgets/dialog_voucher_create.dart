@@ -7,12 +7,15 @@ import '../../../core/data/enums/voucher_discount_scope.dart';
 import '../../../core/data/enums/voucher_status.dart';
 import '../../../core/data/enums/voucher_type.dart';
 import '../../../core/data/models/bill_model.dart';
+import '../../../core/data/models/category_model.dart';
+import '../../../core/data/models/item_model.dart';
 import '../../../core/data/models/voucher_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/repositories/order_repository.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/utils/search_utils.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_numpad.dart';
@@ -33,6 +36,10 @@ class _DialogVoucherCreateState extends ConsumerState<DialogVoucherCreate> {
   int _maxUses = 1;
   String? _note;
   DateTime? _expiresAt;
+  String? _selectedItemId;
+  String? _selectedItemName;
+  String? _selectedCategoryId;
+  String? _selectedCategoryName;
 
   int get _rawValue {
     final parsed = double.tryParse(_valueInput) ?? 0;
@@ -94,13 +101,43 @@ class _DialogVoucherCreateState extends ConsumerState<DialogVoucherCreate> {
                         child: Text(entry.value, textAlign: TextAlign.center),
                       ),
                       selected: _scope == entry.key,
-                      onSelected: (_) => setState(() => _scope = entry.key),
+                      onSelected: (_) => setState(() {
+                    _scope = entry.key;
+                    _selectedItemId = null;
+                    _selectedItemName = null;
+                    _selectedCategoryId = null;
+                    _selectedCategoryName = null;
+                  }),
                     ),
                   ),
                 ),
               ],
             ],
           ),
+          if (_scope == VoucherDiscountScope.product) ...[
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              height: 44,
+              child: OutlinedButton.icon(
+                icon: const Icon(Icons.search, size: 20),
+                label: Text(_selectedItemName ?? l.gridEditorSelectItem),
+                onPressed: () => _selectItem(context),
+              ),
+            ),
+          ],
+          if (_scope == VoucherDiscountScope.category) ...[
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              height: 44,
+              child: OutlinedButton.icon(
+                icon: const Icon(Icons.category, size: 20),
+                label: Text(_selectedCategoryName ?? l.gridEditorSelectCategory),
+                onPressed: () => _selectCategory(context),
+              ),
+            ),
+          ],
           const SizedBox(height: 8),
         ],
         // Value input
@@ -203,7 +240,7 @@ class _DialogVoucherCreateState extends ConsumerState<DialogVoucherCreate> {
             ),
             if (_type == VoucherType.discount)
               FilledButton(
-                onPressed: _rawValue > 0 ? _createDiscountVoucher : null,
+                onPressed: _rawValue > 0 && _isScopeValid ? _createDiscountVoucher : null,
                 child: Text(l.voucherCreate),
               )
             else
@@ -314,6 +351,42 @@ class _DialogVoucherCreateState extends ConsumerState<DialogVoucherCreate> {
     return 'O-${counterResult.value.toString().padLeft(4, '0')}';
   }
 
+  bool get _isScopeValid {
+    if (_scope == VoucherDiscountScope.product) return _selectedItemId != null;
+    if (_scope == VoucherDiscountScope.category) return _selectedCategoryId != null;
+    return true;
+  }
+
+  Future<void> _selectItem(BuildContext context) async {
+    final company = ref.read(currentCompanyProvider);
+    if (company == null) return;
+    final selected = await showDialog<ItemModel>(
+      context: context,
+      builder: (_) => _ItemSearchDialog(companyId: company.id),
+    );
+    if (selected != null) {
+      setState(() {
+        _selectedItemId = selected.id;
+        _selectedItemName = selected.name;
+      });
+    }
+  }
+
+  Future<void> _selectCategory(BuildContext context) async {
+    final company = ref.read(currentCompanyProvider);
+    if (company == null) return;
+    final selected = await showDialog<CategoryModel>(
+      context: context,
+      builder: (_) => _CategorySearchDialog(companyId: company.id),
+    );
+    if (selected != null) {
+      setState(() {
+        _selectedCategoryId = selected.id;
+        _selectedCategoryName = selected.name;
+      });
+    }
+  }
+
   Future<void> _createDiscountVoucher() async {
     final company = ref.read(currentCompanyProvider);
     if (company == null) return;
@@ -330,6 +403,8 @@ class _DialogVoucherCreateState extends ConsumerState<DialogVoucherCreate> {
       value: _rawValue,
       discountType: _discountType,
       discountScope: _scope,
+      itemId: _selectedItemId,
+      categoryId: _selectedCategoryId,
       maxUses: _maxUses,
       usedCount: 0,
       expiresAt: _expiresAt,
@@ -342,5 +417,130 @@ class _DialogVoucherCreateState extends ConsumerState<DialogVoucherCreate> {
     if (result is Success && mounted) {
       Navigator.pop(context, model);
     }
+  }
+}
+
+class _ItemSearchDialog extends ConsumerStatefulWidget {
+  const _ItemSearchDialog({required this.companyId});
+  final String companyId;
+
+  @override
+  ConsumerState<_ItemSearchDialog> createState() => _ItemSearchDialogState();
+}
+
+class _ItemSearchDialogState extends ConsumerState<_ItemSearchDialog> {
+  String _query = '';
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    return AlertDialog(
+      title: Text(l.gridEditorSelectItem),
+      content: SizedBox(
+        width: 350,
+        height: 400,
+        child: Column(
+          children: [
+            TextField(
+              autofocus: true,
+              decoration: InputDecoration(
+                hintText: l.searchHint,
+                prefixIcon: const Icon(Icons.search),
+                border: const OutlineInputBorder(),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              ),
+              onChanged: (v) => setState(() => _query = normalizeSearch(v)),
+            ),
+            const SizedBox(height: 8),
+            Expanded(
+              child: StreamBuilder<List<ItemModel>>(
+                stream: ref.watch(itemRepositoryProvider).watchAll(widget.companyId),
+                builder: (context, snap) {
+                  final items = (snap.data ?? []).where((item) {
+                    if (!item.isSellable || !item.isActive) return false;
+                    if (_query.isEmpty) return true;
+                    return normalizeSearch(item.name).contains(_query) ||
+                        normalizeSearch(item.sku ?? '').contains(_query);
+                  }).toList();
+                  return ListView.builder(
+                    itemCount: items.length,
+                    itemBuilder: (context, i) {
+                      final item = items[i];
+                      return ListTile(
+                        title: Text(item.name),
+                        subtitle: item.sku != null ? Text(item.sku!) : null,
+                        trailing: Text('${item.unitPrice ~/ 100} Kč'),
+                        onTap: () => Navigator.pop(context, item),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CategorySearchDialog extends ConsumerStatefulWidget {
+  const _CategorySearchDialog({required this.companyId});
+  final String companyId;
+
+  @override
+  ConsumerState<_CategorySearchDialog> createState() => _CategorySearchDialogState();
+}
+
+class _CategorySearchDialogState extends ConsumerState<_CategorySearchDialog> {
+  String _query = '';
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    return AlertDialog(
+      title: Text(l.gridEditorSelectCategory),
+      content: SizedBox(
+        width: 350,
+        height: 400,
+        child: Column(
+          children: [
+            TextField(
+              autofocus: true,
+              decoration: InputDecoration(
+                hintText: l.searchHint,
+                prefixIcon: const Icon(Icons.search),
+                border: const OutlineInputBorder(),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              ),
+              onChanged: (v) => setState(() => _query = normalizeSearch(v)),
+            ),
+            const SizedBox(height: 8),
+            Expanded(
+              child: StreamBuilder<List<CategoryModel>>(
+                stream: ref.watch(categoryRepositoryProvider).watchAll(widget.companyId),
+                builder: (context, snap) {
+                  final categories = (snap.data ?? []).where((c) {
+                    if (!c.isActive) return false;
+                    if (_query.isEmpty) return true;
+                    return normalizeSearch(c.name).contains(_query);
+                  }).toList();
+                  return ListView.builder(
+                    itemCount: categories.length,
+                    itemBuilder: (context, i) {
+                      final cat = categories[i];
+                      return ListTile(
+                        title: Text(cat.name),
+                        onTap: () => Navigator.pop(context, cat),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

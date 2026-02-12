@@ -560,7 +560,7 @@ class AppLocalizationsCs extends AppLocalizations {
   String get billDetailCustomer => 'Zákazník';
 
   @override
-  String get billDetailMove => 'Přesunout';
+  String get billDetailMove => 'Stůl';
 
   @override
   String get billDetailMoveTitle => 'Přesunout účet';

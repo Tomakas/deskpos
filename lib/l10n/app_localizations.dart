@@ -1165,7 +1165,7 @@ abstract class AppLocalizations {
   /// No description provided for @billDetailMove.
   ///
   /// In cs, this message translates to:
-  /// **'Přesunout'**
+  /// **'Stůl'**
   String get billDetailMove;
 
   /// No description provided for @billDetailMoveTitle.
