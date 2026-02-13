@@ -20,7 +20,7 @@ class SyncQueueRepository {
     final idempotencyKey =
         '${entityType}_${entityId}_${operation}_${DateTime.now().millisecondsSinceEpoch}';
     await _db.into(_db.syncQueue).insert(SyncQueueCompanion.insert(
-      id: _uuid.v4(),
+      id: _uuid.v7(),
       companyId: companyId,
       entityType: entityType,
       entityId: entityId,

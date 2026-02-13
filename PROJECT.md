@@ -2,7 +2,7 @@
 
 > Konsolidovaná dokumentace projektu EPOS Desktop App.
 >
-> **Poslední aktualizace:** 2026-02-12
+> **Poslední aktualizace:** 2026-02-13
 
 ---
 
@@ -655,12 +655,16 @@ Cloud/Sync: `syncToggleLabel`, `syncToggleOn`, `syncToggleOff`, `syncReauthNeede
 - **Riverpod** — state management a dependency injection
 - **Freezed** — code generation pro immutable modely a union types
 - **Drift** — reaktivní persistence nad SQLite
-- **SQLCipher** — šifrování lokální databáze (od Etapy 3)
 - **Supabase** — backend: Auth, Realtime, Database, Storage (od Etapy 3)
-- **flutter_secure_storage** — bezpečné úložiště klíčů: Keychain / libsecret / Credential Manager (od Etapy 3)
 - **uuid** — generování unikátních identifikátorů (v7 — chronologické řazení, lepší výkon B-tree)
 - **go_router** — deklarativní routing, auth guard, redirect
 - **intl** — formátování dat, časů, měn, lokalizace
+- **pdf** — generování PDF (účtenky, Z-reporty)
+- **printing** — tisková infrastruktura (preview, tisk)
+- **crypto** — kryptografické funkce (hashování PINů — SHA-256)
+- **path_provider** — přístup k systémovým adresářům (umístění DB)
+- **SQLCipher** — šifrování lokální databáze (plánováno, zatím neimplementováno)
+- **flutter_secure_storage** — bezpečné úložiště klíčů (plánováno, zatím neimplementováno)
 
 ---
 
@@ -688,13 +692,13 @@ graph TD
 
 #### 2. Business Logic Layer (Application)
 
-- **Komponenty:** Riverpod `Notifier`, `AsyncNotifier`
+- **Komponenty:** `ConsumerStatefulWidget` s lokálním `setState()` pro UI stav, core `StateProvider`/`StreamProvider`/`FutureProvider` pro sdílený app stav
 - **Odpovědnost:**
-    - Držení a transformace stavu UI (např. aktuální košík, filtr seznamu)
-    - Validace uživatelských vstupů
-    - Volání metod z Data Layer
+    - Feature-level UI stav (košík, filtry, UI flags) žije přímo v `ConsumerStatefulWidget` (`setState()`)
+    - Sdílený app stav (aktivní uživatel, firma, sync status) žije v core providerech (`StateProvider`, `FutureProvider`, `StreamProvider`)
+    - Volání metod z Data Layer přes `ref.read(repositoryProvider)`
     - Error handling pro UI pomocí typu `Result<T>`
-- **State:** Preferujeme immutable state pomocí `Freezed`
+- **State:** Doménové modely jsou immutable (`Freezed`), UI stav je mutable (`setState`)
 
 #### 3. Data Layer (Domain/Data)
 
@@ -796,7 +800,7 @@ lib/
 │   ├── sync/                          # Sync engine
 │   │   ├── sync_service.dart          # Pull (5min interval, 35 tabulek) + mergeRow (LWW)
 │   │   ├── outbox_processor.dart      # Push přes Ingest Edge Function (5s interval, retry)
-│   │   ├── realtime_service.dart      # Supabase Realtime PostgresChanges (21 tabulek, <2s)
+│   │   ├── realtime_service.dart      # Supabase Realtime PostgresChanges (22 tabulek, <2s)
 │   │   └── sync_lifecycle_manager.dart # Orchestrace start/stop/initial push + realtime
 │   ├── logging/                       # AppLogger (dart:developer)
 │   └── l10n/                          # Extension context.l10n
@@ -847,7 +851,7 @@ Každá entita v `core/data/` se skládá z následujících souborů:
 ### Core Widgets (`lib/core/widgets/`)
 
 #### PosTable<T>
-Generický unifikovaný tabulkový widget používaný napříč celou aplikací (18 použití).
+Generický unifikovaný tabulkový widget používaný napříč celou aplikací (35 použití ve 20 souborech).
 Nahrazuje individuální DataTable implementace konzistentním API.
 
 - `PosColumn<T>` — definice sloupce: label, flex/width, cellBuilder, numeric
@@ -879,9 +883,20 @@ Migrace: 26 dialogů celkem, z toho 22 migrovaných na sdílené widgety, 4 pone
 
 ## Databáze
 
-### Šifrování databáze (Etapa 3)
+### Posílení autentizace operátorů (plánováno — Etapa 4)
 
-Šifrování se zavádí až v Etapě 3 (Milník 3.1) společně se sync. Během vývoje běží DB jako plain SQLite pro snadnější debugging.
+> **Stav:** Zatím neimplementováno. Aktuálně se operátoři přihlašují pouze PINem (SHA-256 hash).
+
+Plánovaná změna:
+- **Heslo** — primární přihlášení operátora (bcrypt/argon2 hash)
+- **PIN** — pouze pro rychlé přepínání mezi již přihlášenými účty v rámci jedné session
+- Tím se eliminuje riziko offline bruteforce krátkého PINu — PIN bude sloužit jen jako rychlý switch, ne jako jediný autentizační faktor
+
+### Šifrování databáze (plánováno)
+
+> **Stav:** Zatím neimplementováno. DB běží jako plain SQLite. SQLCipher a flutter_secure_storage nejsou v dependencies.
+
+Plánované řešení:
 
 - **Technologie:** SQLCipher (`sqlcipher_flutter_libs`)
 - **Šifrovací klíč:** 32-byte náhodný hex řetězec, generován při prvním spuštění
@@ -1002,7 +1017,7 @@ Všechny aktivní tabulky obsahují společné sync sloupce (viz [SyncColumnsMix
 | **bills** | id (T), company_id →companies, section_id →sections?, table_id →tables?, opened_by_user_id →users, register_id →registers?, last_register_id →registers?, register_session_id →register_sessions?, bill_number (T), number_of_guests (I, default 0), is_takeaway (B), status (T — BillStatus), currency_id →currencies, customer_id →customers?, customer_name (T?), subtotal_gross (I), subtotal_net (I), discount_amount (I), discount_type (T? — DiscountType), tax_total (I), total_gross (I), rounding_amount (I), paid_amount (I), loyalty_points_used (I, default 0), loyalty_discount_amount (I, default 0), voucher_discount_amount (I, default 0), voucher_id →vouchers?, opened_at (D), closed_at (D?), map_pos_x (I?), map_pos_y (I?) |
 | **orders** | id (T), company_id →companies, bill_id →bills, created_by_user_id →users, register_id →registers?, order_number (T), notes (T?), status (T — PrepStatus), item_count (I), subtotal_gross (I), subtotal_net (I), tax_total (I), is_storno (B, default false), storno_source_order_id →orders?, prep_started_at (D?), ready_at (D?), delivered_at (D?) |
 | **order_items** | id (T), company_id →companies, order_id →orders, item_id →items, item_name (T), quantity (R), sale_price_att (I), sale_tax_rate_att (I), sale_tax_amount (I), discount (I), discount_type (T? — DiscountType), notes (T?), status (T — PrepStatus), prep_started_at (D?), ready_at (D?), delivered_at (D?) |
-| **payments** | id (T), company_id →companies, bill_id →bills, register_id →registers?, payment_method_id →payment_methods, user_id →users?, amount (I), paid_at (D), currency_id →currencies, tip_included_amount (I), notes (T?), transaction_id (T?), payment_provider (T?), card_last4 (T?), authorization_code (T?) |
+| **payments** | id (T), company_id →companies, bill_id →bills, register_id →registers?, register_session_id →register_sessions?, payment_method_id →payment_methods, user_id →users?, amount (I), paid_at (D), currency_id →currencies, tip_included_amount (I), notes (T?), transaction_id (T?), payment_provider (T?), card_last4 (T?), authorization_code (T?) |
 | **payment_methods** | id (T), company_id →companies, name (T), type (T — PaymentType), is_active (B) |
 
 ##### Katalog (items, categories, tax)
@@ -1195,7 +1210,7 @@ Hodnoty ENUM jsou uloženy jako `TEXT` v lokální SQLite databázi. Drift `text
 
 > **Stav implementace:** Sync infrastruktura je funkční pro všech 35 doménových tabulek. Konfigurační entity (company_settings, sections, categories, items, tables, map_elements, payment_methods, tax_rates, users, suppliers, manufacturers, product_recipes, warehouses, reservations, vouchers, customers, customer_transactions) dědí z `BaseCompanyScopedRepository` s automatickým outbox zápisem v transakci. Prodejní a provozní entity (bills, orders, order_items, payments, register_sessions, cash_movements, layout_items, user_permissions, shifts, stock_levels, stock_documents, stock_movements, registers) používají ruční enqueue — vlastní repozitáře s injektovaným `SyncQueueRepository` a explicitním `_enqueue*` voláním po každé mutaci. Globální tabulky (currencies, roles, permissions, role_permissions) se pullují bez company_id filtru a pushují při initial sync. SyncService pulluje všech 35 tabulek v FK-respektujícím pořadí. ConnectCompanyScreen umožňuje připojení nového zařízení k existující firmě stažením dat přes InitialSync (pullAll). SyncLifecycleManager.companyRepos pro initial push: company_settings, sections, categories, items, tables, map_elements, payment_methods, tax_rates, users, warehouses, vouchers, suppliers, manufacturers, customers, product_recipes, reservations, customer_transactions.
 >
-> **Realtime sync (od Milníku 3.9):** `RealtimeService` subscribuje Supabase PostgresChanges na 21 company-scoped tabulek pro <2s cross-device sync. Dual sync strategie: polling 5min (fallback) + Realtime (instant). Reconnect po výpadku triggerne okamžitý `pullAll`.
+> **Realtime sync (od Milníku 3.9):** `RealtimeService` subscribuje Supabase PostgresChanges na 22 tabulek (vč. `companies`) pro <2s cross-device sync. Dual sync strategie: polling 5min (fallback) + Realtime (instant). Reconnect po výpadku triggerne okamžitý `pullAll`.
 
 ### Outbox Pattern
 
@@ -1226,10 +1241,10 @@ Všechny outbox zápisy procházejí přes Supabase Edge Function `ingest` (`sup
 **Payload formát:**
 ```json
 {
-  "entity_type": "bills",
-  "entity_id": "uuid",
+  "table": "bills",
   "operation": "update",
-  "payload": { ... }
+  "payload": { ... },
+  "idempotency_key": "uuid"
 }
 ```
 
@@ -1258,11 +1273,11 @@ graph TD
 `RealtimeService` poskytuje near-instant (<2s) cross-device sync přes Supabase Realtime:
 
 **Architektura:**
-- Jeden `RealtimeChannel` (`sync-{companyId}`) s PostgresChanges listeners na 21 tabulek
+- Jeden `RealtimeChannel` (`sync-{companyId}`) s PostgresChanges listeners na 22 tabulek
 - Filtr: `company_id = companyId` (pro `companies` filtr na `id`)
 - Callback: `_handleChange` → `SyncService.mergeRow` (LWW merge přes `insertOnConflictUpdate`)
 
-**21 subscribovaných tabulek:** companies, company_settings, sections, tax_rates, payment_methods, categories, users, user_permissions, tables, map_elements, items, registers, layout_items, customers, reservations, bills, orders, order_items, payments, register_sessions, cash_movements, shifts.
+**22 subscribovaných tabulek:** companies, company_settings, sections, tax_rates, payment_methods, categories, users, user_permissions, tables, map_elements, items, registers, layout_items, customers, reservations, bills, orders, order_items, payments, register_sessions, cash_movements, shifts.
 
 **Vyloučené tabulky** (nízká frekvence změn, stačí 5min polling): suppliers, manufacturers, product_recipes, warehouses, stock_levels, stock_documents, stock_movements, vouchers, customer_transactions.
 
@@ -1305,7 +1320,7 @@ ALTER PUBLICATION supabase_realtime ADD TABLE companies, company_settings, secti
 
 #### 1. Server-side trigger (`enforce_lww`)
 
-PostgreSQL BEFORE UPDATE trigger porovnává `client_updated_at`. Pokud je příchozí timestamp starší → vyhodí výjimku `LWW_CONFLICT`.
+PostgreSQL BEFORE UPDATE trigger `trg_{table}_lww` s funkcí `enforce_lww` je aktivní na všech 35 doménových tabulkách. Porovnává `client_updated_at` — pokud je příchozí timestamp starší než existující záznam, vyhodí výjimku `LWW_CONFLICT` (P0001). Ingest Edge Function tento error zachytí a vrátí klientovi `error_type: "lww_conflict"`.
 
 #### 2. Pull-side LWW
 
@@ -1337,12 +1352,13 @@ Když server odmítne push (`LWW_CONFLICT`), outbox processor označí entry jak
 
 ### ConnectCompanyScreen — připojení k existující firmě
 
-Flow pro nové zařízení (5 kroků — enum `_Step`):
+Flow pro nové zařízení (6 kroků — enum `_Step`):
 1. `credentials` — Formulář: email + heslo → `supabaseAuthService.signIn()`
 2. `searching` — Loading: „Hledání firmy..." → fetch company z Supabase (`companies.auth_user_id = userId`)
 3. `companyPreview` — Zobrazí název firmy + tlačítko „Připojit"
 4. `syncing` — Loading: „Synchronizace dat..." → `syncService.pullAll(companyId)` — stáhne všech 35 tabulek
-5. `done` — „Synchronizace dokončena" → invalidace `appInitProvider` → navigace na `/login`
+5. `selectRegister` — Výběr pokladny pro zařízení (device binding)
+6. `done` — „Synchronizace dokončena" → invalidace `appInitProvider` → navigace na `/login`
 
 ### Known Issues / Limitations
 
@@ -1523,8 +1539,8 @@ Order-level timestamps (`prepStartedAt`, `readyAt`, `deliveredAt`) se nastaví p
 
 | Aspekt | Rozhodnutí |
 |--------|------------|
-| **Bill číslo** | `B-001` — per-day reset, 3 cifry s prefixem |
-| **Order číslo** | `O-0001` — per register session, reset při nové session, 4 cifry s prefixem. Storno ordery: `X-XXXX`. |
+| **Bill číslo** | `B{register_number}-{counter:3d}` (např. `B1-001`) — per-day reset, 3 cifry. Fallback bez registru: `B-{counter:3d}`. |
+| **Order číslo** | `O{register_number}-{counter:4d}` (např. `O1-0001`) — per register session, reset při nové session, 4 cifry. Storno ordery: `X{register_number}-{counter:4d}`. |
 | **Prázdný bill** | Povolen (placeholder pro stůl) |
 | **Po zrušení všech items** | Bill zůstane otevřený |
 | **Slevy** | 2 úrovně — bill, item (od Etapy 3.2) |
@@ -1887,7 +1903,7 @@ Progresivní lockout chrání proti hádání PIN kódu:
 ### Cloud Sync Auth (implementováno)
 
 - Každé zařízení musí mít uložené **admin email + password** (Supabase Auth)
-- Pokud credentials chybí, aplikace zobrazí `ScreenCloudAuth` a vyžádá admin přihlášení
+- `ScreenCloudAuth` je přístupná jako tab v nastavení firmy (CloudTab) — **není** povinným krokem v routeru
 - Synchronizace se spustí až po validním Supabase session (RLS vyžaduje auth)
 - `SupabaseAuthService` zajišťuje signIn/signUp a session management
 
@@ -1897,19 +1913,17 @@ Progresivní lockout chrání proti hádání PIN kódu:
 
 ```mermaid
 graph TD
-    BOOT[Bootstrap - main.dart] --> INIT[AppInitialization]
-    INIT --> |Nové zařízení| ONBOARD[ScreenOnboarding]
-    INIT --> |Needs Sync Auth?| SYNCAUTH[SyncAuthScreen — E3+]
-    INIT --> |Firma existuje| PIN[ScreenLogin]
-    INIT --> |Authenticated| BILLS[ScreenBills]
-    ONBOARD --> |Vytvořit firmu| PIN
-    ONBOARD --> |Připojit se k firmě — E3+| CONNECT[ConnectCompanyScreen]
+    BOOT[Bootstrap - main.dart] --> LOADING[/loading]
+    LOADING --> |appInitProvider| INIT{Stav}
+    INIT --> |needsOnboarding| ONBOARD[ScreenOnboarding]
+    INIT --> |needsLogin| PIN[ScreenLogin]
+    ONBOARD --> |Založit firmu| PIN
+    ONBOARD --> |Připojit se k firmě| CONNECT[ConnectCompanyScreen]
     CONNECT --> PIN
-    SYNCAUTH --> PIN
-    PIN --> BILLS
+    PIN --> |PIN ověřen| BILLS[ScreenBills]
 ```
 
-> **Aktuální stav:** Všechny cesty jsou aktivní — Vytvořit firmu (onboarding), Připojit se k firmě (ConnectCompanyScreen), ScreenCloudAuth (cloud sync credentials). Router začíná na `/loading`, čeká na `appInitProvider`, pak přesměruje dle stavu.
+> **Aktuální stav:** Router začíná na `/loading`, čeká na `appInitProvider`. Žádná firma → `/onboarding` (volba: založit nebo připojit). Firma existuje → `/login` (PIN). Po přihlášení → `/bills`. Cloud sync credentials se nastavují v Settings → CloudTab (ne jako povinný krok v routeru).
 
 #### ScreenOnboarding Flow
 
@@ -2116,7 +2130,7 @@ POS aplikace je **pracovní nástroj**, ne marketingový produkt. Design optimal
 
 | Vlastnost | Hodnota |
 |-----------|---------|
-| Výška | 52 px |
+| Výška | 40–54 px (dle kontextu: FilterChips 40, dialog akce 44, payment 48, panelové 54) |
 | Min. šířka | 160 px |
 | Padding | 16 px horizontálně |
 | Border radius | 8 px |
@@ -2648,13 +2662,14 @@ flutter pub get
 
 > V Etapě 1–2 aplikace nepotřebuje žádnou konfiguraci prostředí — běží čistě lokálně.
 
-Od Etapy 3 se konfigurace řeší přes `--dart-define`:
+Od Etapy 3 jsou Supabase credentials uloženy jako konstanty v `lib/core/network/supabase_config.dart`:
 
-| Klíč | Popis |
-|------|-------|
-| `SUPABASE_URL` | URL Supabase projektu |
-| `SUPABASE_ANON_KEY` | Anon klíč pro SDK inicializaci |
-| `ENV` | Prostředí: `development` (default), `staging`, `production` |
+| Konstanta | Popis |
+|-----------|-------|
+| `supabaseUrl` | URL Supabase projektu |
+| `supabaseAnonKey` | Anon klíč pro SDK inicializaci |
+
+> **Poznámka:** Pro produkční nasazení by se credentials měly přesunout na `--dart-define` nebo `.env` soubor.
 
 ### Logování
 
@@ -2711,11 +2726,11 @@ Projekt využívá **Riverpod** jako Service Locator a DI kontejner.
 | Soubor | Klíčové providery |
 |--------|-------------------|
 | `database_provider.dart` | `appDatabaseProvider` — singleton Drift DB |
-| `auth_providers.dart` | `sessionManagerProvider`, `authServiceProvider`, `seedServiceProvider`, `activeUserProvider`, `loggedInUsersProvider`, `currentCompanyProvider`, `appInitProvider`, `deviceRegistrationProvider`, `activeRegisterProvider` (null bez device binding), `activeRegisterSessionProvider` |
+| `auth_providers.dart` | `sessionManagerProvider`, `authServiceProvider`, `seedServiceProvider`, `deviceIdProvider` (persistent UUID zařízení), `activeUserProvider`, `loggedInUsersProvider`, `companyStreamProvider`, `currentCompanyProvider`, `appInitProvider`, `deviceRegistrationProvider`, `activeRegisterProvider` (null bez device binding), `activeRegisterSessionProvider`, `manualLockProvider` |
 | `permission_providers.dart` | `userPermissionCodesProvider` (reaktivní Set\<String\>), `hasPermissionProvider` (O(1) family check) |
 | `repository_providers.dart` | 34 repozitářů — `syncQueueRepositoryProvider`, `syncMetadataRepositoryProvider`, `deviceRegistrationRepositoryProvider`, `companyRepositoryProvider`, `companySettingsRepositoryProvider`, `userRepositoryProvider`, `roleRepositoryProvider`, `permissionRepositoryProvider`, `sectionRepositoryProvider`, `tableRepositoryProvider`, `mapElementRepositoryProvider`, `categoryRepositoryProvider`, `itemRepositoryProvider`, `taxRateRepositoryProvider`, `paymentMethodRepositoryProvider`, `billRepositoryProvider`, `orderRepositoryProvider`, `registerRepositoryProvider`, `registerSessionRepositoryProvider`, `shiftRepositoryProvider`, `cashMovementRepositoryProvider`, `paymentRepositoryProvider`, `layoutItemRepositoryProvider`, `customerRepositoryProvider`, `reservationRepositoryProvider`, `customerTransactionRepositoryProvider`, `supplierRepositoryProvider`, `manufacturerRepositoryProvider`, `productRecipeRepositoryProvider`, `warehouseRepositoryProvider`, `stockLevelRepositoryProvider`, `stockMovementRepositoryProvider`, `voucherRepositoryProvider`, `stockDocumentRepositoryProvider` |
 | `sync_providers.dart` | `supabaseAuthServiceProvider`, `isSupabaseAuthenticatedProvider`, `outboxProcessorProvider`, `syncServiceProvider`, `realtimeServiceProvider`, `syncLifecycleManagerProvider`, `syncLifecycleWatcherProvider` |
-| `printing_providers.dart` | `pdfFontLoaderProvider`, `printingServiceProvider` |
+| `printing_providers.dart` | `printingServiceProvider` |
 
 ### Git Workflow
 

@@ -321,6 +321,7 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
 
     final repo = ref.read(billRepositoryProvider);
     final register = ref.read(activeRegisterProvider).value;
+    final session = ref.read(activeRegisterSessionProvider).valueOrNull;
     final result = await repo.recordPayment(
       companyId: _bill.companyId,
       billId: _bill.id,
@@ -330,6 +331,7 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
       tipAmount: tipAmount,
       userId: ref.read(activeUserProvider)?.id,
       registerId: register?.id,
+      registerSessionId: session?.id,
       loyaltyEarnPerHundredCzk: loyaltyEarn,
     );
 
@@ -377,6 +379,7 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
     // Record the payment
     final repo = ref.read(billRepositoryProvider);
     final register2 = ref.read(activeRegisterProvider).value;
+    final session2 = ref.read(activeRegisterSessionProvider).valueOrNull;
     final result = await repo.recordPayment(
       companyId: _bill.companyId,
       billId: _bill.id,
@@ -386,6 +389,7 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
       tipAmount: 0,
       userId: ref.read(activeUserProvider)?.id,
       registerId: register2?.id,
+      registerSessionId: session2?.id,
     );
 
     if (!context.mounted) return;

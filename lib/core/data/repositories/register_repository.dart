@@ -101,33 +101,35 @@ class RegisterRepository {
     int gridCols = 8,
   }) async {
     try {
-      final id = const Uuid().v7();
-      final registerNumber = await getNextRegisterNumber(companyId);
-      final code = 'REG-$registerNumber';
+      return await _db.transaction(() async {
+        final id = const Uuid().v7();
+        final registerNumber = await getNextRegisterNumber(companyId);
+        final code = 'REG-$registerNumber';
 
-      await _db.into(_db.registers).insert(RegistersCompanion.insert(
-        id: id,
-        companyId: companyId,
-        code: code,
-        name: Value(name),
-        registerNumber: Value(registerNumber),
-        parentRegisterId: Value(parentRegisterId),
-        isMain: Value(isMain),
-        type: type,
-        allowCash: Value(allowCash),
-        allowCard: Value(allowCard),
-        allowTransfer: Value(allowTransfer),
-        allowRefunds: Value(allowRefunds),
-        gridRows: Value(gridRows),
-        gridCols: Value(gridCols),
-      ));
+        await _db.into(_db.registers).insert(RegistersCompanion.insert(
+          id: id,
+          companyId: companyId,
+          code: code,
+          name: Value(name),
+          registerNumber: Value(registerNumber),
+          parentRegisterId: Value(parentRegisterId),
+          isMain: Value(isMain),
+          type: type,
+          allowCash: Value(allowCash),
+          allowCard: Value(allowCard),
+          allowTransfer: Value(allowTransfer),
+          allowRefunds: Value(allowRefunds),
+          gridRows: Value(gridRows),
+          gridCols: Value(gridCols),
+        ));
 
-      final entity = await (_db.select(_db.registers)
-            ..where((t) => t.id.equals(id)))
-          .getSingle();
-      final model = registerFromEntity(entity);
-      await _enqueue('insert', model);
-      return Success(model);
+        final entity = await (_db.select(_db.registers)
+              ..where((t) => t.id.equals(id)))
+            .getSingle();
+        final model = registerFromEntity(entity);
+        await _enqueue('insert', model);
+        return Success(model);
+      });
     } catch (e, s) {
       AppLogger.error('Failed to create register', error: e, stackTrace: s);
       return Failure('Failed to create register: $e');
@@ -136,28 +138,30 @@ class RegisterRepository {
 
   Future<Result<RegisterModel>> update(RegisterModel model) async {
     try {
-      final now = DateTime.now();
-      await (_db.update(_db.registers)..where((t) => t.id.equals(model.id)))
-          .write(RegistersCompanion(
-        name: Value(model.name),
-        type: Value(model.type),
-        parentRegisterId: Value(model.parentRegisterId),
-        isMain: Value(model.isMain),
-        isActive: Value(model.isActive),
-        allowCash: Value(model.allowCash),
-        allowCard: Value(model.allowCard),
-        allowTransfer: Value(model.allowTransfer),
-        allowRefunds: Value(model.allowRefunds),
-        gridRows: Value(model.gridRows),
-        gridCols: Value(model.gridCols),
-        updatedAt: Value(now),
-      ));
-      final entity = await (_db.select(_db.registers)
-            ..where((t) => t.id.equals(model.id)))
-          .getSingle();
-      final updated = registerFromEntity(entity);
-      await _enqueue('update', updated);
-      return Success(updated);
+      return await _db.transaction(() async {
+        final now = DateTime.now();
+        await (_db.update(_db.registers)..where((t) => t.id.equals(model.id)))
+            .write(RegistersCompanion(
+          name: Value(model.name),
+          type: Value(model.type),
+          parentRegisterId: Value(model.parentRegisterId),
+          isMain: Value(model.isMain),
+          isActive: Value(model.isActive),
+          allowCash: Value(model.allowCash),
+          allowCard: Value(model.allowCard),
+          allowTransfer: Value(model.allowTransfer),
+          allowRefunds: Value(model.allowRefunds),
+          gridRows: Value(model.gridRows),
+          gridCols: Value(model.gridCols),
+          updatedAt: Value(now),
+        ));
+        final entity = await (_db.select(_db.registers)
+              ..where((t) => t.id.equals(model.id)))
+            .getSingle();
+        final updated = registerFromEntity(entity);
+        await _enqueue('update', updated);
+        return Success(updated);
+      });
     } catch (e, s) {
       AppLogger.error('Failed to update register', error: e, stackTrace: s);
       return Failure('Failed to update register: $e');
@@ -166,18 +170,20 @@ class RegisterRepository {
 
   Future<Result<void>> delete(String registerId) async {
     try {
-      final now = DateTime.now();
-      await (_db.update(_db.registers)..where((t) => t.id.equals(registerId)))
-          .write(RegistersCompanion(
-        deletedAt: Value(now),
-        updatedAt: Value(now),
-      ));
-      final entity = await (_db.select(_db.registers)
-            ..where((t) => t.id.equals(registerId)))
-          .getSingle();
-      final model = registerFromEntity(entity);
-      await _enqueue('delete', model);
-      return const Success(null);
+      return await _db.transaction(() async {
+        final now = DateTime.now();
+        await (_db.update(_db.registers)..where((t) => t.id.equals(registerId)))
+            .write(RegistersCompanion(
+          deletedAt: Value(now),
+          updatedAt: Value(now),
+        ));
+        final entity = await (_db.select(_db.registers)
+              ..where((t) => t.id.equals(registerId)))
+            .getSingle();
+        final model = registerFromEntity(entity);
+        await _enqueue('delete', model);
+        return const Success(null);
+      });
     } catch (e, s) {
       AppLogger.error('Failed to delete register', error: e, stackTrace: s);
       return Failure('Failed to delete register: $e');
@@ -185,46 +191,50 @@ class RegisterRepository {
   }
 
   Future<RegisterModel?> updateGrid(String registerId, int gridRows, int gridCols) async {
-    final now = DateTime.now();
-    await (_db.update(_db.registers)..where((t) => t.id.equals(registerId)))
-        .write(RegistersCompanion(
-      gridRows: Value(gridRows),
-      gridCols: Value(gridCols),
-      updatedAt: Value(now),
-    ));
-    final entity = await (_db.select(_db.registers)
-          ..where((t) => t.id.equals(registerId)))
-        .getSingleOrNull();
-    if (entity == null) return null;
-    final model = registerFromEntity(entity);
-    await _enqueue('update', model);
-    return model;
+    return await _db.transaction(() async {
+      final now = DateTime.now();
+      await (_db.update(_db.registers)..where((t) => t.id.equals(registerId)))
+          .write(RegistersCompanion(
+        gridRows: Value(gridRows),
+        gridCols: Value(gridCols),
+        updatedAt: Value(now),
+      ));
+      final entity = await (_db.select(_db.registers)
+            ..where((t) => t.id.equals(registerId)))
+          .getSingleOrNull();
+      if (entity == null) return null;
+      final model = registerFromEntity(entity);
+      await _enqueue('update', model);
+      return model;
+    });
   }
 
   /// Sets the given register as main and clears isMain from all others in the company.
   Future<Result<void>> setMain(String companyId, String registerId) async {
     try {
-      final now = DateTime.now();
-      // Clear isMain from all registers in the company
-      await (_db.update(_db.registers)
-            ..where((t) => t.companyId.equals(companyId) & t.isMain.equals(true)))
-          .write(RegistersCompanion(
-        isMain: const Value(false),
-        updatedAt: Value(now),
-      ));
-      // Set isMain on the target register
-      await (_db.update(_db.registers)
-            ..where((t) => t.id.equals(registerId)))
-          .write(RegistersCompanion(
-        isMain: const Value(true),
-        updatedAt: Value(now),
-      ));
-      // Enqueue both changes
-      final all = await getAll(companyId);
-      for (final reg in all) {
-        await _enqueue('update', reg);
-      }
-      return const Success(null);
+      return await _db.transaction(() async {
+        final now = DateTime.now();
+        // Clear isMain from all registers in the company
+        await (_db.update(_db.registers)
+              ..where((t) => t.companyId.equals(companyId) & t.isMain.equals(true)))
+            .write(RegistersCompanion(
+          isMain: const Value(false),
+          updatedAt: Value(now),
+        ));
+        // Set isMain on the target register
+        await (_db.update(_db.registers)
+              ..where((t) => t.id.equals(registerId)))
+            .write(RegistersCompanion(
+          isMain: const Value(true),
+          updatedAt: Value(now),
+        ));
+        // Enqueue both changes
+        final all = await getAll(companyId);
+        for (final reg in all) {
+          await _enqueue('update', reg);
+        }
+        return const Success(null);
+      });
     } catch (e, s) {
       AppLogger.error('Failed to set main register', error: e, stackTrace: s);
       return Failure('Failed to set main register: $e');
@@ -244,66 +254,74 @@ class RegisterRepository {
 
   /// Sets the boundDeviceId on a register (marks it as bound to a device).
   Future<void> setBoundDevice(String registerId, String deviceId) async {
-    final now = DateTime.now();
-    await (_db.update(_db.registers)..where((t) => t.id.equals(registerId)))
-        .write(RegistersCompanion(
-      boundDeviceId: Value(deviceId),
-      updatedAt: Value(now),
-    ));
-    final entity = await (_db.select(_db.registers)
-          ..where((t) => t.id.equals(registerId)))
-        .getSingleOrNull();
-    if (entity != null) {
-      await _enqueue('update', registerFromEntity(entity));
-    }
+    await _db.transaction(() async {
+      final now = DateTime.now();
+      await (_db.update(_db.registers)..where((t) => t.id.equals(registerId)))
+          .write(RegistersCompanion(
+        boundDeviceId: Value(deviceId),
+        updatedAt: Value(now),
+      ));
+      final entity = await (_db.select(_db.registers)
+            ..where((t) => t.id.equals(registerId)))
+          .getSingleOrNull();
+      if (entity != null) {
+        await _enqueue('update', registerFromEntity(entity));
+      }
+    });
   }
 
   /// Sets (or clears) the activeBillId on a register.
   Future<void> setActiveBill(String registerId, String? billId) async {
-    final now = DateTime.now();
-    await (_db.update(_db.registers)..where((t) => t.id.equals(registerId)))
-        .write(RegistersCompanion(
-      activeBillId: Value(billId),
-      updatedAt: Value(now),
-    ));
-    final entity = await (_db.select(_db.registers)
-          ..where((t) => t.id.equals(registerId)))
-        .getSingleOrNull();
-    if (entity != null) {
-      await _enqueue('update', registerFromEntity(entity));
-    }
+    await _db.transaction(() async {
+      final now = DateTime.now();
+      await (_db.update(_db.registers)..where((t) => t.id.equals(registerId)))
+          .write(RegistersCompanion(
+        activeBillId: Value(billId),
+        updatedAt: Value(now),
+      ));
+      final entity = await (_db.select(_db.registers)
+            ..where((t) => t.id.equals(registerId)))
+          .getSingleOrNull();
+      if (entity != null) {
+        await _enqueue('update', registerFromEntity(entity));
+      }
+    });
   }
 
   /// Sets (or clears) the displayCartJson on a register.
   Future<void> setDisplayCart(String registerId, String? cartJson) async {
-    final now = DateTime.now();
-    await (_db.update(_db.registers)..where((t) => t.id.equals(registerId)))
-        .write(RegistersCompanion(
-      displayCartJson: Value(cartJson),
-      updatedAt: Value(now),
-    ));
-    final entity = await (_db.select(_db.registers)
-          ..where((t) => t.id.equals(registerId)))
-        .getSingleOrNull();
-    if (entity != null) {
-      await _enqueue('update', registerFromEntity(entity));
-    }
+    await _db.transaction(() async {
+      final now = DateTime.now();
+      await (_db.update(_db.registers)..where((t) => t.id.equals(registerId)))
+          .write(RegistersCompanion(
+        displayCartJson: Value(cartJson),
+        updatedAt: Value(now),
+      ));
+      final entity = await (_db.select(_db.registers)
+            ..where((t) => t.id.equals(registerId)))
+          .getSingleOrNull();
+      if (entity != null) {
+        await _enqueue('update', registerFromEntity(entity));
+      }
+    });
   }
 
   /// Clears the boundDeviceId on a register (releases it for other devices).
   Future<void> clearBoundDevice(String registerId) async {
-    final now = DateTime.now();
-    await (_db.update(_db.registers)..where((t) => t.id.equals(registerId)))
-        .write(RegistersCompanion(
-      boundDeviceId: const Value(null),
-      updatedAt: Value(now),
-    ));
-    final entity = await (_db.select(_db.registers)
-          ..where((t) => t.id.equals(registerId)))
-        .getSingleOrNull();
-    if (entity != null) {
-      await _enqueue('update', registerFromEntity(entity));
-    }
+    await _db.transaction(() async {
+      final now = DateTime.now();
+      await (_db.update(_db.registers)..where((t) => t.id.equals(registerId)))
+          .write(RegistersCompanion(
+        boundDeviceId: const Value(null),
+        updatedAt: Value(now),
+      ));
+      final entity = await (_db.select(_db.registers)
+            ..where((t) => t.id.equals(registerId)))
+          .getSingleOrNull();
+      if (entity != null) {
+        await _enqueue('update', registerFromEntity(entity));
+      }
+    });
   }
 
   Future<void> _enqueue(String operation, RegisterModel model) async {

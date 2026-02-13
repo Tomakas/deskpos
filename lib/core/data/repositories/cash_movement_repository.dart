@@ -26,24 +26,26 @@ class CashMovementRepository {
     String? reason,
   }) async {
     try {
-      final id = const Uuid().v7();
-      await _db.into(_db.cashMovements).insert(
-        CashMovementsCompanion.insert(
-          id: id,
-          companyId: companyId,
-          registerSessionId: registerSessionId,
-          userId: userId,
-          type: type,
-          amount: amount,
-          reason: Value(reason),
-        ),
-      );
-      final entity = await (_db.select(_db.cashMovements)
-            ..where((t) => t.id.equals(id)))
-          .getSingle();
-      final model = cashMovementFromEntity(entity);
-      await _enqueue('insert', model);
-      return Success(model);
+      return await _db.transaction(() async {
+        final id = const Uuid().v7();
+        await _db.into(_db.cashMovements).insert(
+          CashMovementsCompanion.insert(
+            id: id,
+            companyId: companyId,
+            registerSessionId: registerSessionId,
+            userId: userId,
+            type: type,
+            amount: amount,
+            reason: Value(reason),
+          ),
+        );
+        final entity = await (_db.select(_db.cashMovements)
+              ..where((t) => t.id.equals(id)))
+            .getSingle();
+        final model = cashMovementFromEntity(entity);
+        await _enqueue('insert', model);
+        return Success(model);
+      });
     } catch (e, s) {
       AppLogger.error('Failed to create cash movement', error: e, stackTrace: s);
       return Failure('Failed to create cash movement: $e');

@@ -118,36 +118,35 @@ class CustomerRepository
             updatedAt: now,
           )),
         );
+
+        final updatedEntity = await (db.select(db.customers)
+              ..where((t) => t.id.equals(customerId)))
+            .getSingle();
+        final updatedCustomer = customerFromEntity(updatedEntity);
+        if (syncQueueRepo != null) {
+          await syncQueueRepo!.enqueue(
+            companyId: updatedCustomer.companyId,
+            entityType: 'customers',
+            entityId: updatedCustomer.id,
+            operation: 'update',
+            payload: jsonEncode(customerToSupabaseJson(updatedCustomer)),
+          );
+        }
+
+        final txEntity = await (db.select(db.customerTransactions)
+              ..where((t) => t.id.equals(txId)))
+            .getSingle();
+        final tx = customerTransactionFromEntity(txEntity);
+        if (syncQueueRepo != null) {
+          await syncQueueRepo!.enqueue(
+            companyId: tx.companyId,
+            entityType: 'customer_transactions',
+            entityId: tx.id,
+            operation: 'insert',
+            payload: jsonEncode(customerTransactionToSupabaseJson(tx)),
+          );
+        }
       });
-
-      // Enqueue outside transaction
-      final updatedEntity = await (db.select(db.customers)
-            ..where((t) => t.id.equals(customerId)))
-          .getSingle();
-      final updatedCustomer = customerFromEntity(updatedEntity);
-      if (syncQueueRepo != null) {
-        await syncQueueRepo!.enqueue(
-          companyId: updatedCustomer.companyId,
-          entityType: 'customers',
-          entityId: updatedCustomer.id,
-          operation: 'update',
-          payload: jsonEncode(customerToSupabaseJson(updatedCustomer)),
-        );
-      }
-
-      final txEntity = await (db.select(db.customerTransactions)
-            ..where((t) => t.id.equals(txId)))
-          .getSingle();
-      final tx = customerTransactionFromEntity(txEntity);
-      if (syncQueueRepo != null) {
-        await syncQueueRepo!.enqueue(
-          companyId: tx.companyId,
-          entityType: 'customer_transactions',
-          entityId: tx.id,
-          operation: 'insert',
-          payload: jsonEncode(customerTransactionToSupabaseJson(tx)),
-        );
-      }
 
       return const Success(null);
     } catch (e, s) {
@@ -196,36 +195,35 @@ class CustomerRepository
             updatedAt: now,
           )),
         );
+
+        final updatedEntity = await (db.select(db.customers)
+              ..where((t) => t.id.equals(customerId)))
+            .getSingle();
+        final updatedCustomer = customerFromEntity(updatedEntity);
+        if (syncQueueRepo != null) {
+          await syncQueueRepo!.enqueue(
+            companyId: updatedCustomer.companyId,
+            entityType: 'customers',
+            entityId: updatedCustomer.id,
+            operation: 'update',
+            payload: jsonEncode(customerToSupabaseJson(updatedCustomer)),
+          );
+        }
+
+        final txEntity = await (db.select(db.customerTransactions)
+              ..where((t) => t.id.equals(txId)))
+            .getSingle();
+        final tx = customerTransactionFromEntity(txEntity);
+        if (syncQueueRepo != null) {
+          await syncQueueRepo!.enqueue(
+            companyId: tx.companyId,
+            entityType: 'customer_transactions',
+            entityId: tx.id,
+            operation: 'insert',
+            payload: jsonEncode(customerTransactionToSupabaseJson(tx)),
+          );
+        }
       });
-
-      // Enqueue outside transaction
-      final updatedEntity = await (db.select(db.customers)
-            ..where((t) => t.id.equals(customerId)))
-          .getSingle();
-      final updatedCustomer = customerFromEntity(updatedEntity);
-      if (syncQueueRepo != null) {
-        await syncQueueRepo!.enqueue(
-          companyId: updatedCustomer.companyId,
-          entityType: 'customers',
-          entityId: updatedCustomer.id,
-          operation: 'update',
-          payload: jsonEncode(customerToSupabaseJson(updatedCustomer)),
-        );
-      }
-
-      final txEntity = await (db.select(db.customerTransactions)
-            ..where((t) => t.id.equals(txId)))
-          .getSingle();
-      final tx = customerTransactionFromEntity(txEntity);
-      if (syncQueueRepo != null) {
-        await syncQueueRepo!.enqueue(
-          companyId: tx.companyId,
-          entityType: 'customer_transactions',
-          entityId: tx.id,
-          operation: 'insert',
-          payload: jsonEncode(customerTransactionToSupabaseJson(tx)),
-        );
-      }
 
       return const Success(null);
     } catch (e, s) {
@@ -246,28 +244,29 @@ class CustomerRepository
       final customer = customerFromEntity(entity);
       final newTotalSpent = customer.totalSpent + billTotal;
 
-      await (db.update(db.customers)..where((t) => t.id.equals(customerId))).write(
-        CustomersCompanion(
-          totalSpent: Value(newTotalSpent),
-          lastVisitDate: Value(now),
-          updatedAt: Value(now),
-        ),
-      );
-
-      // Enqueue
-      final updatedEntity = await (db.select(db.customers)
-            ..where((t) => t.id.equals(customerId)))
-          .getSingle();
-      final updatedCustomer = customerFromEntity(updatedEntity);
-      if (syncQueueRepo != null) {
-        await syncQueueRepo!.enqueue(
-          companyId: updatedCustomer.companyId,
-          entityType: 'customers',
-          entityId: updatedCustomer.id,
-          operation: 'update',
-          payload: jsonEncode(customerToSupabaseJson(updatedCustomer)),
+      await db.transaction(() async {
+        await (db.update(db.customers)..where((t) => t.id.equals(customerId))).write(
+          CustomersCompanion(
+            totalSpent: Value(newTotalSpent),
+            lastVisitDate: Value(now),
+            updatedAt: Value(now),
+          ),
         );
-      }
+
+        final updatedEntity = await (db.select(db.customers)
+              ..where((t) => t.id.equals(customerId)))
+            .getSingle();
+        final updatedCustomer = customerFromEntity(updatedEntity);
+        if (syncQueueRepo != null) {
+          await syncQueueRepo!.enqueue(
+            companyId: updatedCustomer.companyId,
+            entityType: 'customers',
+            entityId: updatedCustomer.id,
+            operation: 'update',
+            payload: jsonEncode(customerToSupabaseJson(updatedCustomer)),
+          );
+        }
+      });
 
       return const Success(null);
     } catch (e, s) {

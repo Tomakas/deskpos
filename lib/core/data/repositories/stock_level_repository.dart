@@ -46,8 +46,10 @@ class StockLevelRepository {
       updatedAt: now,
     );
 
-    await _db.into(_db.stockLevels).insert(stockLevelToCompanion(model));
-    await _enqueue('insert', model);
+    await _db.transaction(() async {
+      await _db.into(_db.stockLevels).insert(stockLevelToCompanion(model));
+      await _enqueue('insert', model);
+    });
     return model;
   }
 
@@ -65,19 +67,21 @@ class StockLevelRepository {
         itemId: itemId,
       );
 
-      final now = DateTime.now();
-      final newQuantity = level.quantity + delta;
+      return await _db.transaction(() async {
+        final now = DateTime.now();
+        final newQuantity = level.quantity + delta;
 
-      await (_db.update(_db.stockLevels)..where((t) => t.id.equals(level.id))).write(
-        StockLevelsCompanion(
-          quantity: Value(newQuantity),
-          updatedAt: Value(now),
-        ),
-      );
+        await (_db.update(_db.stockLevels)..where((t) => t.id.equals(level.id))).write(
+          StockLevelsCompanion(
+            quantity: Value(newQuantity),
+            updatedAt: Value(now),
+          ),
+        );
 
-      final updated = level.copyWith(quantity: newQuantity, updatedAt: now);
-      await _enqueue('update', updated);
-      return Success(updated);
+        final updated = level.copyWith(quantity: newQuantity, updatedAt: now);
+        await _enqueue('update', updated);
+        return Success(updated);
+      });
     } catch (e, s) {
       AppLogger.error('Failed to adjust stock level', error: e, stackTrace: s);
       return Failure('Failed to adjust stock level: $e');
@@ -98,18 +102,20 @@ class StockLevelRepository {
         itemId: itemId,
       );
 
-      final now = DateTime.now();
+      return await _db.transaction(() async {
+        final now = DateTime.now();
 
-      await (_db.update(_db.stockLevels)..where((t) => t.id.equals(level.id))).write(
-        StockLevelsCompanion(
-          quantity: Value(quantity),
-          updatedAt: Value(now),
-        ),
-      );
+        await (_db.update(_db.stockLevels)..where((t) => t.id.equals(level.id))).write(
+          StockLevelsCompanion(
+            quantity: Value(quantity),
+            updatedAt: Value(now),
+          ),
+        );
 
-      final updated = level.copyWith(quantity: quantity, updatedAt: now);
-      await _enqueue('update', updated);
-      return Success(updated);
+        final updated = level.copyWith(quantity: quantity, updatedAt: now);
+        await _enqueue('update', updated);
+        return Success(updated);
+      });
     } catch (e, s) {
       AppLogger.error('Failed to set stock level', error: e, stackTrace: s);
       return Failure('Failed to set stock level: $e');
@@ -130,18 +136,20 @@ class StockLevelRepository {
         itemId: itemId,
       );
 
-      final now = DateTime.now();
+      return await _db.transaction(() async {
+        final now = DateTime.now();
 
-      await (_db.update(_db.stockLevels)..where((t) => t.id.equals(level.id))).write(
-        StockLevelsCompanion(
-          minQuantity: Value(minQuantity),
-          updatedAt: Value(now),
-        ),
-      );
+        await (_db.update(_db.stockLevels)..where((t) => t.id.equals(level.id))).write(
+          StockLevelsCompanion(
+            minQuantity: Value(minQuantity),
+            updatedAt: Value(now),
+          ),
+        );
 
-      final updated = level.copyWith(minQuantity: minQuantity, updatedAt: now);
-      await _enqueue('update', updated);
-      return Success(updated);
+        final updated = level.copyWith(minQuantity: minQuantity, updatedAt: now);
+        await _enqueue('update', updated);
+        return Success(updated);
+      });
     } catch (e, s) {
       AppLogger.error('Failed to set min quantity', error: e, stackTrace: s);
       return Failure('Failed to set min quantity: $e');

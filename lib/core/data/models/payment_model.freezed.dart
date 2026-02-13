@@ -21,6 +21,7 @@ mixin _$PaymentModel {
   String get companyId => throw _privateConstructorUsedError;
   String get billId => throw _privateConstructorUsedError;
   String? get registerId => throw _privateConstructorUsedError;
+  String? get registerSessionId => throw _privateConstructorUsedError;
   String? get userId => throw _privateConstructorUsedError;
   String get paymentMethodId => throw _privateConstructorUsedError;
   int get amount => throw _privateConstructorUsedError;
@@ -55,6 +56,7 @@ abstract class $PaymentModelCopyWith<$Res> {
     String companyId,
     String billId,
     String? registerId,
+    String? registerSessionId,
     String? userId,
     String paymentMethodId,
     int amount,
@@ -91,6 +93,7 @@ class _$PaymentModelCopyWithImpl<$Res, $Val extends PaymentModel>
     Object? companyId = null,
     Object? billId = null,
     Object? registerId = freezed,
+    Object? registerSessionId = freezed,
     Object? userId = freezed,
     Object? paymentMethodId = null,
     Object? amount = null,
@@ -123,6 +126,10 @@ class _$PaymentModelCopyWithImpl<$Res, $Val extends PaymentModel>
             registerId: freezed == registerId
                 ? _value.registerId
                 : registerId // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            registerSessionId: freezed == registerSessionId
+                ? _value.registerSessionId
+                : registerSessionId // ignore: cast_nullable_to_non_nullable
                       as String?,
             userId: freezed == userId
                 ? _value.userId
@@ -200,6 +207,7 @@ abstract class _$$PaymentModelImplCopyWith<$Res>
     String companyId,
     String billId,
     String? registerId,
+    String? registerSessionId,
     String? userId,
     String paymentMethodId,
     int amount,
@@ -235,6 +243,7 @@ class __$$PaymentModelImplCopyWithImpl<$Res>
     Object? companyId = null,
     Object? billId = null,
     Object? registerId = freezed,
+    Object? registerSessionId = freezed,
     Object? userId = freezed,
     Object? paymentMethodId = null,
     Object? amount = null,
@@ -267,6 +276,10 @@ class __$$PaymentModelImplCopyWithImpl<$Res>
         registerId: freezed == registerId
             ? _value.registerId
             : registerId // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        registerSessionId: freezed == registerSessionId
+            ? _value.registerSessionId
+            : registerSessionId // ignore: cast_nullable_to_non_nullable
                   as String?,
         userId: freezed == userId
             ? _value.userId
@@ -337,6 +350,7 @@ class _$PaymentModelImpl implements _PaymentModel {
     required this.companyId,
     required this.billId,
     this.registerId,
+    this.registerSessionId,
     this.userId,
     required this.paymentMethodId,
     required this.amount,
@@ -361,6 +375,8 @@ class _$PaymentModelImpl implements _PaymentModel {
   final String billId;
   @override
   final String? registerId;
+  @override
+  final String? registerSessionId;
   @override
   final String? userId;
   @override
@@ -393,7 +409,7 @@ class _$PaymentModelImpl implements _PaymentModel {
 
   @override
   String toString() {
-    return 'PaymentModel(id: $id, companyId: $companyId, billId: $billId, registerId: $registerId, userId: $userId, paymentMethodId: $paymentMethodId, amount: $amount, paidAt: $paidAt, currencyId: $currencyId, tipIncludedAmount: $tipIncludedAmount, notes: $notes, transactionId: $transactionId, paymentProvider: $paymentProvider, cardLast4: $cardLast4, authorizationCode: $authorizationCode, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+    return 'PaymentModel(id: $id, companyId: $companyId, billId: $billId, registerId: $registerId, registerSessionId: $registerSessionId, userId: $userId, paymentMethodId: $paymentMethodId, amount: $amount, paidAt: $paidAt, currencyId: $currencyId, tipIncludedAmount: $tipIncludedAmount, notes: $notes, transactionId: $transactionId, paymentProvider: $paymentProvider, cardLast4: $cardLast4, authorizationCode: $authorizationCode, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
   }
 
   @override
@@ -407,6 +423,8 @@ class _$PaymentModelImpl implements _PaymentModel {
             (identical(other.billId, billId) || other.billId == billId) &&
             (identical(other.registerId, registerId) ||
                 other.registerId == registerId) &&
+            (identical(other.registerSessionId, registerSessionId) ||
+                other.registerSessionId == registerSessionId) &&
             (identical(other.userId, userId) || other.userId == userId) &&
             (identical(other.paymentMethodId, paymentMethodId) ||
                 other.paymentMethodId == paymentMethodId) &&
@@ -434,12 +452,13 @@ class _$PaymentModelImpl implements _PaymentModel {
   }
 
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     runtimeType,
     id,
     companyId,
     billId,
     registerId,
+    registerSessionId,
     userId,
     paymentMethodId,
     amount,
@@ -454,7 +473,7 @@ class _$PaymentModelImpl implements _PaymentModel {
     createdAt,
     updatedAt,
     deletedAt,
-  );
+  ]);
 
   /// Create a copy of PaymentModel
   /// with the given fields replaced by the non-null parameter values.
@@ -471,6 +490,7 @@ abstract class _PaymentModel implements PaymentModel {
     required final String companyId,
     required final String billId,
     final String? registerId,
+    final String? registerSessionId,
     final String? userId,
     required final String paymentMethodId,
     required final int amount,
@@ -495,6 +515,8 @@ abstract class _PaymentModel implements PaymentModel {
   String get billId;
   @override
   String? get registerId;
+  @override
+  String? get registerSessionId;
   @override
   String? get userId;
   @override

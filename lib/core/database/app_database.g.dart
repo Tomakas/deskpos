@@ -16196,6 +16196,18 @@ class $PaymentsTable extends Payments with TableInfo<$PaymentsTable, Payment> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _registerSessionIdMeta = const VerificationMeta(
+    'registerSessionId',
+  );
+  @override
+  late final GeneratedColumn<String> registerSessionId =
+      GeneratedColumn<String>(
+        'register_session_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
   static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
   @override
   late final GeneratedColumn<String> userId = GeneratedColumn<String>(
@@ -16324,6 +16336,7 @@ class $PaymentsTable extends Payments with TableInfo<$PaymentsTable, Payment> {
     companyId,
     billId,
     registerId,
+    registerSessionId,
     userId,
     paymentMethodId,
     amount,
@@ -16424,6 +16437,15 @@ class $PaymentsTable extends Payments with TableInfo<$PaymentsTable, Payment> {
       context.handle(
         _registerIdMeta,
         registerId.isAcceptableOrUnknown(data['register_id']!, _registerIdMeta),
+      );
+    }
+    if (data.containsKey('register_session_id')) {
+      context.handle(
+        _registerSessionIdMeta,
+        registerSessionId.isAcceptableOrUnknown(
+          data['register_session_id']!,
+          _registerSessionIdMeta,
+        ),
       );
     }
     if (data.containsKey('user_id')) {
@@ -16568,6 +16590,10 @@ class $PaymentsTable extends Payments with TableInfo<$PaymentsTable, Payment> {
         DriftSqlType.string,
         data['${effectivePrefix}register_id'],
       ),
+      registerSessionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}register_session_id'],
+      ),
       userId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}user_id'],
@@ -16633,6 +16659,7 @@ class Payment extends DataClass implements Insertable<Payment> {
   final String companyId;
   final String billId;
   final String? registerId;
+  final String? registerSessionId;
   final String? userId;
   final String paymentMethodId;
   final int amount;
@@ -16656,6 +16683,7 @@ class Payment extends DataClass implements Insertable<Payment> {
     required this.companyId,
     required this.billId,
     this.registerId,
+    this.registerSessionId,
     this.userId,
     required this.paymentMethodId,
     required this.amount,
@@ -16691,6 +16719,9 @@ class Payment extends DataClass implements Insertable<Payment> {
     map['bill_id'] = Variable<String>(billId);
     if (!nullToAbsent || registerId != null) {
       map['register_id'] = Variable<String>(registerId);
+    }
+    if (!nullToAbsent || registerSessionId != null) {
+      map['register_session_id'] = Variable<String>(registerSessionId);
     }
     if (!nullToAbsent || userId != null) {
       map['user_id'] = Variable<String>(userId);
@@ -16741,6 +16772,9 @@ class Payment extends DataClass implements Insertable<Payment> {
       registerId: registerId == null && nullToAbsent
           ? const Value.absent()
           : Value(registerId),
+      registerSessionId: registerSessionId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(registerSessionId),
       userId: userId == null && nullToAbsent
           ? const Value.absent()
           : Value(userId),
@@ -16784,6 +16818,9 @@ class Payment extends DataClass implements Insertable<Payment> {
       companyId: serializer.fromJson<String>(json['companyId']),
       billId: serializer.fromJson<String>(json['billId']),
       registerId: serializer.fromJson<String?>(json['registerId']),
+      registerSessionId: serializer.fromJson<String?>(
+        json['registerSessionId'],
+      ),
       userId: serializer.fromJson<String?>(json['userId']),
       paymentMethodId: serializer.fromJson<String>(json['paymentMethodId']),
       amount: serializer.fromJson<int>(json['amount']),
@@ -16814,6 +16851,7 @@ class Payment extends DataClass implements Insertable<Payment> {
       'companyId': serializer.toJson<String>(companyId),
       'billId': serializer.toJson<String>(billId),
       'registerId': serializer.toJson<String?>(registerId),
+      'registerSessionId': serializer.toJson<String?>(registerSessionId),
       'userId': serializer.toJson<String?>(userId),
       'paymentMethodId': serializer.toJson<String>(paymentMethodId),
       'amount': serializer.toJson<int>(amount),
@@ -16840,6 +16878,7 @@ class Payment extends DataClass implements Insertable<Payment> {
     String? companyId,
     String? billId,
     Value<String?> registerId = const Value.absent(),
+    Value<String?> registerSessionId = const Value.absent(),
     Value<String?> userId = const Value.absent(),
     String? paymentMethodId,
     int? amount,
@@ -16867,6 +16906,9 @@ class Payment extends DataClass implements Insertable<Payment> {
     companyId: companyId ?? this.companyId,
     billId: billId ?? this.billId,
     registerId: registerId.present ? registerId.value : this.registerId,
+    registerSessionId: registerSessionId.present
+        ? registerSessionId.value
+        : this.registerSessionId,
     userId: userId.present ? userId.value : this.userId,
     paymentMethodId: paymentMethodId ?? this.paymentMethodId,
     amount: amount ?? this.amount,
@@ -16906,6 +16948,9 @@ class Payment extends DataClass implements Insertable<Payment> {
       registerId: data.registerId.present
           ? data.registerId.value
           : this.registerId,
+      registerSessionId: data.registerSessionId.present
+          ? data.registerSessionId.value
+          : this.registerSessionId,
       userId: data.userId.present ? data.userId.value : this.userId,
       paymentMethodId: data.paymentMethodId.present
           ? data.paymentMethodId.value
@@ -16946,6 +16991,7 @@ class Payment extends DataClass implements Insertable<Payment> {
           ..write('companyId: $companyId, ')
           ..write('billId: $billId, ')
           ..write('registerId: $registerId, ')
+          ..write('registerSessionId: $registerSessionId, ')
           ..write('userId: $userId, ')
           ..write('paymentMethodId: $paymentMethodId, ')
           ..write('amount: $amount, ')
@@ -16974,6 +17020,7 @@ class Payment extends DataClass implements Insertable<Payment> {
     companyId,
     billId,
     registerId,
+    registerSessionId,
     userId,
     paymentMethodId,
     amount,
@@ -17001,6 +17048,7 @@ class Payment extends DataClass implements Insertable<Payment> {
           other.companyId == this.companyId &&
           other.billId == this.billId &&
           other.registerId == this.registerId &&
+          other.registerSessionId == this.registerSessionId &&
           other.userId == this.userId &&
           other.paymentMethodId == this.paymentMethodId &&
           other.amount == this.amount &&
@@ -17026,6 +17074,7 @@ class PaymentsCompanion extends UpdateCompanion<Payment> {
   final Value<String> companyId;
   final Value<String> billId;
   final Value<String?> registerId;
+  final Value<String?> registerSessionId;
   final Value<String?> userId;
   final Value<String> paymentMethodId;
   final Value<int> amount;
@@ -17050,6 +17099,7 @@ class PaymentsCompanion extends UpdateCompanion<Payment> {
     this.companyId = const Value.absent(),
     this.billId = const Value.absent(),
     this.registerId = const Value.absent(),
+    this.registerSessionId = const Value.absent(),
     this.userId = const Value.absent(),
     this.paymentMethodId = const Value.absent(),
     this.amount = const Value.absent(),
@@ -17075,6 +17125,7 @@ class PaymentsCompanion extends UpdateCompanion<Payment> {
     required String companyId,
     required String billId,
     this.registerId = const Value.absent(),
+    this.registerSessionId = const Value.absent(),
     this.userId = const Value.absent(),
     required String paymentMethodId,
     required int amount,
@@ -17106,6 +17157,7 @@ class PaymentsCompanion extends UpdateCompanion<Payment> {
     Expression<String>? companyId,
     Expression<String>? billId,
     Expression<String>? registerId,
+    Expression<String>? registerSessionId,
     Expression<String>? userId,
     Expression<String>? paymentMethodId,
     Expression<int>? amount,
@@ -17131,6 +17183,7 @@ class PaymentsCompanion extends UpdateCompanion<Payment> {
       if (companyId != null) 'company_id': companyId,
       if (billId != null) 'bill_id': billId,
       if (registerId != null) 'register_id': registerId,
+      if (registerSessionId != null) 'register_session_id': registerSessionId,
       if (userId != null) 'user_id': userId,
       if (paymentMethodId != null) 'payment_method_id': paymentMethodId,
       if (amount != null) 'amount': amount,
@@ -17158,6 +17211,7 @@ class PaymentsCompanion extends UpdateCompanion<Payment> {
     Value<String>? companyId,
     Value<String>? billId,
     Value<String?>? registerId,
+    Value<String?>? registerSessionId,
     Value<String?>? userId,
     Value<String>? paymentMethodId,
     Value<int>? amount,
@@ -17183,6 +17237,7 @@ class PaymentsCompanion extends UpdateCompanion<Payment> {
       companyId: companyId ?? this.companyId,
       billId: billId ?? this.billId,
       registerId: registerId ?? this.registerId,
+      registerSessionId: registerSessionId ?? this.registerSessionId,
       userId: userId ?? this.userId,
       paymentMethodId: paymentMethodId ?? this.paymentMethodId,
       amount: amount ?? this.amount,
@@ -17233,6 +17288,9 @@ class PaymentsCompanion extends UpdateCompanion<Payment> {
     }
     if (registerId.present) {
       map['register_id'] = Variable<String>(registerId.value);
+    }
+    if (registerSessionId.present) {
+      map['register_session_id'] = Variable<String>(registerSessionId.value);
     }
     if (userId.present) {
       map['user_id'] = Variable<String>(userId.value);
@@ -17287,6 +17345,7 @@ class PaymentsCompanion extends UpdateCompanion<Payment> {
           ..write('companyId: $companyId, ')
           ..write('billId: $billId, ')
           ..write('registerId: $registerId, ')
+          ..write('registerSessionId: $registerSessionId, ')
           ..write('userId: $userId, ')
           ..write('paymentMethodId: $paymentMethodId, ')
           ..write('amount: $amount, ')
@@ -43191,6 +43250,7 @@ typedef $$PaymentsTableCreateCompanionBuilder =
       required String companyId,
       required String billId,
       Value<String?> registerId,
+      Value<String?> registerSessionId,
       Value<String?> userId,
       required String paymentMethodId,
       required int amount,
@@ -43217,6 +43277,7 @@ typedef $$PaymentsTableUpdateCompanionBuilder =
       Value<String> companyId,
       Value<String> billId,
       Value<String?> registerId,
+      Value<String?> registerSessionId,
       Value<String?> userId,
       Value<String> paymentMethodId,
       Value<int> amount,
@@ -43292,6 +43353,11 @@ class $$PaymentsTableFilterComposer
 
   ColumnFilters<String> get registerId => $composableBuilder(
     column: $table.registerId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get registerSessionId => $composableBuilder(
+    column: $table.registerSessionId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -43415,6 +43481,11 @@ class $$PaymentsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get registerSessionId => $composableBuilder(
+    column: $table.registerSessionId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get userId => $composableBuilder(
     column: $table.userId,
     builder: (column) => ColumnOrderings(column),
@@ -43521,6 +43592,11 @@ class $$PaymentsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get registerSessionId => $composableBuilder(
+    column: $table.registerSessionId,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get userId =>
       $composableBuilder(column: $table.userId, builder: (column) => column);
 
@@ -43606,6 +43682,7 @@ class $$PaymentsTableTableManager
                 Value<String> companyId = const Value.absent(),
                 Value<String> billId = const Value.absent(),
                 Value<String?> registerId = const Value.absent(),
+                Value<String?> registerSessionId = const Value.absent(),
                 Value<String?> userId = const Value.absent(),
                 Value<String> paymentMethodId = const Value.absent(),
                 Value<int> amount = const Value.absent(),
@@ -43630,6 +43707,7 @@ class $$PaymentsTableTableManager
                 companyId: companyId,
                 billId: billId,
                 registerId: registerId,
+                registerSessionId: registerSessionId,
                 userId: userId,
                 paymentMethodId: paymentMethodId,
                 amount: amount,
@@ -43656,6 +43734,7 @@ class $$PaymentsTableTableManager
                 required String companyId,
                 required String billId,
                 Value<String?> registerId = const Value.absent(),
+                Value<String?> registerSessionId = const Value.absent(),
                 Value<String?> userId = const Value.absent(),
                 required String paymentMethodId,
                 required int amount,
@@ -43680,6 +43759,7 @@ class $$PaymentsTableTableManager
                 companyId: companyId,
                 billId: billId,
                 registerId: registerId,
+                registerSessionId: registerSessionId,
                 userId: userId,
                 paymentMethodId: paymentMethodId,
                 amount: amount,

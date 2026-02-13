@@ -69,35 +69,36 @@ class SectionRepository
     final affected = await selectQuery.get();
     if (affected.isEmpty) return;
 
-    // 2. Bulk update
-    final updateQuery = db.update(db.sections)
-      ..where((t) =>
-          t.companyId.equals(companyId) &
-          t.isDefault.equals(true) &
-          t.deletedAt.isNull());
-    if (exceptId != null) {
-      updateQuery.where((t) => t.id.equals(exceptId).not());
-    }
-    await updateQuery.write(SectionsCompanion(
-      isDefault: const Value(false),
-      updatedAt: Value(DateTime.now()),
-    ));
-
-    // 3. Enqueue each affected record
-    if (syncQueueRepo != null) {
-      for (final entity in affected) {
-        final updated = await (db.select(db.sections)
-              ..where((t) => t.id.equals(entity.id)))
-            .getSingle();
-        final model = sectionFromEntity(updated);
-        await syncQueueRepo!.enqueue(
-          companyId: model.companyId,
-          entityType: supabaseTableName,
-          entityId: model.id,
-          operation: 'update',
-          payload: jsonEncode(sectionToSupabaseJson(model)),
-        );
+    // 2. Bulk update + 3. Enqueue in a single transaction
+    await db.transaction(() async {
+      final updateQuery = db.update(db.sections)
+        ..where((t) =>
+            t.companyId.equals(companyId) &
+            t.isDefault.equals(true) &
+            t.deletedAt.isNull());
+      if (exceptId != null) {
+        updateQuery.where((t) => t.id.equals(exceptId).not());
       }
-    }
+      await updateQuery.write(SectionsCompanion(
+        isDefault: const Value(false),
+        updatedAt: Value(DateTime.now()),
+      ));
+
+      if (syncQueueRepo != null) {
+        for (final entity in affected) {
+          final updated = await (db.select(db.sections)
+                ..where((t) => t.id.equals(entity.id)))
+              .getSingle();
+          final model = sectionFromEntity(updated);
+          await syncQueueRepo!.enqueue(
+            companyId: model.companyId,
+            entityType: supabaseTableName,
+            entityId: model.id,
+            operation: 'update',
+            payload: jsonEncode(sectionToSupabaseJson(model)),
+          );
+        }
+      }
+    });
   }
 }

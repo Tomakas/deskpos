@@ -17,8 +17,10 @@ class StockMovementRepository {
 
   /// Inserts a stock movement and enqueues for sync.
   Future<StockMovementModel> createMovement(StockMovementModel model) async {
-    await _db.into(_db.stockMovements).insert(stockMovementToCompanion(model));
-    await _enqueue('insert', model);
+    await _db.transaction(() async {
+      await _db.into(_db.stockMovements).insert(stockMovementToCompanion(model));
+      await _enqueue('insert', model);
+    });
     return model;
   }
 

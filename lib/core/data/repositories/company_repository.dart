@@ -18,13 +18,15 @@ class CompanyRepository {
 
   Future<Result<CompanyModel>> create(CompanyModel model) async {
     try {
-      await _db.into(_db.companies).insert(companyToCompanion(model));
-      final entity = await (_db.select(_db.companies)
-            ..where((t) => t.id.equals(model.id)))
-          .getSingle();
-      final created = companyFromEntity(entity);
-      await _enqueueCompany('insert', created);
-      return Success(created);
+      return await _db.transaction(() async {
+        await _db.into(_db.companies).insert(companyToCompanion(model));
+        final entity = await (_db.select(_db.companies)
+              ..where((t) => t.id.equals(model.id)))
+            .getSingle();
+        final created = companyFromEntity(entity);
+        await _enqueueCompany('insert', created);
+        return Success(created);
+      });
     } catch (e, s) {
       AppLogger.error('Failed to create company', error: e, stackTrace: s);
       return Failure('Failed to create company: $e');
@@ -60,29 +62,31 @@ class CompanyRepository {
 
   Future<Result<CompanyModel>> update(CompanyModel model) async {
     try {
-      await (_db.update(_db.companies)..where((t) => t.id.equals(model.id)))
-          .write(CompaniesCompanion(
-        name: Value(model.name),
-        status: Value(model.status),
-        businessId: Value(model.businessId),
-        address: Value(model.address),
-        phone: Value(model.phone),
-        email: Value(model.email),
-        vatNumber: Value(model.vatNumber),
-        country: Value(model.country),
-        city: Value(model.city),
-        postalCode: Value(model.postalCode),
-        timezone: Value(model.timezone),
-        businessType: Value(model.businessType),
-        defaultCurrencyId: Value(model.defaultCurrencyId),
-        updatedAt: Value(DateTime.now()),
-      ));
-      final entity = await (_db.select(_db.companies)
-            ..where((t) => t.id.equals(model.id)))
-          .getSingle();
-      final updated = companyFromEntity(entity);
-      await _enqueueCompany('update', updated);
-      return Success(updated);
+      return await _db.transaction(() async {
+        await (_db.update(_db.companies)..where((t) => t.id.equals(model.id)))
+            .write(CompaniesCompanion(
+          name: Value(model.name),
+          status: Value(model.status),
+          businessId: Value(model.businessId),
+          address: Value(model.address),
+          phone: Value(model.phone),
+          email: Value(model.email),
+          vatNumber: Value(model.vatNumber),
+          country: Value(model.country),
+          city: Value(model.city),
+          postalCode: Value(model.postalCode),
+          timezone: Value(model.timezone),
+          businessType: Value(model.businessType),
+          defaultCurrencyId: Value(model.defaultCurrencyId),
+          updatedAt: Value(DateTime.now()),
+        ));
+        final entity = await (_db.select(_db.companies)
+              ..where((t) => t.id.equals(model.id)))
+            .getSingle();
+        final updated = companyFromEntity(entity);
+        await _enqueueCompany('update', updated);
+        return Success(updated);
+      });
     } catch (e, s) {
       AppLogger.error('Failed to update company', error: e, stackTrace: s);
       return Failure('Failed to update company: $e');
@@ -91,16 +95,18 @@ class CompanyRepository {
 
   Future<Result<void>> updateAuthUserId(String companyId, String authUserId) async {
     try {
-      await (_db.update(_db.companies)..where((t) => t.id.equals(companyId)))
-          .write(CompaniesCompanion(
-        authUserId: Value(authUserId),
-        updatedAt: Value(DateTime.now()),
-      ));
-      final entity = await (_db.select(_db.companies)
-            ..where((t) => t.id.equals(companyId)))
-          .getSingle();
-      await _enqueueCompany('update', companyFromEntity(entity));
-      return const Success(null);
+      return await _db.transaction(() async {
+        await (_db.update(_db.companies)..where((t) => t.id.equals(companyId)))
+            .write(CompaniesCompanion(
+          authUserId: Value(authUserId),
+          updatedAt: Value(DateTime.now()),
+        ));
+        final entity = await (_db.select(_db.companies)
+              ..where((t) => t.id.equals(companyId)))
+            .getSingle();
+        await _enqueueCompany('update', companyFromEntity(entity));
+        return const Success(null);
+      });
     } catch (e, s) {
       AppLogger.error('Failed to update authUserId', error: e, stackTrace: s);
       return Failure('Failed to update authUserId: $e');

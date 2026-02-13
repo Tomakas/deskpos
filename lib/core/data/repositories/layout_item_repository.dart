@@ -79,9 +79,9 @@ class LayoutItemRepository {
                 t.deletedAt.isNull()))
           .getSingleOrNull();
 
-      // Atomic: soft-delete old + insert new
+      // Atomic: soft-delete old + insert new + enqueue
       final id = const Uuid().v7();
-      await _db.transaction(() async {
+      final model = await _db.transaction(() async {
         if (existing != null) {
           await (_db.update(_db.layoutItems)..where((t) => t.id.equals(existing.id))).write(
             LayoutItemsCompanion(
@@ -105,21 +105,22 @@ class LayoutItemRepository {
           label: Value(label),
           color: Value(color),
         ));
+
+        if (deletedEntityId != null) {
+          final deletedEntity = await (_db.select(_db.layoutItems)
+                ..where((t) => t.id.equals(deletedEntityId!)))
+              .getSingle();
+          await _enqueueLayoutItem('delete', layoutItemFromEntity(deletedEntity));
+        }
+
+        final entity = await (_db.select(_db.layoutItems)
+              ..where((t) => t.id.equals(id)))
+            .getSingle();
+        final m = layoutItemFromEntity(entity);
+        await _enqueueLayoutItem('insert', m);
+        return m;
       });
 
-      // Enqueue outside transaction
-      if (deletedEntityId != null) {
-        final deletedEntity = await (_db.select(_db.layoutItems)
-              ..where((t) => t.id.equals(deletedEntityId!)))
-            .getSingle();
-        await _enqueueLayoutItem('delete', layoutItemFromEntity(deletedEntity));
-      }
-
-      final entity = await (_db.select(_db.layoutItems)
-            ..where((t) => t.id.equals(id)))
-          .getSingle();
-      final model = layoutItemFromEntity(entity);
-      await _enqueueLayoutItem('insert', model);
       return Success(model);
     } catch (e, s) {
       AppLogger.error('Failed to set layout cell', error: e, stackTrace: s);
@@ -184,29 +185,28 @@ class LayoutItemRepository {
           deletedAt: Value(now),
           updatedAt: Value(now),
         ));
-      });
 
-      // Enqueue outside transaction
-      for (final entity in existing) {
-        final model = layoutItemFromEntity(entity);
-        final updated = LayoutItemModel(
-          id: model.id,
-          companyId: model.companyId,
-          registerId: model.registerId,
-          page: model.page,
-          gridRow: model.gridRow,
-          gridCol: model.gridCol,
-          type: model.type,
-          itemId: model.itemId,
-          categoryId: model.categoryId,
-          label: model.label,
-          color: model.color,
-          createdAt: model.createdAt,
-          updatedAt: now,
-          deletedAt: now,
-        );
-        await _enqueueLayoutItem('delete', updated);
-      }
+        for (final entity in existing) {
+          final model = layoutItemFromEntity(entity);
+          final updated = LayoutItemModel(
+            id: model.id,
+            companyId: model.companyId,
+            registerId: model.registerId,
+            page: model.page,
+            gridRow: model.gridRow,
+            gridCol: model.gridCol,
+            type: model.type,
+            itemId: model.itemId,
+            categoryId: model.categoryId,
+            label: model.label,
+            color: model.color,
+            createdAt: model.createdAt,
+            updatedAt: now,
+            deletedAt: now,
+          );
+          await _enqueueLayoutItem('delete', updated);
+        }
+      });
 
       return Success(ids.length);
     } catch (e, s) {
@@ -250,15 +250,14 @@ class LayoutItemRepository {
             color: Value(cell.color),
           ));
         }
-      });
 
-      // Enqueue outside transaction
-      for (final id in ids) {
-        final entity = await (_db.select(_db.layoutItems)
-              ..where((t) => t.id.equals(id)))
-            .getSingle();
-        await _enqueueLayoutItem('insert', layoutItemFromEntity(entity));
-      }
+        for (final id in ids) {
+          final entity = await (_db.select(_db.layoutItems)
+                ..where((t) => t.id.equals(id)))
+              .getSingle();
+          await _enqueueLayoutItem('insert', layoutItemFromEntity(entity));
+        }
+      });
 
       return const Success(null);
     } catch (e, s) {

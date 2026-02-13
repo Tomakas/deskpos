@@ -15,7 +15,6 @@ import '../mappers/supabase_mappers.dart';
 import '../models/bill_model.dart';
 import '../models/cash_movement_model.dart';
 import '../models/order_item_model.dart';
-import '../models/order_model.dart';
 import '../models/payment_model.dart';
 import '../result.dart';
 import 'customer_repository.dart';
@@ -46,7 +45,7 @@ class BillRepository {
       final now = DateTime.now();
       final id = const Uuid().v7();
 
-      await _db.transaction(() async {
+      final bill = await _db.transaction(() async {
         final billNumber = await _generateBillNumber(companyId, registerId: registerId);
         await _db.into(_db.bills).insert(BillsCompanion.insert(
           id: id,
@@ -66,14 +65,13 @@ class BillRepository {
           currencyId: currencyId,
           openedAt: now,
         ));
+        final entity = await (_db.select(_db.bills)
+              ..where((t) => t.id.equals(id)))
+            .getSingle();
+        final b = billFromEntity(entity);
+        await _enqueueBill('insert', b);
+        return b;
       });
-
-      // Enqueue outside transaction
-      final entity = await (_db.select(_db.bills)
-            ..where((t) => t.id.equals(id)))
-          .getSingle();
-      final bill = billFromEntity(entity);
-      await _enqueueBill('insert', bill);
       return Success(bill);
     } catch (e, s) {
       AppLogger.error('Failed to create bill', error: e, stackTrace: s);
@@ -214,22 +212,24 @@ class BillRepository {
       final subtotalNet = subtotalGross - taxTotal;
       final totalGross = subtotalGross - billDiscount - billEntity.loyaltyDiscountAmount - billEntity.voucherDiscountAmount + billEntity.roundingAmount;
 
-      await (_db.update(_db.bills)..where((t) => t.id.equals(billId))).write(
-        BillsCompanion(
-          subtotalGross: Value(subtotalGross),
-          subtotalNet: Value(subtotalNet),
-          taxTotal: Value(taxTotal),
-          totalGross: Value(totalGross),
-          updatedAt: Value(DateTime.now()),
-        ),
-      );
+      return await _db.transaction(() async {
+        await (_db.update(_db.bills)..where((t) => t.id.equals(billId))).write(
+          BillsCompanion(
+            subtotalGross: Value(subtotalGross),
+            subtotalNet: Value(subtotalNet),
+            taxTotal: Value(taxTotal),
+            totalGross: Value(totalGross),
+            updatedAt: Value(DateTime.now()),
+          ),
+        );
 
-      final entity = await (_db.select(_db.bills)
-            ..where((t) => t.id.equals(billId)))
-          .getSingle();
-      final bill = billFromEntity(entity);
-      await _enqueueBill('update', bill);
-      return Success(bill);
+        final entity = await (_db.select(_db.bills)
+              ..where((t) => t.id.equals(billId)))
+            .getSingle();
+        final bill = billFromEntity(entity);
+        await _enqueueBill('update', bill);
+        return Success(bill);
+      });
     } catch (e, s) {
       AppLogger.error('Failed to update bill totals', error: e, stackTrace: s);
       return Failure('Failed to update bill totals: $e');
@@ -283,19 +283,21 @@ class BillRepository {
     int tipAmount = 0,
     String? userId,
     String? registerId,
+    String? registerSessionId,
     int loyaltyEarnPerHundredCzk = 0,
   }) async {
     try {
       final now = DateTime.now();
       final paymentId = const Uuid().v7();
 
-      // Atomic: insert payment + update bill
-      await _db.transaction(() async {
+      // Atomic: insert payment + update bill + enqueue
+      final updatedBill = await _db.transaction(() async {
         await _db.into(_db.payments).insert(PaymentsCompanion.insert(
           id: paymentId,
           companyId: companyId,
           billId: billId,
           registerId: Value(registerId),
+          registerSessionId: Value(registerSessionId),
           userId: Value(userId),
           paymentMethodId: paymentMethodId,
           amount: amount,
@@ -319,19 +321,19 @@ class BillRepository {
             updatedAt: Value(now),
           ),
         );
+
+        final paymentEntity = await (_db.select(_db.payments)
+              ..where((t) => t.id.equals(paymentId)))
+            .getSingle();
+        await _enqueuePayment('insert', paymentFromEntity(paymentEntity));
+
+        final entity = await (_db.select(_db.bills)
+              ..where((t) => t.id.equals(billId)))
+            .getSingle();
+        final b = billFromEntity(entity);
+        await _enqueueBill('update', b);
+        return b;
       });
-
-      // Enqueue sync (outside transaction)
-      final paymentEntity = await (_db.select(_db.payments)
-            ..where((t) => t.id.equals(paymentId)))
-          .getSingle();
-      await _enqueuePayment('insert', paymentFromEntity(paymentEntity));
-
-      final entity = await (_db.select(_db.bills)
-            ..where((t) => t.id.equals(billId)))
-          .getSingle();
-      final updatedBill = billFromEntity(entity);
-      await _enqueueBill('update', updatedBill);
 
       // Auto-earn points + tracking on full payment
       final isPaid = updatedBill.paidAmount >= updatedBill.totalGross;
@@ -375,41 +377,25 @@ class BillRepository {
 
       final now = DateTime.now();
 
-      // Read orders before transaction (for enqueue after)
       final orders = await (_db.select(_db.orders)
             ..where((t) =>
                 t.billId.equals(billId) &
                 t.deletedAt.isNull()))
           .get();
 
-      // Atomic: cancel/void orders + update bill
-      await _db.transaction(() async {
+      // Cancel/void orders via OrderRepository (handles stock reversal + sync enqueue)
+      if (orderRepo != null) {
         for (final order in orders) {
           if (order.status == PrepStatus.created) {
-            await (_db.update(_db.orderItems)..where((t) => t.orderId.equals(order.id)))
-                .write(OrderItemsCompanion(
-              status: const Value(PrepStatus.cancelled),
-              updatedAt: Value(now),
-            ));
-            await (_db.update(_db.orders)..where((t) => t.id.equals(order.id)))
-                .write(OrdersCompanion(
-              status: const Value(PrepStatus.cancelled),
-              updatedAt: Value(now),
-            ));
+            await orderRepo!.cancelOrder(order.id);
           } else if (order.status == PrepStatus.inPrep || order.status == PrepStatus.ready) {
-            await (_db.update(_db.orderItems)..where((t) => t.orderId.equals(order.id)))
-                .write(OrderItemsCompanion(
-              status: const Value(PrepStatus.voided),
-              updatedAt: Value(now),
-            ));
-            await (_db.update(_db.orders)..where((t) => t.id.equals(order.id)))
-                .write(OrdersCompanion(
-              status: const Value(PrepStatus.voided),
-              updatedAt: Value(now),
-            ));
+            await orderRepo!.voidOrder(order.id);
           }
         }
+      }
 
+      // Update bill status (atomic with enqueue)
+      final cancelledBill = await _db.transaction(() async {
         await (_db.update(_db.bills)..where((t) => t.id.equals(billId))).write(
           BillsCompanion(
             status: const Value(BillStatus.cancelled),
@@ -417,31 +403,14 @@ class BillRepository {
             updatedAt: Value(now),
           ),
         );
+
+        final entity = await (_db.select(_db.bills)
+              ..where((t) => t.id.equals(billId)))
+            .getSingle();
+        final b = billFromEntity(entity);
+        await _enqueueBill('update', b);
+        return b;
       });
-
-      // Enqueue sync (outside transaction)
-      for (final order in orders) {
-        if (order.status == PrepStatus.created ||
-            order.status == PrepStatus.inPrep ||
-            order.status == PrepStatus.ready) {
-          final orderEntity = await (_db.select(_db.orders)
-                ..where((t) => t.id.equals(order.id)))
-              .getSingle();
-          await _enqueueOrder('update', orderFromEntity(orderEntity));
-          final itemEntities = await (_db.select(_db.orderItems)
-                ..where((t) => t.orderId.equals(order.id)))
-              .get();
-          for (final item in itemEntities) {
-            await _enqueueOrderItem('update', orderItemFromEntity(item));
-          }
-        }
-      }
-
-      final entity = await (_db.select(_db.bills)
-            ..where((t) => t.id.equals(billId)))
-          .getSingle();
-      final cancelledBill = billFromEntity(entity);
-      await _enqueueBill('update', cancelledBill);
       return Success(cancelledBill);
     } catch (e, s) {
       AppLogger.error('Failed to cancel bill', error: e, stackTrace: s);
@@ -457,20 +426,22 @@ class BillRepository {
     bool updateTable = false,
   }) async {
     try {
-      await (_db.update(_db.bills)..where((t) => t.id.equals(billId))).write(
-        BillsCompanion(
-          mapPosX: Value(posX),
-          mapPosY: Value(posY),
-          tableId: updateTable ? Value(tableId) : const Value.absent(),
-          updatedAt: Value(DateTime.now()),
-        ),
-      );
-      final entity = await (_db.select(_db.bills)
-            ..where((t) => t.id.equals(billId)))
-          .getSingle();
-      final bill = billFromEntity(entity);
-      await _enqueueBill('update', bill);
-      return Success(bill);
+      return await _db.transaction(() async {
+        await (_db.update(_db.bills)..where((t) => t.id.equals(billId))).write(
+          BillsCompanion(
+            mapPosX: Value(posX),
+            mapPosY: Value(posY),
+            tableId: updateTable ? Value(tableId) : const Value.absent(),
+            updatedAt: Value(DateTime.now()),
+          ),
+        );
+        final entity = await (_db.select(_db.bills)
+              ..where((t) => t.id.equals(billId)))
+            .getSingle();
+        final bill = billFromEntity(entity);
+        await _enqueueBill('update', bill);
+        return Success(bill);
+      });
     } catch (e, s) {
       AppLogger.error('Failed to update bill map position', error: e, stackTrace: s);
       return Failure('Failed to update bill map position: $e');
@@ -539,20 +510,22 @@ class BillRepository {
     required int numberOfGuests,
   }) async {
     try {
-      await (_db.update(_db.bills)..where((t) => t.id.equals(billId))).write(
-        BillsCompanion(
-          tableId: Value(tableId),
-          numberOfGuests: Value(numberOfGuests),
-          isTakeaway: const Value(false),
-          updatedAt: Value(DateTime.now()),
-        ),
-      );
-      final entity = await (_db.select(_db.bills)
-            ..where((t) => t.id.equals(billId)))
-          .getSingle();
-      final bill = billFromEntity(entity);
-      await _enqueueBill('update', bill);
-      return Success(bill);
+      return await _db.transaction(() async {
+        await (_db.update(_db.bills)..where((t) => t.id.equals(billId))).write(
+          BillsCompanion(
+            tableId: Value(tableId),
+            numberOfGuests: Value(numberOfGuests),
+            isTakeaway: const Value(false),
+            updatedAt: Value(DateTime.now()),
+          ),
+        );
+        final entity = await (_db.select(_db.bills)
+              ..where((t) => t.id.equals(billId)))
+            .getSingle();
+        final bill = billFromEntity(entity);
+        await _enqueueBill('update', bill);
+        return Success(bill);
+      });
     } catch (e, s) {
       AppLogger.error('Failed to move bill', error: e, stackTrace: s);
       return Failure('Failed to move bill: $e');
@@ -561,19 +534,21 @@ class BillRepository {
 
   Future<Result<BillModel>> updateCustomer(String billId, String? customerId) async {
     try {
-      await (_db.update(_db.bills)..where((t) => t.id.equals(billId))).write(
-        BillsCompanion(
-          customerId: Value(customerId),
-          customerName: const Value(null),
-          updatedAt: Value(DateTime.now()),
-        ),
-      );
-      final entity = await (_db.select(_db.bills)
-            ..where((t) => t.id.equals(billId)))
-          .getSingle();
-      final bill = billFromEntity(entity);
-      await _enqueueBill('update', bill);
-      return Success(bill);
+      return await _db.transaction(() async {
+        await (_db.update(_db.bills)..where((t) => t.id.equals(billId))).write(
+          BillsCompanion(
+            customerId: Value(customerId),
+            customerName: const Value(null),
+            updatedAt: Value(DateTime.now()),
+          ),
+        );
+        final entity = await (_db.select(_db.bills)
+              ..where((t) => t.id.equals(billId)))
+            .getSingle();
+        final bill = billFromEntity(entity);
+        await _enqueueBill('update', bill);
+        return Success(bill);
+      });
     } catch (e, s) {
       AppLogger.error('Failed to update bill customer', error: e, stackTrace: s);
       return Failure('Failed to update bill customer: $e');
@@ -582,19 +557,21 @@ class BillRepository {
 
   Future<Result<BillModel>> updateCustomerName(String billId, String? name) async {
     try {
-      await (_db.update(_db.bills)..where((t) => t.id.equals(billId))).write(
-        BillsCompanion(
-          customerName: Value(name),
-          customerId: const Value(null),
-          updatedAt: Value(DateTime.now()),
-        ),
-      );
-      final entity = await (_db.select(_db.bills)
-            ..where((t) => t.id.equals(billId)))
-          .getSingle();
-      final bill = billFromEntity(entity);
-      await _enqueueBill('update', bill);
-      return Success(bill);
+      return await _db.transaction(() async {
+        await (_db.update(_db.bills)..where((t) => t.id.equals(billId))).write(
+          BillsCompanion(
+            customerName: Value(name),
+            customerId: const Value(null),
+            updatedAt: Value(DateTime.now()),
+          ),
+        );
+        final entity = await (_db.select(_db.bills)
+              ..where((t) => t.id.equals(billId)))
+            .getSingle();
+        final bill = billFromEntity(entity);
+        await _enqueueBill('update', bill);
+        return Success(bill);
+      });
     } catch (e, s) {
       AppLogger.error('Failed to update bill customer name', error: e, stackTrace: s);
       return Failure('Failed to update bill customer name: $e');
@@ -636,8 +613,8 @@ class BillRepository {
       final refundPaymentIds = <String>[];
       int cashRefundTotal = 0;
 
-      // Atomic: create negative payments + update bill
-      await _db.transaction(() async {
+      // Atomic: create negative payments + update bill + enqueue
+      final refundedBill = await _db.transaction(() async {
         for (final payment in payments) {
           final refundId = const Uuid().v7();
           refundPaymentIds.add(refundId);
@@ -652,6 +629,8 @@ class BillRepository {
             currencyId: payment.currencyId,
             tipIncludedAmount: Value(-payment.tipIncludedAmount),
             registerId: Value(registerId),
+            registerSessionId: Value(registerSessionId),
+            userId: Value(userId),
           ));
 
           if (cashMethodIds.contains(payment.paymentMethodId)) {
@@ -682,35 +661,35 @@ class BillRepository {
             ),
           );
         }
-      });
 
-      // Enqueue sync (outside transaction)
-      for (final refundId in refundPaymentIds) {
-        final entity = await (_db.select(_db.payments)
-              ..where((t) => t.id.equals(refundId)))
-            .getSingle();
-        await _enqueuePayment('insert', paymentFromEntity(entity));
-      }
-
-      if (cashRefundTotal > 0) {
-        // Enqueue cash movement
-        final movements = await (_db.select(_db.cashMovements)
-              ..where((t) =>
-                  t.registerSessionId.equals(registerSessionId) &
-                  t.deletedAt.isNull())
-              ..orderBy([(t) => OrderingTerm.desc(t.createdAt)])
-              ..limit(1))
-            .get();
-        if (movements.isNotEmpty) {
-          await _enqueueCashMovement('insert', cashMovementFromEntity(movements.first));
+        // Enqueue sync (inside transaction)
+        for (final refundId in refundPaymentIds) {
+          final entity = await (_db.select(_db.payments)
+                ..where((t) => t.id.equals(refundId)))
+              .getSingle();
+          await _enqueuePayment('insert', paymentFromEntity(entity));
         }
-      }
 
-      final entity = await (_db.select(_db.bills)
-            ..where((t) => t.id.equals(billId)))
-          .getSingle();
-      final refundedBill = billFromEntity(entity);
-      await _enqueueBill('update', refundedBill);
+        if (cashRefundTotal > 0) {
+          final movements = await (_db.select(_db.cashMovements)
+                ..where((t) =>
+                    t.registerSessionId.equals(registerSessionId) &
+                    t.deletedAt.isNull())
+                ..orderBy([(t) => OrderingTerm.desc(t.createdAt)])
+                ..limit(1))
+              .get();
+          if (movements.isNotEmpty) {
+            await _enqueueCashMovement('insert', cashMovementFromEntity(movements.first));
+          }
+        }
+
+        final entity = await (_db.select(_db.bills)
+              ..where((t) => t.id.equals(billId)))
+            .getSingle();
+        final b = billFromEntity(entity);
+        await _enqueueBill('update', b);
+        return b;
+      });
       return Success(refundedBill);
     } catch (e, s) {
       AppLogger.error('Failed to refund bill', error: e, stackTrace: s);
@@ -769,7 +748,7 @@ class BillRepository {
 
       final refundPaymentId = const Uuid().v7();
 
-      // Atomic: create negative payment + void item + update bill
+      // Atomic: create negative payment + void item + update bill + enqueue
       await _db.transaction(() async {
         await _db.into(_db.payments).insert(PaymentsCompanion.insert(
           id: refundPaymentId,
@@ -779,6 +758,9 @@ class BillRepository {
           amount: -refundAmount,
           paidAt: now,
           currencyId: bill.currencyId,
+          registerId: Value(bill.lastRegisterId),
+          registerSessionId: Value(registerSessionId),
+          userId: Value(userId),
         ));
 
         // Void the item
@@ -818,41 +800,34 @@ class BillRepository {
             ),
           );
         }
+
+        // Enqueue sync (inside transaction)
+        final paymentEntity = await (_db.select(_db.payments)
+              ..where((t) => t.id.equals(refundPaymentId)))
+            .getSingle();
+        await _enqueuePayment('insert', paymentFromEntity(paymentEntity));
+
+        final itemEntity = await (_db.select(_db.orderItems)
+              ..where((t) => t.id.equals(orderItemId)))
+            .getSingle();
+        await _enqueueOrderItem('update', orderItemFromEntity(itemEntity));
+
+        if (isCash) {
+          final movements = await (_db.select(_db.cashMovements)
+                ..where((t) =>
+                    t.registerSessionId.equals(registerSessionId) &
+                    t.deletedAt.isNull())
+                ..orderBy([(t) => OrderingTerm.desc(t.createdAt)])
+                ..limit(1))
+              .get();
+          if (movements.isNotEmpty) {
+            await _enqueueCashMovement('insert', cashMovementFromEntity(movements.first));
+          }
+        }
       });
 
-      // Enqueue sync (outside transaction)
-      final paymentEntity = await (_db.select(_db.payments)
-            ..where((t) => t.id.equals(refundPaymentId)))
-          .getSingle();
-      await _enqueuePayment('insert', paymentFromEntity(paymentEntity));
-
-      final itemEntity = await (_db.select(_db.orderItems)
-            ..where((t) => t.id.equals(orderItemId)))
-          .getSingle();
-      await _enqueueOrderItem('update', orderItemFromEntity(itemEntity));
-
-      if (isCash) {
-        final movements = await (_db.select(_db.cashMovements)
-              ..where((t) =>
-                  t.registerSessionId.equals(registerSessionId) &
-                  t.deletedAt.isNull())
-              ..orderBy([(t) => OrderingTerm.desc(t.createdAt)])
-              ..limit(1))
-            .get();
-        if (movements.isNotEmpty) {
-          await _enqueueCashMovement('insert', cashMovementFromEntity(movements.first));
-        }
-      }
-
-      // Recalculate totals
-      await updateTotals(billId);
-
-      final entity = await (_db.select(_db.bills)
-            ..where((t) => t.id.equals(billId)))
-          .getSingle();
-      final updatedBill = billFromEntity(entity);
-      await _enqueueBill('update', updatedBill);
-      return Success(updatedBill);
+      // Recalculate totals (has its own transaction + enqueue)
+      return updateTotals(billId);
     } catch (e, s) {
       AppLogger.error('Failed to refund item', error: e, stackTrace: s);
       return Failure('Failed to refund item: $e');
@@ -866,19 +841,21 @@ class BillRepository {
       // Move all orders from source to target
       await orderRepo!.reassignOrdersToBill(sourceBillId, targetBillId);
 
-      // Cancel source bill
+      // Cancel source bill (atomic with enqueue)
       final now = DateTime.now();
-      await (_db.update(_db.bills)..where((t) => t.id.equals(sourceBillId))).write(
-        BillsCompanion(
-          status: const Value(BillStatus.cancelled),
-          closedAt: Value(now),
-          updatedAt: Value(now),
-        ),
-      );
-      final sourceEntity = await (_db.select(_db.bills)
-            ..where((t) => t.id.equals(sourceBillId)))
-          .getSingle();
-      await _enqueueBill('update', billFromEntity(sourceEntity));
+      await _db.transaction(() async {
+        await (_db.update(_db.bills)..where((t) => t.id.equals(sourceBillId))).write(
+          BillsCompanion(
+            status: const Value(BillStatus.cancelled),
+            closedAt: Value(now),
+            updatedAt: Value(now),
+          ),
+        );
+        final sourceEntity = await (_db.select(_db.bills)
+              ..where((t) => t.id.equals(sourceBillId)))
+            .getSingle();
+        await _enqueueBill('update', billFromEntity(sourceEntity));
+      });
 
       // Recalculate target totals
       await updateTotals(targetBillId);
@@ -980,17 +957,6 @@ class BillRepository {
       entityId: m.id,
       operation: operation,
       payload: jsonEncode(billToSupabaseJson(m)),
-    );
-  }
-
-  Future<void> _enqueueOrder(String operation, OrderModel m) async {
-    if (syncQueueRepo == null) return;
-    await syncQueueRepo!.enqueue(
-      companyId: m.companyId,
-      entityType: 'orders',
-      entityId: m.id,
-      operation: operation,
-      payload: jsonEncode(orderToSupabaseJson(m)),
     );
   }
 

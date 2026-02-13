@@ -468,6 +468,7 @@ PaymentModel paymentFromEntity(Payment e) => PaymentModel(
       companyId: e.companyId,
       billId: e.billId,
       registerId: e.registerId,
+      registerSessionId: e.registerSessionId,
       userId: e.userId,
       paymentMethodId: e.paymentMethodId,
       amount: e.amount,

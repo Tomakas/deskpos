@@ -60,96 +60,98 @@ class StockDocumentRepository {
     required List<StockDocumentLine> lines,
   }) async {
     try {
-      final now = DateTime.now();
-      final docId = const Uuid().v7();
-      final docNumber = await _generateDocumentNumber(companyId, type);
+      return await _db.transaction(() async {
+        final now = DateTime.now();
+        final docId = const Uuid().v7();
+        final docNumber = await _generateDocumentNumber(companyId, type);
 
-      // Determine direction based on document type
-      final direction = type == StockDocumentType.receipt
-          ? StockMovementDirection.inbound
-          : StockMovementDirection.outbound;
+        // Determine direction based on document type
+        final direction = type == StockDocumentType.receipt
+            ? StockMovementDirection.inbound
+            : StockMovementDirection.outbound;
 
-      int totalAmount = 0;
+        int totalAmount = 0;
 
-      // Create the document
-      final docModel = StockDocumentModel(
-        id: docId,
-        companyId: companyId,
-        warehouseId: warehouseId,
-        supplierId: supplierId,
-        userId: userId,
-        documentNumber: docNumber,
-        type: type,
-        purchasePriceStrategy: documentStrategy,
-        note: note,
-        totalAmount: 0, // will update after processing lines
-        documentDate: now,
-        createdAt: now,
-        updatedAt: now,
-      );
-
-      await _db.into(_db.stockDocuments).insert(stockDocumentToCompanion(docModel));
-
-      // Process each line
-      for (final line in lines) {
-        final movementId = const Uuid().v7();
-        final effectiveStrategy = line.purchasePriceStrategy ?? documentStrategy;
-
-        final movement = StockMovementModel(
-          id: movementId,
+        // Create the document
+        final docModel = StockDocumentModel(
+          id: docId,
           companyId: companyId,
-          stockDocumentId: docId,
-          itemId: line.itemId,
-          quantity: line.quantity,
-          purchasePrice: line.purchasePrice,
-          direction: direction,
-          purchasePriceStrategy: effectiveStrategy,
+          warehouseId: warehouseId,
+          supplierId: supplierId,
+          userId: userId,
+          documentNumber: docNumber,
+          type: type,
+          purchasePriceStrategy: documentStrategy,
+          note: note,
+          totalAmount: 0, // will update after processing lines
+          documentDate: now,
           createdAt: now,
           updatedAt: now,
         );
 
-        await stockMovementRepo.createMovement(movement);
+        await _db.into(_db.stockDocuments).insert(stockDocumentToCompanion(docModel));
 
-        // Adjust stock level
-        final delta = direction == StockMovementDirection.inbound
-            ? line.quantity
-            : -line.quantity;
-        await stockLevelRepo.adjustQuantity(
-          companyId: companyId,
-          warehouseId: warehouseId,
-          itemId: line.itemId,
-          delta: delta,
+        // Process each line
+        for (final line in lines) {
+          final movementId = const Uuid().v7();
+          final effectiveStrategy = line.purchasePriceStrategy ?? documentStrategy;
+
+          final movement = StockMovementModel(
+            id: movementId,
+            companyId: companyId,
+            stockDocumentId: docId,
+            itemId: line.itemId,
+            quantity: line.quantity,
+            purchasePrice: line.purchasePrice,
+            direction: direction,
+            purchasePriceStrategy: effectiveStrategy,
+            createdAt: now,
+            updatedAt: now,
+          );
+
+          await stockMovementRepo.createMovement(movement);
+
+          // Adjust stock level
+          final delta = direction == StockMovementDirection.inbound
+              ? line.quantity
+              : -line.quantity;
+          await stockLevelRepo.adjustQuantity(
+            companyId: companyId,
+            warehouseId: warehouseId,
+            itemId: line.itemId,
+            delta: delta,
+          );
+
+          // Apply purchase price strategy for receipts
+          if (type == StockDocumentType.receipt && line.purchasePrice != null) {
+            await _applyPurchasePriceStrategy(
+              companyId: companyId,
+              itemId: line.itemId,
+              newPrice: line.purchasePrice!,
+              quantity: line.quantity,
+              strategy: effectiveStrategy ?? PurchasePriceStrategy.overwrite,
+            );
+          }
+
+          // Accumulate total
+          if (line.purchasePrice != null) {
+            totalAmount += (line.purchasePrice! * line.quantity).round();
+          }
+        }
+
+        // Update document total
+        await (_db.update(_db.stockDocuments)..where((t) => t.id.equals(docId))).write(
+          StockDocumentsCompanion(
+            totalAmount: Value(totalAmount),
+            updatedAt: Value(now),
+          ),
         );
 
-        // Apply purchase price strategy for receipts
-        if (type == StockDocumentType.receipt && line.purchasePrice != null) {
-          await _applyPurchasePriceStrategy(
-            companyId: companyId,
-            itemId: line.itemId,
-            newPrice: line.purchasePrice!,
-            quantity: line.quantity,
-            strategy: effectiveStrategy ?? PurchasePriceStrategy.overwrite,
-          );
-        }
+        final finalDoc = docModel.copyWith(totalAmount: totalAmount);
+        await _enqueue('insert', finalDoc);
 
-        // Accumulate total
-        if (line.purchasePrice != null) {
-          totalAmount += (line.purchasePrice! * line.quantity).round();
-        }
-      }
-
-      // Update document total
-      await (_db.update(_db.stockDocuments)..where((t) => t.id.equals(docId))).write(
-        StockDocumentsCompanion(
-          totalAmount: Value(totalAmount),
-          updatedAt: Value(now),
-        ),
-      );
-
-      final finalDoc = docModel.copyWith(totalAmount: totalAmount);
-      await _enqueue('insert', finalDoc);
-
-      return Success(finalDoc);
+        return Success(finalDoc);
+      });
     } catch (e, s) {
       AppLogger.error('Failed to create stock document', error: e, stackTrace: s);
       return Failure('Failed to create stock document: $e');
@@ -183,60 +185,62 @@ class StockDocumentRepository {
 
     // For inventory, we create movements directly since direction varies per line
     try {
-      final now = DateTime.now();
-      final docId = const Uuid().v7();
-      final docNumber = await _generateDocumentNumber(companyId, StockDocumentType.inventory);
+      return await _db.transaction(() async {
+        final now = DateTime.now();
+        final docId = const Uuid().v7();
+        final docNumber = await _generateDocumentNumber(companyId, StockDocumentType.inventory);
 
-      final docModel = StockDocumentModel(
-        id: docId,
-        companyId: companyId,
-        warehouseId: warehouseId,
-        userId: userId,
-        documentNumber: docNumber,
-        type: StockDocumentType.inventory,
-        note: note,
-        totalAmount: 0,
-        documentDate: now,
-        createdAt: now,
-        updatedAt: now,
-      );
-
-      await _db.into(_db.stockDocuments).insert(stockDocumentToCompanion(docModel));
-
-      for (final inv in inventoryLines) {
-        final diff = inv.actualQuantity - inv.currentQuantity;
-        if (diff == 0) continue;
-
-        final movementId = const Uuid().v7();
-        final direction = diff > 0
-            ? StockMovementDirection.inbound
-            : StockMovementDirection.outbound;
-
-        final movement = StockMovementModel(
-          id: movementId,
+        final docModel = StockDocumentModel(
+          id: docId,
           companyId: companyId,
-          stockDocumentId: docId,
-          itemId: inv.itemId,
-          quantity: diff.abs(),
-          purchasePrice: inv.purchasePrice,
-          direction: direction,
+          warehouseId: warehouseId,
+          userId: userId,
+          documentNumber: docNumber,
+          type: StockDocumentType.inventory,
+          note: note,
+          totalAmount: 0,
+          documentDate: now,
           createdAt: now,
           updatedAt: now,
         );
 
-        await stockMovementRepo.createMovement(movement);
+        await _db.into(_db.stockDocuments).insert(stockDocumentToCompanion(docModel));
 
-        // Set absolute quantity (inventory sets the truth)
-        await stockLevelRepo.setQuantity(
-          companyId: companyId,
-          warehouseId: warehouseId,
-          itemId: inv.itemId,
-          quantity: inv.actualQuantity,
-        );
-      }
+        for (final inv in inventoryLines) {
+          final diff = inv.actualQuantity - inv.currentQuantity;
+          if (diff == 0) continue;
 
-      await _enqueue('insert', docModel);
-      return Success(docModel);
+          final movementId = const Uuid().v7();
+          final direction = diff > 0
+              ? StockMovementDirection.inbound
+              : StockMovementDirection.outbound;
+
+          final movement = StockMovementModel(
+            id: movementId,
+            companyId: companyId,
+            stockDocumentId: docId,
+            itemId: inv.itemId,
+            quantity: diff.abs(),
+            purchasePrice: inv.purchasePrice,
+            direction: direction,
+            createdAt: now,
+            updatedAt: now,
+          );
+
+          await stockMovementRepo.createMovement(movement);
+
+          // Set absolute quantity (inventory sets the truth)
+          await stockLevelRepo.setQuantity(
+            companyId: companyId,
+            warehouseId: warehouseId,
+            itemId: inv.itemId,
+            quantity: inv.actualQuantity,
+          );
+        }
+
+        await _enqueue('insert', docModel);
+        return Success(docModel);
+      });
     } catch (e, s) {
       AppLogger.error('Failed to create inventory document', error: e, stackTrace: s);
       return Failure('Failed to create inventory document: $e');
@@ -333,26 +337,28 @@ class StockDocumentRepository {
     }
 
     if (updatedPrice != null && updatedPrice != currentPrice) {
-      final now = DateTime.now();
-      await (_db.update(_db.items)..where((t) => t.id.equals(itemId))).write(
-        ItemsCompanion(
-          purchasePrice: Value(updatedPrice),
-          updatedAt: Value(now),
-        ),
-      );
-
-      // Enqueue the item update for sync
-      final updatedItem = await (_db.select(_db.items)..where((t) => t.id.equals(itemId))).getSingle();
-      final itemModel = itemFromEntity(updatedItem);
-      if (syncQueueRepo != null) {
-        await syncQueueRepo!.enqueue(
-          companyId: companyId,
-          entityType: 'items',
-          entityId: itemId,
-          operation: 'update',
-          payload: jsonEncode(itemToSupabaseJson(itemModel)),
+      await _db.transaction(() async {
+        final now = DateTime.now();
+        await (_db.update(_db.items)..where((t) => t.id.equals(itemId))).write(
+          ItemsCompanion(
+            purchasePrice: Value(updatedPrice),
+            updatedAt: Value(now),
+          ),
         );
-      }
+
+        // Enqueue the item update for sync
+        final updatedItem = await (_db.select(_db.items)..where((t) => t.id.equals(itemId))).getSingle();
+        final itemModel = itemFromEntity(updatedItem);
+        if (syncQueueRepo != null) {
+          await syncQueueRepo!.enqueue(
+            companyId: companyId,
+            entityType: 'items',
+            entityId: itemId,
+            operation: 'update',
+            payload: jsonEncode(itemToSupabaseJson(itemModel)),
+          );
+        }
+      });
     }
   }
 

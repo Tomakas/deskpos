@@ -22,21 +22,23 @@ class ShiftRepository {
     required String userId,
   }) async {
     try {
-      final now = DateTime.now();
-      final id = const Uuid().v7();
-      await _db.into(_db.shifts).insert(ShiftsCompanion.insert(
-        id: id,
-        companyId: companyId,
-        registerSessionId: registerSessionId,
-        userId: userId,
-        loginAt: now,
-      ));
-      final entity = await (_db.select(_db.shifts)
-            ..where((t) => t.id.equals(id)))
-          .getSingle();
-      final model = shiftFromEntity(entity);
-      await _enqueue('insert', model);
-      return Success(model);
+      return await _db.transaction(() async {
+        final now = DateTime.now();
+        final id = const Uuid().v7();
+        await _db.into(_db.shifts).insert(ShiftsCompanion.insert(
+          id: id,
+          companyId: companyId,
+          registerSessionId: registerSessionId,
+          userId: userId,
+          loginAt: now,
+        ));
+        final entity = await (_db.select(_db.shifts)
+              ..where((t) => t.id.equals(id)))
+            .getSingle();
+        final model = shiftFromEntity(entity);
+        await _enqueue('insert', model);
+        return Success(model);
+      });
     } catch (e, s) {
       AppLogger.error('Failed to create shift', error: e, stackTrace: s);
       return Failure('Failed to create shift: $e');
@@ -45,18 +47,20 @@ class ShiftRepository {
 
   Future<Result<ShiftModel>> closeShift(String shiftId) async {
     try {
-      final now = DateTime.now();
-      await (_db.update(_db.shifts)..where((t) => t.id.equals(shiftId)))
-          .write(ShiftsCompanion(
-        logoutAt: Value(now),
-        updatedAt: Value(now),
-      ));
-      final entity = await (_db.select(_db.shifts)
-            ..where((t) => t.id.equals(shiftId)))
-          .getSingle();
-      final model = shiftFromEntity(entity);
-      await _enqueue('update', model);
-      return Success(model);
+      return await _db.transaction(() async {
+        final now = DateTime.now();
+        await (_db.update(_db.shifts)..where((t) => t.id.equals(shiftId)))
+            .write(ShiftsCompanion(
+          logoutAt: Value(now),
+          updatedAt: Value(now),
+        ));
+        final entity = await (_db.select(_db.shifts)
+              ..where((t) => t.id.equals(shiftId)))
+            .getSingle();
+        final model = shiftFromEntity(entity);
+        await _enqueue('update', model);
+        return Success(model);
+      });
     } catch (e, s) {
       AppLogger.error('Failed to close shift', error: e, stackTrace: s);
       return Failure('Failed to close shift: $e');
@@ -65,24 +69,26 @@ class ShiftRepository {
 
   Future<void> closeAllForSession(String registerSessionId) async {
     try {
-      final openShifts = await (_db.select(_db.shifts)
-            ..where((t) =>
-                t.registerSessionId.equals(registerSessionId) &
-                t.logoutAt.isNull() &
-                t.deletedAt.isNull()))
-          .get();
-      final now = DateTime.now();
-      for (final shift in openShifts) {
-        await (_db.update(_db.shifts)..where((t) => t.id.equals(shift.id)))
-            .write(ShiftsCompanion(
-          logoutAt: Value(now),
-          updatedAt: Value(now),
-        ));
-        final updated = await (_db.select(_db.shifts)
-              ..where((t) => t.id.equals(shift.id)))
-            .getSingle();
-        await _enqueue('update', shiftFromEntity(updated));
-      }
+      await _db.transaction(() async {
+        final openShifts = await (_db.select(_db.shifts)
+              ..where((t) =>
+                  t.registerSessionId.equals(registerSessionId) &
+                  t.logoutAt.isNull() &
+                  t.deletedAt.isNull()))
+            .get();
+        final now = DateTime.now();
+        for (final shift in openShifts) {
+          await (_db.update(_db.shifts)..where((t) => t.id.equals(shift.id)))
+              .write(ShiftsCompanion(
+            logoutAt: Value(now),
+            updatedAt: Value(now),
+          ));
+          final updated = await (_db.select(_db.shifts)
+                ..where((t) => t.id.equals(shift.id)))
+              .getSingle();
+          await _enqueue('update', shiftFromEntity(updated));
+        }
+      });
     } catch (e, s) {
       AppLogger.error('Failed to close all shifts for session', error: e, stackTrace: s);
     }

@@ -385,6 +385,7 @@ Map<String, dynamic> paymentToSupabaseJson(PaymentModel m) => {
       ),
       'bill_id': m.billId,
       'register_id': m.registerId,
+      'register_session_id': m.registerSessionId,
       'user_id': m.userId,
       'payment_method_id': m.paymentMethodId,
       'amount': m.amount,
