@@ -57,8 +57,9 @@ FÁZE 7 — Sloučení (hlavní konverzace)
 3. **Fáze spouštěj SEKVENČNĚ** — nespouštěj další fázi, dokud předchozí nedokončí a neověříš výstupní soubory.
 4. **SQL dotazy po skupinách** — NIKDY nedotazuj celé `information_schema.columns` najednou (100K+ znaků = MCP error). Vždy filtruj `WHERE table_name IN (...)` po skupinách max 5-8 tabulek.
 5. **Agent MUSÍ přečíst KAŽDÝ řádek** přidělených souborů — ne jen proletět, ale skutečně zkontrolovat dle checklistu.
-6. **Pokud agent selže** (context limit) — spusť ho znovu JEDNOTLIVĚ, ne celou fázi.
-7. **Hlavní konverzace NEČTE výsledky agentů průběžně** — čte je až ve fázi sloučení.
+6. **100% pokrytí souborů** — ve FÁZI 0 se vygeneruje explicitní mapa `soubor → agent`. KAŽDÝ `.dart` soubor v `lib/` MUSÍ být přiřazen právě jednomu agentovi. Žádný soubor nesmí zůstat nepřiřazený. Agenti dostávají svůj seznam souborů z této mapy, ne z vágních popisů.
+7. **Pokud agent selže** (context limit) — spusť ho znovu JEDNOTLIVĚ, ne celou fázi.
+8. **Hlavní konverzace NEČTE výsledky agentů průběžně** — čte je až ve fázi sloučení.
 
 ---
 
@@ -75,7 +76,8 @@ Každý agent dostane v promptu:
 
 ```
 # Agent [ID]: [název]
-Zkontrolováno souborů: X
+Přiřazeno souborů (z file_assignments.txt): X
+Skutečně přečteno souborů: X    ← MUSÍ se rovnat
 Zkontrolováno řádků: ~X
 
 ## Nálezy
@@ -239,9 +241,52 @@ AND NOT EXISTS (SELECT 1 FROM pg_indexes WHERE tablename = tc.table_name AND ind
 - `get_advisors(type: "security")` → `/tmp/audit/phase0/advisors_security.txt`
 - `get_advisors(type: "performance")` → `/tmp/audit/phase0/advisors_performance.txt`
 
-### 0.3 Ověření
+### 0.3 Mapa přiřazení souborů (POVINNÉ)
 
-Ověř, že VŠECHNY soubory v `/tmp/audit/phase0/` existují a mají obsah (`ls -la /tmp/audit/phase0/`). Pokud některý chybí nebo je prázdný, oprav.
+**Účel:** Zajistit, že KAŽDÝ `.dart` soubor v `lib/` je přiřazen právě jednomu agentovi. Žádný soubor nesmí propadnout.
+
+**Postup:**
+
+1. Globni VŠECHNY `.dart` soubory v `lib/` (vyřaď `.g.dart` a `.freezed.dart` — to jsou generované soubory)
+2. Pro každý soubor urči, kterému agentovi patří (dle kategorizace níže)
+3. Zapiš do `/tmp/audit/phase0/file_assignments.txt` ve formátu:
+   ```
+   C1: lib/core/data/repositories/category_repository.dart
+   C1: lib/core/data/repositories/item_repository.dart
+   ...
+   C2: lib/core/data/repositories/bill_repository.dart
+   C2: lib/core/data/repositories/sync_metadata_repository.dart
+   ...
+   ```
+4. Na konec souboru přidej sekci `UNASSIGNED:` — ta MUSÍ být prázdná. Pokud není, přiřaď zbylé soubory.
+
+**Kategorizace souborů → agenti:**
+
+| Cesta / pattern | Agent |
+|-----------------|-------|
+| `lib/core/data/repositories/*` extends `BaseCompanyScopedRepository` | C1 |
+| `lib/core/data/repositories/*` ostatní (VČETNĚ utility repos jako sync_metadata, sync_queue, device_registration) | C2 |
+| `lib/core/data/mappers/entity_mappers.dart` | C3 |
+| `lib/core/data/mappers/supabase_mappers.dart`, `supabase_pull_mappers.dart` | C4 |
+| `lib/core/data/models/*.dart` | C3 + C5 (oba čtou) |
+| `lib/core/database/tables/*.dart` | C5 + C6 (oba čtou) |
+| `lib/core/database/app_database.dart` | C6 |
+| `lib/core/sync/*.dart` | C7 |
+| `lib/core/data/enums/*.dart` | C8 |
+| `lib/core/data/providers/*.dart` | C9 |
+| `lib/core/auth/*.dart`, `lib/core/routing/*.dart` | C10 |
+| `lib/features/sell/**/*.dart`, `lib/features/bills/**/*.dart` | C11 |
+| `lib/features/auth/**/*.dart`, `lib/features/onboarding/**/*.dart`, `lib/features/settings/**/*.dart` | C12 |
+| `lib/features/orders/**/*.dart`, `lib/features/customers/**/*.dart`, `lib/features/vouchers/**/*.dart`, `lib/features/catalog/**/*.dart` + jakýkoli zbylý `lib/features/**/*.dart` | C13 |
+| `lib/core/data/services/*.dart`, `lib/core/logging/*.dart`, `lib/core/network/*.dart`, `lib/core/l10n/*.dart`, `lib/core/widgets/*.dart`, `lib/main.dart`, `lib/app.dart` + jakýkoli zbylý soubor v `lib/` | C15 |
+
+**Sdílené soubory** (čte více agentů): Některé soubory čte více agentů z různých úhlů (např. modely čte C3 pro mapper kompletnost a C5 pro Drift shodu). To je OK — ale PRIMÁRNÍ odpovědnost má agent uvedený jako první.
+
+**Verifikace:** Spočítej soubory v glob výsledku a v assignment mapě. Čísla se MUSÍ shodovat.
+
+### 0.4 Ověření
+
+Ověř, že VŠECHNY soubory v `/tmp/audit/phase0/` existují a mají obsah (`ls -la /tmp/audit/phase0/`). Ověř, že `file_assignments.txt` nemá žádné soubory v sekci `UNASSIGNED:`. Pokud některý soubor chybí nebo je prázdný, oprav.
 
 ---
 
@@ -277,13 +322,11 @@ Ověř, že VŠECHNY soubory v `/tmp/audit/phase0/` existují a mají obsah (`ls
 
 ### Agent C2: Repository Pattern — Manuální repozitáře
 
-**Soubory k přečtení:**
-- `lib/core/data/repositories/bill_repository.dart`
-- `lib/core/data/repositories/company_repository.dart`
-- `lib/core/data/repositories/order_repository.dart`
-- `lib/core/data/repositories/sync_queue_repository.dart`
-- `lib/core/data/repositories/stock_document_repository.dart`
-- Jakékoli další repozitáře které NEDĚDÍ z `BaseCompanyScopedRepository`
+**Soubory k přečtení:** VŠECHNY soubory přiřazené tomuto agentovi v `/tmp/audit/phase0/file_assignments.txt` (řádky začínající `C2:`). Typicky to zahrnuje:
+- `bill_repository.dart`, `company_repository.dart`, `order_repository.dart`
+- `sync_queue_repository.dart`, `sync_metadata_repository.dart`, `stock_document_repository.dart`
+- `device_registration_repository.dart`, `warehouse_repository.dart`
+- A jakékoli další repos z assignment mapy — PŘEČTI VŠECHNY, žádný nepřeskakuj
 
 **Checklist pro KAŽDÝ manuální repozitář:**
 
@@ -593,12 +636,12 @@ Pokračuj na FÁZI 4.
 
 ### Agent C13: UI — Zbývající features
 
-**Soubory k přečtení:**
-- `lib/features/orders/screens/*.dart`
-- `lib/features/orders/widgets/*.dart`
-- `lib/features/customers/screens/*.dart`
-- `lib/features/customers/widgets/*.dart`
-- Jakékoli další soubory v `lib/features/` nepokryté agenty C11 a C12
+**Soubory k přečtení:** VŠECHNY soubory přiřazené tomuto agentovi v `/tmp/audit/phase0/file_assignments.txt` (řádky začínající `C13:`). Typicky:
+- `lib/features/orders/**/*.dart`
+- `lib/features/customers/**/*.dart`
+- `lib/features/vouchers/**/*.dart`
+- `lib/features/catalog/**/*.dart`
+- A jakékoli další `lib/features/` soubory z assignment mapy nepokryté C11 a C12
 
 **Checklist:** Identický s agentem C11 (viz výše). Aplikuj na KAŽDÝ soubor.
 
@@ -923,7 +966,11 @@ Přečti VŠECHNY výstupní soubory:
 - `/tmp/audit/phase6/C23_drift_supabase_P_Z.md`
 - `/tmp/audit/phase6/C24_rls_triggers.md`
 
-### 7.2 Zpracování
+### 7.2 Kontrola pokrytí
+
+Přečti `/tmp/audit/phase0/file_assignments.txt`. Pro KAŽDÉHO agenta ověř, že jeho výstupní soubor uvádí "Zkontrolováno souborů: X" a číslo odpovídá počtu přiřazených souborů. Pokud agent přeskočil soubory — spusť ho znovu s explicitním seznamem chybějících.
+
+### 7.3 Zpracování
 
 1. **Deduplikuj** — stejný nález od více agentů = jeden nález
 2. **Seřaď** dle závažnosti (VYSOKÉ → STŘEDNÍ → NÍZKÉ)
@@ -931,7 +978,7 @@ Přečti VŠECHNY výstupní soubory:
 4. **Zkontroluj proti "Známé vzory — NE nález"** — vyřaď false positives
 5. **Seskup** dle kategorie (Architecture, Data, Sync, Supabase, UI, Naming, Quality)
 
-### 7.3 Finální report
+### 7.4 Finální report
 
 Zapiš do `/tmp/audit/FINAL_REPORT.md`:
 

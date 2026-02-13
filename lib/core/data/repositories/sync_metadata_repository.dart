@@ -36,7 +36,7 @@ class SyncMetadataRepository {
       ));
     } else {
       await _db.into(_db.syncMetadata).insert(SyncMetadataCompanion.insert(
-        id: _uuid.v4(),
+        id: _uuid.v7(),
         companyId: companyId,
         entityTableName: tableName,
         lastPulledAt: Value(pulledAt),
