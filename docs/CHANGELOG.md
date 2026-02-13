@@ -9,7 +9,7 @@
 - **orders** — přidáno: `register_id` (atribuce objednávky k pokladně)
 - **payments** — přidáno: `register_id` (atribuce platby k pokladně)
 - `DeviceRegistrationRepository` — bind/unbind/getForCompany (lokální, bez sync)
-- `activeRegisterProvider` — device binding lookup s fallback na první aktivní registr
+- `activeRegisterProvider` — device binding lookup (vrací null bez device binding)
 - `deviceRegistrationProvider` — lokální lookup pro aktuální firmu
 
 ### Phase 2 — CRUD pokladen + Payment Enforcement
@@ -44,18 +44,25 @@
 
 ### Phase 6 — Customer Display
 - `ScreenCustomerDisplay` — read-only zákaznický displej pro sekundární monitor
-- Idle mód (jméno firmy + uvítání) a active mód (položky + totaly)
+- Register-centric architektura: displej sleduje `activeBillId` a `displayCartJson` na registru (sync přes outbox)
+- 4 stavy: idle (jméno firmy), cart preview (z `displayCartJson`), active (reálné objednávky), ThankYou (5s po platbě)
 - Discount výpočet z `subtotalGross - totalGross + roundingAmount`
 - Filtrování storno orderů a voided/cancelled položek
+- `DialogModeSelector` + enum `RegisterMode` (pos, kds, customerDisplay) pro přepínání režimu zařízení
+- Tlačítko „Zák. displej" v `DialogBillDetail` — toggle s eye/eye-off ikonou pro manuální zobrazení účtu na displeji
+- ScreenSell: debounced sync košíku do `displayCartJson` (300ms), auto-clear při submit/pay/dispose
 
 ### Routing
 - `/kds` — permission `orders.view`
-- `/customer-display` a `/customer-display/:billId` — bez permission guardu
-- `/settings/register` — rozšířen na 3 taby
+- `/customer-display` a `/customer-display/:registerId` — bez permission guardu
+- `/settings/register` — 2 taby (Pokladna, Režim)
 
 ### Schema
 - 38 tabulek v @DriftDatabase (35 doménových + 1 lokální + 2 sync)
 - `CashMovementType` enum — přidáno `handover`
+- `registers` — přidáno: `is_main`, `bound_device_id`, `active_bill_id`, `display_cart_json`
+- `register_sessions` — přidáno: `parent_session_id`
+- `bills` — přidáno: `register_id`, `last_register_id`, `register_session_id`, `customer_name`
 
 ### New Files
 - `lib/core/database/tables/device_registrations.dart`
@@ -75,7 +82,8 @@
 - `ScreenCustomerDisplay` — oprava CRITICAL bugu: discount počítán z computed totals místo raw `discountAmount` (který ukládá basis points pro procentní slevy)
 
 ### Documentation
-- PROJECT.md: Milník 3.9, aktualizace schématu, routes, providers, Realtime sync, KDS/Customer Display layouty, ScreenRegisterSettings 3 taby, device_registrations tabulka, Supabase deployment requirements
+- PROJECT.md: Milník 3.9, aktualizace schématu, routes, providers, Realtime sync, KDS/Customer Display layouty, ScreenRegisterSettings 2 taby, device_registrations tabulka, Supabase deployment requirements
+- PROJECT.md: Důkladná aktualizace na základě 3-agentového auditu — schema enum anotace, Ingest Edge Function sekce, companyRepos 17 repos, repository providers 34, register-centric customer display, collapsible panel + InfoPanel stats, opravený activeRegisterProvider popis
 
 ---
 

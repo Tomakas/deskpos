@@ -82,7 +82,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // --- Authenticate ---
+    // --- Authenticate (verify_jwt=false, we validate manually for better errors) ---
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return respond(
@@ -95,7 +95,7 @@ Deno.serve(async (req) => {
 
     if (userError || !user) {
       return respond(
-        { ok: false, error_type: "rejected", message: "Invalid or expired token" },
+        { ok: false, error_type: "rejected", message: `Auth failed: ${userError?.message ?? 'no user'}` },
       );
     }
 

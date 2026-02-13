@@ -51,6 +51,11 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
 
   bool _didSetActiveBill = false;
   String? _quickBillId;
+  String? _cachedRegisterId;
+
+  // Cached references for use in dispose() where ref is no longer available.
+  late final _registerRepo = ref.read(registerRepositoryProvider);
+  late final _billRepo = ref.read(billRepositoryProvider);
 
   @override
   void initState() {
@@ -69,7 +74,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     _clearActiveBill();
     _clearDisplayCart();
     if (_quickBillId != null) {
-      ref.read(billRepositoryProvider).cancelBill(_quickBillId!);
+      _billRepo.cancelBill(_quickBillId!);
     }
     _debounce?.cancel();
     _searchController.dispose();
@@ -79,6 +84,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
   void _setActiveBill(String billId) {
     final register = ref.read(activeRegisterProvider).value;
     if (register != null) {
+      _cachedRegisterId = register.id;
       ref.read(registerRepositoryProvider).setActiveBill(register.id, billId);
       _didSetActiveBill = true;
     }
@@ -86,9 +92,8 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
 
   void _clearActiveBill() {
     if (!_didSetActiveBill) return;
-    final register = ref.read(activeRegisterProvider).value;
-    if (register != null) {
-      ref.read(registerRepositoryProvider).setActiveBill(register.id, null);
+    if (_cachedRegisterId != null) {
+      _registerRepo.setActiveBill(_cachedRegisterId!, null);
     }
   }
 
@@ -117,9 +122,8 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
   }
 
   void _clearDisplayCart() {
-    final registerId = ref.read(activeRegisterProvider).value?.id;
-    if (registerId == null) return;
-    ref.read(registerRepositoryProvider).setDisplayCart(registerId, null);
+    if (_cachedRegisterId == null) return;
+    _registerRepo.setDisplayCart(_cachedRegisterId!, null);
   }
 
   Future<void> _createQuickBill() async {

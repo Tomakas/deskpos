@@ -2223,5 +2223,5 @@ class AppLocalizationsCs extends AppLocalizations {
   String get customerDisplayPaid => 'Zaplaceno';
 
   @override
-  String get billDetailShowOnDisplay => 'Displej';
+  String get billDetailShowOnDisplay => 'Zák. displej';
 }

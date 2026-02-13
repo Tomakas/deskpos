@@ -492,14 +492,26 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
               onPressed: isOpened ? () => _applyVoucher(context, ref, bill) : null,
             ),
             const SizedBox(height: 4),
-            _SideButton(
-              label: l.billDetailShowOnDisplay,
-              onPressed: () {
-                final registerId = ref.read(activeRegisterProvider).value?.id;
-                if (registerId != null) {
-                  ref.read(registerRepositoryProvider).setActiveBill(registerId, bill.id);
-                  _didShowOnDisplay = true;
-                }
+            Builder(
+              builder: (context) {
+                final register = ref.watch(activeRegisterProvider).value;
+                final isOnDisplay = register?.activeBillId == bill.id;
+                return _SideButton(
+                  icon: isOnDisplay ? Icons.visibility_off : Icons.visibility,
+                  label: l.billDetailShowOnDisplay,
+                  onPressed: () {
+                    final registerId = register?.id;
+                    if (registerId != null) {
+                      if (isOnDisplay) {
+                        ref.read(registerRepositoryProvider).setActiveBill(registerId, null);
+                        _didShowOnDisplay = false;
+                      } else {
+                        ref.read(registerRepositoryProvider).setActiveBill(registerId, bill.id);
+                        _didShowOnDisplay = true;
+                      }
+                    }
+                  },
+                );
               },
             ),
           ],
@@ -917,9 +929,10 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
 // Side button for right panel
 // ---------------------------------------------------------------------------
 class _SideButton extends StatelessWidget {
-  const _SideButton({required this.label, required this.onPressed});
+  const _SideButton({required this.label, required this.onPressed, this.icon});
   final String label;
   final VoidCallback? onPressed;
+  final IconData? icon;
 
   @override
   Widget build(BuildContext context) {
@@ -929,7 +942,19 @@ class _SideButton extends StatelessWidget {
       child: FilledButton.tonal(
         onPressed: onPressed,
         style: null,
-        child: Text(label, style: const TextStyle(fontSize: 11), textAlign: TextAlign.center),
+        child: icon != null
+            ? Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(icon, size: 14),
+                  const SizedBox(width: 4),
+                  Flexible(
+                    child: Text(label, style: const TextStyle(fontSize: 11), textAlign: TextAlign.center, overflow: TextOverflow.clip, maxLines: 1),
+                  ),
+                ],
+              )
+            : Text(label, style: const TextStyle(fontSize: 11), textAlign: TextAlign.center),
       ),
     );
   }

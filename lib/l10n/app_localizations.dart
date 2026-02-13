@@ -4381,7 +4381,7 @@ abstract class AppLocalizations {
   /// No description provided for @billDetailShowOnDisplay.
   ///
   /// In cs, this message translates to:
-  /// **'Displej'**
+  /// **'Zák. displej'**
   String get billDetailShowOnDisplay;
 }
 
