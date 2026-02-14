@@ -49,6 +49,10 @@ class TableRepository
         gridCol: Value(m.gridCol),
         gridWidth: Value(m.gridWidth),
         gridHeight: Value(m.gridHeight),
+        color: Value(m.color),
+        fontSize: Value(m.fontSize),
+        fillStyle: Value(m.fillStyle),
+        borderStyle: Value(m.borderStyle),
         shape: Value(m.shape),
         updatedAt: Value(DateTime.now()),
       );

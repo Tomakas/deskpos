@@ -66,6 +66,10 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
               children: [
                 Text(l.onboardingTitle, style: Theme.of(context).textTheme.headlineMedium),
                 const SizedBox(height: 48),
+                // --- Pokladna ---
+                Text(l.onboardingSectionPos,
+                    style: Theme.of(context).textTheme.titleSmall),
+                const SizedBox(height: 16),
                 SizedBox(
                   width: double.infinity,
                   height: 52,
@@ -81,6 +85,30 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
                   child: OutlinedButton(
                     onPressed: () => context.go('/connect-company'),
                     child: Text(l.onboardingJoinCompany),
+                  ),
+                ),
+                const SizedBox(height: 32),
+                const Divider(),
+                const SizedBox(height: 16),
+                // --- Displeje ---
+                Text(l.onboardingSectionDisplays,
+                    style: Theme.of(context).textTheme.titleSmall),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: OutlinedButton(
+                    onPressed: () => context.go('/display-code?type=customer_display'),
+                    child: Text(l.onboardingCustomerDisplay),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: OutlinedButton(
+                    onPressed: () => context.go('/display-code?type=kds'),
+                    child: Text(l.onboardingKdsDisplay),
                   ),
                 ),
               ],
@@ -111,11 +139,16 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
                   const SizedBox(height: 32),
                   Row(
                     children: [
-                      if (_step > 0)
-                        OutlinedButton(
-                          onPressed: () => setState(() => _step--),
-                          child: Text(l.wizardBack),
-                        ),
+                      OutlinedButton(
+                        onPressed: () => setState(() {
+                          if (_step > 0) {
+                            _step--;
+                          } else {
+                            _showWizard = false;
+                          }
+                        }),
+                        child: Text(l.wizardBack),
+                      ),
                       const Spacer(),
                       if (_step == 0)
                         FilledButton(

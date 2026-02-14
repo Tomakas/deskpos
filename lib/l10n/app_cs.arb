@@ -291,6 +291,10 @@
   "settingsSectionCloud": "Cloud",
   "settingsSectionGrid": "Zobrazení mřížky",
   "companyFieldVatNumber": "DIČ",
+  "settingsLanguage": "Jazyk aplikace",
+  "settingsCurrency": "Výchozí měna",
+  "languageCzech": "Čeština",
+  "languageEnglish": "English",
 
   "cloudTitle": "Cloudová synchronizace",
   "cloudEmail": "E-mail",
@@ -686,12 +690,18 @@
   "paymentTypeCredit": "Kredit",
 
   "loyaltySectionTitle": "Věrnostní program",
-  "loyaltyEarnPerHundredCzk": "Bodů za 100 Kč",
-  "loyaltyPointValueHalere": "Hodnota 1 bodu (haléře)",
-  "loyaltyDescription": "Zákazník získá {earn} bodů za každých 100 Kč. 1 bod = {value} Kč.",
+  "loyaltyEarnRate": "Bodů za {unit}",
+  "@loyaltyEarnRate": {
+    "placeholders": {
+      "unit": { "type": "String" }
+    }
+  },
+  "loyaltyPointValue": "Hodnota 1 bodu (minor units)",
+  "loyaltyDescription": "Zákazník získá {earn} bodů za každých {unit}. 1 bod = {value}.",
   "@loyaltyDescription": {
     "placeholders": {
       "earn": { "type": "int" },
+      "unit": { "type": "String" },
       "value": { "type": "String" }
     }
   },
@@ -700,7 +710,7 @@
   "loyaltyAvailablePoints": "Dostupné body",
   "loyaltyPointsValue": "Hodnota",
   "loyaltyPointsToUse": "Bodů k uplatnění",
-  "loyaltyDiscountPreview": "{points} bodů = {amount} Kč sleva",
+  "loyaltyDiscountPreview": "{points} bodů = sleva {amount}",
   "@loyaltyDiscountPreview": {
     "placeholders": {
       "points": { "type": "int" },
@@ -708,7 +718,7 @@
     }
   },
   "loyaltyEarned": "Získáno bodů",
-  "loyaltyCustomerInfo": "Body: {points} | Kredit: {credit} Kč",
+  "loyaltyCustomerInfo": "Body: {points} | Kredit: {credit}",
   "@loyaltyCustomerInfo": {
     "placeholders": {
       "points": { "type": "int" },
@@ -774,6 +784,7 @@
   "floorMapEmptySlot": "Prázdné",
   "floorMapShapeRectangle": "Obdélník",
   "floorMapShapeRound": "Ovál",
+  "floorMapShapeTriangle": "Trojúhelník",
 
   "floorMapSegmentTable": "Stůl",
   "floorMapSegmentElement": "Prvek",
@@ -783,6 +794,12 @@
   "floorMapElementLabel": "Popisek",
   "floorMapElementColor": "Barva",
   "floorMapColorNone": "Žádná",
+  "floorMapElementFontSize": "Velikost textu",
+  "floorMapElementFillStyle": "Výplň",
+  "floorMapElementBorderStyle": "Obrys",
+  "floorMapStyleNone": "Žádný",
+  "floorMapStyleTranslucent": "Průsvitný",
+  "floorMapStyleSolid": "Plný",
 
   "vouchersTitle": "Vouchery",
   "voucherCreate": "Vytvořit voucher",
@@ -914,5 +931,22 @@
   "customerDisplayThankYou": "Děkujeme!",
   "customerDisplayPaid": "Zaplaceno",
 
-  "billDetailShowOnDisplay": "Zák. displej"
+  "billDetailShowOnDisplay": "Zák. displej",
+
+  "onboardingSectionPos": "Pokladna",
+  "onboardingSectionDisplays": "Displeje",
+  "onboardingCustomerDisplay": "Zákaznický displej",
+  "onboardingKdsDisplay": "Objednávkový displej (KDS)",
+
+  "displayCodeTitle": "Zadejte kód",
+  "displayCodeSubtitle": "Zadejte 6-místný kód zobrazený na pokladně",
+  "displayCodeConnect": "Připojit",
+  "displayCodeBack": "Zpět",
+  "displayCodeNotFound": "Kód nenalezen",
+  "displayCodeError": "Chyba při hledání kódu",
+
+  "displayDevicesTitle": "Displeje",
+  "displayDevicesEmpty": "Žádné displeje",
+  "displayDeviceAddCustomer": "Zákaznický",
+  "displayDeviceAddKds": "KDS"
 }

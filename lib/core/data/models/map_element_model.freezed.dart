@@ -26,6 +26,9 @@ mixin _$MapElementModel {
   int get gridHeight => throw _privateConstructorUsedError;
   String? get label => throw _privateConstructorUsedError;
   String? get color => throw _privateConstructorUsedError;
+  int? get fontSize => throw _privateConstructorUsedError;
+  int get fillStyle => throw _privateConstructorUsedError;
+  int get borderStyle => throw _privateConstructorUsedError;
   TableShape get shape => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
   DateTime get updatedAt => throw _privateConstructorUsedError;
@@ -55,6 +58,9 @@ abstract class $MapElementModelCopyWith<$Res> {
     int gridHeight,
     String? label,
     String? color,
+    int? fontSize,
+    int fillStyle,
+    int borderStyle,
     TableShape shape,
     DateTime createdAt,
     DateTime updatedAt,
@@ -86,6 +92,9 @@ class _$MapElementModelCopyWithImpl<$Res, $Val extends MapElementModel>
     Object? gridHeight = null,
     Object? label = freezed,
     Object? color = freezed,
+    Object? fontSize = freezed,
+    Object? fillStyle = null,
+    Object? borderStyle = null,
     Object? shape = null,
     Object? createdAt = null,
     Object? updatedAt = null,
@@ -129,6 +138,18 @@ class _$MapElementModelCopyWithImpl<$Res, $Val extends MapElementModel>
                 ? _value.color
                 : color // ignore: cast_nullable_to_non_nullable
                       as String?,
+            fontSize: freezed == fontSize
+                ? _value.fontSize
+                : fontSize // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            fillStyle: null == fillStyle
+                ? _value.fillStyle
+                : fillStyle // ignore: cast_nullable_to_non_nullable
+                      as int,
+            borderStyle: null == borderStyle
+                ? _value.borderStyle
+                : borderStyle // ignore: cast_nullable_to_non_nullable
+                      as int,
             shape: null == shape
                 ? _value.shape
                 : shape // ignore: cast_nullable_to_non_nullable
@@ -170,6 +191,9 @@ abstract class _$$MapElementModelImplCopyWith<$Res>
     int gridHeight,
     String? label,
     String? color,
+    int? fontSize,
+    int fillStyle,
+    int borderStyle,
     TableShape shape,
     DateTime createdAt,
     DateTime updatedAt,
@@ -200,6 +224,9 @@ class __$$MapElementModelImplCopyWithImpl<$Res>
     Object? gridHeight = null,
     Object? label = freezed,
     Object? color = freezed,
+    Object? fontSize = freezed,
+    Object? fillStyle = null,
+    Object? borderStyle = null,
     Object? shape = null,
     Object? createdAt = null,
     Object? updatedAt = null,
@@ -243,6 +270,18 @@ class __$$MapElementModelImplCopyWithImpl<$Res>
             ? _value.color
             : color // ignore: cast_nullable_to_non_nullable
                   as String?,
+        fontSize: freezed == fontSize
+            ? _value.fontSize
+            : fontSize // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        fillStyle: null == fillStyle
+            ? _value.fillStyle
+            : fillStyle // ignore: cast_nullable_to_non_nullable
+                  as int,
+        borderStyle: null == borderStyle
+            ? _value.borderStyle
+            : borderStyle // ignore: cast_nullable_to_non_nullable
+                  as int,
         shape: null == shape
             ? _value.shape
             : shape // ignore: cast_nullable_to_non_nullable
@@ -277,6 +316,9 @@ class _$MapElementModelImpl implements _MapElementModel {
     this.gridHeight = 2,
     this.label,
     this.color,
+    this.fontSize,
+    this.fillStyle = 1,
+    this.borderStyle = 1,
     this.shape = TableShape.rectangle,
     required this.createdAt,
     required this.updatedAt,
@@ -306,6 +348,14 @@ class _$MapElementModelImpl implements _MapElementModel {
   @override
   final String? color;
   @override
+  final int? fontSize;
+  @override
+  @JsonKey()
+  final int fillStyle;
+  @override
+  @JsonKey()
+  final int borderStyle;
+  @override
   @JsonKey()
   final TableShape shape;
   @override
@@ -317,7 +367,7 @@ class _$MapElementModelImpl implements _MapElementModel {
 
   @override
   String toString() {
-    return 'MapElementModel(id: $id, companyId: $companyId, sectionId: $sectionId, gridRow: $gridRow, gridCol: $gridCol, gridWidth: $gridWidth, gridHeight: $gridHeight, label: $label, color: $color, shape: $shape, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+    return 'MapElementModel(id: $id, companyId: $companyId, sectionId: $sectionId, gridRow: $gridRow, gridCol: $gridCol, gridWidth: $gridWidth, gridHeight: $gridHeight, label: $label, color: $color, fontSize: $fontSize, fillStyle: $fillStyle, borderStyle: $borderStyle, shape: $shape, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
   }
 
   @override
@@ -338,6 +388,12 @@ class _$MapElementModelImpl implements _MapElementModel {
                 other.gridHeight == gridHeight) &&
             (identical(other.label, label) || other.label == label) &&
             (identical(other.color, color) || other.color == color) &&
+            (identical(other.fontSize, fontSize) ||
+                other.fontSize == fontSize) &&
+            (identical(other.fillStyle, fillStyle) ||
+                other.fillStyle == fillStyle) &&
+            (identical(other.borderStyle, borderStyle) ||
+                other.borderStyle == borderStyle) &&
             (identical(other.shape, shape) || other.shape == shape) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
@@ -359,6 +415,9 @@ class _$MapElementModelImpl implements _MapElementModel {
     gridHeight,
     label,
     color,
+    fontSize,
+    fillStyle,
+    borderStyle,
     shape,
     createdAt,
     updatedAt,
@@ -388,6 +447,9 @@ abstract class _MapElementModel implements MapElementModel {
     final int gridHeight,
     final String? label,
     final String? color,
+    final int? fontSize,
+    final int fillStyle,
+    final int borderStyle,
     final TableShape shape,
     required final DateTime createdAt,
     required final DateTime updatedAt,
@@ -412,6 +474,12 @@ abstract class _MapElementModel implements MapElementModel {
   String? get label;
   @override
   String? get color;
+  @override
+  int? get fontSize;
+  @override
+  int get fillStyle;
+  @override
+  int get borderStyle;
   @override
   TableShape get shape;
   @override

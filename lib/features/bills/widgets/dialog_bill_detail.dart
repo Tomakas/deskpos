@@ -1,21 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 import '../../../core/data/enums/bill_status.dart';
 import '../../../core/data/enums/discount_type.dart';
+import '../../../core/data/enums/display_device_type.dart';
 import '../../../core/data/enums/prep_status.dart';
 import '../../../core/data/enums/voucher_type.dart';
 import '../../../core/data/models/bill_model.dart';
+import '../../../core/data/models/customer_display_content.dart';
 import '../../../core/data/models/customer_model.dart';
 import '../../../core/data/models/order_item_model.dart';
 import '../../../core/data/models/order_model.dart';
 import '../../../core/data/models/table_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
+import '../../../core/data/providers/sync_providers.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/utils/formatting_ext.dart';
 import 'dialog_customer_search.dart';
 import 'dialog_discount.dart';
 import 'dialog_loyalty_redeem.dart';
@@ -37,14 +40,12 @@ class DialogBillDetail extends ConsumerStatefulWidget {
 class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
   bool _showSummary = false;
   bool _didShowOnDisplay = false;
+  String? _displayCode;
 
   @override
   void dispose() {
-    if (_didShowOnDisplay) {
-      final registerId = ref.read(activeRegisterProvider).value?.id;
-      if (registerId != null) {
-        ref.read(registerRepositoryProvider).setActiveBill(registerId, null);
-      }
+    if (_didShowOnDisplay && _displayCode != null) {
+      ref.read(customerDisplayChannelProvider).send(const DisplayIdle().toJson());
     }
     super.dispose();
   }
@@ -97,8 +98,6 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
   }
 
   Widget _buildHeader(BuildContext context, WidgetRef ref, BillModel bill, dynamic l) {
-    final dateFormat = DateFormat('d.M.yyyy  HH:mm', 'cs');
-
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
@@ -125,7 +124,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  l.billDetailCreatedAt(dateFormat.format(bill.openedAt)),
+                  l.billDetailCreatedAt(ref.fmtDateTime(bill.openedAt)),
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
                 const SizedBox(height: 2),
@@ -143,7 +142,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
                     }
                     final lastOrder = orders.reduce((a, b) => a.createdAt.isAfter(b.createdAt) ? a : b);
                     return Text(
-                      l.billDetailLastOrderAt(dateFormat.format(lastOrder.createdAt)),
+                      l.billDetailLastOrderAt(ref.fmtDateTime(lastOrder.createdAt)),
                       style: Theme.of(context).textTheme.bodySmall,
                     );
                   },
@@ -242,7 +241,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
               ),
               if (hasAnyDiscount) ...[
                 TextSpan(
-                  text: '${undiscountedSubtotal ~/ 100} ',
+                  text: '${ref.moneyValue(undiscountedSubtotal)} ',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     decoration: TextDecoration.lineThrough,
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -250,7 +249,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
                 ),
               ],
               TextSpan(
-                text: '${bill.totalGross ~/ 100},- Kč',
+                text: ref.money(bill.totalGross),
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
             ],
@@ -270,7 +269,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
         return Text(
           l.loyaltyCustomerInfo(
             customer.points,
-            (customer.credit / 100).toStringAsFixed(2).replaceAll('.', ','),
+            ref.money(customer.credit),
           ),
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
             color: Theme.of(context).colorScheme.primary,
@@ -433,7 +432,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
                   SizedBox(
                     width: 100,
                     child: Text(
-                      '${item.totalGross ~/ 100} Kč',
+                      ref.money(item.totalGross),
                       textAlign: TextAlign.right,
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
@@ -492,26 +491,15 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
               onPressed: isOpened ? () => _applyVoucher(context, ref, bill) : null,
             ),
             const SizedBox(height: 4),
-            Builder(
-              builder: (context) {
-                final register = ref.watch(activeRegisterProvider).value;
-                final isOnDisplay = register?.activeBillId == bill.id;
-                return _SideButton(
-                  icon: isOnDisplay ? Icons.visibility_off : Icons.visibility,
-                  label: l.billDetailShowOnDisplay,
-                  onPressed: () {
-                    final registerId = register?.id;
-                    if (registerId != null) {
-                      if (isOnDisplay) {
-                        ref.read(registerRepositoryProvider).setActiveBill(registerId, null);
-                        _didShowOnDisplay = false;
-                      } else {
-                        ref.read(registerRepositoryProvider).setActiveBill(registerId, bill.id);
-                        _didShowOnDisplay = true;
-                      }
-                    }
-                  },
-                );
+            _SideButton(
+              icon: _didShowOnDisplay ? Icons.visibility_off : Icons.visibility,
+              label: l.billDetailShowOnDisplay,
+              onPressed: () {
+                if (_didShowOnDisplay) {
+                  _hideFromDisplay();
+                } else {
+                  _showOnDisplay(bill);
+                }
               },
             ),
           ],
@@ -611,6 +599,59 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
     );
   }
 
+  Future<void> _showOnDisplay(BillModel bill) async {
+    // Resolve display code if not cached
+    if (_displayCode == null) {
+      final register = ref.read(activeRegisterProvider).value;
+      if (register == null) return;
+      final devices = await ref.read(displayDeviceRepositoryProvider)
+          .getByParentRegister(register.id);
+      final customerDisplay = devices
+          .where((d) => d.type == DisplayDeviceType.customerDisplay)
+          .firstOrNull;
+      if (customerDisplay == null) return;
+      _displayCode = customerDisplay.code;
+      ref.read(customerDisplayChannelProvider).join('display:${_displayCode!}');
+    }
+
+    // Build display items from bill orders
+    final orderRepo = ref.read(orderRepositoryProvider);
+    final items = await orderRepo.getOrderItemsByBill(bill.id);
+    final activeItems = items.where((i) =>
+        i.status != PrepStatus.cancelled && i.status != PrepStatus.voided).toList();
+
+    final displayItems = <DisplayItem>[];
+    int subtotal = 0;
+    for (final item in activeItems) {
+      final totalPrice = (item.salePriceAtt * item.quantity).round();
+      subtotal += totalPrice;
+      displayItems.add(DisplayItem(
+        name: item.itemName,
+        quantity: item.quantity,
+        unitPrice: item.salePriceAtt,
+        totalPrice: totalPrice,
+        notes: item.notes,
+      ));
+    }
+
+    final content = DisplayItems(
+      items: displayItems,
+      subtotal: subtotal,
+      total: bill.totalGross,
+      discountAmount: bill.discountAmount,
+    );
+
+    ref.read(customerDisplayChannelProvider).send(content.toJson());
+    setState(() => _didShowOnDisplay = true);
+  }
+
+  void _hideFromDisplay() {
+    if (_displayCode != null) {
+      ref.read(customerDisplayChannelProvider).send(const DisplayIdle().toJson());
+    }
+    setState(() => _didShowOnDisplay = false);
+  }
+
   Future<void> _cancelBill(BuildContext context, WidgetRef ref, BillModel bill, dynamic l) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -659,7 +700,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
 
     final settingsRepo = ref.read(companySettingsRepositoryProvider);
     final settings = await settingsRepo.getOrCreate(company.id);
-    if (settings.loyaltyPointValueHalere <= 0) return;
+    if (settings.loyaltyPointValue <= 0) return;
 
     if (!context.mounted) return;
     await showDialog<bool>(
@@ -667,7 +708,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
       builder: (_) => DialogLoyaltyRedeem(
         bill: bill,
         customer: customer,
-        pointValueHalere: settings.loyaltyPointValueHalere,
+        pointValue: settings.loyaltyPointValue,
       ),
     );
   }
@@ -972,7 +1013,6 @@ class _OrderSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
-    final timeFormat = DateFormat('HH:mm', 'cs');
 
     return StreamBuilder<List<OrderItemModel>>(
       stream: ref.watch(orderRepositoryProvider).watchOrderItems(order.id),
@@ -1061,7 +1101,7 @@ class _OrderSection extends ConsumerWidget {
                           SizedBox(
                             width: 44,
                             child: Text(
-                              timeFormat.format(order.createdAt),
+                              ref.fmtTime(order.createdAt),
                               style: Theme.of(context).textTheme.bodySmall,
                             ),
                           ),
@@ -1086,7 +1126,7 @@ class _OrderSection extends ConsumerWidget {
                                   mainAxisAlignment: MainAxisAlignment.end,
                                   children: [
                                     Text(
-                                      '${itemSubtotal ~/ 100}',
+                                      ref.moneyValue(itemSubtotal),
                                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                         decoration: TextDecoration.lineThrough,
                                         color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -1094,14 +1134,14 @@ class _OrderSection extends ConsumerWidget {
                                     ),
                                     const SizedBox(width: 4),
                                     Text(
-                                      '${discountedPrice ~/ 100} Kč',
+                                      ref.money(discountedPrice),
                                       style: Theme.of(context).textTheme.bodyMedium,
                                     ),
                                   ],
                                 );
                               }
                               return Text(
-                                '${itemSubtotal ~/ 100} Kč',
+                                ref.money(itemSubtotal),
                                 textAlign: TextAlign.right,
                                 style: Theme.of(context).textTheme.bodyMedium,
                               );

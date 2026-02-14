@@ -1,7 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../repositories/bill_repository.dart';
 import '../repositories/cash_movement_repository.dart';
+import '../repositories/display_device_repository.dart';
 import '../repositories/category_repository.dart';
 import '../repositories/customer_repository.dart';
 import '../repositories/customer_transaction_repository.dart';
@@ -160,6 +163,14 @@ final registerRepositoryProvider = Provider<RegisterRepository>((ref) {
   return RegisterRepository(
     ref.watch(appDatabaseProvider),
     syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
+  );
+});
+
+final displayDeviceRepositoryProvider = Provider<DisplayDeviceRepository>((ref) {
+  return DisplayDeviceRepository(
+    ref.watch(appDatabaseProvider),
+    syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
+    supabaseClient: Supabase.instance.client,
   );
 });
 

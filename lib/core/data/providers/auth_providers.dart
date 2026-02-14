@@ -3,11 +3,14 @@ import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../auth/auth_service.dart';
 import '../../auth/session_manager.dart';
+import '../mappers/entity_mappers.dart';
 import '../models/company_model.dart';
+import '../models/currency_model.dart';
 import '../models/device_registration_model.dart';
 import '../models/register_model.dart';
 import '../models/register_session_model.dart';
@@ -62,6 +65,14 @@ final currentCompanyProvider = StateProvider<CompanyModel?>((ref) {
 
 /// Notifier for the app initialization state
 final appInitProvider = FutureProvider<_AppInitState>((ref) async {
+  // Check if device is configured as a display
+  final prefs = await SharedPreferences.getInstance();
+  final displayCode = prefs.getString('display_code');
+  final displayType = prefs.getString('display_type');
+  if (displayCode != null && displayType != null) {
+    return _AppInitState.displayMode;
+  }
+
   final companyRepo = ref.watch(companyRepositoryProvider);
   final result = await companyRepo.getFirst();
   return switch (result) {
@@ -72,7 +83,7 @@ final appInitProvider = FutureProvider<_AppInitState>((ref) async {
   };
 });
 
-enum _AppInitState { needsOnboarding, needsLogin }
+enum _AppInitState { needsOnboarding, needsLogin, displayMode }
 
 /// Re-export for use in routing
 typedef AppInitState = _AppInitState;
@@ -115,3 +126,29 @@ final activeRegisterSessionProvider = StreamProvider<RegisterSessionModel?>((ref
 
 /// Manual lock trigger — set to true to show lock overlay (e.g. from "Switch/Lock" button)
 final manualLockProvider = StateProvider<bool>((ref) => false);
+
+/// Provides the company's default currency for formatting.
+/// Reads currency record from DB based on company.defaultCurrencyId.
+final currentCurrencyProvider = FutureProvider<CurrencyModel?>((ref) async {
+  final company = ref.watch(currentCompanyProvider);
+  if (company == null) return null;
+
+  final db = ref.watch(appDatabaseProvider);
+  final row = await (db.select(db.currencies)
+        ..where((t) => t.id.equals(company.defaultCurrencyId)))
+      .getSingleOrNull();
+
+  if (row == null) return null;
+  return currencyFromEntity(row);
+});
+
+/// Provides the app locale string from company settings (reactive via stream).
+final appLocaleProvider = StreamProvider<String>((ref) {
+  final company = ref.watch(currentCompanyProvider);
+  if (company == null) return Stream.value('cs');
+
+  return ref
+      .watch(companySettingsRepositoryProvider)
+      .watchByCompany(company.id)
+      .map((settings) => settings?.locale ?? 'cs');
+});

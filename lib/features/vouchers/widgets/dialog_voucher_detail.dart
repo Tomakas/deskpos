@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 import '../../../core/data/enums/voucher_status.dart';
 import '../../../core/data/enums/voucher_type.dart';
@@ -8,6 +7,7 @@ import '../../../core/data/models/voucher_model.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/utils/formatting_ext.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 
@@ -19,7 +19,6 @@ class DialogVoucherDetail extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
     final theme = Theme.of(context);
-    final dateFormat = DateFormat('d.M.yyyy HH:mm', 'cs');
 
     return PosDialogShell(
       title: voucher.code,
@@ -33,7 +32,7 @@ class DialogVoucherDetail extends ConsumerWidget {
           l.voucherValue,
           voucher.type == VoucherType.discount && voucher.discountType?.name == 'percent'
               ? '${voucher.value / 100}%'
-              : '${voucher.value ~/ 100} Kč',
+              : ref.money(voucher.value),
         ),
         if (voucher.type == VoucherType.discount) ...[
           _row(l.voucherDiscount, voucher.discountScope?.name ?? '-'),
@@ -41,9 +40,9 @@ class DialogVoucherDetail extends ConsumerWidget {
         ],
         _row(l.voucherUsedCount, '${voucher.usedCount}/${voucher.maxUses}'),
         _row(l.voucherExpires,
-            voucher.expiresAt != null ? dateFormat.format(voucher.expiresAt!) : '-'),
+            voucher.expiresAt != null ? ref.fmtDateTime(voucher.expiresAt!) : '-'),
         if (voucher.redeemedAt != null)
-          _row(l.voucherRedeemedAt, dateFormat.format(voucher.redeemedAt!)),
+          _row(l.voucherRedeemedAt, ref.fmtDateTime(voucher.redeemedAt!)),
         if (voucher.note != null && voucher.note!.isNotEmpty)
           _row(l.voucherNote, voucher.note!),
         _row(l.voucherIdLabel, voucher.id),

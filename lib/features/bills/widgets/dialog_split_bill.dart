@@ -7,6 +7,7 @@ import '../../../core/data/models/order_item_model.dart';
 import '../../../core/data/models/order_model.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/utils/formatting_ext.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 
@@ -162,7 +163,7 @@ class _DialogSplitBillState extends ConsumerState<DialogSplitBill> {
                     SizedBox(
                       width: 80,
                       child: Text(
-                        '${_itemTotal(item) ~/ 100} Kč',
+                        ref.money(_itemTotal(item)),
                         textAlign: TextAlign.right,
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),

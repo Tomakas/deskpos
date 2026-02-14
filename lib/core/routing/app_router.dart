@@ -6,6 +6,7 @@ import '../../features/auth/screens/screen_login.dart';
 import '../../features/bills/screens/screen_bills.dart';
 import '../../features/catalog/screens/screen_catalog.dart';
 import '../../features/inventory/screens/screen_inventory.dart';
+import '../../features/onboarding/screens/screen_display_code.dart';
 import '../../features/orders/screens/screen_kds.dart';
 import '../../features/sell/screens/screen_customer_display.dart';
 import '../../features/orders/screens/screen_orders.dart';
@@ -31,9 +32,18 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Still loading
       if (initAsync is AsyncLoading) return '/loading';
 
-      final needsOnboarding = initAsync is AsyncData<AppInitState> &&
-          initAsync.value == AppInitState.needsOnboarding;
+      final initState = initAsync is AsyncData<AppInitState> ? initAsync.value : null;
+      final needsOnboarding = initState == AppInitState.needsOnboarding;
+      final isDisplayMode = initState == AppInitState.displayMode;
       final isAuthenticated = session.isAuthenticated;
+
+      // Display mode — route to customer display (no auth required)
+      if (isDisplayMode && path != '/customer-display' && path != '/display-code') {
+        return '/customer-display';
+      }
+
+      // Allow display-code without auth
+      if (path == '/display-code') return null;
 
       // Needs onboarding — allow both /onboarding and /connect-company
       if (needsOnboarding && path != '/onboarding' && path != '/connect-company') {
@@ -41,7 +51,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
 
       // Not authenticated (but has company)
-      if (!needsOnboarding && !isAuthenticated &&
+      if (!needsOnboarding && !isDisplayMode && !isAuthenticated &&
           path != '/login' && path != '/onboarding' && path != '/connect-company') {
         return '/login';
       }
@@ -84,13 +94,15 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => ScreenSell(billId: state.pathParameters['billId']),
       ),
       GoRoute(
-        path: '/customer-display',
-        builder: (context, state) => const ScreenCustomerDisplay(),
+        path: '/display-code',
+        builder: (context, state) => ScreenDisplayCode(
+          type: state.uri.queryParameters['type'] ?? 'customer_display',
+        ),
       ),
       GoRoute(
-        path: '/customer-display/:registerId',
+        path: '/customer-display',
         builder: (context, state) => ScreenCustomerDisplay(
-          registerId: state.pathParameters['registerId'],
+          code: state.uri.queryParameters['code'],
         ),
       ),
       GoRoute(

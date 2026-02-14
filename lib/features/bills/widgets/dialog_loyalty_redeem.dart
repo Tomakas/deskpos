@@ -7,6 +7,7 @@ import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/utils/formatting_ext.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_numpad.dart';
@@ -16,11 +17,11 @@ class DialogLoyaltyRedeem extends ConsumerStatefulWidget {
     super.key,
     required this.bill,
     required this.customer,
-    required this.pointValueHalere,
+    required this.pointValue,
   });
   final BillModel bill;
   final CustomerModel customer;
-  final int pointValueHalere;
+  final int pointValue;
 
   @override
   ConsumerState<DialogLoyaltyRedeem> createState() => _DialogLoyaltyRedeemState();
@@ -30,10 +31,10 @@ class _DialogLoyaltyRedeemState extends ConsumerState<DialogLoyaltyRedeem> {
   String _input = '';
 
   int get _pointsToUse => int.tryParse(_input) ?? 0;
-  int get _discountHalere => _pointsToUse * widget.pointValueHalere;
+  int get _discountAmount => _pointsToUse * widget.pointValue;
   int get _maxPoints {
     // Can't exceed bill totalGross with the discount
-    final maxByBill = widget.bill.totalGross ~/ widget.pointValueHalere;
+    final maxByBill = widget.bill.totalGross ~/ widget.pointValue;
     return maxByBill < widget.customer.points ? maxByBill : widget.customer.points;
   }
   bool get _isValid => _pointsToUse > 0 && _pointsToUse <= _maxPoints;
@@ -63,16 +64,12 @@ class _DialogLoyaltyRedeemState extends ConsumerState<DialogLoyaltyRedeem> {
     final result = await repo.applyLoyaltyDiscount(
       widget.bill.id,
       _pointsToUse,
-      widget.pointValueHalere,
+      widget.pointValue,
       user?.id ?? '',
     );
     if (mounted && result is Success) {
       Navigator.pop(context, true);
     }
-  }
-
-  String _formatKc(int halere) {
-    return '${(halere / 100).toStringAsFixed(2).replaceAll('.', ',')} Kč';
   }
 
   @override
@@ -89,7 +86,7 @@ class _DialogLoyaltyRedeemState extends ConsumerState<DialogLoyaltyRedeem> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text('${l.loyaltyAvailablePoints}: ${widget.customer.points}'),
-            Text('${l.loyaltyPointsValue}: ${_formatKc(widget.pointValueHalere)}/bod'),
+            Text('${l.loyaltyPointsValue}: ${ref.money(widget.pointValue)}/bod'),
           ],
         ),
         const SizedBox(height: 8),
@@ -113,7 +110,7 @@ class _DialogLoyaltyRedeemState extends ConsumerState<DialogLoyaltyRedeem> {
         // Preview
         Center(
           child: Text(
-            l.loyaltyDiscountPreview(_pointsToUse, _formatKc(_discountHalere)),
+            l.loyaltyDiscountPreview(_pointsToUse, ref.money(_discountAmount)),
             style: theme.textTheme.bodyMedium?.copyWith(
               fontWeight: FontWeight.bold,
               color: _isValid ? Colors.green : null,

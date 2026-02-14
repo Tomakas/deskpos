@@ -239,11 +239,11 @@ class BillRepository {
   Future<Result<BillModel>> applyLoyaltyDiscount(
     String billId,
     int pointsToUse,
-    int pointValueHalere,
+    int pointValue,
     String processedByUserId,
   ) async {
     try {
-      final loyaltyDiscountAmount = pointsToUse * pointValueHalere;
+      final loyaltyDiscountAmount = pointsToUse * pointValue;
 
       await (_db.update(_db.bills)..where((t) => t.id.equals(billId))).write(
         BillsCompanion(
@@ -284,7 +284,7 @@ class BillRepository {
     String? userId,
     String? registerId,
     String? registerSessionId,
-    int loyaltyEarnPerHundredCzk = 0,
+    int loyaltyEarnRate = 0,
   }) async {
     try {
       final now = DateTime.now();
@@ -345,8 +345,8 @@ class BillRepository {
         );
 
         // Auto-earn loyalty points
-        if (loyaltyEarnPerHundredCzk > 0) {
-          final earnedPoints = (updatedBill.totalGross * loyaltyEarnPerHundredCzk) ~/ 10000;
+        if (loyaltyEarnRate > 0) {
+          final earnedPoints = (updatedBill.totalGross * loyaltyEarnRate) ~/ 10000;
           if (earnedPoints > 0) {
             await customerRepo!.adjustPoints(
               customerId: updatedBill.customerId!,

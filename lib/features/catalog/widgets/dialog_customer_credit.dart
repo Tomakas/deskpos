@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 import '../../../core/data/models/customer_model.dart';
 import '../../../core/data/models/customer_transaction_model.dart';
@@ -8,6 +7,7 @@ import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/utils/formatting_ext.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_dialog_theme.dart';
 import '../../../core/widgets/pos_numpad.dart';
@@ -30,8 +30,8 @@ class _DialogCustomerCreditState extends ConsumerState<DialogCustomerCredit> {
     _customer = widget.customer;
   }
 
-  int get _amountKc => int.tryParse(_amountText) ?? 0;
-  bool get _hasAmount => _amountKc > 0;
+  int get _amountWhole => int.tryParse(_amountText) ?? 0;
+  bool get _hasAmount => _amountWhole > 0;
 
   void _numpadTap(String digit) {
     if (_amountText.length >= 7) return;
@@ -47,17 +47,13 @@ class _DialogCustomerCreditState extends ConsumerState<DialogCustomerCredit> {
     setState(() => _amountText = '');
   }
 
-  String _formatKc(int halere) {
-    return '${(halere / 100).toStringAsFixed(2).replaceAll('.', ',')} Kč';
-  }
-
   Future<void> _topUp() async {
     if (!_hasAmount) return;
     final user = ref.read(activeUserProvider);
     final repo = ref.read(customerRepositoryProvider);
     final result = await repo.adjustCredit(
       customerId: _customer.id,
-      delta: _amountKc * 100,
+      delta: _amountWhole * 100,
       processedByUserId: user?.id ?? '',
     );
     if (result is Success && mounted) {
@@ -68,13 +64,13 @@ class _DialogCustomerCreditState extends ConsumerState<DialogCustomerCredit> {
 
   Future<void> _deduct() async {
     if (!_hasAmount) return;
-    final deductHalere = _amountKc * 100;
-    if (deductHalere > _customer.credit) return;
+    final deductAmount = _amountWhole * 100;
+    if (deductAmount > _customer.credit) return;
     final user = ref.read(activeUserProvider);
     final repo = ref.read(customerRepositoryProvider);
     final result = await repo.adjustCredit(
       customerId: _customer.id,
-      delta: -deductHalere,
+      delta: -deductAmount,
       processedByUserId: user?.id ?? '',
     );
     if (result is Success && mounted) {
@@ -109,7 +105,7 @@ class _DialogCustomerCreditState extends ConsumerState<DialogCustomerCredit> {
         const SizedBox(height: 4),
         Center(
           child: Text(
-            '${l.loyaltyCreditBalance}: ${_formatKc(_customer.credit)}',
+            '${l.loyaltyCreditBalance}: ${ref.money(_customer.credit)}',
             style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
           ),
         ),
@@ -124,7 +120,7 @@ class _DialogCustomerCreditState extends ConsumerState<DialogCustomerCredit> {
           alignment: Alignment.centerRight,
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Text(
-            '$_amountKc Kč',
+            ref.money(_amountWhole * 100),
             style: theme.textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.bold,
             ),
@@ -210,7 +206,7 @@ class _DialogCustomerCreditState extends ConsumerState<DialogCustomerCredit> {
                         borderRadius: BorderRadius.circular(PosDialogTheme.numpadLargeRadius),
                       ),
                     ),
-                    onPressed: _hasAmount && _amountKc * 100 <= _customer.credit
+                    onPressed: _hasAmount && _amountWhole * 100 <= _customer.credit
                         ? _deduct
                         : null,
                     child: Column(
@@ -233,7 +229,6 @@ class _DialogCustomerCreditState extends ConsumerState<DialogCustomerCredit> {
 
   Widget _buildTransactionHistory(BuildContext context) {
     final theme = Theme.of(context);
-    final dateFormat = DateFormat('d.M. HH:mm', 'cs');
 
     return StreamBuilder<List<CustomerTransactionModel>>(
       stream: ref.watch(customerTransactionRepositoryProvider).watchByCustomer(_customer.id),
@@ -257,7 +252,7 @@ class _DialogCustomerCreditState extends ConsumerState<DialogCustomerCredit> {
                   SizedBox(
                     width: 80,
                     child: Text(
-                      dateFormat.format(tx.createdAt),
+                      ref.fmtDateTimeShort(tx.createdAt),
                       style: theme.textTheme.bodySmall,
                     ),
                   ),
@@ -273,7 +268,7 @@ class _DialogCustomerCreditState extends ConsumerState<DialogCustomerCredit> {
                   if (hasCredit)
                     Expanded(
                       child: Text(
-                        '${tx.creditChange > 0 ? '+' : ''}${_formatKc(tx.creditChange)}',
+                        '${tx.creditChange > 0 ? '+' : ''}${ref.money(tx.creditChange)}',
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: tx.creditChange > 0 ? Colors.green : Colors.red,
                         ),

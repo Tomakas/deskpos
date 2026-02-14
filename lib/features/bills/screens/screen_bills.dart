@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 import '../../../core/data/enums/bill_status.dart';
 import '../../../core/data/enums/prep_status.dart';
@@ -22,6 +21,7 @@ import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/providers/sync_providers.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/utils/formatting_ext.dart';
 import '../../../core/widgets/pos_table.dart';
 import '../providers/z_report_providers.dart';
 import '../widgets/dialog_bill_detail.dart';
@@ -326,7 +326,7 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
           context: context,
           builder: (dialogContext) => AlertDialog(
             title: Text(l.closingOpenBillsWarningTitle),
-            content: Text(l.closingOpenBillsWarningMessage(openBillsCount, '${openBillsAmount ~/ 100} Kč')),
+            content: Text(l.closingOpenBillsWarningMessage(openBillsCount, ref.money(openBillsAmount))),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(dialogContext, false),
@@ -916,13 +916,13 @@ class _BillsTable extends ConsumerWidget {
                           flex: 2,
                           cellBuilder: (r) => r.bill.status == BillStatus.refunded
                               ? Text(
-                                  r.bill.totalGross > 0 ? '${r.bill.totalGross ~/ 100},-' : '0,-',
+                                  ref.money(r.bill.totalGross),
                                   style: TextStyle(
                                     decoration: TextDecoration.lineThrough,
                                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                                   ),
                                 )
-                              : Text(r.bill.totalGross > 0 ? '${r.bill.totalGross ~/ 100},-' : '0,-'),
+                              : Text(ref.money(r.bill.totalGross)),
                         ),
                         PosColumn(
                           label: l.columnLastOrder,
@@ -1383,8 +1383,6 @@ class _InfoPanel extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
     final theme = Theme.of(context);
-    final dateFormat = DateFormat('EEEE d.M.yyyy', 'cs');
-    final timeFormat = DateFormat('HH:mm:ss', 'cs');
     final isSyncConnected = ref.watch(isSupabaseAuthenticatedProvider);
     final session = ref.watch(activeRegisterSessionProvider).valueOrNull;
     final register = ref.watch(activeRegisterProvider).valueOrNull;
@@ -1412,7 +1410,7 @@ class _InfoPanel extends ConsumerWidget {
             builder: (context, snap) {
               final now = snap.data ?? DateTime.now();
               return Text(
-                '${dateFormat.format(now)}  ${timeFormat.format(now)}',
+                '${ref.fmtDateWithDay(now)}  ${ref.fmtTimeSeconds(now)}',
                 style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
               );
             },
@@ -1470,7 +1468,7 @@ class _InfoPanel extends ConsumerWidget {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _InfoRow(l.infoPanelRevenue, '${revenue ~/ 100},-'),
+                    _InfoRow(l.infoPanelRevenue, ref.money(revenue)),
                     const SizedBox(height: 2),
                     _InfoRow(l.infoPanelSalesCount, '${paidBills.length}'),
                   ],

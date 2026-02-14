@@ -665,19 +665,14 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
     }
 
     final l = context.l10n;
-    final unplacedTables = allTables.where((t) =>
-        t.sectionId == section.id &&
-        (t.gridRow < 0 ||
-         t.gridCol < 0 ||
-         t.gridRow >= _gridRows ||
-         t.gridCol >= _gridCols ||
-         !placedTables.contains(t))).toList();
-
     bool isElementMode = false;
-    String? selectedTableId;
     int width = 3;
     int height = 3;
     var shape = TableShape.rectangle;
+    String? tableColor;
+    int tableFontSize = 14;
+    int tableFillStyle = 1;
+    int tableBorderStyle = 1;
     final tableCount = allTables.where((t) => t.sectionId == section.id).length;
     final defaultName = '${section.name} ${tableCount + 1}';
     final nameController = TextEditingController(text: defaultName);
@@ -687,6 +682,9 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
     int elemWidth = 2;
     int elemHeight = 2;
     var elemShape = TableShape.rectangle;
+    int elemFontSize = 14; // S=10, M=14, L=20
+    int elemFillStyle = 1; // 0=none, 1=translucent, 2=solid
+    int elemBorderStyle = 1;
 
     final result = await showDialog<_PlaceResult>(
       context: context,
@@ -734,27 +732,11 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
                   const SizedBox(height: 12),
                   if (!isElementMode) ...[
                     // TABLE mode
-                    DropdownButtonFormField<String?>(
-                      initialValue: selectedTableId,
-                      decoration: InputDecoration(labelText: l.floorMapSelectTable),
-                      items: [
-                        DropdownMenuItem<String?>(
-                          value: null,
-                          child: Text(l.floorMapNewTable),
-                        ),
-                        ...unplacedTables.map((t) =>
-                            DropdownMenuItem<String?>(value: t.id, child: Text(t.name))),
-                      ],
-                      onChanged: (v) => setDialogState(() => selectedTableId = v),
+                    TextField(
+                      controller: nameController,
+                      decoration: InputDecoration(labelText: l.fieldName),
+                      autofocus: true,
                     ),
-                    if (selectedTableId == null) ...[
-                      const SizedBox(height: 12),
-                      TextField(
-                        controller: nameController,
-                        decoration: InputDecoration(labelText: l.fieldName),
-                        autofocus: true,
-                      ),
-                    ],
                     const SizedBox(height: 12),
                     Row(
                       children: [
@@ -791,12 +773,56 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
                                 label: SizedBox(
                                   width: double.infinity,
                                   child: Text(
-                                    s == TableShape.rectangle ? l.floorMapShapeRectangle : l.floorMapShapeRound,
+                                    switch (s) { TableShape.rectangle => l.floorMapShapeRectangle, TableShape.round => l.floorMapShapeRound, TableShape.triangle => l.floorMapShapeTriangle },
                                     textAlign: TextAlign.center,
                                   ),
                                 ),
                                 selected: shape == s,
                                 onSelected: (_) => setDialogState(() => shape = s),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Text(l.floorMapElementColor, style: Theme.of(context).textTheme.bodySmall),
+                    const SizedBox(height: 8),
+                    PosColorPalette(
+                      selectedColor: tableColor,
+                      onColorSelected: (c) => setDialogState(() => tableColor = c),
+                    ),
+                    const SizedBox(height: 4),
+                    _StyleChipRow(
+                      label: l.floorMapElementFillStyle,
+                      value: tableFillStyle,
+                      labels: [l.floorMapStyleNone, l.floorMapStyleTranslucent, l.floorMapStyleSolid],
+                      onChanged: (v) => setDialogState(() => tableFillStyle = v),
+                    ),
+                    const SizedBox(height: 4),
+                    _StyleChipRow(
+                      label: l.floorMapElementBorderStyle,
+                      value: tableBorderStyle,
+                      labels: [l.floorMapStyleNone, l.floorMapStyleTranslucent, l.floorMapStyleSolid],
+                      onChanged: (v) => setDialogState(() => tableBorderStyle = v),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(l.floorMapElementFontSize, style: Theme.of(context).textTheme.bodySmall),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        for (final (label, value) in [('S', 10), ('M', 14), ('L', 20)]) ...[
+                          if (value != 10) const SizedBox(width: 8),
+                          Expanded(
+                            child: SizedBox(
+                              height: 40,
+                              child: FilterChip(
+                                label: SizedBox(
+                                  width: double.infinity,
+                                  child: Text(label, textAlign: TextAlign.center),
+                                ),
+                                selected: tableFontSize == value,
+                                onSelected: (_) => setDialogState(() => tableFontSize = value),
                               ),
                             ),
                           ),
@@ -809,14 +835,6 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
                       controller: labelController,
                       decoration: InputDecoration(labelText: l.floorMapElementLabel),
                       autofocus: true,
-                    ),
-                    const SizedBox(height: 12),
-                    // Color palette
-                    Text(l.floorMapElementColor, style: Theme.of(context).textTheme.bodySmall),
-                    const SizedBox(height: 8),
-                    PosColorPalette(
-                      selectedColor: elementColor,
-                      onColorSelected: (c) => setDialogState(() => elementColor = c),
                     ),
                     const SizedBox(height: 12),
                     Row(
@@ -854,12 +872,56 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
                                 label: SizedBox(
                                   width: double.infinity,
                                   child: Text(
-                                    s == TableShape.rectangle ? l.floorMapShapeRectangle : l.floorMapShapeRound,
+                                    switch (s) { TableShape.rectangle => l.floorMapShapeRectangle, TableShape.round => l.floorMapShapeRound, TableShape.triangle => l.floorMapShapeTriangle },
                                     textAlign: TextAlign.center,
                                   ),
                                 ),
                                 selected: elemShape == s,
                                 onSelected: (_) => setDialogState(() => elemShape = s),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Text(l.floorMapElementColor, style: Theme.of(context).textTheme.bodySmall),
+                    const SizedBox(height: 8),
+                    PosColorPalette(
+                      selectedColor: elementColor,
+                      onColorSelected: (c) => setDialogState(() => elementColor = c),
+                    ),
+                    const SizedBox(height: 4),
+                    _StyleChipRow(
+                      label: l.floorMapElementFillStyle,
+                      value: elemFillStyle,
+                      labels: [l.floorMapStyleNone, l.floorMapStyleTranslucent, l.floorMapStyleSolid],
+                      onChanged: (v) => setDialogState(() => elemFillStyle = v),
+                    ),
+                    const SizedBox(height: 4),
+                    _StyleChipRow(
+                      label: l.floorMapElementBorderStyle,
+                      value: elemBorderStyle,
+                      labels: [l.floorMapStyleNone, l.floorMapStyleTranslucent, l.floorMapStyleSolid],
+                      onChanged: (v) => setDialogState(() => elemBorderStyle = v),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(l.floorMapElementFontSize, style: Theme.of(context).textTheme.bodySmall),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        for (final (label, value) in [('S', 10), ('M', 14), ('L', 20)]) ...[
+                          if (value != 10) const SizedBox(width: 8),
+                          Expanded(
+                            child: SizedBox(
+                              height: 40,
+                              child: FilterChip(
+                                label: SizedBox(
+                                  width: double.infinity,
+                                  child: Text(label, textAlign: TextAlign.center),
+                                ),
+                                selected: elemFontSize == value,
+                                onSelected: (_) => setDialogState(() => elemFontSize = value),
                               ),
                             ),
                           ),
@@ -878,13 +940,16 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
               FilledButton(
                 onPressed: () => Navigator.pop(ctx, _PlaceResult(
                   isElement: isElementMode,
-                  tableId: isElementMode ? null : selectedTableId,
-                  name: !isElementMode && selectedTableId == null ? nameController.text.trim() : null,
+                  tableId: null,
+                  name: !isElementMode ? nameController.text.trim() : null,
                   width: isElementMode ? elemWidth : width,
                   height: isElementMode ? elemHeight : height,
                   shape: isElementMode ? elemShape : shape,
                   label: isElementMode ? labelController.text.trim() : null,
-                  color: isElementMode ? elementColor : null,
+                  color: isElementMode ? elementColor : tableColor,
+                  fontSize: isElementMode ? elemFontSize : tableFontSize,
+                  fillStyle: isElementMode ? elemFillStyle : tableFillStyle,
+                  borderStyle: isElementMode ? elemBorderStyle : tableBorderStyle,
                 )),
                 child: Text(l.actionSave),
               ),
@@ -912,41 +977,36 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
         gridHeight: result.height,
         label: label,
         color: result.color,
+        fontSize: result.fontSize,
+        fillStyle: result.fillStyle,
+        borderStyle: result.borderStyle,
         shape: result.shape,
         createdAt: now,
         updatedAt: now,
       ));
     } else {
-      // Table logic (unchanged)
       final repo = ref.read(tableRepositoryProvider);
-      if (result.tableId != null) {
-        final table = allTables.firstWhere((t) => t.id == result.tableId);
-        await repo.update(table.copyWith(
-          gridRow: row,
-          gridCol: col,
-          gridWidth: result.width,
-          gridHeight: result.height,
-          shape: result.shape,
-        ));
-      } else {
-        final now = DateTime.now();
-        final tableName = result.name?.isNotEmpty == true
-            ? result.name!
-            : '${section.name} ${allTables.where((t) => t.sectionId == section.id).length + 1}';
-        await repo.create(TableModel(
-          id: const Uuid().v7(),
-          companyId: company.id,
-          name: tableName,
-          sectionId: section.id,
-          gridRow: row,
-          gridCol: col,
-          gridWidth: result.width,
-          gridHeight: result.height,
-          shape: result.shape,
-          createdAt: now,
-          updatedAt: now,
-        ));
-      }
+      final now = DateTime.now();
+      final tableName = result.name?.isNotEmpty == true
+          ? result.name!
+          : '${section.name} ${allTables.where((t) => t.sectionId == section.id).length + 1}';
+      await repo.create(TableModel(
+        id: const Uuid().v7(),
+        companyId: company.id,
+        name: tableName,
+        sectionId: section.id,
+        gridRow: row,
+        gridCol: col,
+        gridWidth: result.width,
+        gridHeight: result.height,
+        shape: result.shape,
+        color: result.color,
+        fontSize: result.fontSize,
+        fillStyle: result.fillStyle,
+        borderStyle: result.borderStyle,
+        createdAt: now,
+        updatedAt: now,
+      ));
     }
   }
 
@@ -960,6 +1020,11 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
     int width = table.gridWidth;
     int height = table.gridHeight;
     var shape = table.shape;
+    String? tableColor = table.color;
+    int fontSize = table.fontSize ?? 14;
+    int fillStyle = table.fillStyle;
+    int borderStyle = table.borderStyle;
+    final nameController = TextEditingController(text: table.name);
 
     final result = await showDialog<_EditResult>(
       context: context,
@@ -972,8 +1037,11 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(table.name, style: Theme.of(context).textTheme.titleMedium),
-                  const SizedBox(height: 16),
+                  TextField(
+                    controller: nameController,
+                    decoration: InputDecoration(labelText: l.fieldName),
+                  ),
+                  const SizedBox(height: 12),
                   Row(
                     children: [
                       Expanded(
@@ -1009,12 +1077,56 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
                               label: SizedBox(
                                 width: double.infinity,
                                 child: Text(
-                                  s == TableShape.rectangle ? l.floorMapShapeRectangle : l.floorMapShapeRound,
+                                  switch (s) { TableShape.rectangle => l.floorMapShapeRectangle, TableShape.round => l.floorMapShapeRound, TableShape.triangle => l.floorMapShapeTriangle },
                                   textAlign: TextAlign.center,
                                 ),
                               ),
                               selected: shape == s,
                               onSelected: (_) => setDialogState(() => shape = s),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Text(l.floorMapElementColor, style: Theme.of(context).textTheme.bodySmall),
+                  const SizedBox(height: 8),
+                  PosColorPalette(
+                    selectedColor: tableColor,
+                    onColorSelected: (c) => setDialogState(() => tableColor = c),
+                  ),
+                  const SizedBox(height: 4),
+                  _StyleChipRow(
+                    label: l.floorMapElementFillStyle,
+                    value: fillStyle,
+                    labels: [l.floorMapStyleNone, l.floorMapStyleTranslucent, l.floorMapStyleSolid],
+                    onChanged: (v) => setDialogState(() => fillStyle = v),
+                  ),
+                  const SizedBox(height: 4),
+                  _StyleChipRow(
+                    label: l.floorMapElementBorderStyle,
+                    value: borderStyle,
+                    labels: [l.floorMapStyleNone, l.floorMapStyleTranslucent, l.floorMapStyleSolid],
+                    onChanged: (v) => setDialogState(() => borderStyle = v),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(l.floorMapElementFontSize, style: Theme.of(context).textTheme.bodySmall),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      for (final (label, value) in [('S', 10), ('M', 14), ('L', 20)]) ...[
+                        if (value != 10) const SizedBox(width: 8),
+                        Expanded(
+                          child: SizedBox(
+                            height: 40,
+                            child: FilterChip(
+                              label: SizedBox(
+                                width: double.infinity,
+                                child: Text(label, textAlign: TextAlign.center),
+                              ),
+                              selected: fontSize == value,
+                              onSelected: (_) => setDialogState(() => fontSize = value),
                             ),
                           ),
                         ),
@@ -1038,9 +1150,14 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
               ),
               FilledButton(
                 onPressed: () => Navigator.pop(ctx, _EditResult(
+                  name: nameController.text.trim(),
                   width: width,
                   height: height,
                   shape: shape,
+                  color: tableColor,
+                  fontSize: fontSize,
+                  fillStyle: fillStyle,
+                  borderStyle: borderStyle,
                 )),
                 child: Text(l.actionSave),
               ),
@@ -1061,10 +1178,16 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
         gridCol: -1,
       ));
     } else {
+      final name = result.name?.isNotEmpty == true ? result.name! : table.name;
       await repo.update(table.copyWith(
+        name: name,
         gridWidth: result.width,
         gridHeight: result.height,
         shape: result.shape,
+        color: result.color,
+        fontSize: result.fontSize,
+        fillStyle: result.fillStyle,
+        borderStyle: result.borderStyle,
       ));
     }
   }
@@ -1073,6 +1196,9 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
     final l = context.l10n;
     final labelController = TextEditingController(text: elem.label ?? '');
     String? elementColor = elem.color;
+    int fontSize = elem.fontSize ?? 14;
+    int fillStyle = elem.fillStyle;
+    int borderStyle = elem.borderStyle;
     int width = elem.gridWidth;
     int height = elem.gridHeight;
     var shape = elem.shape;
@@ -1091,13 +1217,6 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
                   TextField(
                     controller: labelController,
                     decoration: InputDecoration(labelText: l.floorMapElementLabel),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(l.floorMapElementColor, style: Theme.of(context).textTheme.bodySmall),
-                  const SizedBox(height: 8),
-                  PosColorPalette(
-                    selectedColor: elementColor,
-                    onColorSelected: (c) => setDialogState(() => elementColor = c),
                   ),
                   const SizedBox(height: 12),
                   Row(
@@ -1135,12 +1254,56 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
                               label: SizedBox(
                                 width: double.infinity,
                                 child: Text(
-                                  s == TableShape.rectangle ? l.floorMapShapeRectangle : l.floorMapShapeRound,
+                                  switch (s) { TableShape.rectangle => l.floorMapShapeRectangle, TableShape.round => l.floorMapShapeRound, TableShape.triangle => l.floorMapShapeTriangle },
                                   textAlign: TextAlign.center,
                                 ),
                               ),
                               selected: shape == s,
                               onSelected: (_) => setDialogState(() => shape = s),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Text(l.floorMapElementColor, style: Theme.of(context).textTheme.bodySmall),
+                  const SizedBox(height: 8),
+                  PosColorPalette(
+                    selectedColor: elementColor,
+                    onColorSelected: (c) => setDialogState(() => elementColor = c),
+                  ),
+                  const SizedBox(height: 4),
+                  _StyleChipRow(
+                    label: l.floorMapElementFillStyle,
+                    value: fillStyle,
+                    labels: [l.floorMapStyleNone, l.floorMapStyleTranslucent, l.floorMapStyleSolid],
+                    onChanged: (v) => setDialogState(() => fillStyle = v),
+                  ),
+                  const SizedBox(height: 4),
+                  _StyleChipRow(
+                    label: l.floorMapElementBorderStyle,
+                    value: borderStyle,
+                    labels: [l.floorMapStyleNone, l.floorMapStyleTranslucent, l.floorMapStyleSolid],
+                    onChanged: (v) => setDialogState(() => borderStyle = v),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(l.floorMapElementFontSize, style: Theme.of(context).textTheme.bodySmall),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      for (final (label, value) in [('S', 10), ('M', 14), ('L', 20)]) ...[
+                        if (value != 10) const SizedBox(width: 8),
+                        Expanded(
+                          child: SizedBox(
+                            height: 40,
+                            child: FilterChip(
+                              label: SizedBox(
+                                width: double.infinity,
+                                child: Text(label, textAlign: TextAlign.center),
+                              ),
+                              selected: fontSize == value,
+                              onSelected: (_) => setDialogState(() => fontSize = value),
                             ),
                           ),
                         ),
@@ -1166,6 +1329,9 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
                 onPressed: () => Navigator.pop(ctx, _EditElementResult(
                   label: labelController.text.trim(),
                   color: elementColor,
+                  fontSize: fontSize,
+                  fillStyle: fillStyle,
+                  borderStyle: borderStyle,
                   width: width,
                   height: height,
                   shape: shape,
@@ -1190,6 +1356,9 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
       await repo.update(elem.copyWith(
         label: label,
         color: result.color,
+        fontSize: result.fontSize,
+        fillStyle: result.fillStyle,
+        borderStyle: result.borderStyle,
         gridWidth: result.width,
         gridHeight: result.height,
         shape: result.shape,
@@ -1234,32 +1403,66 @@ class _TableCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = parseHexColor(section?.color);
-    final isRound = table.shape == TableShape.round;
-    final radius = isRound ? BorderRadius.circular(999) : BorderRadius.circular(6);
+    final color = table.color != null ? parseHexColor(table.color) : parseHexColor(section?.color);
+    final isTriangle = table.shape == TableShape.triangle;
+    final radius = switch (table.shape) {
+      TableShape.round => BorderRadius.circular(999),
+      _ => BorderRadius.circular(6),
+    };
+    final fill = table.fillStyle;
+    final border = table.borderStyle;
+    final fillColor = fill == 0
+        ? Colors.transparent
+        : fill == 2
+            ? color
+            : color.withValues(alpha: 0.3);
+    final borderColor = border == 0
+        ? null
+        : border == 2 ? color : color.withValues(alpha: 0.6);
+
+    final content = Center(
+      child: Padding(
+        padding: const EdgeInsets.all(4),
+        child: Text(
+          table.name,
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontSize: table.fontSize?.toDouble() ?? 12,
+            fontWeight: FontWeight.w600,
+            color: fill == 2 ? Colors.white : null,
+          ),
+        ),
+      ),
+    );
+
+    if (isTriangle) {
+      return Padding(
+        padding: const EdgeInsets.all(1),
+        child: CustomPaint(
+          foregroundPainter: borderColor != null
+              ? _TriangleBorderPainter(color: borderColor, strokeWidth: 2)
+              : null,
+          child: ClipPath(
+            clipper: const _TriangleClipper(),
+            child: ColoredBox(color: fillColor, child: content),
+          ),
+        ),
+      );
+    }
 
     return Padding(
       padding: const EdgeInsets.all(1),
       child: Material(
-        color: color.withValues(alpha: 0.3),
+        color: fillColor,
         borderRadius: radius,
         child: Container(
           decoration: BoxDecoration(
-            border: Border.all(color: color.withValues(alpha: 0.6), width: 2),
+            border: borderColor != null ? Border.all(color: borderColor, width: 2) : null,
             borderRadius: radius,
           ),
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(4),
-              child: Text(
-                table.name,
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-              ),
-            ),
-          ),
+          child: content,
         ),
       ),
     );
@@ -1272,44 +1475,86 @@ class _EditorElementCell extends StatelessWidget {
   });
   final MapElementModel element;
 
+  static Color? _applyStyle(Color? color, int style) {
+    if (color == null || style == 0) return null;
+    return style == 2 ? color : color.withValues(alpha: 0.3);
+  }
+
+  static Color? _borderColorForStyle(Color? color, int style, BuildContext context) {
+    if (style == 0) return null;
+    if (color != null) return style == 2 ? color : color.withValues(alpha: 0.6);
+    return Theme.of(context).dividerColor.withValues(alpha: 0.5);
+  }
+
+  static Border? _borderForStyle(Color? color, int style, BuildContext context) {
+    if (style == 0) return null;
+    if (color != null) {
+      return Border.all(color: style == 2 ? color : color.withValues(alpha: 0.6), width: 2);
+    }
+    return Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.5), width: 1);
+  }
+
   @override
   Widget build(BuildContext context) {
     final color = element.color != null ? parseHexColor(element.color) : null;
-    final isRound = element.shape == TableShape.round;
-    final radius = isRound ? BorderRadius.circular(999) : BorderRadius.circular(6);
+    final isTriangle = element.shape == TableShape.triangle;
+    final radius = switch (element.shape) {
+      TableShape.round => BorderRadius.circular(999),
+      _ => BorderRadius.circular(6),
+    };
+    final fillColor = _applyStyle(color, element.fillStyle) ?? Colors.transparent;
+
+    final content = element.label != null
+        ? Center(
+            child: Padding(
+              padding: const EdgeInsets.all(4),
+              child: Text(
+                element.label!,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: element.fontSize?.toDouble() ?? 14,
+                  fontWeight: FontWeight.w500,
+                  color: element.fillStyle == 2 && color != null
+                      ? Colors.white
+                      : color != null
+                          ? color.withValues(alpha: 0.9)
+                          : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                ),
+              ),
+            ),
+          )
+        : const SizedBox.expand();
+
+    if (isTriangle) {
+      final borderColor = _borderColorForStyle(color, element.borderStyle, context);
+      final borderWidth = color != null ? 2.0 : 1.0;
+      return Padding(
+        padding: const EdgeInsets.all(1),
+        child: CustomPaint(
+          foregroundPainter: borderColor != null
+              ? _TriangleBorderPainter(color: borderColor, strokeWidth: borderWidth)
+              : null,
+          child: ClipPath(
+            clipper: const _TriangleClipper(),
+            child: ColoredBox(color: fillColor, child: content),
+          ),
+        ),
+      );
+    }
 
     return Padding(
       padding: const EdgeInsets.all(1),
       child: Material(
-        color: color?.withValues(alpha: 0.3) ?? Colors.transparent,
+        color: fillColor,
         borderRadius: radius,
         child: Container(
           decoration: BoxDecoration(
-            border: color != null
-                ? Border.all(color: color.withValues(alpha: 0.6), width: 2)
-                : Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.5), width: 1),
+            border: _borderForStyle(color, element.borderStyle, context),
             borderRadius: radius,
           ),
-          child: element.label != null
-              ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(4),
-                    child: Text(
-                      element.label!,
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                        color: color != null
-                            ? color.withValues(alpha: 0.9)
-                            : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
-                      ),
-                    ),
-                  ),
-                )
-              : const SizedBox.expand(),
+          child: content,
         ),
       ),
     );
@@ -1387,6 +1632,9 @@ class _PlaceResult {
     required this.shape,
     this.label,
     this.color,
+    this.fontSize,
+    this.fillStyle = 1,
+    this.borderStyle = 1,
   });
   final bool isElement;
   final String? tableId;
@@ -1396,18 +1644,31 @@ class _PlaceResult {
   final TableShape shape;
   final String? label;
   final String? color;
+  final int? fontSize;
+  final int fillStyle;
+  final int borderStyle;
 }
 
 class _EditResult {
   const _EditResult({
+    this.name,
     this.width = 1,
     this.height = 1,
     this.shape = TableShape.rectangle,
+    this.color,
+    this.fontSize,
+    this.fillStyle = 1,
+    this.borderStyle = 1,
     this.remove = false,
   });
+  final String? name;
   final int width;
   final int height;
   final TableShape shape;
+  final String? color;
+  final int? fontSize;
+  final int fillStyle;
+  final int borderStyle;
   final bool remove;
 }
 
@@ -1415,6 +1676,9 @@ class _EditElementResult {
   const _EditElementResult({
     this.label,
     this.color,
+    this.fontSize,
+    this.fillStyle = 1,
+    this.borderStyle = 1,
     this.width = 2,
     this.height = 2,
     this.shape = TableShape.rectangle,
@@ -1422,8 +1686,98 @@ class _EditElementResult {
   });
   final String? label;
   final String? color;
+  final int? fontSize;
+  final int fillStyle;
+  final int borderStyle;
   final int width;
   final int height;
   final TableShape shape;
   final bool remove;
+}
+
+class _StyleChipRow extends StatelessWidget {
+  const _StyleChipRow({
+    required this.label,
+    required this.value,
+    required this.labels,
+    required this.onChanged,
+  });
+  final String label;
+  final int value; // 0, 1, 2
+  final List<String> labels; // [none, translucent, solid]
+  final ValueChanged<int> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: Theme.of(context).textTheme.bodySmall),
+        const SizedBox(height: 4),
+        Row(
+          children: [
+            for (var i = 0; i < labels.length; i++) ...[
+              if (i > 0) const SizedBox(width: 8),
+              Expanded(
+                child: SizedBox(
+                  height: 36,
+                  child: FilterChip(
+                    label: SizedBox(
+                      width: double.infinity,
+                      child: Text(labels[i], textAlign: TextAlign.center, style: const TextStyle(fontSize: 12)),
+                    ),
+                    selected: value == i,
+                    onSelected: (_) => onChanged(i),
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _TriangleClipper extends CustomClipper<Path> {
+  const _TriangleClipper();
+
+  @override
+  Path getClip(Size size) {
+    return Path()
+      ..moveTo(size.width / 2, 0)
+      ..lineTo(size.width, size.height)
+      ..lineTo(0, size.height)
+      ..close();
+  }
+
+  @override
+  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
+}
+
+class _TriangleBorderPainter extends CustomPainter {
+  const _TriangleBorderPainter({required this.color, required this.strokeWidth});
+  final Color color;
+  final double strokeWidth;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeJoin = StrokeJoin.round;
+
+    final path = Path()
+      ..moveTo(size.width / 2, 0)
+      ..lineTo(size.width, size.height)
+      ..lineTo(0, size.height)
+      ..close();
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _TriangleBorderPainter old) =>
+      color != old.color || strokeWidth != old.strokeWidth;
 }

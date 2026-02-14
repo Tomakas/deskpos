@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 import '../../../core/data/enums/prep_status.dart';
 import '../../../core/data/models/bill_model.dart';
@@ -12,6 +11,7 @@ import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/utils/formatting_ext.dart';
 
 class ScreenOrders extends ConsumerStatefulWidget {
   const ScreenOrders({super.key});
@@ -472,7 +472,7 @@ class _BillInfoTable extends ConsumerWidget {
 // ---------------------------------------------------------------------------
 // Time table (created + updated, colons aligned)
 // ---------------------------------------------------------------------------
-class _TimeTable extends StatelessWidget {
+class _TimeTable extends ConsumerWidget {
   const _TimeTable({
     required this.createdAt,
     required this.updatedAt,
@@ -481,10 +481,9 @@ class _TimeTable extends StatelessWidget {
   final DateTime updatedAt;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
     final theme = Theme.of(context);
-    final timeFormat = DateFormat('HH:mm');
 
     final labelStyle = theme.textTheme.bodySmall?.copyWith(
       color: theme.colorScheme.onSurfaceVariant,
@@ -496,11 +495,11 @@ class _TimeTable extends StatelessWidget {
       children: [
         TableRow(children: [
           Text('${l.ordersTimeCreated}: ', style: labelStyle, textAlign: TextAlign.right),
-          Text(timeFormat.format(createdAt), style: valueStyle),
+          Text(ref.fmtTime(createdAt), style: valueStyle),
         ]),
         TableRow(children: [
           Text('${l.ordersTimeUpdated}: ', style: labelStyle, textAlign: TextAlign.right),
-          Text(timeFormat.format(updatedAt), style: valueStyle),
+          Text(ref.fmtTime(updatedAt), style: valueStyle),
         ]),
       ],
     );
@@ -510,7 +509,7 @@ class _TimeTable extends StatelessWidget {
 // ---------------------------------------------------------------------------
 // Order item sub-card
 // ---------------------------------------------------------------------------
-class _OrderItemCard extends StatelessWidget {
+class _OrderItemCard extends ConsumerWidget {
   const _OrderItemCard({
     required this.item,
     required this.isStorno,
@@ -527,7 +526,7 @@ class _OrderItemCard extends StatelessWidget {
   final void Function(PrepStatus) onStatusChange;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
     final theme = Theme.of(context);
     final isVoided =
@@ -622,7 +621,7 @@ class _OrderItemCard extends StatelessWidget {
                         Padding(
                           padding: const EdgeInsets.only(right: 8),
                           child: Text(
-                            '${price ~/ 100},-',
+                            ref.money(price),
                             style: theme.textTheme.bodyMedium?.copyWith(
                               decoration: isVoided ? TextDecoration.lineThrough : null,
                               color: isVoided ? theme.colorScheme.onSurfaceVariant : null,

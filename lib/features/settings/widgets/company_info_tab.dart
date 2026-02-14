@@ -3,11 +3,16 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/data/mappers/entity_mappers.dart';
 import '../../../core/data/models/company_settings_model.dart';
+import '../../../core/data/models/currency_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
+import '../../../core/data/providers/database_provider.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/utils/formatters.dart';
+import '../../../core/utils/formatting_ext.dart';
 
 class CompanyInfoTab extends ConsumerStatefulWidget {
   const CompanyInfoTab({super.key});
@@ -27,6 +32,9 @@ class _CompanyInfoTabState extends ConsumerState<CompanyInfoTab> {
   late final TextEditingController _emailCtrl;
 
   bool _companyInitialized = false;
+
+  // Currencies
+  List<CurrencyModel> _currencies = [];
 
   // Loyalty settings
   StreamSubscription<CompanySettingsModel?>? _settingsSub;
@@ -66,12 +74,19 @@ class _CompanyInfoTabState extends ConsumerState<CompanyInfoTab> {
     final company = ref.read(currentCompanyProvider);
     if (company == null) return;
 
+    // Load currencies
+    final db = ref.read(appDatabaseProvider);
+    final rows = await db.select(db.currencies).get();
+    final currencies = rows.map(currencyFromEntity).toList()
+      ..sort((a, b) => a.code.compareTo(b.code));
+
     final repo = ref.read(companySettingsRepositoryProvider);
     final settings = await repo.getOrCreate(company.id);
     if (!mounted) return;
-    _earnCtrl.text = settings.loyaltyEarnPerHundredCzk.toString();
-    _pointValueCtrl.text = settings.loyaltyPointValueHalere.toString();
+    _earnCtrl.text = settings.loyaltyEarnRate.toString();
+    _pointValueCtrl.text = settings.loyaltyPointValue.toString();
     setState(() {
+      _currencies = currencies;
       _settings = settings;
       _settingsInitialized = true;
     });
@@ -86,6 +101,21 @@ class _CompanyInfoTabState extends ConsumerState<CompanyInfoTab> {
   Future<void> _updateSettings(CompanySettingsModel updated) async {
     final repo = ref.read(companySettingsRepositoryProvider);
     await repo.update(updated);
+  }
+
+  Future<void> _updateCurrency(String currencyId) async {
+    final company = ref.read(currentCompanyProvider);
+    if (company == null || company.defaultCurrencyId == currencyId) return;
+
+    final updated = company.copyWith(defaultCurrencyId: currencyId);
+    final companyRepo = ref.read(companyRepositoryProvider);
+    final result = await companyRepo.update(updated);
+
+    if (!mounted) return;
+    if (result is Success<dynamic>) {
+      ref.read(currentCompanyProvider.notifier).state = updated;
+      ref.invalidate(currentCurrencyProvider);
+    }
   }
 
   @override
@@ -204,6 +234,83 @@ class _CompanyInfoTabState extends ConsumerState<CompanyInfoTab> {
             ),
           ),
           const SizedBox(height: 24),
+          // Language section
+          if (_settingsInitialized && _settings != null) ...[
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Text(
+                l.settingsLanguage,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  for (final entry in [
+                    ('cs', l.languageCzech),
+                    ('en', l.languageEnglish),
+                  ]) ...[
+                    if (entry != ('cs', l.languageCzech))
+                      const SizedBox(width: 8),
+                    Expanded(
+                      child: SizedBox(
+                        height: 40,
+                        child: FilterChip(
+                          label: SizedBox(
+                            width: double.infinity,
+                            child: Text(entry.$2, textAlign: TextAlign.center),
+                          ),
+                          selected: _settings!.locale == entry.$1,
+                          onSelected: (_) {
+                            _updateSettings(_settings!.copyWith(locale: entry.$1));
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+          // Currency section
+          if (_settingsInitialized && _currencies.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Text(
+                l.settingsCurrency,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  for (final (i, currency) in _currencies.indexed) ...[
+                    if (i > 0) const SizedBox(width: 8),
+                    Expanded(
+                      child: SizedBox(
+                        height: 40,
+                        child: FilterChip(
+                          label: SizedBox(
+                            width: double.infinity,
+                            child: Text(
+                              '${currency.code} (${currency.symbol})',
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          selected: ref.watch(currentCompanyProvider)?.defaultCurrencyId == currency.id,
+                          onSelected: (_) => _updateCurrency(currency.id),
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+          const SizedBox(height: 24),
           // Loyalty section
           if (_settingsInitialized && _settings != null) ...[
             Padding(
@@ -220,29 +327,30 @@ class _CompanyInfoTabState extends ConsumerState<CompanyInfoTab> {
                 children: [
                   TextField(
                     controller: _earnCtrl,
-                    decoration: InputDecoration(labelText: l.loyaltyEarnPerHundredCzk),
+                    decoration: InputDecoration(labelText: l.loyaltyEarnRate(ref.money(parseMoney('100', ref.watch(currentCurrencyProvider).value)))),
                     keyboardType: TextInputType.number,
                     onChanged: (v) {
                       final value = int.tryParse(v) ?? 0;
-                      _updateSettings(_settings!.copyWith(loyaltyEarnPerHundredCzk: value));
+                      _updateSettings(_settings!.copyWith(loyaltyEarnRate: value));
                     },
                   ),
                   const SizedBox(height: 12),
                   TextField(
                     controller: _pointValueCtrl,
-                    decoration: InputDecoration(labelText: l.loyaltyPointValueHalere),
+                    decoration: InputDecoration(labelText: l.loyaltyPointValue),
                     keyboardType: TextInputType.number,
                     onChanged: (v) {
                       final value = int.tryParse(v) ?? 0;
-                      _updateSettings(_settings!.copyWith(loyaltyPointValueHalere: value));
+                      _updateSettings(_settings!.copyWith(loyaltyPointValue: value));
                     },
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    _settings!.loyaltyEarnPerHundredCzk > 0 || _settings!.loyaltyPointValueHalere > 0
+                    _settings!.loyaltyEarnRate > 0 || _settings!.loyaltyPointValue > 0
                         ? l.loyaltyDescription(
-                            _settings!.loyaltyEarnPerHundredCzk,
-                            (_settings!.loyaltyPointValueHalere / 100).toStringAsFixed(2).replaceAll('.', ','),
+                            _settings!.loyaltyEarnRate,
+                            ref.money(parseMoney('100', ref.watch(currentCurrencyProvider).value)),
+                            ref.money(_settings!.loyaltyPointValue),
                           )
                         : l.loyaltyDisabled,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(

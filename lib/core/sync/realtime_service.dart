@@ -37,6 +37,7 @@ class RealtimeService {
     'map_elements',
     'items',
     'registers',
+    'display_devices',
     'layout_items',
     'customers',
     'reservations',

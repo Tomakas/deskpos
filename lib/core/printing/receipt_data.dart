@@ -1,3 +1,5 @@
+import '../data/models/currency_model.dart';
+
 class ReceiptData {
   const ReceiptData({
     required this.companyName,
@@ -22,6 +24,7 @@ class ReceiptData {
     required this.totalGross,
     required this.roundingAmount,
     required this.currencySymbol,
+    this.currency,
   });
 
   final String companyName;
@@ -44,59 +47,60 @@ class ReceiptData {
   final List<ReceiptTaxRow> taxRows;
   final List<ReceiptPaymentData> payments;
 
-  /// All amounts in halere
+  /// All amounts in minor units
   final int subtotalGross;
   final int discountAmount;
   final int totalGross;
   final int roundingAmount;
 
   final String currencySymbol;
+  final CurrencyModel? currency;
 }
 
 class ReceiptItemData {
   const ReceiptItemData({
     required this.name,
     required this.quantity,
-    required this.unitPriceHalere,
-    required this.totalHalere,
+    required this.unitPrice,
+    required this.total,
     required this.taxRateBasisPoints,
-    this.discountHalere = 0,
+    this.discount = 0,
     this.notes,
   });
 
   final String name;
   final double quantity;
-  final int unitPriceHalere;
-  final int totalHalere;
+  final int unitPrice;
+  final int total;
   final int taxRateBasisPoints;
-  final int discountHalere;
+  final int discount;
   final String? notes;
 }
 
 class ReceiptTaxRow {
   const ReceiptTaxRow({
     required this.taxRateBasisPoints,
-    required this.netHalere,
-    required this.taxHalere,
-    required this.grossHalere,
+    required this.net,
+    required this.tax,
+    required this.gross,
   });
 
   final int taxRateBasisPoints;
-  final int netHalere;
-  final int taxHalere;
-  final int grossHalere;
+  final int net;
+  final int tax;
+  final int gross;
 }
 
 class ReceiptPaymentData {
   const ReceiptPaymentData({
     required this.methodName,
-    required this.amountHalere,
-    this.tipHalere = 0,
+    required this.amount,
+    this.tip = 0,
   });
 
   final String methodName;
-  final int amountHalere;
-  final int tipHalere;
+  final int amount;
+  final int tip;
 }
 
 class ReceiptLabels {
@@ -179,6 +183,7 @@ class ZReportLabels {
     required this.cashDifference,
     required this.shiftsTitle,
     required this.currencySymbol,
+    this.currency,
   });
 
   final String reportTitle;
@@ -215,4 +220,5 @@ class ZReportLabels {
   final String cashDifference;
   final String shiftsTitle;
   final String currencySymbol;
+  final CurrencyModel? currency;
 }

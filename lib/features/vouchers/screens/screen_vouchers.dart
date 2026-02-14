@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 import '../../../core/data/enums/voucher_status.dart';
 import '../../../core/data/enums/voucher_type.dart';
@@ -8,6 +7,7 @@ import '../../../core/data/models/voucher_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/utils/formatting_ext.dart';
 import '../../../core/widgets/pos_table.dart';
 import '../widgets/dialog_voucher_create.dart';
 import '../widgets/dialog_voucher_detail.dart';
@@ -134,7 +134,6 @@ class _ScreenVouchersState extends ConsumerState<ScreenVouchers> {
   }
 
   List<PosColumn<VoucherModel>> _buildColumns(dynamic l) {
-    final dateFormat = DateFormat('d.M.yyyy', 'cs');
     return [
       PosColumn<VoucherModel>(
         label: l.voucherCode,
@@ -154,10 +153,10 @@ class _ScreenVouchersState extends ConsumerState<ScreenVouchers> {
             ? Text(
                 v.discountType?.name == 'percent'
                     ? '${v.value / 100}%'
-                    : '${v.value ~/ 100} Kč',
+                    : ref.money(v.value),
                 textAlign: TextAlign.right,
               )
-            : Text('${v.value ~/ 100} Kč', textAlign: TextAlign.right),
+            : Text(ref.money(v.value), textAlign: TextAlign.right),
       ),
       PosColumn<VoucherModel>(
         label: l.reservationStatus,
@@ -168,7 +167,7 @@ class _ScreenVouchersState extends ConsumerState<ScreenVouchers> {
         label: l.voucherExpires,
         flex: 1,
         cellBuilder: (v) =>
-            Text(v.expiresAt != null ? dateFormat.format(v.expiresAt!) : '-'),
+            Text(v.expiresAt != null ? ref.fmtDate(v.expiresAt!) : '-'),
       ),
       PosColumn<VoucherModel>(
         label: l.voucherUsedCount,

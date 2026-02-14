@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import '../data/enums/discount_type.dart';
 import '../data/enums/prep_status.dart';
+import '../data/models/currency_model.dart';
 import '../data/repositories/bill_repository.dart';
 import '../data/repositories/company_repository.dart';
 import '../data/repositories/order_repository.dart';
@@ -36,7 +37,7 @@ class PrintingService {
   final TableRepository tableRepo;
   final UserRepository userRepo;
 
-  Future<ReceiptData?> buildReceiptData(String billId) async {
+  Future<ReceiptData?> buildReceiptData(String billId, {CurrencyModel? currency}) async {
     // 1. Get bill
     final billResult = await billRepo.getById(billId);
     if (billResult is! Success) {
@@ -105,10 +106,10 @@ class PrintingService {
       receiptItems.add(ReceiptItemData(
         name: item.itemName,
         quantity: item.quantity,
-        unitPriceHalere: item.salePriceAtt,
-        totalHalere: itemTotal - itemDiscount,
+        unitPrice: item.salePriceAtt,
+        total: itemTotal - itemDiscount,
         taxRateBasisPoints: item.saleTaxRateAtt,
-        discountHalere: itemDiscount,
+        discount: itemDiscount,
         notes: item.notes,
       ));
     }
@@ -144,9 +145,9 @@ class PrintingService {
 
     final taxRows = taxMap.entries.map((e) => ReceiptTaxRow(
           taxRateBasisPoints: e.key,
-          netHalere: e.value.net,
-          taxHalere: e.value.tax,
-          grossHalere: e.value.gross,
+          net: e.value.net,
+          tax: e.value.tax,
+          gross: e.value.gross,
         )).toList()
       ..sort((a, b) => a.taxRateBasisPoints.compareTo(b.taxRateBasisPoints));
 
@@ -155,8 +156,8 @@ class PrintingService {
         .where((p) => p.amount > 0)
         .map((p) => ReceiptPaymentData(
               methodName: methods[p.paymentMethodId] ?? '?',
-              amountHalere: p.amount,
-              tipHalere: p.tipIncludedAmount,
+              amount: p.amount,
+              tip: p.tipIncludedAmount,
             ))
         .toList();
 
@@ -182,7 +183,8 @@ class PrintingService {
       discountAmount: bill.discountAmount,
       totalGross: bill.totalGross,
       roundingAmount: bill.roundingAmount,
-      currencySymbol: 'Kč',
+      currencySymbol: currency?.symbol ?? 'Kč',
+      currency: currency,
     );
   }
 

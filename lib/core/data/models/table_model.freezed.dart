@@ -27,6 +27,10 @@ mixin _$TableModel {
   int get gridCol => throw _privateConstructorUsedError;
   int get gridWidth => throw _privateConstructorUsedError;
   int get gridHeight => throw _privateConstructorUsedError;
+  String? get color => throw _privateConstructorUsedError;
+  int? get fontSize => throw _privateConstructorUsedError;
+  int get fillStyle => throw _privateConstructorUsedError;
+  int get borderStyle => throw _privateConstructorUsedError;
   TableShape get shape => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
   DateTime get updatedAt => throw _privateConstructorUsedError;
@@ -57,6 +61,10 @@ abstract class $TableModelCopyWith<$Res> {
     int gridCol,
     int gridWidth,
     int gridHeight,
+    String? color,
+    int? fontSize,
+    int fillStyle,
+    int borderStyle,
     TableShape shape,
     DateTime createdAt,
     DateTime updatedAt,
@@ -89,6 +97,10 @@ class _$TableModelCopyWithImpl<$Res, $Val extends TableModel>
     Object? gridCol = null,
     Object? gridWidth = null,
     Object? gridHeight = null,
+    Object? color = freezed,
+    Object? fontSize = freezed,
+    Object? fillStyle = null,
+    Object? borderStyle = null,
     Object? shape = null,
     Object? createdAt = null,
     Object? updatedAt = null,
@@ -136,6 +148,22 @@ class _$TableModelCopyWithImpl<$Res, $Val extends TableModel>
                 ? _value.gridHeight
                 : gridHeight // ignore: cast_nullable_to_non_nullable
                       as int,
+            color: freezed == color
+                ? _value.color
+                : color // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            fontSize: freezed == fontSize
+                ? _value.fontSize
+                : fontSize // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            fillStyle: null == fillStyle
+                ? _value.fillStyle
+                : fillStyle // ignore: cast_nullable_to_non_nullable
+                      as int,
+            borderStyle: null == borderStyle
+                ? _value.borderStyle
+                : borderStyle // ignore: cast_nullable_to_non_nullable
+                      as int,
             shape: null == shape
                 ? _value.shape
                 : shape // ignore: cast_nullable_to_non_nullable
@@ -178,6 +206,10 @@ abstract class _$$TableModelImplCopyWith<$Res>
     int gridCol,
     int gridWidth,
     int gridHeight,
+    String? color,
+    int? fontSize,
+    int fillStyle,
+    int borderStyle,
     TableShape shape,
     DateTime createdAt,
     DateTime updatedAt,
@@ -209,6 +241,10 @@ class __$$TableModelImplCopyWithImpl<$Res>
     Object? gridCol = null,
     Object? gridWidth = null,
     Object? gridHeight = null,
+    Object? color = freezed,
+    Object? fontSize = freezed,
+    Object? fillStyle = null,
+    Object? borderStyle = null,
     Object? shape = null,
     Object? createdAt = null,
     Object? updatedAt = null,
@@ -256,6 +292,22 @@ class __$$TableModelImplCopyWithImpl<$Res>
             ? _value.gridHeight
             : gridHeight // ignore: cast_nullable_to_non_nullable
                   as int,
+        color: freezed == color
+            ? _value.color
+            : color // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        fontSize: freezed == fontSize
+            ? _value.fontSize
+            : fontSize // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        fillStyle: null == fillStyle
+            ? _value.fillStyle
+            : fillStyle // ignore: cast_nullable_to_non_nullable
+                  as int,
+        borderStyle: null == borderStyle
+            ? _value.borderStyle
+            : borderStyle // ignore: cast_nullable_to_non_nullable
+                  as int,
         shape: null == shape
             ? _value.shape
             : shape // ignore: cast_nullable_to_non_nullable
@@ -291,6 +343,10 @@ class _$TableModelImpl implements _TableModel {
     this.gridCol = 0,
     this.gridWidth = 1,
     this.gridHeight = 1,
+    this.color,
+    this.fontSize,
+    this.fillStyle = 1,
+    this.borderStyle = 1,
     this.shape = TableShape.rectangle,
     required this.createdAt,
     required this.updatedAt,
@@ -324,6 +380,16 @@ class _$TableModelImpl implements _TableModel {
   @JsonKey()
   final int gridHeight;
   @override
+  final String? color;
+  @override
+  final int? fontSize;
+  @override
+  @JsonKey()
+  final int fillStyle;
+  @override
+  @JsonKey()
+  final int borderStyle;
+  @override
   @JsonKey()
   final TableShape shape;
   @override
@@ -335,7 +401,7 @@ class _$TableModelImpl implements _TableModel {
 
   @override
   String toString() {
-    return 'TableModel(id: $id, companyId: $companyId, sectionId: $sectionId, name: $name, capacity: $capacity, isActive: $isActive, gridRow: $gridRow, gridCol: $gridCol, gridWidth: $gridWidth, gridHeight: $gridHeight, shape: $shape, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+    return 'TableModel(id: $id, companyId: $companyId, sectionId: $sectionId, name: $name, capacity: $capacity, isActive: $isActive, gridRow: $gridRow, gridCol: $gridCol, gridWidth: $gridWidth, gridHeight: $gridHeight, color: $color, fontSize: $fontSize, fillStyle: $fillStyle, borderStyle: $borderStyle, shape: $shape, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
   }
 
   @override
@@ -359,6 +425,13 @@ class _$TableModelImpl implements _TableModel {
                 other.gridWidth == gridWidth) &&
             (identical(other.gridHeight, gridHeight) ||
                 other.gridHeight == gridHeight) &&
+            (identical(other.color, color) || other.color == color) &&
+            (identical(other.fontSize, fontSize) ||
+                other.fontSize == fontSize) &&
+            (identical(other.fillStyle, fillStyle) ||
+                other.fillStyle == fillStyle) &&
+            (identical(other.borderStyle, borderStyle) ||
+                other.borderStyle == borderStyle) &&
             (identical(other.shape, shape) || other.shape == shape) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
@@ -381,6 +454,10 @@ class _$TableModelImpl implements _TableModel {
     gridCol,
     gridWidth,
     gridHeight,
+    color,
+    fontSize,
+    fillStyle,
+    borderStyle,
     shape,
     createdAt,
     updatedAt,
@@ -408,6 +485,10 @@ abstract class _TableModel implements TableModel {
     final int gridCol,
     final int gridWidth,
     final int gridHeight,
+    final String? color,
+    final int? fontSize,
+    final int fillStyle,
+    final int borderStyle,
     final TableShape shape,
     required final DateTime createdAt,
     required final DateTime updatedAt,
@@ -434,6 +515,14 @@ abstract class _TableModel implements TableModel {
   int get gridWidth;
   @override
   int get gridHeight;
+  @override
+  String? get color;
+  @override
+  int? get fontSize;
+  @override
+  int get fillStyle;
+  @override
+  int get borderStyle;
   @override
   TableShape get shape;
   @override

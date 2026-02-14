@@ -8,6 +8,7 @@ import '../../../core/data/models/layout_item_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/utils/formatting_ext.dart';
 import '../../../core/utils/search_utils.dart';
 import '../../../core/widgets/pos_color_palette.dart';
 
@@ -454,7 +455,7 @@ class _DialogGridEditorState extends ConsumerState<DialogGridEditor> {
                           final item = filtered[index];
                           return ListTile(
                             title: Text(item.name),
-                            subtitle: Text('${item.unitPrice ~/ 100} Kč'),
+                            subtitle: Text(ref.money(item.unitPrice)),
                             onTap: () => Navigator.pop(context, item),
                           );
                         },

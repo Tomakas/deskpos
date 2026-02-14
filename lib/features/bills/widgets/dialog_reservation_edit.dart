@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../core/data/enums/reservation_status.dart';
@@ -9,6 +8,7 @@ import '../../../core/data/models/table_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/utils/formatting_ext.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import 'dialog_customer_search.dart';
 
@@ -180,7 +180,6 @@ class _DialogReservationEditState extends ConsumerState<DialogReservationEdit> {
   Widget build(BuildContext context) {
     final l = context.l10n;
     final theme = Theme.of(context);
-    final dateFormat = DateFormat('d.M.yyyy', 'cs');
     final company = ref.watch(currentCompanyProvider);
 
     return PosDialogShell(
@@ -231,7 +230,7 @@ class _DialogReservationEditState extends ConsumerState<DialogReservationEdit> {
                       child: OutlinedButton.icon(
                         onPressed: _pickDate,
                         icon: const Icon(Icons.calendar_today, size: 18),
-                        label: Text(dateFormat.format(_selectedDate)),
+                        label: Text(ref.fmtDate(_selectedDate)),
                       ),
                     ),
                     const SizedBox(width: 12),

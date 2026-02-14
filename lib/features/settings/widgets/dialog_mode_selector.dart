@@ -112,13 +112,7 @@ class _DialogModeSelectorState extends ConsumerState<DialogModeSelector> {
       case RegisterMode.kds:
         context.go('/kds');
       case RegisterMode.customerDisplay:
-        final regId = _selectedRegisterId ??
-            ref.read(activeRegisterProvider).value?.id;
-        if (regId != null) {
-          context.go('/customer-display/$regId');
-        } else {
-          context.go('/customer-display');
-        }
+        context.go('/customer-display');
     }
   }
 }

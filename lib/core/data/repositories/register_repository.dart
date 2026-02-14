@@ -288,24 +288,6 @@ class RegisterRepository {
     });
   }
 
-  /// Sets (or clears) the displayCartJson on a register.
-  Future<void> setDisplayCart(String registerId, String? cartJson) async {
-    await _db.transaction(() async {
-      final now = DateTime.now();
-      await (_db.update(_db.registers)..where((t) => t.id.equals(registerId)))
-          .write(RegistersCompanion(
-        displayCartJson: Value(cartJson),
-        updatedAt: Value(now),
-      ));
-      final entity = await (_db.select(_db.registers)
-            ..where((t) => t.id.equals(registerId)))
-          .getSingleOrNull();
-      if (entity != null) {
-        await _enqueue('update', registerFromEntity(entity));
-      }
-    });
-  }
-
   /// Clears the boundDeviceId on a register (releases it for other devices).
   Future<void> clearBoundDevice(String registerId) async {
     await _db.transaction(() async {

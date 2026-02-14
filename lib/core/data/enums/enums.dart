@@ -1,6 +1,7 @@
 export 'bill_status.dart';
 export 'cash_movement_type.dart';
 export 'discount_type.dart';
+export 'display_device_type.dart';
 export 'company_status.dart';
 export 'hardware_type.dart';
 export 'item_type.dart';

@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/utils/formatters.dart';
+import '../../../core/utils/formatting_ext.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_numpad.dart';
 
-class DialogChangeTotalToPay extends StatefulWidget {
+class DialogChangeTotalToPay extends ConsumerStatefulWidget {
   const DialogChangeTotalToPay({
     super.key,
     required this.originalAmount,
@@ -13,39 +17,36 @@ class DialogChangeTotalToPay extends StatefulWidget {
   final int originalAmount;
 
   @override
-  State<DialogChangeTotalToPay> createState() => _DialogChangeTotalToPayState();
+  ConsumerState<DialogChangeTotalToPay> createState() => _DialogChangeTotalToPayState();
 }
 
-class _DialogChangeTotalToPayState extends State<DialogChangeTotalToPay> {
+class _DialogChangeTotalToPayState extends ConsumerState<DialogChangeTotalToPay> {
   String _input = '';
 
-  int get _amountInHalere {
-    final parsed = double.tryParse(_input) ?? 0;
-    return (parsed * 100).round();
+  int get _amountInMinor {
+    final currency = ref.read(currentCurrencyProvider).value;
+    return parseMoney(_input, currency);
   }
 
   @override
   void initState() {
     super.initState();
     // Pre-fill with original amount
-    final kc = widget.originalAmount / 100;
-    _input = kc == kc.roundToDouble()
-        ? kc.round().toString()
-        : kc.toStringAsFixed(2);
+    final currency = ref.read(currentCurrencyProvider).value;
+    _input = minorUnitsToInputString(widget.originalAmount, currency);
   }
 
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
     final theme = Theme.of(context);
-    final originalKc = (widget.originalAmount / 100).toStringAsFixed(2).replaceAll('.', ',');
-
     // Quick buttons — round amounts around the original
-    final originalKcInt = (widget.originalAmount / 100).ceil();
+    final currency = ref.watch(currentCurrencyProvider).value;
+    final originalWhole = wholeUnitsFromMinor(widget.originalAmount, currency) + 1;
     final quickAmounts = <int>[];
     // Round up to nearest 10, 50, 100, 500
     for (final step in [10, 50, 100, 500]) {
-      final rounded = ((originalKcInt / step).ceil() * step);
+      final rounded = ((originalWhole / step).ceil() * step);
       if (rounded > 0 && !quickAmounts.contains(rounded)) {
         quickAmounts.add(rounded);
       }
@@ -89,7 +90,7 @@ class _DialogChangeTotalToPayState extends State<DialogChangeTotalToPay> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      '${l.changeTotalOriginal}: $originalKc Kč',
+                      '${l.changeTotalOriginal}: ${ref.money(widget.originalAmount)}',
                       style: theme.textTheme.bodyMedium,
                     ),
                     const SizedBox(height: 8),
@@ -148,8 +149,8 @@ class _DialogChangeTotalToPayState extends State<DialogChangeTotalToPay> {
               child: SizedBox(
                 height: 44,
                 child: FilledButton(
-                  onPressed: _amountInHalere > 0
-                      ? () => Navigator.pop(context, _amountInHalere)
+                  onPressed: _amountInMinor > 0
+                      ? () => Navigator.pop(context, _amountInMinor)
                       : null,
                   child: Text(l.actionConfirm),
                 ),

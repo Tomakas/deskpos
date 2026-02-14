@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 import '../../../core/data/enums/stock_document_type.dart';
 import '../../../core/data/models/stock_document_model.dart';
@@ -9,6 +8,7 @@ import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/repositories/stock_level_repository.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/utils/formatting_ext.dart';
 import '../../../core/widgets/pos_table.dart';
 import '../../../l10n/app_localizations.dart';
 import '../widgets/dialog_inventory.dart';
@@ -225,7 +225,7 @@ class _StockLevelsTab extends ConsumerWidget {
               flex: 1,
               numeric: true,
               cellBuilder: (item) => Text(
-                item.purchasePrice != null ? _formatPrice(item.purchasePrice!) : '-',
+                item.purchasePrice != null ? ref.moneyValue(item.purchasePrice!) : '-',
                 textAlign: TextAlign.right,
               ),
             ),
@@ -237,7 +237,7 @@ class _StockLevelsTab extends ConsumerWidget {
                 final price = item.purchasePrice;
                 final value = price != null ? (price * item.stockLevel.quantity).round() : 0;
                 return Text(
-                  price != null ? _formatPrice(value) : '-',
+                  price != null ? ref.moneyValue(value) : '-',
                   textAlign: TextAlign.right,
                 );
               },
@@ -252,7 +252,7 @@ class _StockLevelsTab extends ConsumerWidget {
               border: Border(top: BorderSide(color: Theme.of(context).dividerColor)),
             ),
             child: Text(
-              '${l.inventoryTotalValue}: ${_formatPrice(totalValue)}',
+              '${l.inventoryTotalValue}: ${ref.moneyValue(totalValue)}',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               textAlign: TextAlign.end,
             ),
@@ -267,9 +267,6 @@ class _StockLevelsTab extends ConsumerWidget {
     return value.toStringAsFixed(2);
   }
 
-  String _formatPrice(int valueInCents) {
-    return (valueInCents / 100).toStringAsFixed(2);
-  }
 }
 
 // --- Stock Documents Tab ---
@@ -282,7 +279,6 @@ class _StockDocumentsTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
-    final dateFormat = DateFormat('dd.MM.yyyy HH:mm');
 
     return StreamBuilder<List<StockDocumentModel>>(
       stream: ref.watch(stockDocumentRepositoryProvider).watchByWarehouse(companyId, warehouseId),
@@ -300,7 +296,7 @@ class _StockDocumentsTab extends ConsumerWidget {
               columns: [
                 PosColumn(label: l.documentColumnNumber, flex: 2, cellBuilder: (doc) => Text(doc.documentNumber, overflow: TextOverflow.ellipsis)),
                 PosColumn(label: l.documentColumnType, flex: 2, cellBuilder: (doc) => Text(_documentTypeLabel(l, doc.type), overflow: TextOverflow.ellipsis)),
-                PosColumn(label: l.documentColumnDate, flex: 2, cellBuilder: (doc) => Text(dateFormat.format(doc.documentDate), overflow: TextOverflow.ellipsis)),
+                PosColumn(label: l.documentColumnDate, flex: 2, cellBuilder: (doc) => Text(ref.fmtDateTime(doc.documentDate), overflow: TextOverflow.ellipsis)),
                 PosColumn(
                   label: l.documentColumnSupplier,
                   flex: 2,
@@ -315,7 +311,7 @@ class _StockDocumentsTab extends ConsumerWidget {
                   flex: 1,
                   numeric: true,
                   cellBuilder: (doc) => Text(
-                    doc.totalAmount != 0 ? (doc.totalAmount / 100).toStringAsFixed(2) : '-',
+                    doc.totalAmount != 0 ? ref.moneyValue(doc.totalAmount) : '-',
                     textAlign: TextAlign.right,
                   ),
                 ),

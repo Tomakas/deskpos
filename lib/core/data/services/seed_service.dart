@@ -54,7 +54,7 @@ class SeedService {
   }) async {
     try {
       final companyId = _id();
-      final currencyId = _id();
+      var currencyId = _id();
       final adminRoleId = _id();
       final operatorRoleId = _id();
       final helperRoleId = _id();
@@ -65,17 +65,36 @@ class SeedService {
       await _db.transaction(() async {
         // ── ESSENTIALS (always) ──
 
-        // 1. Currency
-        final currency = CurrencyModel(
-          id: currencyId,
-          code: 'CZK',
-          symbol: 'Kč',
-          name: 'Česká koruna',
-          decimalPlaces: 2,
-          createdAt: now,
-          updatedAt: now,
-        );
-        await _db.into(_db.currencies).insert(currencyToCompanion(currency));
+        // 1. Currencies (global table — check-before-insert to avoid duplicates)
+        final currencyDefs = [
+          (code: 'CZK', symbol: 'Kč', name: 'Česká koruna', decimalPlaces: 2),
+          (code: 'EUR', symbol: '€', name: 'Euro', decimalPlaces: 2),
+          (code: 'USD', symbol: '\$', name: 'US Dollar', decimalPlaces: 2),
+          (code: 'PLN', symbol: 'zł', name: 'Polski złoty', decimalPlaces: 2),
+          (code: 'HUF', symbol: 'Ft', name: 'Magyar forint', decimalPlaces: 0),
+        ];
+        for (final def in currencyDefs) {
+          final existing = await (_db.select(_db.currencies)
+                ..where((t) => t.code.equals(def.code)))
+              .getSingleOrNull();
+          if (existing == null) {
+            final id = def.code == 'CZK' ? currencyId : _id();
+            await _db.into(_db.currencies).insert(currencyToCompanion(
+              CurrencyModel(
+                id: id,
+                code: def.code,
+                symbol: def.symbol,
+                name: def.name,
+                decimalPlaces: def.decimalPlaces,
+                createdAt: now,
+                updatedAt: now,
+              ),
+            ));
+          } else if (def.code == 'CZK') {
+            // Ensure currencyId points to the existing CZK for company default
+            currencyId = existing.id;
+          }
+        }
 
         // 2. Company
         final company = CompanyModel(

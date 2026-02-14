@@ -7,6 +7,7 @@ import '../../../core/data/models/customer_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/utils/formatting_ext.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 
 /// Sentinel value returned when user wants to remove the customer.
@@ -192,7 +193,7 @@ class _DialogCustomerSearchState extends ConsumerState<_DialogCustomerSearch> {
         final contactInfo = [c.email, c.phone].whereType<String>().join(' | ');
         final loyaltyInfo = context.l10n.loyaltyCustomerInfo(
           c.points,
-          (c.credit / 100).toStringAsFixed(2).replaceAll('.', ','),
+          ref.money(c.credit),
         );
         return ListTile(
           title: Text('${c.firstName} ${c.lastName}'),

@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/utils/formatting_ext.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_table.dart';
 import '../models/z_report_data.dart';
 
-class DialogZReportList extends StatefulWidget {
+class DialogZReportList extends ConsumerStatefulWidget {
   const DialogZReportList({
     super.key,
     required this.sessions,
@@ -18,10 +19,10 @@ class DialogZReportList extends StatefulWidget {
   final void Function(DateTime dateFrom, DateTime dateTo)? onVenueReport;
 
   @override
-  State<DialogZReportList> createState() => _DialogZReportListState();
+  ConsumerState<DialogZReportList> createState() => _DialogZReportListState();
 }
 
-class _DialogZReportListState extends State<DialogZReportList> {
+class _DialogZReportListState extends ConsumerState<DialogZReportList> {
   late DateTime _dateFrom;
   late DateTime _dateTo;
 
@@ -39,8 +40,6 @@ class _DialogZReportListState extends State<DialogZReportList> {
       return !d.isBefore(_dateFrom) && !d.isAfter(_dateTo);
     }).toList();
   }
-
-  String _fmtKc(int halere) => '${halere ~/ 100} Kč';
 
   Future<void> _pickDate(BuildContext context, bool isFrom) async {
     final initial = isFrom ? _dateFrom : _dateTo;
@@ -65,8 +64,6 @@ class _DialogZReportListState extends State<DialogZReportList> {
   Widget build(BuildContext context) {
     final l = context.l10n;
     final theme = Theme.of(context);
-    final dateFormat = DateFormat('d.M.yyyy', 'cs');
-    final timeFormat = DateFormat('HH:mm', 'cs');
     final filtered = _filteredSessions;
 
     return PosDialogShell(
@@ -80,12 +77,12 @@ class _DialogZReportListState extends State<DialogZReportList> {
           children: [
             TextButton(
               onPressed: () => _pickDate(context, true),
-              child: Text(dateFormat.format(_dateFrom)),
+              child: Text(ref.fmtDate(_dateFrom)),
             ),
             const Text(' — '),
             TextButton(
               onPressed: () => _pickDate(context, false),
-              child: Text(dateFormat.format(_dateTo)),
+              child: Text(ref.fmtDate(_dateTo)),
             ),
           ],
         ),
@@ -98,12 +95,12 @@ class _DialogZReportListState extends State<DialogZReportList> {
               PosColumn(
                 label: l.zReportColumnDate,
                 width: 100,
-                cellBuilder: (s) => Text(dateFormat.format(s.closedAt ?? s.openedAt)),
+                cellBuilder: (s) => Text(ref.fmtDate(s.closedAt ?? s.openedAt)),
               ),
               PosColumn(
                 label: l.zReportColumnTime,
                 width: 60,
-                cellBuilder: (s) => Text(timeFormat.format(s.closedAt ?? s.openedAt)),
+                cellBuilder: (s) => Text(ref.fmtTime(s.closedAt ?? s.openedAt)),
               ),
               PosColumn(
                 label: l.zReportRegisterColumn,
@@ -117,7 +114,7 @@ class _DialogZReportListState extends State<DialogZReportList> {
                 label: l.zReportColumnRevenue,
                 width: 100,
                 numeric: true,
-                cellBuilder: (s) => Text(_fmtKc(s.totalRevenue), textAlign: TextAlign.right),
+                cellBuilder: (s) => Text(ref.money(s.totalRevenue), textAlign: TextAlign.right),
               ),
               PosColumn(
                 label: l.zReportColumnDifference,
@@ -133,7 +130,7 @@ class _DialogZReportListState extends State<DialogZReportList> {
                               ? Colors.blue
                               : theme.colorScheme.error;
                   return Text(
-                    diff != null ? '${diff >= 0 ? '+' : ''}${diff ~/ 100} Kč' : '-',
+                    diff != null ? ref.moneyWithSign(diff) : '-',
                     textAlign: TextAlign.right,
                     style: TextStyle(color: diffColor),
                   );

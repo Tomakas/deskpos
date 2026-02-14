@@ -48,6 +48,9 @@ class MapElementRepository
         gridHeight: Value(m.gridHeight),
         label: Value(m.label),
         color: Value(m.color),
+        fontSize: Value(m.fontSize),
+        fillStyle: Value(m.fillStyle),
+        borderStyle: Value(m.borderStyle),
         shape: Value(m.shape),
         updatedAt: Value(DateTime.now()),
       );

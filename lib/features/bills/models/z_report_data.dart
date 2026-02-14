@@ -41,7 +41,7 @@ class ZReportData {
   final int totalRevenue;
   final int totalTips;
 
-  /// userId -> (username, tip amount in halere)
+  /// userId -> (username, tip amount in minor units)
   final Map<String, (String username, int amount)> tipsByUser;
 
   final List<TaxBreakdownRow> taxBreakdown;
@@ -50,7 +50,7 @@ class ZReportData {
   final int billsCancelled;
   final int billsRefunded;
 
-  /// All in halere
+  /// All in minor units
   final int openingCash;
   final int closingCash;
   final int expectedCash;
@@ -116,7 +116,7 @@ class TaxBreakdownRow {
   /// In basis points (e.g. 2100 = 21%)
   final int taxRatePercent;
 
-  /// All in halere
+  /// All in minor units
   final int netAmount;
   final int taxAmount;
   final int grossAmount;

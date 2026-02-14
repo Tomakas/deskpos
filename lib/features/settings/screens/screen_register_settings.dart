@@ -87,15 +87,7 @@ class _ModeTabState extends ConsumerState<_ModeTab> {
           title: l.modeCustomerDisplay,
           subtitle: l.modeCustomerDisplayDescription,
           selected: false,
-          onTap: () {
-            final regId = _selectedRegisterId ??
-                ref.read(activeRegisterProvider).value?.id;
-            if (regId != null) {
-              context.go('/customer-display/$regId');
-            } else {
-              context.go('/customer-display');
-            }
-          },
+          onTap: () => context.go('/customer-display'),
           bottom: company == null
               ? null
               : StreamBuilder<List<RegisterModel>>(

@@ -59,6 +59,7 @@ class SyncService {
     'items',
     'product_recipes',
     'registers',
+    'display_devices',
     'layout_items',
     'customers',
     'reservations',

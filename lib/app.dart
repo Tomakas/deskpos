@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'core/data/providers/auth_providers.dart';
 import 'core/data/providers/sync_providers.dart';
 import 'core/routing/app_router.dart';
 import 'core/widgets/inactivity_detector.dart';
@@ -20,8 +21,8 @@ class EposApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       theme: _buildTheme(),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      locale: const Locale('cs'),
+      supportedLocales: const [Locale('cs'), Locale('en')],
+      locale: Locale(ref.watch(appLocaleProvider).value ?? 'cs'),
       routerConfig: router,
       builder: (context, child) => InactivityDetector(child: child!),
     );

@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/data/enums/discount_type.dart';
+import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/utils/formatting_ext.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_numpad.dart';
 
-class DialogDiscount extends StatefulWidget {
+class DialogDiscount extends ConsumerStatefulWidget {
   const DialogDiscount({
     super.key,
     this.currentDiscount = 0,
@@ -19,10 +22,10 @@ class DialogDiscount extends StatefulWidget {
   final int referenceAmount;
 
   @override
-  State<DialogDiscount> createState() => _DialogDiscountState();
+  ConsumerState<DialogDiscount> createState() => _DialogDiscountState();
 }
 
-class _DialogDiscountState extends State<DialogDiscount> {
+class _DialogDiscountState extends ConsumerState<DialogDiscount> {
   String _input = '';
 
   @override
@@ -35,13 +38,13 @@ class _DialogDiscountState extends State<DialogDiscount> {
     }
   }
 
-  /// Raw value: input * 100 (halere for absolute, basis points for percent).
+  /// Raw value: input * 100 (minor units for absolute, basis points for percent).
   int get _discountValue {
     final parsed = double.tryParse(_input) ?? 0;
     return (parsed * 100).round();
   }
 
-  /// Absolute: capped at referenceAmount (halere).
+  /// Absolute: capped at referenceAmount (minor units).
   int get _cappedAbsolute =>
       _discountValue.clamp(0, widget.referenceAmount);
 
@@ -51,11 +54,6 @@ class _DialogDiscountState extends State<DialogDiscount> {
 
   int get _percentEffective =>
       (widget.referenceAmount * _cappedPercent / 10000).round();
-
-  String _formatKc(int halere) {
-    if (halere % 100 == 0) return '${halere ~/ 100}';
-    return (halere / 100).toStringAsFixed(2);
-  }
 
   String _formatPercent(int basisPoints) {
     if (basisPoints % 100 == 0) return '${basisPoints ~/ 100}';
@@ -108,7 +106,7 @@ class _DialogDiscountState extends State<DialogDiscount> {
           onDot: _onDot,
         ),
         const SizedBox(height: 16),
-        // Actions: [Kč] [Zpět] [%]
+        // Actions: [currency] [back] [%]
         PosDialogActions(
           height: 52,
           actions: [
@@ -118,8 +116,8 @@ class _DialogDiscountState extends State<DialogDiscount> {
                 (DiscountType.absolute, _cappedAbsolute),
               ),
               child: hasValue
-                  ? Text('-${_formatKc(_cappedAbsolute)} Kč')
-                  : const Text('Kč'),
+                  ? Text('-${ref.moneyValue(_cappedAbsolute)} ${ref.watch(currentCurrencyProvider).value?.symbol ?? 'Kč'}')
+                  : Text(ref.watch(currentCurrencyProvider).value?.symbol ?? 'Kč'),
             ),
             OutlinedButton(
               onPressed: () => Navigator.pop(context),
@@ -136,7 +134,7 @@ class _DialogDiscountState extends State<DialogDiscount> {
                       children: [
                         Text('${_formatPercent(_cappedPercent)} %'),
                         Text(
-                          '-${_formatKc(_percentEffective)} Kč',
+                          '-${ref.money(_percentEffective)}',
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.onPrimary,
                           ),

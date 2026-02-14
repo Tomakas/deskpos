@@ -10,6 +10,7 @@ import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/utils/formatting_ext.dart';
 import 'dialog_change_total.dart';
 
 class DialogPayment extends ConsumerStatefulWidget {
@@ -122,7 +123,7 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
                           child: Text(
                             '${_customer!.firstName} ${_customer!.lastName} | ${l.loyaltyCustomerInfo(
                               _customer!.points,
-                              (_customer!.credit / 100).toStringAsFixed(2).replaceAll('.', ','),
+                              ref.money(_customer!.credit),
                             )}',
                             style: theme.textTheme.bodySmall?.copyWith(
                               fontWeight: FontWeight.bold,
@@ -144,21 +145,21 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
                       // Remaining amount
                       if (_customAmount != null) ...[
                         Text(
-                          _formatKc(_remaining),
+                          ref.money(_remaining),
                           style: theme.textTheme.titleMedium?.copyWith(
                             color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                           ),
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          _formatKc(_customAmount!),
+                          ref.money(_customAmount!),
                           style: theme.textTheme.headlineLarge?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                       ] else ...[
                         Text(
-                          _formatKc(_remaining),
+                          ref.money(_remaining),
                           style: theme.textTheme.headlineLarge?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
@@ -167,7 +168,7 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
                       const SizedBox(height: 12),
                       if (_customAmount != null && _customAmount! > _remaining)
                         Text(
-                          '(${l.paymentTip(_formatKc(_customAmount! - _remaining))})',
+                          '(${l.paymentTip(ref.money(_customAmount! - _remaining))})',
                           style: theme.textTheme.bodyMedium?.copyWith(
                             fontStyle: FontStyle.italic,
                           ),
@@ -222,7 +223,7 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
                           if (creditMethod != null && _customer != null && _customer!.credit > 0) ...[
                             const SizedBox(height: 8),
                             _PaymentMethodButton(
-                              label: '${creditMethod.name.toUpperCase()}\n(${_formatKc(_customer!.credit)})',
+                              label: '${creditMethod.name.toUpperCase()}\n(${ref.money(_customer!.credit)})',
                               onPressed: _processing || _remaining <= 0
                                   ? null
                                   : () => _payWithCredit(context, creditMethod.id),
@@ -268,7 +269,7 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
                     ),
                     const SizedBox(width: 12),
                     Text(
-                      _formatKc(p.amount),
+                      ref.money(p.amount),
                       style: theme.textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -276,7 +277,7 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
                     if (p.tipIncludedAmount > 0) ...[
                       const SizedBox(width: 4),
                       Text(
-                        '(+${_formatKc(p.tipIncludedAmount)})',
+                        '(+${ref.money(p.tipIncludedAmount)})',
                         style: theme.textTheme.bodySmall?.copyWith(
                           fontStyle: FontStyle.italic,
                         ),
@@ -316,7 +317,7 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
     final company = ref.read(currentCompanyProvider);
     if (company != null && _bill.customerId != null) {
       final settings = await ref.read(companySettingsRepositoryProvider).getOrCreate(company.id);
-      loyaltyEarn = settings.loyaltyEarnPerHundredCzk;
+      loyaltyEarn = settings.loyaltyEarnRate;
     }
 
     final repo = ref.read(billRepositoryProvider);
@@ -332,7 +333,7 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
       userId: ref.read(activeUserProvider)?.id,
       registerId: register?.id,
       registerSessionId: session?.id,
-      loyaltyEarnPerHundredCzk: loyaltyEarn,
+      loyaltyEarnRate: loyaltyEarn,
     );
 
     if (!context.mounted) return;
@@ -415,9 +416,6 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
     }
   }
 
-  String _formatKc(int halere) {
-    return '${(halere / 100).toStringAsFixed(2).replaceAll('.', ',')} Kč';
-  }
 }
 
 class _SideButton extends StatelessWidget {

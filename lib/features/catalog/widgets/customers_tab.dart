@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../core/data/models/customer_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/utils/formatters.dart';
+import '../../../core/utils/formatting_ext.dart';
 import '../../../core/utils/search_utils.dart';
 import '../../../core/widgets/pos_table.dart';
 import 'dialog_customer_credit.dart';
@@ -69,11 +70,11 @@ class _CustomersTabState extends ConsumerState<CustomersTab> {
                   PosColumn(label: l.customerPhone, flex: 2, cellBuilder: (c) => Text(c.phone ?? '-', overflow: TextOverflow.ellipsis)),
                   PosColumn(label: l.customerPoints, flex: 1, cellBuilder: (c) => Text(c.points.toString(), overflow: TextOverflow.ellipsis)),
                   PosColumn(label: l.customerCredit, flex: 1, cellBuilder: (c) => Text(
-                    (c.credit / 100).toStringAsFixed(2).replaceAll('.', ','),
+                    ref.moneyValue(c.credit),
                     overflow: TextOverflow.ellipsis,
                   )),
                   PosColumn(label: l.customerLastVisit, flex: 2, cellBuilder: (c) => Text(
-                    c.lastVisitDate != null ? DateFormat('d.M.yyyy', 'cs').format(c.lastVisitDate!) : '-',
+                    c.lastVisitDate != null ? ref.fmtDate(c.lastVisitDate!) : '-',
                     overflow: TextOverflow.ellipsis,
                   )),
                 ],
@@ -94,9 +95,10 @@ class _CustomersTabState extends ConsumerState<CustomersTab> {
     final emailCtrl = TextEditingController(text: existing?.email ?? '');
     final phoneCtrl = TextEditingController(text: existing?.phone ?? '');
     final addressCtrl = TextEditingController(text: existing?.address ?? '');
+    final currency = ref.read(currentCurrencyProvider).value;
     final pointsCtrl = TextEditingController(text: existing?.points.toString() ?? '0');
-    final creditCtrl = TextEditingController(text: ((existing?.credit ?? 0) / 100).toStringAsFixed(2) );
-    final totalSpentCtrl = TextEditingController(text: ((existing?.totalSpent ?? 0) / 100).toStringAsFixed(2));
+    final creditCtrl = TextEditingController(text: minorUnitsToInputString(existing?.credit ?? 0, currency));
+    final totalSpentCtrl = TextEditingController(text: minorUnitsToInputString(existing?.totalSpent ?? 0, currency));
 
     final theme = Theme.of(context);
     final result = await showDialog<Object>(
@@ -175,7 +177,7 @@ class _CustomersTabState extends ConsumerState<CustomersTab> {
                       decoration: InputDecoration(labelText: l.customerLastVisit),
                       child: Text(
                         existing.lastVisitDate != null
-                            ? DateFormat('d.M.yyyy HH:mm', 'cs').format(existing.lastVisitDate!)
+                            ? ref.fmtDateTime(existing.lastVisitDate!)
                             : '-',
                       ),
                     ),
@@ -218,8 +220,8 @@ class _CustomersTabState extends ConsumerState<CustomersTab> {
         phone: phoneCtrl.text.trim().isNotEmpty ? phoneCtrl.text.trim() : null,
         address: addressCtrl.text.trim().isNotEmpty ? addressCtrl.text.trim() : null,
         points: int.tryParse(pointsCtrl.text.trim()) ?? 0,
-        credit: ((double.tryParse(creditCtrl.text.trim()) ?? 0) * 100).round(),
-        totalSpent: ((double.tryParse(totalSpentCtrl.text.trim()) ?? 0) * 100).round(),
+        credit: parseMoney(creditCtrl.text.trim(), currency),
+        totalSpent: parseMoney(totalSpentCtrl.text.trim(), currency),
       ));
     } else {
       await repo.create(CustomerModel(
@@ -231,8 +233,8 @@ class _CustomersTabState extends ConsumerState<CustomersTab> {
         phone: phoneCtrl.text.trim().isNotEmpty ? phoneCtrl.text.trim() : null,
         address: addressCtrl.text.trim().isNotEmpty ? addressCtrl.text.trim() : null,
         points: int.tryParse(pointsCtrl.text.trim()) ?? 0,
-        credit: ((double.tryParse(creditCtrl.text.trim()) ?? 0) * 100).round(),
-        totalSpent: ((double.tryParse(totalSpentCtrl.text.trim()) ?? 0) * 100).round(),
+        credit: parseMoney(creditCtrl.text.trim(), currency),
+        totalSpent: parseMoney(totalSpentCtrl.text.trim(), currency),
         createdAt: now,
         updatedAt: now,
       ));

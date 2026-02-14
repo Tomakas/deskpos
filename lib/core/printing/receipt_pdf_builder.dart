@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
+import '../utils/formatters.dart';
 import 'receipt_data.dart';
 
 class ReceiptPdfBuilder {
@@ -22,7 +23,7 @@ class ReceiptPdfBuilder {
   static const double _pageWidth = 226; // 80mm in points
   static const double _margin = 8;
 
-  String _fmtKc(int halere) => '${halere ~/ 100} ${data.currencySymbol}';
+  String _fmtMoney(int amount) => formatMoneyForPrint(amount, data.currency);
 
   String _fmtTaxRate(int basisPoints) {
     final pct = basisPoints / 100;
@@ -122,14 +123,14 @@ class ReceiptPdfBuilder {
                       style: baseStyle,
                     ),
                   ),
-                  pw.Text(_fmtKc(item.totalHalere), style: baseStyle),
+                  pw.Text(_fmtMoney(item.total), style: baseStyle),
                 ],
               ),
-              if (item.discountHalere > 0)
+              if (item.discount > 0)
                 pw.Padding(
                   padding: const pw.EdgeInsets.only(left: 12),
                   child: pw.Text(
-                    '${labels.discount}: -${_fmtKc(item.discountHalere)}',
+                    '${labels.discount}: -${_fmtMoney(item.discount)}',
                     style: smallStyle,
                   ),
                 ),
@@ -151,10 +152,10 @@ class ReceiptPdfBuilder {
 
             // --- Subtotal (only if discount exists) ---
             if (data.discountAmount > 0) ...[
-              _totalRow(labels.subtotal, _fmtKc(data.subtotalGross), baseStyle),
+              _totalRow(labels.subtotal, _fmtMoney(data.subtotalGross), baseStyle),
               _totalRow(
                 labels.discount,
-                '-${_fmtKc(data.discountAmount)}',
+                '-${_fmtMoney(data.discountAmount)}',
                 baseStyle,
               ),
             ],
@@ -163,12 +164,12 @@ class ReceiptPdfBuilder {
             if (data.roundingAmount != 0)
               _totalRow(
                 labels.rounding,
-                '${data.roundingAmount >= 0 ? '+' : ''}${data.roundingAmount ~/ 100} ${data.currencySymbol}',
+                formatMoneyForPrint(data.roundingAmount, data.currency),
                 baseStyle,
               ),
 
             // --- Total ---
-            _totalRow(labels.total, _fmtKc(data.totalGross), totalStyle),
+            _totalRow(labels.total, _fmtMoney(data.totalGross), totalStyle),
 
             _divider(),
 
@@ -217,21 +218,21 @@ class ReceiptPdfBuilder {
                   ),
                   pw.Expanded(
                     child: pw.Text(
-                      _fmtKc(row.netHalere),
+                      _fmtMoney(row.net),
                       style: smallStyle,
                       textAlign: pw.TextAlign.right,
                     ),
                   ),
                   pw.Expanded(
                     child: pw.Text(
-                      _fmtKc(row.taxHalere),
+                      _fmtMoney(row.tax),
                       style: smallStyle,
                       textAlign: pw.TextAlign.right,
                     ),
                   ),
                   pw.Expanded(
                     child: pw.Text(
-                      _fmtKc(row.grossHalere),
+                      _fmtMoney(row.gross),
                       style: smallStyle,
                       textAlign: pw.TextAlign.right,
                     ),
@@ -245,14 +246,14 @@ class ReceiptPdfBuilder {
             for (final p in data.payments) ...[
               _totalRow(
                 '${labels.payment}: ${p.methodName}',
-                _fmtKc(p.amountHalere),
+                _fmtMoney(p.amount),
                 baseStyle,
               ),
-              if (p.tipHalere > 0)
+              if (p.tip > 0)
                 pw.Padding(
                   padding: const pw.EdgeInsets.only(left: 12),
                   child: pw.Text(
-                    '${labels.tip}: ${_fmtKc(p.tipHalere)}',
+                    '${labels.tip}: ${_fmtMoney(p.tip)}',
                     style: smallStyle,
                   ),
                 ),

@@ -7,6 +7,7 @@ import '../../../core/data/models/table_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/utils/formatting_ext.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 
 class DialogMergeBill extends ConsumerWidget {
@@ -78,7 +79,7 @@ class DialogMergeBill extends ConsumerWidget {
                         title: Text(label),
                         subtitle: Text(bill.billNumber),
                         trailing: Text(
-                          '${bill.totalGross ~/ 100} Kč',
+                          ref.money(bill.totalGross),
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
                               ),

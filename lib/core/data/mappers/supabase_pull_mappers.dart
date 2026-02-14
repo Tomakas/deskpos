@@ -183,6 +183,10 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
         gridCol: Value(json['grid_col'] as int? ?? 0),
         gridWidth: Value(json['grid_width'] as int? ?? 3),
         gridHeight: Value(json['grid_height'] as int? ?? 3),
+        color: Value(json['color'] as String?),
+        fontSize: Value(json['font_size'] as int?),
+        fillStyle: Value(json['fill_style'] as int? ?? 1),
+        borderStyle: Value(json['border_style'] as int? ?? 1),
         shape: Value(json['shape'] != null
             ? _enumFromName(TableShape.values, json['shape'])
             : TableShape.rectangle),
@@ -205,6 +209,9 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
         gridHeight: Value(json['grid_height'] as int? ?? 2),
         label: Value(json['label'] as String?),
         color: Value(json['color'] as String?),
+        fontSize: Value(json['font_size'] as int?),
+        fillStyle: Value(json['fill_style'] as int? ?? 1),
+        borderStyle: Value(json['border_style'] as int? ?? 1),
         shape: Value(json['shape'] != null
             ? _enumFromName(TableShape.values, json['shape'])
             : TableShape.rectangle),
@@ -398,8 +405,9 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
         companyId: Value(json['company_id'] as String),
         requirePinOnSwitch: Value(json['require_pin_on_switch'] as bool? ?? true),
         autoLockTimeoutMinutes: Value(json['auto_lock_timeout_minutes'] as int?),
-        loyaltyEarnPerHundredCzk: Value(json['loyalty_earn_per_hundred_czk'] as int? ?? 0),
-        loyaltyPointValueHalere: Value(json['loyalty_point_value_halere'] as int? ?? 0),
+        loyaltyEarnRate: Value(json['loyalty_earn_per_hundred_czk'] as int? ?? 0),
+        loyaltyPointValue: Value(json['loyalty_point_value_halere'] as int? ?? 0),
+        locale: Value(json['locale'] as String? ?? 'cs'),
         createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
         updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
         deletedAt: Value(_parseDateTime(json['deleted_at'])),
@@ -491,6 +499,23 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
       );
 
     // --- Company-scoped tables (new) ---
+
+    case 'display_devices':
+      return DisplayDevicesCompanion(
+        id: Value(json['id'] as String),
+        companyId: Value(json['company_id'] as String),
+        parentRegisterId: Value(json['parent_register_id'] as String),
+        code: Value(json['code'] as String),
+        name: Value(json['name'] as String? ?? ''),
+        type: Value(_enumFromName(DisplayDeviceType.values, json['type'])),
+        isActive: Value(json['is_active'] as bool? ?? true),
+        createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
+        updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
+        deletedAt: Value(_parseDateTime(json['deleted_at'])),
+        serverCreatedAt: Value(_parseDateTime(json['created_at'])),
+        serverUpdatedAt: Value(_parseDateTime(json['updated_at'])),
+        lastSyncedAt: Value(now),
+      );
 
     case 'registers':
       return RegistersCompanion(

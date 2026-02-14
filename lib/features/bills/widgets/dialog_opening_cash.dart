@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/utils/formatters.dart';
+import '../../../core/utils/formatting_ext.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_numpad.dart';
@@ -8,28 +12,27 @@ import '../../../core/widgets/pos_numpad.dart';
 /// Simple dialog shown only on the very first register session opening
 /// (when no cash movement history exists). Returns the initial cash amount
 /// in haléře, or `null` if cancelled.
-class DialogOpeningCash extends StatefulWidget {
+class DialogOpeningCash extends ConsumerStatefulWidget {
   const DialogOpeningCash({super.key, this.initialAmount});
 
   /// Pre-fill amount from previous session's closing cash (in haléře).
   final int? initialAmount;
 
   @override
-  State<DialogOpeningCash> createState() => _DialogOpeningCashState();
+  ConsumerState<DialogOpeningCash> createState() => _DialogOpeningCashState();
 }
 
-class _DialogOpeningCashState extends State<DialogOpeningCash> {
+class _DialogOpeningCashState extends ConsumerState<DialogOpeningCash> {
   String _amountText = '';
 
   @override
   void initState() {
     super.initState();
     if (widget.initialAmount != null && widget.initialAmount! > 0) {
-      _amountText = (widget.initialAmount! ~/ 100).toString();
+      final currency = ref.read(currentCurrencyProvider).value;
+      _amountText = wholeUnitsFromMinor(widget.initialAmount!, currency).toString();
     }
   }
-
-  int get _amountKc => int.tryParse(_amountText) ?? 0;
 
   void _numpadTap(String digit) {
     if (_amountText.length >= 7) return;
@@ -48,7 +51,8 @@ class _DialogOpeningCashState extends State<DialogOpeningCash> {
   }
 
   void _confirm() {
-    Navigator.pop(context, _amountKc * 100);
+    final currency = ref.read(currentCurrencyProvider).value;
+    Navigator.pop(context, parseMoney(_amountText, currency));
   }
 
   @override
@@ -79,7 +83,7 @@ class _DialogOpeningCashState extends State<DialogOpeningCash> {
           alignment: Alignment.centerRight,
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Text(
-            '$_amountKc Kč',
+            ref.money(parseMoney(_amountText, ref.watch(currentCurrencyProvider).value)),
             style: theme.textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.bold,
             ),

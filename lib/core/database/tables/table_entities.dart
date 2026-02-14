@@ -16,6 +16,10 @@ class Tables extends Table with SyncColumnsMixin {
   IntColumn get gridCol => integer().withDefault(const Constant(0))();
   IntColumn get gridWidth => integer().withDefault(const Constant(3))();
   IntColumn get gridHeight => integer().withDefault(const Constant(3))();
+  TextColumn get color => text().nullable()();
+  IntColumn get fontSize => integer().nullable()();
+  IntColumn get fillStyle => integer().withDefault(const Constant(1))();
+  IntColumn get borderStyle => integer().withDefault(const Constant(1))();
   TextColumn get shape => textEnum<TableShape>().withDefault(Constant(TableShape.rectangle.name))();
 
   @override

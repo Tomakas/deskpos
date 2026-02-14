@@ -6,6 +6,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart' as intl;
 
 import 'app_localizations_cs.dart';
+import 'app_localizations_en.dart';
 
 // ignore_for_file: type=lint
 
@@ -92,7 +93,10 @@ abstract class AppLocalizations {
       ];
 
   /// A list of this localizations delegate's supported locales.
-  static const List<Locale> supportedLocales = <Locale>[Locale('cs')];
+  static const List<Locale> supportedLocales = <Locale>[
+    Locale('cs'),
+    Locale('en'),
+  ];
 
   /// No description provided for @appTitle.
   ///
@@ -1407,6 +1411,30 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'DIČ'**
   String get companyFieldVatNumber;
+
+  /// No description provided for @settingsLanguage.
+  ///
+  /// In cs, this message translates to:
+  /// **'Jazyk aplikace'**
+  String get settingsLanguage;
+
+  /// No description provided for @settingsCurrency.
+  ///
+  /// In cs, this message translates to:
+  /// **'Výchozí měna'**
+  String get settingsCurrency;
+
+  /// No description provided for @languageCzech.
+  ///
+  /// In cs, this message translates to:
+  /// **'Čeština'**
+  String get languageCzech;
+
+  /// No description provided for @languageEnglish.
+  ///
+  /// In cs, this message translates to:
+  /// **'English'**
+  String get languageEnglish;
 
   /// No description provided for @cloudTitle.
   ///
@@ -3364,23 +3392,23 @@ abstract class AppLocalizations {
   /// **'Věrnostní program'**
   String get loyaltySectionTitle;
 
-  /// No description provided for @loyaltyEarnPerHundredCzk.
+  /// No description provided for @loyaltyEarnRate.
   ///
   /// In cs, this message translates to:
-  /// **'Bodů za 100 Kč'**
-  String get loyaltyEarnPerHundredCzk;
+  /// **'Bodů za {unit}'**
+  String loyaltyEarnRate(String unit);
 
-  /// No description provided for @loyaltyPointValueHalere.
+  /// No description provided for @loyaltyPointValue.
   ///
   /// In cs, this message translates to:
-  /// **'Hodnota 1 bodu (haléře)'**
-  String get loyaltyPointValueHalere;
+  /// **'Hodnota 1 bodu (minor units)'**
+  String get loyaltyPointValue;
 
   /// No description provided for @loyaltyDescription.
   ///
   /// In cs, this message translates to:
-  /// **'Zákazník získá {earn} bodů za každých 100 Kč. 1 bod = {value} Kč.'**
-  String loyaltyDescription(int earn, String value);
+  /// **'Zákazník získá {earn} bodů za každých {unit}. 1 bod = {value}.'**
+  String loyaltyDescription(int earn, String unit, String value);
 
   /// No description provided for @loyaltyDisabled.
   ///
@@ -3415,7 +3443,7 @@ abstract class AppLocalizations {
   /// No description provided for @loyaltyDiscountPreview.
   ///
   /// In cs, this message translates to:
-  /// **'{points} bodů = {amount} Kč sleva'**
+  /// **'{points} bodů = sleva {amount}'**
   String loyaltyDiscountPreview(int points, String amount);
 
   /// No description provided for @loyaltyEarned.
@@ -3427,7 +3455,7 @@ abstract class AppLocalizations {
   /// No description provided for @loyaltyCustomerInfo.
   ///
   /// In cs, this message translates to:
-  /// **'Body: {points} | Kredit: {credit} Kč'**
+  /// **'Body: {points} | Kredit: {credit}'**
   String loyaltyCustomerInfo(int points, String credit);
 
   /// No description provided for @loyaltyCredit.
@@ -3670,6 +3698,12 @@ abstract class AppLocalizations {
   /// **'Ovál'**
   String get floorMapShapeRound;
 
+  /// No description provided for @floorMapShapeTriangle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Trojúhelník'**
+  String get floorMapShapeTriangle;
+
   /// No description provided for @floorMapSegmentTable.
   ///
   /// In cs, this message translates to:
@@ -3717,6 +3751,42 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Žádná'**
   String get floorMapColorNone;
+
+  /// No description provided for @floorMapElementFontSize.
+  ///
+  /// In cs, this message translates to:
+  /// **'Velikost textu'**
+  String get floorMapElementFontSize;
+
+  /// No description provided for @floorMapElementFillStyle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Výplň'**
+  String get floorMapElementFillStyle;
+
+  /// No description provided for @floorMapElementBorderStyle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Obrys'**
+  String get floorMapElementBorderStyle;
+
+  /// No description provided for @floorMapStyleNone.
+  ///
+  /// In cs, this message translates to:
+  /// **'Žádný'**
+  String get floorMapStyleNone;
+
+  /// No description provided for @floorMapStyleTranslucent.
+  ///
+  /// In cs, this message translates to:
+  /// **'Průsvitný'**
+  String get floorMapStyleTranslucent;
+
+  /// No description provided for @floorMapStyleSolid.
+  ///
+  /// In cs, this message translates to:
+  /// **'Plný'**
+  String get floorMapStyleSolid;
 
   /// No description provided for @vouchersTitle.
   ///
@@ -4383,6 +4453,90 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Zák. displej'**
   String get billDetailShowOnDisplay;
+
+  /// No description provided for @onboardingSectionPos.
+  ///
+  /// In cs, this message translates to:
+  /// **'Pokladna'**
+  String get onboardingSectionPos;
+
+  /// No description provided for @onboardingSectionDisplays.
+  ///
+  /// In cs, this message translates to:
+  /// **'Displeje'**
+  String get onboardingSectionDisplays;
+
+  /// No description provided for @onboardingCustomerDisplay.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zákaznický displej'**
+  String get onboardingCustomerDisplay;
+
+  /// No description provided for @onboardingKdsDisplay.
+  ///
+  /// In cs, this message translates to:
+  /// **'Objednávkový displej (KDS)'**
+  String get onboardingKdsDisplay;
+
+  /// No description provided for @displayCodeTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zadejte kód'**
+  String get displayCodeTitle;
+
+  /// No description provided for @displayCodeSubtitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zadejte 6-místný kód zobrazený na pokladně'**
+  String get displayCodeSubtitle;
+
+  /// No description provided for @displayCodeConnect.
+  ///
+  /// In cs, this message translates to:
+  /// **'Připojit'**
+  String get displayCodeConnect;
+
+  /// No description provided for @displayCodeBack.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zpět'**
+  String get displayCodeBack;
+
+  /// No description provided for @displayCodeNotFound.
+  ///
+  /// In cs, this message translates to:
+  /// **'Kód nenalezen'**
+  String get displayCodeNotFound;
+
+  /// No description provided for @displayCodeError.
+  ///
+  /// In cs, this message translates to:
+  /// **'Chyba při hledání kódu'**
+  String get displayCodeError;
+
+  /// No description provided for @displayDevicesTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Displeje'**
+  String get displayDevicesTitle;
+
+  /// No description provided for @displayDevicesEmpty.
+  ///
+  /// In cs, this message translates to:
+  /// **'Žádné displeje'**
+  String get displayDevicesEmpty;
+
+  /// No description provided for @displayDeviceAddCustomer.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zákaznický'**
+  String get displayDeviceAddCustomer;
+
+  /// No description provided for @displayDeviceAddKds.
+  ///
+  /// In cs, this message translates to:
+  /// **'KDS'**
+  String get displayDeviceAddKds;
 }
 
 class _AppLocalizationsDelegate
@@ -4396,7 +4550,7 @@ class _AppLocalizationsDelegate
 
   @override
   bool isSupported(Locale locale) =>
-      <String>['cs'].contains(locale.languageCode);
+      <String>['cs', 'en'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
@@ -4407,6 +4561,8 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
   switch (locale.languageCode) {
     case 'cs':
       return AppLocalizationsCs();
+    case 'en':
+      return AppLocalizationsEn();
   }
 
   throw FlutterError(

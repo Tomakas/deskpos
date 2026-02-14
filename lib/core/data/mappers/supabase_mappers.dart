@@ -6,6 +6,7 @@ import '../models/category_model.dart';
 import '../models/customer_model.dart';
 import '../models/customer_transaction_model.dart';
 import '../models/company_model.dart';
+import '../models/display_device_model.dart';
 import '../models/company_settings_model.dart';
 import '../models/currency_model.dart';
 import '../models/item_model.dart';
@@ -184,6 +185,9 @@ Map<String, dynamic> mapElementToSupabaseJson(MapElementModel m) => {
       'grid_height': m.gridHeight,
       'label': m.label,
       'color': m.color,
+      'font_size': m.fontSize,
+      'fill_style': m.fillStyle,
+      'border_style': m.borderStyle,
       'shape': m.shape.name,
     };
 
@@ -203,6 +207,10 @@ Map<String, dynamic> tableToSupabaseJson(TableModel m) => {
       'grid_col': m.gridCol,
       'grid_width': m.gridWidth,
       'grid_height': m.gridHeight,
+      'color': m.color,
+      'font_size': m.fontSize,
+      'fill_style': m.fillStyle,
+      'border_style': m.borderStyle,
       'shape': m.shape.name,
     };
 
@@ -409,8 +417,9 @@ Map<String, dynamic> companySettingsToSupabaseJson(CompanySettingsModel m) => {
       ),
       'require_pin_on_switch': m.requirePinOnSwitch,
       'auto_lock_timeout_minutes': m.autoLockTimeoutMinutes,
-      'loyalty_earn_per_hundred_czk': m.loyaltyEarnPerHundredCzk,
-      'loyalty_point_value_halere': m.loyaltyPointValueHalere,
+      'loyalty_earn_per_hundred_czk': m.loyaltyEarnRate,
+      'loyalty_point_value_halere': m.loyaltyPointValue,
+      'locale': m.locale,
     };
 
 Map<String, dynamic> companyToSupabaseJson(CompanyModel m) => {
@@ -484,6 +493,21 @@ Map<String, dynamic> rolePermissionToSupabaseJson(RolePermissionModel m) => {
     };
 
 // --- Company-scoped tables (new) ---
+
+Map<String, dynamic> displayDeviceToSupabaseJson(DisplayDeviceModel m) => {
+      ..._baseSyncFields(
+        id: m.id,
+        companyId: m.companyId,
+        createdAt: m.createdAt,
+        updatedAt: m.updatedAt,
+        deletedAt: m.deletedAt,
+      ),
+      'parent_register_id': m.parentRegisterId,
+      'code': m.code,
+      'name': m.name,
+      'type': m.type.name,
+      'is_active': m.isActive,
+    };
 
 Map<String, dynamic> registerToSupabaseJson(RegisterModel m) => {
       ..._baseSyncFields(

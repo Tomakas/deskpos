@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/utils/formatting_ext.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 
@@ -97,15 +99,15 @@ class ClosingSessionResult {
 // Widget
 // ---------------------------------------------------------------------------
 
-class DialogClosingSession extends StatefulWidget {
+class DialogClosingSession extends ConsumerStatefulWidget {
   const DialogClosingSession({super.key, required this.data});
   final ClosingSessionData data;
 
   @override
-  State<DialogClosingSession> createState() => _DialogClosingSessionState();
+  ConsumerState<DialogClosingSession> createState() => _DialogClosingSessionState();
 }
 
-class _DialogClosingSessionState extends State<DialogClosingSession> {
+class _DialogClosingSessionState extends ConsumerState<DialogClosingSession> {
   late final TextEditingController _closingCashCtrl;
   String? _note;
 
@@ -128,8 +130,6 @@ class _DialogClosingSessionState extends State<DialogClosingSession> {
   // Helpers
   // ---------------------------------------------------------------------------
 
-  String _fmtKc(int halere) => '${halere ~/ 100} Kč';
-
   String _fmtDuration(Duration d) {
     final h = d.inHours;
     final m = d.inMinutes.remainder(60);
@@ -138,13 +138,13 @@ class _DialogClosingSessionState extends State<DialogClosingSession> {
     return '${m}min';
   }
 
-  int? get _closingCashHalere {
+  int? get _closingCashMinor {
     final parsed = int.tryParse(_closingCashCtrl.text);
     return parsed == null ? null : parsed * 100;
   }
 
   int? get _difference {
-    final closing = _closingCashHalere;
+    final closing = _closingCashMinor;
     return closing == null ? null : closing - _data.expectedCash;
   }
 
@@ -153,7 +153,7 @@ class _DialogClosingSessionState extends State<DialogClosingSession> {
   // ---------------------------------------------------------------------------
 
   void _confirm() {
-    final closing = _closingCashHalere;
+    final closing = _closingCashMinor;
     if (closing == null) return;
     Navigator.pop(
       context,
@@ -237,8 +237,6 @@ class _DialogClosingSessionState extends State<DialogClosingSession> {
   // ---------------------------------------------------------------------------
 
   Widget _buildSessionInfo(dynamic l, ThemeData theme) {
-    final timeFormat = DateFormat('HH:mm', 'cs');
-    final dateFormat = DateFormat('d.M.yyyy', 'cs');
     final duration = DateTime.now().difference(_data.sessionOpenedAt);
 
     return Column(
@@ -248,7 +246,7 @@ class _DialogClosingSessionState extends State<DialogClosingSession> {
         const SizedBox(height: 8),
         _row(
           l.closingOpenedAt,
-          '${dateFormat.format(_data.sessionOpenedAt)} ${timeFormat.format(_data.sessionOpenedAt)}',
+          '${ref.fmtDate(_data.sessionOpenedAt)} ${ref.fmtTime(_data.sessionOpenedAt)}',
         ),
         _row(l.closingOpenedBy, _data.openedByUserName),
         _row(l.closingDuration, _fmtDuration(duration)),
@@ -256,7 +254,7 @@ class _DialogClosingSessionState extends State<DialogClosingSession> {
         if (_data.billsCancelled > 0)
           _row(l.closingBillsCancelled, '${_data.billsCancelled}'),
         if (_data.openBillsCount > 0)
-          _row(l.closingOpenBills, '${_data.openBillsCount} (${_fmtKc(_data.openBillsAmount)})'),
+          _row(l.closingOpenBills, '${_data.openBillsCount} (${ref.money(_data.openBillsAmount)})'),
       ],
     );
   }
@@ -276,16 +274,16 @@ class _DialogClosingSessionState extends State<DialogClosingSession> {
         const Divider(height: 12),
         _row(
           l.closingRevenueTotal,
-          _fmtKc(_data.totalRevenue),
+          ref.money(_data.totalRevenue),
           bold: true,
         ),
         if (_data.totalTips > 0)
-          _row(l.closingTips, _fmtKc(_data.totalTips)),
+          _row(l.closingTips, ref.money(_data.totalTips)),
       ],
     );
   }
 
-  Widget _revenueRow(String label, int halere, int count, ThemeData theme) {
+  Widget _revenueRow(String label, int amount, int count, ThemeData theme) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(
@@ -296,7 +294,7 @@ class _DialogClosingSessionState extends State<DialogClosingSession> {
           SizedBox(
             width: 100,
             child: Text(
-              _fmtKc(halere),
+              ref.money(amount),
               textAlign: TextAlign.right,
               style: theme.textTheme.bodyMedium,
             ),
@@ -324,7 +322,7 @@ class _DialogClosingSessionState extends State<DialogClosingSession> {
       children: [
         Text(l.closingCashTitle, style: theme.textTheme.titleSmall),
         const SizedBox(height: 8),
-        _row(l.closingOpeningCash, _fmtKc(_data.openingCash)),
+        _row(l.closingOpeningCash, ref.money(_data.openingCash)),
         _signedRow(l.closingCashRevenue, _data.cashRevenue, theme),
         if (_data.cashDeposits > 0)
           _signedRow(l.closingDeposits, _data.cashDeposits, theme),
@@ -333,22 +331,21 @@ class _DialogClosingSessionState extends State<DialogClosingSession> {
         const Divider(height: 12),
         _row(
           l.closingExpectedCash,
-          _fmtKc(_data.expectedCash),
+          ref.money(_data.expectedCash),
           bold: true,
         ),
       ],
     );
   }
 
-  Widget _signedRow(String label, int halere, ThemeData theme) {
-    final prefix = halere >= 0 ? '+' : '';
+  Widget _signedRow(String label, int amount, ThemeData theme) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(
         children: [
           Expanded(child: Text(label, style: theme.textTheme.bodyMedium)),
           Text(
-            '$prefix${halere ~/ 100} Kč',
+            ref.moneyWithSign(amount),
             style: theme.textTheme.bodyMedium,
           ),
         ],
@@ -370,7 +367,7 @@ class _DialogClosingSessionState extends State<DialogClosingSession> {
           controller: _closingCashCtrl,
           decoration: InputDecoration(
             labelText: l.closingActualCash,
-            suffixText: 'Kč',
+            suffixText: ref.watch(currentCurrencyProvider).value?.symbol ?? 'Kč',
             border: const OutlineInputBorder(),
           ),
           keyboardType: TextInputType.number,
@@ -380,7 +377,7 @@ class _DialogClosingSessionState extends State<DialogClosingSession> {
           const SizedBox(height: 8),
           _row(
             l.closingDifference,
-            '${diff >= 0 ? '+' : ''}${diff ~/ 100} Kč',
+            ref.moneyWithSign(diff),
             bold: true,
             valueColor: diff == 0
                 ? Colors.green
@@ -431,7 +428,7 @@ class _DialogClosingSessionState extends State<DialogClosingSession> {
             backgroundColor: Colors.green,
             padding: const EdgeInsets.symmetric(horizontal: 8),
           ),
-          onPressed: _closingCashHalere != null ? _confirm : null,
+          onPressed: _closingCashMinor != null ? _confirm : null,
           child: Text(l.closingConfirm, style: const TextStyle(fontSize: 12)),
         ),
       ],

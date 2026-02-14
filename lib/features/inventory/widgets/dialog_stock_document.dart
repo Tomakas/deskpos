@@ -11,6 +11,7 @@ import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/repositories/stock_document_repository.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 
 class DialogStockDocument extends ConsumerStatefulWidget {
@@ -267,7 +268,7 @@ class _DialogStockDocumentState extends ConsumerState<DialogStockDocument> {
             quantityController: TextEditingController(text: '1'),
             priceController: TextEditingController(
               text: item.purchasePrice != null
-                  ? (item.purchasePrice! / 100).toStringAsFixed(2)
+                  ? minorUnitsToInputString(item.purchasePrice!, ref.read(currentCurrencyProvider).value)
                   : '',
             ),
           ),
@@ -301,9 +302,10 @@ class _DialogStockDocumentState extends ConsumerState<DialogStockDocument> {
       final qty =
           double.tryParse(line.quantityController.text.replaceAll(',', '.')) ??
           0;
-      final priceText = line.priceController.text.replaceAll(',', '.');
+      final priceText = line.priceController.text;
+      final currency = ref.read(currentCurrencyProvider).value;
       final price = isReceipt && priceText.isNotEmpty
-          ? (double.tryParse(priceText) ?? 0) * 100
+          ? parseMoney(priceText, currency)
           : null;
 
       return StockDocumentLine(

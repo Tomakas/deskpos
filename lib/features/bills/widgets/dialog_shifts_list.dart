@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/utils/formatting_ext.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_table.dart';
 
@@ -16,15 +17,15 @@ class ShiftDisplayRow {
   final DateTime? logoutAt;
 }
 
-class DialogShiftsList extends StatefulWidget {
+class DialogShiftsList extends ConsumerStatefulWidget {
   const DialogShiftsList({super.key, required this.shifts});
   final List<ShiftDisplayRow> shifts;
 
   @override
-  State<DialogShiftsList> createState() => _DialogShiftsListState();
+  ConsumerState<DialogShiftsList> createState() => _DialogShiftsListState();
 }
 
-class _DialogShiftsListState extends State<DialogShiftsList> {
+class _DialogShiftsListState extends ConsumerState<DialogShiftsList> {
   late DateTime _dateFrom;
   late DateTime _dateTo;
 
@@ -73,8 +74,6 @@ class _DialogShiftsListState extends State<DialogShiftsList> {
   Widget build(BuildContext context) {
     final l = context.l10n;
     final theme = Theme.of(context);
-    final dateFormat = DateFormat('d.M.yyyy', 'cs');
-    final timeFormat = DateFormat('HH:mm', 'cs');
     final filtered = _filteredShifts;
 
     return PosDialogShell(
@@ -88,12 +87,12 @@ class _DialogShiftsListState extends State<DialogShiftsList> {
           children: [
             TextButton(
               onPressed: () => _pickDate(context, true),
-              child: Text(dateFormat.format(_dateFrom)),
+              child: Text(ref.fmtDate(_dateFrom)),
             ),
             const Text(' — '),
             TextButton(
               onPressed: () => _pickDate(context, false),
-              child: Text(dateFormat.format(_dateTo)),
+              child: Text(ref.fmtDate(_dateTo)),
             ),
           ],
         ),
@@ -103,9 +102,9 @@ class _DialogShiftsListState extends State<DialogShiftsList> {
           height: 400,
           child: PosTable<ShiftDisplayRow>(
             columns: [
-              PosColumn(label: l.shiftsColumnDate, width: 90, cellBuilder: (s) => Text(dateFormat.format(s.loginAt))),
+              PosColumn(label: l.shiftsColumnDate, width: 90, cellBuilder: (s) => Text(ref.fmtDate(s.loginAt))),
               PosColumn(label: l.shiftsColumnUser, cellBuilder: (s) => Text(s.username)),
-              PosColumn(label: l.shiftsColumnLogin, width: 60, cellBuilder: (s) => Text(timeFormat.format(s.loginAt))),
+              PosColumn(label: l.shiftsColumnLogin, width: 60, cellBuilder: (s) => Text(ref.fmtTime(s.loginAt))),
               PosColumn(
                 label: l.shiftsColumnLogout,
                 width: 80,
@@ -113,7 +112,7 @@ class _DialogShiftsListState extends State<DialogShiftsList> {
                 cellBuilder: (s) {
                   final isOngoing = s.logoutAt == null;
                   return Text(
-                    isOngoing ? l.shiftsOngoing : timeFormat.format(s.logoutAt!),
+                    isOngoing ? l.shiftsOngoing : ref.fmtTime(s.logoutAt!),
                     textAlign: TextAlign.right,
                     style: isOngoing
                         ? TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold)

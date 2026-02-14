@@ -12,6 +12,7 @@ import '../../../core/data/models/table_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/utils/formatting_ext.dart';
 
 const _gridCols = 32;
 const _gridRows = 20;
@@ -309,7 +310,7 @@ class FloorMapView extends ConsumerWidget {
   }
 }
 
-class _BillCircle extends StatelessWidget {
+class _BillCircle extends ConsumerWidget {
   const _BillCircle({
     required this.bill,
     required this.diameter,
@@ -320,7 +321,7 @@ class _BillCircle extends StatelessWidget {
   final double opacity;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Opacity(
       opacity: opacity,
       child: Container(
@@ -344,7 +345,7 @@ class _BillCircle extends StatelessWidget {
             child: Padding(
               padding: EdgeInsets.all(diameter * 0.15),
               child: Text(
-                '${bill.totalGross ~/ 100},-',
+                ref.money(bill.totalGross),
                 style: TextStyle(
                   fontSize: diameter * 0.3,
                   fontWeight: FontWeight.bold,
@@ -381,39 +382,74 @@ class _MapTableCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = _parseColor(section?.color);
-    final isRound = table.shape == TableShape.round;
-    final radius = isRound ? BorderRadius.circular(999) : BorderRadius.circular(8);
+    final color = table.color != null ? _parseColor(table.color) : _parseColor(section?.color);
+    final isTriangle = table.shape == TableShape.triangle;
+    final radius = switch (table.shape) {
+      TableShape.round => BorderRadius.circular(999),
+      _ => BorderRadius.circular(8),
+    };
+    final fill = table.fillStyle;
+    final border = table.borderStyle;
+    final fillColor = fill == 0
+        ? Colors.transparent
+        : fill == 2
+            ? color
+            : color.withValues(alpha: 0.25);
+    final borderColor = border == 0
+        ? null
+        : border == 2 ? color : color.withValues(alpha: 0.6);
+
+    final content = Center(
+      child: Padding(
+        padding: const EdgeInsets.all(4),
+        child: Text(
+          table.name,
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontSize: table.fontSize?.toDouble() ?? 13,
+            fontWeight: FontWeight.w600,
+            color: fill == 2
+                ? Colors.white
+                : Theme.of(context).colorScheme.onSurface,
+          ),
+        ),
+      ),
+    );
+
+    if (isTriangle) {
+      return Padding(
+        padding: const EdgeInsets.all(2),
+        child: GestureDetector(
+          onTap: onTap,
+          child: CustomPaint(
+            foregroundPainter: borderColor != null
+                ? _TriangleBorderPainter(color: borderColor, strokeWidth: 2)
+                : null,
+            child: ClipPath(
+              clipper: const _TriangleClipper(),
+              child: ColoredBox(color: fillColor, child: content),
+            ),
+          ),
+        ),
+      );
+    }
 
     return Padding(
       padding: const EdgeInsets.all(2),
       child: Material(
-        color: color.withValues(alpha: 0.25),
+        color: fillColor,
         borderRadius: radius,
         child: InkWell(
           onTap: onTap,
           borderRadius: radius,
           child: Container(
             decoration: BoxDecoration(
-              border: Border.all(color: color.withValues(alpha: 0.6), width: 2),
+              border: borderColor != null ? Border.all(color: borderColor, width: 2) : null,
               borderRadius: radius,
             ),
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.all(4),
-                child: Text(
-                  table.name,
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                ),
-              ),
-            ),
+            child: content,
           ),
         ),
       ),
@@ -425,43 +461,124 @@ class _MapElementCell extends StatelessWidget {
   const _MapElementCell({required this.element});
   final MapElementModel element;
 
+  static Color? _applyStyle(Color? color, int style) {
+    if (color == null || style == 0) return null;
+    return style == 2 ? color : color.withValues(alpha: 0.3);
+  }
+
+  static Border? _borderForStyle(Color? color, int style) {
+    if (style == 0) return null;
+    if (color == null) return null;
+    return Border.all(color: style == 2 ? color : color.withValues(alpha: 0.6), width: 2);
+  }
+
+  static Color? _borderColorForStyle(Color? color, int style) {
+    if (style == 0 || color == null) return null;
+    return style == 2 ? color : color.withValues(alpha: 0.6);
+  }
+
   @override
   Widget build(BuildContext context) {
     final color = element.color != null ? _parseColor(element.color) : null;
-    final isRound = element.shape == TableShape.round;
-    final radius = isRound ? BorderRadius.circular(999) : BorderRadius.circular(6);
+    final isTriangle = element.shape == TableShape.triangle;
+    final radius = switch (element.shape) {
+      TableShape.round => BorderRadius.circular(999),
+      _ => BorderRadius.circular(6),
+    };
+    final fillColor = _applyStyle(color, element.fillStyle);
+
+    final content = element.label != null
+        ? Center(
+            child: Padding(
+              padding: const EdgeInsets.all(4),
+              child: Text(
+                element.label!,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: element.fontSize?.toDouble() ?? 14,
+                  fontWeight: FontWeight.w500,
+                  color: element.fillStyle == 2 && color != null
+                      ? Colors.white
+                      : color != null
+                          ? color.withValues(alpha: 0.9)
+                          : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                ),
+              ),
+            ),
+          )
+        : const SizedBox.expand();
+
+    if (isTriangle) {
+      final borderColor = _borderColorForStyle(color, element.borderStyle);
+      return Padding(
+        padding: const EdgeInsets.all(2),
+        child: CustomPaint(
+          foregroundPainter: borderColor != null
+              ? _TriangleBorderPainter(color: borderColor, strokeWidth: 2)
+              : null,
+          child: ClipPath(
+            clipper: const _TriangleClipper(),
+            child: ColoredBox(color: fillColor ?? Colors.transparent, child: content),
+          ),
+        ),
+      );
+    }
 
     return Padding(
       padding: const EdgeInsets.all(2),
       child: Container(
         decoration: BoxDecoration(
-          color: color?.withValues(alpha: 0.3),
-          border: color != null
-              ? Border.all(color: color.withValues(alpha: 0.6), width: 2)
-              : null,
+          color: fillColor,
+          border: _borderForStyle(color, element.borderStyle),
           borderRadius: radius,
         ),
-        child: element.label != null
-            ? Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(4),
-                  child: Text(
-                    element.label!,
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: color != null
-                          ? color.withValues(alpha: 0.9)
-                          : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
-                    ),
-                  ),
-                ),
-              )
-            : const SizedBox.expand(),
+        child: content,
       ),
     );
   }
+}
+
+class _TriangleClipper extends CustomClipper<Path> {
+  const _TriangleClipper();
+
+  @override
+  Path getClip(Size size) {
+    return Path()
+      ..moveTo(size.width / 2, 0)
+      ..lineTo(size.width, size.height)
+      ..lineTo(0, size.height)
+      ..close();
+  }
+
+  @override
+  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
+}
+
+class _TriangleBorderPainter extends CustomPainter {
+  const _TriangleBorderPainter({required this.color, required this.strokeWidth});
+  final Color color;
+  final double strokeWidth;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeJoin = StrokeJoin.round;
+
+    final path = Path()
+      ..moveTo(size.width / 2, 0)
+      ..lineTo(size.width, size.height)
+      ..lineTo(0, size.height)
+      ..close();
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _TriangleBorderPainter old) =>
+      color != old.color || strokeWidth != old.strokeWidth;
 }

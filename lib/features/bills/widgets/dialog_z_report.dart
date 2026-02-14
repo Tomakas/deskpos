@@ -2,11 +2,12 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 
+import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/printing_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/utils/formatting_ext.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/printing/receipt_data.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
@@ -15,8 +16,6 @@ import '../models/z_report_data.dart';
 class DialogZReport extends ConsumerWidget {
   const DialogZReport({super.key, required this.data});
   final ZReportData data;
-
-  String _fmtKc(int halere) => '${halere ~/ 100} Kč';
 
   String _fmtDuration(Duration d) {
     final h = d.inHours;
@@ -31,7 +30,7 @@ class DialogZReport extends ConsumerWidget {
     return pct == pct.roundToDouble() ? '${pct.round()}%' : '${pct.toStringAsFixed(1)}%';
   }
 
-  ZReportLabels _buildLabels(BuildContext context) {
+  ZReportLabels _buildLabels(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
     return ZReportLabels(
       reportTitle: l.zReportTitle,
@@ -67,7 +66,8 @@ class DialogZReport extends ConsumerWidget {
       cashClosing: l.zReportCashClosing,
       cashDifference: l.zReportCashDifference,
       shiftsTitle: l.zReportShiftsTitle,
-      currencySymbol: 'Kč',
+      currencySymbol: ref.watch(currentCurrencyProvider).value?.symbol ?? 'Kč',
+      currency: ref.watch(currentCurrencyProvider).value,
     );
   }
 
@@ -75,8 +75,6 @@ class DialogZReport extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
     final theme = Theme.of(context);
-    final dateFormat = DateFormat('d.M.yyyy', 'cs');
-    final timeFormat = DateFormat('HH:mm', 'cs');
 
     final isVenueReport = data.registerBreakdowns.isNotEmpty;
     final title = isVenueReport ? l.zReportVenueReportTitle : l.zReportTitle;
@@ -93,10 +91,10 @@ class DialogZReport extends ConsumerWidget {
                 if (data.registerName != null)
                   _row(context, l.zReportRegisterColumn, data.registerName!),
                 _row(context, l.zReportOpenedAt,
-                    '${dateFormat.format(data.openedAt)} ${timeFormat.format(data.openedAt)}'),
+                    '${ref.fmtDate(data.openedAt)} ${ref.fmtTime(data.openedAt)}'),
                 if (data.closedAt != null)
                   _row(context, l.zReportClosedAt,
-                      '${dateFormat.format(data.closedAt!)} ${timeFormat.format(data.closedAt!)}'),
+                      '${ref.fmtDate(data.closedAt!)} ${ref.fmtTime(data.closedAt!)}'),
                 _row(context, l.zReportDuration, _fmtDuration(data.duration)),
                 _row(context, l.zReportOpenedBy, data.openedByName),
                 const Divider(height: 24),
@@ -105,9 +103,9 @@ class DialogZReport extends ConsumerWidget {
                 Text(l.zReportRevenueByPayment, style: theme.textTheme.titleSmall),
                 const SizedBox(height: 8),
                 for (final ps in data.paymentSummaries)
-                  _revenueRow(context, ps.name, ps.amount, ps.count),
+                  _revenueRow(context, ref, ps.name, ps.amount, ps.count),
                 const Divider(height: 12),
-                _row(context, l.zReportRevenueTotal, _fmtKc(data.totalRevenue), bold: true),
+                _row(context, l.zReportRevenueTotal, ref.money(data.totalRevenue), bold: true),
                 const Divider(height: 24),
 
                 // --- DPH breakdown ---
@@ -132,9 +130,9 @@ class DialogZReport extends ConsumerWidget {
                       child: Row(
                         children: [
                           SizedBox(width: 60, child: Text(_fmtTaxRate(row.taxRatePercent), style: theme.textTheme.bodyMedium)),
-                          Expanded(child: Text(_fmtKc(row.netAmount), textAlign: TextAlign.right, style: theme.textTheme.bodyMedium)),
-                          Expanded(child: Text(_fmtKc(row.taxAmount), textAlign: TextAlign.right, style: theme.textTheme.bodyMedium)),
-                          Expanded(child: Text(_fmtKc(row.grossAmount), textAlign: TextAlign.right, style: theme.textTheme.bodyMedium)),
+                          Expanded(child: Text(ref.money(row.netAmount), textAlign: TextAlign.right, style: theme.textTheme.bodyMedium)),
+                          Expanded(child: Text(ref.money(row.taxAmount), textAlign: TextAlign.right, style: theme.textTheme.bodyMedium)),
+                          Expanded(child: Text(ref.money(row.grossAmount), textAlign: TextAlign.right, style: theme.textTheme.bodyMedium)),
                         ],
                       ),
                     ),
@@ -143,20 +141,20 @@ class DialogZReport extends ConsumerWidget {
 
                 // --- Tips ---
                 if (data.totalTips > 0) ...[
-                  _row(context, l.zReportTipsTotal, _fmtKc(data.totalTips), bold: true),
+                  _row(context, l.zReportTipsTotal, ref.money(data.totalTips), bold: true),
                   if (data.tipsByUser.isNotEmpty) ...[
                     const SizedBox(height: 4),
                     Text(l.zReportTipsByUser, style: theme.textTheme.labelSmall),
                     const SizedBox(height: 4),
                     for (final entry in data.tipsByUser.values)
-                      _row(context, '  ${entry.$1}', _fmtKc(entry.$2)),
+                      _row(context, '  ${entry.$1}', ref.money(entry.$2)),
                   ],
                   const Divider(height: 24),
                 ],
 
                 // --- Discounts ---
                 if (data.totalDiscounts > 0) ...[
-                  _row(context, l.zReportDiscounts, _fmtKc(data.totalDiscounts)),
+                  _row(context, l.zReportDiscounts, ref.money(data.totalDiscounts)),
                   const Divider(height: 24),
                 ],
 
@@ -168,28 +166,28 @@ class DialogZReport extends ConsumerWidget {
                   _row(context, l.zReportBillsRefunded, '${data.billsRefunded}'),
                 if (data.openBillsAtOpenCount > 0)
                   _row(context, l.zReportOpenBillsAtOpen,
-                       '${data.openBillsAtOpenCount} (${_fmtKc(data.openBillsAtOpenAmount)})'),
+                       '${data.openBillsAtOpenCount} (${ref.money(data.openBillsAtOpenAmount)})'),
                 if (data.openBillsAtCloseCount > 0)
                   _row(context, l.zReportOpenBillsAtClose,
-                       '${data.openBillsAtCloseCount} (${_fmtKc(data.openBillsAtCloseAmount)})'),
+                       '${data.openBillsAtCloseCount} (${ref.money(data.openBillsAtCloseAmount)})'),
                 const Divider(height: 24),
 
                 // --- Cash reconciliation ---
                 Text(l.zReportCashTitle, style: theme.textTheme.titleSmall),
                 const SizedBox(height: 8),
-                _row(context, l.zReportCashOpening, _fmtKc(data.openingCash)),
-                _signedRow(context, l.zReportCashRevenue, data.cashRevenue),
+                _row(context, l.zReportCashOpening, ref.money(data.openingCash)),
+                _signedRow(context, ref, l.zReportCashRevenue, data.cashRevenue),
                 if (data.cashDeposits > 0)
-                  _signedRow(context, l.zReportCashDeposits, data.cashDeposits),
+                  _signedRow(context, ref, l.zReportCashDeposits, data.cashDeposits),
                 if (data.cashWithdrawals > 0)
-                  _signedRow(context, l.zReportCashWithdrawals, -data.cashWithdrawals),
+                  _signedRow(context, ref, l.zReportCashWithdrawals, -data.cashWithdrawals),
                 const Divider(height: 12),
-                _row(context, l.zReportCashExpected, _fmtKc(data.expectedCash), bold: true),
-                _row(context, l.zReportCashClosing, _fmtKc(data.closingCash)),
+                _row(context, l.zReportCashExpected, ref.money(data.expectedCash), bold: true),
+                _row(context, l.zReportCashClosing, ref.money(data.closingCash)),
                 _row(
                   context,
                   l.zReportCashDifference,
-                  '${data.difference >= 0 ? '+' : ''}${data.difference ~/ 100} Kč',
+                  ref.moneyWithSign(data.difference),
                   bold: true,
                   valueColor: data.difference == 0
                       ? Colors.green
@@ -220,16 +218,16 @@ class DialogZReport extends ConsumerWidget {
                           ),
                           const SizedBox(height: 4),
                           for (final ps in rb.paymentSummaries)
-                            _revenueRow(context, ps.name, ps.amount, ps.count),
+                            _revenueRow(context, ref, ps.name, ps.amount, ps.count),
                           const Divider(height: 8),
-                          _row(context, l.zReportRevenueTotal, _fmtKc(rb.totalRevenue), bold: true),
+                          _row(context, l.zReportRevenueTotal, ref.money(rb.totalRevenue), bold: true),
                           _row(context, l.zReportBillsPaid, '${rb.billsPaid}'),
-                          _row(context, l.zReportCashOpening, _fmtKc(rb.openingCash)),
-                          _row(context, l.zReportCashClosing, _fmtKc(rb.closingCash)),
+                          _row(context, l.zReportCashOpening, ref.money(rb.openingCash)),
+                          _row(context, l.zReportCashClosing, ref.money(rb.closingCash)),
                           _row(
                             context,
                             l.zReportCashDifference,
-                            '${rb.difference >= 0 ? '+' : ''}${rb.difference ~/ 100} Kč',
+                            ref.moneyWithSign(rb.difference),
                             valueColor: rb.difference == 0
                                 ? Colors.green
                                 : rb.difference > 0
@@ -259,7 +257,7 @@ class DialogZReport extends ConsumerWidget {
                     OutlinedButton(
                       onPressed: () async {
                         try {
-                          final labels = _buildLabels(context);
+                          final labels = _buildLabels(context, ref);
                           final bytes = await ref.read(printingServiceProvider)
                               .generateZReportPdf(data, labels);
                           final dir = await getTemporaryDirectory();
@@ -311,7 +309,7 @@ class DialogZReport extends ConsumerWidget {
     );
   }
 
-  Widget _revenueRow(BuildContext context, String label, int halere, int count) {
+  Widget _revenueRow(BuildContext context, WidgetRef ref, String label, int amount, int count) {
     final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
@@ -320,7 +318,7 @@ class DialogZReport extends ConsumerWidget {
           Expanded(child: Text(label, style: theme.textTheme.bodyMedium)),
           SizedBox(
             width: 100,
-            child: Text(_fmtKc(halere), textAlign: TextAlign.right, style: theme.textTheme.bodyMedium),
+            child: Text(ref.money(amount), textAlign: TextAlign.right, style: theme.textTheme.bodyMedium),
           ),
           SizedBox(
             width: 50,
@@ -331,15 +329,14 @@ class DialogZReport extends ConsumerWidget {
     );
   }
 
-  Widget _signedRow(BuildContext context, String label, int halere) {
+  Widget _signedRow(BuildContext context, WidgetRef ref, String label, int amount) {
     final theme = Theme.of(context);
-    final prefix = halere >= 0 ? '+' : '';
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(
         children: [
           Expanded(child: Text(label, style: theme.textTheme.bodyMedium)),
-          Text('$prefix${halere ~/ 100} Kč', style: theme.textTheme.bodyMedium),
+          Text(ref.moneyWithSign(amount), style: theme.textTheme.bodyMedium),
         ],
       ),
     );

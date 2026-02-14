@@ -1,0 +1,4 @@
+enum DisplayDeviceType {
+  customerDisplay,
+  kds,
+}

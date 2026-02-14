@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/data/enums/cash_movement_type.dart';
 import '../../../core/data/models/cash_movement_model.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/utils/formatting_ext.dart';
 import '../../../core/widgets/pos_table.dart';
 import 'dialog_cash_movement.dart';
 
@@ -53,7 +54,7 @@ class _JournalEntry {
 // Widget
 // ---------------------------------------------------------------------------
 
-class DialogCashJournal extends StatefulWidget {
+class DialogCashJournal extends ConsumerStatefulWidget {
   const DialogCashJournal({
     super.key,
     required this.movements,
@@ -76,10 +77,10 @@ class DialogCashJournal extends StatefulWidget {
   final DateTime? openedAt;
 
   @override
-  State<DialogCashJournal> createState() => _DialogCashJournalState();
+  ConsumerState<DialogCashJournal> createState() => _DialogCashJournalState();
 }
 
-class _DialogCashJournalState extends State<DialogCashJournal> {
+class _DialogCashJournalState extends ConsumerState<DialogCashJournal> {
   bool _showDeposits = true;
   bool _showWithdrawals = true;
   bool _showSales = false;
@@ -143,7 +144,6 @@ class _DialogCashJournalState extends State<DialogCashJournal> {
   Widget build(BuildContext context) {
     final l = context.l10n;
     final theme = Theme.of(context);
-    final timeFormat = DateFormat('HH:mm', 'cs');
     final filtered = _filtered;
 
     return Dialog(
@@ -161,7 +161,7 @@ class _DialogCashJournalState extends State<DialogCashJournal> {
                   Text(l.cashJournalBalance, style: theme.textTheme.titleMedium),
                   const SizedBox(width: 12),
                   Text(
-                    '${widget.currentBalance ~/ 100} Kč',
+                    ref.money(widget.currentBalance),
                     style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
                   ),
                 ],
@@ -212,7 +212,7 @@ class _DialogCashJournalState extends State<DialogCashJournal> {
                     PosColumn(
                       label: l.cashJournalColumnTime,
                       width: 50,
-                      cellBuilder: (e) => Text(timeFormat.format(e.createdAt), style: theme.textTheme.bodySmall),
+                      cellBuilder: (e) => Text(ref.fmtTime(e.createdAt), style: theme.textTheme.bodySmall),
                     ),
                     PosColumn(
                       label: l.cashJournalColumnType,
@@ -245,7 +245,7 @@ class _DialogCashJournalState extends State<DialogCashJournal> {
                             color = theme.colorScheme.primary;
                         }
                         return Text(
-                          '$sign ${e.amount ~/ 100} Kč',
+                          '$sign ${ref.money(e.amount)}',
                           textAlign: TextAlign.right,
                           style: theme.textTheme.bodySmall?.copyWith(color: color, fontWeight: FontWeight.w600),
                         );

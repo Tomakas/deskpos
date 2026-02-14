@@ -12,6 +12,8 @@ import '../../../core/data/models/tax_rate_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/utils/formatters.dart';
+import '../../../core/utils/formatting_ext.dart';
 import '../../../core/utils/search_utils.dart';
 import '../../../core/widgets/pos_table.dart';
 import '../../../l10n/app_localizations.dart';
@@ -164,7 +166,7 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
-                                  PosColumn(label: l.fieldPrice, flex: 1, cellBuilder: (item) => Text((item.unitPrice / 100).toStringAsFixed(2), overflow: TextOverflow.ellipsis)),
+                                  PosColumn(label: l.fieldPrice, flex: 1, cellBuilder: (item) => Text(ref.moneyValue(item.unitPrice), overflow: TextOverflow.ellipsis)),
                                   PosColumn(
                                     label: l.fieldTaxRate,
                                     flex: 2,
@@ -186,7 +188,7 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
                                     label: l.fieldPurchasePrice,
                                     flex: 1,
                                     cellBuilder: (item) => Text(
-                                      item.purchasePrice != null ? (item.purchasePrice! / 100).toStringAsFixed(2) : '-',
+                                      item.purchasePrice != null ? ref.moneyValue(item.purchasePrice!) : '-',
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
@@ -376,12 +378,13 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
   ) async {
     final l = context.l10n;
     final nameCtrl = TextEditingController(text: existing?.name ?? '');
+    final currency = ref.read(currentCurrencyProvider).value;
     final priceCtrl = TextEditingController(
-        text: existing != null ? (existing.unitPrice / 100).toStringAsFixed(2) : '');
+        text: existing != null ? minorUnitsToInputString(existing.unitPrice, currency) : '');
     final altSkuCtrl = TextEditingController(text: existing?.altSku ?? '');
     final purchasePriceCtrl = TextEditingController(
         text: existing?.purchasePrice != null
-            ? (existing!.purchasePrice! / 100).toStringAsFixed(2)
+            ? minorUnitsToInputString(existing!.purchasePrice!, currency)
             : '');
     var categoryId = existing?.categoryId;
     var taxRateId = existing?.saleTaxRateId ??
@@ -533,9 +536,9 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
     final company = ref.read(currentCompanyProvider)!;
     final repo = ref.read(itemRepositoryProvider);
     final now = DateTime.now();
-    final priceInCents = ((double.tryParse(priceCtrl.text) ?? 0) * 100).round();
+    final priceInCents = parseMoney(priceCtrl.text, currency);
     final purchasePriceCents = purchasePriceCtrl.text.trim().isNotEmpty
-        ? ((double.tryParse(purchasePriceCtrl.text) ?? 0) * 100).round()
+        ? parseMoney(purchasePriceCtrl.text, currency)
         : null;
 
     if (existing != null) {

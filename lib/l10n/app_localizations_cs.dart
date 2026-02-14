@@ -691,6 +691,18 @@ class AppLocalizationsCs extends AppLocalizations {
   String get companyFieldVatNumber => 'DIČ';
 
   @override
+  String get settingsLanguage => 'Jazyk aplikace';
+
+  @override
+  String get settingsCurrency => 'Výchozí měna';
+
+  @override
+  String get languageCzech => 'Čeština';
+
+  @override
+  String get languageEnglish => 'English';
+
+  @override
   String get cloudTitle => 'Cloudová synchronizace';
 
   @override
@@ -1690,14 +1702,16 @@ class AppLocalizationsCs extends AppLocalizations {
   String get loyaltySectionTitle => 'Věrnostní program';
 
   @override
-  String get loyaltyEarnPerHundredCzk => 'Bodů za 100 Kč';
+  String loyaltyEarnRate(String unit) {
+    return 'Bodů za $unit';
+  }
 
   @override
-  String get loyaltyPointValueHalere => 'Hodnota 1 bodu (haléře)';
+  String get loyaltyPointValue => 'Hodnota 1 bodu (minor units)';
 
   @override
-  String loyaltyDescription(int earn, String value) {
-    return 'Zákazník získá $earn bodů za každých 100 Kč. 1 bod = $value Kč.';
+  String loyaltyDescription(int earn, String unit, String value) {
+    return 'Zákazník získá $earn bodů za každých $unit. 1 bod = $value.';
   }
 
   @override
@@ -1718,7 +1732,7 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String loyaltyDiscountPreview(int points, String amount) {
-    return '$points bodů = $amount Kč sleva';
+    return '$points bodů = sleva $amount';
   }
 
   @override
@@ -1726,7 +1740,7 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String loyaltyCustomerInfo(int points, String credit) {
-    return 'Body: $points | Kredit: $credit Kč';
+    return 'Body: $points | Kredit: $credit';
   }
 
   @override
@@ -1860,6 +1874,9 @@ class AppLocalizationsCs extends AppLocalizations {
   String get floorMapShapeRound => 'Ovál';
 
   @override
+  String get floorMapShapeTriangle => 'Trojúhelník';
+
+  @override
   String get floorMapSegmentTable => 'Stůl';
 
   @override
@@ -1882,6 +1899,24 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get floorMapColorNone => 'Žádná';
+
+  @override
+  String get floorMapElementFontSize => 'Velikost textu';
+
+  @override
+  String get floorMapElementFillStyle => 'Výplň';
+
+  @override
+  String get floorMapElementBorderStyle => 'Obrys';
+
+  @override
+  String get floorMapStyleNone => 'Žádný';
+
+  @override
+  String get floorMapStyleTranslucent => 'Průsvitný';
+
+  @override
+  String get floorMapStyleSolid => 'Plný';
 
   @override
   String get vouchersTitle => 'Vouchery';
@@ -2224,4 +2259,47 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get billDetailShowOnDisplay => 'Zák. displej';
+
+  @override
+  String get onboardingSectionPos => 'Pokladna';
+
+  @override
+  String get onboardingSectionDisplays => 'Displeje';
+
+  @override
+  String get onboardingCustomerDisplay => 'Zákaznický displej';
+
+  @override
+  String get onboardingKdsDisplay => 'Objednávkový displej (KDS)';
+
+  @override
+  String get displayCodeTitle => 'Zadejte kód';
+
+  @override
+  String get displayCodeSubtitle =>
+      'Zadejte 6-místný kód zobrazený na pokladně';
+
+  @override
+  String get displayCodeConnect => 'Připojit';
+
+  @override
+  String get displayCodeBack => 'Zpět';
+
+  @override
+  String get displayCodeNotFound => 'Kód nenalezen';
+
+  @override
+  String get displayCodeError => 'Chyba při hledání kódu';
+
+  @override
+  String get displayDevicesTitle => 'Displeje';
+
+  @override
+  String get displayDevicesEmpty => 'Žádné displeje';
+
+  @override
+  String get displayDeviceAddCustomer => 'Zákaznický';
+
+  @override
+  String get displayDeviceAddKds => 'KDS';
 }

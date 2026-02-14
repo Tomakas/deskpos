@@ -6880,30 +6880,40 @@ class $CompanySettingsTable extends CompanySettings
     type: DriftSqlType.int,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _loyaltyEarnPerHundredCzkMeta =
-      const VerificationMeta('loyaltyEarnPerHundredCzk');
+  static const VerificationMeta _loyaltyEarnRateMeta = const VerificationMeta(
+    'loyaltyEarnRate',
+  );
   @override
-  late final GeneratedColumn<int> loyaltyEarnPerHundredCzk =
-      GeneratedColumn<int>(
-        'loyalty_earn_per_hundred_czk',
-        aliasedName,
-        false,
-        type: DriftSqlType.int,
-        requiredDuringInsert: false,
-        defaultValue: const Constant(0),
-      );
-  static const VerificationMeta _loyaltyPointValueHalereMeta =
-      const VerificationMeta('loyaltyPointValueHalere');
+  late final GeneratedColumn<int> loyaltyEarnRate = GeneratedColumn<int>(
+    'loyalty_earn_rate',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _loyaltyPointValueMeta = const VerificationMeta(
+    'loyaltyPointValue',
+  );
   @override
-  late final GeneratedColumn<int> loyaltyPointValueHalere =
-      GeneratedColumn<int>(
-        'loyalty_point_value_halere',
-        aliasedName,
-        false,
-        type: DriftSqlType.int,
-        requiredDuringInsert: false,
-        defaultValue: const Constant(0),
-      );
+  late final GeneratedColumn<int> loyaltyPointValue = GeneratedColumn<int>(
+    'loyalty_point_value',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _localeMeta = const VerificationMeta('locale');
+  @override
+  late final GeneratedColumn<String> locale = GeneratedColumn<String>(
+    'locale',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('cs'),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     lastSyncedAt,
@@ -6917,8 +6927,9 @@ class $CompanySettingsTable extends CompanySettings
     companyId,
     requirePinOnSwitch,
     autoLockTimeoutMinutes,
-    loyaltyEarnPerHundredCzk,
-    loyaltyPointValueHalere,
+    loyaltyEarnRate,
+    loyaltyPointValue,
+    locale,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -7014,22 +7025,28 @@ class $CompanySettingsTable extends CompanySettings
         ),
       );
     }
-    if (data.containsKey('loyalty_earn_per_hundred_czk')) {
+    if (data.containsKey('loyalty_earn_rate')) {
       context.handle(
-        _loyaltyEarnPerHundredCzkMeta,
-        loyaltyEarnPerHundredCzk.isAcceptableOrUnknown(
-          data['loyalty_earn_per_hundred_czk']!,
-          _loyaltyEarnPerHundredCzkMeta,
+        _loyaltyEarnRateMeta,
+        loyaltyEarnRate.isAcceptableOrUnknown(
+          data['loyalty_earn_rate']!,
+          _loyaltyEarnRateMeta,
         ),
       );
     }
-    if (data.containsKey('loyalty_point_value_halere')) {
+    if (data.containsKey('loyalty_point_value')) {
       context.handle(
-        _loyaltyPointValueHalereMeta,
-        loyaltyPointValueHalere.isAcceptableOrUnknown(
-          data['loyalty_point_value_halere']!,
-          _loyaltyPointValueHalereMeta,
+        _loyaltyPointValueMeta,
+        loyaltyPointValue.isAcceptableOrUnknown(
+          data['loyalty_point_value']!,
+          _loyaltyPointValueMeta,
         ),
+      );
+    }
+    if (data.containsKey('locale')) {
+      context.handle(
+        _localeMeta,
+        locale.isAcceptableOrUnknown(data['locale']!, _localeMeta),
       );
     }
     return context;
@@ -7085,13 +7102,17 @@ class $CompanySettingsTable extends CompanySettings
         DriftSqlType.int,
         data['${effectivePrefix}auto_lock_timeout_minutes'],
       ),
-      loyaltyEarnPerHundredCzk: attachedDatabase.typeMapping.read(
+      loyaltyEarnRate: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
-        data['${effectivePrefix}loyalty_earn_per_hundred_czk'],
+        data['${effectivePrefix}loyalty_earn_rate'],
       )!,
-      loyaltyPointValueHalere: attachedDatabase.typeMapping.read(
+      loyaltyPointValue: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
-        data['${effectivePrefix}loyalty_point_value_halere'],
+        data['${effectivePrefix}loyalty_point_value'],
+      )!,
+      locale: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}locale'],
       )!,
     );
   }
@@ -7114,8 +7135,9 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
   final String companyId;
   final bool requirePinOnSwitch;
   final int? autoLockTimeoutMinutes;
-  final int loyaltyEarnPerHundredCzk;
-  final int loyaltyPointValueHalere;
+  final int loyaltyEarnRate;
+  final int loyaltyPointValue;
+  final String locale;
   const CompanySetting({
     this.lastSyncedAt,
     required this.version,
@@ -7128,8 +7150,9 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
     required this.companyId,
     required this.requirePinOnSwitch,
     this.autoLockTimeoutMinutes,
-    required this.loyaltyEarnPerHundredCzk,
-    required this.loyaltyPointValueHalere,
+    required this.loyaltyEarnRate,
+    required this.loyaltyPointValue,
+    required this.locale,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -7155,10 +7178,9 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
     if (!nullToAbsent || autoLockTimeoutMinutes != null) {
       map['auto_lock_timeout_minutes'] = Variable<int>(autoLockTimeoutMinutes);
     }
-    map['loyalty_earn_per_hundred_czk'] = Variable<int>(
-      loyaltyEarnPerHundredCzk,
-    );
-    map['loyalty_point_value_halere'] = Variable<int>(loyaltyPointValueHalere);
+    map['loyalty_earn_rate'] = Variable<int>(loyaltyEarnRate);
+    map['loyalty_point_value'] = Variable<int>(loyaltyPointValue);
+    map['locale'] = Variable<String>(locale);
     return map;
   }
 
@@ -7185,8 +7207,9 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
       autoLockTimeoutMinutes: autoLockTimeoutMinutes == null && nullToAbsent
           ? const Value.absent()
           : Value(autoLockTimeoutMinutes),
-      loyaltyEarnPerHundredCzk: Value(loyaltyEarnPerHundredCzk),
-      loyaltyPointValueHalere: Value(loyaltyPointValueHalere),
+      loyaltyEarnRate: Value(loyaltyEarnRate),
+      loyaltyPointValue: Value(loyaltyPointValue),
+      locale: Value(locale),
     );
   }
 
@@ -7209,12 +7232,9 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
       autoLockTimeoutMinutes: serializer.fromJson<int?>(
         json['autoLockTimeoutMinutes'],
       ),
-      loyaltyEarnPerHundredCzk: serializer.fromJson<int>(
-        json['loyaltyEarnPerHundredCzk'],
-      ),
-      loyaltyPointValueHalere: serializer.fromJson<int>(
-        json['loyaltyPointValueHalere'],
-      ),
+      loyaltyEarnRate: serializer.fromJson<int>(json['loyaltyEarnRate']),
+      loyaltyPointValue: serializer.fromJson<int>(json['loyaltyPointValue']),
+      locale: serializer.fromJson<String>(json['locale']),
     );
   }
   @override
@@ -7232,12 +7252,9 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
       'companyId': serializer.toJson<String>(companyId),
       'requirePinOnSwitch': serializer.toJson<bool>(requirePinOnSwitch),
       'autoLockTimeoutMinutes': serializer.toJson<int?>(autoLockTimeoutMinutes),
-      'loyaltyEarnPerHundredCzk': serializer.toJson<int>(
-        loyaltyEarnPerHundredCzk,
-      ),
-      'loyaltyPointValueHalere': serializer.toJson<int>(
-        loyaltyPointValueHalere,
-      ),
+      'loyaltyEarnRate': serializer.toJson<int>(loyaltyEarnRate),
+      'loyaltyPointValue': serializer.toJson<int>(loyaltyPointValue),
+      'locale': serializer.toJson<String>(locale),
     };
   }
 
@@ -7253,8 +7270,9 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
     String? companyId,
     bool? requirePinOnSwitch,
     Value<int?> autoLockTimeoutMinutes = const Value.absent(),
-    int? loyaltyEarnPerHundredCzk,
-    int? loyaltyPointValueHalere,
+    int? loyaltyEarnRate,
+    int? loyaltyPointValue,
+    String? locale,
   }) => CompanySetting(
     lastSyncedAt: lastSyncedAt.present ? lastSyncedAt.value : this.lastSyncedAt,
     version: version ?? this.version,
@@ -7273,10 +7291,9 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
     autoLockTimeoutMinutes: autoLockTimeoutMinutes.present
         ? autoLockTimeoutMinutes.value
         : this.autoLockTimeoutMinutes,
-    loyaltyEarnPerHundredCzk:
-        loyaltyEarnPerHundredCzk ?? this.loyaltyEarnPerHundredCzk,
-    loyaltyPointValueHalere:
-        loyaltyPointValueHalere ?? this.loyaltyPointValueHalere,
+    loyaltyEarnRate: loyaltyEarnRate ?? this.loyaltyEarnRate,
+    loyaltyPointValue: loyaltyPointValue ?? this.loyaltyPointValue,
+    locale: locale ?? this.locale,
   );
   CompanySetting copyWithCompanion(CompanySettingsCompanion data) {
     return CompanySetting(
@@ -7301,12 +7318,13 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
       autoLockTimeoutMinutes: data.autoLockTimeoutMinutes.present
           ? data.autoLockTimeoutMinutes.value
           : this.autoLockTimeoutMinutes,
-      loyaltyEarnPerHundredCzk: data.loyaltyEarnPerHundredCzk.present
-          ? data.loyaltyEarnPerHundredCzk.value
-          : this.loyaltyEarnPerHundredCzk,
-      loyaltyPointValueHalere: data.loyaltyPointValueHalere.present
-          ? data.loyaltyPointValueHalere.value
-          : this.loyaltyPointValueHalere,
+      loyaltyEarnRate: data.loyaltyEarnRate.present
+          ? data.loyaltyEarnRate.value
+          : this.loyaltyEarnRate,
+      loyaltyPointValue: data.loyaltyPointValue.present
+          ? data.loyaltyPointValue.value
+          : this.loyaltyPointValue,
+      locale: data.locale.present ? data.locale.value : this.locale,
     );
   }
 
@@ -7324,8 +7342,9 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
           ..write('companyId: $companyId, ')
           ..write('requirePinOnSwitch: $requirePinOnSwitch, ')
           ..write('autoLockTimeoutMinutes: $autoLockTimeoutMinutes, ')
-          ..write('loyaltyEarnPerHundredCzk: $loyaltyEarnPerHundredCzk, ')
-          ..write('loyaltyPointValueHalere: $loyaltyPointValueHalere')
+          ..write('loyaltyEarnRate: $loyaltyEarnRate, ')
+          ..write('loyaltyPointValue: $loyaltyPointValue, ')
+          ..write('locale: $locale')
           ..write(')'))
         .toString();
   }
@@ -7343,8 +7362,9 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
     companyId,
     requirePinOnSwitch,
     autoLockTimeoutMinutes,
-    loyaltyEarnPerHundredCzk,
-    loyaltyPointValueHalere,
+    loyaltyEarnRate,
+    loyaltyPointValue,
+    locale,
   );
   @override
   bool operator ==(Object other) =>
@@ -7361,8 +7381,9 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
           other.companyId == this.companyId &&
           other.requirePinOnSwitch == this.requirePinOnSwitch &&
           other.autoLockTimeoutMinutes == this.autoLockTimeoutMinutes &&
-          other.loyaltyEarnPerHundredCzk == this.loyaltyEarnPerHundredCzk &&
-          other.loyaltyPointValueHalere == this.loyaltyPointValueHalere);
+          other.loyaltyEarnRate == this.loyaltyEarnRate &&
+          other.loyaltyPointValue == this.loyaltyPointValue &&
+          other.locale == this.locale);
 }
 
 class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
@@ -7377,8 +7398,9 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
   final Value<String> companyId;
   final Value<bool> requirePinOnSwitch;
   final Value<int?> autoLockTimeoutMinutes;
-  final Value<int> loyaltyEarnPerHundredCzk;
-  final Value<int> loyaltyPointValueHalere;
+  final Value<int> loyaltyEarnRate;
+  final Value<int> loyaltyPointValue;
+  final Value<String> locale;
   final Value<int> rowid;
   const CompanySettingsCompanion({
     this.lastSyncedAt = const Value.absent(),
@@ -7392,8 +7414,9 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
     this.companyId = const Value.absent(),
     this.requirePinOnSwitch = const Value.absent(),
     this.autoLockTimeoutMinutes = const Value.absent(),
-    this.loyaltyEarnPerHundredCzk = const Value.absent(),
-    this.loyaltyPointValueHalere = const Value.absent(),
+    this.loyaltyEarnRate = const Value.absent(),
+    this.loyaltyPointValue = const Value.absent(),
+    this.locale = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   CompanySettingsCompanion.insert({
@@ -7408,8 +7431,9 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
     required String companyId,
     this.requirePinOnSwitch = const Value.absent(),
     this.autoLockTimeoutMinutes = const Value.absent(),
-    this.loyaltyEarnPerHundredCzk = const Value.absent(),
-    this.loyaltyPointValueHalere = const Value.absent(),
+    this.loyaltyEarnRate = const Value.absent(),
+    this.loyaltyPointValue = const Value.absent(),
+    this.locale = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        companyId = Value(companyId);
@@ -7425,8 +7449,9 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
     Expression<String>? companyId,
     Expression<bool>? requirePinOnSwitch,
     Expression<int>? autoLockTimeoutMinutes,
-    Expression<int>? loyaltyEarnPerHundredCzk,
-    Expression<int>? loyaltyPointValueHalere,
+    Expression<int>? loyaltyEarnRate,
+    Expression<int>? loyaltyPointValue,
+    Expression<String>? locale,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -7443,10 +7468,9 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
         'require_pin_on_switch': requirePinOnSwitch,
       if (autoLockTimeoutMinutes != null)
         'auto_lock_timeout_minutes': autoLockTimeoutMinutes,
-      if (loyaltyEarnPerHundredCzk != null)
-        'loyalty_earn_per_hundred_czk': loyaltyEarnPerHundredCzk,
-      if (loyaltyPointValueHalere != null)
-        'loyalty_point_value_halere': loyaltyPointValueHalere,
+      if (loyaltyEarnRate != null) 'loyalty_earn_rate': loyaltyEarnRate,
+      if (loyaltyPointValue != null) 'loyalty_point_value': loyaltyPointValue,
+      if (locale != null) 'locale': locale,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -7463,8 +7487,9 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
     Value<String>? companyId,
     Value<bool>? requirePinOnSwitch,
     Value<int?>? autoLockTimeoutMinutes,
-    Value<int>? loyaltyEarnPerHundredCzk,
-    Value<int>? loyaltyPointValueHalere,
+    Value<int>? loyaltyEarnRate,
+    Value<int>? loyaltyPointValue,
+    Value<String>? locale,
     Value<int>? rowid,
   }) {
     return CompanySettingsCompanion(
@@ -7480,10 +7505,9 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
       requirePinOnSwitch: requirePinOnSwitch ?? this.requirePinOnSwitch,
       autoLockTimeoutMinutes:
           autoLockTimeoutMinutes ?? this.autoLockTimeoutMinutes,
-      loyaltyEarnPerHundredCzk:
-          loyaltyEarnPerHundredCzk ?? this.loyaltyEarnPerHundredCzk,
-      loyaltyPointValueHalere:
-          loyaltyPointValueHalere ?? this.loyaltyPointValueHalere,
+      loyaltyEarnRate: loyaltyEarnRate ?? this.loyaltyEarnRate,
+      loyaltyPointValue: loyaltyPointValue ?? this.loyaltyPointValue,
+      locale: locale ?? this.locale,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -7526,15 +7550,14 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
         autoLockTimeoutMinutes.value,
       );
     }
-    if (loyaltyEarnPerHundredCzk.present) {
-      map['loyalty_earn_per_hundred_czk'] = Variable<int>(
-        loyaltyEarnPerHundredCzk.value,
-      );
+    if (loyaltyEarnRate.present) {
+      map['loyalty_earn_rate'] = Variable<int>(loyaltyEarnRate.value);
     }
-    if (loyaltyPointValueHalere.present) {
-      map['loyalty_point_value_halere'] = Variable<int>(
-        loyaltyPointValueHalere.value,
-      );
+    if (loyaltyPointValue.present) {
+      map['loyalty_point_value'] = Variable<int>(loyaltyPointValue.value);
+    }
+    if (locale.present) {
+      map['locale'] = Variable<String>(locale.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -7556,8 +7579,9 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
           ..write('companyId: $companyId, ')
           ..write('requirePinOnSwitch: $requirePinOnSwitch, ')
           ..write('autoLockTimeoutMinutes: $autoLockTimeoutMinutes, ')
-          ..write('loyaltyEarnPerHundredCzk: $loyaltyEarnPerHundredCzk, ')
-          ..write('loyaltyPointValueHalere: $loyaltyPointValueHalere, ')
+          ..write('loyaltyEarnRate: $loyaltyEarnRate, ')
+          ..write('loyaltyPointValue: $loyaltyPointValue, ')
+          ..write('locale: $locale, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -8593,6 +8617,830 @@ class DeviceRegistrationsCompanion extends UpdateCompanion<DeviceRegistration> {
           ..write('companyId: $companyId, ')
           ..write('registerId: $registerId, ')
           ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $DisplayDevicesTable extends DisplayDevices
+    with TableInfo<$DisplayDevicesTable, DisplayDevice> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DisplayDevicesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _lastSyncedAtMeta = const VerificationMeta(
+    'lastSyncedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> lastSyncedAt = GeneratedColumn<DateTime>(
+    'last_synced_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _versionMeta = const VerificationMeta(
+    'version',
+  );
+  @override
+  late final GeneratedColumn<int> version = GeneratedColumn<int>(
+    'version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _serverCreatedAtMeta = const VerificationMeta(
+    'serverCreatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> serverCreatedAt =
+      GeneratedColumn<DateTime>(
+        'server_created_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _serverUpdatedAtMeta = const VerificationMeta(
+    'serverUpdatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> serverUpdatedAt =
+      GeneratedColumn<DateTime>(
+        'server_updated_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _companyIdMeta = const VerificationMeta(
+    'companyId',
+  );
+  @override
+  late final GeneratedColumn<String> companyId = GeneratedColumn<String>(
+    'company_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _parentRegisterIdMeta = const VerificationMeta(
+    'parentRegisterId',
+  );
+  @override
+  late final GeneratedColumn<String> parentRegisterId = GeneratedColumn<String>(
+    'parent_register_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _codeMeta = const VerificationMeta('code');
+  @override
+  late final GeneratedColumn<String> code = GeneratedColumn<String>(
+    'code',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<DisplayDeviceType, String> type =
+      GeneratedColumn<String>(
+        'type',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<DisplayDeviceType>($DisplayDevicesTable.$convertertype);
+  static const VerificationMeta _isActiveMeta = const VerificationMeta(
+    'isActive',
+  );
+  @override
+  late final GeneratedColumn<bool> isActive = GeneratedColumn<bool>(
+    'is_active',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_active" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    lastSyncedAt,
+    version,
+    serverCreatedAt,
+    serverUpdatedAt,
+    createdAt,
+    updatedAt,
+    deletedAt,
+    id,
+    companyId,
+    parentRegisterId,
+    code,
+    name,
+    type,
+    isActive,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'display_devices';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<DisplayDevice> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('last_synced_at')) {
+      context.handle(
+        _lastSyncedAtMeta,
+        lastSyncedAt.isAcceptableOrUnknown(
+          data['last_synced_at']!,
+          _lastSyncedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('version')) {
+      context.handle(
+        _versionMeta,
+        version.isAcceptableOrUnknown(data['version']!, _versionMeta),
+      );
+    }
+    if (data.containsKey('server_created_at')) {
+      context.handle(
+        _serverCreatedAtMeta,
+        serverCreatedAt.isAcceptableOrUnknown(
+          data['server_created_at']!,
+          _serverCreatedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('server_updated_at')) {
+      context.handle(
+        _serverUpdatedAtMeta,
+        serverUpdatedAt.isAcceptableOrUnknown(
+          data['server_updated_at']!,
+          _serverUpdatedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('company_id')) {
+      context.handle(
+        _companyIdMeta,
+        companyId.isAcceptableOrUnknown(data['company_id']!, _companyIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_companyIdMeta);
+    }
+    if (data.containsKey('parent_register_id')) {
+      context.handle(
+        _parentRegisterIdMeta,
+        parentRegisterId.isAcceptableOrUnknown(
+          data['parent_register_id']!,
+          _parentRegisterIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_parentRegisterIdMeta);
+    }
+    if (data.containsKey('code')) {
+      context.handle(
+        _codeMeta,
+        code.isAcceptableOrUnknown(data['code']!, _codeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_codeMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    }
+    if (data.containsKey('is_active')) {
+      context.handle(
+        _isActiveMeta,
+        isActive.isAcceptableOrUnknown(data['is_active']!, _isActiveMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  DisplayDevice map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DisplayDevice(
+      lastSyncedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_synced_at'],
+      ),
+      version: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}version'],
+      )!,
+      serverCreatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}server_created_at'],
+      ),
+      serverUpdatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}server_updated_at'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      companyId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}company_id'],
+      )!,
+      parentRegisterId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}parent_register_id'],
+      )!,
+      code: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}code'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      type: $DisplayDevicesTable.$convertertype.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}type'],
+        )!,
+      ),
+      isActive: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_active'],
+      )!,
+    );
+  }
+
+  @override
+  $DisplayDevicesTable createAlias(String alias) {
+    return $DisplayDevicesTable(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<DisplayDeviceType, String, String> $convertertype =
+      const EnumNameConverter<DisplayDeviceType>(DisplayDeviceType.values);
+}
+
+class DisplayDevice extends DataClass implements Insertable<DisplayDevice> {
+  final DateTime? lastSyncedAt;
+  final int version;
+  final DateTime? serverCreatedAt;
+  final DateTime? serverUpdatedAt;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  final String id;
+  final String companyId;
+  final String parentRegisterId;
+  final String code;
+  final String name;
+  final DisplayDeviceType type;
+  final bool isActive;
+  const DisplayDevice({
+    this.lastSyncedAt,
+    required this.version,
+    this.serverCreatedAt,
+    this.serverUpdatedAt,
+    required this.createdAt,
+    required this.updatedAt,
+    this.deletedAt,
+    required this.id,
+    required this.companyId,
+    required this.parentRegisterId,
+    required this.code,
+    required this.name,
+    required this.type,
+    required this.isActive,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (!nullToAbsent || lastSyncedAt != null) {
+      map['last_synced_at'] = Variable<DateTime>(lastSyncedAt);
+    }
+    map['version'] = Variable<int>(version);
+    if (!nullToAbsent || serverCreatedAt != null) {
+      map['server_created_at'] = Variable<DateTime>(serverCreatedAt);
+    }
+    if (!nullToAbsent || serverUpdatedAt != null) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    map['id'] = Variable<String>(id);
+    map['company_id'] = Variable<String>(companyId);
+    map['parent_register_id'] = Variable<String>(parentRegisterId);
+    map['code'] = Variable<String>(code);
+    map['name'] = Variable<String>(name);
+    {
+      map['type'] = Variable<String>(
+        $DisplayDevicesTable.$convertertype.toSql(type),
+      );
+    }
+    map['is_active'] = Variable<bool>(isActive);
+    return map;
+  }
+
+  DisplayDevicesCompanion toCompanion(bool nullToAbsent) {
+    return DisplayDevicesCompanion(
+      lastSyncedAt: lastSyncedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastSyncedAt),
+      version: Value(version),
+      serverCreatedAt: serverCreatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(serverCreatedAt),
+      serverUpdatedAt: serverUpdatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(serverUpdatedAt),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+      id: Value(id),
+      companyId: Value(companyId),
+      parentRegisterId: Value(parentRegisterId),
+      code: Value(code),
+      name: Value(name),
+      type: Value(type),
+      isActive: Value(isActive),
+    );
+  }
+
+  factory DisplayDevice.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DisplayDevice(
+      lastSyncedAt: serializer.fromJson<DateTime?>(json['lastSyncedAt']),
+      version: serializer.fromJson<int>(json['version']),
+      serverCreatedAt: serializer.fromJson<DateTime?>(json['serverCreatedAt']),
+      serverUpdatedAt: serializer.fromJson<DateTime?>(json['serverUpdatedAt']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      id: serializer.fromJson<String>(json['id']),
+      companyId: serializer.fromJson<String>(json['companyId']),
+      parentRegisterId: serializer.fromJson<String>(json['parentRegisterId']),
+      code: serializer.fromJson<String>(json['code']),
+      name: serializer.fromJson<String>(json['name']),
+      type: $DisplayDevicesTable.$convertertype.fromJson(
+        serializer.fromJson<String>(json['type']),
+      ),
+      isActive: serializer.fromJson<bool>(json['isActive']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'lastSyncedAt': serializer.toJson<DateTime?>(lastSyncedAt),
+      'version': serializer.toJson<int>(version),
+      'serverCreatedAt': serializer.toJson<DateTime?>(serverCreatedAt),
+      'serverUpdatedAt': serializer.toJson<DateTime?>(serverUpdatedAt),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'id': serializer.toJson<String>(id),
+      'companyId': serializer.toJson<String>(companyId),
+      'parentRegisterId': serializer.toJson<String>(parentRegisterId),
+      'code': serializer.toJson<String>(code),
+      'name': serializer.toJson<String>(name),
+      'type': serializer.toJson<String>(
+        $DisplayDevicesTable.$convertertype.toJson(type),
+      ),
+      'isActive': serializer.toJson<bool>(isActive),
+    };
+  }
+
+  DisplayDevice copyWith({
+    Value<DateTime?> lastSyncedAt = const Value.absent(),
+    int? version,
+    Value<DateTime?> serverCreatedAt = const Value.absent(),
+    Value<DateTime?> serverUpdatedAt = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+    String? id,
+    String? companyId,
+    String? parentRegisterId,
+    String? code,
+    String? name,
+    DisplayDeviceType? type,
+    bool? isActive,
+  }) => DisplayDevice(
+    lastSyncedAt: lastSyncedAt.present ? lastSyncedAt.value : this.lastSyncedAt,
+    version: version ?? this.version,
+    serverCreatedAt: serverCreatedAt.present
+        ? serverCreatedAt.value
+        : this.serverCreatedAt,
+    serverUpdatedAt: serverUpdatedAt.present
+        ? serverUpdatedAt.value
+        : this.serverUpdatedAt,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+    id: id ?? this.id,
+    companyId: companyId ?? this.companyId,
+    parentRegisterId: parentRegisterId ?? this.parentRegisterId,
+    code: code ?? this.code,
+    name: name ?? this.name,
+    type: type ?? this.type,
+    isActive: isActive ?? this.isActive,
+  );
+  DisplayDevice copyWithCompanion(DisplayDevicesCompanion data) {
+    return DisplayDevice(
+      lastSyncedAt: data.lastSyncedAt.present
+          ? data.lastSyncedAt.value
+          : this.lastSyncedAt,
+      version: data.version.present ? data.version.value : this.version,
+      serverCreatedAt: data.serverCreatedAt.present
+          ? data.serverCreatedAt.value
+          : this.serverCreatedAt,
+      serverUpdatedAt: data.serverUpdatedAt.present
+          ? data.serverUpdatedAt.value
+          : this.serverUpdatedAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      id: data.id.present ? data.id.value : this.id,
+      companyId: data.companyId.present ? data.companyId.value : this.companyId,
+      parentRegisterId: data.parentRegisterId.present
+          ? data.parentRegisterId.value
+          : this.parentRegisterId,
+      code: data.code.present ? data.code.value : this.code,
+      name: data.name.present ? data.name.value : this.name,
+      type: data.type.present ? data.type.value : this.type,
+      isActive: data.isActive.present ? data.isActive.value : this.isActive,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DisplayDevice(')
+          ..write('lastSyncedAt: $lastSyncedAt, ')
+          ..write('version: $version, ')
+          ..write('serverCreatedAt: $serverCreatedAt, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('id: $id, ')
+          ..write('companyId: $companyId, ')
+          ..write('parentRegisterId: $parentRegisterId, ')
+          ..write('code: $code, ')
+          ..write('name: $name, ')
+          ..write('type: $type, ')
+          ..write('isActive: $isActive')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    lastSyncedAt,
+    version,
+    serverCreatedAt,
+    serverUpdatedAt,
+    createdAt,
+    updatedAt,
+    deletedAt,
+    id,
+    companyId,
+    parentRegisterId,
+    code,
+    name,
+    type,
+    isActive,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DisplayDevice &&
+          other.lastSyncedAt == this.lastSyncedAt &&
+          other.version == this.version &&
+          other.serverCreatedAt == this.serverCreatedAt &&
+          other.serverUpdatedAt == this.serverUpdatedAt &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt &&
+          other.id == this.id &&
+          other.companyId == this.companyId &&
+          other.parentRegisterId == this.parentRegisterId &&
+          other.code == this.code &&
+          other.name == this.name &&
+          other.type == this.type &&
+          other.isActive == this.isActive);
+}
+
+class DisplayDevicesCompanion extends UpdateCompanion<DisplayDevice> {
+  final Value<DateTime?> lastSyncedAt;
+  final Value<int> version;
+  final Value<DateTime?> serverCreatedAt;
+  final Value<DateTime?> serverUpdatedAt;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<String> id;
+  final Value<String> companyId;
+  final Value<String> parentRegisterId;
+  final Value<String> code;
+  final Value<String> name;
+  final Value<DisplayDeviceType> type;
+  final Value<bool> isActive;
+  final Value<int> rowid;
+  const DisplayDevicesCompanion({
+    this.lastSyncedAt = const Value.absent(),
+    this.version = const Value.absent(),
+    this.serverCreatedAt = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.id = const Value.absent(),
+    this.companyId = const Value.absent(),
+    this.parentRegisterId = const Value.absent(),
+    this.code = const Value.absent(),
+    this.name = const Value.absent(),
+    this.type = const Value.absent(),
+    this.isActive = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  DisplayDevicesCompanion.insert({
+    this.lastSyncedAt = const Value.absent(),
+    this.version = const Value.absent(),
+    this.serverCreatedAt = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    required String id,
+    required String companyId,
+    required String parentRegisterId,
+    required String code,
+    this.name = const Value.absent(),
+    required DisplayDeviceType type,
+    this.isActive = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       companyId = Value(companyId),
+       parentRegisterId = Value(parentRegisterId),
+       code = Value(code),
+       type = Value(type);
+  static Insertable<DisplayDevice> custom({
+    Expression<DateTime>? lastSyncedAt,
+    Expression<int>? version,
+    Expression<DateTime>? serverCreatedAt,
+    Expression<DateTime>? serverUpdatedAt,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<String>? id,
+    Expression<String>? companyId,
+    Expression<String>? parentRegisterId,
+    Expression<String>? code,
+    Expression<String>? name,
+    Expression<String>? type,
+    Expression<bool>? isActive,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (lastSyncedAt != null) 'last_synced_at': lastSyncedAt,
+      if (version != null) 'version': version,
+      if (serverCreatedAt != null) 'server_created_at': serverCreatedAt,
+      if (serverUpdatedAt != null) 'server_updated_at': serverUpdatedAt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (id != null) 'id': id,
+      if (companyId != null) 'company_id': companyId,
+      if (parentRegisterId != null) 'parent_register_id': parentRegisterId,
+      if (code != null) 'code': code,
+      if (name != null) 'name': name,
+      if (type != null) 'type': type,
+      if (isActive != null) 'is_active': isActive,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  DisplayDevicesCompanion copyWith({
+    Value<DateTime?>? lastSyncedAt,
+    Value<int>? version,
+    Value<DateTime?>? serverCreatedAt,
+    Value<DateTime?>? serverUpdatedAt,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? deletedAt,
+    Value<String>? id,
+    Value<String>? companyId,
+    Value<String>? parentRegisterId,
+    Value<String>? code,
+    Value<String>? name,
+    Value<DisplayDeviceType>? type,
+    Value<bool>? isActive,
+    Value<int>? rowid,
+  }) {
+    return DisplayDevicesCompanion(
+      lastSyncedAt: lastSyncedAt ?? this.lastSyncedAt,
+      version: version ?? this.version,
+      serverCreatedAt: serverCreatedAt ?? this.serverCreatedAt,
+      serverUpdatedAt: serverUpdatedAt ?? this.serverUpdatedAt,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      id: id ?? this.id,
+      companyId: companyId ?? this.companyId,
+      parentRegisterId: parentRegisterId ?? this.parentRegisterId,
+      code: code ?? this.code,
+      name: name ?? this.name,
+      type: type ?? this.type,
+      isActive: isActive ?? this.isActive,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (lastSyncedAt.present) {
+      map['last_synced_at'] = Variable<DateTime>(lastSyncedAt.value);
+    }
+    if (version.present) {
+      map['version'] = Variable<int>(version.value);
+    }
+    if (serverCreatedAt.present) {
+      map['server_created_at'] = Variable<DateTime>(serverCreatedAt.value);
+    }
+    if (serverUpdatedAt.present) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (companyId.present) {
+      map['company_id'] = Variable<String>(companyId.value);
+    }
+    if (parentRegisterId.present) {
+      map['parent_register_id'] = Variable<String>(parentRegisterId.value);
+    }
+    if (code.present) {
+      map['code'] = Variable<String>(code.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<String>(
+        $DisplayDevicesTable.$convertertype.toSql(type.value),
+      );
+    }
+    if (isActive.present) {
+      map['is_active'] = Variable<bool>(isActive.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DisplayDevicesCompanion(')
+          ..write('lastSyncedAt: $lastSyncedAt, ')
+          ..write('version: $version, ')
+          ..write('serverCreatedAt: $serverCreatedAt, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('id: $id, ')
+          ..write('companyId: $companyId, ')
+          ..write('parentRegisterId: $parentRegisterId, ')
+          ..write('code: $code, ')
+          ..write('name: $name, ')
+          ..write('type: $type, ')
+          ..write('isActive: $isActive, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -11300,6 +12148,41 @@ class $MapElementsTable extends MapElements
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _fontSizeMeta = const VerificationMeta(
+    'fontSize',
+  );
+  @override
+  late final GeneratedColumn<int> fontSize = GeneratedColumn<int>(
+    'font_size',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _fillStyleMeta = const VerificationMeta(
+    'fillStyle',
+  );
+  @override
+  late final GeneratedColumn<int> fillStyle = GeneratedColumn<int>(
+    'fill_style',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _borderStyleMeta = const VerificationMeta(
+    'borderStyle',
+  );
+  @override
+  late final GeneratedColumn<int> borderStyle = GeneratedColumn<int>(
+    'border_style',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
   @override
   late final GeneratedColumnWithTypeConverter<TableShape, String> shape =
       GeneratedColumn<String>(
@@ -11328,6 +12211,9 @@ class $MapElementsTable extends MapElements
     gridHeight,
     label,
     color,
+    fontSize,
+    fillStyle,
+    borderStyle,
     shape,
   ];
   @override
@@ -11448,6 +12334,27 @@ class $MapElementsTable extends MapElements
         color.isAcceptableOrUnknown(data['color']!, _colorMeta),
       );
     }
+    if (data.containsKey('font_size')) {
+      context.handle(
+        _fontSizeMeta,
+        fontSize.isAcceptableOrUnknown(data['font_size']!, _fontSizeMeta),
+      );
+    }
+    if (data.containsKey('fill_style')) {
+      context.handle(
+        _fillStyleMeta,
+        fillStyle.isAcceptableOrUnknown(data['fill_style']!, _fillStyleMeta),
+      );
+    }
+    if (data.containsKey('border_style')) {
+      context.handle(
+        _borderStyleMeta,
+        borderStyle.isAcceptableOrUnknown(
+          data['border_style']!,
+          _borderStyleMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -11521,6 +12428,18 @@ class $MapElementsTable extends MapElements
         DriftSqlType.string,
         data['${effectivePrefix}color'],
       ),
+      fontSize: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}font_size'],
+      ),
+      fillStyle: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}fill_style'],
+      )!,
+      borderStyle: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}border_style'],
+      )!,
       shape: $MapElementsTable.$convertershape.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.string,
@@ -11557,6 +12476,9 @@ class MapElementEntity extends DataClass
   final int gridHeight;
   final String? label;
   final String? color;
+  final int? fontSize;
+  final int fillStyle;
+  final int borderStyle;
   final TableShape shape;
   const MapElementEntity({
     this.lastSyncedAt,
@@ -11575,6 +12497,9 @@ class MapElementEntity extends DataClass
     required this.gridHeight,
     this.label,
     this.color,
+    this.fontSize,
+    required this.fillStyle,
+    required this.borderStyle,
     required this.shape,
   });
   @override
@@ -11610,6 +12535,11 @@ class MapElementEntity extends DataClass
     if (!nullToAbsent || color != null) {
       map['color'] = Variable<String>(color);
     }
+    if (!nullToAbsent || fontSize != null) {
+      map['font_size'] = Variable<int>(fontSize);
+    }
+    map['fill_style'] = Variable<int>(fillStyle);
+    map['border_style'] = Variable<int>(borderStyle);
     {
       map['shape'] = Variable<String>(
         $MapElementsTable.$convertershape.toSql(shape),
@@ -11650,6 +12580,11 @@ class MapElementEntity extends DataClass
       color: color == null && nullToAbsent
           ? const Value.absent()
           : Value(color),
+      fontSize: fontSize == null && nullToAbsent
+          ? const Value.absent()
+          : Value(fontSize),
+      fillStyle: Value(fillStyle),
+      borderStyle: Value(borderStyle),
       shape: Value(shape),
     );
   }
@@ -11676,6 +12611,9 @@ class MapElementEntity extends DataClass
       gridHeight: serializer.fromJson<int>(json['gridHeight']),
       label: serializer.fromJson<String?>(json['label']),
       color: serializer.fromJson<String?>(json['color']),
+      fontSize: serializer.fromJson<int?>(json['fontSize']),
+      fillStyle: serializer.fromJson<int>(json['fillStyle']),
+      borderStyle: serializer.fromJson<int>(json['borderStyle']),
       shape: $MapElementsTable.$convertershape.fromJson(
         serializer.fromJson<String>(json['shape']),
       ),
@@ -11701,6 +12639,9 @@ class MapElementEntity extends DataClass
       'gridHeight': serializer.toJson<int>(gridHeight),
       'label': serializer.toJson<String?>(label),
       'color': serializer.toJson<String?>(color),
+      'fontSize': serializer.toJson<int?>(fontSize),
+      'fillStyle': serializer.toJson<int>(fillStyle),
+      'borderStyle': serializer.toJson<int>(borderStyle),
       'shape': serializer.toJson<String>(
         $MapElementsTable.$convertershape.toJson(shape),
       ),
@@ -11724,6 +12665,9 @@ class MapElementEntity extends DataClass
     int? gridHeight,
     Value<String?> label = const Value.absent(),
     Value<String?> color = const Value.absent(),
+    Value<int?> fontSize = const Value.absent(),
+    int? fillStyle,
+    int? borderStyle,
     TableShape? shape,
   }) => MapElementEntity(
     lastSyncedAt: lastSyncedAt.present ? lastSyncedAt.value : this.lastSyncedAt,
@@ -11746,6 +12690,9 @@ class MapElementEntity extends DataClass
     gridHeight: gridHeight ?? this.gridHeight,
     label: label.present ? label.value : this.label,
     color: color.present ? color.value : this.color,
+    fontSize: fontSize.present ? fontSize.value : this.fontSize,
+    fillStyle: fillStyle ?? this.fillStyle,
+    borderStyle: borderStyle ?? this.borderStyle,
     shape: shape ?? this.shape,
   );
   MapElementEntity copyWithCompanion(MapElementsCompanion data) {
@@ -11774,6 +12721,11 @@ class MapElementEntity extends DataClass
           : this.gridHeight,
       label: data.label.present ? data.label.value : this.label,
       color: data.color.present ? data.color.value : this.color,
+      fontSize: data.fontSize.present ? data.fontSize.value : this.fontSize,
+      fillStyle: data.fillStyle.present ? data.fillStyle.value : this.fillStyle,
+      borderStyle: data.borderStyle.present
+          ? data.borderStyle.value
+          : this.borderStyle,
       shape: data.shape.present ? data.shape.value : this.shape,
     );
   }
@@ -11797,6 +12749,9 @@ class MapElementEntity extends DataClass
           ..write('gridHeight: $gridHeight, ')
           ..write('label: $label, ')
           ..write('color: $color, ')
+          ..write('fontSize: $fontSize, ')
+          ..write('fillStyle: $fillStyle, ')
+          ..write('borderStyle: $borderStyle, ')
           ..write('shape: $shape')
           ..write(')'))
         .toString();
@@ -11820,6 +12775,9 @@ class MapElementEntity extends DataClass
     gridHeight,
     label,
     color,
+    fontSize,
+    fillStyle,
+    borderStyle,
     shape,
   );
   @override
@@ -11842,6 +12800,9 @@ class MapElementEntity extends DataClass
           other.gridHeight == this.gridHeight &&
           other.label == this.label &&
           other.color == this.color &&
+          other.fontSize == this.fontSize &&
+          other.fillStyle == this.fillStyle &&
+          other.borderStyle == this.borderStyle &&
           other.shape == this.shape);
 }
 
@@ -11862,6 +12823,9 @@ class MapElementsCompanion extends UpdateCompanion<MapElementEntity> {
   final Value<int> gridHeight;
   final Value<String?> label;
   final Value<String?> color;
+  final Value<int?> fontSize;
+  final Value<int> fillStyle;
+  final Value<int> borderStyle;
   final Value<TableShape> shape;
   final Value<int> rowid;
   const MapElementsCompanion({
@@ -11881,6 +12845,9 @@ class MapElementsCompanion extends UpdateCompanion<MapElementEntity> {
     this.gridHeight = const Value.absent(),
     this.label = const Value.absent(),
     this.color = const Value.absent(),
+    this.fontSize = const Value.absent(),
+    this.fillStyle = const Value.absent(),
+    this.borderStyle = const Value.absent(),
     this.shape = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -11901,6 +12868,9 @@ class MapElementsCompanion extends UpdateCompanion<MapElementEntity> {
     this.gridHeight = const Value.absent(),
     this.label = const Value.absent(),
     this.color = const Value.absent(),
+    this.fontSize = const Value.absent(),
+    this.fillStyle = const Value.absent(),
+    this.borderStyle = const Value.absent(),
     this.shape = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -11922,6 +12892,9 @@ class MapElementsCompanion extends UpdateCompanion<MapElementEntity> {
     Expression<int>? gridHeight,
     Expression<String>? label,
     Expression<String>? color,
+    Expression<int>? fontSize,
+    Expression<int>? fillStyle,
+    Expression<int>? borderStyle,
     Expression<String>? shape,
     Expression<int>? rowid,
   }) {
@@ -11942,6 +12915,9 @@ class MapElementsCompanion extends UpdateCompanion<MapElementEntity> {
       if (gridHeight != null) 'grid_height': gridHeight,
       if (label != null) 'label': label,
       if (color != null) 'color': color,
+      if (fontSize != null) 'font_size': fontSize,
+      if (fillStyle != null) 'fill_style': fillStyle,
+      if (borderStyle != null) 'border_style': borderStyle,
       if (shape != null) 'shape': shape,
       if (rowid != null) 'rowid': rowid,
     });
@@ -11964,6 +12940,9 @@ class MapElementsCompanion extends UpdateCompanion<MapElementEntity> {
     Value<int>? gridHeight,
     Value<String?>? label,
     Value<String?>? color,
+    Value<int?>? fontSize,
+    Value<int>? fillStyle,
+    Value<int>? borderStyle,
     Value<TableShape>? shape,
     Value<int>? rowid,
   }) {
@@ -11984,6 +12963,9 @@ class MapElementsCompanion extends UpdateCompanion<MapElementEntity> {
       gridHeight: gridHeight ?? this.gridHeight,
       label: label ?? this.label,
       color: color ?? this.color,
+      fontSize: fontSize ?? this.fontSize,
+      fillStyle: fillStyle ?? this.fillStyle,
+      borderStyle: borderStyle ?? this.borderStyle,
       shape: shape ?? this.shape,
       rowid: rowid ?? this.rowid,
     );
@@ -12040,6 +13022,15 @@ class MapElementsCompanion extends UpdateCompanion<MapElementEntity> {
     if (color.present) {
       map['color'] = Variable<String>(color.value);
     }
+    if (fontSize.present) {
+      map['font_size'] = Variable<int>(fontSize.value);
+    }
+    if (fillStyle.present) {
+      map['fill_style'] = Variable<int>(fillStyle.value);
+    }
+    if (borderStyle.present) {
+      map['border_style'] = Variable<int>(borderStyle.value);
+    }
     if (shape.present) {
       map['shape'] = Variable<String>(
         $MapElementsTable.$convertershape.toSql(shape.value),
@@ -12070,6 +13061,9 @@ class MapElementsCompanion extends UpdateCompanion<MapElementEntity> {
           ..write('gridHeight: $gridHeight, ')
           ..write('label: $label, ')
           ..write('color: $color, ')
+          ..write('fontSize: $fontSize, ')
+          ..write('fillStyle: $fillStyle, ')
+          ..write('borderStyle: $borderStyle, ')
           ..write('shape: $shape, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -30247,6 +31241,50 @@ class $TablesTable extends Tables with TableInfo<$TablesTable, TableEntity> {
     requiredDuringInsert: false,
     defaultValue: const Constant(3),
   );
+  static const VerificationMeta _colorMeta = const VerificationMeta('color');
+  @override
+  late final GeneratedColumn<String> color = GeneratedColumn<String>(
+    'color',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _fontSizeMeta = const VerificationMeta(
+    'fontSize',
+  );
+  @override
+  late final GeneratedColumn<int> fontSize = GeneratedColumn<int>(
+    'font_size',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _fillStyleMeta = const VerificationMeta(
+    'fillStyle',
+  );
+  @override
+  late final GeneratedColumn<int> fillStyle = GeneratedColumn<int>(
+    'fill_style',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _borderStyleMeta = const VerificationMeta(
+    'borderStyle',
+  );
+  @override
+  late final GeneratedColumn<int> borderStyle = GeneratedColumn<int>(
+    'border_style',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
   @override
   late final GeneratedColumnWithTypeConverter<TableShape, String> shape =
       GeneratedColumn<String>(
@@ -30276,6 +31314,10 @@ class $TablesTable extends Tables with TableInfo<$TablesTable, TableEntity> {
     gridCol,
     gridWidth,
     gridHeight,
+    color,
+    fontSize,
+    fillStyle,
+    borderStyle,
     shape,
   ];
   @override
@@ -30404,6 +31446,33 @@ class $TablesTable extends Tables with TableInfo<$TablesTable, TableEntity> {
         gridHeight.isAcceptableOrUnknown(data['grid_height']!, _gridHeightMeta),
       );
     }
+    if (data.containsKey('color')) {
+      context.handle(
+        _colorMeta,
+        color.isAcceptableOrUnknown(data['color']!, _colorMeta),
+      );
+    }
+    if (data.containsKey('font_size')) {
+      context.handle(
+        _fontSizeMeta,
+        fontSize.isAcceptableOrUnknown(data['font_size']!, _fontSizeMeta),
+      );
+    }
+    if (data.containsKey('fill_style')) {
+      context.handle(
+        _fillStyleMeta,
+        fillStyle.isAcceptableOrUnknown(data['fill_style']!, _fillStyleMeta),
+      );
+    }
+    if (data.containsKey('border_style')) {
+      context.handle(
+        _borderStyleMeta,
+        borderStyle.isAcceptableOrUnknown(
+          data['border_style']!,
+          _borderStyleMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -30481,6 +31550,22 @@ class $TablesTable extends Tables with TableInfo<$TablesTable, TableEntity> {
         DriftSqlType.int,
         data['${effectivePrefix}grid_height'],
       )!,
+      color: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}color'],
+      ),
+      fontSize: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}font_size'],
+      ),
+      fillStyle: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}fill_style'],
+      )!,
+      borderStyle: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}border_style'],
+      )!,
       shape: $TablesTable.$convertershape.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.string,
@@ -30517,6 +31602,10 @@ class TableEntity extends DataClass implements Insertable<TableEntity> {
   final int gridCol;
   final int gridWidth;
   final int gridHeight;
+  final String? color;
+  final int? fontSize;
+  final int fillStyle;
+  final int borderStyle;
   final TableShape shape;
   const TableEntity({
     this.lastSyncedAt,
@@ -30536,6 +31625,10 @@ class TableEntity extends DataClass implements Insertable<TableEntity> {
     required this.gridCol,
     required this.gridWidth,
     required this.gridHeight,
+    this.color,
+    this.fontSize,
+    required this.fillStyle,
+    required this.borderStyle,
     required this.shape,
   });
   @override
@@ -30568,6 +31661,14 @@ class TableEntity extends DataClass implements Insertable<TableEntity> {
     map['grid_col'] = Variable<int>(gridCol);
     map['grid_width'] = Variable<int>(gridWidth);
     map['grid_height'] = Variable<int>(gridHeight);
+    if (!nullToAbsent || color != null) {
+      map['color'] = Variable<String>(color);
+    }
+    if (!nullToAbsent || fontSize != null) {
+      map['font_size'] = Variable<int>(fontSize);
+    }
+    map['fill_style'] = Variable<int>(fillStyle);
+    map['border_style'] = Variable<int>(borderStyle);
     {
       map['shape'] = Variable<String>(
         $TablesTable.$convertershape.toSql(shape),
@@ -30605,6 +31706,14 @@ class TableEntity extends DataClass implements Insertable<TableEntity> {
       gridCol: Value(gridCol),
       gridWidth: Value(gridWidth),
       gridHeight: Value(gridHeight),
+      color: color == null && nullToAbsent
+          ? const Value.absent()
+          : Value(color),
+      fontSize: fontSize == null && nullToAbsent
+          ? const Value.absent()
+          : Value(fontSize),
+      fillStyle: Value(fillStyle),
+      borderStyle: Value(borderStyle),
       shape: Value(shape),
     );
   }
@@ -30632,6 +31741,10 @@ class TableEntity extends DataClass implements Insertable<TableEntity> {
       gridCol: serializer.fromJson<int>(json['gridCol']),
       gridWidth: serializer.fromJson<int>(json['gridWidth']),
       gridHeight: serializer.fromJson<int>(json['gridHeight']),
+      color: serializer.fromJson<String?>(json['color']),
+      fontSize: serializer.fromJson<int?>(json['fontSize']),
+      fillStyle: serializer.fromJson<int>(json['fillStyle']),
+      borderStyle: serializer.fromJson<int>(json['borderStyle']),
       shape: $TablesTable.$convertershape.fromJson(
         serializer.fromJson<String>(json['shape']),
       ),
@@ -30658,6 +31771,10 @@ class TableEntity extends DataClass implements Insertable<TableEntity> {
       'gridCol': serializer.toJson<int>(gridCol),
       'gridWidth': serializer.toJson<int>(gridWidth),
       'gridHeight': serializer.toJson<int>(gridHeight),
+      'color': serializer.toJson<String?>(color),
+      'fontSize': serializer.toJson<int?>(fontSize),
+      'fillStyle': serializer.toJson<int>(fillStyle),
+      'borderStyle': serializer.toJson<int>(borderStyle),
       'shape': serializer.toJson<String>(
         $TablesTable.$convertershape.toJson(shape),
       ),
@@ -30682,6 +31799,10 @@ class TableEntity extends DataClass implements Insertable<TableEntity> {
     int? gridCol,
     int? gridWidth,
     int? gridHeight,
+    Value<String?> color = const Value.absent(),
+    Value<int?> fontSize = const Value.absent(),
+    int? fillStyle,
+    int? borderStyle,
     TableShape? shape,
   }) => TableEntity(
     lastSyncedAt: lastSyncedAt.present ? lastSyncedAt.value : this.lastSyncedAt,
@@ -30705,6 +31826,10 @@ class TableEntity extends DataClass implements Insertable<TableEntity> {
     gridCol: gridCol ?? this.gridCol,
     gridWidth: gridWidth ?? this.gridWidth,
     gridHeight: gridHeight ?? this.gridHeight,
+    color: color.present ? color.value : this.color,
+    fontSize: fontSize.present ? fontSize.value : this.fontSize,
+    fillStyle: fillStyle ?? this.fillStyle,
+    borderStyle: borderStyle ?? this.borderStyle,
     shape: shape ?? this.shape,
   );
   TableEntity copyWithCompanion(TablesCompanion data) {
@@ -30734,6 +31859,12 @@ class TableEntity extends DataClass implements Insertable<TableEntity> {
       gridHeight: data.gridHeight.present
           ? data.gridHeight.value
           : this.gridHeight,
+      color: data.color.present ? data.color.value : this.color,
+      fontSize: data.fontSize.present ? data.fontSize.value : this.fontSize,
+      fillStyle: data.fillStyle.present ? data.fillStyle.value : this.fillStyle,
+      borderStyle: data.borderStyle.present
+          ? data.borderStyle.value
+          : this.borderStyle,
       shape: data.shape.present ? data.shape.value : this.shape,
     );
   }
@@ -30758,13 +31889,17 @@ class TableEntity extends DataClass implements Insertable<TableEntity> {
           ..write('gridCol: $gridCol, ')
           ..write('gridWidth: $gridWidth, ')
           ..write('gridHeight: $gridHeight, ')
+          ..write('color: $color, ')
+          ..write('fontSize: $fontSize, ')
+          ..write('fillStyle: $fillStyle, ')
+          ..write('borderStyle: $borderStyle, ')
           ..write('shape: $shape')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     lastSyncedAt,
     version,
     serverCreatedAt,
@@ -30782,8 +31917,12 @@ class TableEntity extends DataClass implements Insertable<TableEntity> {
     gridCol,
     gridWidth,
     gridHeight,
+    color,
+    fontSize,
+    fillStyle,
+    borderStyle,
     shape,
-  );
+  ]);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -30805,6 +31944,10 @@ class TableEntity extends DataClass implements Insertable<TableEntity> {
           other.gridCol == this.gridCol &&
           other.gridWidth == this.gridWidth &&
           other.gridHeight == this.gridHeight &&
+          other.color == this.color &&
+          other.fontSize == this.fontSize &&
+          other.fillStyle == this.fillStyle &&
+          other.borderStyle == this.borderStyle &&
           other.shape == this.shape);
 }
 
@@ -30826,6 +31969,10 @@ class TablesCompanion extends UpdateCompanion<TableEntity> {
   final Value<int> gridCol;
   final Value<int> gridWidth;
   final Value<int> gridHeight;
+  final Value<String?> color;
+  final Value<int?> fontSize;
+  final Value<int> fillStyle;
+  final Value<int> borderStyle;
   final Value<TableShape> shape;
   final Value<int> rowid;
   const TablesCompanion({
@@ -30846,6 +31993,10 @@ class TablesCompanion extends UpdateCompanion<TableEntity> {
     this.gridCol = const Value.absent(),
     this.gridWidth = const Value.absent(),
     this.gridHeight = const Value.absent(),
+    this.color = const Value.absent(),
+    this.fontSize = const Value.absent(),
+    this.fillStyle = const Value.absent(),
+    this.borderStyle = const Value.absent(),
     this.shape = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -30867,6 +32018,10 @@ class TablesCompanion extends UpdateCompanion<TableEntity> {
     this.gridCol = const Value.absent(),
     this.gridWidth = const Value.absent(),
     this.gridHeight = const Value.absent(),
+    this.color = const Value.absent(),
+    this.fontSize = const Value.absent(),
+    this.fillStyle = const Value.absent(),
+    this.borderStyle = const Value.absent(),
     this.shape = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -30890,6 +32045,10 @@ class TablesCompanion extends UpdateCompanion<TableEntity> {
     Expression<int>? gridCol,
     Expression<int>? gridWidth,
     Expression<int>? gridHeight,
+    Expression<String>? color,
+    Expression<int>? fontSize,
+    Expression<int>? fillStyle,
+    Expression<int>? borderStyle,
     Expression<String>? shape,
     Expression<int>? rowid,
   }) {
@@ -30911,6 +32070,10 @@ class TablesCompanion extends UpdateCompanion<TableEntity> {
       if (gridCol != null) 'grid_col': gridCol,
       if (gridWidth != null) 'grid_width': gridWidth,
       if (gridHeight != null) 'grid_height': gridHeight,
+      if (color != null) 'color': color,
+      if (fontSize != null) 'font_size': fontSize,
+      if (fillStyle != null) 'fill_style': fillStyle,
+      if (borderStyle != null) 'border_style': borderStyle,
       if (shape != null) 'shape': shape,
       if (rowid != null) 'rowid': rowid,
     });
@@ -30934,6 +32097,10 @@ class TablesCompanion extends UpdateCompanion<TableEntity> {
     Value<int>? gridCol,
     Value<int>? gridWidth,
     Value<int>? gridHeight,
+    Value<String?>? color,
+    Value<int?>? fontSize,
+    Value<int>? fillStyle,
+    Value<int>? borderStyle,
     Value<TableShape>? shape,
     Value<int>? rowid,
   }) {
@@ -30955,6 +32122,10 @@ class TablesCompanion extends UpdateCompanion<TableEntity> {
       gridCol: gridCol ?? this.gridCol,
       gridWidth: gridWidth ?? this.gridWidth,
       gridHeight: gridHeight ?? this.gridHeight,
+      color: color ?? this.color,
+      fontSize: fontSize ?? this.fontSize,
+      fillStyle: fillStyle ?? this.fillStyle,
+      borderStyle: borderStyle ?? this.borderStyle,
       shape: shape ?? this.shape,
       rowid: rowid ?? this.rowid,
     );
@@ -31014,6 +32185,18 @@ class TablesCompanion extends UpdateCompanion<TableEntity> {
     if (gridHeight.present) {
       map['grid_height'] = Variable<int>(gridHeight.value);
     }
+    if (color.present) {
+      map['color'] = Variable<String>(color.value);
+    }
+    if (fontSize.present) {
+      map['font_size'] = Variable<int>(fontSize.value);
+    }
+    if (fillStyle.present) {
+      map['fill_style'] = Variable<int>(fillStyle.value);
+    }
+    if (borderStyle.present) {
+      map['border_style'] = Variable<int>(borderStyle.value);
+    }
     if (shape.present) {
       map['shape'] = Variable<String>(
         $TablesTable.$convertershape.toSql(shape.value),
@@ -31045,6 +32228,10 @@ class TablesCompanion extends UpdateCompanion<TableEntity> {
           ..write('gridCol: $gridCol, ')
           ..write('gridWidth: $gridWidth, ')
           ..write('gridHeight: $gridHeight, ')
+          ..write('color: $color, ')
+          ..write('fontSize: $fontSize, ')
+          ..write('fillStyle: $fillStyle, ')
+          ..write('borderStyle: $borderStyle, ')
           ..write('shape: $shape, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -35755,6 +36942,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $CurrenciesTable currencies = $CurrenciesTable(this);
   late final $DeviceRegistrationsTable deviceRegistrations =
       $DeviceRegistrationsTable(this);
+  late final $DisplayDevicesTable displayDevices = $DisplayDevicesTable(this);
   late final $ItemsTable items = $ItemsTable(this);
   late final $LayoutItemsTable layoutItems = $LayoutItemsTable(this);
   late final $MapElementsTable mapElements = $MapElementsTable(this);
@@ -35817,6 +37005,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final Index idxCompanySettingsCompanyUpdated = Index(
     'idx_company_settings_company_updated',
     'CREATE INDEX idx_company_settings_company_updated ON company_settings (company_id, updated_at)',
+  );
+  late final Index idxDisplayDevicesCompanyUpdated = Index(
+    'idx_display_devices_company_updated',
+    'CREATE INDEX idx_display_devices_company_updated ON display_devices (company_id, updated_at)',
   );
   late final Index idxItemsCompanyUpdated = Index(
     'idx_items_company_updated',
@@ -35960,6 +37152,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     companySettings,
     currencies,
     deviceRegistrations,
+    displayDevices,
     items,
     layoutItems,
     mapElements,
@@ -35996,6 +37189,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     idxCustomerTransactionsCompanyUpdated,
     idxCustomersCompanyUpdated,
     idxCompanySettingsCompanyUpdated,
+    idxDisplayDevicesCompanyUpdated,
     idxItemsCompanyUpdated,
     idxLayoutItemsCompanyUpdated,
     idxMapElementsCompanyUpdated,
@@ -39031,8 +40225,9 @@ typedef $$CompanySettingsTableCreateCompanionBuilder =
       required String companyId,
       Value<bool> requirePinOnSwitch,
       Value<int?> autoLockTimeoutMinutes,
-      Value<int> loyaltyEarnPerHundredCzk,
-      Value<int> loyaltyPointValueHalere,
+      Value<int> loyaltyEarnRate,
+      Value<int> loyaltyPointValue,
+      Value<String> locale,
       Value<int> rowid,
     });
 typedef $$CompanySettingsTableUpdateCompanionBuilder =
@@ -39048,8 +40243,9 @@ typedef $$CompanySettingsTableUpdateCompanionBuilder =
       Value<String> companyId,
       Value<bool> requirePinOnSwitch,
       Value<int?> autoLockTimeoutMinutes,
-      Value<int> loyaltyEarnPerHundredCzk,
-      Value<int> loyaltyPointValueHalere,
+      Value<int> loyaltyEarnRate,
+      Value<int> loyaltyPointValue,
+      Value<String> locale,
       Value<int> rowid,
     });
 
@@ -39117,13 +40313,18 @@ class $$CompanySettingsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get loyaltyEarnPerHundredCzk => $composableBuilder(
-    column: $table.loyaltyEarnPerHundredCzk,
+  ColumnFilters<int> get loyaltyEarnRate => $composableBuilder(
+    column: $table.loyaltyEarnRate,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get loyaltyPointValueHalere => $composableBuilder(
-    column: $table.loyaltyPointValueHalere,
+  ColumnFilters<int> get loyaltyPointValue => $composableBuilder(
+    column: $table.loyaltyPointValue,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get locale => $composableBuilder(
+    column: $table.locale,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -39192,13 +40393,18 @@ class $$CompanySettingsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get loyaltyEarnPerHundredCzk => $composableBuilder(
-    column: $table.loyaltyEarnPerHundredCzk,
+  ColumnOrderings<int> get loyaltyEarnRate => $composableBuilder(
+    column: $table.loyaltyEarnRate,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get loyaltyPointValueHalere => $composableBuilder(
-    column: $table.loyaltyPointValueHalere,
+  ColumnOrderings<int> get loyaltyPointValue => $composableBuilder(
+    column: $table.loyaltyPointValue,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get locale => $composableBuilder(
+    column: $table.locale,
     builder: (column) => ColumnOrderings(column),
   );
 }
@@ -39255,15 +40461,18 @@ class $$CompanySettingsTableAnnotationComposer
     builder: (column) => column,
   );
 
-  GeneratedColumn<int> get loyaltyEarnPerHundredCzk => $composableBuilder(
-    column: $table.loyaltyEarnPerHundredCzk,
+  GeneratedColumn<int> get loyaltyEarnRate => $composableBuilder(
+    column: $table.loyaltyEarnRate,
     builder: (column) => column,
   );
 
-  GeneratedColumn<int> get loyaltyPointValueHalere => $composableBuilder(
-    column: $table.loyaltyPointValueHalere,
+  GeneratedColumn<int> get loyaltyPointValue => $composableBuilder(
+    column: $table.loyaltyPointValue,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get locale =>
+      $composableBuilder(column: $table.locale, builder: (column) => column);
 }
 
 class $$CompanySettingsTableTableManager
@@ -39314,8 +40523,9 @@ class $$CompanySettingsTableTableManager
                 Value<String> companyId = const Value.absent(),
                 Value<bool> requirePinOnSwitch = const Value.absent(),
                 Value<int?> autoLockTimeoutMinutes = const Value.absent(),
-                Value<int> loyaltyEarnPerHundredCzk = const Value.absent(),
-                Value<int> loyaltyPointValueHalere = const Value.absent(),
+                Value<int> loyaltyEarnRate = const Value.absent(),
+                Value<int> loyaltyPointValue = const Value.absent(),
+                Value<String> locale = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => CompanySettingsCompanion(
                 lastSyncedAt: lastSyncedAt,
@@ -39329,8 +40539,9 @@ class $$CompanySettingsTableTableManager
                 companyId: companyId,
                 requirePinOnSwitch: requirePinOnSwitch,
                 autoLockTimeoutMinutes: autoLockTimeoutMinutes,
-                loyaltyEarnPerHundredCzk: loyaltyEarnPerHundredCzk,
-                loyaltyPointValueHalere: loyaltyPointValueHalere,
+                loyaltyEarnRate: loyaltyEarnRate,
+                loyaltyPointValue: loyaltyPointValue,
+                locale: locale,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -39346,8 +40557,9 @@ class $$CompanySettingsTableTableManager
                 required String companyId,
                 Value<bool> requirePinOnSwitch = const Value.absent(),
                 Value<int?> autoLockTimeoutMinutes = const Value.absent(),
-                Value<int> loyaltyEarnPerHundredCzk = const Value.absent(),
-                Value<int> loyaltyPointValueHalere = const Value.absent(),
+                Value<int> loyaltyEarnRate = const Value.absent(),
+                Value<int> loyaltyPointValue = const Value.absent(),
+                Value<String> locale = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => CompanySettingsCompanion.insert(
                 lastSyncedAt: lastSyncedAt,
@@ -39361,8 +40573,9 @@ class $$CompanySettingsTableTableManager
                 companyId: companyId,
                 requirePinOnSwitch: requirePinOnSwitch,
                 autoLockTimeoutMinutes: autoLockTimeoutMinutes,
-                loyaltyEarnPerHundredCzk: loyaltyEarnPerHundredCzk,
-                loyaltyPointValueHalere: loyaltyPointValueHalere,
+                loyaltyEarnRate: loyaltyEarnRate,
+                loyaltyPointValue: loyaltyPointValue,
+                locale: locale,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -39922,6 +41135,388 @@ typedef $$DeviceRegistrationsTableProcessedTableManager =
         >,
       ),
       DeviceRegistration,
+      PrefetchHooks Function()
+    >;
+typedef $$DisplayDevicesTableCreateCompanionBuilder =
+    DisplayDevicesCompanion Function({
+      Value<DateTime?> lastSyncedAt,
+      Value<int> version,
+      Value<DateTime?> serverCreatedAt,
+      Value<DateTime?> serverUpdatedAt,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      required String id,
+      required String companyId,
+      required String parentRegisterId,
+      required String code,
+      Value<String> name,
+      required DisplayDeviceType type,
+      Value<bool> isActive,
+      Value<int> rowid,
+    });
+typedef $$DisplayDevicesTableUpdateCompanionBuilder =
+    DisplayDevicesCompanion Function({
+      Value<DateTime?> lastSyncedAt,
+      Value<int> version,
+      Value<DateTime?> serverCreatedAt,
+      Value<DateTime?> serverUpdatedAt,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<String> id,
+      Value<String> companyId,
+      Value<String> parentRegisterId,
+      Value<String> code,
+      Value<String> name,
+      Value<DisplayDeviceType> type,
+      Value<bool> isActive,
+      Value<int> rowid,
+    });
+
+class $$DisplayDevicesTableFilterComposer
+    extends Composer<_$AppDatabase, $DisplayDevicesTable> {
+  $$DisplayDevicesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<DateTime> get lastSyncedAt => $composableBuilder(
+    column: $table.lastSyncedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get version => $composableBuilder(
+    column: $table.version,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get serverCreatedAt => $composableBuilder(
+    column: $table.serverCreatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get companyId => $composableBuilder(
+    column: $table.companyId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get parentRegisterId => $composableBuilder(
+    column: $table.parentRegisterId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get code => $composableBuilder(
+    column: $table.code,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<DisplayDeviceType, DisplayDeviceType, String>
+  get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<bool> get isActive => $composableBuilder(
+    column: $table.isActive,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$DisplayDevicesTableOrderingComposer
+    extends Composer<_$AppDatabase, $DisplayDevicesTable> {
+  $$DisplayDevicesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<DateTime> get lastSyncedAt => $composableBuilder(
+    column: $table.lastSyncedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get version => $composableBuilder(
+    column: $table.version,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get serverCreatedAt => $composableBuilder(
+    column: $table.serverCreatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get companyId => $composableBuilder(
+    column: $table.companyId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get parentRegisterId => $composableBuilder(
+    column: $table.parentRegisterId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get code => $composableBuilder(
+    column: $table.code,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isActive => $composableBuilder(
+    column: $table.isActive,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$DisplayDevicesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DisplayDevicesTable> {
+  $$DisplayDevicesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<DateTime> get lastSyncedAt => $composableBuilder(
+    column: $table.lastSyncedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get version =>
+      $composableBuilder(column: $table.version, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get serverCreatedAt => $composableBuilder(
+    column: $table.serverCreatedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get companyId =>
+      $composableBuilder(column: $table.companyId, builder: (column) => column);
+
+  GeneratedColumn<String> get parentRegisterId => $composableBuilder(
+    column: $table.parentRegisterId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get code =>
+      $composableBuilder(column: $table.code, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<DisplayDeviceType, String> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<bool> get isActive =>
+      $composableBuilder(column: $table.isActive, builder: (column) => column);
+}
+
+class $$DisplayDevicesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $DisplayDevicesTable,
+          DisplayDevice,
+          $$DisplayDevicesTableFilterComposer,
+          $$DisplayDevicesTableOrderingComposer,
+          $$DisplayDevicesTableAnnotationComposer,
+          $$DisplayDevicesTableCreateCompanionBuilder,
+          $$DisplayDevicesTableUpdateCompanionBuilder,
+          (
+            DisplayDevice,
+            BaseReferences<_$AppDatabase, $DisplayDevicesTable, DisplayDevice>,
+          ),
+          DisplayDevice,
+          PrefetchHooks Function()
+        > {
+  $$DisplayDevicesTableTableManager(
+    _$AppDatabase db,
+    $DisplayDevicesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DisplayDevicesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DisplayDevicesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$DisplayDevicesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<DateTime?> lastSyncedAt = const Value.absent(),
+                Value<int> version = const Value.absent(),
+                Value<DateTime?> serverCreatedAt = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<String> id = const Value.absent(),
+                Value<String> companyId = const Value.absent(),
+                Value<String> parentRegisterId = const Value.absent(),
+                Value<String> code = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<DisplayDeviceType> type = const Value.absent(),
+                Value<bool> isActive = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => DisplayDevicesCompanion(
+                lastSyncedAt: lastSyncedAt,
+                version: version,
+                serverCreatedAt: serverCreatedAt,
+                serverUpdatedAt: serverUpdatedAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                id: id,
+                companyId: companyId,
+                parentRegisterId: parentRegisterId,
+                code: code,
+                name: name,
+                type: type,
+                isActive: isActive,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                Value<DateTime?> lastSyncedAt = const Value.absent(),
+                Value<int> version = const Value.absent(),
+                Value<DateTime?> serverCreatedAt = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                required String id,
+                required String companyId,
+                required String parentRegisterId,
+                required String code,
+                Value<String> name = const Value.absent(),
+                required DisplayDeviceType type,
+                Value<bool> isActive = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => DisplayDevicesCompanion.insert(
+                lastSyncedAt: lastSyncedAt,
+                version: version,
+                serverCreatedAt: serverCreatedAt,
+                serverUpdatedAt: serverUpdatedAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                id: id,
+                companyId: companyId,
+                parentRegisterId: parentRegisterId,
+                code: code,
+                name: name,
+                type: type,
+                isActive: isActive,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$DisplayDevicesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $DisplayDevicesTable,
+      DisplayDevice,
+      $$DisplayDevicesTableFilterComposer,
+      $$DisplayDevicesTableOrderingComposer,
+      $$DisplayDevicesTableAnnotationComposer,
+      $$DisplayDevicesTableCreateCompanionBuilder,
+      $$DisplayDevicesTableUpdateCompanionBuilder,
+      (
+        DisplayDevice,
+        BaseReferences<_$AppDatabase, $DisplayDevicesTable, DisplayDevice>,
+      ),
+      DisplayDevice,
       PrefetchHooks Function()
     >;
 typedef $$ItemsTableCreateCompanionBuilder =
@@ -41037,6 +42632,9 @@ typedef $$MapElementsTableCreateCompanionBuilder =
       Value<int> gridHeight,
       Value<String?> label,
       Value<String?> color,
+      Value<int?> fontSize,
+      Value<int> fillStyle,
+      Value<int> borderStyle,
       Value<TableShape> shape,
       Value<int> rowid,
     });
@@ -41058,6 +42656,9 @@ typedef $$MapElementsTableUpdateCompanionBuilder =
       Value<int> gridHeight,
       Value<String?> label,
       Value<String?> color,
+      Value<int?> fontSize,
+      Value<int> fillStyle,
+      Value<int> borderStyle,
       Value<TableShape> shape,
       Value<int> rowid,
     });
@@ -41148,6 +42749,21 @@ class $$MapElementsTableFilterComposer
 
   ColumnFilters<String> get color => $composableBuilder(
     column: $table.color,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get fontSize => $composableBuilder(
+    column: $table.fontSize,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get fillStyle => $composableBuilder(
+    column: $table.fillStyle,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get borderStyle => $composableBuilder(
+    column: $table.borderStyle,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -41247,6 +42863,21 @@ class $$MapElementsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get fontSize => $composableBuilder(
+    column: $table.fontSize,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get fillStyle => $composableBuilder(
+    column: $table.fillStyle,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get borderStyle => $composableBuilder(
+    column: $table.borderStyle,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get shape => $composableBuilder(
     column: $table.shape,
     builder: (column) => ColumnOrderings(column),
@@ -41318,6 +42949,17 @@ class $$MapElementsTableAnnotationComposer
   GeneratedColumn<String> get color =>
       $composableBuilder(column: $table.color, builder: (column) => column);
 
+  GeneratedColumn<int> get fontSize =>
+      $composableBuilder(column: $table.fontSize, builder: (column) => column);
+
+  GeneratedColumn<int> get fillStyle =>
+      $composableBuilder(column: $table.fillStyle, builder: (column) => column);
+
+  GeneratedColumn<int> get borderStyle => $composableBuilder(
+    column: $table.borderStyle,
+    builder: (column) => column,
+  );
+
   GeneratedColumnWithTypeConverter<TableShape, String> get shape =>
       $composableBuilder(column: $table.shape, builder: (column) => column);
 }
@@ -41369,6 +43011,9 @@ class $$MapElementsTableTableManager
                 Value<int> gridHeight = const Value.absent(),
                 Value<String?> label = const Value.absent(),
                 Value<String?> color = const Value.absent(),
+                Value<int?> fontSize = const Value.absent(),
+                Value<int> fillStyle = const Value.absent(),
+                Value<int> borderStyle = const Value.absent(),
                 Value<TableShape> shape = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => MapElementsCompanion(
@@ -41388,6 +43033,9 @@ class $$MapElementsTableTableManager
                 gridHeight: gridHeight,
                 label: label,
                 color: color,
+                fontSize: fontSize,
+                fillStyle: fillStyle,
+                borderStyle: borderStyle,
                 shape: shape,
                 rowid: rowid,
               ),
@@ -41409,6 +43057,9 @@ class $$MapElementsTableTableManager
                 Value<int> gridHeight = const Value.absent(),
                 Value<String?> label = const Value.absent(),
                 Value<String?> color = const Value.absent(),
+                Value<int?> fontSize = const Value.absent(),
+                Value<int> fillStyle = const Value.absent(),
+                Value<int> borderStyle = const Value.absent(),
                 Value<TableShape> shape = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => MapElementsCompanion.insert(
@@ -41428,6 +43079,9 @@ class $$MapElementsTableTableManager
                 gridHeight: gridHeight,
                 label: label,
                 color: color,
+                fontSize: fontSize,
+                fillStyle: fillStyle,
+                borderStyle: borderStyle,
                 shape: shape,
                 rowid: rowid,
               ),
@@ -49610,6 +51264,10 @@ typedef $$TablesTableCreateCompanionBuilder =
       Value<int> gridCol,
       Value<int> gridWidth,
       Value<int> gridHeight,
+      Value<String?> color,
+      Value<int?> fontSize,
+      Value<int> fillStyle,
+      Value<int> borderStyle,
       Value<TableShape> shape,
       Value<int> rowid,
     });
@@ -49632,6 +51290,10 @@ typedef $$TablesTableUpdateCompanionBuilder =
       Value<int> gridCol,
       Value<int> gridWidth,
       Value<int> gridHeight,
+      Value<String?> color,
+      Value<int?> fontSize,
+      Value<int> fillStyle,
+      Value<int> borderStyle,
       Value<TableShape> shape,
       Value<int> rowid,
     });
@@ -49727,6 +51389,26 @@ class $$TablesTableFilterComposer
 
   ColumnFilters<int> get gridHeight => $composableBuilder(
     column: $table.gridHeight,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get color => $composableBuilder(
+    column: $table.color,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get fontSize => $composableBuilder(
+    column: $table.fontSize,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get fillStyle => $composableBuilder(
+    column: $table.fillStyle,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get borderStyle => $composableBuilder(
+    column: $table.borderStyle,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -49831,6 +51513,26 @@ class $$TablesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get color => $composableBuilder(
+    column: $table.color,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get fontSize => $composableBuilder(
+    column: $table.fontSize,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get fillStyle => $composableBuilder(
+    column: $table.fillStyle,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get borderStyle => $composableBuilder(
+    column: $table.borderStyle,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get shape => $composableBuilder(
     column: $table.shape,
     builder: (column) => ColumnOrderings(column),
@@ -49905,6 +51607,20 @@ class $$TablesTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get color =>
+      $composableBuilder(column: $table.color, builder: (column) => column);
+
+  GeneratedColumn<int> get fontSize =>
+      $composableBuilder(column: $table.fontSize, builder: (column) => column);
+
+  GeneratedColumn<int> get fillStyle =>
+      $composableBuilder(column: $table.fillStyle, builder: (column) => column);
+
+  GeneratedColumn<int> get borderStyle => $composableBuilder(
+    column: $table.borderStyle,
+    builder: (column) => column,
+  );
+
   GeneratedColumnWithTypeConverter<TableShape, String> get shape =>
       $composableBuilder(column: $table.shape, builder: (column) => column);
 }
@@ -49957,6 +51673,10 @@ class $$TablesTableTableManager
                 Value<int> gridCol = const Value.absent(),
                 Value<int> gridWidth = const Value.absent(),
                 Value<int> gridHeight = const Value.absent(),
+                Value<String?> color = const Value.absent(),
+                Value<int?> fontSize = const Value.absent(),
+                Value<int> fillStyle = const Value.absent(),
+                Value<int> borderStyle = const Value.absent(),
                 Value<TableShape> shape = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => TablesCompanion(
@@ -49977,6 +51697,10 @@ class $$TablesTableTableManager
                 gridCol: gridCol,
                 gridWidth: gridWidth,
                 gridHeight: gridHeight,
+                color: color,
+                fontSize: fontSize,
+                fillStyle: fillStyle,
+                borderStyle: borderStyle,
                 shape: shape,
                 rowid: rowid,
               ),
@@ -49999,6 +51723,10 @@ class $$TablesTableTableManager
                 Value<int> gridCol = const Value.absent(),
                 Value<int> gridWidth = const Value.absent(),
                 Value<int> gridHeight = const Value.absent(),
+                Value<String?> color = const Value.absent(),
+                Value<int?> fontSize = const Value.absent(),
+                Value<int> fillStyle = const Value.absent(),
+                Value<int> borderStyle = const Value.absent(),
                 Value<TableShape> shape = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => TablesCompanion.insert(
@@ -50019,6 +51747,10 @@ class $$TablesTableTableManager
                 gridCol: gridCol,
                 gridWidth: gridWidth,
                 gridHeight: gridHeight,
+                color: color,
+                fontSize: fontSize,
+                fillStyle: fillStyle,
+                borderStyle: borderStyle,
                 shape: shape,
                 rowid: rowid,
               ),
@@ -52179,6 +53911,8 @@ class $AppDatabaseManager {
       $$CurrenciesTableTableManager(_db, _db.currencies);
   $$DeviceRegistrationsTableTableManager get deviceRegistrations =>
       $$DeviceRegistrationsTableTableManager(_db, _db.deviceRegistrations);
+  $$DisplayDevicesTableTableManager get displayDevices =>
+      $$DisplayDevicesTableTableManager(_db, _db.displayDevices);
   $$ItemsTableTableManager get items =>
       $$ItemsTableTableManager(_db, _db.items);
   $$LayoutItemsTableTableManager get layoutItems =>

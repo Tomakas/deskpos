@@ -15,6 +15,7 @@ import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/repositories/order_repository.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/utils/formatting_ext.dart';
 import '../../../core/utils/search_utils.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
@@ -166,7 +167,7 @@ class _DialogVoucherCreateState extends ConsumerState<DialogVoucherCreate> {
           },
           bottomLeftChild: _type == VoucherType.discount
               ? Text(
-                  _discountType == DiscountType.absolute ? '%' : 'Kč',
+                  _discountType == DiscountType.absolute ? '%' : (ref.watch(currentCurrencyProvider).value?.symbol ?? 'Kč'),
                   style: const TextStyle(fontSize: 20),
                 )
               : const Text('.', style: TextStyle(fontSize: 20)),
@@ -248,7 +249,7 @@ class _DialogVoucherCreateState extends ConsumerState<DialogVoucherCreate> {
                 onPressed: _rawValue > 0 ? () => _confirmAbsolute() : null,
                 child: Text(
                   _rawValue > 0
-                      ? '${l.voucherSell} ${_rawValue ~/ 100} Kč'
+                      ? '${l.voucherSell} ${ref.money(_rawValue)}'
                       : l.voucherSell,
                 ),
               ),
@@ -476,7 +477,7 @@ class _ItemSearchDialogState extends ConsumerState<_ItemSearchDialog> {
                       return ListTile(
                         title: Text(item.name),
                         subtitle: item.sku != null ? Text(item.sku!) : null,
-                        trailing: Text('${item.unitPrice ~/ 100} Kč'),
+                        trailing: Text(ref.money(item.unitPrice)),
                         onTap: () => Navigator.pop(context, item),
                       );
                     },

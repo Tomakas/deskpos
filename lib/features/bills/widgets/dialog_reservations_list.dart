@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 import '../../../core/data/enums/reservation_status.dart';
 import '../../../core/data/models/reservation_model.dart';
@@ -8,6 +7,7 @@ import '../../../core/data/models/table_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/utils/formatting_ext.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_table.dart';
 import 'dialog_reservation_edit.dart';
@@ -88,8 +88,6 @@ class _DialogReservationsListState extends ConsumerState<DialogReservationsList>
   Widget build(BuildContext context) {
     final l = context.l10n;
     final theme = Theme.of(context);
-    final dateFormat = DateFormat('d.M.yyyy', 'cs');
-    final timeFormat = DateFormat('HH:mm', 'cs');
     final company = ref.watch(currentCompanyProvider);
 
     if (company == null) return const SizedBox.shrink();
@@ -105,12 +103,12 @@ class _DialogReservationsListState extends ConsumerState<DialogReservationsList>
           children: [
             TextButton(
               onPressed: () => _pickDate(context, true),
-              child: Text(dateFormat.format(_dateFrom)),
+              child: Text(ref.fmtDate(_dateFrom)),
             ),
             const Text(' — '),
             TextButton(
               onPressed: () => _pickDate(context, false),
-              child: Text(dateFormat.format(_dateTo)),
+              child: Text(ref.fmtDate(_dateTo)),
             ),
             const SizedBox(width: 16),
             FilledButton.tonalIcon(
@@ -143,8 +141,8 @@ class _DialogReservationsListState extends ConsumerState<DialogReservationsList>
 
                   return PosTable<ReservationModel>(
                     columns: [
-                      PosColumn(label: l.reservationColumnDate, width: 80, cellBuilder: (r) => Text(dateFormat.format(r.reservationDate))),
-                      PosColumn(label: l.reservationColumnTime, width: 50, cellBuilder: (r) => Text(timeFormat.format(r.reservationDate))),
+                      PosColumn(label: l.reservationColumnDate, width: 80, cellBuilder: (r) => Text(ref.fmtDate(r.reservationDate))),
+                      PosColumn(label: l.reservationColumnTime, width: 50, cellBuilder: (r) => Text(ref.fmtTime(r.reservationDate))),
                       PosColumn(label: l.reservationColumnName, cellBuilder: (r) => Text(r.customerName)),
                       PosColumn(label: l.reservationColumnPhone, width: 100, cellBuilder: (r) => Text(r.customerPhone ?? '')),
                       PosColumn(label: l.reservationColumnPartySize, width: 50, cellBuilder: (r) => Text('${r.partySize}', textAlign: TextAlign.center)),

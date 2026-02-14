@@ -21,8 +21,9 @@ mixin _$CompanySettingsModel {
   String get companyId => throw _privateConstructorUsedError;
   bool get requirePinOnSwitch => throw _privateConstructorUsedError;
   int? get autoLockTimeoutMinutes => throw _privateConstructorUsedError;
-  int get loyaltyEarnPerHundredCzk => throw _privateConstructorUsedError;
-  int get loyaltyPointValueHalere => throw _privateConstructorUsedError;
+  int get loyaltyEarnRate => throw _privateConstructorUsedError;
+  int get loyaltyPointValue => throw _privateConstructorUsedError;
+  String get locale => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
   DateTime get updatedAt => throw _privateConstructorUsedError;
   DateTime? get deletedAt => throw _privateConstructorUsedError;
@@ -46,8 +47,9 @@ abstract class $CompanySettingsModelCopyWith<$Res> {
     String companyId,
     bool requirePinOnSwitch,
     int? autoLockTimeoutMinutes,
-    int loyaltyEarnPerHundredCzk,
-    int loyaltyPointValueHalere,
+    int loyaltyEarnRate,
+    int loyaltyPointValue,
+    String locale,
     DateTime createdAt,
     DateTime updatedAt,
     DateTime? deletedAt,
@@ -76,8 +78,9 @@ class _$CompanySettingsModelCopyWithImpl<
     Object? companyId = null,
     Object? requirePinOnSwitch = null,
     Object? autoLockTimeoutMinutes = freezed,
-    Object? loyaltyEarnPerHundredCzk = null,
-    Object? loyaltyPointValueHalere = null,
+    Object? loyaltyEarnRate = null,
+    Object? loyaltyPointValue = null,
+    Object? locale = null,
     Object? createdAt = null,
     Object? updatedAt = null,
     Object? deletedAt = freezed,
@@ -100,14 +103,18 @@ class _$CompanySettingsModelCopyWithImpl<
                 ? _value.autoLockTimeoutMinutes
                 : autoLockTimeoutMinutes // ignore: cast_nullable_to_non_nullable
                       as int?,
-            loyaltyEarnPerHundredCzk: null == loyaltyEarnPerHundredCzk
-                ? _value.loyaltyEarnPerHundredCzk
-                : loyaltyEarnPerHundredCzk // ignore: cast_nullable_to_non_nullable
+            loyaltyEarnRate: null == loyaltyEarnRate
+                ? _value.loyaltyEarnRate
+                : loyaltyEarnRate // ignore: cast_nullable_to_non_nullable
                       as int,
-            loyaltyPointValueHalere: null == loyaltyPointValueHalere
-                ? _value.loyaltyPointValueHalere
-                : loyaltyPointValueHalere // ignore: cast_nullable_to_non_nullable
+            loyaltyPointValue: null == loyaltyPointValue
+                ? _value.loyaltyPointValue
+                : loyaltyPointValue // ignore: cast_nullable_to_non_nullable
                       as int,
+            locale: null == locale
+                ? _value.locale
+                : locale // ignore: cast_nullable_to_non_nullable
+                      as String,
             createdAt: null == createdAt
                 ? _value.createdAt
                 : createdAt // ignore: cast_nullable_to_non_nullable
@@ -140,8 +147,9 @@ abstract class _$$CompanySettingsModelImplCopyWith<$Res>
     String companyId,
     bool requirePinOnSwitch,
     int? autoLockTimeoutMinutes,
-    int loyaltyEarnPerHundredCzk,
-    int loyaltyPointValueHalere,
+    int loyaltyEarnRate,
+    int loyaltyPointValue,
+    String locale,
     DateTime createdAt,
     DateTime updatedAt,
     DateTime? deletedAt,
@@ -166,8 +174,9 @@ class __$$CompanySettingsModelImplCopyWithImpl<$Res>
     Object? companyId = null,
     Object? requirePinOnSwitch = null,
     Object? autoLockTimeoutMinutes = freezed,
-    Object? loyaltyEarnPerHundredCzk = null,
-    Object? loyaltyPointValueHalere = null,
+    Object? loyaltyEarnRate = null,
+    Object? loyaltyPointValue = null,
+    Object? locale = null,
     Object? createdAt = null,
     Object? updatedAt = null,
     Object? deletedAt = freezed,
@@ -190,14 +199,18 @@ class __$$CompanySettingsModelImplCopyWithImpl<$Res>
             ? _value.autoLockTimeoutMinutes
             : autoLockTimeoutMinutes // ignore: cast_nullable_to_non_nullable
                   as int?,
-        loyaltyEarnPerHundredCzk: null == loyaltyEarnPerHundredCzk
-            ? _value.loyaltyEarnPerHundredCzk
-            : loyaltyEarnPerHundredCzk // ignore: cast_nullable_to_non_nullable
+        loyaltyEarnRate: null == loyaltyEarnRate
+            ? _value.loyaltyEarnRate
+            : loyaltyEarnRate // ignore: cast_nullable_to_non_nullable
                   as int,
-        loyaltyPointValueHalere: null == loyaltyPointValueHalere
-            ? _value.loyaltyPointValueHalere
-            : loyaltyPointValueHalere // ignore: cast_nullable_to_non_nullable
+        loyaltyPointValue: null == loyaltyPointValue
+            ? _value.loyaltyPointValue
+            : loyaltyPointValue // ignore: cast_nullable_to_non_nullable
                   as int,
+        locale: null == locale
+            ? _value.locale
+            : locale // ignore: cast_nullable_to_non_nullable
+                  as String,
         createdAt: null == createdAt
             ? _value.createdAt
             : createdAt // ignore: cast_nullable_to_non_nullable
@@ -223,8 +236,9 @@ class _$CompanySettingsModelImpl implements _CompanySettingsModel {
     required this.companyId,
     this.requirePinOnSwitch = true,
     this.autoLockTimeoutMinutes,
-    this.loyaltyEarnPerHundredCzk = 0,
-    this.loyaltyPointValueHalere = 0,
+    this.loyaltyEarnRate = 0,
+    this.loyaltyPointValue = 0,
+    this.locale = 'cs',
     required this.createdAt,
     required this.updatedAt,
     this.deletedAt,
@@ -241,10 +255,13 @@ class _$CompanySettingsModelImpl implements _CompanySettingsModel {
   final int? autoLockTimeoutMinutes;
   @override
   @JsonKey()
-  final int loyaltyEarnPerHundredCzk;
+  final int loyaltyEarnRate;
   @override
   @JsonKey()
-  final int loyaltyPointValueHalere;
+  final int loyaltyPointValue;
+  @override
+  @JsonKey()
+  final String locale;
   @override
   final DateTime createdAt;
   @override
@@ -254,7 +271,7 @@ class _$CompanySettingsModelImpl implements _CompanySettingsModel {
 
   @override
   String toString() {
-    return 'CompanySettingsModel(id: $id, companyId: $companyId, requirePinOnSwitch: $requirePinOnSwitch, autoLockTimeoutMinutes: $autoLockTimeoutMinutes, loyaltyEarnPerHundredCzk: $loyaltyEarnPerHundredCzk, loyaltyPointValueHalere: $loyaltyPointValueHalere, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+    return 'CompanySettingsModel(id: $id, companyId: $companyId, requirePinOnSwitch: $requirePinOnSwitch, autoLockTimeoutMinutes: $autoLockTimeoutMinutes, loyaltyEarnRate: $loyaltyEarnRate, loyaltyPointValue: $loyaltyPointValue, locale: $locale, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
   }
 
   @override
@@ -269,16 +286,11 @@ class _$CompanySettingsModelImpl implements _CompanySettingsModel {
                 other.requirePinOnSwitch == requirePinOnSwitch) &&
             (identical(other.autoLockTimeoutMinutes, autoLockTimeoutMinutes) ||
                 other.autoLockTimeoutMinutes == autoLockTimeoutMinutes) &&
-            (identical(
-                  other.loyaltyEarnPerHundredCzk,
-                  loyaltyEarnPerHundredCzk,
-                ) ||
-                other.loyaltyEarnPerHundredCzk == loyaltyEarnPerHundredCzk) &&
-            (identical(
-                  other.loyaltyPointValueHalere,
-                  loyaltyPointValueHalere,
-                ) ||
-                other.loyaltyPointValueHalere == loyaltyPointValueHalere) &&
+            (identical(other.loyaltyEarnRate, loyaltyEarnRate) ||
+                other.loyaltyEarnRate == loyaltyEarnRate) &&
+            (identical(other.loyaltyPointValue, loyaltyPointValue) ||
+                other.loyaltyPointValue == loyaltyPointValue) &&
+            (identical(other.locale, locale) || other.locale == locale) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.updatedAt, updatedAt) ||
@@ -294,8 +306,9 @@ class _$CompanySettingsModelImpl implements _CompanySettingsModel {
     companyId,
     requirePinOnSwitch,
     autoLockTimeoutMinutes,
-    loyaltyEarnPerHundredCzk,
-    loyaltyPointValueHalere,
+    loyaltyEarnRate,
+    loyaltyPointValue,
+    locale,
     createdAt,
     updatedAt,
     deletedAt,
@@ -320,8 +333,9 @@ abstract class _CompanySettingsModel implements CompanySettingsModel {
     required final String companyId,
     final bool requirePinOnSwitch,
     final int? autoLockTimeoutMinutes,
-    final int loyaltyEarnPerHundredCzk,
-    final int loyaltyPointValueHalere,
+    final int loyaltyEarnRate,
+    final int loyaltyPointValue,
+    final String locale,
     required final DateTime createdAt,
     required final DateTime updatedAt,
     final DateTime? deletedAt,
@@ -336,9 +350,11 @@ abstract class _CompanySettingsModel implements CompanySettingsModel {
   @override
   int? get autoLockTimeoutMinutes;
   @override
-  int get loyaltyEarnPerHundredCzk;
+  int get loyaltyEarnRate;
   @override
-  int get loyaltyPointValueHalere;
+  int get loyaltyPointValue;
+  @override
+  String get locale;
   @override
   DateTime get createdAt;
   @override

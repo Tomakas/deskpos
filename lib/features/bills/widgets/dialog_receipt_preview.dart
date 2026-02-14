@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 
+import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/printing_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/logging/app_logger.dart';
@@ -42,7 +43,8 @@ Future<void> showReceiptPrintDialog(
   );
 
   try {
-    final data = await service.buildReceiptData(billId);
+    final currency = ref.read(currentCurrencyProvider).value;
+    final data = await service.buildReceiptData(billId, currency: currency);
     if (data == null) {
       AppLogger.error('showReceiptPrintDialog: no receipt data for bill $billId');
       return;

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:drift/drift.dart';
@@ -11,6 +12,7 @@ import '../data/repositories/sync_queue_repository.dart';
 import '../data/result.dart';
 import '../database/app_database.dart';
 import '../logging/app_logger.dart';
+import 'broadcast_channel.dart';
 import 'outbox_processor.dart';
 import 'realtime_service.dart';
 import 'sync_service.dart';
@@ -24,13 +26,15 @@ class SyncLifecycleManager {
     required CompanyRepository companyRepo,
     required List<BaseCompanyScopedRepository> companyRepos,
     required AppDatabase db,
+    BroadcastChannel? kdsBroadcastChannel,
   })  : _outboxProcessor = outboxProcessor,
         _syncService = syncService,
         _realtimeService = realtimeService,
         _syncQueueRepo = syncQueueRepo,
         _companyRepo = companyRepo,
         _companyRepos = companyRepos,
-        _db = db;
+        _db = db,
+        _kdsBroadcastChannel = kdsBroadcastChannel;
 
   final OutboxProcessor _outboxProcessor;
   final SyncService _syncService;
@@ -39,8 +43,10 @@ class SyncLifecycleManager {
   final CompanyRepository _companyRepo;
   final List<BaseCompanyScopedRepository> _companyRepos;
   final AppDatabase _db;
+  final BroadcastChannel? _kdsBroadcastChannel;
 
   bool _isRunning = false;
+  StreamSubscription<Map<String, dynamic>>? _kdsSubscription;
 
   bool get isRunning => _isRunning;
 
@@ -71,6 +77,9 @@ class SyncLifecycleManager {
 
       // Start realtime subscriptions (<2s latency)
       _realtimeService.start(companyId);
+
+      // Subscribe to KDS broadcast for instant order delivery
+      _subscribeKdsBroadcast(companyId);
     } catch (e, s) {
       _isRunning = false;
       AppLogger.error(
@@ -87,9 +96,63 @@ class SyncLifecycleManager {
     _isRunning = false;
 
     AppLogger.info('SyncLifecycleManager: stopping', tag: 'SYNC');
+    _kdsSubscription?.cancel();
+    _kdsSubscription = null;
+    _kdsBroadcastChannel?.leave();
     _realtimeService.stop();
     _outboxProcessor.stop();
     _syncService.stop();
+  }
+
+  void _subscribeKdsBroadcast(String companyId) {
+    if (_kdsBroadcastChannel == null) return;
+
+    _kdsBroadcastChannel.join('kds:$companyId');
+    _kdsSubscription = _kdsBroadcastChannel.stream.listen((payload) {
+      _handleKdsBroadcast(companyId, payload);
+    });
+    AppLogger.info('SyncLifecycleManager: subscribed to KDS broadcast', tag: 'SYNC');
+  }
+
+  Future<void> _handleKdsBroadcast(
+    String companyId,
+    Map<String, dynamic> payload,
+  ) async {
+    try {
+      final type = payload['type'] as String?;
+      if (type != 'new_order') return;
+
+      final orderJson = payload['order'] as Map<String, dynamic>?;
+      final itemsJson = payload['order_items'] as List?;
+      if (orderJson == null) return;
+
+      final orderId = orderJson['id'] as String?;
+      if (orderId == null) return;
+
+      AppLogger.debug(
+        'SyncLifecycleManager: KDS broadcast new_order id=$orderId',
+        tag: 'BROADCAST',
+      );
+
+      await _syncService.mergeRow(companyId, 'orders', orderId, orderJson);
+
+      if (itemsJson != null) {
+        for (final item in itemsJson) {
+          final itemMap = item as Map<String, dynamic>;
+          final itemId = itemMap['id'] as String?;
+          if (itemId != null) {
+            await _syncService.mergeRow(companyId, 'order_items', itemId, itemMap);
+          }
+        }
+      }
+    } catch (e, s) {
+      AppLogger.error(
+        'SyncLifecycleManager: failed to process KDS broadcast',
+        tag: 'BROADCAST',
+        error: e,
+        stackTrace: s,
+      );
+    }
   }
 
   Future<void> _initialPush(String companyId) async {
@@ -158,6 +221,14 @@ class SyncLifecycleManager {
 
     // Push registers (not in companyRepos)
     await _enqueueRegisters(companyId);
+
+    // Push display_devices (depends on registers)
+    await _enqueueCompanyTable(
+      companyId,
+      'display_devices',
+      _db.displayDevices,
+      (e) => displayDeviceToSupabaseJson(displayDeviceFromEntity(e as DisplayDevice)),
+    );
 
     // Push user_permissions (not in companyRepos)
     await _enqueueUserPermissions(companyId);

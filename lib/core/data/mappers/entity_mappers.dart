@@ -4,6 +4,7 @@ import '../../database/app_database.dart';
 import '../models/bill_model.dart';
 import '../models/cash_movement_model.dart';
 import '../models/category_model.dart';
+import '../models/display_device_model.dart';
 import '../models/customer_model.dart';
 import '../models/customer_transaction_model.dart';
 import '../models/company_model.dart';
@@ -84,8 +85,9 @@ CompanySettingsModel companySettingsFromEntity(CompanySetting e) => CompanySetti
       companyId: e.companyId,
       requirePinOnSwitch: e.requirePinOnSwitch,
       autoLockTimeoutMinutes: e.autoLockTimeoutMinutes,
-      loyaltyEarnPerHundredCzk: e.loyaltyEarnPerHundredCzk,
-      loyaltyPointValueHalere: e.loyaltyPointValueHalere,
+      loyaltyEarnRate: e.loyaltyEarnRate,
+      locale: e.locale,
+      loyaltyPointValue: e.loyaltyPointValue,
       createdAt: e.createdAt,
       updatedAt: e.updatedAt,
       deletedAt: e.deletedAt,
@@ -97,8 +99,9 @@ CompanySettingsCompanion companySettingsToCompanion(CompanySettingsModel m) =>
       companyId: m.companyId,
       requirePinOnSwitch: Value(m.requirePinOnSwitch),
       autoLockTimeoutMinutes: Value(m.autoLockTimeoutMinutes),
-      loyaltyEarnPerHundredCzk: Value(m.loyaltyEarnPerHundredCzk),
-      loyaltyPointValueHalere: Value(m.loyaltyPointValueHalere),
+      loyaltyEarnRate: Value(m.loyaltyEarnRate),
+      loyaltyPointValue: Value(m.loyaltyPointValue),
+      locale: Value(m.locale),
     );
 
 // --- Currency ---
@@ -578,6 +581,20 @@ DeviceRegistrationModel deviceRegistrationFromEntity(DeviceRegistration e) =>
       createdAt: e.createdAt,
     );
 
+// --- DisplayDevice ---
+DisplayDeviceModel displayDeviceFromEntity(DisplayDevice e) => DisplayDeviceModel(
+      id: e.id,
+      companyId: e.companyId,
+      parentRegisterId: e.parentRegisterId,
+      code: e.code,
+      name: e.name,
+      type: e.type,
+      isActive: e.isActive,
+      createdAt: e.createdAt,
+      updatedAt: e.updatedAt,
+      deletedAt: e.deletedAt,
+    );
+
 // --- TableEntity ---
 TableModel tableFromEntity(TableEntity e) => TableModel(
       id: e.id,
@@ -590,6 +607,10 @@ TableModel tableFromEntity(TableEntity e) => TableModel(
       gridCol: e.gridCol,
       gridWidth: e.gridWidth,
       gridHeight: e.gridHeight,
+      color: e.color,
+      fontSize: e.fontSize,
+      fillStyle: e.fillStyle,
+      borderStyle: e.borderStyle,
       shape: e.shape,
       createdAt: e.createdAt,
       updatedAt: e.updatedAt,
@@ -607,6 +628,10 @@ TablesCompanion tableToCompanion(TableModel m) => TablesCompanion.insert(
       gridCol: Value(m.gridCol),
       gridWidth: Value(m.gridWidth),
       gridHeight: Value(m.gridHeight),
+      color: Value(m.color),
+      fontSize: Value(m.fontSize),
+      fillStyle: Value(m.fillStyle),
+      borderStyle: Value(m.borderStyle),
       shape: Value(m.shape),
     );
 
@@ -621,6 +646,9 @@ MapElementModel mapElementFromEntity(MapElementEntity e) => MapElementModel(
       gridHeight: e.gridHeight,
       label: e.label,
       color: e.color,
+      fontSize: e.fontSize,
+      fillStyle: e.fillStyle,
+      borderStyle: e.borderStyle,
       shape: e.shape,
       createdAt: e.createdAt,
       updatedAt: e.updatedAt,
@@ -637,6 +665,9 @@ MapElementsCompanion mapElementToCompanion(MapElementModel m) => MapElementsComp
       gridHeight: Value(m.gridHeight),
       label: Value(m.label),
       color: Value(m.color),
+      fontSize: Value(m.fontSize),
+      fillStyle: Value(m.fillStyle),
+      borderStyle: Value(m.borderStyle),
       shape: Value(m.shape),
     );
 

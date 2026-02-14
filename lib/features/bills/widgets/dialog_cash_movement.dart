@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/data/enums/cash_movement_type.dart';
+import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/utils/formatters.dart';
+import '../../../core/utils/formatting_ext.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_dialog_theme.dart';
@@ -17,26 +21,26 @@ class CashMovementResult {
   /// [deposit] or [withdrawal].
   final CashMovementType type;
 
-  /// Amount in haléře (cents). Always positive.
+  /// Amount in minor units (cents). Always positive.
   final int amount;
 
   /// Optional note / reason for the movement.
   final String? reason;
 }
 
-class DialogCashMovement extends StatefulWidget {
+class DialogCashMovement extends ConsumerStatefulWidget {
   const DialogCashMovement({super.key});
 
   @override
-  State<DialogCashMovement> createState() => _DialogCashMovementState();
+  ConsumerState<DialogCashMovement> createState() => _DialogCashMovementState();
 }
 
-class _DialogCashMovementState extends State<DialogCashMovement> {
+class _DialogCashMovementState extends ConsumerState<DialogCashMovement> {
   String _amountText = '';
   String? _note;
 
-  int get _amountKc => int.tryParse(_amountText) ?? 0;
-  bool get _hasAmount => _amountKc > 0;
+  int get _amountWhole => int.tryParse(_amountText) ?? 0;
+  bool get _hasAmount => _amountWhole > 0;
 
   // ---------------------------------------------------------------------------
   // Numpad input
@@ -64,11 +68,12 @@ class _DialogCashMovementState extends State<DialogCashMovement> {
 
   void _confirm(CashMovementType type) {
     if (!_hasAmount) return;
+    final currency = ref.read(currentCurrencyProvider).value;
     Navigator.pop(
       context,
       CashMovementResult(
         type: type,
-        amount: _amountKc * 100,
+        amount: parseMoney(_amountText, currency),
         reason: _note,
       ),
     );
@@ -173,7 +178,7 @@ class _DialogCashMovementState extends State<DialogCashMovement> {
             alignment: Alignment.centerRight,
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text(
-              '$_amountKc Kč',
+              ref.money(parseMoney(_amountText, ref.watch(currentCurrencyProvider).value)),
               style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
               ),

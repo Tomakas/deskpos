@@ -1,7 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' hide BroadcastChannel;
 
 import '../../auth/supabase_auth_service.dart';
+import '../../sync/broadcast_channel.dart';
 import '../../sync/outbox_processor.dart';
 import '../../sync/realtime_service.dart';
 import '../../sync/sync_lifecycle_manager.dart';
@@ -58,6 +59,7 @@ final syncLifecycleManagerProvider = Provider<SyncLifecycleManager>((ref) {
     realtimeService: ref.watch(realtimeServiceProvider),
     syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
     companyRepo: ref.watch(companyRepositoryProvider),
+    kdsBroadcastChannel: ref.watch(kdsBroadcastChannelProvider),
     companyRepos: [
       ref.watch(companySettingsRepositoryProvider),
       ref.watch(sectionRepositoryProvider),
@@ -81,6 +83,20 @@ final syncLifecycleManagerProvider = Provider<SyncLifecycleManager>((ref) {
   );
   ref.onDispose(() => manager.stop());
   return manager;
+});
+
+// --- Broadcast channels ---
+
+final customerDisplayChannelProvider = Provider<BroadcastChannel>((ref) {
+  final channel = BroadcastChannel(Supabase.instance.client);
+  ref.onDispose(() => channel.dispose());
+  return channel;
+});
+
+final kdsBroadcastChannelProvider = Provider<BroadcastChannel>((ref) {
+  final channel = BroadcastChannel(Supabase.instance.client);
+  ref.onDispose(() => channel.dispose());
+  return channel;
 });
 
 // --- Sync lifecycle watcher ---

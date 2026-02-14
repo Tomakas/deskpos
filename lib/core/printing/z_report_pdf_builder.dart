@@ -5,6 +5,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 import '../../features/bills/models/z_report_data.dart';
+import '../utils/formatters.dart';
 import 'receipt_data.dart';
 
 class ZReportPdfBuilder {
@@ -20,7 +21,7 @@ class ZReportPdfBuilder {
   final pw.Font regular;
   final pw.Font bold;
 
-  String _fmtKc(int halere) => '${halere ~/ 100} ${labels.currencySymbol}';
+  String _fmtMoney(int amount) => formatMoneyForPrint(amount, labels.currency);
 
   String _fmtTaxRate(int basisPoints) {
     final pct = basisPoints / 100;
@@ -84,7 +85,7 @@ class ZReportPdfBuilder {
                 pw.Expanded(child: pw.Text(ps.name, style: baseStyle)),
                 pw.SizedBox(
                   width: 100,
-                  child: pw.Text(_fmtKc(ps.amount),
+                  child: pw.Text(_fmtMoney(ps.amount),
                       style: baseStyle, textAlign: pw.TextAlign.right),
                 ),
                 pw.SizedBox(
@@ -95,7 +96,7 @@ class ZReportPdfBuilder {
               ],
             ),
           pw.SizedBox(height: 4),
-          _row(labels.revenueTotal, _fmtKc(data.totalRevenue), boldStyle),
+          _row(labels.revenueTotal, _fmtMoney(data.totalRevenue), boldStyle),
           pw.Divider(),
 
           // --- Tax breakdown ---
@@ -130,13 +131,13 @@ class ZReportPdfBuilder {
                       child: pw.Text(_fmtTaxRate(row.taxRatePercent),
                           style: baseStyle)),
                   pw.Expanded(
-                      child: pw.Text(_fmtKc(row.netAmount),
+                      child: pw.Text(_fmtMoney(row.netAmount),
                           style: baseStyle, textAlign: pw.TextAlign.right)),
                   pw.Expanded(
-                      child: pw.Text(_fmtKc(row.taxAmount),
+                      child: pw.Text(_fmtMoney(row.taxAmount),
                           style: baseStyle, textAlign: pw.TextAlign.right)),
                   pw.Expanded(
-                      child: pw.Text(_fmtKc(row.grossAmount),
+                      child: pw.Text(_fmtMoney(row.grossAmount),
                           style: baseStyle, textAlign: pw.TextAlign.right)),
                 ],
               ),
@@ -147,19 +148,19 @@ class ZReportPdfBuilder {
           if (data.totalTips > 0) ...[
             pw.Text(labels.tipsTitle, style: sectionStyle),
             pw.SizedBox(height: 6),
-            _row(labels.tipsTotal, _fmtKc(data.totalTips), boldStyle),
+            _row(labels.tipsTotal, _fmtMoney(data.totalTips), boldStyle),
             if (data.tipsByUser.isNotEmpty) ...[
               pw.SizedBox(height: 4),
               pw.Text(labels.tipsByUser, style: smallBoldStyle),
               for (final entry in data.tipsByUser.values)
-                _row('  ${entry.$1}', _fmtKc(entry.$2), baseStyle),
+                _row('  ${entry.$1}', _fmtMoney(entry.$2), baseStyle),
             ],
             pw.Divider(),
           ],
 
           // --- Discounts ---
           if (data.totalDiscounts > 0) ...[
-            _row(labels.discountsTotal, _fmtKc(data.totalDiscounts), baseStyle),
+            _row(labels.discountsTotal, _fmtMoney(data.totalDiscounts), baseStyle),
             pw.Divider(),
           ],
 
@@ -173,18 +174,18 @@ class ZReportPdfBuilder {
             _row(labels.billsRefunded, '${data.billsRefunded}', baseStyle),
           if (data.openBillsAtOpenCount > 0)
             _row(labels.openBillsAtOpen,
-                '${data.openBillsAtOpenCount} (${_fmtKc(data.openBillsAtOpenAmount)})',
+                '${data.openBillsAtOpenCount} (${_fmtMoney(data.openBillsAtOpenAmount)})',
                 baseStyle),
           if (data.openBillsAtCloseCount > 0)
             _row(labels.openBillsAtClose,
-                '${data.openBillsAtCloseCount} (${_fmtKc(data.openBillsAtCloseAmount)})',
+                '${data.openBillsAtCloseCount} (${_fmtMoney(data.openBillsAtCloseAmount)})',
                 baseStyle),
           pw.Divider(),
 
           // --- Cash reconciliation ---
           pw.Text(labels.cashTitle, style: sectionStyle),
           pw.SizedBox(height: 6),
-          _row(labels.cashOpening, _fmtKc(data.openingCash), baseStyle),
+          _row(labels.cashOpening, _fmtMoney(data.openingCash), baseStyle),
           _signedRow(labels.cashRevenue, data.cashRevenue, baseStyle),
           if (data.cashDeposits > 0)
             _signedRow(labels.cashDeposits, data.cashDeposits, baseStyle),
@@ -192,11 +193,11 @@ class ZReportPdfBuilder {
             _signedRow(
                 labels.cashWithdrawals, -data.cashWithdrawals, baseStyle),
           pw.SizedBox(height: 4),
-          _row(labels.cashExpected, _fmtKc(data.expectedCash), boldStyle),
-          _row(labels.cashClosing, _fmtKc(data.closingCash), baseStyle),
+          _row(labels.cashExpected, _fmtMoney(data.expectedCash), boldStyle),
+          _row(labels.cashClosing, _fmtMoney(data.closingCash), baseStyle),
           _row(
             labels.cashDifference,
-            '${data.difference >= 0 ? '+' : ''}${data.difference ~/ 100} ${labels.currencySymbol}',
+            _fmtSigned(data.difference),
             boldStyle,
           ),
           pw.Divider(),
@@ -227,15 +228,18 @@ class ZReportPdfBuilder {
     );
   }
 
-  pw.Widget _signedRow(String label, int halere, pw.TextStyle style) {
-    final prefix = halere >= 0 ? '+' : '';
+  String _fmtSigned(int amount) {
+    final prefix = amount >= 0 ? '+' : '';
+    return '$prefix${formatMoneyForPrint(amount, labels.currency)}';
+  }
+
+  pw.Widget _signedRow(String label, int amount, pw.TextStyle style) {
     return pw.Padding(
       padding: const pw.EdgeInsets.symmetric(vertical: 1),
       child: pw.Row(
         children: [
           pw.Expanded(child: pw.Text(label, style: style)),
-          pw.Text('$prefix${halere ~/ 100} ${labels.currencySymbol}',
-              style: style),
+          pw.Text(_fmtSigned(amount), style: style),
         ],
       ),
     );
