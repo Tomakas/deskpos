@@ -35,11 +35,20 @@ final routerProvider = Provider<GoRouter>((ref) {
       final initState = initAsync is AsyncData<AppInitState> ? initAsync.value : null;
       final needsOnboarding = initState == AppInitState.needsOnboarding;
       final isDisplayMode = initState == AppInitState.displayMode;
+      final isKdsMode = initState == AppInitState.kdsMode;
       final isAuthenticated = session.isAuthenticated;
 
-      // Display mode — route to customer display (no auth required)
+      // Customer display mode — no auth required
       if (isDisplayMode && path != '/customer-display' && path != '/display-code') {
         return '/customer-display';
+      }
+
+      // KDS mode — needs auth, then route to /kds
+      if (isKdsMode && !isAuthenticated && path != '/login' && path != '/display-code') {
+        return '/login';
+      }
+      if (isKdsMode && isAuthenticated && path != '/kds') {
+        return '/kds';
       }
 
       // Allow display-code without auth
@@ -51,13 +60,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
 
       // Not authenticated (but has company)
-      if (!needsOnboarding && !isDisplayMode && !isAuthenticated &&
+      if (!needsOnboarding && !isDisplayMode && !isKdsMode && !isAuthenticated &&
           path != '/login' && path != '/onboarding' && path != '/connect-company') {
         return '/login';
       }
 
       // Authenticated but on login/onboarding — go to bills
-      if (isAuthenticated &&
+      if (isAuthenticated && !isKdsMode &&
           (path == '/login' || path == '/onboarding' || path == '/loading' || path == '/connect-company')) {
         return '/bills';
       }

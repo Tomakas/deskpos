@@ -32,6 +32,12 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
   int? _dragHoverCol;
   Object? _draggedItem; // TableModel or MapElementModel
 
+  // Drag grab offset (pointer cell minus element top-left cell)
+  int? _grabOffsetRow;
+  int? _grabOffsetCol;
+  int? _dragRawRow; // raw pointer cell for onLeave comparison
+  int? _dragRawCol;
+
   // Selection
   String? _selectedId;
   bool _selectedIsTable = true;
@@ -109,21 +115,42 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
                                           onWillAcceptWithDetails: (details) {
                                             if (details.data is TableModel) {
                                               final table = details.data as TableModel;
-                                              final canPlace = _canPlaceAt(table, r, c, placedTables);
-                                              if (canPlace && (_dragHoverRow != r || _dragHoverCol != c)) {
+                                              if (_grabOffsetRow == null) {
+                                                _grabOffsetRow = r - table.gridRow;
+                                                _grabOffsetCol = c - table.gridCol;
+                                              }
+                                              final aR = r - _grabOffsetRow!;
+                                              final aC = c - _grabOffsetCol!;
+                                              final canPlace = _canPlaceAt(table, aR, aC, placedTables);
+                                              if (canPlace && (_dragHoverRow != aR || _dragHoverCol != aC)) {
                                                 setState(() {
-                                                  _dragHoverRow = r;
-                                                  _dragHoverCol = c;
+                                                  _dragHoverRow = aR;
+                                                  _dragHoverCol = aC;
+                                                  _dragRawRow = r;
+                                                  _dragRawCol = c;
                                                   _draggedItem = table;
                                                 });
                                               }
                                               return canPlace;
                                             } else if (details.data is MapElementModel) {
                                               final elem = details.data as MapElementModel;
-                                              if (_dragHoverRow != r || _dragHoverCol != c) {
+                                              if (_grabOffsetRow == null) {
+                                                _grabOffsetRow = r - elem.gridRow;
+                                                _grabOffsetCol = c - elem.gridCol;
+                                              }
+                                              final aR = r - _grabOffsetRow!;
+                                              final aC = c - _grabOffsetCol!;
+                                              if (aR < 0 || aC < 0 ||
+                                                  aR + elem.gridHeight > _gridRows ||
+                                                  aC + elem.gridWidth > _gridCols) {
+                                                return false;
+                                              }
+                                              if (_dragHoverRow != aR || _dragHoverCol != aC) {
                                                 setState(() {
-                                                  _dragHoverRow = r;
-                                                  _dragHoverCol = c;
+                                                  _dragHoverRow = aR;
+                                                  _dragHoverCol = aC;
+                                                  _dragRawRow = r;
+                                                  _dragRawCol = c;
                                                   _draggedItem = elem;
                                                 });
                                               }
@@ -132,24 +159,32 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
                                             return false;
                                           },
                                           onLeave: (_) {
-                                            if (_dragHoverRow == r && _dragHoverCol == c) {
+                                            if (_dragRawRow == r && _dragRawCol == c) {
                                               setState(() {
                                                 _dragHoverRow = null;
                                                 _dragHoverCol = null;
+                                                _dragRawRow = null;
+                                                _dragRawCol = null;
                                                 _draggedItem = null;
                                               });
                                             }
                                           },
                                           onAcceptWithDetails: (details) {
+                                            final aR = r - (_grabOffsetRow ?? 0);
+                                            final aC = c - (_grabOffsetCol ?? 0);
                                             setState(() {
                                               _dragHoverRow = null;
                                               _dragHoverCol = null;
+                                              _dragRawRow = null;
+                                              _dragRawCol = null;
                                               _draggedItem = null;
+                                              _grabOffsetRow = null;
+                                              _grabOffsetCol = null;
                                             });
                                             if (details.data is TableModel) {
-                                              _moveTable(details.data as TableModel, r, c);
+                                              _moveTable(details.data as TableModel, aR, aC);
                                             } else if (details.data is MapElementModel) {
-                                              _moveElement(details.data as MapElementModel, r, c);
+                                              _moveElement(details.data as MapElementModel, aR, aC);
                                             }
                                           },
                                           builder: (context, candidateData, rejectedData) {
@@ -256,12 +291,20 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
       child: LongPressDraggable<TableModel>(
         data: table,
         delay: const Duration(milliseconds: 300),
-        dragAnchorStrategy: pointerDragAnchorStrategy,
-        onDragStarted: () => setState(() => _selectedId = null),
+        dragAnchorStrategy: childDragAnchorStrategy,
+        onDragStarted: () => setState(() {
+          _selectedId = null;
+          _grabOffsetRow = null;
+          _grabOffsetCol = null;
+        }),
         onDragEnd: (_) => setState(() {
           _dragHoverRow = null;
           _dragHoverCol = null;
+          _dragRawRow = null;
+          _dragRawCol = null;
           _draggedItem = null;
+          _grabOffsetRow = null;
+          _grabOffsetCol = null;
         }),
         feedback: Material(
           elevation: 6,
@@ -310,12 +353,20 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
       child: LongPressDraggable<MapElementModel>(
         data: elem,
         delay: const Duration(milliseconds: 300),
-        dragAnchorStrategy: pointerDragAnchorStrategy,
-        onDragStarted: () => setState(() => _selectedId = null),
+        dragAnchorStrategy: childDragAnchorStrategy,
+        onDragStarted: () => setState(() {
+          _selectedId = null;
+          _grabOffsetRow = null;
+          _grabOffsetCol = null;
+        }),
         onDragEnd: (_) => setState(() {
           _dragHoverRow = null;
           _dragHoverCol = null;
+          _dragRawRow = null;
+          _dragRawCol = null;
           _draggedItem = null;
+          _grabOffsetRow = null;
+          _grabOffsetCol = null;
         }),
         feedback: Material(
           elevation: 6,
@@ -595,6 +646,7 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
   }
 
   bool _canPlaceAt(TableModel table, int row, int col, List<TableModel> placedTables) {
+    if (row < 0 || col < 0) return false;
     if (row + table.gridHeight > _gridRows) return false;
     if (col + table.gridWidth > _gridCols) return false;
     for (final other in placedTables) {
@@ -772,10 +824,12 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
                               child: FilterChip(
                                 label: SizedBox(
                                   width: double.infinity,
-                                  child: Text(
-                                    switch (s) { TableShape.rectangle => l.floorMapShapeRectangle, TableShape.round => l.floorMapShapeRound, TableShape.triangle => l.floorMapShapeTriangle },
-                                    textAlign: TextAlign.center,
-                                  ),
+                                  child: s == TableShape.diamond
+                                      ? Transform.rotate(angle: 0.785398, child: const Icon(Icons.crop_square, size: 18))
+                                      : Icon(
+                                          switch (s) { TableShape.rectangle => Icons.crop_square, TableShape.round => Icons.circle_outlined, TableShape.triangle => Icons.change_history, _ => Icons.crop_square },
+                                          size: 20,
+                                        ),
                                 ),
                                 selected: shape == s,
                                 onSelected: (_) => setDialogState(() => shape = s),
@@ -871,10 +925,12 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
                               child: FilterChip(
                                 label: SizedBox(
                                   width: double.infinity,
-                                  child: Text(
-                                    switch (s) { TableShape.rectangle => l.floorMapShapeRectangle, TableShape.round => l.floorMapShapeRound, TableShape.triangle => l.floorMapShapeTriangle },
-                                    textAlign: TextAlign.center,
-                                  ),
+                                  child: s == TableShape.diamond
+                                      ? Transform.rotate(angle: 0.785398, child: const Icon(Icons.crop_square, size: 18))
+                                      : Icon(
+                                          switch (s) { TableShape.rectangle => Icons.crop_square, TableShape.round => Icons.circle_outlined, TableShape.triangle => Icons.change_history, _ => Icons.crop_square },
+                                          size: 20,
+                                        ),
                                 ),
                                 selected: elemShape == s,
                                 onSelected: (_) => setDialogState(() => elemShape = s),
@@ -1076,10 +1132,12 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
                             child: FilterChip(
                               label: SizedBox(
                                 width: double.infinity,
-                                child: Text(
-                                  switch (s) { TableShape.rectangle => l.floorMapShapeRectangle, TableShape.round => l.floorMapShapeRound, TableShape.triangle => l.floorMapShapeTriangle },
-                                  textAlign: TextAlign.center,
-                                ),
+                                child: s == TableShape.diamond
+                                    ? Transform.rotate(angle: 0.785398, child: const Icon(Icons.crop_square, size: 18))
+                                    : Icon(
+                                        switch (s) { TableShape.rectangle => Icons.crop_square, TableShape.round => Icons.circle_outlined, TableShape.triangle => Icons.change_history, _ => Icons.crop_square },
+                                        size: 20,
+                                      ),
                               ),
                               selected: shape == s,
                               onSelected: (_) => setDialogState(() => shape = s),
@@ -1253,10 +1311,12 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
                             child: FilterChip(
                               label: SizedBox(
                                 width: double.infinity,
-                                child: Text(
-                                  switch (s) { TableShape.rectangle => l.floorMapShapeRectangle, TableShape.round => l.floorMapShapeRound, TableShape.triangle => l.floorMapShapeTriangle },
-                                  textAlign: TextAlign.center,
-                                ),
+                                child: s == TableShape.diamond
+                                    ? Transform.rotate(angle: 0.785398, child: const Icon(Icons.crop_square, size: 18))
+                                    : Icon(
+                                        switch (s) { TableShape.rectangle => Icons.crop_square, TableShape.round => Icons.circle_outlined, TableShape.triangle => Icons.change_history, _ => Icons.crop_square },
+                                        size: 20,
+                                      ),
                               ),
                               selected: shape == s,
                               onSelected: (_) => setDialogState(() => shape = s),
@@ -1404,7 +1464,7 @@ class _TableCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = table.color != null ? parseHexColor(table.color) : parseHexColor(section?.color);
-    final isTriangle = table.shape == TableShape.triangle;
+    final customShape = table.shape == TableShape.triangle || table.shape == TableShape.diamond;
     final radius = switch (table.shape) {
       TableShape.round => BorderRadius.circular(999),
       _ => BorderRadius.circular(6),
@@ -1437,15 +1497,15 @@ class _TableCell extends StatelessWidget {
       ),
     );
 
-    if (isTriangle) {
+    if (customShape) {
       return Padding(
         padding: const EdgeInsets.all(1),
         child: CustomPaint(
           foregroundPainter: borderColor != null
-              ? _TriangleBorderPainter(color: borderColor, strokeWidth: 2)
+              ? _ShapeBorderPainter(shape: table.shape, color: borderColor, strokeWidth: 2)
               : null,
           child: ClipPath(
-            clipper: const _TriangleClipper(),
+            clipper: _ShapeClipper(table.shape),
             child: ColoredBox(color: fillColor, child: content),
           ),
         ),
@@ -1497,7 +1557,7 @@ class _EditorElementCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = element.color != null ? parseHexColor(element.color) : null;
-    final isTriangle = element.shape == TableShape.triangle;
+    final customShape = element.shape == TableShape.triangle || element.shape == TableShape.diamond;
     final radius = switch (element.shape) {
       TableShape.round => BorderRadius.circular(999),
       _ => BorderRadius.circular(6),
@@ -1527,17 +1587,17 @@ class _EditorElementCell extends StatelessWidget {
           )
         : const SizedBox.expand();
 
-    if (isTriangle) {
+    if (customShape) {
       final borderColor = _borderColorForStyle(color, element.borderStyle, context);
       final borderWidth = color != null ? 2.0 : 1.0;
       return Padding(
         padding: const EdgeInsets.all(1),
         child: CustomPaint(
           foregroundPainter: borderColor != null
-              ? _TriangleBorderPainter(color: borderColor, strokeWidth: borderWidth)
+              ? _ShapeBorderPainter(shape: element.shape, color: borderColor, strokeWidth: borderWidth)
               : null,
           child: ClipPath(
-            clipper: const _TriangleClipper(),
+            clipper: _ShapeClipper(element.shape),
             child: ColoredBox(color: fillColor, child: content),
           ),
         ),
@@ -1739,24 +1799,37 @@ class _StyleChipRow extends StatelessWidget {
   }
 }
 
-class _TriangleClipper extends CustomClipper<Path> {
-  const _TriangleClipper();
-
-  @override
-  Path getClip(Size size) {
-    return Path()
+Path _shapePath(TableShape shape, Size size) {
+  return switch (shape) {
+    TableShape.triangle => Path()
       ..moveTo(size.width / 2, 0)
       ..lineTo(size.width, size.height)
       ..lineTo(0, size.height)
-      ..close();
-  }
-
-  @override
-  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
+      ..close(),
+    TableShape.diamond => Path()
+      ..moveTo(size.width / 2, 0)
+      ..lineTo(size.width, size.height / 2)
+      ..lineTo(size.width / 2, size.height)
+      ..lineTo(0, size.height / 2)
+      ..close(),
+    _ => Path()..addRect(Rect.fromLTWH(0, 0, size.width, size.height)),
+  };
 }
 
-class _TriangleBorderPainter extends CustomPainter {
-  const _TriangleBorderPainter({required this.color, required this.strokeWidth});
+class _ShapeClipper extends CustomClipper<Path> {
+  const _ShapeClipper(this.shape);
+  final TableShape shape;
+
+  @override
+  Path getClip(Size size) => _shapePath(shape, size);
+
+  @override
+  bool shouldReclip(covariant _ShapeClipper old) => shape != old.shape;
+}
+
+class _ShapeBorderPainter extends CustomPainter {
+  const _ShapeBorderPainter({required this.shape, required this.color, required this.strokeWidth});
+  final TableShape shape;
   final Color color;
   final double strokeWidth;
 
@@ -1767,17 +1840,10 @@ class _TriangleBorderPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..strokeJoin = StrokeJoin.round;
-
-    final path = Path()
-      ..moveTo(size.width / 2, 0)
-      ..lineTo(size.width, size.height)
-      ..lineTo(0, size.height)
-      ..close();
-
-    canvas.drawPath(path, paint);
+    canvas.drawPath(_shapePath(shape, size), paint);
   }
 
   @override
-  bool shouldRepaint(covariant _TriangleBorderPainter old) =>
-      color != old.color || strokeWidth != old.strokeWidth;
+  bool shouldRepaint(covariant _ShapeBorderPainter old) =>
+      shape != old.shape || color != old.color || strokeWidth != old.strokeWidth;
 }

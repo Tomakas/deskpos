@@ -1877,6 +1877,9 @@ class AppLocalizationsCs extends AppLocalizations {
   String get floorMapShapeTriangle => 'Trojúhelník';
 
   @override
+  String get floorMapShapeDiamond => 'Kosočtverec';
+
+  @override
   String get floorMapSegmentTable => 'Stůl';
 
   @override
@@ -2022,6 +2025,12 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get billDetailVoucher => 'Voucher';
+
+  @override
+  String get wizardLanguage => 'Jazyk';
+
+  @override
+  String get wizardCurrency => 'Výchozí měna';
 
   @override
   String get wizardWithTestData => 'Vytvořit s testovacími daty';

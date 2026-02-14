@@ -383,7 +383,7 @@ class _MapTableCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = table.color != null ? _parseColor(table.color) : _parseColor(section?.color);
-    final isTriangle = table.shape == TableShape.triangle;
+    final customShape = table.shape == TableShape.triangle || table.shape == TableShape.diamond;
     final radius = switch (table.shape) {
       TableShape.round => BorderRadius.circular(999),
       _ => BorderRadius.circular(8),
@@ -418,17 +418,17 @@ class _MapTableCell extends StatelessWidget {
       ),
     );
 
-    if (isTriangle) {
+    if (customShape) {
       return Padding(
         padding: const EdgeInsets.all(2),
         child: GestureDetector(
           onTap: onTap,
           child: CustomPaint(
             foregroundPainter: borderColor != null
-                ? _TriangleBorderPainter(color: borderColor, strokeWidth: 2)
+                ? _ShapeBorderPainter(shape: table.shape, color: borderColor, strokeWidth: 2)
                 : null,
             child: ClipPath(
-              clipper: const _TriangleClipper(),
+              clipper: _ShapeClipper(table.shape),
               child: ColoredBox(color: fillColor, child: content),
             ),
           ),
@@ -480,7 +480,7 @@ class _MapElementCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = element.color != null ? _parseColor(element.color) : null;
-    final isTriangle = element.shape == TableShape.triangle;
+    final customShape = element.shape == TableShape.triangle || element.shape == TableShape.diamond;
     final radius = switch (element.shape) {
       TableShape.round => BorderRadius.circular(999),
       _ => BorderRadius.circular(6),
@@ -510,16 +510,16 @@ class _MapElementCell extends StatelessWidget {
           )
         : const SizedBox.expand();
 
-    if (isTriangle) {
+    if (customShape) {
       final borderColor = _borderColorForStyle(color, element.borderStyle);
       return Padding(
         padding: const EdgeInsets.all(2),
         child: CustomPaint(
           foregroundPainter: borderColor != null
-              ? _TriangleBorderPainter(color: borderColor, strokeWidth: 2)
+              ? _ShapeBorderPainter(shape: element.shape, color: borderColor, strokeWidth: 2)
               : null,
           child: ClipPath(
-            clipper: const _TriangleClipper(),
+            clipper: _ShapeClipper(element.shape),
             child: ColoredBox(color: fillColor ?? Colors.transparent, child: content),
           ),
         ),
@@ -540,24 +540,37 @@ class _MapElementCell extends StatelessWidget {
   }
 }
 
-class _TriangleClipper extends CustomClipper<Path> {
-  const _TriangleClipper();
-
-  @override
-  Path getClip(Size size) {
-    return Path()
+Path _shapePath(TableShape shape, Size size) {
+  return switch (shape) {
+    TableShape.triangle => Path()
       ..moveTo(size.width / 2, 0)
       ..lineTo(size.width, size.height)
       ..lineTo(0, size.height)
-      ..close();
-  }
-
-  @override
-  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
+      ..close(),
+    TableShape.diamond => Path()
+      ..moveTo(size.width / 2, 0)
+      ..lineTo(size.width, size.height / 2)
+      ..lineTo(size.width / 2, size.height)
+      ..lineTo(0, size.height / 2)
+      ..close(),
+    _ => Path()..addRect(Rect.fromLTWH(0, 0, size.width, size.height)),
+  };
 }
 
-class _TriangleBorderPainter extends CustomPainter {
-  const _TriangleBorderPainter({required this.color, required this.strokeWidth});
+class _ShapeClipper extends CustomClipper<Path> {
+  const _ShapeClipper(this.shape);
+  final TableShape shape;
+
+  @override
+  Path getClip(Size size) => _shapePath(shape, size);
+
+  @override
+  bool shouldReclip(covariant _ShapeClipper old) => shape != old.shape;
+}
+
+class _ShapeBorderPainter extends CustomPainter {
+  const _ShapeBorderPainter({required this.shape, required this.color, required this.strokeWidth});
+  final TableShape shape;
   final Color color;
   final double strokeWidth;
 
@@ -568,17 +581,10 @@ class _TriangleBorderPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..strokeJoin = StrokeJoin.round;
-
-    final path = Path()
-      ..moveTo(size.width / 2, 0)
-      ..lineTo(size.width, size.height)
-      ..lineTo(0, size.height)
-      ..close();
-
-    canvas.drawPath(path, paint);
+    canvas.drawPath(_shapePath(shape, size), paint);
   }
 
   @override
-  bool shouldRepaint(covariant _TriangleBorderPainter old) =>
-      color != old.color || strokeWidth != old.strokeWidth;
+  bool shouldRepaint(covariant _ShapeBorderPainter old) =>
+      shape != old.shape || color != old.color || strokeWidth != old.strokeWidth;
 }

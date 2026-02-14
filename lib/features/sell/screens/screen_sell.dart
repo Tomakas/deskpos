@@ -81,17 +81,17 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
   }
 
   Future<void> _initDisplayBroadcast() async {
-    final register = ref.read(activeRegisterProvider).value;
-    if (register == null) return;
+    final register = await ref.read(activeRegisterProvider.future);
+    if (register == null || !mounted) return;
 
     final displayDeviceRepo = ref.read(displayDeviceRepositoryProvider);
     final devices = await displayDeviceRepo.getByParentRegister(register.id);
     final customerDisplay = devices
         .where((d) => d.type == DisplayDeviceType.customerDisplay)
         .firstOrNull;
-    if (customerDisplay != null) {
+    if (customerDisplay != null && mounted) {
       _displayCode = customerDisplay.code;
-      ref.read(customerDisplayChannelProvider).join('display:${_displayCode!}');
+      await ref.read(customerDisplayChannelProvider).join('display:${_displayCode!}');
       AppLogger.info(
         'ScreenSell: joined display:${_displayCode!}',
         tag: 'BROADCAST',

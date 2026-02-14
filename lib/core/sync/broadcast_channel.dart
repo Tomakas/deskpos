@@ -13,18 +13,26 @@ class BroadcastChannel {
 
   RealtimeChannel? _channel;
   String? _channelName;
+  bool _subscribed = false;
   final _controller = StreamController<Map<String, dynamic>>.broadcast();
 
   Stream<Map<String, dynamic>> get stream => _controller.stream;
   bool get isJoined => _channel != null;
+  bool get isSubscribed => _subscribed;
 
-  /// Join a broadcast channel. Idempotent — if already joined to the same
-  /// channel, does nothing. If joined to a different channel, leaves first.
-  void join(String channelName) {
-    if (_channelName == channelName && _channel != null) return;
+  /// Join a broadcast channel. Returns a Future that completes when the
+  /// subscription reaches SUBSCRIBED state. Idempotent — if already joined
+  /// to the same channel, returns immediately.
+  Future<void> join(String channelName) {
+    if (_channelName == channelName && _channel != null) {
+      return Future.value();
+    }
     leave();
 
     _channelName = channelName;
+    _subscribed = false;
+    final completer = Completer<void>();
+
     _channel = _supabase
         .channel(channelName)
         .onBroadcast(
@@ -40,19 +48,35 @@ class BroadcastChannel {
         'BroadcastChannel($channelName): status=$status',
         tag: 'BROADCAST',
       );
+      if (status == RealtimeSubscribeStatus.subscribed &&
+          !completer.isCompleted) {
+        _subscribed = true;
+        completer.complete();
+      }
       if (error != null) {
         AppLogger.error(
           'BroadcastChannel($channelName): error',
           tag: 'BROADCAST',
           error: error,
         );
+        if (!completer.isCompleted) {
+          completer.completeError(error);
+        }
       }
     });
+
+    return completer.future;
   }
 
   /// Send a payload to the current channel.
   Future<void> send(Map<String, dynamic> payload) async {
-    if (_channel == null) return;
+    if (_channel == null || !_subscribed) {
+      AppLogger.warn(
+        'BroadcastChannel($_channelName): send skipped (subscribed=$_subscribed)',
+        tag: 'BROADCAST',
+      );
+      return;
+    }
     try {
       await _channel!.sendBroadcastMessage(
         event: 'payload',
@@ -74,6 +98,7 @@ class BroadcastChannel {
       _supabase.removeChannel(_channel!);
       _channel = null;
       _channelName = null;
+      _subscribed = false;
     }
   }
 

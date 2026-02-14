@@ -602,7 +602,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
   Future<void> _showOnDisplay(BillModel bill) async {
     // Resolve display code if not cached
     if (_displayCode == null) {
-      final register = ref.read(activeRegisterProvider).value;
+      final register = await ref.read(activeRegisterProvider.future);
       if (register == null) return;
       final devices = await ref.read(displayDeviceRepositoryProvider)
           .getByParentRegister(register.id);
@@ -611,7 +611,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
           .firstOrNull;
       if (customerDisplay == null) return;
       _displayCode = customerDisplay.code;
-      ref.read(customerDisplayChannelProvider).join('display:${_displayCode!}');
+      await ref.read(customerDisplayChannelProvider).join('display:${_displayCode!}');
     }
 
     // Build display items from bill orders

@@ -785,6 +785,7 @@
   "floorMapShapeRectangle": "Rectangle",
   "floorMapShapeRound": "Oval",
   "floorMapShapeTriangle": "Triangle",
+  "floorMapShapeDiamond": "Diamond",
 
   "floorMapSegmentTable": "Table",
   "floorMapSegmentElement": "Element",
@@ -837,6 +838,8 @@
   "voucherIdLabel": "ID",
   "billDetailVoucher": "Voucher",
 
+  "wizardLanguage": "Language",
+  "wizardCurrency": "Default Currency",
   "wizardWithTestData": "Create with test data",
 
   "orderItemStorno": "Void",

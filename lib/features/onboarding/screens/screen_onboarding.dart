@@ -22,6 +22,8 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
   int _step = 0;
   bool _isSubmitting = false;
   bool _withTestData = false;
+  String _selectedLocale = 'cs';
+  String _selectedCurrencyCode = 'CZK';
 
   // Step 1: Company
   final _companyNameCtrl = TextEditingController();
@@ -64,6 +66,38 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: SizedBox(
+                        height: 40,
+                        child: FilterChip(
+                          label: SizedBox(
+                            width: double.infinity,
+                            child: Text('Čeština', textAlign: TextAlign.center),
+                          ),
+                          selected: _selectedLocale == 'cs',
+                          onSelected: (_) => _setLocale('cs'),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: SizedBox(
+                        height: 40,
+                        child: FilterChip(
+                          label: SizedBox(
+                            width: double.infinity,
+                            child: Text('English', textAlign: TextAlign.center),
+                          ),
+                          selected: _selectedLocale == 'en',
+                          onSelected: (_) => _setLocale('en'),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 32),
                 Text(l.onboardingTitle, style: Theme.of(context).textTheme.headlineMedium),
                 const SizedBox(height: 48),
                 // --- Pokladna ---
@@ -210,6 +244,29 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
         decoration: InputDecoration(labelText: l.wizardPhone),
         keyboardType: TextInputType.phone,
       ),
+      const SizedBox(height: 24),
+      Text(l.wizardCurrency, style: Theme.of(context).textTheme.titleSmall),
+      const SizedBox(height: 8),
+      Row(
+        children: [
+          for (final entry in _currencyOptions.entries) ...[
+            if (entry.key != _currencyOptions.keys.first) const SizedBox(width: 8),
+            Expanded(
+              child: SizedBox(
+                height: 40,
+                child: FilterChip(
+                  label: SizedBox(
+                    width: double.infinity,
+                    child: Text(entry.value, textAlign: TextAlign.center),
+                  ),
+                  selected: _selectedCurrencyCode == entry.key,
+                  onSelected: (_) => setState(() => _selectedCurrencyCode = entry.key),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
       const SizedBox(height: 16),
       CheckboxListTile(
         value: _withTestData,
@@ -265,6 +322,19 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
     ];
   }
 
+  static const _currencyOptions = {
+    'CZK': 'CZK (Kč)',
+    'EUR': 'EUR (€)',
+    'USD': 'USD (\$)',
+    'PLN': 'PLN (zł)',
+    'HUF': 'HUF (Ft)',
+  };
+
+  void _setLocale(String locale) {
+    setState(() => _selectedLocale = locale);
+    ref.read(pendingLocaleProvider.notifier).state = locale;
+  }
+
   void _nextStep() {
     if (_formKey.currentState!.validate()) {
       setState(() => _step++);
@@ -294,12 +364,16 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
       adminPin: _pinCtrl.text,
       withTestData: _withTestData,
       deviceId: myDeviceId,
+      locale: _selectedLocale,
+      defaultCurrencyCode: _selectedCurrencyCode,
     );
 
     if (!mounted) return;
 
     switch (result) {
       case Success():
+        // Clear pre-company locale override — company settings now own the locale
+        ref.read(pendingLocaleProvider.notifier).state = null;
         ref.invalidate(appInitProvider);
         // Wait for provider to re-resolve before navigating
         await ref.read(appInitProvider.future);

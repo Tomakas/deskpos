@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/data/enums/hardware_type.dart';
 import '../../../core/data/models/register_model.dart';
@@ -128,6 +129,13 @@ class _ScreenConnectCompanyState extends ConsumerState<ScreenConnectCompany> {
       }
 
       if (!mounted) return;
+
+      // KDS devices don't need register binding — skip selection
+      final prefs = await SharedPreferences.getInstance();
+      if (prefs.getString('display_type') == 'kds') {
+        _finalize();
+        return;
+      }
 
       // Load ALL registers for selection — never auto-bind, never skip
       final registerRepo = ref.read(registerRepositoryProvider);

@@ -48,7 +48,7 @@ class _ScreenCustomerDisplayState extends ConsumerState<ScreenCustomerDisplay> {
     if (_code == null) return;
 
     final channel = ref.read(customerDisplayChannelProvider);
-    channel.join('display:$_code');
+    await channel.join('display:$_code');
     _sub = channel.stream.listen(_onBroadcast);
     AppLogger.info('CustomerDisplay: joined display:$_code', tag: 'BROADCAST');
   }

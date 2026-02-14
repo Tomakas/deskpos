@@ -3704,6 +3704,12 @@ abstract class AppLocalizations {
   /// **'Trojúhelník'**
   String get floorMapShapeTriangle;
 
+  /// No description provided for @floorMapShapeDiamond.
+  ///
+  /// In cs, this message translates to:
+  /// **'Kosočtverec'**
+  String get floorMapShapeDiamond;
+
   /// No description provided for @floorMapSegmentTable.
   ///
   /// In cs, this message translates to:
@@ -3997,6 +4003,18 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Voucher'**
   String get billDetailVoucher;
+
+  /// No description provided for @wizardLanguage.
+  ///
+  /// In cs, this message translates to:
+  /// **'Jazyk'**
+  String get wizardLanguage;
+
+  /// No description provided for @wizardCurrency.
+  ///
+  /// In cs, this message translates to:
+  /// **'Výchozí měna'**
+  String get wizardCurrency;
 
   /// No description provided for @wizardWithTestData.
   ///

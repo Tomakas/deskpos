@@ -1,1 +1,1 @@
-enum TableShape { rectangle, round, triangle }
+enum TableShape { rectangle, round, triangle, diamond }

@@ -1877,6 +1877,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get floorMapShapeTriangle => 'Triangle';
 
   @override
+  String get floorMapShapeDiamond => 'Diamond';
+
+  @override
   String get floorMapSegmentTable => 'Table';
 
   @override
@@ -2023,6 +2026,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get billDetailVoucher => 'Voucher';
+
+  @override
+  String get wizardLanguage => 'Language';
+
+  @override
+  String get wizardCurrency => 'Default Currency';
 
   @override
   String get wizardWithTestData => 'Create with test data';

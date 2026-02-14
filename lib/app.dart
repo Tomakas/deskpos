@@ -22,7 +22,7 @@ class EposApp extends ConsumerWidget {
       theme: _buildTheme(),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: const [Locale('cs'), Locale('en')],
-      locale: Locale(ref.watch(appLocaleProvider).value ?? 'cs'),
+      locale: Locale(ref.watch(pendingLocaleProvider) ?? ref.watch(appLocaleProvider).value ?? 'cs'),
       routerConfig: router,
       builder: (context, child) => InactivityDetector(child: child!),
     );

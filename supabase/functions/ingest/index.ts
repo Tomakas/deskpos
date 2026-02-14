@@ -19,6 +19,7 @@ const ALLOWED_TABLES = new Set([
   "tables",
   "map_elements",
   "registers",
+  "display_devices",
   "layout_items",
   "bills",
   "orders",

@@ -104,11 +104,12 @@ class SyncLifecycleManager {
     _syncService.stop();
   }
 
-  void _subscribeKdsBroadcast(String companyId) {
-    if (_kdsBroadcastChannel == null) return;
+  Future<void> _subscribeKdsBroadcast(String companyId) async {
+    final channel = _kdsBroadcastChannel;
+    if (channel == null) return;
 
-    _kdsBroadcastChannel.join('kds:$companyId');
-    _kdsSubscription = _kdsBroadcastChannel.stream.listen((payload) {
+    await channel.join('kds:$companyId');
+    _kdsSubscription = channel.stream.listen((payload) {
       _handleKdsBroadcast(companyId, payload);
     });
     AppLogger.info('SyncLifecycleManager: subscribed to KDS broadcast', tag: 'SYNC');

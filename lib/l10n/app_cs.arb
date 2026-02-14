@@ -785,6 +785,7 @@
   "floorMapShapeRectangle": "Obdélník",
   "floorMapShapeRound": "Ovál",
   "floorMapShapeTriangle": "Trojúhelník",
+  "floorMapShapeDiamond": "Kosočtverec",
 
   "floorMapSegmentTable": "Stůl",
   "floorMapSegmentElement": "Prvek",
@@ -837,6 +838,8 @@
   "voucherIdLabel": "ID",
   "billDetailVoucher": "Voucher",
 
+  "wizardLanguage": "Jazyk",
+  "wizardCurrency": "Výchozí měna",
   "wizardWithTestData": "Vytvořit s testovacími daty",
 
   "orderItemStorno": "Storno",

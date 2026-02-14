@@ -11,6 +11,7 @@ import '../enums/layout_item_type.dart';
 import '../enums/payment_type.dart';
 import '../enums/role_name.dart';
 import '../enums/tax_calc_type.dart';
+import '../enums/table_shape.dart';
 import '../enums/unit_type.dart';
 import '../mappers/entity_mappers.dart';
 import '../models/category_model.dart';
@@ -20,6 +21,7 @@ import '../models/currency_model.dart';
 import '../models/customer_model.dart';
 import '../models/item_model.dart';
 import '../models/manufacturer_model.dart';
+import '../models/map_element_model.dart';
 import '../models/payment_method_model.dart';
 import '../models/permission_model.dart';
 import '../models/register_model.dart';
@@ -51,6 +53,8 @@ class SeedService {
     required String adminPin,
     bool withTestData = false,
     String? deviceId,
+    String locale = 'cs',
+    String defaultCurrencyCode = 'CZK',
   }) async {
     try {
       final companyId = _id();
@@ -65,6 +69,9 @@ class SeedService {
       await _db.transaction(() async {
         // ── ESSENTIALS (always) ──
 
+        // Bilingual helper — returns Czech or English string based on locale
+        String t(String cs, String en) => locale == 'en' ? en : cs;
+
         // 1. Currencies (global table — check-before-insert to avoid duplicates)
         final currencyDefs = [
           (code: 'CZK', symbol: 'Kč', name: 'Česká koruna', decimalPlaces: 2),
@@ -75,10 +82,10 @@ class SeedService {
         ];
         for (final def in currencyDefs) {
           final existing = await (_db.select(_db.currencies)
-                ..where((t) => t.code.equals(def.code)))
+                ..where((c) => c.code.equals(def.code)))
               .getSingleOrNull();
           if (existing == null) {
-            final id = def.code == 'CZK' ? currencyId : _id();
+            final id = def.code == defaultCurrencyCode ? currencyId : _id();
             await _db.into(_db.currencies).insert(currencyToCompanion(
               CurrencyModel(
                 id: id,
@@ -90,8 +97,8 @@ class SeedService {
                 updatedAt: now,
               ),
             ));
-          } else if (def.code == 'CZK') {
-            // Ensure currencyId points to the existing CZK for company default
+          } else if (def.code == defaultCurrencyCode) {
+            // Ensure currencyId points to the existing default currency for company
             currencyId = existing.id;
           }
         }
@@ -116,6 +123,7 @@ class SeedService {
         final settings = CompanySettingsModel(
           id: _id(),
           companyId: companyId,
+          locale: locale,
           createdAt: now,
           updatedAt: now,
         );
@@ -128,7 +136,7 @@ class SeedService {
           TaxRateModel(
             id: taxRate21Id,
             companyId: companyId,
-            label: 'Základní 21%',
+            label: t('Základní 21%', 'Standard 21%'),
             type: TaxCalcType.regular,
             rate: 2100,
             isDefault: true,
@@ -138,7 +146,7 @@ class SeedService {
           TaxRateModel(
             id: taxRate12Id,
             companyId: companyId,
-            label: 'Snížená 12%',
+            label: t('Snížená 12%', 'Reduced 12%'),
             type: TaxCalcType.regular,
             rate: 1200,
             createdAt: now,
@@ -147,7 +155,7 @@ class SeedService {
           TaxRateModel(
             id: _id(),
             companyId: companyId,
-            label: 'Nulová 0%',
+            label: t('Nulová 0%', 'Zero 0%'),
             type: TaxCalcType.noTax,
             rate: 0,
             createdAt: now,
@@ -236,7 +244,7 @@ class SeedService {
           PaymentMethodModel(
             id: _id(),
             companyId: companyId,
-            name: 'Hotovost',
+            name: t('Hotovost', 'Cash'),
             type: PaymentType.cash,
             createdAt: now,
             updatedAt: now,
@@ -244,7 +252,7 @@ class SeedService {
           PaymentMethodModel(
             id: _id(),
             companyId: companyId,
-            name: 'Karta',
+            name: t('Karta', 'Card'),
             type: PaymentType.card,
             createdAt: now,
             updatedAt: now,
@@ -252,7 +260,7 @@ class SeedService {
           PaymentMethodModel(
             id: _id(),
             companyId: companyId,
-            name: 'Převod',
+            name: t('Převod', 'Bank Transfer'),
             type: PaymentType.bank,
             createdAt: now,
             updatedAt: now,
@@ -260,7 +268,7 @@ class SeedService {
           PaymentMethodModel(
             id: _id(),
             companyId: companyId,
-            name: 'Zákaznický kredit',
+            name: t('Zákaznický kredit', 'Customer Credit'),
             type: PaymentType.credit,
             isActive: true,
             createdAt: now,
@@ -274,7 +282,7 @@ class SeedService {
         // 8. Sections — always create Hlavní, demo adds Zahrádka + Interní
         final hlavniId = _id();
         await _db.into(_db.sections).insert(sectionToCompanion(
-          SectionModel(id: hlavniId, companyId: companyId, name: 'Hlavní', color: '#4CAF50', isDefault: true, createdAt: now, updatedAt: now),
+          SectionModel(id: hlavniId, companyId: companyId, name: t('Hlavní', 'Main'), color: '#4CAF50', isDefault: true, createdAt: now, updatedAt: now),
         ));
 
         String? zahradkaId;
@@ -284,8 +292,8 @@ class SeedService {
           zahradkaId = _id();
           interniId = _id();
           final demoSections = [
-            SectionModel(id: zahradkaId, companyId: companyId, name: 'Zahrádka', color: '#FF9800', createdAt: now, updatedAt: now),
-            SectionModel(id: interniId, companyId: companyId, name: 'Interní', color: '#9E9E9E', createdAt: now, updatedAt: now),
+            SectionModel(id: zahradkaId, companyId: companyId, name: t('Zahrádka', 'Garden'), color: '#FF9800', createdAt: now, updatedAt: now),
+            SectionModel(id: interniId, companyId: companyId, name: t('Interní', 'Internal'), color: '#9E9E9E', createdAt: now, updatedAt: now),
           ];
           for (final s in demoSections) {
             await _db.into(_db.sections).insert(sectionToCompanion(s));
@@ -297,7 +305,7 @@ class SeedService {
           id: registerId,
           companyId: companyId,
           code: 'REG-1',
-          name: 'Hlavní pokladna',
+          name: t('Hlavní pokladna', 'Main Register'),
           registerNumber: 1,
           isMain: true,
           type: HardwareType.local,
@@ -365,25 +373,45 @@ class SeedService {
         if (withTestData) {
           // 12. Tables — Hlavní & Zahrádka placed on floor map, Interní off-map
           final tables = [
-            // Hlavní section — larger tables (4×4) spread across top area
-            TableModel(id: _id(), companyId: companyId, name: 'Stůl 1', sectionId: hlavniId, capacity: 4, gridRow: 2, gridCol: 4, gridWidth: 4, gridHeight: 4, createdAt: now, updatedAt: now),
-            TableModel(id: _id(), companyId: companyId, name: 'Stůl 2', sectionId: hlavniId, capacity: 4, gridRow: 2, gridCol: 10, gridWidth: 4, gridHeight: 4, createdAt: now, updatedAt: now),
-            TableModel(id: _id(), companyId: companyId, name: 'Stůl 3', sectionId: hlavniId, capacity: 4, gridRow: 2, gridCol: 18, gridWidth: 4, gridHeight: 4, createdAt: now, updatedAt: now),
-            TableModel(id: _id(), companyId: companyId, name: 'Stůl 4', sectionId: hlavniId, capacity: 4, gridRow: 8, gridCol: 6, gridWidth: 4, gridHeight: 4, createdAt: now, updatedAt: now),
-            TableModel(id: _id(), companyId: companyId, name: 'Stůl 5', sectionId: hlavniId, capacity: 4, gridRow: 8, gridCol: 14, gridWidth: 4, gridHeight: 4, createdAt: now, updatedAt: now),
+            // Hlavní section — floor map layout
+            TableModel(id: _id(), companyId: companyId, name: t('Stůl 1', 'Table 1'), sectionId: hlavniId, capacity: 4, gridRow: 1, gridCol: 1, gridWidth: 4, gridHeight: 4, shape: TableShape.round, fontSize: 14, createdAt: now, updatedAt: now),
+            TableModel(id: _id(), companyId: companyId, name: t('Stůl 2', 'Table 2'), sectionId: hlavniId, capacity: 4, gridRow: 7, gridCol: 1, gridWidth: 4, gridHeight: 4, shape: TableShape.round, fontSize: 14, createdAt: now, updatedAt: now),
+            TableModel(id: _id(), companyId: companyId, name: t('Stůl 3', 'Table 3'), sectionId: hlavniId, capacity: 4, gridRow: 13, gridCol: 1, gridWidth: 4, gridHeight: 4, shape: TableShape.round, fontSize: 14, createdAt: now, updatedAt: now),
+            TableModel(id: _id(), companyId: companyId, name: t('Stůl 4', 'Table 4'), sectionId: hlavniId, capacity: 4, gridRow: 1, gridCol: 9, gridWidth: 4, gridHeight: 4, shape: TableShape.diamond, fontSize: 14, createdAt: now, updatedAt: now),
+            TableModel(id: _id(), companyId: companyId, name: t('Stůl 5', 'Table 5'), sectionId: hlavniId, capacity: 4, gridRow: 1, gridCol: 17, gridWidth: 4, gridHeight: 4, shape: TableShape.diamond, fontSize: 14, createdAt: now, updatedAt: now),
+            TableModel(id: _id(), companyId: companyId, name: t('Stůl 6', 'Table 6'), sectionId: hlavniId, gridRow: 1, gridCol: 25, gridWidth: 4, gridHeight: 4, shape: TableShape.diamond, fontSize: 14, createdAt: now, updatedAt: now),
+            TableModel(id: _id(), companyId: companyId, name: 'Bar 1', sectionId: hlavniId, gridRow: 8, gridCol: 22, gridWidth: 2, gridHeight: 2, color: '#4CAF50', fontSize: 14, createdAt: now, updatedAt: now),
+            TableModel(id: _id(), companyId: companyId, name: t('Stůl 7', 'Table 7'), sectionId: hlavniId, gridRow: 10, gridCol: 10, gridWidth: 7, gridHeight: 4, fontSize: 14, createdAt: now, updatedAt: now),
+            TableModel(id: _id(), companyId: companyId, name: 'Bar 2', sectionId: hlavniId, gridRow: 11, gridCol: 22, gridWidth: 2, gridHeight: 2, fontSize: 14, createdAt: now, updatedAt: now),
+            TableModel(id: _id(), companyId: companyId, name: 'Bar 3', sectionId: hlavniId, gridRow: 14, gridCol: 22, gridWidth: 2, gridHeight: 2, fontSize: 14, createdAt: now, updatedAt: now),
             // Zahrádka section — smaller tables (2×2) in the bottom area
-            TableModel(id: _id(), companyId: companyId, name: 'Stolek 1', sectionId: zahradkaId, capacity: 2, gridRow: 14, gridCol: 2, gridWidth: 2, gridHeight: 2, createdAt: now, updatedAt: now),
-            TableModel(id: _id(), companyId: companyId, name: 'Stolek 2', sectionId: zahradkaId, capacity: 2, gridRow: 14, gridCol: 8, gridWidth: 2, gridHeight: 2, createdAt: now, updatedAt: now),
-            TableModel(id: _id(), companyId: companyId, name: 'Stolek 3', sectionId: zahradkaId, capacity: 2, gridRow: 14, gridCol: 14, gridWidth: 2, gridHeight: 2, createdAt: now, updatedAt: now),
-            TableModel(id: _id(), companyId: companyId, name: 'Stolek 4', sectionId: zahradkaId, capacity: 2, gridRow: 14, gridCol: 20, gridWidth: 2, gridHeight: 2, createdAt: now, updatedAt: now),
-            TableModel(id: _id(), companyId: companyId, name: 'Stolek 5', sectionId: zahradkaId, capacity: 2, gridRow: 14, gridCol: 26, gridWidth: 2, gridHeight: 2, createdAt: now, updatedAt: now),
+            TableModel(id: _id(), companyId: companyId, name: t('Stolek 1', 'Table 1'), sectionId: zahradkaId, capacity: 2, gridRow: 14, gridCol: 2, gridWidth: 2, gridHeight: 2, createdAt: now, updatedAt: now),
+            TableModel(id: _id(), companyId: companyId, name: t('Stolek 2', 'Table 2'), sectionId: zahradkaId, capacity: 2, gridRow: 14, gridCol: 8, gridWidth: 2, gridHeight: 2, createdAt: now, updatedAt: now),
+            TableModel(id: _id(), companyId: companyId, name: t('Stolek 3', 'Table 3'), sectionId: zahradkaId, capacity: 2, gridRow: 14, gridCol: 14, gridWidth: 2, gridHeight: 2, createdAt: now, updatedAt: now),
+            TableModel(id: _id(), companyId: companyId, name: t('Stolek 4', 'Table 4'), sectionId: zahradkaId, capacity: 2, gridRow: 14, gridCol: 20, gridWidth: 2, gridHeight: 2, createdAt: now, updatedAt: now),
+            TableModel(id: _id(), companyId: companyId, name: t('Stolek 5', 'Table 5'), sectionId: zahradkaId, capacity: 2, gridRow: 14, gridCol: 26, gridWidth: 2, gridHeight: 2, createdAt: now, updatedAt: now),
             // Interní section — off-map (gridRow: -1)
-            TableModel(id: _id(), companyId: companyId, name: 'Majitel', sectionId: interniId, capacity: 0, gridRow: -1, gridCol: -1, createdAt: now, updatedAt: now),
-            TableModel(id: _id(), companyId: companyId, name: 'Repre', sectionId: interniId, capacity: 0, gridRow: -1, gridCol: -1, createdAt: now, updatedAt: now),
-            TableModel(id: _id(), companyId: companyId, name: 'Odpisy', sectionId: interniId, capacity: 0, gridRow: -1, gridCol: -1, createdAt: now, updatedAt: now),
+            TableModel(id: _id(), companyId: companyId, name: t('Majitel', 'Owner'), sectionId: interniId, capacity: 0, gridRow: -1, gridCol: -1, createdAt: now, updatedAt: now),
+            TableModel(id: _id(), companyId: companyId, name: t('Repre', 'Entertainment'), sectionId: interniId, capacity: 0, gridRow: -1, gridCol: -1, createdAt: now, updatedAt: now),
+            TableModel(id: _id(), companyId: companyId, name: t('Odpisy', 'Write-offs'), sectionId: interniId, capacity: 0, gridRow: -1, gridCol: -1, createdAt: now, updatedAt: now),
           ];
           for (final t in tables) {
             await _db.into(_db.tables).insert(tableToCompanion(t));
+          }
+
+          // 12b. Map elements — Hlavní section floor map decorations
+          final mapElements = [
+            MapElementModel(id: _id(), companyId: companyId, sectionId: hlavniId, gridRow: 0, gridCol: 6, gridWidth: 1, gridHeight: 11, color: '#000000', fillStyle: 1, borderStyle: 1, createdAt: now, updatedAt: now),
+            MapElementModel(id: _id(), companyId: companyId, sectionId: hlavniId, gridRow: 7, gridCol: 24, gridWidth: 2, gridHeight: 11, label: 'BAR', color: '#795548', fillStyle: 2, borderStyle: 2, createdAt: now, updatedAt: now),
+            MapElementModel(id: _id(), companyId: companyId, sectionId: hlavniId, gridRow: 7, gridCol: 24, gridWidth: 6, gridHeight: 2, color: '#795548', fillStyle: 2, borderStyle: 2, createdAt: now, updatedAt: now),
+            MapElementModel(id: _id(), companyId: companyId, sectionId: hlavniId, gridRow: 11, gridCol: 23, gridWidth: 2, gridHeight: 2, createdAt: now, updatedAt: now),
+            MapElementModel(id: _id(), companyId: companyId, sectionId: hlavniId, gridRow: 12, gridCol: 12, gridWidth: 8, gridHeight: 5, createdAt: now, updatedAt: now),
+            MapElementModel(id: _id(), companyId: companyId, sectionId: hlavniId, gridRow: 13, gridCol: 6, gridWidth: 1, gridHeight: 7, color: '#000000', createdAt: now, updatedAt: now),
+            MapElementModel(id: _id(), companyId: companyId, sectionId: hlavniId, gridRow: 17, gridCol: 6, gridWidth: 2, gridHeight: 2, createdAt: now, updatedAt: now),
+            MapElementModel(id: _id(), companyId: companyId, sectionId: hlavniId, gridRow: 19, gridCol: 11, gridWidth: 9, gridHeight: 1, label: 'EXIT', fontSize: 20, fillStyle: 2, borderStyle: 2, createdAt: now, updatedAt: now),
+          ];
+          for (final e in mapElements) {
+            await _db.into(_db.mapElements).insert(mapElementToCompanion(e));
           }
 
           // 13. Suppliers & Manufacturers (IDs needed by items below)
@@ -434,13 +462,13 @@ class SeedService {
           final catSuroviny = _id();
           final catSluzby = _id();
           final categories = [
-            CategoryModel(id: catNapoje, companyId: companyId, name: 'Nápoje', createdAt: now, updatedAt: now),
-            CategoryModel(id: catPivo, companyId: companyId, name: 'Pivo', createdAt: now, updatedAt: now),
-            CategoryModel(id: catHlavniJidla, companyId: companyId, name: 'Hlavní jídla', createdAt: now, updatedAt: now),
-            CategoryModel(id: catPredkrmy, companyId: companyId, name: 'Předkrmy', createdAt: now, updatedAt: now),
-            CategoryModel(id: catDeserty, companyId: companyId, name: 'Dezerty', createdAt: now, updatedAt: now),
-            CategoryModel(id: catSuroviny, companyId: companyId, name: 'Suroviny', createdAt: now, updatedAt: now),
-            CategoryModel(id: catSluzby, companyId: companyId, name: 'Služby', createdAt: now, updatedAt: now),
+            CategoryModel(id: catNapoje, companyId: companyId, name: t('Nápoje', 'Beverages'), createdAt: now, updatedAt: now),
+            CategoryModel(id: catPivo, companyId: companyId, name: t('Pivo', 'Beer'), createdAt: now, updatedAt: now),
+            CategoryModel(id: catHlavniJidla, companyId: companyId, name: t('Hlavní jídla', 'Main Courses'), createdAt: now, updatedAt: now),
+            CategoryModel(id: catPredkrmy, companyId: companyId, name: t('Předkrmy', 'Starters'), createdAt: now, updatedAt: now),
+            CategoryModel(id: catDeserty, companyId: companyId, name: t('Dezerty', 'Desserts'), createdAt: now, updatedAt: now),
+            CategoryModel(id: catSuroviny, companyId: companyId, name: t('Suroviny', 'Ingredients'), createdAt: now, updatedAt: now),
+            CategoryModel(id: catSluzby, companyId: companyId, name: t('Služby', 'Services'), createdAt: now, updatedAt: now),
           ];
           for (final c in categories) {
             await _db.into(_db.categories).insert(categoryToCompanion(c));
@@ -461,15 +489,15 @@ class SeedService {
           // ── Nápoje (12% — nealkoholické) ──
           // Stocked from supplier, some with manufacturer
           await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catNapoje, name: 'Coca-Cola 0.33l', itemType: ItemType.product, sku: 'NAP-001', altSku: '5449000000996', unitPrice: 4900, purchasePrice: 2200, saleTaxRateId: taxRate12Id, purchaseTaxRateId: taxRate12Id, unit: UnitType.ks, isStockTracked: true, supplierId: supplierNapojeId, createdAt: now, updatedAt: now));
-          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catNapoje, name: 'Mattoni neperlivá 0.33l', itemType: ItemType.product, sku: 'NAP-002', unitPrice: 3900, purchasePrice: 1200, saleTaxRateId: taxRate12Id, purchaseTaxRateId: taxRate12Id, unit: UnitType.ks, isStockTracked: true, supplierId: supplierNapojeId, createdAt: now, updatedAt: now));
-          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catNapoje, name: 'Džus pomerančový 0.2l', itemType: ItemType.product, sku: 'NAP-003', unitPrice: 4500, purchasePrice: 1800, saleTaxRateId: taxRate12Id, purchaseTaxRateId: taxRate12Id, unit: UnitType.ks, isStockTracked: true, supplierId: supplierNapojeId, createdAt: now, updatedAt: now));
+          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catNapoje, name: t('Mattoni neperlivá 0.33l', 'Mattoni Still 0.33l'), itemType: ItemType.product, sku: 'NAP-002', unitPrice: 3900, purchasePrice: 1200, saleTaxRateId: taxRate12Id, purchaseTaxRateId: taxRate12Id, unit: UnitType.ks, isStockTracked: true, supplierId: supplierNapojeId, createdAt: now, updatedAt: now));
+          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catNapoje, name: t('Džus pomerančový 0.2l', 'Orange Juice 0.2l'), itemType: ItemType.product, sku: 'NAP-003', unitPrice: 4500, purchasePrice: 1800, saleTaxRateId: taxRate12Id, purchaseTaxRateId: taxRate12Id, unit: UnitType.ks, isStockTracked: true, supplierId: supplierNapojeId, createdAt: now, updatedAt: now));
           await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catNapoje, name: 'Kofola Original 0.5l', itemType: ItemType.product, sku: 'NAP-004', altSku: '8593868001019', unitPrice: 4500, purchasePrice: 1800, saleTaxRateId: taxRate12Id, purchaseTaxRateId: taxRate12Id, unit: UnitType.ks, isStockTracked: true, supplierId: supplierNapojeId, manufacturerId: mfrKofolaId, createdAt: now, updatedAt: now));
-          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catNapoje, name: 'Rajec jemně perlivá 0.33l', itemType: ItemType.product, sku: 'NAP-005', unitPrice: 3900, purchasePrice: 1100, saleTaxRateId: taxRate12Id, purchaseTaxRateId: taxRate12Id, unit: UnitType.ks, isStockTracked: true, supplierId: supplierNapojeId, manufacturerId: mfrKofolaId, createdAt: now, updatedAt: now));
+          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catNapoje, name: t('Rajec jemně perlivá 0.33l', 'Rajec Sparkling 0.33l'), itemType: ItemType.product, sku: 'NAP-005', unitPrice: 3900, purchasePrice: 1100, saleTaxRateId: taxRate12Id, purchaseTaxRateId: taxRate12Id, unit: UnitType.ks, isStockTracked: true, supplierId: supplierNapojeId, manufacturerId: mfrKofolaId, createdAt: now, updatedAt: now));
           // In-house drinks — no supplier, no purchase price, no stock tracking
           await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catNapoje, name: 'Espresso', itemType: ItemType.product, sku: 'NAP-006', unitPrice: 5500, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
           await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catNapoje, name: 'Cappuccino', itemType: ItemType.product, sku: 'NAP-007', unitPrice: 6500, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
-          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catNapoje, name: 'Čaj (výběr)', itemType: ItemType.product, sku: 'NAP-008', unitPrice: 4500, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
-          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catNapoje, name: 'Domácí limonáda 0.4l', itemType: ItemType.product, sku: 'NAP-009', unitPrice: 6900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
+          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catNapoje, name: t('Čaj (výběr)', 'Tea (selection)'), itemType: ItemType.product, sku: 'NAP-008', unitPrice: 4500, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
+          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catNapoje, name: t('Domácí limonáda 0.4l', 'Homemade Lemonade 0.4l'), itemType: ItemType.product, sku: 'NAP-009', unitPrice: 6900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
 
           // ── Pivo (21% — alkohol) ──
           // All stocked, from Nápoje Express, brewery as manufacturer
@@ -482,52 +510,52 @@ class SeedService {
           await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catPivo, name: 'Birell Pomelo 0.5l', itemType: ItemType.product, sku: 'PIV-006', unitPrice: 4500, purchasePrice: 2000, saleTaxRateId: taxRate12Id, purchaseTaxRateId: taxRate12Id, unit: UnitType.ks, isStockTracked: true, supplierId: supplierNapojeId, manufacturerId: mfrPrazdrojId, createdAt: now, updatedAt: now));
 
           // ── Hlavní jídla (12%, in-house — no supplier/manufacturer) ──
-          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catHlavniJidla, name: 'Svíčková na smetaně', itemType: ItemType.product, sku: 'HJ-001', unitPrice: 22900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
-          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catHlavniJidla, name: 'Řízek s bramborovým salátem', itemType: ItemType.product, sku: 'HJ-002', unitPrice: 19900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
-          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catHlavniJidla, name: 'Grilovaný losos', itemType: ItemType.product, sku: 'HJ-003', unitPrice: 27900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
-          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catHlavniJidla, name: 'Kuřecí steak s hranolky', itemType: ItemType.product, sku: 'HJ-004', unitPrice: 18900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
+          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catHlavniJidla, name: t('Svíčková na smetaně', 'Beef Sirloin in Cream Sauce'), itemType: ItemType.product, sku: 'HJ-001', unitPrice: 22900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
+          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catHlavniJidla, name: t('Řízek s bramborovým salátem', 'Schnitzel with Potato Salad'), itemType: ItemType.product, sku: 'HJ-002', unitPrice: 19900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
+          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catHlavniJidla, name: t('Grilovaný losos', 'Grilled Salmon'), itemType: ItemType.product, sku: 'HJ-003', unitPrice: 27900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
+          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catHlavniJidla, name: t('Kuřecí steak s hranolky', 'Chicken Steak with Fries'), itemType: ItemType.product, sku: 'HJ-004', unitPrice: 18900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
           // Recipe — composite (assembled from ingredients)
-          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catHlavniJidla, name: 'Smažený sýr s hranolky', itemType: ItemType.recipe, sku: 'HJ-005', unitPrice: 17900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
+          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catHlavniJidla, name: t('Smažený sýr s hranolky', 'Fried Cheese with Fries'), itemType: ItemType.recipe, sku: 'HJ-005', unitPrice: 17900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
           // Parent product with variants
           final burgerParentId = _id();
-          await ins(ItemModel(id: burgerParentId, companyId: companyId, categoryId: catHlavniJidla, name: 'Hovězí burger', itemType: ItemType.product, sku: 'HJ-006', unitPrice: 21900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
-          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catHlavniJidla, name: 'Burger – klasický', itemType: ItemType.variant, sku: 'HJ-006-KLA', unitPrice: 21900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, parentId: burgerParentId, createdAt: now, updatedAt: now));
-          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catHlavniJidla, name: 'Burger – double', itemType: ItemType.variant, sku: 'HJ-006-DBL', unitPrice: 25900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, parentId: burgerParentId, createdAt: now, updatedAt: now));
-          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catHlavniJidla, name: 'Burger – vegetariánský', itemType: ItemType.variant, sku: 'HJ-006-VEG', unitPrice: 18900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, parentId: burgerParentId, createdAt: now, updatedAt: now));
+          await ins(ItemModel(id: burgerParentId, companyId: companyId, categoryId: catHlavniJidla, name: t('Hovězí burger', 'Beef Burger'), itemType: ItemType.product, sku: 'HJ-006', unitPrice: 21900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
+          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catHlavniJidla, name: t('Burger – klasický', 'Burger – Classic'), itemType: ItemType.variant, sku: 'HJ-006-KLA', unitPrice: 21900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, parentId: burgerParentId, createdAt: now, updatedAt: now));
+          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catHlavniJidla, name: t('Burger – double', 'Burger – Double'), itemType: ItemType.variant, sku: 'HJ-006-DBL', unitPrice: 25900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, parentId: burgerParentId, createdAt: now, updatedAt: now));
+          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catHlavniJidla, name: t('Burger – vegetariánský', 'Burger – Vegetarian'), itemType: ItemType.variant, sku: 'HJ-006-VEG', unitPrice: 18900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, parentId: burgerParentId, createdAt: now, updatedAt: now));
           // Modifiers (no category, no SKU — add-ons across menu)
-          await ins(ItemModel(id: _id(), companyId: companyId, name: 'Extra sýr', itemType: ItemType.modifier, unitPrice: 2900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
-          await ins(ItemModel(id: _id(), companyId: companyId, name: 'Extra slanina', itemType: ItemType.modifier, unitPrice: 3900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
-          await ins(ItemModel(id: _id(), companyId: companyId, name: 'Příloha hranolky', itemType: ItemType.modifier, unitPrice: 4900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
+          await ins(ItemModel(id: _id(), companyId: companyId, name: t('Extra sýr', 'Extra Cheese'), itemType: ItemType.modifier, unitPrice: 2900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
+          await ins(ItemModel(id: _id(), companyId: companyId, name: t('Extra slanina', 'Extra Bacon'), itemType: ItemType.modifier, unitPrice: 3900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
+          await ins(ItemModel(id: _id(), companyId: companyId, name: t('Příloha hranolky', 'Side Fries'), itemType: ItemType.modifier, unitPrice: 4900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
 
           // ── Předkrmy (12%) ──
-          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catPredkrmy, name: 'Tatarský biftek', itemType: ItemType.product, sku: 'PK-001', unitPrice: 18900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
-          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catPredkrmy, name: 'Carpaccio z hovězího', itemType: ItemType.product, sku: 'PK-002', unitPrice: 16900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
+          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catPredkrmy, name: t('Tatarský biftek', 'Beef Tartare'), itemType: ItemType.product, sku: 'PK-001', unitPrice: 18900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
+          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catPredkrmy, name: t('Carpaccio z hovězího', 'Beef Carpaccio'), itemType: ItemType.product, sku: 'PK-002', unitPrice: 16900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
           await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catPredkrmy, name: 'Bruschetta', itemType: ItemType.product, sku: 'PK-003', unitPrice: 12900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
-          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catPredkrmy, name: 'Polévka dne', itemType: ItemType.product, sku: 'PK-004', unitPrice: 6900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
-          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catPredkrmy, name: 'Caesar salát', itemType: ItemType.product, sku: 'PK-005', unitPrice: 14900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
+          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catPredkrmy, name: t('Polévka dne', 'Soup of the Day'), itemType: ItemType.product, sku: 'PK-004', unitPrice: 6900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
+          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catPredkrmy, name: t('Caesar salát', 'Caesar Salad'), itemType: ItemType.product, sku: 'PK-005', unitPrice: 14900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
 
           // ── Dezerty (12%) ──
           await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catDeserty, name: 'Tiramisu', itemType: ItemType.product, sku: 'DES-001', unitPrice: 11900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
-          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catDeserty, name: 'Čokoládový fondant', itemType: ItemType.product, sku: 'DES-002', unitPrice: 13900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
-          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catDeserty, name: 'Palačinky s Nutellou', itemType: ItemType.product, sku: 'DES-003', unitPrice: 10900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
-          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catDeserty, name: 'Zmrzlinový pohár', itemType: ItemType.product, sku: 'DES-004', unitPrice: 9900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
-          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catDeserty, name: 'Jablečný štrúdl', itemType: ItemType.product, sku: 'DES-005', unitPrice: 8900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
+          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catDeserty, name: t('Čokoládový fondant', 'Chocolate Fondant'), itemType: ItemType.product, sku: 'DES-002', unitPrice: 13900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
+          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catDeserty, name: t('Palačinky s Nutellou', 'Nutella Pancakes'), itemType: ItemType.product, sku: 'DES-003', unitPrice: 10900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
+          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catDeserty, name: t('Zmrzlinový pohár', 'Ice Cream Sundae'), itemType: ItemType.product, sku: 'DES-004', unitPrice: 9900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
+          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catDeserty, name: t('Jablečný štrúdl', 'Apple Strudel'), itemType: ItemType.product, sku: 'DES-005', unitPrice: 8900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
 
           // ── Suroviny / Ingredients (12%, not sellable, stock tracked, from Makro) ──
-          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catSuroviny, name: 'Kuřecí prsa', itemType: ItemType.ingredient, sku: 'SUR-001', unitPrice: 18900, purchasePrice: 18900, saleTaxRateId: taxRate12Id, purchaseTaxRateId: taxRate12Id, unit: UnitType.g, isSellable: false, isStockTracked: true, supplierId: supplierMakroId, createdAt: now, updatedAt: now));
-          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catSuroviny, name: 'Hovězí svíčková', itemType: ItemType.ingredient, sku: 'SUR-002', unitPrice: 34900, purchasePrice: 34900, saleTaxRateId: taxRate12Id, purchaseTaxRateId: taxRate12Id, unit: UnitType.g, isSellable: false, isStockTracked: true, supplierId: supplierMakroId, createdAt: now, updatedAt: now));
-          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catSuroviny, name: 'Mouka hladká', itemType: ItemType.ingredient, sku: 'SUR-003', unitPrice: 2900, purchasePrice: 2900, saleTaxRateId: taxRate12Id, purchaseTaxRateId: taxRate12Id, unit: UnitType.g, isSellable: false, isStockTracked: true, supplierId: supplierMakroId, createdAt: now, updatedAt: now));
-          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catSuroviny, name: 'Smetana 33%', itemType: ItemType.ingredient, sku: 'SUR-004', unitPrice: 6900, purchasePrice: 6900, saleTaxRateId: taxRate12Id, purchaseTaxRateId: taxRate12Id, unit: UnitType.ml, isSellable: false, isStockTracked: true, supplierId: supplierMakroId, createdAt: now, updatedAt: now));
-          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catSuroviny, name: 'Eidam 30%', itemType: ItemType.ingredient, sku: 'SUR-005', unitPrice: 15900, purchasePrice: 15900, saleTaxRateId: taxRate12Id, purchaseTaxRateId: taxRate12Id, unit: UnitType.g, isSellable: false, isStockTracked: true, supplierId: supplierMakroId, createdAt: now, updatedAt: now));
+          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catSuroviny, name: t('Kuřecí prsa', 'Chicken Breast'), itemType: ItemType.ingredient, sku: 'SUR-001', unitPrice: 18900, purchasePrice: 18900, saleTaxRateId: taxRate12Id, purchaseTaxRateId: taxRate12Id, unit: UnitType.g, isSellable: false, isStockTracked: true, supplierId: supplierMakroId, createdAt: now, updatedAt: now));
+          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catSuroviny, name: t('Hovězí svíčková', 'Beef Sirloin'), itemType: ItemType.ingredient, sku: 'SUR-002', unitPrice: 34900, purchasePrice: 34900, saleTaxRateId: taxRate12Id, purchaseTaxRateId: taxRate12Id, unit: UnitType.g, isSellable: false, isStockTracked: true, supplierId: supplierMakroId, createdAt: now, updatedAt: now));
+          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catSuroviny, name: t('Mouka hladká', 'Plain Flour'), itemType: ItemType.ingredient, sku: 'SUR-003', unitPrice: 2900, purchasePrice: 2900, saleTaxRateId: taxRate12Id, purchaseTaxRateId: taxRate12Id, unit: UnitType.g, isSellable: false, isStockTracked: true, supplierId: supplierMakroId, createdAt: now, updatedAt: now));
+          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catSuroviny, name: t('Smetana 33%', 'Heavy Cream 33%'), itemType: ItemType.ingredient, sku: 'SUR-004', unitPrice: 6900, purchasePrice: 6900, saleTaxRateId: taxRate12Id, purchaseTaxRateId: taxRate12Id, unit: UnitType.ml, isSellable: false, isStockTracked: true, supplierId: supplierMakroId, createdAt: now, updatedAt: now));
+          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catSuroviny, name: t('Eidam 30%', 'Edam Cheese 30%'), itemType: ItemType.ingredient, sku: 'SUR-005', unitPrice: 15900, purchasePrice: 15900, saleTaxRateId: taxRate12Id, purchaseTaxRateId: taxRate12Id, unit: UnitType.g, isSellable: false, isStockTracked: true, supplierId: supplierMakroId, createdAt: now, updatedAt: now));
 
           // ── Counter / Spotřební materiál (21%, not sellable, stock tracked, from Makro) ──
-          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catSuroviny, name: 'Ubrousek', itemType: ItemType.counter, sku: 'SPT-001', unitPrice: 100, purchasePrice: 50, saleTaxRateId: taxRate21Id, purchaseTaxRateId: taxRate21Id, unit: UnitType.ks, isSellable: false, isStockTracked: true, supplierId: supplierMakroId, createdAt: now, updatedAt: now));
-          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catSuroviny, name: 'Kelímek na odnos', itemType: ItemType.counter, sku: 'SPT-002', unitPrice: 500, purchasePrice: 250, saleTaxRateId: taxRate21Id, purchaseTaxRateId: taxRate21Id, unit: UnitType.ks, isSellable: false, isStockTracked: true, supplierId: supplierMakroId, createdAt: now, updatedAt: now));
-          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catSuroviny, name: 'Papírový tácek', itemType: ItemType.counter, sku: 'SPT-003', unitPrice: 200, purchasePrice: 100, saleTaxRateId: taxRate21Id, purchaseTaxRateId: taxRate21Id, unit: UnitType.ks, isSellable: false, isStockTracked: true, supplierId: supplierMakroId, createdAt: now, updatedAt: now));
+          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catSuroviny, name: t('Ubrousek', 'Napkin'), itemType: ItemType.counter, sku: 'SPT-001', unitPrice: 100, purchasePrice: 50, saleTaxRateId: taxRate21Id, purchaseTaxRateId: taxRate21Id, unit: UnitType.ks, isSellable: false, isStockTracked: true, supplierId: supplierMakroId, createdAt: now, updatedAt: now));
+          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catSuroviny, name: t('Kelímek na odnos', 'Takeaway Cup'), itemType: ItemType.counter, sku: 'SPT-002', unitPrice: 500, purchasePrice: 250, saleTaxRateId: taxRate21Id, purchaseTaxRateId: taxRate21Id, unit: UnitType.ks, isSellable: false, isStockTracked: true, supplierId: supplierMakroId, createdAt: now, updatedAt: now));
+          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catSuroviny, name: t('Papírový tácek', 'Paper Tray'), itemType: ItemType.counter, sku: 'SPT-003', unitPrice: 200, purchasePrice: 100, saleTaxRateId: taxRate21Id, purchaseTaxRateId: taxRate21Id, unit: UnitType.ks, isSellable: false, isStockTracked: true, supplierId: supplierMakroId, createdAt: now, updatedAt: now));
 
           // ── Služby / Services (21%, no stock) ──
-          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catSluzby, name: 'Pronájem sálu (hodina)', itemType: ItemType.service, sku: 'SLU-001', unitPrice: 150000, saleTaxRateId: taxRate21Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
-          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catSluzby, name: 'Raut – obsluha (osoba)', itemType: ItemType.service, sku: 'SLU-002', unitPrice: 50000, saleTaxRateId: taxRate21Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
+          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catSluzby, name: t('Pronájem sálu (hodina)', 'Hall Rental (hour)'), itemType: ItemType.service, sku: 'SLU-001', unitPrice: 150000, saleTaxRateId: taxRate21Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
+          await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catSluzby, name: t('Raut – obsluha (osoba)', 'Catering – Staff (person)'), itemType: ItemType.service, sku: 'SLU-002', unitPrice: 50000, saleTaxRateId: taxRate21Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
 
           // 16. Layout items for sell grid (horizontal — matches auto-arrange)
           final gridRows = 5;

@@ -45,6 +45,10 @@ final deviceIdProvider = FutureProvider<String>((ref) async {
   return id;
 });
 
+/// Pre-company locale override — set during onboarding before any company exists.
+/// When non-null, overrides appLocaleProvider for immediate UI language switch.
+final pendingLocaleProvider = StateProvider<String?>((ref) => null);
+
 final activeUserProvider = StateProvider<UserModel?>((ref) {
   return ref.watch(sessionManagerProvider).activeUser;
 });
@@ -69,21 +73,27 @@ final appInitProvider = FutureProvider<_AppInitState>((ref) async {
   final prefs = await SharedPreferences.getInstance();
   final displayCode = prefs.getString('display_code');
   final displayType = prefs.getString('display_type');
-  if (displayCode != null && displayType != null) {
+
+  if (displayCode != null && displayType == 'customer_display') {
     return _AppInitState.displayMode;
   }
 
   final companyRepo = ref.watch(companyRepositoryProvider);
   final result = await companyRepo.getFirst();
-  return switch (result) {
-    Success(value: final company) => company == null
-        ? _AppInitState.needsOnboarding
-        : _AppInitState.needsLogin,
-    Failure() => _AppInitState.needsOnboarding,
+  final hasCompany = switch (result) {
+    Success(value: final company) => company != null,
+    Failure() => false,
   };
+
+  // KDS needs company data + login — use kdsMode after company sync
+  if (displayCode != null && displayType == 'kds') {
+    return hasCompany ? _AppInitState.kdsMode : _AppInitState.needsOnboarding;
+  }
+
+  return hasCompany ? _AppInitState.needsLogin : _AppInitState.needsOnboarding;
 });
 
-enum _AppInitState { needsOnboarding, needsLogin, displayMode }
+enum _AppInitState { needsOnboarding, needsLogin, displayMode, kdsMode }
 
 /// Re-export for use in routing
 typedef AppInitState = _AppInitState;
