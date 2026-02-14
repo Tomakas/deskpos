@@ -178,6 +178,9 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
   }
 
   Future<void> _createNewBillForTable(BuildContext context, TableModel table) async {
+    final session = ref.read(activeRegisterSessionProvider).valueOrNull;
+    if (session == null) return;
+
     final result = await showDialog<NewBillResult>(
       context: context,
       builder: (_) => DialogNewBill(initialTableId: table.id),
