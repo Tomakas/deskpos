@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/data/enums/prep_status.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/data/models/bill_model.dart';
 import '../../../core/data/models/customer_model.dart';
 import '../../../core/data/models/order_item_model.dart';
@@ -205,7 +206,7 @@ class _KdsOrderCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
     final theme = Theme.of(context);
-    final statusColor = _statusColor(order.status);
+    final statusColor = order.status.color(context);
     final elapsed = DateTime.now().difference(order.createdAt);
     final elapsedMin = elapsed.inMinutes;
     final urgencyColor = _urgencyColor(elapsedMin);
@@ -234,7 +235,7 @@ class _KdsOrderCard extends ConsumerWidget {
             final lowestNext =
                 lowestStatus != null ? _nextStatus(lowestStatus) : null;
             final lowestColor =
-                lowestStatus != null ? _statusColor(lowestStatus) : statusColor;
+                lowestStatus != null ? lowestStatus.color(context) : statusColor;
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -391,7 +392,7 @@ class _KdsItemCard extends StatelessWidget {
         item.status == PrepStatus.voided || item.status == PrepStatus.cancelled;
     final next = !isVoided ? _nextStatus(item.status) : null;
 
-    final stripColor = isVoided ? Colors.grey : _statusColor(item.status);
+    final stripColor = isVoided ? context.appColors.inactiveIndicator : item.status.color(context);
     final bgColor =
         isVoided ? Colors.transparent : stripColor.withValues(alpha: 0.05);
 
@@ -433,7 +434,7 @@ class _KdsItemCard extends StatelessWidget {
                           margin: const EdgeInsets.only(right: 6),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: _statusColor(item.status),
+                            color: item.status.color(context),
                           ),
                         ),
                         // Quantity
@@ -483,9 +484,9 @@ class _KdsItemCard extends StatelessWidget {
                                   style: FilledButton.styleFrom(
                                     padding: const EdgeInsets.symmetric(
                                         horizontal: 10),
-                                    backgroundColor: _statusColor(next)
+                                    backgroundColor: next.color(context)
                                         .withValues(alpha: 0.15),
-                                    foregroundColor: _statusColor(next),
+                                    foregroundColor: next.color(context),
                                     textStyle: theme.textTheme.labelSmall
                                         ?.copyWith(fontWeight: FontWeight.w600),
                                   ),
@@ -498,7 +499,7 @@ class _KdsItemCard extends StatelessWidget {
                                         l.ordersFilterStorno,
                                         style: theme.textTheme.labelSmall
                                             ?.copyWith(
-                                          color: Colors.red,
+                                          color: context.appColors.danger,
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
@@ -647,15 +648,6 @@ class _TimeTable extends ConsumerWidget {
 // ---------------------------------------------------------------------------
 // Shared helpers
 // ---------------------------------------------------------------------------
-Color _statusColor(PrepStatus status) => switch (status) {
-      PrepStatus.created => Colors.blue,
-      PrepStatus.inPrep => Colors.orange,
-      PrepStatus.ready => Colors.green,
-      PrepStatus.delivered => Colors.grey,
-      PrepStatus.cancelled => Colors.pink,
-      PrepStatus.voided => Colors.red,
-    };
-
 String _statusLabel(PrepStatus status, dynamic l) => switch (status) {
       PrepStatus.created => l.ordersFilterCreated,
       PrepStatus.inPrep => l.ordersFilterInPrep,
@@ -700,10 +692,10 @@ class _KdsStatusFilterBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = context.l10n;
     final filters = <(Set<PrepStatus>, String, Color)>[
-      ({PrepStatus.created}, l.ordersFilterCreated, Colors.blue),
-      ({PrepStatus.inPrep}, l.ordersFilterInPrep, Colors.orange),
-      ({PrepStatus.ready}, l.ordersFilterReady, Colors.green),
-      ({PrepStatus.delivered}, l.ordersFilterDelivered, Colors.grey),
+      ({PrepStatus.created}, l.ordersFilterCreated, PrepStatus.created.color(context)),
+      ({PrepStatus.inPrep}, l.ordersFilterInPrep, PrepStatus.inPrep.color(context)),
+      ({PrepStatus.ready}, l.ordersFilterReady, PrepStatus.ready.color(context)),
+      ({PrepStatus.delivered}, l.ordersFilterDelivered, PrepStatus.delivered.color(context)),
     ];
 
     return Container(

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/utils/formatting_ext.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
@@ -109,9 +110,7 @@ class _DialogOpeningCashState extends ConsumerState<DialogOpeningCash> {
                 child: Text(l.actionCancel),
               ),
               FilledButton(
-                style: FilledButton.styleFrom(
-                  backgroundColor: Colors.green,
-                ),
+                style: PosButtonStyles.confirm(context),
                 onPressed: _confirm,
                 child: Text(l.openingCashConfirm),
               ),

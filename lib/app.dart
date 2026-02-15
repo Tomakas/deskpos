@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/data/providers/auth_providers.dart';
 import 'core/data/providers/sync_providers.dart';
 import 'core/routing/app_router.dart';
+import 'core/theme/app_colors.dart';
 import 'core/widgets/inactivity_detector.dart';
 import 'l10n/app_localizations.dart';
 
@@ -34,6 +35,7 @@ class EposApp extends ConsumerWidget {
       colorSchemeSeed: Colors.blue,
       brightness: Brightness.light,
       fontFamily: 'Roboto',
+      extensions: const [lightAppColors],
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           minimumSize: const Size(160, 52),

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/data/enums/discount_type.dart';
-import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/utils/formatting_ext.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
@@ -116,8 +115,8 @@ class _DialogDiscountState extends ConsumerState<DialogDiscount> {
                 (DiscountType.absolute, _cappedAbsolute),
               ),
               child: hasValue
-                  ? Text('-${ref.moneyValue(_cappedAbsolute)} ${ref.watch(currentCurrencyProvider).value?.symbol ?? 'Kč'}')
-                  : Text(ref.watch(currentCurrencyProvider).value?.symbol ?? 'Kč'),
+                  ? Text('-${ref.moneyValue(_cappedAbsolute)} ${ref.currencySymbol}')
+                  : Text(ref.currencySymbol),
             ),
             OutlinedButton(
               onPressed: () => Navigator.pop(context),

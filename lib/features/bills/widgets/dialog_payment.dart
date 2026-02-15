@@ -10,6 +10,7 @@ import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatting_ext.dart';
 import 'dialog_change_total.dart';
 
@@ -84,7 +85,7 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
                       _SideButton(
                         label: l.actionCancel,
                         onPressed: () => Navigator.pop(context, _bill.paidAmount > widget.bill.paidAmount),
-                        color: Colors.red,
+                        color: context.appColors.danger,
                       ),
                     ],
                   ),
@@ -462,7 +463,7 @@ class _PaymentMethodButton extends StatelessWidget {
       width: double.infinity,
       height: 48,
       child: FilledButton(
-        style: FilledButton.styleFrom(backgroundColor: Colors.green),
+        style: PosButtonStyles.confirm(context),
         onPressed: onPressed,
         child: Text(
           label,

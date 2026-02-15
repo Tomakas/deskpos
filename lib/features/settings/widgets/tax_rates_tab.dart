@@ -7,6 +7,7 @@ import '../../../core/data/models/tax_rate_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/pos_table.dart';
 
 class TaxRatesTab extends ConsumerWidget {
@@ -44,7 +45,7 @@ class TaxRatesTab extends ConsumerWidget {
                     flex: 1,
                     cellBuilder: (tr) => Icon(
                       tr.isDefault ? Icons.check_circle : Icons.radio_button_unchecked,
-                      color: tr.isDefault ? Colors.green : Colors.grey,
+                      color: boolIndicatorColor(tr.isDefault, context),
                       size: 20,
                     ),
                   ),

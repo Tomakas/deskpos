@@ -183,7 +183,7 @@ class PrintingService {
       discountAmount: bill.discountAmount,
       totalGross: bill.totalGross,
       roundingAmount: bill.roundingAmount,
-      currencySymbol: currency?.symbol ?? 'Kč',
+      currencySymbol: currency?.symbol ?? '',
       currency: currency,
     );
   }

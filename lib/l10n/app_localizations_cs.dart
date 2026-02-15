@@ -226,6 +226,9 @@ class AppLocalizationsCs extends AppLocalizations {
   String get actionConfirm => 'OK';
 
   @override
+  String get unitPcs => 'ks';
+
+  @override
   String get fieldName => 'Název';
 
   @override
@@ -1726,6 +1729,11 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get loyaltyPointsValue => 'Hodnota';
+
+  @override
+  String loyaltyPerPoint(String value) {
+    return '$value/bod';
+  }
 
   @override
   String get loyaltyPointsToUse => 'Bodů k uplatnění';

@@ -7,6 +7,7 @@ import '../../../core/data/models/table_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import 'dialog_customer_search.dart';
@@ -255,10 +256,7 @@ class _DialogNewBillState extends ConsumerState<DialogNewBill> {
                       PosDialogActions(
                         actions: [
                           OutlinedButton(
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: Colors.red,
-                              side: const BorderSide(color: Colors.red),
-                            ),
+                            style: PosButtonStyles.destructiveOutlined(context),
                             onPressed: () => Navigator.pop(context),
                             child: Text(l.actionCancel.toUpperCase()),
                           ),
@@ -277,9 +275,7 @@ class _DialogNewBillState extends ConsumerState<DialogNewBill> {
                           ),
                           if (widget.title == null)
                             FilledButton(
-                              style: FilledButton.styleFrom(
-                                backgroundColor: Colors.green.shade700,
-                              ),
+                              style: PosButtonStyles.confirm(context),
                               onPressed: () {
                                 Navigator.pop(context, NewBillResult(
                                   sectionId: _selectedSectionId,

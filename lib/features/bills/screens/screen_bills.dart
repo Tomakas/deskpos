@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/data/enums/bill_status.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/data/enums/prep_status.dart';
 import '../../../core/data/models/order_model.dart';
 import '../../../core/data/enums/cash_movement_type.dart';
@@ -939,12 +940,7 @@ class _BillsTable extends ConsumerWidget {
                       ],
                       items: resolved,
                       onRowTap: (r) => onBillTap(r.bill),
-                      rowColor: (r) => switch (r.bill.status) {
-                        BillStatus.opened => Colors.blue.withValues(alpha: 0.08),
-                        BillStatus.paid => Colors.green.withValues(alpha: 0.08),
-                        BillStatus.cancelled => Colors.pink.withValues(alpha: 0.08),
-                        BillStatus.refunded => Colors.orange.withValues(alpha: 0.08),
-                      },
+                      rowColor: (r) => r.bill.status.color(context).withValues(alpha: 0.08),
                     );
                   },
                 );
@@ -1041,9 +1037,9 @@ class _StatusFilterBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = context.l10n;
     final filters = [
-      (BillStatus.opened, l.billsFilterOpened, Colors.blue),
-      (BillStatus.paid, l.billsFilterPaid, Colors.green),
-      (BillStatus.cancelled, l.billsFilterCancelled, Colors.pink),
+      (BillStatus.opened, l.billsFilterOpened, BillStatus.opened.color(context)),
+      (BillStatus.paid, l.billsFilterPaid, BillStatus.paid.color(context)),
+      (BillStatus.cancelled, l.billsFilterCancelled, BillStatus.cancelled.color(context)),
     ];
 
     return Container(
@@ -1286,7 +1282,7 @@ class _ButtonRow extends StatelessWidget {
               height: 54,
               child: rightHighlight
                   ? FilledButton(
-                      style: FilledButton.styleFrom(backgroundColor: Colors.green),
+                      style: PosButtonStyles.confirm(context),
                       onPressed: onRight,
                       child: Text(rightLabel ?? right, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12)),
                     )

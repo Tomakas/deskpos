@@ -22,6 +22,7 @@ import '../../../core/data/repositories/order_repository.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/logging/app_logger.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatting_ext.dart';
 import '../../../core/widgets/pos_color_palette.dart';
 import '../../bills/widgets/dialog_customer_search.dart';
@@ -499,7 +500,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
                 width: double.infinity,
                 height: 44,
                 child: FilledButton(
-                  style: FilledButton.styleFrom(backgroundColor: Colors.green),
+                  style: PosButtonStyles.confirm(context),
                   onPressed: _cart.isEmpty
                       ? null
                       : () => _submitQuickSale(context, ref),
@@ -530,7 +531,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
                     child: SizedBox(
                       height: 44,
                       child: FilledButton(
-                        style: FilledButton.styleFrom(backgroundColor: Colors.green),
+                        style: PosButtonStyles.confirm(context),
                         onPressed: _cart.isEmpty
                             ? null
                             : () => _submitOrder(context, ref),

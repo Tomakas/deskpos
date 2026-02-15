@@ -93,6 +93,7 @@
   "actionDelete": "Delete",
   "actionClose": "Close",
   "actionConfirm": "OK",
+  "unitPcs": "pcs",
 
   "fieldName": "Name",
   "fieldUsername": "Username",
@@ -709,6 +710,12 @@
   "loyaltyRedeem": "Redeem Points",
   "loyaltyAvailablePoints": "Available Points",
   "loyaltyPointsValue": "Value",
+  "loyaltyPerPoint": "{value}/pt",
+  "@loyaltyPerPoint": {
+    "placeholders": {
+      "value": { "type": "String" }
+    }
+  },
   "loyaltyPointsToUse": "Points to Redeem",
   "loyaltyDiscountPreview": "{points} points = {amount} discount",
   "@loyaltyDiscountPreview": {

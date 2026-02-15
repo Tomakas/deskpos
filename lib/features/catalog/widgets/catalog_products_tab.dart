@@ -12,6 +12,7 @@ import '../../../core/data/models/tax_rate_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/utils/formatting_ext.dart';
 import '../../../core/utils/search_utils.dart';
@@ -199,7 +200,7 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
                                       alignment: Alignment.centerLeft,
                                       child: Icon(
                                         item.isActive ? Icons.check_circle : Icons.cancel,
-                                        color: item.isActive ? Colors.green : Colors.grey,
+                                        color: boolIndicatorColor(item.isActive, context),
                                         size: 20,
                                       ),
                                     ),

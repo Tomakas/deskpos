@@ -524,6 +524,12 @@ abstract class AppLocalizations {
   /// **'OK'**
   String get actionConfirm;
 
+  /// No description provided for @unitPcs.
+  ///
+  /// In cs, this message translates to:
+  /// **'ks'**
+  String get unitPcs;
+
   /// No description provided for @fieldName.
   ///
   /// In cs, this message translates to:
@@ -3433,6 +3439,12 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Hodnota'**
   String get loyaltyPointsValue;
+
+  /// No description provided for @loyaltyPerPoint.
+  ///
+  /// In cs, this message translates to:
+  /// **'{value}/bod'**
+  String loyaltyPerPoint(String value);
 
   /// No description provided for @loyaltyPointsToUse.
   ///

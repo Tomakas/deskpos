@@ -7,6 +7,7 @@ import '../../../core/data/models/voucher_model.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatting_ext.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
@@ -56,7 +57,7 @@ class DialogVoucherDetail extends ConsumerWidget {
             ),
             if (voucher.status == VoucherStatus.active)
               FilledButton(
-                style: FilledButton.styleFrom(backgroundColor: Colors.red),
+                style: PosButtonStyles.destructiveFilled(context),
                 onPressed: () => _cancelVoucher(context, ref),
                 child: Text(l.voucherCancel),
               ),

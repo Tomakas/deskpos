@@ -11,6 +11,7 @@ import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatting_ext.dart';
 
 class ScreenOrders extends ConsumerStatefulWidget {
@@ -182,13 +183,13 @@ class _OrderCard extends ConsumerWidget {
     final l = context.l10n;
     final theme = Theme.of(context);
     final isStorno = order.isStorno;
-    final statusColor = _statusColor(order.status);
+    final statusColor = order.status.color(context);
 
     return Card(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
         side: isStorno
-            ? const BorderSide(color: Colors.red, width: 1.5)
+            ? BorderSide(color: context.appColors.danger, width: 1.5)
             : BorderSide.none,
       ),
       child: Padding(
@@ -211,7 +212,7 @@ class _OrderCard extends ConsumerWidget {
                 ? _nextStatus(lowestStatus)
                 : null;
             final lowestColor = lowestStatus != null
-                ? _statusColor(lowestStatus)
+                ? lowestStatus.color(context)
                 : statusColor;
 
             return Column(
@@ -239,7 +240,7 @@ class _OrderCard extends ConsumerWidget {
                           Text(
                             '${l.ordersStornoPrefix} ',
                             style: theme.textTheme.titleSmall?.copyWith(
-                              color: Colors.red,
+                              color: context.appColors.danger,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -247,7 +248,7 @@ class _OrderCard extends ConsumerWidget {
                           order.orderNumber,
                           style: theme.textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.bold,
-                            color: isStorno ? Colors.red : null,
+                            color: isStorno ? context.appColors.danger : null,
                           ),
                         ),
                         if (isStorno && order.stornoSourceOrderId != null) ...[
@@ -375,7 +376,7 @@ class _StornoRef extends ConsumerWidget {
         return Text(
           l.ordersStornoRef(orderNumber),
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Colors.red,
+                color: context.appColors.danger,
                 fontStyle: FontStyle.italic,
               ),
         );
@@ -537,8 +538,8 @@ class _OrderItemCard extends ConsumerWidget {
 
     // Left strip color: grey for storno orders and voided items, status color otherwise
     final stripColor = isStorno || isVoided
-        ? Colors.grey
-        : _statusColor(item.status);
+        ? context.appColors.statusDelivered
+        : item.status.color(context);
 
     // Background tint: none for storno/voided, subtle status color otherwise
     final bgColor = isStorno || isVoided
@@ -582,7 +583,7 @@ class _OrderItemCard extends ConsumerWidget {
                           margin: const EdgeInsets.only(right: 6),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: _statusColor(item.status),
+                            color: item.status.color(context),
                           ),
                         ),
                         // Quantity
@@ -636,8 +637,8 @@ class _OrderItemCard extends ConsumerWidget {
                               ? IconButton.filled(
                                   style: IconButton.styleFrom(
                                     backgroundColor:
-                                        _statusColor(prev).withValues(alpha: 0.15),
-                                    foregroundColor: _statusColor(prev),
+                                        prev.color(context).withValues(alpha: 0.15),
+                                    foregroundColor: prev.color(context),
                                   ),
                                   onPressed: () => onStatusChange(prev),
                                   icon: const Icon(Icons.undo, size: 18),
@@ -654,8 +655,8 @@ class _OrderItemCard extends ConsumerWidget {
                                   style: FilledButton.styleFrom(
                                     padding: const EdgeInsets.symmetric(horizontal: 10),
                                     backgroundColor:
-                                        _statusColor(next).withValues(alpha: 0.15),
-                                    foregroundColor: _statusColor(next),
+                                        next.color(context).withValues(alpha: 0.15),
+                                    foregroundColor: next.color(context),
                                     textStyle: theme.textTheme.labelSmall
                                         ?.copyWith(fontWeight: FontWeight.w600),
                                   ),
@@ -667,7 +668,7 @@ class _OrderItemCard extends ConsumerWidget {
                                       child: Text(
                                         l.ordersFilterStorno,
                                         style: theme.textTheme.labelSmall?.copyWith(
-                                          color: Colors.red,
+                                          color: context.appColors.danger,
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
@@ -690,15 +691,6 @@ class _OrderItemCard extends ConsumerWidget {
 // ---------------------------------------------------------------------------
 // Shared helpers
 // ---------------------------------------------------------------------------
-Color _statusColor(PrepStatus status) => switch (status) {
-      PrepStatus.created => Colors.blue,
-      PrepStatus.inPrep => Colors.orange,
-      PrepStatus.ready => Colors.green,
-      PrepStatus.delivered => Colors.grey,
-      PrepStatus.cancelled => Colors.pink,
-      PrepStatus.voided => Colors.red,
-    };
-
 String _statusLabel(PrepStatus status, dynamic l) => switch (status) {
       PrepStatus.created => l.ordersFilterCreated,
       PrepStatus.inPrep => l.ordersFilterInPrep,
@@ -750,11 +742,11 @@ class _OrderStatusFilterBar extends StatelessWidget {
     final l = context.l10n;
     // (statuses, label, color)
     final filters = <(Set<PrepStatus>, String, Color)>[
-      ({PrepStatus.created}, l.ordersFilterCreated, Colors.blue),
-      ({PrepStatus.inPrep}, l.ordersFilterInPrep, Colors.orange),
-      ({PrepStatus.ready}, l.ordersFilterReady, Colors.green),
-      ({PrepStatus.delivered}, l.ordersFilterDelivered, Colors.grey),
-      ({PrepStatus.cancelled, PrepStatus.voided}, l.ordersFilterStorno, Colors.red),
+      ({PrepStatus.created}, l.ordersFilterCreated, PrepStatus.created.color(context)),
+      ({PrepStatus.inPrep}, l.ordersFilterInPrep, PrepStatus.inPrep.color(context)),
+      ({PrepStatus.ready}, l.ordersFilterReady, PrepStatus.ready.color(context)),
+      ({PrepStatus.delivered}, l.ordersFilterDelivered, PrepStatus.delivered.color(context)),
+      ({PrepStatus.cancelled, PrepStatus.voided}, l.ordersFilterStorno, PrepStatus.cancelled.color(context)),
     ];
 
     return Container(

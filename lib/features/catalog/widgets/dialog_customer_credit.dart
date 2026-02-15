@@ -7,6 +7,7 @@ import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatting_ext.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_dialog_theme.dart';
@@ -178,8 +179,8 @@ class _DialogCustomerCreditState extends ConsumerState<DialogCustomerCredit> {
                   height: actionHeight,
                   width: double.infinity,
                   child: FilledButton(
-                    style: FilledButton.styleFrom(
-                      backgroundColor: Colors.green,
+                    style: PosButtonStyles.confirmWith(
+                      context,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(PosDialogTheme.numpadLargeRadius),
                       ),
@@ -261,7 +262,7 @@ class _DialogCustomerCreditState extends ConsumerState<DialogCustomerCredit> {
                       child: Text(
                         '${tx.pointsChange > 0 ? '+' : ''}${tx.pointsChange} bodů',
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: tx.pointsChange > 0 ? Colors.green : Colors.red,
+                          color: valueChangeColor(tx.pointsChange, context),
                         ),
                       ),
                     ),
@@ -270,7 +271,7 @@ class _DialogCustomerCreditState extends ConsumerState<DialogCustomerCredit> {
                       child: Text(
                         '${tx.creditChange > 0 ? '+' : ''}${ref.money(tx.creditChange)}',
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: tx.creditChange > 0 ? Colors.green : Colors.red,
+                          color: valueChangeColor(tx.creditChange, context),
                         ),
                       ),
                     ),

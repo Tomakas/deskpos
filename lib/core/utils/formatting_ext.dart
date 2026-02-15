@@ -11,6 +11,10 @@ import 'formatters.dart';
 extension FormattingExtension on WidgetRef {
   String _locale() => watch(appLocaleProvider).value ?? 'cs';
 
+  /// Returns the current currency symbol (e.g., "Kč", "$", "€").
+  String get currencySymbol =>
+      watch(currentCurrencyProvider).value?.symbol ?? '';
+
   /// Formats minor units as full currency string (e.g., "1 234,56 CZK").
   String money(int minorUnits) {
     final currency = watch(currentCurrencyProvider).value;

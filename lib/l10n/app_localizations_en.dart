@@ -226,6 +226,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get actionConfirm => 'OK';
 
   @override
+  String get unitPcs => 'pcs';
+
+  @override
   String get fieldName => 'Name';
 
   @override
@@ -1727,6 +1730,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get loyaltyPointsValue => 'Value';
+
+  @override
+  String loyaltyPerPoint(String value) {
+    return '$value/pt';
+  }
 
   @override
   String get loyaltyPointsToUse => 'Points to Redeem';

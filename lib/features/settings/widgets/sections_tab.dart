@@ -6,6 +6,7 @@ import '../../../core/data/models/section_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/pos_table.dart';
 
 class SectionsTab extends ConsumerWidget {
@@ -55,7 +56,7 @@ class SectionsTab extends ConsumerWidget {
                     flex: 1,
                     cellBuilder: (s) => Icon(
                       s.isActive ? Icons.check_circle : Icons.cancel,
-                      color: s.isActive ? Colors.green : Colors.grey,
+                      color: boolIndicatorColor(s.isActive, context),
                       size: 20,
                     ),
                   ),
@@ -64,7 +65,7 @@ class SectionsTab extends ConsumerWidget {
                     flex: 1,
                     cellBuilder: (s) => Icon(
                       s.isDefault ? Icons.check_circle : Icons.radio_button_unchecked,
-                      color: s.isDefault ? Colors.green : Colors.grey,
+                      color: boolIndicatorColor(s.isDefault, context),
                       size: 20,
                     ),
                   ),

@@ -7,6 +7,7 @@ import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatting_ext.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
@@ -86,7 +87,7 @@ class _DialogLoyaltyRedeemState extends ConsumerState<DialogLoyaltyRedeem> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text('${l.loyaltyAvailablePoints}: ${widget.customer.points}'),
-            Text('${l.loyaltyPointsValue}: ${ref.money(widget.pointValue)}/bod'),
+            Text('${l.loyaltyPointsValue}: ${l.loyaltyPerPoint(ref.money(widget.pointValue))}'),
           ],
         ),
         const SizedBox(height: 8),
@@ -113,7 +114,7 @@ class _DialogLoyaltyRedeemState extends ConsumerState<DialogLoyaltyRedeem> {
             l.loyaltyDiscountPreview(_pointsToUse, ref.money(_discountAmount)),
             style: theme.textTheme.bodyMedium?.copyWith(
               fontWeight: FontWeight.bold,
-              color: _isValid ? Colors.green : null,
+              color: _isValid ? context.appColors.success : null,
             ),
           ),
         ),
@@ -138,7 +139,7 @@ class _DialogLoyaltyRedeemState extends ConsumerState<DialogLoyaltyRedeem> {
               child: Text('Max: $_maxPoints'),
             ),
             FilledButton(
-              style: FilledButton.styleFrom(backgroundColor: Colors.green),
+              style: PosButtonStyles.confirm(context),
               onPressed: _isValid ? _confirm : null,
               child: Text(l.paymentConfirm),
             ),

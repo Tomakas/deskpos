@@ -7,6 +7,7 @@ import '../../../core/data/models/payment_method_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/pos_table.dart';
 
 class PaymentMethodsTab extends ConsumerWidget {
@@ -43,7 +44,7 @@ class PaymentMethodsTab extends ConsumerWidget {
                     flex: 1,
                     cellBuilder: (pm) => Icon(
                       pm.isActive ? Icons.check_circle : Icons.cancel,
-                      color: pm.isActive ? Colors.green : Colors.grey,
+                      color: boolIndicatorColor(pm.isActive, context),
                       size: 20,
                     ),
                   ),

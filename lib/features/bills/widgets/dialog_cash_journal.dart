@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/data/enums/cash_movement_type.dart';
 import '../../../core/data/models/cash_movement_model.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatting_ext.dart';
 import '../../../core/widgets/pos_table.dart';
 import 'dialog_cash_movement.dart';
@@ -195,7 +196,7 @@ class _DialogCashJournalState extends ConsumerState<DialogCashJournal> {
                   SizedBox(
                     height: 40,
                     child: FilledButton(
-                      style: FilledButton.styleFrom(backgroundColor: Colors.green),
+                      style: PosButtonStyles.confirm(context),
                       onPressed: () => _addMovement(context),
                       child: Text(l.cashJournalAddMovement, style: const TextStyle(fontSize: 12)),
                     ),
@@ -236,7 +237,7 @@ class _DialogCashJournalState extends ConsumerState<DialogCashJournal> {
                         switch (e.kind) {
                           case _EntryKind.deposit:
                             sign = '+';
-                            color = Colors.green;
+                            color = context.appColors.positive;
                           case _EntryKind.withdrawal:
                             sign = '-';
                             color = theme.colorScheme.error;

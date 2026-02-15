@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatting_ext.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_table.dart';
@@ -122,13 +123,7 @@ class _DialogZReportListState extends ConsumerState<DialogZReportList> {
                 numeric: true,
                 cellBuilder: (s) {
                   final diff = s.difference;
-                  final diffColor = diff == null
-                      ? null
-                      : diff == 0
-                          ? Colors.green
-                          : diff > 0
-                              ? Colors.blue
-                              : theme.colorScheme.error;
+                  final diffColor = diff == null ? null : cashDifferenceColor(diff, context);
                   return Text(
                     diff != null ? ref.moneyWithSign(diff) : '-',
                     textAlign: TextAlign.right,

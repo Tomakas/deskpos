@@ -7,6 +7,7 @@ import '../../../core/data/models/table_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/search_utils.dart';
 import '../../../core/widgets/pos_table.dart';
 
@@ -91,7 +92,7 @@ class _TablesTabState extends ConsumerState<TablesTab> {
                           alignment: Alignment.centerLeft,
                           child: Icon(
                             t.isActive ? Icons.check_circle : Icons.cancel,
-                            color: t.isActive ? Colors.green : Colors.grey,
+                            color: boolIndicatorColor(t.isActive, context),
                             size: 20,
                           ),
                         ),

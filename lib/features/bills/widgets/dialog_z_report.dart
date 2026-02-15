@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/printing_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatting_ext.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/printing/receipt_data.dart';
@@ -66,7 +67,7 @@ class DialogZReport extends ConsumerWidget {
       cashClosing: l.zReportCashClosing,
       cashDifference: l.zReportCashDifference,
       shiftsTitle: l.zReportShiftsTitle,
-      currencySymbol: ref.watch(currentCurrencyProvider).value?.symbol ?? 'Kč',
+      currencySymbol: ref.currencySymbol,
       currency: ref.watch(currentCurrencyProvider).value,
     );
   }
@@ -189,11 +190,7 @@ class DialogZReport extends ConsumerWidget {
                   l.zReportCashDifference,
                   ref.moneyWithSign(data.difference),
                   bold: true,
-                  valueColor: data.difference == 0
-                      ? Colors.green
-                      : data.difference > 0
-                          ? Colors.blue
-                          : Theme.of(context).colorScheme.error,
+                  valueColor: cashDifferenceColor(data.difference, context),
                 ),
                 const Divider(height: 24),
 
@@ -228,11 +225,7 @@ class DialogZReport extends ConsumerWidget {
                             context,
                             l.zReportCashDifference,
                             ref.moneyWithSign(rb.difference),
-                            valueColor: rb.difference == 0
-                                ? Colors.green
-                                : rb.difference > 0
-                                    ? Colors.blue
-                                    : theme.colorScheme.error,
+                            valueColor: cashDifferenceColor(rb.difference, context),
                           ),
                         ],
                       ),

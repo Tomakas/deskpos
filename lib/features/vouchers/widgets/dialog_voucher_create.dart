@@ -167,7 +167,7 @@ class _DialogVoucherCreateState extends ConsumerState<DialogVoucherCreate> {
           },
           bottomLeftChild: _type == VoucherType.discount
               ? Text(
-                  _discountType == DiscountType.absolute ? '%' : (ref.watch(currentCurrencyProvider).value?.symbol ?? 'Kč'),
+                  _discountType == DiscountType.absolute ? '%' : (ref.currencySymbol),
                   style: const TextStyle(fontSize: 20),
                 )
               : const Text('.', style: TextStyle(fontSize: 20)),
@@ -224,7 +224,7 @@ class _DialogVoucherCreateState extends ConsumerState<DialogVoucherCreate> {
                 if (date != null) setState(() => _expiresAt = date);
               },
               child: Text(_expiresAt != null
-                  ? '${_expiresAt!.day}.${_expiresAt!.month}.${_expiresAt!.year}'
+                  ? ref.fmtDate(_expiresAt!)
                   : '-'),
             ),
           ],

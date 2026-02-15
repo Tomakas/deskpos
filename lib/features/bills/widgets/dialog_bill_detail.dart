@@ -18,6 +18,7 @@ import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/providers/sync_providers.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatting_ext.dart';
 import 'dialog_customer_search.dart';
 import 'dialog_discount.dart';
@@ -424,7 +425,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
                   SizedBox(
                     width: 44,
                     child: Text(
-                      '${item.quantity.toStringAsFixed(item.quantity == item.quantity.roundToDouble() ? 0 : 1)} ks',
+                      '${item.quantity.toStringAsFixed(item.quantity == item.quantity.roundToDouble() ? 0 : 1)} ${context.l10n.unitPcs}',
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ),
@@ -544,7 +545,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
               height: 44,
               width: 130,
               child: FilledButton(
-                style: FilledButton.styleFrom(backgroundColor: Colors.orange),
+                style: PosButtonStyles.warningFilled(context),
                 onPressed: () => _refundBill(context, ref, bill, l),
                 child: Text(l.refundButton),
               ),
@@ -557,10 +558,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
               height: 44,
               width: 130,
               child: OutlinedButton(
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.red,
-                  side: const BorderSide(color: Colors.red),
-                ),
+                style: PosButtonStyles.destructiveOutlined(context),
                 onPressed: () => _cancelBill(context, ref, bill, l),
                 child: Text(l.billDetailCancel),
               ),
@@ -573,7 +571,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
               height: 44,
               width: 130,
               child: FilledButton(
-                style: FilledButton.styleFrom(backgroundColor: Colors.green),
+                style: PosButtonStyles.confirm(context),
                 onPressed: () => _payBill(context, ref, bill),
                 child: Text(l.billDetailPay),
               ),
@@ -1030,7 +1028,7 @@ class _OrderSection extends ConsumerWidget {
                     Text(
                       l.ordersStornoPrefix,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.red,
+                        color: context.appColors.danger,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -1045,7 +1043,7 @@ class _OrderSection extends ConsumerWidget {
                           return Text(
                             l.ordersStornoRef(source.orderNumber),
                             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Colors.red,
+                              color: context.appColors.danger,
                             ),
                           );
                         },
@@ -1108,7 +1106,7 @@ class _OrderSection extends ConsumerWidget {
                           SizedBox(
                             width: 36,
                             child: Text(
-                              '${item.quantity.toStringAsFixed(item.quantity == item.quantity.roundToDouble() ? 0 : 1)} ks',
+                              '${item.quantity.toStringAsFixed(item.quantity == item.quantity.roundToDouble() ? 0 : 1)} ${context.l10n.unitPcs}',
                               style: Theme.of(context).textTheme.bodySmall,
                             ),
                           ),
@@ -1152,7 +1150,7 @@ class _OrderSection extends ConsumerWidget {
                             width: 8,
                             height: 8,
                             decoration: BoxDecoration(
-                              color: _statusColor(item.status),
+                              color: item.status.color(context),
                               shape: BoxShape.circle,
                             ),
                           ),
@@ -1268,10 +1266,7 @@ class _OrderSection extends ConsumerWidget {
                 width: double.infinity,
                 height: 40,
                 child: OutlinedButton(
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.red,
-                    side: const BorderSide(color: Colors.red),
-                  ),
+                  style: PosButtonStyles.destructiveOutlined(context),
                   onPressed: () {
                     Navigator.pop(context);
                     _voidSingleItem(context, ref, item);
@@ -1415,17 +1410,6 @@ class _OrderSection extends ConsumerWidget {
       default:
         return [];
     }
-  }
-
-  Color _statusColor(PrepStatus status) {
-    return switch (status) {
-      PrepStatus.created => Colors.blue,
-      PrepStatus.inPrep => Colors.orange,
-      PrepStatus.ready => Colors.green,
-      PrepStatus.delivered => Colors.grey,
-      PrepStatus.cancelled => Colors.red,
-      PrepStatus.voided => Colors.red,
-    };
   }
 }
 

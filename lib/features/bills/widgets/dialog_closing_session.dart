@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatting_ext.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
@@ -367,7 +367,7 @@ class _DialogClosingSessionState extends ConsumerState<DialogClosingSession> {
           controller: _closingCashCtrl,
           decoration: InputDecoration(
             labelText: l.closingActualCash,
-            suffixText: ref.watch(currentCurrencyProvider).value?.symbol ?? 'Kč',
+            suffixText: ref.currencySymbol,
             border: const OutlineInputBorder(),
           ),
           keyboardType: TextInputType.number,
@@ -379,11 +379,7 @@ class _DialogClosingSessionState extends ConsumerState<DialogClosingSession> {
             l.closingDifference,
             ref.moneyWithSign(diff),
             bold: true,
-            valueColor: diff == 0
-                ? Colors.green
-                : diff > 0
-                    ? Colors.blue
-                    : theme.colorScheme.error,
+            valueColor: cashDifferenceColor(diff, context),
           ),
         ],
       ],
@@ -424,10 +420,7 @@ class _DialogClosingSessionState extends ConsumerState<DialogClosingSession> {
           child: Text(l.actionCancel, style: const TextStyle(fontSize: 12)),
         ),
         FilledButton(
-          style: FilledButton.styleFrom(
-            backgroundColor: Colors.green,
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-          ),
+          style: PosButtonStyles.confirmWith(context, padding: const EdgeInsets.symmetric(horizontal: 8)),
           onPressed: _closingCashMinor != null ? _confirm : null,
           child: Text(l.closingConfirm, style: const TextStyle(fontSize: 12)),
         ),
