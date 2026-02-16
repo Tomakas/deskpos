@@ -785,7 +785,7 @@ lib/
 │   │   ├── realtime_service.dart      # Supabase Realtime PostgresChanges (23 tabulek, <2s)
 │   │   ├── broadcast_channel.dart     # Supabase Realtime Broadcast wrapper (pairing, KDS, display)
 │   │   └── sync_lifecycle_manager.dart # Orchestrace start/stop/initial push/drain + realtime
-│   ├── logging/                       # AppLogger (debugPrint)
+│   ├── logging/                       # AppLogger (dart:developer + debugPrint)
 │   └── l10n/                          # Extension context.l10n
 ├── features/                          # Funkční moduly (UI only)
 │   ├── auth/                          # ScreenLogin (PIN + numpad)
@@ -2710,9 +2710,11 @@ Od Etapy 3 jsou Supabase credentials uloženy jako konstanty v `lib/core/network
 
 Používej `lib/core/logging/app_logger.dart`. `print()` se nepoužívá.
 
+Implementace: duální výstup — `developer.log` (strukturované logy pro DevTools) + `debugPrint` (Android Studio Run panel). `debugPrint` volání jsou dočasná pro vývoj — před produkčním releasem odstranit (viz TODO v souboru).
+
 Pravidla:
-1. `AppLogger.debug` a `AppLogger.info` se v release buildu nevypisují
-2. `AppLogger.warn` a `AppLogger.error` se logují vždy
+1. `AppLogger.debug` a `AppLogger.info` se v release buildu nevypisují (`kDebugMode` guard)
+2. `AppLogger.warn` a `AppLogger.error` logují přes `developer.log` vždy; `debugPrint` jen v debug režimu
 3. Nevypisovat citlivá data (tokens, payloady, credentials)
 4. Logovací zprávy jsou pouze v angličtině
 
