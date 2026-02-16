@@ -55,6 +55,8 @@ class _DialogVoucherCreateState extends ConsumerState<DialogVoucherCreate> {
     return PosDialogShell(
       title: l.voucherCreate,
       maxWidth: 400,
+      maxHeight: 600,
+      expandHeight: true,
       padding: const EdgeInsets.all(20),
       children: [
         // Type selection
@@ -157,31 +159,34 @@ class _DialogVoucherCreateState extends ConsumerState<DialogVoucherCreate> {
         ),
         const SizedBox(height: 12),
         // Numpad
-        PosNumpad(
-          size: PosNumpadSize.compact,
-          onDigit: (d) => setState(() => _valueInput += d),
-          onBackspace: () {
-            if (_valueInput.isNotEmpty) {
-              setState(() => _valueInput = _valueInput.substring(0, _valueInput.length - 1));
-            }
-          },
-          bottomLeftChild: _type == VoucherType.discount
-              ? Text(
-                  _discountType == DiscountType.absolute ? '%' : (ref.currencySymbol),
-                  style: const TextStyle(fontSize: 20),
-                )
-              : const Text('.', style: TextStyle(fontSize: 20)),
-          onBottomLeft: _type == VoucherType.discount
-              ? () => setState(() => _discountType =
-                  _discountType == DiscountType.absolute
-                      ? DiscountType.percent
-                      : DiscountType.absolute)
-              : () {
-                  if (!_valueInput.contains('.')) {
-                    setState(
-                        () => _valueInput = _valueInput.isEmpty ? '0.' : '$_valueInput.');
-                  }
-                },
+        Expanded(
+          child: PosNumpad(
+            size: PosNumpadSize.compact,
+            expand: true,
+            onDigit: (d) => setState(() => _valueInput += d),
+            onBackspace: () {
+              if (_valueInput.isNotEmpty) {
+                setState(() => _valueInput = _valueInput.substring(0, _valueInput.length - 1));
+              }
+            },
+            bottomLeftChild: _type == VoucherType.discount
+                ? Text(
+                    _discountType == DiscountType.absolute ? '%' : (ref.currencySymbol),
+                    style: const TextStyle(fontSize: 20),
+                  )
+                : const Text('.', style: TextStyle(fontSize: 20)),
+            onBottomLeft: _type == VoucherType.discount
+                ? () => setState(() => _discountType =
+                    _discountType == DiscountType.absolute
+                        ? DiscountType.percent
+                        : DiscountType.absolute)
+                : () {
+                    if (!_valueInput.contains('.')) {
+                      setState(
+                          () => _valueInput = _valueInput.isEmpty ? '0.' : '$_valueInput.');
+                    }
+                  },
+          ),
         ),
         const SizedBox(height: 12),
         // Max uses (discount only)

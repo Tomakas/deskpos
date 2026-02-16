@@ -64,20 +64,20 @@ final syncLifecycleManagerProvider = Provider<SyncLifecycleManager>((ref) {
     companyRepos: [
       ref.watch(companySettingsRepositoryProvider),
       ref.watch(sectionRepositoryProvider),
+      ref.watch(taxRateRepositoryProvider),
+      ref.watch(paymentMethodRepositoryProvider),
+      ref.watch(supplierRepositoryProvider),
+      ref.watch(manufacturerRepositoryProvider),
       ref.watch(categoryRepositoryProvider),
       ref.watch(itemRepositoryProvider),
       ref.watch(tableRepositoryProvider),
       ref.watch(mapElementRepositoryProvider),
-      ref.watch(paymentMethodRepositoryProvider),
-      ref.watch(taxRateRepositoryProvider),
       ref.watch(userRepositoryProvider),
-      ref.watch(warehouseRepositoryProvider),
-      ref.watch(voucherRepositoryProvider),
-      ref.watch(supplierRepositoryProvider),
-      ref.watch(manufacturerRepositoryProvider),
       ref.watch(customerRepositoryProvider),
+      ref.watch(warehouseRepositoryProvider),
       ref.watch(productRecipeRepositoryProvider),
       ref.watch(reservationRepositoryProvider),
+      ref.watch(voucherRepositoryProvider),
       ref.watch(customerTransactionRepositoryProvider),
     ],
     db: ref.watch(appDatabaseProvider),
@@ -196,6 +196,11 @@ final syncLifecycleWatcherProvider = Provider<void>((ref) {
   final isAuthenticated = ref.watch(isSupabaseAuthenticatedProvider);
   final company = ref.watch(currentCompanyProvider);
   final manager = ref.watch(syncLifecycleManagerProvider);
+
+  AppLogger.info(
+    'syncWatcher: isAuth=$isAuthenticated, company=${company?.id}, managerRunning=${manager.isRunning}',
+    tag: 'SYNC',
+  );
 
   if (isAuthenticated && company != null) {
     manager.start(company.id);

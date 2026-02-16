@@ -12,6 +12,7 @@ class PosDialogShell extends StatelessWidget {
     this.padding = const EdgeInsets.all(PosDialogTheme.padding),
     this.titleStyle,
     this.scrollable = false,
+    this.expandHeight = false,
   });
 
   final String title;
@@ -21,6 +22,7 @@ class PosDialogShell extends StatelessWidget {
   final EdgeInsets padding;
   final TextStyle? titleStyle;
   final bool scrollable;
+  final bool expandHeight;
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +34,7 @@ class PosDialogShell extends StatelessWidget {
     ];
 
     return Dialog(
+      insetPadding: const EdgeInsets.all(12),
       child: ConstrainedBox(
         constraints: BoxConstraints(
           maxWidth: maxWidth,
@@ -48,7 +51,7 @@ class PosDialogShell extends StatelessWidget {
                   ),
                 )
               : Column(
-                  mainAxisSize: MainAxisSize.min,
+                  mainAxisSize: expandHeight ? MainAxisSize.max : MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: content,
                 ),

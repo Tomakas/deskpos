@@ -80,6 +80,8 @@ class _DialogDiscountState extends ConsumerState<DialogDiscount> {
     return PosDialogShell(
       title: l.billDetailDiscount,
       maxWidth: 340,
+      maxHeight: 460,
+      expandHeight: true,
       padding: const EdgeInsets.all(20),
       children: [
         // Display
@@ -98,11 +100,14 @@ class _DialogDiscountState extends ConsumerState<DialogDiscount> {
         ),
         const SizedBox(height: 12),
         // Numpad
-        PosNumpad(
-          size: PosNumpadSize.compact,
-          onDigit: (d) => setState(() => _input += d),
-          onBackspace: _onBackspace,
-          onDot: _onDot,
+        Expanded(
+          child: PosNumpad(
+            size: PosNumpadSize.compact,
+            expand: true,
+            onDigit: (d) => setState(() => _input += d),
+            onBackspace: _onBackspace,
+            onDot: _onDot,
+          ),
         ),
         const SizedBox(height: 16),
         // Actions: [currency] [back] [%]

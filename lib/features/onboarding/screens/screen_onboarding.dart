@@ -26,6 +26,14 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
   String _selectedLocale = 'cs';
   String _selectedCurrencyCode = 'CZK';
 
+  // Step 0: Supabase account
+  final _authEmailCtrl = TextEditingController();
+  final _authPasswordCtrl = TextEditingController();
+  final _authPasswordConfirmCtrl = TextEditingController();
+  bool _isSignInMode = false;
+  String? _authError;
+  String? _authUserId;
+
   // Step 1: Company
   final _companyNameCtrl = TextEditingController();
   final _businessIdCtrl = TextEditingController();
@@ -43,6 +51,9 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
 
   @override
   void dispose() {
+    _authEmailCtrl.dispose();
+    _authPasswordCtrl.dispose();
+    _authPasswordConfirmCtrl.dispose();
     _companyNameCtrl.dispose();
     _businessIdCtrl.dispose();
     _addressCtrl.dispose();
@@ -156,12 +167,17 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
-                    _step == 0 ? l.wizardStepCompany : l.wizardStepAdmin,
+                    _step == 0
+                        ? l.wizardStepAccount
+                        : _step == 1
+                            ? l.wizardStepCompany
+                            : l.wizardStepAdmin,
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
                   const SizedBox(height: 32),
-                  if (_step == 0) ..._buildCompanyStep(l),
-                  if (_step == 1) ..._buildAdminStep(l),
+                  if (_step == 0) ..._buildAccountStep(l),
+                  if (_step == 1) ..._buildCompanyStep(l),
+                  if (_step == 2) ..._buildAdminStep(l),
                   const SizedBox(height: 32),
                   Row(
                     children: [
@@ -178,10 +194,23 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
                       const Spacer(),
                       if (_step == 0)
                         FilledButton(
+                          onPressed: _isSubmitting ? null : _submitAccount,
+                          child: _isSubmitting
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              : Text(_isSignInMode
+                                  ? l.wizardAccountSignIn
+                                  : l.wizardAccountSignUp),
+                        ),
+                      if (_step == 1)
+                        FilledButton(
                           onPressed: _nextStep,
                           child: Text(l.wizardNext),
                         ),
-                      if (_step == 1)
+                      if (_step == 2)
                         FilledButton(
                           onPressed: _isSubmitting ? null : _finish,
                           child: _isSubmitting
@@ -201,6 +230,62 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
         ),
       ),
     );
+  }
+
+  List<Widget> _buildAccountStep(AppLocalizations l) {
+    return [
+      TextFormField(
+        controller: _authEmailCtrl,
+        decoration: InputDecoration(labelText: l.wizardAccountEmail),
+        keyboardType: TextInputType.emailAddress,
+        validator: (v) => (v == null || v.trim().isEmpty) ? l.cloudEmailRequired : null,
+        textInputAction: TextInputAction.next,
+      ),
+      const SizedBox(height: 16),
+      TextFormField(
+        controller: _authPasswordCtrl,
+        decoration: InputDecoration(labelText: l.wizardAccountPassword),
+        obscureText: true,
+        validator: (v) {
+          if (v == null || v.isEmpty) return l.cloudPasswordRequired;
+          if (v.length < 6) return l.cloudPasswordLength;
+          return null;
+        },
+        textInputAction: TextInputAction.next,
+      ),
+      if (!_isSignInMode) ...[
+        const SizedBox(height: 16),
+        TextFormField(
+          controller: _authPasswordConfirmCtrl,
+          decoration: InputDecoration(labelText: l.wizardAccountPasswordConfirm),
+          obscureText: true,
+          validator: (v) {
+            if (v != _authPasswordCtrl.text) return l.wizardAccountPasswordMismatch;
+            return null;
+          },
+        ),
+      ],
+      if (_authError != null) ...[
+        const SizedBox(height: 16),
+        Text(
+          _authError!,
+          style: TextStyle(color: Theme.of(context).colorScheme.error),
+        ),
+      ],
+      const SizedBox(height: 16),
+      Align(
+        alignment: Alignment.centerLeft,
+        child: TextButton(
+          onPressed: () => setState(() {
+            _isSignInMode = !_isSignInMode;
+            _authError = null;
+          }),
+          child: Text(_isSignInMode
+              ? l.wizardAccountSwitchToSignUp
+              : l.wizardAccountSwitchToSignIn),
+        ),
+      ),
+    ];
   }
 
   List<Widget> _buildCompanyStep(AppLocalizations l) {
@@ -333,18 +418,65 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
     }
   }
 
-  Future<void> _finish() async {
+  Future<void> _submitAccount() async {
     if (!_formKey.currentState!.validate()) return;
-    setState(() => _isSubmitting = true);
+    setState(() {
+      _isSubmitting = true;
+      _authError = null;
+    });
+
+    final authService = ref.read(supabaseAuthServiceProvider);
 
     // Clear any stale Supabase session from a previous installation/company
-    final authService = ref.read(supabaseAuthServiceProvider);
-    final seedService = ref.read(seedServiceProvider);
-    final deviceIdFuture = ref.read(deviceIdProvider.future);
     if (authService.isAuthenticated) {
       await authService.signOut();
       if (!mounted) return;
     }
+
+    final Result<String> result;
+    if (_isSignInMode) {
+      result = await authService.signIn(
+        _authEmailCtrl.text.trim(),
+        _authPasswordCtrl.text,
+      );
+    } else {
+      result = await authService.signUp(
+        _authEmailCtrl.text.trim(),
+        _authPasswordCtrl.text,
+      );
+    }
+
+    if (!mounted) return;
+
+    switch (result) {
+      case Success(value: final userId):
+        setState(() {
+          _authUserId = userId;
+          _isSubmitting = false;
+          _step = 1;
+        });
+      case Failure(message: final msg):
+        setState(() {
+          _authError = msg;
+          _isSubmitting = false;
+        });
+    }
+  }
+
+  Future<void> _finish() async {
+    if (!_formKey.currentState!.validate()) return;
+    if (_authUserId == null) {
+      AppLogger.error('Onboarding _finish called with null authUserId');
+      setState(() {
+        _isSubmitting = false;
+        _step = 0;
+      });
+      return;
+    }
+    setState(() => _isSubmitting = true);
+
+    final seedService = ref.read(seedServiceProvider);
+    final deviceIdFuture = ref.read(deviceIdProvider.future);
 
     final myDeviceId = await deviceIdFuture;
     if (!mounted) return;
@@ -361,6 +493,7 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
       deviceId: myDeviceId,
       locale: _selectedLocale,
       defaultCurrencyCode: _selectedCurrencyCode,
+      authUserId: _authUserId!,
     );
 
     if (!mounted) return;

@@ -64,6 +64,8 @@ class _DialogOpeningCashState extends ConsumerState<DialogOpeningCash> {
     return PosDialogShell(
       title: l.openingCashTitle,
       maxWidth: 340,
+      maxHeight: 520,
+      expandHeight: true,
       children: [
         Center(
           child: Text(
@@ -92,11 +94,14 @@ class _DialogOpeningCashState extends ConsumerState<DialogOpeningCash> {
         ),
         const SizedBox(height: 16),
         // Numpad
-        PosNumpad(
-          width: 250,
-          onDigit: _numpadTap,
-          onBackspace: _numpadBackspace,
-          onClear: _numpadClear,
+        Expanded(
+          child: PosNumpad(
+            width: 250,
+            expand: true,
+            onDigit: _numpadTap,
+            onBackspace: _numpadBackspace,
+            onClear: _numpadClear,
+          ),
         ),
         const SizedBox(height: 16),
         // Actions

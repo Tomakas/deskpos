@@ -4621,6 +4621,66 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Vítejte u nás!'**
   String get displayDefaultWelcomeText;
+
+  /// No description provided for @wizardStepAccount.
+  ///
+  /// In cs, this message translates to:
+  /// **'Cloudový účet'**
+  String get wizardStepAccount;
+
+  /// No description provided for @wizardAccountEmail.
+  ///
+  /// In cs, this message translates to:
+  /// **'E-mail'**
+  String get wizardAccountEmail;
+
+  /// No description provided for @wizardAccountPassword.
+  ///
+  /// In cs, this message translates to:
+  /// **'Heslo'**
+  String get wizardAccountPassword;
+
+  /// No description provided for @wizardAccountPasswordConfirm.
+  ///
+  /// In cs, this message translates to:
+  /// **'Potvrzení hesla'**
+  String get wizardAccountPasswordConfirm;
+
+  /// No description provided for @wizardAccountPasswordMismatch.
+  ///
+  /// In cs, this message translates to:
+  /// **'Hesla se neshodují'**
+  String get wizardAccountPasswordMismatch;
+
+  /// No description provided for @wizardAccountSignUp.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vytvořit účet'**
+  String get wizardAccountSignUp;
+
+  /// No description provided for @wizardAccountSignIn.
+  ///
+  /// In cs, this message translates to:
+  /// **'Přihlásit se'**
+  String get wizardAccountSignIn;
+
+  /// No description provided for @wizardAccountSwitchToSignIn.
+  ///
+  /// In cs, this message translates to:
+  /// **'Máte účet? Přihlaste se'**
+  String get wizardAccountSwitchToSignIn;
+
+  /// No description provided for @wizardAccountSwitchToSignUp.
+  ///
+  /// In cs, this message translates to:
+  /// **'Nemáte účet? Vytvořte si ho'**
+  String get wizardAccountSwitchToSignUp;
+
+  /// No description provided for @cloudConnectedAs.
+  ///
+  /// In cs, this message translates to:
+  /// **'Připojeno jako {email}'**
+  String cloudConnectedAs(String email);
 }
 
 class _AppLocalizationsDelegate

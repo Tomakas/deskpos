@@ -2350,4 +2350,37 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get displayDefaultWelcomeText => 'Welcome!';
+
+  @override
+  String get wizardStepAccount => 'Cloud Account';
+
+  @override
+  String get wizardAccountEmail => 'Email';
+
+  @override
+  String get wizardAccountPassword => 'Password';
+
+  @override
+  String get wizardAccountPasswordConfirm => 'Confirm Password';
+
+  @override
+  String get wizardAccountPasswordMismatch => 'Passwords do not match';
+
+  @override
+  String get wizardAccountSignUp => 'Create Account';
+
+  @override
+  String get wizardAccountSignIn => 'Sign In';
+
+  @override
+  String get wizardAccountSwitchToSignIn => 'Already have an account? Sign in';
+
+  @override
+  String get wizardAccountSwitchToSignUp =>
+      'Don\'t have an account? Create one';
+
+  @override
+  String cloudConnectedAs(String email) {
+    return 'Connected as $email';
+  }
 }

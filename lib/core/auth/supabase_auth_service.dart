@@ -22,6 +22,9 @@ class SupabaseAuthService {
       if (userId == null) {
         return const Failure('Sign up failed: no user returned');
       }
+      if (response.session == null) {
+        return const Failure('Email confirmation required. Please confirm your email and sign in.');
+      }
       AppLogger.info('Supabase sign up successful', tag: 'SYNC');
       return Success(userId);
     } on AuthException catch (e) {

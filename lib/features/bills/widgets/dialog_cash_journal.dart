@@ -6,6 +6,7 @@ import '../../../core/data/models/cash_movement_model.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatting_ext.dart';
+import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_table.dart';
 import 'dialog_cash_movement.dart';
 
@@ -147,144 +148,164 @@ class _DialogCashJournalState extends ConsumerState<DialogCashJournal> {
     final theme = Theme.of(context);
     final filtered = _filtered;
 
-    return Dialog(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 520),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header: balance
-              Row(
-                children: [
-                  Text(l.cashJournalBalance, style: theme.textTheme.titleMedium),
-                  const SizedBox(width: 12),
-                  Text(
-                    ref.money(widget.currentBalance),
-                    style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
+    return PosDialogShell(
+      title: l.cashJournalBalance,
+      maxWidth: 520,
+      maxHeight: 500,
+      expandHeight: true,
+      padding: const EdgeInsets.all(20),
+      children: [
+        // Header: balance
+        Center(
+          child: Text(
+            ref.money(widget.currentBalance),
+            style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+          ),
+        ),
+        const SizedBox(height: 12),
 
-              // Filters + add button
-              Row(
-                children: [
-                  FilterChip(
-                    showCheckmark: true,
-                    label: Text(l.cashJournalFilterDeposits, style: const TextStyle(fontSize: 12)),
-                    selected: _showDeposits,
-                    onSelected: (v) => setState(() => _showDeposits = v),
+        // Filters + add button
+        Row(
+          children: [
+            Expanded(
+              child: SizedBox(
+                height: 40,
+                child: FilterChip(
+                  showCheckmark: true,
+                  label: SizedBox(
+                    width: double.infinity,
+                    child: Text(l.cashJournalFilterDeposits, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12)),
                   ),
-                  const SizedBox(width: 8),
-                  FilterChip(
-                    showCheckmark: true,
-                    label: Text(l.cashJournalFilterWithdrawals, style: const TextStyle(fontSize: 12)),
-                    selected: _showWithdrawals,
-                    onSelected: (v) => setState(() => _showWithdrawals = v),
-                  ),
-                  const SizedBox(width: 8),
-                  FilterChip(
-                    showCheckmark: true,
-                    label: Text(l.cashJournalFilterSales, style: const TextStyle(fontSize: 12)),
-                    selected: _showSales,
-                    onSelected: (v) => setState(() => _showSales = v),
-                  ),
-                  const Spacer(),
-                  SizedBox(
-                    height: 40,
-                    child: FilledButton(
-                      style: PosButtonStyles.confirm(context),
-                      onPressed: () => _addMovement(context),
-                      child: Text(l.cashJournalAddMovement, style: const TextStyle(fontSize: 12)),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-
-              // Table
-              SizedBox(
-                height: 240 + 32, // body + header
-                child: PosTable<_JournalEntry>(
-                  columns: [
-                    PosColumn(
-                      label: l.cashJournalColumnTime,
-                      width: 50,
-                      cellBuilder: (e) => Text(ref.fmtTime(e.createdAt), style: theme.textTheme.bodySmall),
-                    ),
-                    PosColumn(
-                      label: l.cashJournalColumnType,
-                      width: 60,
-                      cellBuilder: (e) {
-                        final typeName = switch (e.kind) {
-                          _EntryKind.deposit => l.cashMovementDeposit,
-                          _EntryKind.withdrawal => l.cashMovementWithdrawal,
-                          _EntryKind.sale => l.cashMovementSale,
-                        };
-                        return Text(typeName, style: theme.textTheme.bodySmall);
-                      },
-                    ),
-                    PosColumn(
-                      label: l.cashJournalColumnAmount,
-                      width: 80,
-                      numeric: true,
-                      cellBuilder: (e) {
-                        final String sign;
-                        final Color color;
-                        switch (e.kind) {
-                          case _EntryKind.deposit:
-                            sign = '+';
-                            color = context.appColors.positive;
-                          case _EntryKind.withdrawal:
-                            sign = '-';
-                            color = theme.colorScheme.error;
-                          case _EntryKind.sale:
-                            sign = '+';
-                            color = theme.colorScheme.primary;
-                        }
-                        return Text(
-                          '$sign ${ref.money(e.amount)}',
-                          textAlign: TextAlign.right,
-                          style: theme.textTheme.bodySmall?.copyWith(color: color, fontWeight: FontWeight.w600),
-                        );
-                      },
-                    ),
-                    PosColumn(
-                      label: l.cashJournalColumnNote,
-                      cellBuilder: (e) => Padding(
-                        padding: const EdgeInsets.only(left: 12),
-                        child: Text(
-                          e.note ?? '',
-                          style: theme.textTheme.bodySmall,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ),
-                  ],
-                  items: filtered,
-                  emptyMessage: l.cashJournalEmpty,
+                  selected: _showDeposits,
+                  onSelected: (v) => setState(() => _showDeposits = v),
                 ),
               ),
-              const SizedBox(height: 12),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: SizedBox(
+                height: 40,
+                child: FilterChip(
+                  showCheckmark: true,
+                  label: SizedBox(
+                    width: double.infinity,
+                    child: Text(l.cashJournalFilterWithdrawals, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12)),
+                  ),
+                  selected: _showWithdrawals,
+                  onSelected: (v) => setState(() => _showWithdrawals = v),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: SizedBox(
+                height: 40,
+                child: FilterChip(
+                  showCheckmark: true,
+                  label: SizedBox(
+                    width: double.infinity,
+                    child: Text(l.cashJournalFilterSales, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12)),
+                  ),
+                  selected: _showSales,
+                  onSelected: (v) => setState(() => _showSales = v),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: SizedBox(
+                height: 40,
+                child: FilledButton(
+                  style: PosButtonStyles.confirm(context),
+                  onPressed: () => _addMovement(context),
+                  child: Text(l.cashJournalAddMovement, style: const TextStyle(fontSize: 12)),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
 
-              // Close button
-              Align(
-                alignment: Alignment.centerRight,
-                child: SizedBox(
-                  height: 40,
-                  child: OutlinedButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: Text(l.actionClose),
+        // Table
+        Expanded(
+          child: PosTable<_JournalEntry>(
+            columns: [
+              PosColumn(
+                label: l.cashJournalColumnTime,
+                width: 50,
+                cellBuilder: (e) => Text(ref.fmtTime(e.createdAt), style: theme.textTheme.bodySmall),
+              ),
+              PosColumn(
+                label: l.cashJournalColumnType,
+                width: 60,
+                cellBuilder: (e) {
+                  final typeName = switch (e.kind) {
+                    _EntryKind.deposit => l.cashMovementDeposit,
+                    _EntryKind.withdrawal => l.cashMovementWithdrawal,
+                    _EntryKind.sale => l.cashMovementSale,
+                  };
+                  return Text(typeName, style: theme.textTheme.bodySmall);
+                },
+              ),
+              PosColumn(
+                label: l.cashJournalColumnAmount,
+                width: 80,
+                numeric: true,
+                cellBuilder: (e) {
+                  final String sign;
+                  final Color color;
+                  switch (e.kind) {
+                    case _EntryKind.deposit:
+                      sign = '+';
+                      color = context.appColors.positive;
+                    case _EntryKind.withdrawal:
+                      sign = '-';
+                      color = theme.colorScheme.error;
+                    case _EntryKind.sale:
+                      sign = '+';
+                      color = theme.colorScheme.primary;
+                  }
+                  return Text(
+                    '$sign ${ref.money(e.amount)}',
+                    textAlign: TextAlign.right,
+                    style: theme.textTheme.bodySmall?.copyWith(color: color, fontWeight: FontWeight.w600),
+                  );
+                },
+              ),
+              PosColumn(
+                label: l.cashJournalColumnNote,
+                cellBuilder: (e) => Padding(
+                  padding: const EdgeInsets.only(left: 12),
+                  child: Text(
+                    e.note ?? '',
+                    style: theme.textTheme.bodySmall,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ),
             ],
+            items: filtered,
+            emptyMessage: l.cashJournalEmpty,
           ),
         ),
-      ),
+        const SizedBox(height: 12),
+
+        // Close button
+        Align(
+          alignment: Alignment.centerRight,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 120),
+            child: SizedBox(
+              height: 40,
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(l.actionClose),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 

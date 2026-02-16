@@ -127,6 +127,8 @@ class _DialogCashMovementState extends ConsumerState<DialogCashMovement> {
     return PosDialogShell(
       title: l.cashMovementTitle,
       maxWidth: 420,
+      maxHeight: 520,
+      expandHeight: true,
       children: [
         // Amount display
         _buildAmountDisplay(theme, l),
@@ -196,20 +198,15 @@ class _DialogCashMovementState extends ConsumerState<DialogCashMovement> {
   // ---------------------------------------------------------------------------
 
   Widget _buildNumpadAndActions(ThemeData theme, AppLocalizations l) {
-    const rowHeight = PosDialogTheme.numpadLargeHeight;
-    const gap = PosDialogTheme.numpadLargeGap;
-    const totalHeight = rowHeight * 4 + gap * 3;
-    const actionHeight = (totalHeight - gap) / 2;
-
-    return SizedBox(
-      height: totalHeight,
+    return Expanded(
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Numpad 3×4
-          SizedBox(
-            width: 250,
+          Expanded(
+            flex: 5,
             child: PosNumpad(
+              expand: true,
               onDigit: _numpadTap,
               onBackspace: _numpadBackspace,
               onClear: _numpadClear,
@@ -217,58 +214,60 @@ class _DialogCashMovementState extends ConsumerState<DialogCashMovement> {
           ),
           const SizedBox(width: 12),
           // VKLAD / VÝBĚR
-          SizedBox(
-            width: 110,
+          Expanded(
+            flex: 2,
             child: Column(
               children: [
-                SizedBox(
-                  height: actionHeight,
-                  width: double.infinity,
-                  child: FilledButton(
-                    style: PosButtonStyles.confirmWith(
-                      context,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(PosDialogTheme.numpadLargeRadius),
-                      ),
-                    ),
-                    onPressed:
-                        _hasAmount ? () => _confirm(CashMovementType.deposit) : null,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          l.cashMovementDeposit,
-                          style: const TextStyle(fontSize: PosDialogTheme.actionFontSize),
+                Expanded(
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      style: PosButtonStyles.confirmWith(
+                        context,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(PosDialogTheme.numpadLargeRadius),
                         ),
-                        const SizedBox(height: 4),
-                        const Icon(Icons.add_circle_outline, size: 32),
-                      ],
+                      ),
+                      onPressed:
+                          _hasAmount ? () => _confirm(CashMovementType.deposit) : null,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            l.cashMovementDeposit,
+                            style: const TextStyle(fontSize: PosDialogTheme.actionFontSize),
+                          ),
+                          const SizedBox(height: 4),
+                          const Icon(Icons.add_circle_outline, size: 32),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-                const SizedBox(height: gap),
-                SizedBox(
-                  height: actionHeight,
-                  width: double.infinity,
-                  child: FilledButton(
-                    style: FilledButton.styleFrom(
-                      backgroundColor: theme.colorScheme.error,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(PosDialogTheme.numpadLargeRadius),
-                      ),
-                    ),
-                    onPressed:
-                        _hasAmount ? () => _confirm(CashMovementType.withdrawal) : null,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          l.cashMovementWithdrawal,
-                          style: const TextStyle(fontSize: PosDialogTheme.actionFontSize),
+                const SizedBox(height: PosDialogTheme.numpadLargeGap),
+                Expanded(
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      style: FilledButton.styleFrom(
+                        backgroundColor: theme.colorScheme.error,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(PosDialogTheme.numpadLargeRadius),
                         ),
-                        const SizedBox(height: 4),
-                        const Icon(Icons.remove_circle_outline, size: 32),
-                      ],
+                      ),
+                      onPressed:
+                          _hasAmount ? () => _confirm(CashMovementType.withdrawal) : null,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            l.cashMovementWithdrawal,
+                            style: const TextStyle(fontSize: PosDialogTheme.actionFontSize),
+                          ),
+                          const SizedBox(height: 4),
+                          const Icon(Icons.remove_circle_outline, size: 32),
+                        ],
+                      ),
                     ),
                   ),
                 ),

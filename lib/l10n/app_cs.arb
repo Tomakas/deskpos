@@ -968,5 +968,19 @@
   "displayDeviceAddKds": "KDS",
   "displayWelcomeText": "Uvítací text",
   "displayDefaultNameKds": "Objednávkový systém",
-  "displayDefaultWelcomeText": "Vítejte u nás!"
+  "displayDefaultWelcomeText": "Vítejte u nás!",
+
+  "wizardStepAccount": "Cloudový účet",
+  "wizardAccountEmail": "E-mail",
+  "wizardAccountPassword": "Heslo",
+  "wizardAccountPasswordConfirm": "Potvrzení hesla",
+  "wizardAccountPasswordMismatch": "Hesla se neshodují",
+  "wizardAccountSignUp": "Vytvořit účet",
+  "wizardAccountSignIn": "Přihlásit se",
+  "wizardAccountSwitchToSignIn": "Máte účet? Přihlaste se",
+  "wizardAccountSwitchToSignUp": "Nemáte účet? Vytvořte si ho",
+  "cloudConnectedAs": "Připojeno jako {email}",
+  "@cloudConnectedAs": {
+    "placeholders": { "email": { "type": "String" } }
+  }
 }

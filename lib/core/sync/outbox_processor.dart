@@ -40,7 +40,7 @@ class OutboxProcessor {
     AppLogger.info('OutboxProcessor stopped', tag: 'SYNC');
   }
 
-  Future<void> processQueue() async {
+  Future<void> processQueue({int limit = 50}) async {
     if (_isProcessing) return;
     _isProcessing = true;
 
@@ -52,7 +52,7 @@ class OutboxProcessor {
         _lastCleanup = now;
       }
 
-      final entries = await _syncQueueRepo.getPending();
+      final entries = await _syncQueueRepo.getPending(limit: limit);
       if (entries.isEmpty) return;
 
       // Sort by FK dependency order so parent rows are pushed before children.

@@ -81,6 +81,8 @@ class _DialogLoyaltyRedeemState extends ConsumerState<DialogLoyaltyRedeem> {
     return PosDialogShell(
       title: l.loyaltyRedeem,
       maxWidth: 420,
+      maxHeight: 560,
+      expandHeight: true,
       children: [
         // Info
         Row(
@@ -120,10 +122,13 @@ class _DialogLoyaltyRedeemState extends ConsumerState<DialogLoyaltyRedeem> {
         ),
         const SizedBox(height: 16),
         // Numpad
-        PosNumpad(
-          onDigit: _numpadTap,
-          onBackspace: _numpadBackspace,
-          onClear: _numpadClear,
+        Expanded(
+          child: PosNumpad(
+            expand: true,
+            onDigit: _numpadTap,
+            onBackspace: _numpadBackspace,
+            onClear: _numpadClear,
+          ),
         ),
         const SizedBox(height: 16),
         // Bottom

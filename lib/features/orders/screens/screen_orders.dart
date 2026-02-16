@@ -186,6 +186,8 @@ class _OrderCard extends ConsumerWidget {
     final theme = Theme.of(context);
     final isStorno = order.isStorno;
     final statusColor = order.status.color(context);
+    final elapsed = DateTime.now().difference(order.createdAt);
+    final urgencyColor = _urgencyColor(elapsed.inMinutes);
 
     return Card(
       shape: RoundedRectangleBorder(
@@ -261,44 +263,49 @@ class _OrderCard extends ConsumerWidget {
                           ),
                         ],
                         const SizedBox(width: 8),
-                        if (lowestNext != null)
-                          SizedBox(
+                        Flexible(
+                          child: SizedBox(
                             height: 40,
-                            child: FilledButton.tonal(
-                              style: FilledButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(horizontal: 12),
-                                backgroundColor: lowestColor.withValues(alpha: 0.15),
-                                foregroundColor: lowestColor,
-                                textStyle: theme.textTheme.labelSmall
-                                    ?.copyWith(fontWeight: FontWeight.w600),
-                              ),
-                              onPressed: () {
-                                for (final item in items) {
-                                  if (item.status == lowestStatus) {
-                                    onItemStatusChange(item, lowestNext);
-                                  }
-                                }
-                              },
-                              child: Text(_statusLabel(lowestStatus!, l)),
-                            ),
-                          )
-                        else
-                          Container(
-                            height: 40,
-                            padding: const EdgeInsets.symmetric(horizontal: 12),
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              color: statusColor.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              _statusLabel(order.status, l),
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: statusColor,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
+                            child: lowestNext != null
+                                ? FilledButton.tonal(
+                                    style: FilledButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                                      backgroundColor: lowestColor.withValues(alpha: 0.15),
+                                      foregroundColor: lowestColor,
+                                      textStyle: theme.textTheme.labelSmall
+                                          ?.copyWith(fontWeight: FontWeight.w600),
+                                    ),
+                                    clipBehavior: Clip.hardEdge,
+                                    onPressed: () {
+                                      for (final item in items) {
+                                        if (item.status == lowestStatus) {
+                                          onItemStatusChange(item, lowestNext);
+                                        }
+                                      }
+                                    },
+                                    child: Text(
+                                      _statusLabel(lowestStatus!, l),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  )
+                                : Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                                    alignment: Alignment.center,
+                                    decoration: BoxDecoration(
+                                      color: statusColor.withValues(alpha: 0.15),
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: Text(
+                                      _statusLabel(order.status, l),
+                                      style: theme.textTheme.labelSmall?.copyWith(
+                                        color: statusColor,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
                           ),
+                        ),
                         ],
                       ),
                     ),
@@ -315,6 +322,7 @@ class _OrderCard extends ConsumerWidget {
                         child: _TimeTable(
                           createdAt: order.createdAt,
                           updatedAt: order.updatedAt,
+                          urgencyColor: urgencyColor,
                         ),
                       ),
                     ),
@@ -479,9 +487,11 @@ class _TimeTable extends ConsumerWidget {
   const _TimeTable({
     required this.createdAt,
     required this.updatedAt,
+    required this.urgencyColor,
   });
   final DateTime createdAt;
   final DateTime updatedAt;
+  final Color urgencyColor;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -493,17 +503,35 @@ class _TimeTable extends ConsumerWidget {
     );
     final valueStyle = theme.textTheme.bodySmall;
 
-    return Table(
-      defaultColumnWidth: const IntrinsicColumnWidth(),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        TableRow(children: [
-          Text('${l.ordersTimeCreated}: ', style: labelStyle, textAlign: TextAlign.right),
-          Text(ref.fmtTime(createdAt), style: valueStyle),
-        ]),
-        TableRow(children: [
-          Text('${l.ordersTimeUpdated}: ', style: labelStyle, textAlign: TextAlign.right),
-          Text(ref.fmtTime(updatedAt), style: valueStyle),
-        ]),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Flexible(child: Text('${l.ordersTimeCreated}: ',
+                style: labelStyle, overflow: TextOverflow.ellipsis)),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+              decoration: BoxDecoration(
+                color: urgencyColor.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(ref.fmtTime(createdAt), style: valueStyle?.copyWith(
+                color: urgencyColor,
+                fontWeight: FontWeight.bold,
+              )),
+            ),
+          ],
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Flexible(child: Text('${l.ordersTimeUpdated}: ',
+                style: labelStyle, overflow: TextOverflow.ellipsis)),
+            Text(ref.fmtTime(updatedAt), style: valueStyle),
+          ],
+        ),
       ],
     );
   }
@@ -631,51 +659,59 @@ class _OrderItemCard extends ConsumerWidget {
                             ),
                           ),
                         ),
-                        // Prev-status button (always present for layout stability)
-                        SizedBox(
-                          height: 40,
-                          width: 40,
-                          child: prev != null
-                              ? IconButton.filled(
-                                  style: IconButton.styleFrom(
-                                    backgroundColor:
-                                        prev.color(context).withValues(alpha: 0.15),
-                                    foregroundColor: prev.color(context),
-                                  ),
-                                  onPressed: () => onStatusChange(prev),
-                                  icon: const Icon(Icons.undo, size: 18),
-                                )
-                              : null,
-                        ),
-                        const SizedBox(width: 4),
-                        // Next-status button / voided label (fixed-width slot)
-                        SizedBox(
-                          height: 40,
-                          width: 100,
-                          child: next != null
-                              ? FilledButton.tonal(
-                                  style: FilledButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                                    backgroundColor:
-                                        next.color(context).withValues(alpha: 0.15),
-                                    foregroundColor: next.color(context),
-                                    textStyle: theme.textTheme.labelSmall
-                                        ?.copyWith(fontWeight: FontWeight.w600),
-                                  ),
-                                  onPressed: () => onStatusChange(next),
-                                  child: Text(_nextStatusLabel(next, l)),
-                                )
-                              : isVoided
-                                  ? Center(
+                        // Prev-status button
+                        if (prev != null)
+                          SizedBox(
+                            height: 40,
+                            width: 40,
+                            child: IconButton.filled(
+                              style: IconButton.styleFrom(
+                                backgroundColor:
+                                    prev.color(context).withValues(alpha: 0.15),
+                                foregroundColor: prev.color(context),
+                              ),
+                              onPressed: () => onStatusChange(prev),
+                              icon: const Icon(Icons.undo, size: 18),
+                            ),
+                          ),
+                        if (prev != null) const SizedBox(width: 4),
+                        // Next-status button / voided label
+                        Flexible(
+                          child: Align(
+                            alignment: Alignment.centerRight,
+                            child: SizedBox(
+                              height: 40,
+                              child: next != null
+                                  ? FilledButton.tonal(
+                                      style: FilledButton.styleFrom(
+                                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                                        backgroundColor:
+                                            next.color(context).withValues(alpha: 0.15),
+                                        foregroundColor: next.color(context),
+                                        textStyle: theme.textTheme.labelSmall
+                                            ?.copyWith(fontWeight: FontWeight.w600),
+                                      ),
+                                      clipBehavior: Clip.hardEdge,
+                                      onPressed: () => onStatusChange(next),
                                       child: Text(
-                                        l.ordersFilterStorno,
-                                        style: theme.textTheme.labelSmall?.copyWith(
-                                          color: context.appColors.danger,
-                                          fontWeight: FontWeight.w600,
-                                        ),
+                                        _nextStatusLabel(next, l),
+                                        overflow: TextOverflow.ellipsis,
                                       ),
                                     )
-                                  : null,
+                                  : isVoided
+                                      ? Center(
+                                          child: Text(
+                                            l.ordersFilterStorno,
+                                            style: theme.textTheme.labelSmall?.copyWith(
+                                              color: context.appColors.danger,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        )
+                                      : null,
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -716,6 +752,12 @@ PrepStatus? _prevStatus(PrepStatus current) => switch (current) {
       PrepStatus.delivered => PrepStatus.ready,
       _ => null,
     };
+
+Color _urgencyColor(int minutes) {
+  if (minutes < 5) return Colors.green;
+  if (minutes < 10) return Colors.orange;
+  return Colors.red;
+}
 
 String _nextStatusLabel(PrepStatus status, AppLocalizations l) => switch (status) {
       PrepStatus.ready => l.ordersFilterReady,

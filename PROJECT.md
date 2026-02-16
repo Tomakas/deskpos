@@ -59,7 +59,7 @@ Admin vytvoří firmu, nastaví uživatele, stoly a produkty. Více uživatelů 
 #### Milník 1.2 — Onboarding
 
 - **Task1.4** ScreenOnboarding — výběr "Založit firmu" / "Připojit se k firmě"
-- **Task1.5** ScreenOnboarding wizard — vytvoření firmy + admin uživatele (lokálně)
+- **Task1.5** ScreenOnboarding wizard — cloud účet (sign-up/sign-in) + vytvoření firmy + admin uživatele
 - **Task1.6** Seed dat — výchozí měna, daňové sazby, platební metody (viz [Platební metody](#platební-metody)), permissions, role, výchozí registr
 - **Výsledek:** Při prvním spuštění uživatel vytvoří firmu a admin účet. V DB jsou výchozí data.
 
@@ -116,7 +116,7 @@ Uživatel může vytvořit účet, přidat položky a zaplatit. Register session
 - **Task2.4** ScreenSell — produktový grid/seznam, výběr položek a množství
 - **Task2.5** createOrderWithItems — INSERT order + order_items, batch operace
 - **Task2.6** Seznam objednávek na účtu — zobrazení orders a items v DialogBillDetail
-- **Task2.7** PrepStatus flow — created → inPrep → ready → delivered (ruční změna)
+- **Task2.7** PrepStatus flow — created → ready → delivered (ruční změna)
 - **Výsledek:** Obsluha může přidávat položky na účet a sledovat stav přípravy objednávek.
 
 #### Milník 2.3 — Platba
@@ -232,10 +232,10 @@ Funkce, které nejsou nezbytné pro základní prodej, ale rozšiřují možnost
 
 Storno jednotlivých položek (storno order), status timestamps, oddělovač chodů v košíku, samostatná obrazovka pro přehled objednávek. Objednávka (order) je neměnný „kuchyňský ticket" — po odeslání nelze editovat položky, přidání/odebrání = nový order. Storno položky vytvoří dedikovaný storno order pro audit trail a budoucí kuchyňský tisk.
 
-- **Task3.33** ✅ Status timestamps — 3 nové nullable sloupce na `orders`: `prep_started_at` (D?, nastaví `startPreparation`), `ready_at` (D?, nastaví `markReady`), `delivered_at` (D?, nastaví `markDelivered`). Drift tabulka, Freezed model, entity/supabase/pull mappers, Supabase migrace.
+- **Task3.33** ✅ Status timestamps — 3 nové nullable sloupce na `orders`: `prep_started_at` (D?, nastaví se při prvním bump ze `created`), `ready_at` (D?, nastaví `markReady`), `delivered_at` (D?, nastaví `markDelivered`). Drift tabulka, Freezed model, entity/supabase/pull mappers, Supabase migrace.
 - **Task3.34** ✅ Storno order (void jednotlivé položky) — 2 nové sloupce na `orders`: `is_storno` (B, default false), `storno_source_order_id` (T? → orders). Nová metoda `OrderRepository.voidItem(orderId, orderItemId)`: validace → původní item status `voided` → stock reversal (vč. receptur) → nový storno order (`isStorno: true`, status `delivered`, `stornoSourceOrderId` = originál, order number `X-XXXX`) s kopií voidnuté položky → přepočet totals orderu (pokud všechny položky voided → auto-void celý order) → `updateTotals(billId)` (storno ordery se nepočítají) → enqueue sync. UI: tap na položku otevřeného účtu v DialogBillDetail → stávající dialog (poznámka + sleva) + tlačítko "Storno" → potvrzení → void. Storno ordery v historii červeně s prefixem "STORNO".
 - **Task3.35** ✅ Oddělovač objednávek v košíku — nový toolbar chip "Oddělit" na ScreenSell. Vizuální čára v košíku oddělující skupiny položek. Oddělovač odebíratelný. Při submit: iterace přes skupiny → `createOrderWithItems()` pro každou → N po sobě jdoucích orderů (O-0001, O-0002...). Prázdné skupiny se ignorují.
-- **Task3.36** ✅ ScreenOrders (přehled objednávek) — route `/orders`, přístup přes menu DALŠÍ → "Objednávky", permission `orders.view`. Kartový seznam (kuchyňský lístek): hlavička (číslo, stůl, čas, status barevně), položky přímo viditelné (název, qty, cena, poznámky). Storno ordery červeně s STORNO prefixem. Akce: status přechody (created→inPrep→ready→delivered), void položek (→ storno order). Filtry (spodní lišta): Aktivní (default: created+inPrep+ready) / Vytvořené / Připravované / Hotové / Doručené / Stornované. Scope: default aktuální register session, přepínač na "vše".
+- **Task3.36** ✅ ScreenOrders (přehled objednávek) — route `/orders`, přístup přes menu DALŠÍ → "Objednávky", permission `orders.view`. Kartový seznam (kuchyňský lístek): hlavička (číslo, stůl, čas, status barevně), položky přímo viditelné (název, qty, cena, poznámky). Storno ordery červeně s STORNO prefixem. Akce: status přechody (created→ready→delivered), void položek (→ storno order). Filtry (spodní lišta): Aktivní (default: created+ready) / Vytvořené / Hotové / Doručené / Stornované. Scope: default aktuální register session, přepínač na "vše".
 - **Výsledek:** Obsluha může stornovat jednotlivé položky na otevřeném účtu (vznikne storno order pro audit/kuchyni). Objednávky mají timestamps pro měření doby přípravy. V košíku lze jedním odesláním vytvořit více oddělených objednávek (chody). Nová obrazovka ScreenOrders poskytuje přehled všech objednávek s filtry, akcemi a kartovým zobrazením.
 
 #### Milník 3.9 — Multi-register architektura
@@ -246,9 +246,9 @@ Kompletní multi-register POS architektura: device binding, CRUD pokladen s plat
 - **Task3.38** ✅ CRUD pokladen + payment enforcement — `RegistersTab` (PosTable s add/edit/delete, HardwareType, parent register, payment flags) přesunuto do `ScreenVenueSettings` (4. tab). `ScreenRegisterSettings` má 2 taby (Aktuální pokladna, Režim). `DialogPayment` filtruje platební metody dle `register.allowCash/Card/Transfer`. `DialogVoucherCreate` respektuje `allowRefunds`. Režim zařízení (POS/KDS/Customer Display) se volí v ScreenRegisterSettings nebo přímo na login obrazovce (KDS).
 - **Task3.39** ✅ Z-report per register + cash handover — `CashMovementType.handover` pro mobile→local předání hotovosti. `ZReportService.buildVenueZReport` (agregace N sessions s per-register breakdowns). `RegisterSessionRepository` rozšíření: billCounter increment, getClosedSessions. `DialogZReport` zobrazuje per-register breakdown. `DialogZReportList` filtrování dle registeru.
 - **Task3.40** ✅ Supabase Realtime <2s sync — `RealtimeService` subscribuje PostgresChanges na 22 company-scoped tabulek. LWW merge přes `insertOnConflictUpdate` v `SyncService.mergeRow`. Reconnect → okamžitý `pullAll` (flag `_wasSubscribed`). Dual sync: polling 5min (fallback) + Realtime (instant).
-- **Task3.41** ✅ KDS (Kitchen Display System) — route `/kds`, volba režimu na login obrazovce (POS/KDS radio). Touch-optimized grid karet s objednávkami, elapsed-time badge (minuty od vytvoření), status filter chips, per-item a full-order bump (created→inPrep→ready→delivered). `_isBumping` guard proti double-tap. Storno ordery vyloučeny. Logout tlačítko (`Icons.logout`) v pravém horním rohu.
-- **Task3.42** ✅ Customer Display — route `/customer-display` (idle) a `/customer-display/:registerId` (active, register-based). Read-only zákaznická obrazovka pro sekundární monitor. Register-centric architektura: displej sleduje `activeBillId` a `displayCartJson` na registru (sync přes outbox). Idle mód (jméno firmy + uvítání), cart preview mód (položky z `displayCartJson` před submitnutím objednávky), active mód (reálné objednávky + totaly), ThankYou mód (5s po zaplacení, pak návrat na idle). Discount výpočet z `subtotalGross - totalGross + roundingAmount`. Storno ordery a voided/cancelled položky filtrovány. Tlačítko „Zák. displej" v DialogBillDetail pro manuální odeslání účtu na displej (toggle s eye ikonou).
-- **Task3.43** ✅ Display Devices + Pairing — nová tabulka `display_devices` (id, company_id, parent_register_id, code, name, type, is_active) s `DisplayDeviceType` enum (customerDisplay, kds). `DisplayDeviceModel` (Freezed), `DisplayDeviceRepository` (manual sync pattern), entity/supabase/pull mappers, sync registrace. `ScreenDisplayCode` — 6-digit kód pro spárování displeje s pokladnou. `PairingConfirmationListener` — modální overlay na hlavní pokladně pro potvrzení/zamítnutí párovací žádosti. `BroadcastChannel` wrapper pro Supabase Realtime broadcast (join/send/leave). Párovací protokol: displej odešle `pairing_request` přes broadcast kanál `pairing:{companyId}`, hlavní pokladna zobrazí potvrzovací dialog, odpověď `pairing_confirmed`/`pairing_rejected` zpět přes broadcast. Retry každých 5s, timeout 60s. Vstup přes ScreenOnboarding → "Customer Display" → `/display-code?type=customer_display`.
+- **Task3.41** ✅ KDS (Kitchen Display System) — route `/kds`, volba režimu na login obrazovce (POS/KDS radio). Touch-optimized grid karet s objednávkami, live clock v AppBar, Drawer s logout. Status filter chips, per-item a full-order bump (created→ready→delivered). `_isBumping` guard proti double-tap. Storno ordery vyloučeny.
+- **Task3.42** ✅ Customer Display — route `/customer-display` (idle) a `/customer-display/:registerId` (active, register-based). Read-only zákaznická obrazovka pro sekundární monitor. Register-centric architektura: displej sleduje `activeBillId` a `displayCartJson` na registru (sync přes outbox). Idle mód (jméno firmy + konfigurovatelný uvítací text z `welcomeText`), cart preview mód (položky z `displayCartJson` před submitnutím objednávky), active mód (reálné objednávky + totaly), ThankYou mód (5s po zaplacení, pak návrat na idle). Discount výpočet z `subtotalGross - totalGross + roundingAmount`. Storno ordery a voided/cancelled položky filtrovány. Tlačítko „Zák. displej" v DialogBillDetail pro manuální odeslání účtu na displej (toggle s eye ikonou). Triple-tap na idle obrazovce pro odpárování displeje (skrytá akce).
+- **Task3.43** ✅ Display Devices + Pairing — nová tabulka `display_devices` (id, company_id, parent_register_id, code, name, welcome_text, type, is_active) s `DisplayDeviceType` enum (customerDisplay, kds). `DisplayDeviceModel` (Freezed), `DisplayDeviceRepository` (manual sync pattern), entity/supabase/pull mappers, sync registrace. `ScreenDisplayCode` — 6-digit kód pro spárování displeje s pokladnou. `PairingConfirmationListener` — modální overlay na hlavní pokladně pro potvrzení/zamítnutí párovací žádosti. `BroadcastChannel` wrapper pro Supabase Realtime broadcast (join/send/leave). Párovací protokol: displej odešle `pairing_request` přes broadcast kanál `pairing:{companyId}`, hlavní pokladna zobrazí potvrzovací dialog, odpověď `pairing_confirmed`/`pairing_rejected` zpět přes broadcast. Retry každých 5s, timeout 60s. Vstup přes ScreenOnboarding → "Customer Display" → `/display-code?type=customer_display`.
 - **Výsledek:** Plně multi-register POS: zařízení se bindují na pokladny, každá pokladna má konfiguraci platebních metod, Z-reporty per register i venue-wide, realtime sync mezi zařízeními <2s, kuchyňský displej, zákaznický displej a bezpečné párování displejů přes broadcast protokol.
 
 ---
@@ -784,8 +784,8 @@ lib/
 │   │   ├── outbox_processor.dart      # Push přes Ingest Edge Function (5s interval, FK ordering, retry)
 │   │   ├── realtime_service.dart      # Supabase Realtime PostgresChanges (23 tabulek, <2s)
 │   │   ├── broadcast_channel.dart     # Supabase Realtime Broadcast wrapper (pairing, KDS, display)
-│   │   └── sync_lifecycle_manager.dart # Orchestrace start/stop/initial push + realtime
-│   ├── logging/                       # AppLogger (dart:developer)
+│   │   └── sync_lifecycle_manager.dart # Orchestrace start/stop/initial push/drain + realtime
+│   ├── logging/                       # AppLogger (debugPrint)
 │   └── l10n/                          # Extension context.l10n
 ├── features/                          # Funkční moduly (UI only)
 │   ├── auth/                          # ScreenLogin (PIN + numpad)
@@ -1088,11 +1088,12 @@ Všechny aktivní tabulky obsahují společné sync sloupce (viz [SyncColumnsMix
 
 | Tabulka | Sloupce |
 |---------|---------|
-| **display_devices** | id (T), company_id →companies, parent_register_id →registers, code (T), name (T, default ''), type (T — DisplayDeviceType), is_active (B, default true) |
+| **display_devices** | id (T), company_id →companies, parent_register_id →registers (nullable), code (T), name (T, default ''), welcome_text (T, default ''), type (T — DisplayDeviceType), is_active (B, default true) |
 
 **Pravidla:**
-- `parent_register_id` — FK na registers (displej je vázán na konkrétní pokladnu)
+- `parent_register_id` — FK na registers, nullable (customerDisplay vyžaduje vazbu, KDS ne)
 - `code` — 6-místný párovací kód zobrazený na pokladně, zadávaný na displeji
+- `welcome_text` — konfigurovatelný uvítací text pro idle obrazovku customer displeje
 - `type` — `customerDisplay` nebo `kds`
 - Používá `SyncColumnsMixin` — synchronizuje se přes outbox
 
@@ -1173,7 +1174,7 @@ Klientské timestampy se ukládají v **UTC**.
 | `ItemType` | `ItemModel` | product, service, counter, recipe, ingredient, variant, modifier |
 | `UnitType` | `ItemModel` | ks, g, ml, m |
 | `BillStatus` | `BillModel` | opened, paid, cancelled, refunded |
-| `PrepStatus` | `OrderModel`, `OrderItemModel` | created, inPrep, ready, delivered, cancelled, voided |
+| `PrepStatus` | `OrderModel`, `OrderItemModel` | created, ready, delivered, cancelled, voided |
 | `PaymentType` | `PaymentMethodModel` | cash, card, bank, credit, other |
 | `RoleName` | `RoleModel` | helper, operator, admin |
 | `TaxCalcType` | `TaxRateModel` | regular, noTax, constant, mixed |
@@ -1225,6 +1226,7 @@ graph LR
 - Retry každých 5s (fixní interval, max 10 pokusů)
 - FK dependency ordering — pending entries se před zpracováním seřadí podle `SyncService.tableDependencyOrder`, takže rodičovské řádky se pushnou před dětmi
 - Reset failed — při startu `OutboxProcessor.start()` se resetují dříve selhané entries pro opětovný pokus
+- `processQueue({int limit = 50})` — parametr `limit` omezuje počet zpracovaných entries v jednom cyklu (drain loop používá `limit: 500`)
 
 ### Ingest Edge Function
 
@@ -1248,6 +1250,20 @@ Všechny outbox zápisy procházejí přes Supabase Edge Function `ingest` (`sup
 }
 ```
 
+### Wipe Edge Function
+
+Edge Function `wipe` (`supabase/functions/wipe/index.ts`) slouží k úplnému smazání dat firmy na serveru. Volá se z CloudTab před lokálním vymazáním databáze.
+
+**Postup:**
+1. Autentizace JWT → najde firmu podle `companies.auth_user_id = userId`
+2. Smaže company-scoped tabulky v reverse FK dependency order (children first)
+3. Smaže záznam firmy (`companies`)
+4. Smaže globální tabulky (currencies, roles, permissions, role_permissions)
+5. Vyčistí `audit_log` a `sync_metadata`
+
+**Volání z klienta (CloudTab):**
+- `Supabase.instance.client.functions.invoke('wipe')` → sign out → smazání lokální DB → navigace na `/onboarding`
+
 ### Sync Lifecycle
 
 ```mermaid
@@ -1257,8 +1273,10 @@ graph TD
     AUTH --> |No| LOGIN[ScreenLogin / ScreenOnboarding]
     AUTH --> |Yes| SYNC[syncLifecycleProvider]
     LOGIN --> |login| SYNC
-    SYNC --> OUT[OutboxProcessor.start - 5s interval]
-    SYNC --> AUTO[SyncService.startAutoSync - 5min interval]
+    SYNC --> PUSH[Initial Push - enqueue all]
+    PUSH --> DRAIN[Drain Loop - flush pending]
+    DRAIN --> OUT[OutboxProcessor.start - 5s interval]
+    DRAIN --> AUTO[SyncService.startAutoSync - 5min interval]
     LOGOUT[Logout] --> |stop| SYNC
     ONLINE[Connectivity restored] --> |restart + forceSyncNow| SYNC
 ```
@@ -1267,6 +1285,8 @@ graph TD
 - Sync se **nespouští** dokud se uživatel nepřihlásí
 - Při logoutu se sync zastaví
 - Crash recovery probíhá při startu aplikace
+- **Drain loop:** Po `_initialPush` se v cyklu (max 50 iterací × 500 entries) volá `processQueue(limit: 500)` a `countPending()`, dokud se fronta nevyprázdní — teprve poté se spustí periodické timery
+- Při selhání startu se zavolá `_stopServices()` pro cleanup částečně spuštěných služeb
 
 ### Realtime Sync (od Milníku 3.9)
 
@@ -1494,10 +1514,9 @@ stateDiagram-v2
 ```mermaid
 stateDiagram-v2
     [*] --> created: createOrderWithItems()
-    created --> inPrep: startPreparation()
+    created --> ready: markReady()
     created --> cancelled: cancelOrder()
-    inPrep --> ready: markReady()
-    inPrep --> voided: voidOrder()
+    created --> voided: voidOrder()
     ready --> delivered: markDelivered()
     ready --> voided: voidOrder()
     delivered --> [*]
@@ -1507,12 +1526,11 @@ stateDiagram-v2
 
 | Status | Popis | Lze změnit na |
 |--------|-------|---------------|
-| `created` | Objednávka vytvořena | `inPrep`, `cancelled` |
-| `inPrep` | Kuchyň začala připravovat (`prep_started_at` se nastaví) | `ready`, `voided` |
+| `created` | Objednávka vytvořena | `ready`, `cancelled`, `voided` |
 | `ready` | Připraveno k výdeji (`ready_at` se nastaví) | `delivered`, `voided` |
 | `delivered` | Doručeno zákazníkovi (`delivered_at` se nastaví) | (finální stav) |
 | `cancelled` | Zrušeno před přípravou | (finální stav) |
-| `voided` | Stornováno po přípravě | (finální stav) |
+| `voided` | Stornováno | (finální stav) |
 
 **Void jednotlivé položky (od E3.8):** `voidItem(orderId, orderItemId)` — void jedné položky v orderu (ne celého orderu). Vytvoří storno order (`is_storno: true`, `storno_source_order_id` → originál, order number `X-XXXX`). Pokud se voidnou všechny položky v orderu → auto-void celý order.
 
@@ -1528,8 +1546,7 @@ Pravidla (vyhodnocují se v pořadí, `activeItems` = items kde status ∉ {void
 2. `activeItems` prázdné + všechny voided nebo mix → Order = `voided`
 3. Všechny `activeItems` delivered → Order = `delivered`
 4. Všechny `activeItems` ∈ {ready, delivered} → Order = `ready`
-5. Jakýkoliv `activeItem` ∈ {inPrep, ready, delivered} → Order = `inPrep`
-6. Jinak (všechny `activeItems` created) → Order = `created`
+5. Jinak (všechny `activeItems` created) → Order = `created`
 
 Order-level timestamps (`prepStartedAt`, `readyAt`, `deliveredAt`) se nastaví při prvním dosažení daného agregovaného stavu.
 
@@ -1616,7 +1633,6 @@ sequenceDiagram
     OR-->>UI: Order (created)
     OR-->>K: 🔔 Nová objednávka
 
-    K->>OR: updateStatus(orderId, inPrep)
     K->>OR: updateStatus(orderId, ready)
     K-->>W: 🔔 Objednávka připravena
 
@@ -1687,7 +1703,7 @@ Systém rozlišuje **2 typy storna** podle fáze přípravy:
 | Typ | Kdy | Přechod |
 |-----|-----|---------|
 | **Cancel** | Před začátkem přípravy | `created` → `cancelled` |
-| **Void** | Po začátku přípravy | `inPrep`/`ready` → `voided` |
+| **Void** | Položky v přípravě/hotové | `created`/`ready` → `voided` |
 
 #### Storno účtu (cancelBill)
 
@@ -1707,7 +1723,7 @@ sequenceDiagram
     loop Pro každou order
         alt status == created
             BR->>OR: cancelOrder(orderId)
-        else status in [inPrep, ready]
+        else status == ready
             BR->>OR: voidOrder(orderId)
         else status == delivered
             Note right of BR: Přeskočit (finální stav)
@@ -1726,7 +1742,7 @@ sequenceDiagram
 #### Storno objednávky (cancelOrder / voidOrder)
 
 - **cancelOrder:** `status` musí být `created` → všechny items → `cancelled`, order → `cancelled`
-- **voidOrder:** `status` musí být `inPrep` nebo `ready` → všechny items → `voided`, order → `voided`
+- **voidOrder:** `status` musí být `created` nebo `ready` → všechny items → `voided`, order → `voided`
 - **delivered** order nelze stornovat (finální stav)
 - Po stornování se **Bill totals přepočítají** (odečtou se cancelled/voided items)
 
@@ -1783,11 +1799,11 @@ stateDiagram-v2
 #### OrderRepository
 
 - **Query:** watchByBill, watchOrderItems, getOrderItems, getOrderItemsByBill, watchLastOrderTimesByCompany
-- **Business:** createOrderWithItems (s orderNotes a item notes + automatický stock odpis), updateStatus (s automatickým reversal stock při cancelled/voided), startPreparation, markReady, markDelivered, cancelOrder, voidOrder, updateOrderNotes, updateItemNotes, updateItemDiscount, reassignOrdersToBill (přesun všech objednávek mezi účty — pro merge), splitItemsToNewOrder (vytvoření nové objednávky na cílovém účtu a přesun vybraných položek — pro split; automaticky zruší zdrojové objednávky bez zbývajících položek)
+- **Business:** createOrderWithItems (s orderNotes a item notes + automatický stock odpis), updateStatus (s automatickým reversal stock při cancelled/voided), markReady, markDelivered, cancelOrder, voidOrder, updateOrderNotes, updateItemNotes, updateItemDiscount, reassignOrdersToBill (přesun všech objednávek mezi účty — pro merge), splitItemsToNewOrder (vytvoření nové objednávky na cílovém účtu a přesun vybraných položek — pro split; automaticky zruší zdrojové objednávky bez zbývajících položek)
 - **Stock deduction:** Po `createOrderWithItems` automaticky volá `_deductStockForOrder` — pro každý `isStockTracked` item vytvoří `stock_movement` (outbound, bez stock_document_id). Receptury (`item_type == recipe`): rozpad přes `product_recipes`, odečtení ingrediencí místo receptury samotné.
 - **Stock reversal:** Při `updateStatus` do cancelled/voided volá `_reverseStockForOrder` — vytvoří reverzní inbound movements pro všechny dříve odečtené položky.
 - **Závislosti:** Injektovaný `SyncQueueRepository`, volitelné `StockLevelRepository` a `StockMovementRepository` (pro stock odpis/reversal)
-- **Sync:** Ruční enqueue — `_enqueueOrder`, `_enqueueOrderItem`. createOrderWithItems enqueueuje order + všechny items. updateStatus enqueueuje order + všechny items (delegující metody cancelOrder, voidOrder, startPreparation, markReady, markDelivered automaticky pokryty přes updateStatus).
+- **Sync:** Ruční enqueue — `_enqueueOrder`, `_enqueueOrderItem`. createOrderWithItems enqueueuje order + všechny items. updateStatus enqueueuje order + všechny items (delegující metody cancelOrder, voidOrder, markReady, markDelivered automaticky pokryty přes updateStatus).
 
 #### PaymentRepository
 
@@ -1902,10 +1918,11 @@ Progresivní lockout chrání proti hádání PIN kódu:
 
 ### Cloud Sync Auth (implementováno)
 
-- Každé zařízení musí mít uložené **admin email + password** (Supabase Auth)
-- `ScreenCloudAuth` je přístupná jako tab v nastavení firmy (CloudTab) — **není** povinným krokem v routeru
+- **Sign-up** probíhá v onboarding wizardu (Krok 1) — při zakládání nové firmy
+- `ScreenCloudAuth` (embedded v CloudTab v nastavení) slouží pouze pro **sign-in** na dalších zařízeních — zobrazuje připojený email
 - Synchronizace se spustí až po validním Supabase session (RLS vyžaduje auth)
 - `SupabaseAuthService` zajišťuje signIn/signUp a session management
+- Sign-up vyžaduje potvrzení emailu — pokud Supabase vrátí null session, zobrazí se chybová hláška
 
 > **Supabase Auth konfigurace:** Funkce **Leaked Password Protection** (HaveIBeenPwned integrace) je v projektu záměrně **vypnutá**. Důvod: POS systém používá jednoduché admin heslo primárně pro sync mezi zařízeními, nikoliv pro přímé přihlašování uživatelů. Uživatelé se přihlašují pomocí PIN kódu.
 
@@ -1918,7 +1935,7 @@ graph TD
     INIT --> |needsOnboarding| ONBOARD[ScreenOnboarding]
     INIT --> |needsLogin| PIN[ScreenLogin]
     INIT --> |displayMode| DISPLAY[ScreenDisplayCode / ScreenCustomerDisplay]
-    ONBOARD --> |Založit firmu| PIN
+    ONBOARD --> |Založit firmu - wizard 3 kroky| PIN
     ONBOARD --> |Připojit se k firmě| CONNECT[ConnectCompanyScreen]
     ONBOARD --> |Customer Display| DISPLAYCODE[ScreenDisplayCode]
     CONNECT --> PIN
@@ -1926,7 +1943,7 @@ graph TD
     PIN --> |PIN ověřen, KDS režim| KDS[ScreenKds]
 ```
 
-> **Aktuální stav:** Router začíná na `/loading`, čeká na `appInitProvider`. Žádná firma → `/onboarding` (volba: založit, připojit, nebo display). Firma existuje → `/login` (PIN s volbou POS/KDS režimu). Po přihlášení → `/bills` (POS) nebo `/kds` (KDS) dle zvoleného režimu. Display mode → `/customer-display` nebo `/display-code`. Cloud sync credentials se nastavují v Settings → CloudTab (ne jako povinný krok v routeru).
+> **Aktuální stav:** Router začíná na `/loading`, čeká na `appInitProvider`. Žádná firma → `/onboarding` (volba: založit, připojit, nebo display). Wizard „Založit firmu" má 3 kroky: cloud účet (sign-up/sign-in) → firma → admin uživatel. Firma existuje → `/login` (PIN s volbou POS/KDS režimu). Po přihlášení → `/bills` (POS) nebo `/kds` (KDS) dle zvoleného režimu. Display mode → `/customer-display` nebo `/display-code`. Na dalších zařízeních se přihlašuje přes Settings → CloudTab (pouze sign-in).
 
 #### ScreenOnboarding Flow
 
@@ -1937,27 +1954,32 @@ Při prvním spuštění aplikace (bez lokálních dat) se zobrazí **ScreenOnbo
 Tři sekce na úvodní obrazovce:
 
 **Sekce „Pokladna" (Point of Sale):**
-- **„Založit novou firmu"** → zobrazí wizard (2 kroky)
+- **„Založit novou firmu"** → zobrazí wizard (3 kroky)
 - **„Připojit se k firmě"** → naviguje na `/connect-company` (ScreenConnectCompany)
 
 **Sekce „Displeje" (Displays):**
 - **„Customer Display"** → naviguje na `/display-code?type=customer_display` (ScreenDisplayCode — 6-digit párovací kód)
 
-**Krok 1 — Firma:**
+**Krok 1 — Cloud účet:**
+- E-mail + heslo (Supabase Auth sign-up nebo sign-in)
+- Přepínač „Máte účet? Přihlaste se" / „Nemáte účet? Vytvořte si ho"
+- Po úspěšné autentizaci se uloží `authUserId` pro vytvoření firmy
+
+**Krok 2 — Firma:**
 - Název firmy (povinné)
 - IČO, adresa, email, telefon (volitelné)
 
-**Krok 2 — Admin uživatel:**
+**Krok 3 — Admin uživatel:**
 - Celé jméno, username (povinné)
 - PIN 4–6 číslic + potvrzení (povinné)
 
-**Krok 3 — Automatický seed:**
+**Krok 4 — Automatický seed:**
 
 Po odeslání formuláře se v jedné transakci vytvoří:
 
 | Entita | Počet | Detail |
 |--------|-------|--------|
-| Company | 1 | Dle formuláře, status: `trial` |
+| Company | 1 | Dle formuláře, status: `trial`, `auth_user_id` z Kroku 1 |
 | Currency | 1 | CZK (Kč, 2 des. místa). Formátování řídí `intl` package dle locale. |
 | TaxRate | 3 | Základní 21% (`regular`), Snížená 12% (`regular`), Nulová 0% (`noTax`), is_default: Základní=true |
 | Permission | 16 | Viz [Katalog oprávnění](#katalog-oprávnění-16), vč. customers.view, customers.manage |
@@ -2209,11 +2231,11 @@ Layout: **80/20 horizontální split**
 
 - **Řada 1:** RYCHLÝ ÚČET (tonal, → `/sell`) + VYTVOŘIT ÚČET (tonal, → DialogNewBill). Oba disabled bez aktivní session.
 - **Řada 2:** POKLADNÍ DENÍK (tonal, → DialogCashJournal, disabled bez session) + KATALOG (tonal, → `/catalog`, vyžaduje `settings.manage`)
-- **Řada 3:** SKLAD (tonal, → `/inventory`) + DALŠÍ (tonal, PopupMenuButton: Objednávky → `/orders` (vyžaduje `orders.view`); KDS → `/kds` (vyžaduje `orders.view`); Zákaznický displej → `/customer-display`; Reporty → DialogZReportList; Směny → DialogShiftsList; Statistika — disabled; Rezervace → DialogReservationsList; Vouchery → `/vouchers`; Nastavení firmy → `/settings/company`; Nastavení provozovny → `/settings/venue`; Nastavení pokladny → `/settings/register`). Reporty, Směny, Vouchery a Nastavení vyžadují `settings.manage`.
+- **Řada 3:** SKLAD (tonal, → `/inventory`) + DALŠÍ (tonal, PopupMenuButton: Objednávky → `/orders` (vyžaduje `orders.view`); KDS → `/kds`; Zákaznický displej → `/customer-display`; Reporty → DialogZReportList; Směny → DialogShiftsList; Statistika — disabled; Rezervace → DialogReservationsList; Vouchery → `/vouchers`; Nastavení firmy → `/settings/company`; Nastavení provozovny → `/settings/venue`; Nastavení pokladny → `/settings/register`). Reporty, Směny, Vouchery a Nastavení vyžadují `settings.manage`.
 - **Řada 4:** MAPA (tonal, toggle seznam/mapa — přepíná mezi tabulkou a FloorMapView) + Session toggle:
   - Žádná aktivní session → **"Otevřít"** (zelená, FilledButton) → DialogOpeningCash
   - Aktivní session → **"Uzavřít"** (tonal) → DialogClosingSession
-- **Info panel** (expandovaný, border 8px radius): Datum/čas (EEEE d.M.yyyy HH:mm:ss), Stav (Aktivní/Offline dle session), Sync (Připojeno/Odpojeno), Aktivní obsluha (username), Přihlášení uživatelé (seznam), Stav pokladny (opening_cash v Kč nebo „-"), Název pokladny (register name), Statistika objednávek dle PrepStatus (created/inPrep/ready/delivered/cancelled počty — zobrazuje se při aktivní session), Tržby (celkový obrat a počet prodejů za aktuální session)
+- **Info panel** (expandovaný, border 8px radius): Datum/čas (EEEE d.M.yyyy HH:mm:ss), Stav (Aktivní/Offline dle session), Sync (Připojeno/Odpojeno), Aktivní obsluha (username), Přihlášení uživatelé (seznam), Stav pokladny (opening_cash v Kč nebo „-"), Název pokladny (register name), Statistika objednávek dle PrepStatus (created/ready/delivered/cancelled počty — zobrazuje se při aktivní session), Tržby (celkový obrat a počet prodejů za aktuální session)
 - **Bottom:** PŘEPNOUT OBSLUHU (tonal) + ODHLÁSIT (červená outlined)
 
 **Režim mapy (FloorMapView):**
@@ -2357,7 +2379,7 @@ Layout: **6 tabů** (scrollovatelné)
 | Informace | Editační formulář: název firmy, IČO, DIČ, adresa, telefon, e-mail + tlačítko Uložit |
 | Uživatelé | DataTable se správou uživatelů (jméno, username, role, aktivní, akce), dialog pro přidání/editaci, soft-delete |
 | Zabezpečení | Toggle PIN při přepínání obsluhy, dropdown auto-lock timeout |
-| Cloud | Embedded `ScreenCloudAuth` — připojení/odpojení Supabase sync |
+| Cloud | Embedded `ScreenCloudAuth` — sign-in, zobrazení připojeného emailu. Tlačítko „Smazat data" vyvolá wipe Edge Function → sign out → smazání lokální DB → onboarding |
 | Daňové sazby | CRUD daňové sazby (název, typ, sazba %, výchozí) |
 | Platební metody | CRUD platební metody (název, typ dropdown, aktivní) |
 
@@ -2482,7 +2504,7 @@ Layout: **Kartový seznam s filtry**
 │ │   1× Polévka                            59 Kč      │   │
 │ └────────────────────────────────────────────────────┘   │
 │ ┌────────────────────────────────────────────────────┐   │
-│ │ O-0002  Stůl 2  14:15  ● inPrep  [▸ Hotovo]       │   │
+│ │ O-0002  Stůl 2  14:15  ● created [▸ Hotovo]        │   │
 │ │   3× Espresso                           87 Kč      │   │
 │ └────────────────────────────────────────────────────┘   │
 │──────────────────────────────────────────────────────────│
@@ -2490,13 +2512,13 @@ Layout: **Kartový seznam s filtry**
 └──────────────────────────────────────────────────────────┘
 ```
 
-**Karta objednávky:** Hlavička (číslo, stůl, čas, status barevně, akční tlačítko pro status přechod), seznam položek (qty, název, cena, poznámky). Storno ordery červeně s STORNO prefixem a referencí na původní order.
+**Karta objednávky:** Hlavička (číslo, stůl, čas vytvoření s urgency barvou, status barevně, akční tlačítko pro status přechod), seznam položek (qty, název, cena, poznámky). Čas vytvoření zobrazuje barevný badge: zelený (<5 min), oranžový (<10 min), červený (≥10 min). Storno ordery červeně s STORNO prefixem a referencí na původní order.
 
 **Akce na kartě:**
-- Status přechody: created→inPrep→ready→delivered (tlačítko na kartě)
+- Status přechody: created→ready→delivered (tlačítko na kartě)
 - Void jednotlivé položky → storno order (tap na položku, potvrzovací dialog)
 
-**Filtry (spodní lišta):** Aktivní (default: created+inPrep+ready) / Vytvořené / Připravované / Hotové / Doručené / Stornované. Styl: FilterChip row jako ScreenBills.
+**Filtry (spodní lišta):** Aktivní (default: created+ready) / Vytvořené / Hotové / Doručené / Stornované. Styl: FilterChip row jako ScreenBills.
 
 **Scope toggle (horní lišta):** Aktuální session (default) / Vše.
 
@@ -2524,17 +2546,21 @@ Layout: **Grid karet s objednávkami** (touch-optimized pro kuchyňský personá
 ```
 
 **Karta objednávky:**
-- Hlavička: číslo objednávky, stůl, elapsed time badge (minuty od vytvoření, aktualizace každých 15s)
+- Hlavička: číslo objednávky, stůl, čas vytvoření (barva dle urgence)
 - Položky: qty × název, status dot (●), poznámky
-- Barva karty dle nejnižšího statusu: modrá (created), oranžová (inPrep), zelená (ready), šedá (delivered)
+- Barva karty dle nejnižšího statusu: modrá (created), zelená (ready), šedá (delivered)
 - Storno ordery (`isStorno`) se nezobrazují
 
+**Navigace:**
+- Drawer s logout (`Icons.logout`) přístupný přes hamburger menu v AppBar
+- Live clock (`_KdsClockWidget`) v AppBar — datum a čas aktualizovaný každou sekundu
+
 **Interakce:**
-- Tap na celou kartu → bump všech položek na další status (created→inPrep→ready→delivered)
+- Tap na celou kartu → bump všech položek na další status (created→ready→delivered)
 - Tap na jednotlivou položku → bump jen té položky
 - `_isBumping` guard — zabraňuje přeskočení statusu při rychlém double-tap (try/finally pattern)
 
-**Filtry (spodní lišta):** Připravuje se (created+inPrep+ready, default) / Hotové (ready) / Doručené (delivered). FilterChip row s Expanded.
+**Filtry (spodní lišta):** Připravuje se (created+ready, default) / Hotové (ready) / Doručené (delivered). FilterChip row s Expanded.
 
 **Přístup:** Route `/kds`, volba režimu na login obrazovce (POS/KDS radio) nebo přes ScreenRegisterSettings. Bez permission guardu — přístup je řízen volbou režimu.
 
@@ -2555,7 +2581,7 @@ ScreenSell → registerRepo.setActiveBill(registerId, billId) → outbox → Sup
 
 **4 stavy displeje:**
 
-1. **Idle** (`activeBillId == null`): Jméno firmy + uvítací text
+1. **Idle** (`activeBillId == null`): Jméno firmy + konfigurovatelný uvítací text (z `welcomeText` display device, uložený v SharedPreferences)
 2. **Cart preview** (`activeBillId != null`, žádné reálné objednávky, `displayCartJson` přítomný): Položky z JSON preview košíku s počítanými totaly
 3. **Active** (`activeBillId != null`, existují reálné objednávky): Položky z orders + order_items, filtruje storno ordery a voided/cancelled položky. Totaly z bill modelu.
 4. **Thank You** (bill.status == paid): Ikona ✓, zaplacená částka, poděkování. Po 5s timer → `setActiveBill(null)` → návrat na idle.
@@ -2582,7 +2608,8 @@ ScreenSell → registerRepo.setActiveBill(registerId, billId) → outbox → Sup
 - Totaly: subtotal, discount (pokud > 0, zelená barva), celkem (bold heading)
 - Discount výpočet: `subtotalGross - totalGross + roundingAmount` (ne raw `discountAmount` — ten ukládá basis points pro procentní slevy)
 - Ceny formátovány jako `XXX,-` (celé koruny)
-- Disconnect tlačítko (top-right, `Icons.link_off`) → odpárování displeje a návrat na onboarding
+- Triple-tap na idle uvítacím textu → odpárování displeje a návrat na onboarding (skrytá akce, bez viditelného tlačítka)
+- Live clock v AppBar — datum a čas aktualizovaný každou sekundu
 
 **Manuální ovládání z DialogBillDetail:**
 Tlačítko „Zák. displej" v pravém panelu s toggle logikou (eye/eye-off ikona dle aktuálního stavu). Nastavuje/maže `activeBillId` na registru. Při zavření dialogu se `activeBillId` automaticky vyčistí pokud byl nastaven tímto dialogem.

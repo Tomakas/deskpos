@@ -120,6 +120,14 @@ class SyncQueueRepository {
     return result.isNotEmpty;
   }
 
+  Future<int> countPending() async {
+    final result = await (_db.selectOnly(_db.syncQueue)
+          ..addColumns([_db.syncQueue.id.count()])
+          ..where(_db.syncQueue.status.equals('pending')))
+        .getSingle();
+    return result.read(_db.syncQueue.id.count()) ?? 0;
+  }
+
   Future<bool> hasCompletedEntries(String companyId) async {
     final result = await (_db.select(_db.syncQueue)
           ..where((t) =>

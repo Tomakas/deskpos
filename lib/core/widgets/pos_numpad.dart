@@ -15,6 +15,7 @@ class PosNumpad extends StatelessWidget {
     this.onBottomLeft,
     this.size = PosNumpadSize.large,
     this.enabled = true,
+    this.expand = false,
     this.width,
   });
 
@@ -33,6 +34,7 @@ class PosNumpad extends StatelessWidget {
 
   final PosNumpadSize size;
   final bool enabled;
+  final bool expand;
   final double? width;
 
   double get _height => switch (size) {
@@ -57,16 +59,20 @@ class PosNumpad extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final rows = [
+      _buildRow(['1', '2', '3']),
+      _buildRow(['4', '5', '6']),
+      _buildRow(['7', '8', '9']),
+      _buildBottomRow(),
+    ];
+
     Widget content = Column(
-      mainAxisSize: MainAxisSize.min,
+      mainAxisSize: expand ? MainAxisSize.max : MainAxisSize.min,
       children: [
-        _buildRow(['1', '2', '3']),
-        SizedBox(height: _gap),
-        _buildRow(['4', '5', '6']),
-        SizedBox(height: _gap),
-        _buildRow(['7', '8', '9']),
-        SizedBox(height: _gap),
-        _buildBottomRow(),
+        for (int i = 0; i < rows.length; i++) ...[
+          if (i > 0) SizedBox(height: _gap),
+          if (expand) Expanded(child: rows[i]) else rows[i],
+        ],
       ],
     );
 
@@ -78,22 +84,20 @@ class PosNumpad extends StatelessWidget {
   }
 
   Widget _buildRow(List<String> digits) {
-    return SizedBox(
-      height: _height,
-      child: Row(
-        children: [
-          for (int i = 0; i < digits.length; i++) ...[
-            if (i > 0) SizedBox(width: _gap),
-            Expanded(
-              child: _button(
-                child: Text(digits[i], style: TextStyle(fontSize: _fontSize)),
-                onTap: enabled ? () => onDigit(digits[i]) : null,
-              ),
+    final row = Row(
+      children: [
+        for (int i = 0; i < digits.length; i++) ...[
+          if (i > 0) SizedBox(width: _gap),
+          Expanded(
+            child: _button(
+              child: Text(digits[i], style: TextStyle(fontSize: _fontSize)),
+              onTap: enabled ? () => onDigit(digits[i]) : null,
             ),
-          ],
+          ),
         ],
-      ),
+      ],
     );
+    return expand ? row : SizedBox(height: _height, child: row);
   }
 
   Widget _buildBottomRow() {
@@ -126,28 +130,26 @@ class PosNumpad extends StatelessWidget {
       bottomLeft = const SizedBox.shrink();
     }
 
-    return SizedBox(
-      height: _height,
-      child: Row(
-        children: [
-          Expanded(child: bottomLeft),
-          SizedBox(width: _gap),
-          Expanded(
-            child: _button(
-              child: Text('0', style: TextStyle(fontSize: _fontSize)),
-              onTap: enabled ? () => onDigit('0') : null,
-            ),
+    final row = Row(
+      children: [
+        Expanded(child: bottomLeft),
+        SizedBox(width: _gap),
+        Expanded(
+          child: _button(
+            child: Text('0', style: TextStyle(fontSize: _fontSize)),
+            onTap: enabled ? () => onDigit('0') : null,
           ),
-          SizedBox(width: _gap),
-          Expanded(
-            child: _button(
-              child: const Icon(Icons.backspace_outlined),
-              onTap: enabled ? onBackspace : null,
-            ),
+        ),
+        SizedBox(width: _gap),
+        Expanded(
+          child: _button(
+            child: const Icon(Icons.backspace_outlined),
+            onTap: enabled ? onBackspace : null,
           ),
-        ],
-      ),
+        ),
+      ],
     );
+    return expand ? row : SizedBox(height: _height, child: row);
   }
 
   Widget _button({required Widget child, required VoidCallback? onTap}) {

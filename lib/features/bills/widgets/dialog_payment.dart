@@ -60,32 +60,38 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
     if (company == null) return const SizedBox.shrink();
 
     return Dialog(
+      insetPadding: const EdgeInsets.all(12),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 600),
-        child: IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Left sidebar — action buttons
-              SizedBox(
-                width: 130,
-                child: Padding(
+        constraints: BoxConstraints(
+          maxWidth: 500,
+          maxHeight: (MediaQuery.sizeOf(context).height - 24).clamp(0, 270),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Left sidebar — action buttons
+            Expanded(
+              child: Padding(
                   padding: const EdgeInsets.all(12),
                   child: Column(
                     children: [
-                      _SideButton(label: l.paymentOtherCurrency, onPressed: null),
+                      Expanded(child: _SideButton(label: l.paymentOtherCurrency, onPressed: null)),
                       const SizedBox(height: 8),
-                      _SideButton(label: l.paymentEet, onPressed: null),
+                      Expanded(child: _SideButton(label: l.paymentEet, onPressed: null)),
                       const SizedBox(height: 8),
-                      _SideButton(
-                        label: l.paymentEditAmount,
-                        onPressed: _remaining > 0 ? () => _editAmount(context) : null,
+                      Expanded(
+                        child: _SideButton(
+                          label: l.paymentEditAmount,
+                          onPressed: _remaining > 0 ? () => _editAmount(context) : null,
+                        ),
                       ),
                       const Spacer(),
-                      _SideButton(
-                        label: l.actionCancel,
-                        onPressed: () => Navigator.pop(context, _bill.paidAmount > widget.bill.paidAmount),
-                        color: context.appColors.danger,
+                      Expanded(
+                        child: _SideButton(
+                          label: l.actionCancel,
+                          onPressed: () => Navigator.pop(context, _bill.paidAmount > widget.bill.paidAmount),
+                          color: context.appColors.danger,
+                        ),
                       ),
                     ],
                   ),
@@ -93,8 +99,9 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
               ),
               // Center — bill info + payments list
               Expanded(
+                flex: 2,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 12),
+                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
                   child: Column(
                     children: [
                       Text(
@@ -187,8 +194,7 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
                 ),
               ),
               // Right sidebar — payment methods
-              SizedBox(
-                width: 130,
+              Expanded(
                 child: Padding(
                   padding: const EdgeInsets.all(12),
                   child: StreamBuilder<List<PaymentMethodModel>>(
@@ -214,24 +220,28 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
                         children: [
                           for (var i = 0; i < regularMethods.length; i++) ...[
                             if (i > 0) const SizedBox(height: 8),
-                            _PaymentMethodButton(
-                              label: regularMethods[i].name.toUpperCase(),
-                              onPressed: _processing || _remaining <= 0
-                                  ? null
-                                  : () => _pay(context, regularMethods[i].id),
+                            Expanded(
+                              child: _PaymentMethodButton(
+                                label: regularMethods[i].name.toUpperCase(),
+                                onPressed: _processing || _remaining <= 0
+                                    ? null
+                                    : () => _pay(context, regularMethods[i].id),
+                              ),
                             ),
                           ],
                           if (creditMethod != null && _customer != null && _customer!.credit > 0) ...[
                             const SizedBox(height: 8),
-                            _PaymentMethodButton(
-                              label: '${creditMethod.name.toUpperCase()}\n(${ref.money(_customer!.credit)})',
-                              onPressed: _processing || _remaining <= 0
-                                  ? null
-                                  : () => _payWithCredit(context, creditMethod.id),
+                            Expanded(
+                              child: _PaymentMethodButton(
+                                label: '${creditMethod.name.toUpperCase()}\n(${ref.money(_customer!.credit)})',
+                                onPressed: _processing || _remaining <= 0
+                                    ? null
+                                    : () => _payWithCredit(context, creditMethod.id),
+                              ),
                             ),
                           ],
                           const SizedBox(height: 8),
-                          _SideButton(label: l.paymentOtherPayment, onPressed: null),
+                          Expanded(child: _SideButton(label: l.paymentOtherPayment, onPressed: null)),
                         ],
                       );
                     },
@@ -241,7 +251,6 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
             ],
           ),
         ),
-      ),
     );
   }
 
@@ -432,7 +441,7 @@ class _SideButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
-      height: 48,
+      height: double.infinity,
       child: color != null
           ? FilledButton(
               style: FilledButton.styleFrom(backgroundColor: color),
@@ -464,7 +473,7 @@ class _PaymentMethodButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
-      height: 48,
+      height: double.infinity,
       child: FilledButton(
         style: PosButtonStyles.confirm(context),
         onPressed: onPressed,

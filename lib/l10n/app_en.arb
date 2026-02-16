@@ -968,5 +968,19 @@
   "displayDeviceAddKds": "KDS",
   "displayWelcomeText": "Welcome text",
   "displayDefaultNameKds": "Order System",
-  "displayDefaultWelcomeText": "Welcome!"
+  "displayDefaultWelcomeText": "Welcome!",
+
+  "wizardStepAccount": "Cloud Account",
+  "wizardAccountEmail": "Email",
+  "wizardAccountPassword": "Password",
+  "wizardAccountPasswordConfirm": "Confirm Password",
+  "wizardAccountPasswordMismatch": "Passwords do not match",
+  "wizardAccountSignUp": "Create Account",
+  "wizardAccountSignIn": "Sign In",
+  "wizardAccountSwitchToSignIn": "Already have an account? Sign in",
+  "wizardAccountSwitchToSignUp": "Don't have an account? Create one",
+  "cloudConnectedAs": "Connected as {email}",
+  "@cloudConnectedAs": {
+    "placeholders": { "email": { "type": "String" } }
+  }
 }

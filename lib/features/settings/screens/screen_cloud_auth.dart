@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
@@ -28,32 +29,6 @@ class _ScreenCloudAuthState extends ConsumerState<ScreenCloudAuth> {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
-  }
-
-  Future<void> _signUp() async {
-    if (!_formKey.currentState!.validate()) return;
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
-
-    final authService = ref.read(supabaseAuthServiceProvider);
-    final result = await authService.signUp(
-      _emailController.text.trim(),
-      _passwordController.text,
-    );
-
-    if (!mounted) return;
-
-    switch (result) {
-      case Success(value: final userId):
-        await _saveAuthUserId(userId);
-      case Failure(message: final msg):
-        setState(() {
-          _error = msg;
-          _isLoading = false;
-        });
-    }
   }
 
   Future<void> _signIn() async {
@@ -135,6 +110,8 @@ class _ScreenCloudAuthState extends ConsumerState<ScreenCloudAuth> {
   }
 
   Widget _buildConnectedView(AppLocalizations l) {
+    final email = Supabase.instance.client.auth.currentUser?.email;
+
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -144,9 +121,13 @@ class _ScreenCloudAuthState extends ConsumerState<ScreenCloudAuth> {
             children: [
               const Icon(Icons.cloud_done, color: Colors.green, size: 28),
               const SizedBox(width: 12),
-              Text(
-                l.cloudConnected,
-                style: Theme.of(context).textTheme.titleMedium,
+              Expanded(
+                child: Text(
+                  email != null
+                      ? l.cloudConnectedAs(email)
+                      : l.cloudConnected,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
               ),
             ],
           ),
@@ -214,40 +195,19 @@ class _ScreenCloudAuthState extends ConsumerState<ScreenCloudAuth> {
               ),
             ],
             const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(
-                  child: SizedBox(
-                    height: 48,
-                    child: FilledButton(
-                      onPressed: _isLoading ? null : _signIn,
-                      child: _isLoading
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : Text(l.cloudSignIn),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: SizedBox(
-                    height: 48,
-                    child: FilledButton.tonal(
-                      onPressed: _isLoading ? null : _signUp,
-                      child: _isLoading
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : Text(l.cloudSignUp),
-                    ),
-                  ),
-                ),
-              ],
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: FilledButton(
+                onPressed: _isLoading ? null : _signIn,
+                child: _isLoading
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Text(l.cloudSignIn),
+              ),
             ),
           ],
         ),

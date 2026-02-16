@@ -55,6 +55,7 @@ class SeedService {
     String? deviceId,
     String locale = 'cs',
     String defaultCurrencyCode = 'CZK',
+    required String authUserId,
   }) async {
     try {
       final companyId = _id();
@@ -113,7 +114,7 @@ class SeedService {
           email: email,
           phone: phone,
           defaultCurrencyId: currencyId,
-          authUserId: '',
+          authUserId: authUserId,
           createdAt: now,
           updatedAt: now,
         );

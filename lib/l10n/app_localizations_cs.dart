@@ -2348,4 +2348,36 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get displayDefaultWelcomeText => 'Vítejte u nás!';
+
+  @override
+  String get wizardStepAccount => 'Cloudový účet';
+
+  @override
+  String get wizardAccountEmail => 'E-mail';
+
+  @override
+  String get wizardAccountPassword => 'Heslo';
+
+  @override
+  String get wizardAccountPasswordConfirm => 'Potvrzení hesla';
+
+  @override
+  String get wizardAccountPasswordMismatch => 'Hesla se neshodují';
+
+  @override
+  String get wizardAccountSignUp => 'Vytvořit účet';
+
+  @override
+  String get wizardAccountSignIn => 'Přihlásit se';
+
+  @override
+  String get wizardAccountSwitchToSignIn => 'Máte účet? Přihlaste se';
+
+  @override
+  String get wizardAccountSwitchToSignUp => 'Nemáte účet? Vytvořte si ho';
+
+  @override
+  String cloudConnectedAs(String email) {
+    return 'Připojeno jako $email';
+  }
 }

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/database_provider.dart';
@@ -74,6 +75,9 @@ class CloudTab extends ConsumerWidget {
 
   Future<void> _deleteLocalData(BuildContext context, WidgetRef ref) async {
     final l = context.l10n;
+    // Cache router before async gaps — context may become defunct after
+    // provider changes trigger widget tree disposal.
+    final router = GoRouter.of(context);
 
     final confirmed = await showDialog<bool>(
       context: context,
@@ -99,17 +103,35 @@ class CloudTab extends ConsumerWidget {
     if (confirmed != true || !context.mounted) return;
 
     try {
-      // Stop sync BEFORE deleting data to prevent re-pull race condition
-      ref.read(syncLifecycleManagerProvider).stop();
+      // Cache all refs before async gaps to avoid using defunct context/ref
+      final syncManager = ref.read(syncLifecycleManagerProvider);
+      final authService = ref.read(supabaseAuthServiceProvider);
+      final sessionManager = ref.read(sessionManagerProvider);
+      final db = ref.read(appDatabaseProvider);
 
-      // Clear in-memory state first so sync watcher won't restart
-      ref.read(sessionManagerProvider).logoutAll();
-      ref.read(activeUserProvider.notifier).state = null;
-      ref.read(loggedInUsersProvider.notifier).state = [];
-      ref.read(currentCompanyProvider.notifier).state = null;
+      // Stop sync BEFORE deleting data to prevent re-pull race condition
+      syncManager.stop();
+
+      // Wipe server data so re-onboarding starts clean
+      if (authService.isAuthenticated) {
+        try {
+          await Supabase.instance.client.functions.invoke('wipe');
+          AppLogger.info('Server data wiped', tag: 'SYNC');
+        } catch (e, s) {
+          AppLogger.error('Server wipe failed (continuing with local delete)', error: e, stackTrace: s);
+        }
+        await authService.signOut();
+      }
+
+      // Clear session state (does not trigger widget rebuild cascade)
+      sessionManager.logoutAll();
+
+      // NOTE: Do NOT set activeUserProvider/loggedInUsersProvider/
+      // currentCompanyProvider to null here — those synchronous state
+      // notifications trigger rebuild cascades on already-disposing widgets
+      // (defunct element crash). Provider invalidation below handles cleanup.
 
       // Close the database connection
-      final db = ref.read(appDatabaseProvider);
       await db.close();
 
       // Delete the database file (and WAL/SHM companions)
@@ -120,8 +142,8 @@ class CloudTab extends ConsumerWidget {
         if (await file.exists()) await file.delete();
       }
 
-      // Invalidate providers — next read creates fresh DB with current schema
-      if (!context.mounted) return;
+      // Invalidate providers — marks them dirty for next read (no sync rebuild).
+      // appInitProvider re-resolves company/user state from the fresh DB.
       ref.invalidate(appDatabaseProvider);
       ref.invalidate(appInitProvider);
     } catch (e, s) {
@@ -129,7 +151,7 @@ class CloudTab extends ConsumerWidget {
       return;
     }
 
-    if (!context.mounted) return;
-    context.go('/onboarding');
+    // Navigate using cached router (safe even if this widget is already defunct)
+    router.go('/onboarding');
   }
 }

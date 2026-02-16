@@ -57,9 +57,11 @@ class _DialogChangeTotalToPayState extends ConsumerState<DialogChangeTotalToPay>
     return PosDialogShell(
       title: l.changeTotalTitle,
       maxWidth: 480,
+      maxHeight: 460,
+      expandHeight: true,
       padding: const EdgeInsets.all(20),
       children: [
-        IntrinsicHeight(
+        Expanded(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -119,6 +121,7 @@ class _DialogChangeTotalToPayState extends ConsumerState<DialogChangeTotalToPay>
               // Right: numpad
               PosNumpad(
                 width: 180,
+                expand: true,
                 onDigit: (d) => setState(() => _input += d),
                 onBackspace: () {
                   if (_input.isNotEmpty) {

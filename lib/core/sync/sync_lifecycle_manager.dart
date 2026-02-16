@@ -51,7 +51,10 @@ class SyncLifecycleManager {
   bool get isRunning => _isRunning;
 
   Future<void> start(String companyId) async {
-    if (_isRunning) return;
+    if (_isRunning) {
+      AppLogger.info('SyncLifecycleManager: start() skipped — already running', tag: 'SYNC');
+      return;
+    }
     _isRunning = true;
 
     try {
@@ -69,7 +72,25 @@ class SyncLifecycleManager {
       // Initial push: enqueue all existing entities that have never been synced
       await _initialPush(companyId);
 
-      // Start outbox push
+      // Drain all enqueued entries before starting the periodic timer.
+      // Errors here must NOT prevent periodic processors from starting.
+      try {
+        const maxDrainIterations = 50;
+        for (var i = 0; i < maxDrainIterations && _isRunning; i++) {
+          final pending = await _syncQueueRepo.countPending();
+          if (pending == 0) break;
+          await _outboxProcessor.processQueue(limit: 500);
+        }
+      } catch (e, s) {
+        AppLogger.error(
+          'SyncLifecycleManager: drain loop failed, continuing with periodic sync',
+          tag: 'SYNC',
+          error: e,
+          stackTrace: s,
+        );
+      }
+
+      // Start outbox push (periodic timer picks up remaining/failed entries)
       _outboxProcessor.start();
 
       // Start pull sync (5-min polling as fallback)
@@ -82,6 +103,8 @@ class SyncLifecycleManager {
       _subscribeKdsBroadcast(companyId);
     } catch (e, s) {
       _isRunning = false;
+      // Stop any partially started services to prevent orphaned timers
+      _stopServices();
       AppLogger.error(
         'SyncLifecycleManager: start failed, will retry on next trigger',
         tag: 'SYNC',
@@ -92,10 +115,19 @@ class SyncLifecycleManager {
   }
 
   void stop() {
-    if (!_isRunning) return;
+    if (!_isRunning) {
+      // Always stop child services even if _isRunning is false.
+      // Handles edge cases: catch block in start() set _isRunning=false
+      // but timers are still active, or provider was recreated.
+      _stopServices();
+      return;
+    }
     _isRunning = false;
-
     AppLogger.info('SyncLifecycleManager: stopping', tag: 'SYNC');
+    _stopServices();
+  }
+
+  void _stopServices() {
     _kdsSubscription?.cancel();
     _kdsSubscription = null;
     _kdsBroadcastChannel?.leave();

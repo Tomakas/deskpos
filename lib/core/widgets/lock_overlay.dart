@@ -39,12 +39,16 @@ class _LockOverlayState extends ConsumerState<LockOverlay> {
 
   @override
   Widget build(BuildContext context) {
+    final screen = MediaQuery.sizeOf(context);
     return ColoredBox(
       color: Colors.black54,
       child: Center(
         child: Card(
-          child: SizedBox(
-            width: 360,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: 360,
+              maxHeight: (screen.height - 24).clamp(0, 460),
+            ),
             child: switch (_step) {
               _LockStep.loggedIn => _buildLoggedInList(context),
               _LockStep.newUser => _buildNewUserList(context),
@@ -187,7 +191,6 @@ class _LockOverlayState extends ConsumerState<LockOverlay> {
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             _selectedUser!.fullName,
@@ -217,13 +220,16 @@ class _LockOverlayState extends ConsumerState<LockOverlay> {
               style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 13),
             ),
           const SizedBox(height: 16),
-          PosNumpad(
-            width: 280,
-            enabled: _lockSeconds == null,
-            onDigit: _numpadTap,
-            onBackspace: _numpadBackspace,
-            bottomLeftChild: const Icon(Icons.arrow_back),
-            onBottomLeft: _goBack,
+          Expanded(
+            child: PosNumpad(
+              width: 280,
+              expand: true,
+              enabled: _lockSeconds == null,
+              onDigit: _numpadTap,
+              onBackspace: _numpadBackspace,
+              bottomLeftChild: const Icon(Icons.arrow_back),
+              onBottomLeft: _goBack,
+            ),
           ),
         ],
       ),

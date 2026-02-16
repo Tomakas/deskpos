@@ -97,6 +97,8 @@ class _DialogCustomerCreditState extends ConsumerState<DialogCustomerCredit> {
     return PosDialogShell(
       title: l.loyaltyCredit,
       maxWidth: 500,
+      maxHeight: 600,
+      expandHeight: true,
       children: [
         Center(
           child: Text(
@@ -153,19 +155,14 @@ class _DialogCustomerCreditState extends ConsumerState<DialogCustomerCredit> {
   }
 
   Widget _buildNumpadAndActions(ThemeData theme, AppLocalizations l) {
-    const rowHeight = PosDialogTheme.numpadLargeHeight;
-    const gap = PosDialogTheme.numpadLargeGap;
-    const totalHeight = rowHeight * 4 + gap * 3;
-    const actionHeight = (totalHeight - gap) / 2;
-
-    return SizedBox(
-      height: totalHeight,
+    return Expanded(
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           SizedBox(
             width: 230,
             child: PosNumpad(
+              expand: true,
               onDigit: _numpadTap,
               onBackspace: _numpadBackspace,
               onClear: _numpadClear,
@@ -176,48 +173,50 @@ class _DialogCustomerCreditState extends ConsumerState<DialogCustomerCredit> {
             width: 110,
             child: Column(
               children: [
-                SizedBox(
-                  height: actionHeight,
-                  width: double.infinity,
-                  child: FilledButton(
-                    style: PosButtonStyles.confirmWith(
-                      context,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(PosDialogTheme.numpadLargeRadius),
+                Expanded(
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      style: PosButtonStyles.confirmWith(
+                        context,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(PosDialogTheme.numpadLargeRadius),
+                        ),
                       ),
-                    ),
-                    onPressed: _hasAmount ? _topUp : null,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(l.loyaltyCreditTopUp, style: const TextStyle(fontSize: PosDialogTheme.actionFontSize)),
-                        const SizedBox(height: 4),
-                        const Icon(Icons.add_circle_outline, size: 32),
-                      ],
+                      onPressed: _hasAmount ? _topUp : null,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(l.loyaltyCreditTopUp, style: const TextStyle(fontSize: PosDialogTheme.actionFontSize)),
+                          const SizedBox(height: 4),
+                          const Icon(Icons.add_circle_outline, size: 32),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-                const SizedBox(height: gap),
-                SizedBox(
-                  height: actionHeight,
-                  width: double.infinity,
-                  child: FilledButton(
-                    style: FilledButton.styleFrom(
-                      backgroundColor: theme.colorScheme.error,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(PosDialogTheme.numpadLargeRadius),
+                const SizedBox(height: PosDialogTheme.numpadLargeGap),
+                Expanded(
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      style: FilledButton.styleFrom(
+                        backgroundColor: theme.colorScheme.error,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(PosDialogTheme.numpadLargeRadius),
+                        ),
                       ),
-                    ),
-                    onPressed: _hasAmount && _amountWhole * 100 <= _customer.credit
-                        ? _deduct
-                        : null,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(l.loyaltyCreditDeduct, style: const TextStyle(fontSize: PosDialogTheme.actionFontSize)),
-                        const SizedBox(height: 4),
-                        const Icon(Icons.remove_circle_outline, size: 32),
-                      ],
+                      onPressed: _hasAmount && _amountWhole * 100 <= _customer.credit
+                          ? _deduct
+                          : null,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(l.loyaltyCreditDeduct, style: const TextStyle(fontSize: PosDialogTheme.actionFontSize)),
+                          const SizedBox(height: 4),
+                          const Icon(Icons.remove_circle_outline, size: 32),
+                        ],
+                      ),
                     ),
                   ),
                 ),
