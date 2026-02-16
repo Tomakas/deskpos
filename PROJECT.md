@@ -41,7 +41,7 @@
 
 ## Roadmap
 
-4 etapy, každá s milníky a tasky. Schéma obsahuje **38 tabulek** (35 doménových + 1 lokální device_registrations + 2 sync). Dalších 2 tabulky se přidají s příslušnými rozšířeními. Sync se řeší až v Etapě 3 — do té doby funguje aplikace offline na jednom zařízení.
+4 etapy, každá s milníky a tasky. Schéma obsahuje **39 tabulek** (36 doménových + 1 lokální device_registrations + 2 sync). Dalších 2 tabulky se přidají s příslušnými rozšířeními. Sync se řeší až v Etapě 3 — do té doby funguje aplikace offline na jednom zařízení.
 
 ---
 
@@ -151,7 +151,7 @@ Funkce, které nejsou nezbytné pro základní prodej, ale rozšiřují možnost
 - **Task3.2** Outbox pattern — sync_queue, auto-retry, status tracking ✅
 - **Task3.3** LWW conflict resolution — updated_at porovnání, merge logika ✅
 - **Task3.2b** Sync pro bills, orders, order_items, payments — mappers, outbox registrace, pull tables ✅
-- **Task3.4** ConnectCompanyScreen — připojení k existující firmě, InitialSync, sync pro 35 tabulek ✅
+- **Task3.4** ConnectCompanyScreen — připojení k existující firmě, InitialSync, sync pro 36 tabulek ✅
 - **Task3.5** SyncAuthScreen — admin credentials pro Supabase session ✅ (ScreenCloudAuth)
 - **Výsledek:** Data se synchronizují mezi zařízeními. Nové zařízení se připojí k firmě a stáhne data.
 
@@ -243,12 +243,13 @@ Storno jednotlivých položek (storno order), status timestamps, oddělovač cho
 Kompletní multi-register POS architektura: device binding, CRUD pokladen s platebním enforcement, per-register Z-report s cash handover, Supabase Realtime <2s sync, KDS (Kitchen Display System) a Customer Display.
 
 - **Task3.37** ✅ Schéma + device binding — lokální tabulka `device_registrations` (nesync) pro vazbu zařízení↔pokladna. Rozšíření `registers` (name, register_number, parent_register_id), `register_sessions` (bill_counter), `orders` (register_id), `payments` (register_id). Provider `activeRegisterProvider` (vrací null pokud není device binding). `DeviceRegistrationRepository` (bind/unbind/getForCompany).
-- **Task3.38** ✅ CRUD pokladen + payment enforcement — `RegistersTab` (PosTable s add/edit/delete, HardwareType, parent register, payment flags) přesunuto do `ScreenVenueSettings` (4. tab). `ScreenRegisterSettings` má 2 taby (Aktuální pokladna, Režim). `DialogPayment` filtruje platební metody dle `register.allowCash/Card/Transfer`. `DialogVoucherCreate` respektuje `allowRefunds`. `DialogModeSelector` + enum `RegisterMode` (pos, kds, customerDisplay) pro přepínání režimu zařízení.
+- **Task3.38** ✅ CRUD pokladen + payment enforcement — `RegistersTab` (PosTable s add/edit/delete, HardwareType, parent register, payment flags) přesunuto do `ScreenVenueSettings` (4. tab). `ScreenRegisterSettings` má 2 taby (Aktuální pokladna, Režim). `DialogPayment` filtruje platební metody dle `register.allowCash/Card/Transfer`. `DialogVoucherCreate` respektuje `allowRefunds`. Režim zařízení (POS/KDS/Customer Display) se volí v ScreenRegisterSettings nebo přímo na login obrazovce (KDS).
 - **Task3.39** ✅ Z-report per register + cash handover — `CashMovementType.handover` pro mobile→local předání hotovosti. `ZReportService.buildVenueZReport` (agregace N sessions s per-register breakdowns). `RegisterSessionRepository` rozšíření: billCounter increment, getClosedSessions. `DialogZReport` zobrazuje per-register breakdown. `DialogZReportList` filtrování dle registeru.
-- **Task3.40** ✅ Supabase Realtime <2s sync — `RealtimeService` subscribuje PostgresChanges na 21 company-scoped tabulek. LWW merge přes `insertOnConflictUpdate` v `SyncService.mergeRow`. Reconnect → okamžitý `pullAll` (flag `_wasSubscribed`). Dual sync: polling 5min (fallback) + Realtime (instant).
-- **Task3.41** ✅ KDS (Kitchen Display System) — route `/kds` s `orders.view` permission. Touch-optimized grid karet s objednávkami, elapsed-time badge (minuty od vytvoření), status filter chips, per-item a full-order bump (created→inPrep→ready→delivered). `_isBumping` guard proti double-tap. Storno ordery vyloučeny.
+- **Task3.40** ✅ Supabase Realtime <2s sync — `RealtimeService` subscribuje PostgresChanges na 22 company-scoped tabulek. LWW merge přes `insertOnConflictUpdate` v `SyncService.mergeRow`. Reconnect → okamžitý `pullAll` (flag `_wasSubscribed`). Dual sync: polling 5min (fallback) + Realtime (instant).
+- **Task3.41** ✅ KDS (Kitchen Display System) — route `/kds`, volba režimu na login obrazovce (POS/KDS radio). Touch-optimized grid karet s objednávkami, elapsed-time badge (minuty od vytvoření), status filter chips, per-item a full-order bump (created→inPrep→ready→delivered). `_isBumping` guard proti double-tap. Storno ordery vyloučeny. Logout tlačítko (`Icons.logout`) v pravém horním rohu.
 - **Task3.42** ✅ Customer Display — route `/customer-display` (idle) a `/customer-display/:registerId` (active, register-based). Read-only zákaznická obrazovka pro sekundární monitor. Register-centric architektura: displej sleduje `activeBillId` a `displayCartJson` na registru (sync přes outbox). Idle mód (jméno firmy + uvítání), cart preview mód (položky z `displayCartJson` před submitnutím objednávky), active mód (reálné objednávky + totaly), ThankYou mód (5s po zaplacení, pak návrat na idle). Discount výpočet z `subtotalGross - totalGross + roundingAmount`. Storno ordery a voided/cancelled položky filtrovány. Tlačítko „Zák. displej" v DialogBillDetail pro manuální odeslání účtu na displej (toggle s eye ikonou).
-- **Výsledek:** Plně multi-register POS: zařízení se bindují na pokladny, každá pokladna má konfiguraci platebních metod, Z-reporty per register i venue-wide, realtime sync mezi zařízeními <2s, kuchyňský displej a zákaznický displej.
+- **Task3.43** ✅ Display Devices + Pairing — nová tabulka `display_devices` (id, company_id, parent_register_id, code, name, type, is_active) s `DisplayDeviceType` enum (customerDisplay, kds). `DisplayDeviceModel` (Freezed), `DisplayDeviceRepository` (manual sync pattern), entity/supabase/pull mappers, sync registrace. `ScreenDisplayCode` — 6-digit kód pro spárování displeje s pokladnou. `PairingConfirmationListener` — modální overlay na hlavní pokladně pro potvrzení/zamítnutí párovací žádosti. `BroadcastChannel` wrapper pro Supabase Realtime broadcast (join/send/leave). Párovací protokol: displej odešle `pairing_request` přes broadcast kanál `pairing:{companyId}`, hlavní pokladna zobrazí potvrzovací dialog, odpověď `pairing_confirmed`/`pairing_rejected` zpět přes broadcast. Retry každých 5s, timeout 60s. Vstup přes ScreenOnboarding → "Customer Display" → `/display-code?type=customer_display`.
+- **Výsledek:** Plně multi-register POS: zařízení se bindují na pokladny, každá pokladna má konfiguraci platebních metod, Z-reporty per register i venue-wide, realtime sync mezi zařízeními <2s, kuchyňský displej, zákaznický displej a bezpečné párování displejů přes broadcast protokol.
 
 ---
 
@@ -402,9 +403,7 @@ CREATE INDEX idx_activation_attempts_user_time
 **Nový soubor:** `lib/core/auth/license_service.dart`
 Reference: vzor pure-logic service jako `lib/core/auth/auth_service.dart`.
 
-```dart
-enum LicenseState { active, grace, expired }
-```
+Enum `LicenseState` se třemi stavy: `active`, `grace`, `expired`.
 
 **Metoda `checkLicense(CompanyModel)`:**
 - `effectiveExpiry = licenseExpiresAt ?? trialExpiresAt`
@@ -427,10 +426,7 @@ enum LicenseState { active, grace, expired }
 
 **`licenseStateProvider`** — `Provider<LicenseState>` derivovaný z `companyStreamProvider` přes `.when()`. Reaktivní na DB změny ze sync pull. Pattern konzistentní s `isSupabaseAuthenticatedProvider`.
 
-**`_AppInitState` enum rozšíření:**
-```dart
-enum _AppInitState { needsOnboarding, licenseExpired, needsLogin }
-```
+**`_AppInitState` enum rozšíření** o hodnotu `licenseExpired`.
 
 **`appInitProvider` logika:** Po nalezení company zkontrolovat `licenseService.checkLicense(company)`. Pokud `expired` → `licenseExpired`. Jinak → `needsLogin`.
 
@@ -502,14 +498,7 @@ Dva režimy (flag `_isSignIn`):
 
 **`syncEnabledProvider`** (`sync_providers.dart`) — `StateProvider<bool>`, initial value z SharedPreferences.
 
-**`syncLifecycleWatcherProvider` změna:**
-```dart
-if (isAuthenticated && company != null && syncEnabled) {
-  manager.start(company.id);
-} else {
-  manager.stop();
-}
-```
+**`syncLifecycleWatcherProvider` změna:** Přidat `syncEnabled` do podmínky — sync se spustí pouze pokud `isAuthenticated && company != null && syncEnabled`, jinak `manager.stop()`.
 
 ##### Task4.26 — Cloud tab redesign
 
@@ -568,15 +557,7 @@ Nahradit stávající `_buildAuthForm()`/`_signUp()`/`_signIn()`/`_saveAuthUserI
 
 **Soubor:** `lib/core/sync/sync_service.dart`
 
-V `pullAll()`, po úspěšném dokončení for-loopu, aktualizovat timestamp:
-```dart
-await (_db.update(_db.companies)
-  ..where((t) => t.id.equals(companyId)))
-  .write(CompaniesCompanion(
-    licenseLastCheckAt: Value(DateTime.now()),
-  ));
-```
-Běží bez ohledu na to, zda se companies řádky změnily. Zaznamenává "úspěšně jsme kontaktovali server v tomto čase". Bez outbox entry (server trigger hodnotu chrání).
+V `pullAll()`, po úspěšném dokončení for-loopu, aktualizovat `licenseLastCheckAt = DateTime.now()` na companies záznamu. Běží bez ohledu na to, zda se companies řádky změnily. Zaznamenává "úspěšně jsme kontaktovali server v tomto čase". Bez outbox entry (server trigger hodnotu chrání).
 
 ##### Task4.30 — Grace period banner
 
@@ -758,15 +739,16 @@ Deklarativní routing s auth guardem:
 /catalog             → ScreenCatalog (6 tabů: Produkty, Kategorie, Dodavatelé, Výrobci, Receptury, Zákazníci) — vyžaduje settings.manage
 /inventory           → ScreenInventory (2 taby: Zásoby, Doklady) + akční tlačítka (Příjemka, Výdejka, Oprava, Inventura) — vyžaduje settings.manage
 /orders              → ScreenOrders (přehled objednávek, kartový seznam, filtry, akce) — vyžaduje orders.view
-/kds                 → ScreenKds (kuchyňský displej, touch-optimized grid, status bumping) — vyžaduje orders.view
+/kds                 → ScreenKds (kuchyňský displej, touch-optimized grid, status bumping) — volba na login obrazovce
 /vouchers            → ScreenVouchers (správa voucherů) — vyžaduje settings.manage
 /customer-display    → ScreenCustomerDisplay (idle mód — uvítání)
 /customer-display/:registerId → ScreenCustomerDisplay (active mód — sleduje register's activeBillId + displayCartJson)
+/display-code        → ScreenDisplayCode (6-digit kód pro spárování displeje)
 ```
 
-**Auth guard:** Router čeká na `appInitProvider`. Nepřihlášený uživatel je přesměrován na `/login`. Pokud neexistuje firma, přesměrování na `/onboarding`. Po přihlášení se z auth/onboarding stránek přesměruje na `/bills`.
+**Auth guard:** Router čeká na `appInitProvider`. Nepřihlášený uživatel je přesměrován na `/login`. Pokud neexistuje firma, přesměrování na `/onboarding`. Po přihlášení se z auth/onboarding stránek přesměruje na `/bills` (POS režim) nebo `/kds` (KDS režim — dle volby na login obrazovce).
 
-**Permission guard:** Routy `/settings/*`, `/catalog`, `/vouchers` a `/inventory` vyžadují oprávnění `settings.manage`. Routy `/orders` a `/kds` vyžadují `orders.view`. Route `/customer-display` nemá permission guard (veřejný displej). Bez oprávnění se uživatel přesměruje na `/bills`.
+**Permission guard:** Routy `/settings/*`, `/catalog`, `/vouchers` a `/inventory` vyžadují oprávnění `settings.manage`. Routa `/orders` vyžaduje `orders.view`. Route `/kds` nemá permission guard (režim se volí při přihlášení). Route `/customer-display` a `/display-code` nemají permission guard (veřejný displej). Bez oprávnění se uživatel přesměruje na `/bills`.
 
 ---
 
@@ -783,24 +765,25 @@ lib/
 │   │   ├── supabase_auth_service.dart # Supabase GoTrue (email/password)
 │   │   └── pin_helper.dart            # Hashing (salt + SHA-256)
 │   ├── data/                          # Globální datová vrstva
-│   │   ├── enums/                     # Dart enum definice (20 enumů + barrel)
+│   │   ├── enums/                     # Dart enum definice (21 enumů + barrel)
 │   │   ├── mappers/                   # Entity ↔ Model mapování (3 soubory)
-│   │   ├── models/                    # Doménové modely (Freezed, 36 + interface)
+│   │   ├── models/                    # Doménové modely (Freezed, 39 + interface)
 │   │   ├── providers/                 # DI registrace (Riverpod, 6 souborů)
-│   │   ├── repositories/              # Repozitáře (35 souborů)
+│   │   ├── repositories/              # Repozitáře (36 souborů)
 │   │   └── services/                  # SeedService (onboarding seed)
 │   ├── database/                      # Drift databáze
-│   │   ├── app_database.dart          # @DriftDatabase (38 tabulek)
-│   │   └── tables/                    # Definice tabulek (39 souborů: 38 tabulek + mixin)
-│   ├── widgets/                       # PosTable<T>, PosTableToolbar, LockOverlay, InactivityDetector, PosColorPalette
-│   ├── utils/                         # search_utils.dart
+│   │   ├── app_database.dart          # @DriftDatabase (39 tabulek)
+│   │   └── tables/                    # Definice tabulek (40 souborů: 39 tabulek + mixin)
+│   ├── widgets/                       # PosTable<T>, PosTableToolbar, LockOverlay, InactivityDetector, PosColorPalette, PairingConfirmationListener
+│   ├── utils/                         # search_utils.dart, formatters.dart, formatting_ext.dart
 │   ├── printing/                      # PdfFontLoader, ReceiptPdfBuilder, ZReportPdfBuilder, PrintingService
 │   ├── routing/                       # GoRouter + auth guard (app_router.dart)
 │   ├── network/                       # Supabase konfigurace (URL, anon key)
 │   ├── sync/                          # Sync engine
-│   │   ├── sync_service.dart          # Pull (5min interval, 35 tabulek) + mergeRow (LWW)
-│   │   ├── outbox_processor.dart      # Push přes Ingest Edge Function (5s interval, retry)
-│   │   ├── realtime_service.dart      # Supabase Realtime PostgresChanges (22 tabulek, <2s)
+│   │   ├── sync_service.dart          # Pull (5min interval, 36 tabulek) + mergeRow (LWW) + tableDependencyOrder
+│   │   ├── outbox_processor.dart      # Push přes Ingest Edge Function (5s interval, FK ordering, retry)
+│   │   ├── realtime_service.dart      # Supabase Realtime PostgresChanges (23 tabulek, <2s)
+│   │   ├── broadcast_channel.dart     # Supabase Realtime Broadcast wrapper (pairing, KDS, display)
 │   │   └── sync_lifecycle_manager.dart # Orchestrace start/stop/initial push + realtime
 │   ├── logging/                       # AppLogger (dart:developer)
 │   └── l10n/                          # Extension context.l10n
@@ -823,12 +806,11 @@ lib/
 │   ├── catalog/                       # ScreenCatalog (6 tabů: Produkty, Kategorie, Dodavatelé, Výrobci, Receptury, Zákazníci)
 │   ├── inventory/                     # ScreenInventory (2 taby: Zásoby, Doklady),
 │   │                                  # DialogStockDocument, DialogInventory
-│   ├── onboarding/                    # ScreenOnboarding, ScreenConnectCompany
+│   ├── onboarding/                    # ScreenOnboarding, ScreenConnectCompany, ScreenDisplayCode
 │   ├── sell/                          # ScreenSell (grid + košík), ScreenCustomerDisplay (zákaznický displej)
 │   ├── settings/                      # ScreenCompanySettings (6 tabů), ScreenVenueSettings (4 taby),
 │   │                                  # ScreenRegisterSettings (2 taby: pokladna, režim),
 │   │                                  # RegistersTab (CRUD pokladen v ScreenVenueSettings),
-│   │                                  # DialogModeSelector (přepínání POS/KDS/CustomerDisplay),
 │   │                                  # ScreenCloudAuth (embedded v CloudTab)
 │   ├── orders/                        # ScreenOrders (přehled objednávek), ScreenKds (kuchyňský displej)
 │   └── vouchers/                      # ScreenVouchers, DialogVoucherCreate, DialogVoucherDetail
@@ -873,10 +855,11 @@ Migrace: 26 dialogů celkem, z toho 22 migrovaných na sdílené widgety, 4 pone
 #### Další core widgety
 - `LockOverlay` — overlay pro auto-lock po neaktivitě
 - `InactivityDetector` — detekce neaktivity uživatele
+- `PairingConfirmationListener` — modální overlay pro potvrzení/zamítnutí párovací žádosti z displeje. Wrappuje celou aplikaci v `app.dart`. Zobrazí dialog s názvem zařízení, kódem a tlačítky Potvrdit/Zamítnout. Odpověď se odesílá přes `BroadcastChannel`.
 
 **Dva vzory outbox zápisu:**
 - **Konfigurační entity** (company_settings, sections, categories, items, tables, map_elements, payment_methods, tax_rates, users, suppliers, manufacturers, product_recipes, warehouses, reservations, vouchers, customers, customer_transactions): Dědí z `BaseCompanyScopedRepository<T>` — automatický outbox zápis v transakci s CRUD operací.
-- **Prodejní a provozní entity** (bills, orders, order_items, payments, register_sessions, cash_movements, layout_items, user_permissions, shifts, stock_levels, stock_documents, stock_movements): Vlastní repozitáře s injektovaným `SyncQueueRepository` a explicitním `_enqueue*` voláním po každé mutaci. Ruční přístup — business metody (createOrderWithItems, recordPayment, cancelBill cascade, openSession, closeSession, applyRoleToUser, createDocument, adjustQuantity) nepasují do CRUD patternu base repository.
+- **Prodejní a provozní entity** (bills, orders, order_items, payments, register_sessions, cash_movements, layout_items, user_permissions, shifts, stock_levels, stock_documents, stock_movements, display_devices): Vlastní repozitáře s injektovaným `SyncQueueRepository` a explicitním `_enqueue*` voláním po každé mutaci. Ruční přístup — business metody (createOrderWithItems, recordPayment, cancelBill cascade, openSession, closeSession, applyRoleToUser, createDocument, adjustQuantity) nepasují do CRUD patternu base repository.
 - **Lokální entity** (device_registrations): Nesynchronizované — `DeviceRegistrationRepository` pracuje přímo s Drift DB bez outbox/sync.
 
 ---
@@ -935,9 +918,9 @@ Navíc každá tabulka definuje: `createdAt`, `updatedAt`, `deletedAt` (soft del
 
 #### Přehled tabulek
 
-##### Aktivní tabulky (38) — registrované v @DriftDatabase
+##### Aktivní tabulky (39) — registrované v @DriftDatabase
 
-**Doménové tabulky (35):**
+**Doménové tabulky (36):**
 
 | SQL tabulka | Drift Table | Drift Entity | Model |
 |-------------|-------------|--------------|-------|
@@ -949,6 +932,7 @@ Navíc každá tabulka definuje: `createdAt`, `updatedAt`, `deletedAt` (soft del
 | `currencies` | `Currencies` | `Currency` | `CurrencyModel` |
 | `customers` | `Customers` | `Customer` | `CustomerModel` |
 | `customer_transactions` | `CustomerTransactions` | `CustomerTransaction` | `CustomerTransactionModel` |
+| `display_devices` | `DisplayDevices` | `DisplayDevice` | `DisplayDeviceModel` |
 | `items` | `Items` | `Item` | `ItemModel` |
 | `layout_items` | `LayoutItems` | `LayoutItem` | `LayoutItemModel` |
 | `manufacturers` | `Manufacturers` | `Manufacturer` | `ManufacturerModel` |
@@ -1057,7 +1041,7 @@ Všechny aktivní tabulky obsahují společné sync sloupce (viz [SyncColumnsMix
 
 | Tabulka | Sloupce |
 |---------|---------|
-| **tables** | id (T), company_id →companies, section_id →sections?, table_name (T), capacity (I), is_active (B), grid_row (I), grid_col (I), grid_width (I, default 3), grid_height (I, default 3), shape (T — TableShape, default rectangle) |
+| **tables** | id (T), company_id →companies, section_id →sections?, table_name (T), capacity (I), is_active (B), grid_row (I), grid_col (I), grid_width (I, default 1), grid_height (I, default 1), shape (T — TableShape, default rectangle) |
 | **map_elements** | id (T), company_id →companies, section_id →sections (nullable), grid_row (I), grid_col (I), grid_width (I, default 2), grid_height (I, default 2), label (T, nullable), color (T, nullable — hex #RRGGBB), shape (T — TableShape, default rectangle) |
 
 ##### Sekce
@@ -1099,6 +1083,18 @@ Všechny aktivní tabulky obsahují společné sync sloupce (viz [SyncColumnsMix
 - `stock_documents` — `supplier_id` a `purchase_price_strategy` pouze pro typ `receipt`
 - `stock_movements` — `stock_document_id` nullable: null pro automatické prodejní odpisy, nastaveno pro ruční doklady
 - `purchase_price_strategy` na movements — per-item override, nullable (fallback na strategii dokladu)
+
+##### Display devices (párování displejů)
+
+| Tabulka | Sloupce |
+|---------|---------|
+| **display_devices** | id (T), company_id →companies, parent_register_id →registers, code (T), name (T, default ''), type (T — DisplayDeviceType), is_active (B, default true) |
+
+**Pravidla:**
+- `parent_register_id` — FK na registers (displej je vázán na konkrétní pokladnu)
+- `code` — 6-místný párovací kód zobrazený na pokladně, zadávaný na displeji
+- `type` — `customerDisplay` nebo `kds`
+- Používá `SyncColumnsMixin` — synchronizuje se přes outbox
 
 ##### Layout grid
 
@@ -1193,6 +1189,7 @@ Klientské timestampy se ukládají v **UTC**.
 | `VoucherType` | `VoucherModel` | gift, deposit, discount |
 | `VoucherStatus` | `VoucherModel` | active, redeemed, expired, cancelled |
 | `VoucherDiscountScope` | `VoucherModel` | bill, product, category |
+| `DisplayDeviceType` | `DisplayDeviceModel` | customerDisplay, kds |
 
 ##### ENUMs rozšíření (přidají se s příslušnými tabulkami)
 
@@ -1202,15 +1199,15 @@ Klientské timestampy se ukládají v **UTC**.
 
 Hodnoty ENUM jsou uloženy jako `TEXT` v lokální SQLite databázi. Drift `textEnum<T>()` automaticky zajišťuje konverzi mezi enum typy a string hodnotami.
 
-> **Poznámka:** `BillStatus` obsahuje `refunded` od Etapy 3.2. `DiscountType` (`absolute`, `percent`) byl přidán v Etapě 3.2 pro slevy na položku i účet. `ItemType` obsahuje `recipe`, `ingredient`, `variant`, `modifier` od Etapy 3.4. `StockMovementDirection` používá `inbound`/`outbound` (ne `in`/`out` — `in` je reserved keyword v Dartu). `PaymentType` obsahuje `credit` od Etapy 3.7 (zákaznický kredit). `PaymentType` neobsahuje `voucher`, `points` — ty se přidají s CRM rozšířením. `ReservationStatus` přidán v Etapě 3.7. `TableShape` přidán s mapou stolů (Etapa 3.7). `VoucherType`, `VoucherStatus`, `VoucherDiscountScope` přidány s voucher systémem (Etapa 3.7).
+> **Poznámka:** `BillStatus` obsahuje `refunded` od Etapy 3.2. `DiscountType` (`absolute`, `percent`) byl přidán v Etapě 3.2 pro slevy na položku i účet. `ItemType` obsahuje `recipe`, `ingredient`, `variant`, `modifier` od Etapy 3.4. `StockMovementDirection` používá `inbound`/`outbound` (ne `in`/`out` — `in` je reserved keyword v Dartu). `PaymentType` obsahuje `credit` od Etapy 3.7 (zákaznický kredit). `PaymentType` neobsahuje `voucher`, `points` — ty se přidají s CRM rozšířením. `ReservationStatus` přidán v Etapě 3.7. `TableShape` přidán s mapou stolů (Etapa 3.7). `VoucherType`, `VoucherStatus`, `VoucherDiscountScope` přidány s voucher systémem (Etapa 3.7). `DisplayDeviceType` přidán s display device párováním (Milník 3.9).
 
 ---
 
 ## Synchronizace (Etapa 3 — implementováno)
 
-> **Stav implementace:** Sync infrastruktura je funkční pro všech 35 doménových tabulek. Konfigurační entity (company_settings, sections, categories, items, tables, map_elements, payment_methods, tax_rates, users, suppliers, manufacturers, product_recipes, warehouses, reservations, vouchers, customers, customer_transactions) dědí z `BaseCompanyScopedRepository` s automatickým outbox zápisem v transakci. Prodejní a provozní entity (bills, orders, order_items, payments, register_sessions, cash_movements, layout_items, user_permissions, shifts, stock_levels, stock_documents, stock_movements, registers) používají ruční enqueue — vlastní repozitáře s injektovaným `SyncQueueRepository` a explicitním `_enqueue*` voláním po každé mutaci. Globální tabulky (currencies, roles, permissions, role_permissions) se pullují bez company_id filtru a pushují při initial sync. SyncService pulluje všech 35 tabulek v FK-respektujícím pořadí. ConnectCompanyScreen umožňuje připojení nového zařízení k existující firmě stažením dat přes InitialSync (pullAll). SyncLifecycleManager.companyRepos pro initial push: company_settings, sections, categories, items, tables, map_elements, payment_methods, tax_rates, users, warehouses, vouchers, suppliers, manufacturers, customers, product_recipes, reservations, customer_transactions.
+> **Stav implementace:** Sync infrastruktura je funkční pro všech 36 doménových tabulek. Konfigurační entity (company_settings, sections, categories, items, tables, map_elements, payment_methods, tax_rates, users, suppliers, manufacturers, product_recipes, warehouses, reservations, vouchers, customers, customer_transactions) dědí z `BaseCompanyScopedRepository` s automatickým outbox zápisem v transakci. Prodejní a provozní entity (bills, orders, order_items, payments, register_sessions, cash_movements, layout_items, user_permissions, shifts, stock_levels, stock_documents, stock_movements, registers, display_devices) používají ruční enqueue — vlastní repozitáře s injektovaným `SyncQueueRepository` a explicitním `_enqueue*` voláním po každé mutaci. Globální tabulky (currencies, roles, permissions, role_permissions) se pullují bez company_id filtru a pushují při initial sync. SyncService pulluje všech 36 tabulek v FK-respektujícím pořadí (veřejná konstanta `tableDependencyOrder`). ConnectCompanyScreen umožňuje připojení nového zařízení k existující firmě stažením dat přes InitialSync (pullAll). SyncLifecycleManager.companyRepos pro initial push: company_settings, sections, categories, items, tables, map_elements, payment_methods, tax_rates, users, warehouses, vouchers, suppliers, manufacturers, customers, product_recipes, reservations, customer_transactions.
 >
-> **Realtime sync (od Milníku 3.9):** `RealtimeService` subscribuje Supabase PostgresChanges na 22 tabulek (vč. `companies`) pro <2s cross-device sync. Dual sync strategie: polling 5min (fallback) + Realtime (instant). Reconnect po výpadku triggerne okamžitý `pullAll`.
+> **Realtime sync (od Milníku 3.9):** `RealtimeService` subscribuje Supabase PostgresChanges na 23 tabulek (vč. `companies` a `display_devices`) pro <2s cross-device sync. Dual sync strategie: polling 5min (fallback) + Realtime (instant). Reconnect po výpadku triggerne okamžitý `pullAll`.
 
 ### Outbox Pattern
 
@@ -1226,6 +1223,8 @@ graph LR
 - Crash resilience (operace se neztratí)
 - Auditovatelnost
 - Retry každých 5s (fixní interval, max 10 pokusů)
+- FK dependency ordering — pending entries se před zpracováním seřadí podle `SyncService.tableDependencyOrder`, takže rodičovské řádky se pushnou před dětmi
+- Reset failed — při startu `OutboxProcessor.start()` se resetují dříve selhané entries pro opětovný pokus
 
 ### Ingest Edge Function
 
@@ -1237,6 +1236,7 @@ Všechny outbox zápisy procházejí přes Supabase Edge Function `ingest` (`sup
 - Zapisuje do Supabase tabulek přes `service_role` (obchází RLS)
 - Loguje operace do `audit_log`
 - Podporuje operace: `insert`, `update`, `delete`
+- **FK violation handling:** Při Postgres error `23503` (foreign key violation) vrací `error_type: "transient"` — klient retry po synchronizaci rodičovského řádku. Loguje jako `fk_pending` do audit_log.
 
 **Payload formát:**
 ```json
@@ -1273,11 +1273,11 @@ graph TD
 `RealtimeService` poskytuje near-instant (<2s) cross-device sync přes Supabase Realtime:
 
 **Architektura:**
-- Jeden `RealtimeChannel` (`sync-{companyId}`) s PostgresChanges listeners na 22 tabulek
+- Jeden `RealtimeChannel` (`sync-{companyId}`) s PostgresChanges listeners na 23 tabulek
 - Filtr: `company_id = companyId` (pro `companies` filtr na `id`)
 - Callback: `_handleChange` → `SyncService.mergeRow` (LWW merge přes `insertOnConflictUpdate`)
 
-**22 subscribovaných tabulek:** companies, company_settings, sections, tax_rates, payment_methods, categories, users, user_permissions, tables, map_elements, items, registers, layout_items, customers, reservations, bills, orders, order_items, payments, register_sessions, cash_movements, shifts.
+**23 subscribovaných tabulek:** companies, company_settings, sections, tax_rates, payment_methods, categories, users, user_permissions, tables, map_elements, items, registers, display_devices, layout_items, customers, reservations, bills, orders, order_items, payments, register_sessions, cash_movements, shifts.
 
 **Vyloučené tabulky** (nízká frekvence změn, stačí 5min polling): suppliers, manufacturers, product_recipes, warehouses, stock_levels, stock_documents, stock_movements, vouchers, customer_transactions.
 
@@ -1295,8 +1295,8 @@ graph TD
 ```sql
 ALTER PUBLICATION supabase_realtime ADD TABLE companies, company_settings, sections,
   tax_rates, payment_methods, categories, users, user_permissions, tables, map_elements,
-  items, registers, layout_items, customers, reservations, bills, orders, order_items,
-  payments, register_sessions, cash_movements, shifts;
+  items, registers, display_devices, layout_items, customers, reservations, bills, orders,
+  order_items, payments, register_sessions, cash_movements, shifts;
 ```
 
 ### Data Flow
@@ -1320,7 +1320,7 @@ ALTER PUBLICATION supabase_realtime ADD TABLE companies, company_settings, secti
 
 #### 1. Server-side trigger (`enforce_lww`)
 
-PostgreSQL BEFORE UPDATE trigger `trg_{table}_lww` s funkcí `enforce_lww` je aktivní na všech 35 doménových tabulkách. Porovnává `client_updated_at` — pokud je příchozí timestamp starší než existující záznam, vyhodí výjimku `LWW_CONFLICT` (P0001). Ingest Edge Function tento error zachytí a vrátí klientovi `error_type: "lww_conflict"`.
+PostgreSQL BEFORE UPDATE trigger `trg_{table}_lww` s funkcí `enforce_lww` je aktivní na všech 36 doménových tabulkách. Porovnává `client_updated_at` — pokud je příchozí timestamp starší než existující záznam, vyhodí výjimku `LWW_CONFLICT` (P0001). Ingest Edge Function tento error zachytí a vrátí klientovi `error_type: "lww_conflict"`.
 
 #### 2. Pull-side LWW
 
@@ -1356,7 +1356,7 @@ Flow pro nové zařízení (6 kroků — enum `_Step`):
 1. `credentials` — Formulář: email + heslo → `supabaseAuthService.signIn()`
 2. `searching` — Loading: „Hledání firmy..." → fetch company z Supabase (`companies.auth_user_id = userId`)
 3. `companyPreview` — Zobrazí název firmy + tlačítko „Připojit"
-4. `syncing` — Loading: „Synchronizace dat..." → `syncService.pullAll(companyId)` — stáhne všech 35 tabulek
+4. `syncing` — Loading: „Synchronizace dat..." → `syncService.pullAll(companyId)` — stáhne všech 36 tabulek
 5. `selectRegister` — Výběr pokladny pro zařízení (device binding)
 6. `done` — „Synchronizace dokončena" → invalidace `appInitProvider` → navigace na `/login`
 
@@ -1396,8 +1396,8 @@ ALTER TABLE bills ADD COLUMN customer_name text;
 -- 3. Realtime publication
 ALTER PUBLICATION supabase_realtime ADD TABLE companies, company_settings, sections,
   tax_rates, payment_methods, categories, users, user_permissions, tables, map_elements,
-  items, registers, layout_items, customers, reservations, bills, orders, order_items,
-  payments, register_sessions, cash_movements, shifts;
+  items, registers, display_devices, layout_items, customers, reservations, bills, orders,
+  order_items, payments, register_sessions, cash_movements, shifts;
 
 -- 4. Verify RLS SELECT policies allow company-scoped reads for all users
 ```
@@ -1917,13 +1917,16 @@ graph TD
     LOADING --> |appInitProvider| INIT{Stav}
     INIT --> |needsOnboarding| ONBOARD[ScreenOnboarding]
     INIT --> |needsLogin| PIN[ScreenLogin]
+    INIT --> |displayMode| DISPLAY[ScreenDisplayCode / ScreenCustomerDisplay]
     ONBOARD --> |Založit firmu| PIN
     ONBOARD --> |Připojit se k firmě| CONNECT[ConnectCompanyScreen]
+    ONBOARD --> |Customer Display| DISPLAYCODE[ScreenDisplayCode]
     CONNECT --> PIN
-    PIN --> |PIN ověřen| BILLS[ScreenBills]
+    PIN --> |PIN ověřen, POS režim| BILLS[ScreenBills]
+    PIN --> |PIN ověřen, KDS režim| KDS[ScreenKds]
 ```
 
-> **Aktuální stav:** Router začíná na `/loading`, čeká na `appInitProvider`. Žádná firma → `/onboarding` (volba: založit nebo připojit). Firma existuje → `/login` (PIN). Po přihlášení → `/bills`. Cloud sync credentials se nastavují v Settings → CloudTab (ne jako povinný krok v routeru).
+> **Aktuální stav:** Router začíná na `/loading`, čeká na `appInitProvider`. Žádná firma → `/onboarding` (volba: založit, připojit, nebo display). Firma existuje → `/login` (PIN s volbou POS/KDS režimu). Po přihlášení → `/bills` (POS) nebo `/kds` (KDS) dle zvoleného režimu. Display mode → `/customer-display` nebo `/display-code`. Cloud sync credentials se nastavují v Settings → CloudTab (ne jako povinný krok v routeru).
 
 #### ScreenOnboarding Flow
 
@@ -1931,9 +1934,14 @@ Při prvním spuštění aplikace (bez lokálních dat) se zobrazí **ScreenOnbo
 
 ##### Vytvoření firmy (wizard)
 
-Dvě možnosti na úvodní obrazovce:
+Tři sekce na úvodní obrazovce:
+
+**Sekce „Pokladna" (Point of Sale):**
 - **„Založit novou firmu"** → zobrazí wizard (2 kroky)
 - **„Připojit se k firmě"** → naviguje na `/connect-company` (ScreenConnectCompany)
+
+**Sekce „Displeje" (Displays):**
+- **„Customer Display"** → naviguje na `/display-code?type=customer_display` (ScreenDisplayCode — 6-digit párovací kód)
 
 **Krok 1 — Firma:**
 - Název firmy (povinné)
@@ -1957,7 +1965,7 @@ Po odeslání formuláře se v jedné transakci vytvoří:
 | RolePermission | 33 | helper: 6, operator: 11, admin: 16 |
 | PaymentMethod | 4 | Viz [Platební metody](#platební-metody), vč. Zákaznický kredit (credit) |
 | Section | 3 | Hlavní (zelená), Zahrádka (oranžová), Interní (šedá) |
-| Table | 13 | Hlavní: Stůl 1–5 (kap. 4, 4×4), Zahrádka: Stolek 1–5 (kap. 2, 2×2), Interní: Majitel, Repre, Odpisy (kap. 0, off-map) |
+| Table | 18 | Hlavní: Stůl 1–7 + Bar 1–3 (kap. 4, 4×4 / 2×2), Zahrádka: Stolek 1–5 (kap. 2, 2×2), Interní: Majitel, Repre, Odpisy (kap. 0, off-map) |
 | Category | 7 | Nápoje, Pivo, Hlavní jídla, Předkrmy, Dezerty, Suroviny, Služby |
 | Item | 52 | Rozložení: 9 nápojů, 6 piv, 14 hlavních jídel (vč. variant a modifikátorů), 5 předkrmů, 5 dezertů, 5 surovin, 3 counter items, 2 služby, 3 burger varianty |
 | Supplier | 2 | Makro Cash & Carry, Nápoje Express a.s. |
@@ -1984,10 +1992,10 @@ Implementováno — navigace z ScreenOnboarding na `/connect-company`:
 1. Uživatel zadá email + heslo (Supabase admin credentials)
 2. Aplikace ověří přihlášení a najde firmu podle `companies.auth_user_id = userId`
 3. Zobrazí název firmy + tlačítko „Připojit"
-4. `SyncService.pullAll(companyId)` stáhne data firmy v pořadí FK závislostí (35 tabulek):
+4. `SyncService.pullAll(companyId)` stáhne data firmy v pořadí FK závislostí (36 tabulek):
    1. Currencies, Companies, CompanySettings, Roles, Permissions, RolePermissions
    2. Sections, TaxRates, PaymentMethods, Categories, Users, UserPermissions
-   3. Tables, MapElements, Suppliers, Manufacturers, Items, ProductRecipes, Registers, LayoutItems
+   3. Tables, MapElements, Suppliers, Manufacturers, Items, ProductRecipes, Registers, DisplayDevices, LayoutItems
    4. Customers, Reservations, Warehouses
    5. Bills, Orders, OrderItems, Payments
    6. RegisterSessions, CashMovements, Shifts, CustomerTransactions, Vouchers
@@ -2387,7 +2395,7 @@ Layout: **2 taby**
 | Tab | Obsah |
 |-----|-------|
 | Pokladna | Grid zobrazení (rows/cols), auto-arrange dialog, info o nabindované pokladně |
-| Režim | 3 režimové karty: POS (prodejní terminál), KDS (kuchyňský displej), Zákaznický displej. Výběr režimu přepne zařízení do zvoleného módu (`RegisterMode` enum). Stejná funkce je dostupná přes `DialogModeSelector` jako floating tlačítko na KDS a Customer Display obrazovkách. |
+| Režim | 3 režimové karty: POS (prodejní terminál), KDS (kuchyňský displej), Zákaznický displej. Výběr režimu přepne zařízení do zvoleného módu. KDS režim je také dostupný přímo na login obrazovce (POS/KDS radio). Customer Display se páruje přes 6místný kód (`ScreenDisplayCode`). |
 
 #### ScreenCatalog (`/catalog`) — Produktový katalog
 
@@ -2528,7 +2536,7 @@ Layout: **Grid karet s objednávkami** (touch-optimized pro kuchyňský personá
 
 **Filtry (spodní lišta):** Připravuje se (created+inPrep+ready, default) / Hotové (ready) / Doručené (delivered). FilterChip row s Expanded.
 
-**Přístup:** Route `/kds`, permission `orders.view`.
+**Přístup:** Route `/kds`, volba režimu na login obrazovce (POS/KDS radio) nebo přes ScreenRegisterSettings. Bez permission guardu — přístup je řízen volbou režimu.
 
 #### ScreenCustomerDisplay (`/customer-display`) — Zákaznický displej
 
@@ -2574,7 +2582,7 @@ ScreenSell → registerRepo.setActiveBill(registerId, billId) → outbox → Sup
 - Totaly: subtotal, discount (pokud > 0, zelená barva), celkem (bold heading)
 - Discount výpočet: `subtotalGross - totalGross + roundingAmount` (ne raw `discountAmount` — ten ukládá basis points pro procentní slevy)
 - Ceny formátovány jako `XXX,-` (celé koruny)
-- Mode-switch tlačítko (top-right, `Icons.swap_horiz`) → `DialogModeSelector`
+- Disconnect tlačítko (top-right, `Icons.link_off`) → odpárování displeje a návrat na onboarding
 
 **Manuální ovládání z DialogBillDetail:**
 Tlačítko „Zák. displej" v pravém panelu s toggle logikou (eye/eye-off ikona dle aktuálního stavu). Nastavuje/maže `activeBillId` na registru. Při zavření dialogu se `activeBillId` automaticky vyčistí pokud byl nastaven tímto dialogem.
@@ -2728,8 +2736,8 @@ Projekt využívá **Riverpod** jako Service Locator a DI kontejner.
 | `database_provider.dart` | `appDatabaseProvider` — singleton Drift DB |
 | `auth_providers.dart` | `sessionManagerProvider`, `authServiceProvider`, `seedServiceProvider`, `deviceIdProvider` (persistent UUID zařízení), `activeUserProvider`, `loggedInUsersProvider`, `companyStreamProvider`, `currentCompanyProvider`, `appInitProvider`, `deviceRegistrationProvider`, `activeRegisterProvider` (null bez device binding), `activeRegisterSessionProvider`, `manualLockProvider` |
 | `permission_providers.dart` | `userPermissionCodesProvider` (reaktivní Set\<String\>), `hasPermissionProvider` (O(1) family check) |
-| `repository_providers.dart` | 34 repozitářů — `syncQueueRepositoryProvider`, `syncMetadataRepositoryProvider`, `deviceRegistrationRepositoryProvider`, `companyRepositoryProvider`, `companySettingsRepositoryProvider`, `userRepositoryProvider`, `roleRepositoryProvider`, `permissionRepositoryProvider`, `sectionRepositoryProvider`, `tableRepositoryProvider`, `mapElementRepositoryProvider`, `categoryRepositoryProvider`, `itemRepositoryProvider`, `taxRateRepositoryProvider`, `paymentMethodRepositoryProvider`, `billRepositoryProvider`, `orderRepositoryProvider`, `registerRepositoryProvider`, `registerSessionRepositoryProvider`, `shiftRepositoryProvider`, `cashMovementRepositoryProvider`, `paymentRepositoryProvider`, `layoutItemRepositoryProvider`, `customerRepositoryProvider`, `reservationRepositoryProvider`, `customerTransactionRepositoryProvider`, `supplierRepositoryProvider`, `manufacturerRepositoryProvider`, `productRecipeRepositoryProvider`, `warehouseRepositoryProvider`, `stockLevelRepositoryProvider`, `stockMovementRepositoryProvider`, `voucherRepositoryProvider`, `stockDocumentRepositoryProvider` |
-| `sync_providers.dart` | `supabaseAuthServiceProvider`, `isSupabaseAuthenticatedProvider`, `outboxProcessorProvider`, `syncServiceProvider`, `realtimeServiceProvider`, `syncLifecycleManagerProvider`, `syncLifecycleWatcherProvider` |
+| `repository_providers.dart` | 35 repozitářů — `syncQueueRepositoryProvider`, `syncMetadataRepositoryProvider`, `deviceRegistrationRepositoryProvider`, `companyRepositoryProvider`, `companySettingsRepositoryProvider`, `userRepositoryProvider`, `roleRepositoryProvider`, `permissionRepositoryProvider`, `sectionRepositoryProvider`, `tableRepositoryProvider`, `mapElementRepositoryProvider`, `categoryRepositoryProvider`, `itemRepositoryProvider`, `taxRateRepositoryProvider`, `paymentMethodRepositoryProvider`, `billRepositoryProvider`, `orderRepositoryProvider`, `registerRepositoryProvider`, `registerSessionRepositoryProvider`, `shiftRepositoryProvider`, `cashMovementRepositoryProvider`, `paymentRepositoryProvider`, `layoutItemRepositoryProvider`, `customerRepositoryProvider`, `reservationRepositoryProvider`, `customerTransactionRepositoryProvider`, `supplierRepositoryProvider`, `manufacturerRepositoryProvider`, `productRecipeRepositoryProvider`, `warehouseRepositoryProvider`, `stockLevelRepositoryProvider`, `stockMovementRepositoryProvider`, `voucherRepositoryProvider`, `stockDocumentRepositoryProvider`, `displayDeviceRepositoryProvider` |
+| `sync_providers.dart` | `supabaseAuthServiceProvider`, `supabaseAuthStateProvider`, `isSupabaseAuthenticatedProvider`, `outboxProcessorProvider`, `syncServiceProvider`, `realtimeServiceProvider`, `syncLifecycleManagerProvider`, `customerDisplayChannelProvider`, `kdsBroadcastChannelProvider`, `pairingChannelProvider`, `pendingPairingRequestProvider`, `pairingListenerProvider`, `syncLifecycleWatcherProvider` |
 | `printing_providers.dart` | `printingServiceProvider` |
 
 ### Git Workflow

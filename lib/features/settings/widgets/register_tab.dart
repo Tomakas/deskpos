@@ -48,11 +48,13 @@ class RegisterTab extends ConsumerWidget {
                   ],
                   onChanged: (value) async {
                     if (value == null) return;
-                    await ref.read(registerRepositoryProvider).updateGrid(
+                    final repo = ref.read(registerRepositoryProvider);
+                    await repo.updateGrid(
                           register.id,
                           value,
                           register.gridCols,
                         );
+                    if (!context.mounted) return;
                     ref.invalidate(activeRegisterProvider);
                   },
                 ),
@@ -75,11 +77,13 @@ class RegisterTab extends ConsumerWidget {
                   ],
                   onChanged: (value) async {
                     if (value == null) return;
-                    await ref.read(registerRepositoryProvider).updateGrid(
+                    final repo = ref.read(registerRepositoryProvider);
+                    await repo.updateGrid(
                           register.id,
                           register.gridRows,
                           value,
                         );
+                    if (!context.mounted) return;
                     ref.invalidate(activeRegisterProvider);
                   },
                 ),

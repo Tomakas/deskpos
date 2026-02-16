@@ -7,6 +7,7 @@ import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/pos_color_palette.dart';
 import '../../../core/widgets/pos_table.dart';
 
 class SectionsTab extends ConsumerWidget {
@@ -45,7 +46,7 @@ class SectionsTab extends ConsumerWidget {
                             width: 24,
                             height: 24,
                             decoration: BoxDecoration(
-                              color: _parseColor(s.color),
+                              color: parseHexColor(s.color),
                               borderRadius: BorderRadius.circular(4),
                             ),
                           )
@@ -96,17 +97,10 @@ class SectionsTab extends ConsumerWidget {
     );
   }
 
-  Color? _parseColor(String? hex) {
-    if (hex == null || hex.isEmpty) return null;
-    final clean = hex.replaceFirst('#', '');
-    if (clean.length == 6) return Color(int.parse('FF$clean', radix: 16));
-    return null;
-  }
-
   Future<void> _showEditDialog(BuildContext context, WidgetRef ref, SectionModel? existing) async {
     final l = context.l10n;
     final nameCtrl = TextEditingController(text: existing?.name ?? '');
-    final colorCtrl = TextEditingController(text: existing?.color ?? '');
+    String? selectedColor = existing?.color;
     var isActive = existing?.isActive ?? true;
     var isDefault = existing?.isDefault ?? false;
 
@@ -124,10 +118,15 @@ class SectionsTab extends ConsumerWidget {
                   controller: nameCtrl,
                   decoration: InputDecoration(labelText: l.fieldName),
                 ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: colorCtrl,
-                  decoration: InputDecoration(labelText: '${l.fieldColor} (#hex)'),
+                const SizedBox(height: 16),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(l.fieldColor, style: Theme.of(ctx).textTheme.bodySmall),
+                ),
+                const SizedBox(height: 8),
+                PosColorPalette(
+                  selectedColor: selectedColor,
+                  onColorSelected: (c) => setDialogState(() => selectedColor = c),
                 ),
                 const SizedBox(height: 12),
                 SwitchListTile(
@@ -151,7 +150,7 @@ class SectionsTab extends ConsumerWidget {
       ),
     );
 
-    if (result != true || nameCtrl.text.trim().isEmpty) return;
+    if (result != true || nameCtrl.text.trim().isEmpty || !context.mounted) return;
 
     final company = ref.read(currentCompanyProvider)!;
     final repo = ref.read(sectionRepositoryProvider);
@@ -161,7 +160,7 @@ class SectionsTab extends ConsumerWidget {
       if (isDefault) await repo.clearDefault(company.id, exceptId: existing.id);
       await repo.update(existing.copyWith(
         name: nameCtrl.text.trim(),
-        color: colorCtrl.text.trim().isEmpty ? null : colorCtrl.text.trim(),
+        color: selectedColor,
         isActive: isActive,
         isDefault: isDefault,
       ));
@@ -172,7 +171,7 @@ class SectionsTab extends ConsumerWidget {
         id: id,
         companyId: company.id,
         name: nameCtrl.text.trim(),
-        color: colorCtrl.text.trim().isEmpty ? null : colorCtrl.text.trim(),
+        color: selectedColor,
         isActive: isActive,
         isDefault: isDefault,
         createdAt: now,
@@ -193,8 +192,7 @@ class SectionsTab extends ConsumerWidget {
         ],
       ),
     );
-    if (confirmed == true) {
-      await ref.read(sectionRepositoryProvider).delete(section.id);
-    }
+    if (confirmed != true || !context.mounted) return;
+    await ref.read(sectionRepositoryProvider).delete(section.id);
   }
 }

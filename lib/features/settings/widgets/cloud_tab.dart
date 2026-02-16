@@ -121,6 +121,7 @@ class CloudTab extends ConsumerWidget {
       }
 
       // Invalidate providers — next read creates fresh DB with current schema
+      if (!context.mounted) return;
       ref.invalidate(appDatabaseProvider);
       ref.invalidate(appInitProvider);
     } catch (e, s) {

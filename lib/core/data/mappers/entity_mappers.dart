@@ -588,6 +588,7 @@ DisplayDeviceModel displayDeviceFromEntity(DisplayDevice e) => DisplayDeviceMode
       parentRegisterId: e.parentRegisterId,
       code: e.code,
       name: e.name,
+      welcomeText: e.welcomeText,
       type: e.type,
       isActive: e.isActive,
       createdAt: e.createdAt,

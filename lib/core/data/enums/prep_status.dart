@@ -4,7 +4,6 @@ import '../../theme/app_colors.dart';
 
 enum PrepStatus {
   created,
-  inPrep,
   ready,
   delivered,
   cancelled,
@@ -16,7 +15,6 @@ extension PrepStatusColor on PrepStatus {
     final c = context.appColors;
     return switch (this) {
       PrepStatus.created => c.statusCreated,
-      PrepStatus.inPrep => c.statusInPrep,
       PrepStatus.ready => c.statusReady,
       PrepStatus.delivered => c.statusDelivered,
       PrepStatus.cancelled => c.statusCancelled,

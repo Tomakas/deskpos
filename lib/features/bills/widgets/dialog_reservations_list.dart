@@ -55,7 +55,7 @@ class _DialogReservationsListState extends ConsumerState<DialogReservationsList>
       context: context,
       builder: (_) => const DialogReservationEdit(),
     );
-    if (result == true) {
+    if (result == true && mounted) {
       setState(() {}); // triggers stream rebuild
     }
   }
@@ -65,7 +65,7 @@ class _DialogReservationsListState extends ConsumerState<DialogReservationsList>
       context: context,
       builder: (_) => DialogReservationEdit(reservation: reservation),
     );
-    if (result == true) {
+    if (result == true && mounted) {
       setState(() {});
     }
   }

@@ -183,7 +183,6 @@
   },
 
   "prepStatusCreated": "Created",
-  "prepStatusInPrep": "In Prep",
   "prepStatusReady": "Ready",
   "prepStatusDelivered": "Delivered",
   "prepStatusCancelled": "Cancelled",
@@ -854,15 +853,14 @@
   "ordersTitle": "Orders",
   "ordersFilterActive": "Active",
   "ordersFilterCreated": "Created",
-  "ordersFilterInPrep": "In Prep",
   "ordersFilterReady": "Ready",
   "ordersFilterDelivered": "Delivered",
   "ordersFilterStorno": "Voided",
   "ordersScopeSession": "Session",
   "ordersScopeAll": "All",
   "ordersNoOrders": "No orders",
-  "ordersTimeCreated": "Order creation time",
-  "ordersTimeUpdated": "Last update time",
+  "ordersTimeCreated": "Created",
+  "ordersTimeUpdated": "Updated",
   "ordersTableLabel": "Table",
   "ordersCustomerLabel": "Customer",
   "ordersStornoPrefix": "VOID",
@@ -967,5 +965,8 @@
   "displayDevicesTitle": "Displays",
   "displayDevicesEmpty": "No display devices",
   "displayDeviceAddCustomer": "Customer",
-  "displayDeviceAddKds": "KDS"
+  "displayDeviceAddKds": "KDS",
+  "displayWelcomeText": "Welcome text",
+  "displayDefaultNameKds": "Order System",
+  "displayDefaultWelcomeText": "Welcome!"
 }

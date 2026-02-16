@@ -286,12 +286,16 @@ class _ScreenLoginState extends ConsumerState<ScreenLogin> {
       // to avoid triggering the router redirect (→ /bills) before we navigate.
       final companyRepo = ref.read(companyRepositoryProvider);
       final companyResult = await companyRepo.getFirst();
+      if (!mounted) return;
       if (companyResult case Success(value: final company?)) {
         ref.read(currentCompanyProvider.notifier).state = company;
         // Ensure currency is loaded before navigating to price-displaying screens
         await ref.read(currentCurrencyProvider.future);
+        if (!mounted) return;
         // Create shift if register session is active
-        final regSession = await ref.read(registerSessionRepositoryProvider).getActiveSession(company.id);
+        final regSessionRepo = ref.read(registerSessionRepositoryProvider);
+        final regSession = await regSessionRepo.getActiveSession(company.id);
+        if (!mounted) return;
         if (regSession != null) {
           final shiftRepo = ref.read(shiftRepositoryProvider);
           final existing = await shiftRepo.getActiveShiftForUser(_selectedUser!.id, regSession.id);
@@ -307,6 +311,7 @@ class _ScreenLoginState extends ConsumerState<ScreenLogin> {
       // Persist selected mode
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('login_mode', _selectedMode == _LoginMode.kds ? 'kds' : 'pos');
+      if (!mounted) return;
       // Set auth providers just before navigation to prevent premature router redirect
       ref.read(activeUserProvider.notifier).state = _selectedUser;
       ref.read(loggedInUsersProvider.notifier).state = session.loggedInUsers;

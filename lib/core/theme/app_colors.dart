@@ -15,7 +15,7 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
     required this.onDanger,
     // PrepStatus
     required this.statusCreated,
-    required this.statusInPrep,
+
     required this.statusReady,
     required this.statusDelivered,
     required this.statusCancelled,
@@ -44,7 +44,7 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
 
   // PrepStatus
   final Color statusCreated;
-  final Color statusInPrep;
+
   final Color statusReady;
   final Color statusDelivered;
   final Color statusCancelled;
@@ -74,7 +74,7 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
     Color? danger,
     Color? onDanger,
     Color? statusCreated,
-    Color? statusInPrep,
+
     Color? statusReady,
     Color? statusDelivered,
     Color? statusCancelled,
@@ -97,7 +97,7 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
       danger: danger ?? this.danger,
       onDanger: onDanger ?? this.onDanger,
       statusCreated: statusCreated ?? this.statusCreated,
-      statusInPrep: statusInPrep ?? this.statusInPrep,
+
       statusReady: statusReady ?? this.statusReady,
       statusDelivered: statusDelivered ?? this.statusDelivered,
       statusCancelled: statusCancelled ?? this.statusCancelled,
@@ -125,7 +125,7 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
       danger: Color.lerp(danger, other.danger, t)!,
       onDanger: Color.lerp(onDanger, other.onDanger, t)!,
       statusCreated: Color.lerp(statusCreated, other.statusCreated, t)!,
-      statusInPrep: Color.lerp(statusInPrep, other.statusInPrep, t)!,
+
       statusReady: Color.lerp(statusReady, other.statusReady, t)!,
       statusDelivered: Color.lerp(statusDelivered, other.statusDelivered, t)!,
       statusCancelled: Color.lerp(statusCancelled, other.statusCancelled, t)!,
@@ -153,7 +153,7 @@ const lightAppColors = AppColorsExtension(
   onDanger: Colors.white,
   // PrepStatus
   statusCreated: Colors.blue,
-  statusInPrep: Colors.orange,
+
   statusReady: Colors.green,
   statusDelivered: Colors.grey,
   statusCancelled: Colors.red,

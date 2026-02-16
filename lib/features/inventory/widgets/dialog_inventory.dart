@@ -170,9 +170,11 @@ class _DialogInventoryState extends ConsumerState<DialogInventory> {
     final user = ref.read(activeUserProvider);
     if (user == null) return;
 
+    final stockLevelRepo = ref.read(stockLevelRepositoryProvider);
+    final stockDocRepo = ref.read(stockDocumentRepositoryProvider);
+
     // Build inventory lines from current stock levels
-    final levels = await ref
-        .read(stockLevelRepositoryProvider)
+    final levels = await stockLevelRepo
         .watchByWarehouse(widget.companyId, widget.warehouseId)
         .first;
 
@@ -206,8 +208,7 @@ class _DialogInventoryState extends ConsumerState<DialogInventory> {
 
     setState(() => _saving = true);
 
-    final result = await ref
-        .read(stockDocumentRepositoryProvider)
+    final result = await stockDocRepo
         .createInventoryDocument(
           companyId: widget.companyId,
           warehouseId: widget.warehouseId,

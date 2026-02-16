@@ -5,6 +5,7 @@ import '../../../core/data/enums/layout_item_type.dart';
 import '../../../core/data/models/category_model.dart';
 import '../../../core/data/models/item_model.dart';
 import '../../../core/data/models/layout_item_model.dart';
+import '../../../core/data/models/register_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
@@ -90,10 +91,10 @@ class _DialogGridEditorState extends ConsumerState<DialogGridEditor> {
     );
   }
 
-  Widget _buildGrid(BuildContext context, dynamic register, String companyId) {
-    final rows = register.gridRows as int;
-    final cols = register.gridCols as int;
-    final registerId = register.id as String;
+  Widget _buildGrid(BuildContext context, RegisterModel register, String companyId) {
+    final rows = register.gridRows;
+    final cols = register.gridCols;
+    final registerId = register.id;
 
     return StreamBuilder<List<LayoutItemModel>>(
       stream: ref
@@ -341,12 +342,13 @@ class _DialogGridEditorState extends ConsumerState<DialogGridEditor> {
       ),
     );
 
-    if (result == null) return;
+    if (result == null || !context.mounted) return;
 
     // Show color picker for non-clear results
     String? selectedColor;
-    if (!result.clear && context.mounted) {
+    if (!result.clear) {
       selectedColor = await _showColorPicker(context);
+      if (!context.mounted) return;
     }
 
     final repo = ref.read(layoutItemRepositoryProvider);
@@ -398,7 +400,7 @@ class _DialogGridEditorState extends ConsumerState<DialogGridEditor> {
       builder: (_) => AlertDialog(
         title: Text(l.gridEditorColor),
         content: SizedBox(
-          width: 300,
+          width: 350,
           child: PosColorPalette(
             selectedColor: null,
             onColorSelected: (color) => Navigator.pop(context, color),

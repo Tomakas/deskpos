@@ -138,8 +138,9 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
 
   Future<void> _broadcastKdsOrder(OrderModel order) async {
     final orderRepo = ref.read(orderRepositoryProvider);
-    final items = await orderRepo.getOrderItems(order.id);
     final channel = ref.read(kdsBroadcastChannelProvider);
+    final items = await orderRepo.getOrderItems(order.id);
+    if (!mounted) return;
     channel.send({
       'action': 'new_order',
       'order': orderToSupabaseJson(order),
@@ -153,9 +154,12 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     if (company == null || user == null) return;
 
     final billRepo = ref.read(billRepositoryProvider);
-    final sections = await ref.read(sectionRepositoryProvider).watchAll(company.id).first;
+    final sectionRepo = ref.read(sectionRepositoryProvider);
+    final sections = await sectionRepo.watchAll(company.id).first;
+    if (!mounted) return;
     final defaultSection = sections.where((s) => s.isDefault).firstOrNull ?? sections.firstOrNull;
     final register = await ref.read(activeRegisterProvider.future);
+    if (!mounted) return;
     final session = ref.read(activeRegisterSessionProvider).value;
 
     final billResult = await billRepo.createBill(
@@ -183,7 +187,9 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
 
   Future<void> _loadCustomerName() async {
     if (widget.billId == null) return;
-    final billResult = await ref.read(billRepositoryProvider).getById(widget.billId!);
+    final billRepo = ref.read(billRepositoryProvider);
+    final billResult = await billRepo.getById(widget.billId!);
+    if (!mounted) return;
     if (billResult is Success<BillModel>) {
       final bill = billResult.value;
       if (bill.customerId != null) {
@@ -725,23 +731,25 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
         ],
       ),
     );
-    if (result != null) {
+    if (result != null && mounted) {
       setState(() => item.notes = result.isEmpty ? null : result);
       _pushToDisplay();
     }
   }
 
   Future<void> _selectCustomer(BuildContext context) async {
+    final billRepo = ref.read(billRepositoryProvider);
     final result = await showCustomerSearchDialogRaw(
       context,
       ref,
       showRemoveButton: _customerName != null,
     );
+    if (!mounted) return;
     if (result == null) return;
     final billId = widget.billId ?? _quickBillId;
     if (result is CustomerModel) {
       if (billId != null) {
-        await ref.read(billRepositoryProvider).updateCustomer(billId, result.id);
+        await billRepo.updateCustomer(billId, result.id);
       }
       if (mounted) {
         setState(() {
@@ -752,7 +760,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     } else if (result is String) {
       // Free-text customer name
       if (billId != null) {
-        await ref.read(billRepositoryProvider).updateCustomerName(billId, result);
+        await billRepo.updateCustomerName(billId, result);
       }
       if (mounted) {
         setState(() {
@@ -763,7 +771,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     } else {
       // _RemoveCustomer sentinel
       if (billId != null) {
-        await ref.read(billRepositoryProvider).updateCustomer(billId, null);
+        await billRepo.updateCustomer(billId, null);
       }
       if (mounted) {
         setState(() {
@@ -804,7 +812,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
         ],
       ),
     );
-    if (result != null) {
+    if (result != null && mounted) {
       setState(() => _orderNotes = result.isEmpty ? null : result);
     }
   }
@@ -869,6 +877,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
 
       if (cartItem.saleTaxRateId != null) {
         final taxRate = await taxRateRepo.getById(cartItem.saleTaxRateId!);
+        if (!mounted) return orderItems;
         if (taxRate != null) {
           taxRateBps = taxRate.rate;
           taxAmount = (cartItem.unitPrice * taxRateBps / (10000 + taxRateBps)).round();
@@ -910,9 +919,11 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     final sessionRepo = ref.read(registerSessionRepositoryProvider);
     final counterResult = await sessionRepo.incrementOrderCounter(session.id);
     if (counterResult is! Success<int>) return 'O-0000';
+    if (!mounted) return 'O-0000';
 
     // Register-based numbering: O{n}-{counter}
     final register = await ref.read(activeRegisterProvider.future);
+    if (!mounted) return 'O-0000';
     final regNum = register?.registerNumber ?? 0;
     return 'O$regNum-${counterResult.value.toString().padLeft(4, '0')}';
   }
@@ -930,12 +941,16 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
       if (groups.isEmpty) return;
 
       final orderRepo = ref.read(orderRepositoryProvider);
+      final billRepo = ref.read(billRepositoryProvider);
       bool anySuccess = false;
 
       for (var i = 0; i < groups.length; i++) {
         final orderNumber = await _nextOrderNumber(ref);
+        if (!mounted) return;
         final orderItems = await _buildOrderItemsFromGroup(ref, groups[i]);
+        if (!mounted) return;
         final register = await ref.read(activeRegisterProvider.future);
+        if (!mounted) return;
         final result = await orderRepo.createOrderWithItems(
           companyId: company.id,
           billId: widget.billId!,
@@ -952,7 +967,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
       }
 
       if (anySuccess) {
-        await ref.read(billRepositoryProvider).updateTotals(widget.billId!);
+        await billRepo.updateTotals(widget.billId!);
         if (!context.mounted) return;
         context.pop();
       }
@@ -972,21 +987,26 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     if (company == null || user == null) return;
 
     final billRepo = ref.read(billRepositoryProvider);
+    final orderRepo = ref.read(orderRepositoryProvider);
 
     // Update customer on the quick bill if set
     if (_customerId != null) {
       await billRepo.updateCustomer(billId, _customerId);
+      if (!mounted) return;
     } else if (_customerName != null) {
       await billRepo.updateCustomerName(billId, _customerName!);
+      if (!mounted) return;
     }
 
     // Create order(s)
     final groups = _splitCartIntoGroups();
-    final orderRepo = ref.read(orderRepositoryProvider);
     final register = await ref.read(activeRegisterProvider.future);
+    if (!mounted) return;
     for (var i = 0; i < groups.length; i++) {
       final orderNumber = await _nextOrderNumber(ref);
+      if (!mounted) return;
       final orderItems = await _buildOrderItemsFromGroup(ref, groups[i]);
+      if (!mounted) return;
       final result = await orderRepo.createOrderWithItems(
         companyId: company.id,
         billId: billId,
@@ -1019,7 +1039,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     if (paid == true && context.mounted) {
       _quickBillId = null;
       // Send thank-you message to customer display
-      if (_displayCode != null) {
+      if (_displayCode != null && mounted) {
         final l = context.l10n;
         ref.read(customerDisplayChannelProvider).send(
           DisplayMessage(
@@ -1051,19 +1071,24 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
       if (company == null || user == null) return;
 
       final billRepo = ref.read(billRepositoryProvider);
+      final sectionRepo = ref.read(sectionRepositoryProvider);
+      final orderRepo = ref.read(orderRepositoryProvider);
 
       // Cancel the quick bill before creating a regular one
       if (_quickBillId != null) {
         await billRepo.cancelBill(_quickBillId!);
+        if (!mounted) return;
         _quickBillId = null;
       }
 
       // Resolve default section
-      final sections = await ref.read(sectionRepositoryProvider).watchAll(company.id).first;
+      final sections = await sectionRepo.watchAll(company.id).first;
+      if (!mounted) return;
       final defaultSection = sections.where((s) => s.isDefault).firstOrNull ?? sections.firstOrNull;
 
       // Create regular bill on default section, no table
       final register = await ref.read(activeRegisterProvider.future);
+      if (!mounted) return;
       final session = ref.read(activeRegisterSessionProvider).value;
       final billResult = await billRepo.createBill(
         companyId: company.id,
@@ -1081,10 +1106,11 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
 
       // Create order(s) with cart items
       final groups = _splitCartIntoGroups();
-      final orderRepo = ref.read(orderRepositoryProvider);
       for (var i = 0; i < groups.length; i++) {
         final orderNumber = await _nextOrderNumber(ref);
+        if (!mounted) return;
         final orderItems = await _buildOrderItemsFromGroup(ref, groups[i]);
+        if (!mounted) return;
         final result = await orderRepo.createOrderWithItems(
           companyId: company.id,
           billId: bill.id,

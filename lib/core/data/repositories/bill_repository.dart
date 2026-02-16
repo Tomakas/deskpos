@@ -388,7 +388,7 @@ class BillRepository {
         for (final order in orders) {
           if (order.status == PrepStatus.created) {
             await orderRepo!.cancelOrder(order.id);
-          } else if (order.status == PrepStatus.inPrep || order.status == PrepStatus.ready) {
+          } else if (order.status == PrepStatus.ready) {
             await orderRepo!.voidOrder(order.id);
           }
         }

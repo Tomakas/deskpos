@@ -429,9 +429,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get prepStatusCreated => 'Created';
 
   @override
-  String get prepStatusInPrep => 'In Prep';
-
-  @override
   String get prepStatusReady => 'Ready';
 
   @override
@@ -2061,9 +2058,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ordersFilterCreated => 'Created';
 
   @override
-  String get ordersFilterInPrep => 'In Prep';
-
-  @override
   String get ordersFilterReady => 'Ready';
 
   @override
@@ -2082,10 +2076,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ordersNoOrders => 'No orders';
 
   @override
-  String get ordersTimeCreated => 'Order creation time';
+  String get ordersTimeCreated => 'Created';
 
   @override
-  String get ordersTimeUpdated => 'Last update time';
+  String get ordersTimeUpdated => 'Updated';
 
   @override
   String get ordersTableLabel => 'Table';
@@ -2347,4 +2341,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get displayDeviceAddKds => 'KDS';
+
+  @override
+  String get displayWelcomeText => 'Welcome text';
+
+  @override
+  String get displayDefaultNameKds => 'Order System';
+
+  @override
+  String get displayDefaultWelcomeText => 'Welcome!';
 }

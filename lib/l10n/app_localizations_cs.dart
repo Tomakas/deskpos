@@ -428,9 +428,6 @@ class AppLocalizationsCs extends AppLocalizations {
   String get prepStatusCreated => 'Vytvořeno';
 
   @override
-  String get prepStatusInPrep => 'Připravuje se';
-
-  @override
   String get prepStatusReady => 'Připraveno';
 
   @override
@@ -2059,9 +2056,6 @@ class AppLocalizationsCs extends AppLocalizations {
   String get ordersFilterCreated => 'Vytvořené';
 
   @override
-  String get ordersFilterInPrep => 'Připravované';
-
-  @override
   String get ordersFilterReady => 'Hotové';
 
   @override
@@ -2080,10 +2074,10 @@ class AppLocalizationsCs extends AppLocalizations {
   String get ordersNoOrders => 'Žádné objednávky';
 
   @override
-  String get ordersTimeCreated => 'Čas vytvoření objednávky';
+  String get ordersTimeCreated => 'Vytvořeno';
 
   @override
-  String get ordersTimeUpdated => 'Čas poslední změny';
+  String get ordersTimeUpdated => 'Změněno';
 
   @override
   String get ordersTableLabel => 'Stůl';
@@ -2345,4 +2339,13 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get displayDeviceAddKds => 'KDS';
+
+  @override
+  String get displayWelcomeText => 'Uvítací text';
+
+  @override
+  String get displayDefaultNameKds => 'Objednávkový systém';
+
+  @override
+  String get displayDefaultWelcomeText => 'Vítejte u nás!';
 }

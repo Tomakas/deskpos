@@ -137,6 +137,7 @@ class PaymentMethodsTab extends ConsumerWidget {
     );
 
     if (result != true || nameCtrl.text.trim().isEmpty) return;
+    if (!context.mounted) return;
 
     final company = ref.read(currentCompanyProvider)!;
     final repo = ref.read(paymentMethodRepositoryProvider);
@@ -173,8 +174,7 @@ class PaymentMethodsTab extends ConsumerWidget {
         ],
       ),
     );
-    if (confirmed == true) {
-      await ref.read(paymentMethodRepositoryProvider).delete(method.id);
-    }
+    if (confirmed != true || !context.mounted) return;
+    await ref.read(paymentMethodRepositoryProvider).delete(method.id);
   }
 }

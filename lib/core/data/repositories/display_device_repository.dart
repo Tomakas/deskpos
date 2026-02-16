@@ -23,9 +23,10 @@ class DisplayDeviceRepository {
 
   Future<Result<DisplayDeviceModel>> create({
     required String companyId,
-    required String parentRegisterId,
     required String name,
     required DisplayDeviceType type,
+    String? parentRegisterId,
+    String welcomeText = '',
   }) async {
     try {
       return await _db.transaction(() async {
@@ -35,9 +36,10 @@ class DisplayDeviceRepository {
         await _db.into(_db.displayDevices).insert(DisplayDevicesCompanion.insert(
               id: id,
               companyId: companyId,
-              parentRegisterId: parentRegisterId,
+              parentRegisterId: Value(parentRegisterId),
               code: code,
               name: Value(name),
+              welcomeText: Value(welcomeText),
               type: type,
             ));
 
@@ -63,7 +65,7 @@ class DisplayDeviceRepository {
 
   Future<DisplayDeviceModel?> getByCode(String code) async {
     final entity = await (_db.select(_db.displayDevices)
-          ..where((t) => t.code.equals(code) & t.deletedAt.isNull()))
+          ..where((t) => t.code.equals(code) & t.isActive.equals(true) & t.deletedAt.isNull()))
         .getSingleOrNull();
     return entity == null ? null : displayDeviceFromEntity(entity);
   }
@@ -77,15 +79,17 @@ class DisplayDeviceRepository {
           .from('display_devices')
           .select()
           .eq('code', code)
+          .eq('is_active', true)
           .isFilter('deleted_at', null)
           .maybeSingle();
       if (response == null) return null;
       return DisplayDeviceModel(
         id: response['id'] as String,
         companyId: response['company_id'] as String,
-        parentRegisterId: response['parent_register_id'] as String,
+        parentRegisterId: response['parent_register_id'] as String?,
         code: response['code'] as String,
         name: response['name'] as String? ?? '',
+        welcomeText: response['welcome_text'] as String? ?? '',
         type: DisplayDeviceType.values.firstWhere(
           (e) => e.name == response['type'],
           orElse: () => DisplayDeviceType.customerDisplay,
@@ -127,6 +131,35 @@ class DisplayDeviceRepository {
               t.deletedAt.isNull()))
         .watch()
         .map((rows) => rows.map(displayDeviceFromEntity).toList());
+  }
+
+  Future<Result<DisplayDeviceModel>> update({
+    required String id,
+    required String name,
+    required String welcomeText,
+    required bool isActive,
+  }) async {
+    try {
+      return await _db.transaction(() async {
+        final now = DateTime.now();
+        await (_db.update(_db.displayDevices)..where((t) => t.id.equals(id)))
+            .write(DisplayDevicesCompanion(
+          name: Value(name),
+          welcomeText: Value(welcomeText),
+          isActive: Value(isActive),
+          updatedAt: Value(now),
+        ));
+        final entity = await (_db.select(_db.displayDevices)
+              ..where((t) => t.id.equals(id)))
+            .getSingle();
+        final model = displayDeviceFromEntity(entity);
+        await _enqueue('update', model);
+        return Success(model);
+      });
+    } catch (e, s) {
+      AppLogger.error('Failed to update display device', error: e, stackTrace: s);
+      return Failure('Failed to update display device: $e');
+    }
   }
 
   Future<Result<void>> delete(String id) async {

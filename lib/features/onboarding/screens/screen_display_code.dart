@@ -278,6 +278,9 @@ class _ScreenDisplayCodeState extends ConsumerState<ScreenDisplayCode> {
       await prefs.setString('display_code', _code);
       await prefs.setString('display_type', widget.type);
       await prefs.setString('display_company_id', device.companyId);
+      await prefs.setString('display_welcome_text', device.welcomeText);
+
+      if (!mounted) return;
 
       AppLogger.info(
         'Display device paired: code=$_code type=${widget.type}',

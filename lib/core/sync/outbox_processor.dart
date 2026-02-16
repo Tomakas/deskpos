@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../database/app_database.dart';
 import '../data/repositories/sync_queue_repository.dart';
 import '../logging/app_logger.dart';
 import 'sync_service.dart';
@@ -75,13 +76,13 @@ class OutboxProcessor {
     }
   }
 
-  Future<void> _processEntry(dynamic entry) async {
+  Future<void> _processEntry(SyncQueueData entry) async {
     try {
-      await _syncQueueRepo.markProcessing(entry.id as String);
+      await _syncQueueRepo.markProcessing(entry.id);
 
-      final payload = jsonDecode(entry.payload as String) as Map<String, dynamic>;
-      final entityType = entry.entityType as String;
-      final operation = entry.operation as String;
+      final payload = jsonDecode(entry.payload) as Map<String, dynamic>;
+      final entityType = entry.entityType;
+      final operation = entry.operation;
 
       // Route all writes through the ingest Edge Function.
       // The EF validates JWT, verifies company ownership, writes via
@@ -134,9 +135,9 @@ class OutboxProcessor {
     }
   }
 
-  Future<void> _handleError(dynamic entry, String error, bool permanent) async {
-    final id = entry.id as String;
-    final retryCount = entry.retryCount as int;
+  Future<void> _handleError(SyncQueueData entry, String error, bool permanent) async {
+    final id = entry.id;
+    final retryCount = entry.retryCount;
 
     if (permanent || retryCount >= _maxRetries) {
       await _syncQueueRepo.markFailed(id, error);

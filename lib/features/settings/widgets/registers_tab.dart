@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/data/enums/display_device_type.dart';
 import '../../../core/data/enums/hardware_type.dart';
+import '../../../core/data/models/device_registration_model.dart';
 import '../../../core/data/models/display_device_model.dart';
 import '../../../core/data/models/register_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
@@ -129,14 +129,12 @@ class RegistersTab extends ConsumerWidget {
                     ),
                     const SizedBox(width: 8),
                     OutlinedButton.icon(
-                      onPressed: registers.isEmpty
-                          ? null
-                          : () => _showCreateDisplayDialog(
-                                context,
-                                ref,
-                                DisplayDeviceType.kds,
-                                registers,
-                              ),
+                      onPressed: () => _showCreateDisplayDialog(
+                            context,
+                            ref,
+                            DisplayDeviceType.kds,
+                            registers,
+                          ),
                       icon: const Icon(Icons.add, size: 18),
                       label: Text(l.displayDeviceAddKds),
                     ),
@@ -217,37 +215,35 @@ class RegistersTab extends ConsumerWidget {
                             :final device,
                             :final parentRegisterName
                           ) =>
-                            Row(
-                              children: [
-                                Text(
-                                  device.code,
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    letterSpacing: 4,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                InkWell(
-                                  onTap: () => Clipboard.setData(
-                                      ClipboardData(text: device.code)),
-                                  child: const Icon(Icons.copy, size: 14),
-                                ),
-                                if (parentRegisterName != null) ...[
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Text(
-                                      '\u2192 $parentRegisterName',
-                                      style:
-                                          theme.textTheme.bodySmall?.copyWith(
-                                        color: theme
-                                            .colorScheme.onSurfaceVariant,
+                            device.type == DisplayDeviceType.customerDisplay
+                                ? Row(
+                                    children: [
+                                      Text(
+                                        device.code,
+                                        style: theme.textTheme.bodyMedium
+                                            ?.copyWith(
+                                          letterSpacing: 4,
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ],
-                            ),
+                                      if (parentRegisterName != null) ...[
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Text(
+                                            '\u2192 $parentRegisterName',
+                                            style: theme
+                                                .textTheme.bodySmall
+                                                ?.copyWith(
+                                              color: theme.colorScheme
+                                                  .onSurfaceVariant,
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  )
+                                : const SizedBox.shrink(),
                         },
                       ),
                       PosColumn(
@@ -289,10 +285,20 @@ class RegistersTab extends ConsumerWidget {
                                 ),
                               ],
                             ),
-                          _DisplayEntry(:final device) => IconButton(
-                              icon: const Icon(Icons.delete, size: 20),
-                              onPressed: () =>
-                                  _deleteDisplayDevice(context, ref, device),
+                          _DisplayEntry(:final device) => Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.edit, size: 20),
+                                  onPressed: () => _showEditDisplayDialog(
+                                      context, ref, device),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.delete, size: 20),
+                                  onPressed: () =>
+                                      _deleteDisplayDevice(context, ref, device),
+                                ),
+                              ],
                             ),
                         },
                       ),
@@ -317,7 +323,7 @@ class RegistersTab extends ConsumerWidget {
     WidgetRef ref,
     AppLocalizations l,
     RegisterModel register,
-    dynamic deviceReg,
+    DeviceRegistrationModel? deviceReg,
     String? myDeviceId,
     bool hasActiveSession,
     String companyId,
@@ -394,14 +400,15 @@ class RegistersTab extends ConsumerWidget {
     String registerId,
   ) async {
     final myDeviceId = await ref.read(deviceIdProvider.future);
-    await ref.read(deviceRegistrationRepositoryProvider).bind(
+    if (!context.mounted) return;
+    final deviceRegRepo = ref.read(deviceRegistrationRepositoryProvider);
+    await deviceRegRepo.bind(
           companyId: companyId,
           registerId: registerId,
           deviceId: myDeviceId,
         );
+    if (!context.mounted) return;
     ref.invalidate(deviceRegistrationProvider);
-    ref.invalidate(activeRegisterProvider);
-    ref.invalidate(activeRegisterSessionProvider);
   }
 
   Future<void> _showRegisterDialog(
@@ -510,6 +517,7 @@ class RegistersTab extends ConsumerWidget {
     );
 
     if (result != true || nameCtrl.text.trim().isEmpty) return;
+    if (!context.mounted) return;
 
     final company = ref.read(currentCompanyProvider)!;
     final repo = ref.read(registerRepositoryProvider);
@@ -542,6 +550,7 @@ class RegistersTab extends ConsumerWidget {
         allowRefunds: allowRefunds,
       );
     }
+    if (!context.mounted) return;
     ref.invalidate(activeRegisterProvider);
   }
 
@@ -564,10 +573,11 @@ class RegistersTab extends ConsumerWidget {
         ],
       ),
     );
-    if (confirmed == true) {
-      await ref.read(registerRepositoryProvider).delete(register.id);
-      ref.invalidate(activeRegisterProvider);
-    }
+    if (confirmed != true || !context.mounted) return;
+    final regRepo = ref.read(registerRepositoryProvider);
+    await regRepo.delete(register.id);
+    if (!context.mounted) return;
+    ref.invalidate(activeRegisterProvider);
   }
 
   // ---------------------------------------------------------------------------
@@ -581,9 +591,15 @@ class RegistersTab extends ConsumerWidget {
     List<RegisterModel> registers,
   ) async {
     final l = context.l10n;
+    final isCustomerDisplay = type == DisplayDeviceType.customerDisplay;
     String? parentRegisterId =
-        registers.length == 1 ? registers.first.id : null;
-    final nameCtrl = TextEditingController();
+        isCustomerDisplay && registers.length == 1 ? registers.first.id : null;
+    final nameCtrl = TextEditingController(
+      text: isCustomerDisplay ? l.modeCustomerDisplay : l.displayDefaultNameKds,
+    );
+    final welcomeTextCtrl = TextEditingController(
+      text: l.displayDefaultWelcomeText,
+    );
 
     final result = await showDialog<bool>(
       context: context,
@@ -599,19 +615,99 @@ class RegistersTab extends ConsumerWidget {
                   controller: nameCtrl,
                   decoration: InputDecoration(labelText: l.registerName),
                 ),
+                if (isCustomerDisplay) ...[
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: welcomeTextCtrl,
+                    decoration: InputDecoration(labelText: l.displayWelcomeText),
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    initialValue: parentRegisterId,
+                    decoration: InputDecoration(labelText: l.registerParent),
+                    items: registers
+                        .map((r) => DropdownMenuItem(
+                              value: r.id,
+                              child: Text(
+                                  r.name.isEmpty ? r.code : r.name),
+                            ))
+                        .toList(),
+                    onChanged: (v) =>
+                        setDialogState(() => parentRegisterId = v),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(l.actionCancel),
+            ),
+            FilledButton(
+              onPressed: isCustomerDisplay && parentRegisterId == null
+                  ? null
+                  : () => Navigator.pop(ctx, true),
+              child: Text(l.actionSave),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (result != true) return;
+    if (isCustomerDisplay && parentRegisterId == null) return;
+    if (!context.mounted) return;
+
+    final company = ref.read(currentCompanyProvider)!;
+    await ref.read(displayDeviceRepositoryProvider).create(
+          companyId: company.id,
+          parentRegisterId: parentRegisterId,
+          name: nameCtrl.text.trim(),
+          type: type,
+          welcomeText: welcomeTextCtrl.text.trim(),
+        );
+  }
+
+  Future<void> _showEditDisplayDialog(
+    BuildContext context,
+    WidgetRef ref,
+    DisplayDeviceModel device,
+  ) async {
+    final l = context.l10n;
+    final isCustomerDisplay = device.type == DisplayDeviceType.customerDisplay;
+    final nameCtrl = TextEditingController(text: device.name);
+    final welcomeTextCtrl = TextEditingController(text: device.welcomeText);
+    var isActive = device.isActive;
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (_) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: Text(_displayTypeLabel(l, device.type)),
+          content: SizedBox(
+            width: 400,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nameCtrl,
+                  decoration: InputDecoration(labelText: l.registerName),
+                ),
+                if (isCustomerDisplay) ...[
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: welcomeTextCtrl,
+                    decoration:
+                        InputDecoration(labelText: l.displayWelcomeText),
+                  ),
+                ],
                 const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  initialValue: parentRegisterId,
-                  decoration: InputDecoration(labelText: l.registerParent),
-                  items: registers
-                      .map((r) => DropdownMenuItem(
-                            value: r.id,
-                            child: Text(
-                                r.name.isEmpty ? r.code : r.name),
-                          ))
-                      .toList(),
-                  onChanged: (v) =>
-                      setDialogState(() => parentRegisterId = v),
+                SwitchListTile(
+                  title: Text(l.fieldActive),
+                  value: isActive,
+                  onChanged: (v) => setDialogState(() => isActive = v),
+                  contentPadding: EdgeInsets.zero,
                 ),
               ],
             ),
@@ -622,9 +718,7 @@ class RegistersTab extends ConsumerWidget {
               child: Text(l.actionCancel),
             ),
             FilledButton(
-              onPressed: parentRegisterId == null
-                  ? null
-                  : () => Navigator.pop(ctx, true),
+              onPressed: () => Navigator.pop(ctx, true),
               child: Text(l.actionSave),
             ),
           ],
@@ -632,14 +726,12 @@ class RegistersTab extends ConsumerWidget {
       ),
     );
 
-    if (result != true || parentRegisterId == null) return;
-
-    final company = ref.read(currentCompanyProvider)!;
-    await ref.read(displayDeviceRepositoryProvider).create(
-          companyId: company.id,
-          parentRegisterId: parentRegisterId!,
+    if (result != true || !context.mounted) return;
+    await ref.read(displayDeviceRepositoryProvider).update(
+          id: device.id,
           name: nameCtrl.text.trim(),
-          type: type,
+          welcomeText: welcomeTextCtrl.text.trim(),
+          isActive: isActive,
         );
   }
 
@@ -665,9 +757,8 @@ class RegistersTab extends ConsumerWidget {
         ],
       ),
     );
-    if (confirmed == true) {
-      await ref.read(displayDeviceRepositoryProvider).delete(device.id);
-    }
+    if (confirmed != true || !context.mounted) return;
+    await ref.read(displayDeviceRepositoryProvider).delete(device.id);
   }
 }
 

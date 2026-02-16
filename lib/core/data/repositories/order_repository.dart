@@ -181,7 +181,7 @@ class OrderRepository {
           OrdersCompanion(
             status: Value(status),
             updatedAt: Value(now),
-            prepStartedAt: status == PrepStatus.inPrep ? Value(now) : const Value.absent(),
+            prepStartedAt: status == PrepStatus.created ? Value(now) : const Value.absent(),
             readyAt: status == PrepStatus.ready ? Value(now) : const Value.absent(),
             deliveredAt: status == PrepStatus.delivered ? Value(now) : const Value.absent(),
           ),
@@ -239,8 +239,8 @@ class OrderRepository {
       final order = await (_db.select(_db.orders)
             ..where((t) => t.id.equals(orderId)))
           .getSingle();
-      if (order.status != PrepStatus.inPrep && order.status != PrepStatus.ready) {
-        return const Failure('Can only void orders in inPrep or ready state');
+      if (order.status != PrepStatus.created && order.status != PrepStatus.ready) {
+        return const Failure('Can only void orders in created or ready state');
       }
       return updateStatus(orderId, PrepStatus.voided);
     } catch (e, s) {
@@ -248,9 +248,6 @@ class OrderRepository {
       return Failure('Failed to void order: $e');
     }
   }
-
-  Future<Result<OrderModel>> startPreparation(String orderId) =>
-      updateStatus(orderId, PrepStatus.inPrep);
 
   Future<Result<OrderModel>> markReady(String orderId) =>
       updateStatus(orderId, PrepStatus.ready);
@@ -283,7 +280,7 @@ class OrderRepository {
             .write(OrderItemsCompanion(
           status: Value(newStatus),
           updatedAt: Value(now),
-          prepStartedAt: newStatus == PrepStatus.inPrep
+          prepStartedAt: newStatus == PrepStatus.created
               ? Value(now)
               : const Value.absent(),
           readyAt: newStatus == PrepStatus.ready
@@ -330,8 +327,7 @@ class OrderRepository {
   /// 3. No active items + mix → voided
   /// 4. All active items delivered → delivered
   /// 5. All active items ready|delivered → ready
-  /// 6. Any active item inPrep|ready|delivered (but not all ready+) → inPrep
-  /// 7. Otherwise → created
+  /// 6. Otherwise → created
   ///
   /// Order-level timestamps are set on first transition to that status.
   Future<void> _deriveOrderStatus(String orderId) async {
@@ -365,11 +361,6 @@ class OrderRepository {
     } else if (activeItems.every((i) =>
         i.status == PrepStatus.ready || i.status == PrepStatus.delivered)) {
       derived = PrepStatus.ready;
-    } else if (activeItems.any((i) =>
-        i.status == PrepStatus.inPrep ||
-        i.status == PrepStatus.ready ||
-        i.status == PrepStatus.delivered)) {
-      derived = PrepStatus.inPrep;
     } else {
       derived = PrepStatus.created;
     }
@@ -383,7 +374,7 @@ class OrderRepository {
       OrdersCompanion(
         status: Value(derived),
         updatedAt: Value(now),
-        prepStartedAt: derived == PrepStatus.inPrep && order.prepStartedAt == null
+        prepStartedAt: derived == PrepStatus.created && order.prepStartedAt == null
             ? Value(now)
             : const Value.absent(),
         readyAt: derived == PrepStatus.ready && order.readyAt == null

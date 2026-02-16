@@ -339,12 +339,15 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
 
     // Clear any stale Supabase session from a previous installation/company
     final authService = ref.read(supabaseAuthServiceProvider);
+    final seedService = ref.read(seedServiceProvider);
+    final deviceIdFuture = ref.read(deviceIdProvider.future);
     if (authService.isAuthenticated) {
       await authService.signOut();
+      if (!mounted) return;
     }
 
-    final seedService = ref.read(seedServiceProvider);
-    final myDeviceId = await ref.read(deviceIdProvider.future);
+    final myDeviceId = await deviceIdFuture;
+    if (!mounted) return;
     final result = await seedService.seedOnboarding(
       companyName: _companyNameCtrl.text.trim(),
       businessId: _businessIdCtrl.text.trim().isEmpty ? null : _businessIdCtrl.text.trim(),

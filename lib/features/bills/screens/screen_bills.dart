@@ -15,6 +15,7 @@ import '../../../core/data/models/bill_model.dart';
 import '../../../core/data/models/customer_model.dart';
 import '../../../core/data/models/section_model.dart';
 import '../../../core/data/models/table_model.dart';
+import '../../../core/data/models/register_session_model.dart';
 import '../../../core/data/models/user_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/permission_providers.dart';
@@ -151,9 +152,11 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
     if (activeUser != null) {
       final company = ref.read(currentCompanyProvider);
       if (company != null) {
-        final regSession = await ref.read(registerSessionRepositoryProvider).getActiveSession(company.id);
+        final regSessionRepo = ref.read(registerSessionRepositoryProvider);
+        final shiftRepo = ref.read(shiftRepositoryProvider);
+        final regSession = await regSessionRepo.getActiveSession(company.id);
+        if (!mounted) return;
         if (regSession != null) {
-          final shiftRepo = ref.read(shiftRepositoryProvider);
           final activeShift = await shiftRepo.getActiveShiftForUser(activeUser.id, regSession.id);
           if (activeShift != null) {
             await shiftRepo.closeShift(activeShift.id);
@@ -162,6 +165,7 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
       }
     }
     session.logoutActive();
+    if (!mounted) return;
     ref.read(activeUserProvider.notifier).state = null;
     ref.read(loggedInUsersProvider.notifier).state = session.loggedInUsers;
     if (!context.mounted) return;
@@ -214,8 +218,10 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
 
       final billRepo = ref.read(billRepositoryProvider);
 
+      final sessionAsync = ref.read(activeRegisterSessionProvider);
       final register = await ref.read(activeRegisterProvider.future);
-      final session = ref.read(activeRegisterSessionProvider).value;
+      if (!mounted) return;
+      final session = sessionAsync.value;
       final createResult = await billRepo.createBill(
         companyId: company.id,
         userId: user.id,
@@ -257,6 +263,7 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
 
       // Build closing data
       final cashMovements = await ref.read(cashMovementRepositoryProvider).getBySession(session.id);
+      if (!mounted) return;
       final cashDeposits = cashMovements
           .where((m) => m.type == CashMovementType.deposit)
           .fold(0, (sum, m) => sum + m.amount);
@@ -267,12 +274,14 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
       // Payment summaries: get all bills paid during this session
       final billRepo = ref.read(billRepositoryProvider);
       final allBills = await billRepo.getByCompany(company.id);
+      if (!mounted) return;
       final sessionBills = allBills.where((b) =>
           b.closedAt != null && b.closedAt!.isAfter(session.openedAt)).toList();
 
       final paymentRepo = ref.read(paymentRepositoryProvider);
       final paymentMethodRepo = ref.read(paymentMethodRepositoryProvider);
       final allMethods = await paymentMethodRepo.getAll(company.id);
+      if (!mounted) return;
       final methodMap = {for (final m in allMethods) m.id: m};
 
       // Aggregate payments by method
@@ -317,9 +326,11 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
       final openBillsCount = openBills.length;
       final openBillsAmount = openBills.fold(0, (sum, b) => sum + b.totalGross);
 
+      if (!mounted) return;
       // Resolve who opened the session
       final userRepo = ref.read(userRepositoryProvider);
       final openedByUser = await userRepo.getById(session.openedByUserId);
+      if (!mounted) return;
       final openedByName = openedByUser?.username ?? '-';
 
       if (!context.mounted) return;
@@ -371,6 +382,7 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
 
       // Close all shifts for this session
       await ref.read(shiftRepositoryProvider).closeAllForSession(session.id);
+      if (!mounted) return;
 
       final difference = result.closingCash - expectedCash;
       await ref.read(registerSessionRepositoryProvider).closeSession(
@@ -381,15 +393,18 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
         openBillsAtCloseCount: openBillsCount,
         openBillsAtCloseAmount: openBillsAmount,
       );
+      if (!mounted) return;
 
       // Cash handover: if mobile register with parent, transfer cash to parent session
       final register = await ref.read(activeRegisterProvider.future);
+      if (!mounted) return;
       if (register != null &&
           register.type == HardwareType.mobile &&
           register.parentRegisterId != null &&
           result.closingCash > 0) {
         final parentSession = await ref.read(registerSessionRepositoryProvider)
             .getActiveSession(company.id, registerId: register.parentRegisterId);
+        if (!mounted) return;
         if (parentSession != null) {
           final cashMovementRepo = ref.read(cashMovementRepositoryProvider);
           final registerName = register.name.isNotEmpty ? register.name : register.code;
@@ -403,6 +418,7 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
             amount: result.closingCash,
             reason: l.cashHandoverReason(registerName),
           );
+          if (!mounted) return;
 
           // Deposit on parent register session
           await cashMovementRepo.create(
@@ -418,6 +434,7 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
     } else {
       // --- Opening session ---
       final register = await ref.read(activeRegisterProvider.future);
+      if (!mounted) return;
       if (register == null) return;
 
       final sessionRepo = ref.read(registerSessionRepositoryProvider);
@@ -433,6 +450,7 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
 
       // Snapshot open bills at session open
       final allBillsForOpen = await ref.read(billRepositoryProvider).getByCompany(company.id);
+      if (!mounted) return;
       final openBillsForOpen = allBillsForOpen.where((b) => b.status == BillStatus.opened).toList();
       final openBillsForOpenAmount = openBillsForOpen.fold(0, (sum, b) => sum + b.totalGross);
 
@@ -444,6 +462,7 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
         openBillsAtOpenCount: openBillsForOpen.length,
         openBillsAtOpenAmount: openBillsForOpenAmount,
       );
+      if (!mounted) return;
 
       // If opening amount differs from previous closing cash → create correction movement
       if (lastClosingCash != null && openingCash != lastClosingCash && openResult is Success) {
@@ -457,6 +476,7 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
           amount: diff.abs(),
           reason: l.autoCorrection,
         );
+        if (!mounted) return;
       }
 
       // Create shift for current user after opening session
@@ -482,6 +502,7 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
 
     final cashMovementRepo = ref.read(cashMovementRepositoryProvider);
     final movements = await cashMovementRepo.getBySession(session.id);
+    if (!mounted) return;
 
     // Compute current cash balance: opening + deposits - withdrawals + cash revenue
     final openingCash = session.openingCash ?? 0;
@@ -495,12 +516,14 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
     // Cash revenue from sales paid during this session
     final billRepo = ref.read(billRepositoryProvider);
     final allBills = await billRepo.getByCompany(company.id);
+    if (!mounted) return;
     final sessionBills = allBills.where((b) =>
         b.closedAt != null && b.closedAt!.isAfter(session.openedAt)).toList();
 
     final paymentRepo = ref.read(paymentRepositoryProvider);
     final paymentMethodRepo = ref.read(paymentMethodRepositoryProvider);
     final allMethods = await paymentMethodRepo.getAll(company.id);
+    if (!mounted) return;
     final cashMethodIds = allMethods
         .where((m) => m.type == PaymentType.cash)
         .map((m) => m.id)
@@ -557,6 +580,7 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
 
     final zReportService = ref.read(zReportServiceProvider);
     final summaries = await zReportService.getSessionSummaries(company.id);
+    if (!mounted) return;
 
     if (!context.mounted) return;
 
@@ -597,6 +621,7 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
     final shiftRepo = ref.read(shiftRepositoryProvider);
     final userRepo = ref.read(userRepositoryProvider);
     final shifts = await shiftRepo.getByCompany(company.id);
+    if (!mounted) return;
 
     final rows = <ShiftDisplayRow>[];
     for (final shift in shifts) {
@@ -1108,11 +1133,11 @@ class _RightPanel extends ConsumerWidget {
     required this.onReservations,
   });
 
-  final dynamic activeUser;
-  final List loggedInUsers;
+  final UserModel? activeUser;
+  final List<UserModel> loggedInUsers;
   final bool canManageSettings;
   final bool hasSession;
-  final AsyncValue sessionAsync;
+  final AsyncValue<RegisterSessionModel?> sessionAsync;
   final bool showMap;
   final VoidCallback onToggleMap;
   final VoidCallback onLogout;
@@ -1375,8 +1400,8 @@ class _InfoPanel extends ConsumerWidget {
     required this.loggedInUsers,
     required this.hasSession,
   });
-  final dynamic activeUser;
-  final List loggedInUsers;
+  final UserModel? activeUser;
+  final List<UserModel> loggedInUsers;
   final bool hasSession;
 
   @override
@@ -1443,8 +1468,6 @@ class _InfoPanel extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _InfoRow(l.prepStatusCreated, '${count(PrepStatus.created)}'),
-                    const SizedBox(height: 2),
-                    _InfoRow(l.prepStatusInPrep, '${count(PrepStatus.inPrep)}'),
                     const SizedBox(height: 2),
                     _InfoRow(l.prepStatusReady, '${count(PrepStatus.ready)}'),
                     const SizedBox(height: 2),

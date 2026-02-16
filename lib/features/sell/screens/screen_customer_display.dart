@@ -30,6 +30,9 @@ class _ScreenCustomerDisplayState extends ConsumerState<ScreenCustomerDisplay> {
   StreamSubscription<Map<String, dynamic>>? _sub;
   Timer? _autoClearTimer;
   String? _code;
+  String _welcomeText = '';
+  int _tapCount = 0;
+  Timer? _tapResetTimer;
 
   @override
   void initState() {
@@ -43,9 +46,11 @@ class _ScreenCustomerDisplayState extends ConsumerState<ScreenCustomerDisplay> {
     if (_code == null) {
       final prefs = await SharedPreferences.getInstance();
       _code = prefs.getString('display_code');
+      _welcomeText = prefs.getString('display_welcome_text') ?? '';
+      if (mounted) setState(() {});
     }
 
-    if (_code == null) return;
+    if (_code == null || !mounted) return;
 
     final channel = ref.read(customerDisplayChannelProvider);
     await channel.join('display:$_code');
@@ -72,6 +77,7 @@ class _ScreenCustomerDisplayState extends ConsumerState<ScreenCustomerDisplay> {
   @override
   void dispose() {
     _autoClearTimer?.cancel();
+    _tapResetTimer?.cancel();
     _sub?.cancel();
     super.dispose();
   }
@@ -80,61 +86,38 @@ class _ScreenCustomerDisplayState extends ConsumerState<ScreenCustomerDisplay> {
   Widget build(BuildContext context) {
     final l = context.l10n;
 
-    return Stack(
-      children: [
-        Scaffold(
-          appBar: AppBar(title: Text(l.customerDisplayTitle)),
-          body: switch (_content) {
-            DisplayIdle() => _buildIdle(context),
-            DisplayItems() => _buildItems(context, _content as DisplayItems),
-            DisplayMessage() => _buildMessage(context, _content as DisplayMessage),
-          },
-        ),
-        // Disconnect button — top-right
-        Positioned(
-          top: 0,
-          right: 0,
-          child: SafeArea(
-            child: IconButton.filled(
-              iconSize: 32,
-              style: IconButton.styleFrom(
-                minimumSize: const Size(64, 64),
-              ),
-              icon: const Icon(Icons.link_off),
-              onPressed: _disconnect,
-            ),
-          ),
-        ),
-      ],
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(l.customerDisplayTitle),
+        actions: [
+          _ClockWidget(),
+          const SizedBox(width: 16),
+        ],
+      ),
+      body: switch (_content) {
+        DisplayIdle() => _buildIdle(context),
+        DisplayItems() => _buildItems(context, _content as DisplayItems),
+        DisplayMessage() => _buildMessage(context, _content as DisplayMessage),
+      },
     );
   }
 
   Widget _buildIdle(BuildContext context) {
     final theme = Theme.of(context);
     final l = context.l10n;
+    final text = _welcomeText.isNotEmpty ? _welcomeText : l.customerDisplayWelcome;
 
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            l.customerDisplayWelcome,
-            style: theme.textTheme.headlineLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: theme.colorScheme.primary,
-            ),
+      child: GestureDetector(
+        onTap: _onIdleTap,
+        child: Text(
+          text,
+          style: theme.textTheme.headlineLarge?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: theme.colorScheme.primary,
           ),
-          if (_code != null) ...[
-            const SizedBox(height: 16),
-            Text(
-              _code!,
-              style: theme.textTheme.headlineSmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-                letterSpacing: 8,
-              ),
-            ),
-          ],
-        ],
+          textAlign: TextAlign.center,
+        ),
       ),
     );
   }
@@ -207,6 +190,19 @@ class _ScreenCustomerDisplayState extends ConsumerState<ScreenCustomerDisplay> {
     );
   }
 
+  void _onIdleTap() {
+    _tapCount++;
+    _tapResetTimer?.cancel();
+    if (_tapCount >= 3) {
+      _tapCount = 0;
+      _disconnect();
+      return;
+    }
+    _tapResetTimer = Timer(const Duration(milliseconds: 500), () {
+      _tapCount = 0;
+    });
+  }
+
   Future<void> _disconnect() async {
     final channel = ref.read(customerDisplayChannelProvider);
     channel.leave();
@@ -215,7 +211,9 @@ class _ScreenCustomerDisplayState extends ConsumerState<ScreenCustomerDisplay> {
     await prefs.remove('display_code');
     await prefs.remove('display_type');
     await prefs.remove('display_company_id');
+    await prefs.remove('display_welcome_text');
 
+    if (!mounted) return;
     ref.invalidate(appInitProvider);
 
     if (mounted) context.go('/onboarding');
@@ -351,6 +349,41 @@ class _TotalRow extends ConsumerWidget {
         Text(label, style: style),
         Text(ref.money(amount), style: style),
       ],
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Live clock
+// ---------------------------------------------------------------------------
+class _ClockWidget extends ConsumerStatefulWidget {
+  @override
+  ConsumerState<_ClockWidget> createState() => _ClockWidgetState();
+}
+
+class _ClockWidgetState extends ConsumerState<_ClockWidget> {
+  late Timer _timer;
+  DateTime _now = DateTime.now();
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() => _now = DateTime.now());
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      '${ref.fmtDate(_now)}  ${ref.fmtTimeSeconds(_now)}',
+      style: Theme.of(context).textTheme.titleMedium,
     );
   }
 }

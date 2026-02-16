@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/data/mappers/entity_mappers.dart';
+import '../../../core/data/models/company_model.dart';
 import '../../../core/data/models/company_settings_model.dart';
 import '../../../core/data/models/currency_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
@@ -76,10 +77,17 @@ class _CompanyInfoTabState extends ConsumerState<CompanyInfoTab> {
 
     // Load currencies
     final db = ref.read(appDatabaseProvider);
-    final rows = await db.select(db.currencies).get();
-    final currencies = rows.map(currencyFromEntity).toList()
+    final rows = await (db.select(db.currencies)
+          ..where((t) => t.deletedAt.isNull()))
+        .get();
+    final unique = <String, CurrencyModel>{};
+    for (final r in rows.map(currencyFromEntity)) {
+      unique.putIfAbsent(r.code, () => r);
+    }
+    final currencies = unique.values.toList()
       ..sort((a, b) => a.code.compareTo(b.code));
 
+    if (!mounted) return;
     final repo = ref.read(companySettingsRepositoryProvider);
     final settings = await repo.getOrCreate(company.id);
     if (!mounted) return;
@@ -112,7 +120,7 @@ class _CompanyInfoTabState extends ConsumerState<CompanyInfoTab> {
     final result = await companyRepo.update(updated);
 
     if (!mounted) return;
-    if (result is Success<dynamic>) {
+    if (result is Success<CompanyModel>) {
       ref.read(currentCompanyProvider.notifier).state = updated;
       ref.invalidate(currentCurrencyProvider);
     }
@@ -157,7 +165,7 @@ class _CompanyInfoTabState extends ConsumerState<CompanyInfoTab> {
 
     if (!mounted) return;
 
-    if (result is Success<dynamic>) {
+    if (result is Success<CompanyModel>) {
       ref.read(currentCompanyProvider.notifier).state = updated;
     }
   }

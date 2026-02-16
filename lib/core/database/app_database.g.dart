@@ -8738,9 +8738,9 @@ class $DisplayDevicesTable extends DisplayDevices
   late final GeneratedColumn<String> parentRegisterId = GeneratedColumn<String>(
     'parent_register_id',
     aliasedName,
-    false,
+    true,
     type: DriftSqlType.string,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _codeMeta = const VerificationMeta('code');
   @override
@@ -8755,6 +8755,18 @@ class $DisplayDevicesTable extends DisplayDevices
   @override
   late final GeneratedColumn<String> name = GeneratedColumn<String>(
     'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _welcomeTextMeta = const VerificationMeta(
+    'welcomeText',
+  );
+  @override
+  late final GeneratedColumn<String> welcomeText = GeneratedColumn<String>(
+    'welcome_text',
     aliasedName,
     false,
     type: DriftSqlType.string,
@@ -8799,6 +8811,7 @@ class $DisplayDevicesTable extends DisplayDevices
     parentRegisterId,
     code,
     name,
+    welcomeText,
     type,
     isActive,
   ];
@@ -8886,8 +8899,6 @@ class $DisplayDevicesTable extends DisplayDevices
           _parentRegisterIdMeta,
         ),
       );
-    } else if (isInserting) {
-      context.missing(_parentRegisterIdMeta);
     }
     if (data.containsKey('code')) {
       context.handle(
@@ -8901,6 +8912,15 @@ class $DisplayDevicesTable extends DisplayDevices
       context.handle(
         _nameMeta,
         name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    }
+    if (data.containsKey('welcome_text')) {
+      context.handle(
+        _welcomeTextMeta,
+        welcomeText.isAcceptableOrUnknown(
+          data['welcome_text']!,
+          _welcomeTextMeta,
+        ),
       );
     }
     if (data.containsKey('is_active')) {
@@ -8957,7 +8977,7 @@ class $DisplayDevicesTable extends DisplayDevices
       parentRegisterId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}parent_register_id'],
-      )!,
+      ),
       code: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}code'],
@@ -8965,6 +8985,10 @@ class $DisplayDevicesTable extends DisplayDevices
       name: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}name'],
+      )!,
+      welcomeText: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}welcome_text'],
       )!,
       type: $DisplayDevicesTable.$convertertype.fromSql(
         attachedDatabase.typeMapping.read(
@@ -8998,9 +9022,10 @@ class DisplayDevice extends DataClass implements Insertable<DisplayDevice> {
   final DateTime? deletedAt;
   final String id;
   final String companyId;
-  final String parentRegisterId;
+  final String? parentRegisterId;
   final String code;
   final String name;
+  final String welcomeText;
   final DisplayDeviceType type;
   final bool isActive;
   const DisplayDevice({
@@ -9013,9 +9038,10 @@ class DisplayDevice extends DataClass implements Insertable<DisplayDevice> {
     this.deletedAt,
     required this.id,
     required this.companyId,
-    required this.parentRegisterId,
+    this.parentRegisterId,
     required this.code,
     required this.name,
+    required this.welcomeText,
     required this.type,
     required this.isActive,
   });
@@ -9039,9 +9065,12 @@ class DisplayDevice extends DataClass implements Insertable<DisplayDevice> {
     }
     map['id'] = Variable<String>(id);
     map['company_id'] = Variable<String>(companyId);
-    map['parent_register_id'] = Variable<String>(parentRegisterId);
+    if (!nullToAbsent || parentRegisterId != null) {
+      map['parent_register_id'] = Variable<String>(parentRegisterId);
+    }
     map['code'] = Variable<String>(code);
     map['name'] = Variable<String>(name);
+    map['welcome_text'] = Variable<String>(welcomeText);
     {
       map['type'] = Variable<String>(
         $DisplayDevicesTable.$convertertype.toSql(type),
@@ -9070,9 +9099,12 @@ class DisplayDevice extends DataClass implements Insertable<DisplayDevice> {
           : Value(deletedAt),
       id: Value(id),
       companyId: Value(companyId),
-      parentRegisterId: Value(parentRegisterId),
+      parentRegisterId: parentRegisterId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(parentRegisterId),
       code: Value(code),
       name: Value(name),
+      welcomeText: Value(welcomeText),
       type: Value(type),
       isActive: Value(isActive),
     );
@@ -9093,9 +9125,10 @@ class DisplayDevice extends DataClass implements Insertable<DisplayDevice> {
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
       id: serializer.fromJson<String>(json['id']),
       companyId: serializer.fromJson<String>(json['companyId']),
-      parentRegisterId: serializer.fromJson<String>(json['parentRegisterId']),
+      parentRegisterId: serializer.fromJson<String?>(json['parentRegisterId']),
       code: serializer.fromJson<String>(json['code']),
       name: serializer.fromJson<String>(json['name']),
+      welcomeText: serializer.fromJson<String>(json['welcomeText']),
       type: $DisplayDevicesTable.$convertertype.fromJson(
         serializer.fromJson<String>(json['type']),
       ),
@@ -9115,9 +9148,10 @@ class DisplayDevice extends DataClass implements Insertable<DisplayDevice> {
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
       'id': serializer.toJson<String>(id),
       'companyId': serializer.toJson<String>(companyId),
-      'parentRegisterId': serializer.toJson<String>(parentRegisterId),
+      'parentRegisterId': serializer.toJson<String?>(parentRegisterId),
       'code': serializer.toJson<String>(code),
       'name': serializer.toJson<String>(name),
+      'welcomeText': serializer.toJson<String>(welcomeText),
       'type': serializer.toJson<String>(
         $DisplayDevicesTable.$convertertype.toJson(type),
       ),
@@ -9135,9 +9169,10 @@ class DisplayDevice extends DataClass implements Insertable<DisplayDevice> {
     Value<DateTime?> deletedAt = const Value.absent(),
     String? id,
     String? companyId,
-    String? parentRegisterId,
+    Value<String?> parentRegisterId = const Value.absent(),
     String? code,
     String? name,
+    String? welcomeText,
     DisplayDeviceType? type,
     bool? isActive,
   }) => DisplayDevice(
@@ -9154,9 +9189,12 @@ class DisplayDevice extends DataClass implements Insertable<DisplayDevice> {
     deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
     id: id ?? this.id,
     companyId: companyId ?? this.companyId,
-    parentRegisterId: parentRegisterId ?? this.parentRegisterId,
+    parentRegisterId: parentRegisterId.present
+        ? parentRegisterId.value
+        : this.parentRegisterId,
     code: code ?? this.code,
     name: name ?? this.name,
+    welcomeText: welcomeText ?? this.welcomeText,
     type: type ?? this.type,
     isActive: isActive ?? this.isActive,
   );
@@ -9182,6 +9220,9 @@ class DisplayDevice extends DataClass implements Insertable<DisplayDevice> {
           : this.parentRegisterId,
       code: data.code.present ? data.code.value : this.code,
       name: data.name.present ? data.name.value : this.name,
+      welcomeText: data.welcomeText.present
+          ? data.welcomeText.value
+          : this.welcomeText,
       type: data.type.present ? data.type.value : this.type,
       isActive: data.isActive.present ? data.isActive.value : this.isActive,
     );
@@ -9202,6 +9243,7 @@ class DisplayDevice extends DataClass implements Insertable<DisplayDevice> {
           ..write('parentRegisterId: $parentRegisterId, ')
           ..write('code: $code, ')
           ..write('name: $name, ')
+          ..write('welcomeText: $welcomeText, ')
           ..write('type: $type, ')
           ..write('isActive: $isActive')
           ..write(')'))
@@ -9222,6 +9264,7 @@ class DisplayDevice extends DataClass implements Insertable<DisplayDevice> {
     parentRegisterId,
     code,
     name,
+    welcomeText,
     type,
     isActive,
   );
@@ -9241,6 +9284,7 @@ class DisplayDevice extends DataClass implements Insertable<DisplayDevice> {
           other.parentRegisterId == this.parentRegisterId &&
           other.code == this.code &&
           other.name == this.name &&
+          other.welcomeText == this.welcomeText &&
           other.type == this.type &&
           other.isActive == this.isActive);
 }
@@ -9255,9 +9299,10 @@ class DisplayDevicesCompanion extends UpdateCompanion<DisplayDevice> {
   final Value<DateTime?> deletedAt;
   final Value<String> id;
   final Value<String> companyId;
-  final Value<String> parentRegisterId;
+  final Value<String?> parentRegisterId;
   final Value<String> code;
   final Value<String> name;
+  final Value<String> welcomeText;
   final Value<DisplayDeviceType> type;
   final Value<bool> isActive;
   final Value<int> rowid;
@@ -9274,6 +9319,7 @@ class DisplayDevicesCompanion extends UpdateCompanion<DisplayDevice> {
     this.parentRegisterId = const Value.absent(),
     this.code = const Value.absent(),
     this.name = const Value.absent(),
+    this.welcomeText = const Value.absent(),
     this.type = const Value.absent(),
     this.isActive = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -9288,15 +9334,15 @@ class DisplayDevicesCompanion extends UpdateCompanion<DisplayDevice> {
     this.deletedAt = const Value.absent(),
     required String id,
     required String companyId,
-    required String parentRegisterId,
+    this.parentRegisterId = const Value.absent(),
     required String code,
     this.name = const Value.absent(),
+    this.welcomeText = const Value.absent(),
     required DisplayDeviceType type,
     this.isActive = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        companyId = Value(companyId),
-       parentRegisterId = Value(parentRegisterId),
        code = Value(code),
        type = Value(type);
   static Insertable<DisplayDevice> custom({
@@ -9312,6 +9358,7 @@ class DisplayDevicesCompanion extends UpdateCompanion<DisplayDevice> {
     Expression<String>? parentRegisterId,
     Expression<String>? code,
     Expression<String>? name,
+    Expression<String>? welcomeText,
     Expression<String>? type,
     Expression<bool>? isActive,
     Expression<int>? rowid,
@@ -9329,6 +9376,7 @@ class DisplayDevicesCompanion extends UpdateCompanion<DisplayDevice> {
       if (parentRegisterId != null) 'parent_register_id': parentRegisterId,
       if (code != null) 'code': code,
       if (name != null) 'name': name,
+      if (welcomeText != null) 'welcome_text': welcomeText,
       if (type != null) 'type': type,
       if (isActive != null) 'is_active': isActive,
       if (rowid != null) 'rowid': rowid,
@@ -9345,9 +9393,10 @@ class DisplayDevicesCompanion extends UpdateCompanion<DisplayDevice> {
     Value<DateTime?>? deletedAt,
     Value<String>? id,
     Value<String>? companyId,
-    Value<String>? parentRegisterId,
+    Value<String?>? parentRegisterId,
     Value<String>? code,
     Value<String>? name,
+    Value<String>? welcomeText,
     Value<DisplayDeviceType>? type,
     Value<bool>? isActive,
     Value<int>? rowid,
@@ -9365,6 +9414,7 @@ class DisplayDevicesCompanion extends UpdateCompanion<DisplayDevice> {
       parentRegisterId: parentRegisterId ?? this.parentRegisterId,
       code: code ?? this.code,
       name: name ?? this.name,
+      welcomeText: welcomeText ?? this.welcomeText,
       type: type ?? this.type,
       isActive: isActive ?? this.isActive,
       rowid: rowid ?? this.rowid,
@@ -9410,6 +9460,9 @@ class DisplayDevicesCompanion extends UpdateCompanion<DisplayDevice> {
     if (name.present) {
       map['name'] = Variable<String>(name.value);
     }
+    if (welcomeText.present) {
+      map['welcome_text'] = Variable<String>(welcomeText.value);
+    }
     if (type.present) {
       map['type'] = Variable<String>(
         $DisplayDevicesTable.$convertertype.toSql(type.value),
@@ -9439,6 +9492,7 @@ class DisplayDevicesCompanion extends UpdateCompanion<DisplayDevice> {
           ..write('parentRegisterId: $parentRegisterId, ')
           ..write('code: $code, ')
           ..write('name: $name, ')
+          ..write('welcomeText: $welcomeText, ')
           ..write('type: $type, ')
           ..write('isActive: $isActive, ')
           ..write('rowid: $rowid')
@@ -41148,9 +41202,10 @@ typedef $$DisplayDevicesTableCreateCompanionBuilder =
       Value<DateTime?> deletedAt,
       required String id,
       required String companyId,
-      required String parentRegisterId,
+      Value<String?> parentRegisterId,
       required String code,
       Value<String> name,
+      Value<String> welcomeText,
       required DisplayDeviceType type,
       Value<bool> isActive,
       Value<int> rowid,
@@ -41166,9 +41221,10 @@ typedef $$DisplayDevicesTableUpdateCompanionBuilder =
       Value<DateTime?> deletedAt,
       Value<String> id,
       Value<String> companyId,
-      Value<String> parentRegisterId,
+      Value<String?> parentRegisterId,
       Value<String> code,
       Value<String> name,
+      Value<String> welcomeText,
       Value<DisplayDeviceType> type,
       Value<bool> isActive,
       Value<int> rowid,
@@ -41240,6 +41296,11 @@ class $$DisplayDevicesTableFilterComposer
 
   ColumnFilters<String> get name => $composableBuilder(
     column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get welcomeText => $composableBuilder(
+    column: $table.welcomeText,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -41324,6 +41385,11 @@ class $$DisplayDevicesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get welcomeText => $composableBuilder(
+    column: $table.welcomeText,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get type => $composableBuilder(
     column: $table.type,
     builder: (column) => ColumnOrderings(column),
@@ -41388,6 +41454,11 @@ class $$DisplayDevicesTableAnnotationComposer
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
 
+  GeneratedColumn<String> get welcomeText => $composableBuilder(
+    column: $table.welcomeText,
+    builder: (column) => column,
+  );
+
   GeneratedColumnWithTypeConverter<DisplayDeviceType, String> get type =>
       $composableBuilder(column: $table.type, builder: (column) => column);
 
@@ -41437,9 +41508,10 @@ class $$DisplayDevicesTableTableManager
                 Value<DateTime?> deletedAt = const Value.absent(),
                 Value<String> id = const Value.absent(),
                 Value<String> companyId = const Value.absent(),
-                Value<String> parentRegisterId = const Value.absent(),
+                Value<String?> parentRegisterId = const Value.absent(),
                 Value<String> code = const Value.absent(),
                 Value<String> name = const Value.absent(),
+                Value<String> welcomeText = const Value.absent(),
                 Value<DisplayDeviceType> type = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -41456,6 +41528,7 @@ class $$DisplayDevicesTableTableManager
                 parentRegisterId: parentRegisterId,
                 code: code,
                 name: name,
+                welcomeText: welcomeText,
                 type: type,
                 isActive: isActive,
                 rowid: rowid,
@@ -41471,9 +41544,10 @@ class $$DisplayDevicesTableTableManager
                 Value<DateTime?> deletedAt = const Value.absent(),
                 required String id,
                 required String companyId,
-                required String parentRegisterId,
+                Value<String?> parentRegisterId = const Value.absent(),
                 required String code,
                 Value<String> name = const Value.absent(),
+                Value<String> welcomeText = const Value.absent(),
                 required DisplayDeviceType type,
                 Value<bool> isActive = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -41490,6 +41564,7 @@ class $$DisplayDevicesTableTableManager
                 parentRegisterId: parentRegisterId,
                 code: code,
                 name: name,
+                welcomeText: welcomeText,
                 type: type,
                 isActive: isActive,
                 rowid: rowid,

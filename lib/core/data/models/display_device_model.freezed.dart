@@ -19,9 +19,10 @@ final _privateConstructorUsedError = UnsupportedError(
 mixin _$DisplayDeviceModel {
   String get id => throw _privateConstructorUsedError;
   String get companyId => throw _privateConstructorUsedError;
-  String get parentRegisterId => throw _privateConstructorUsedError;
+  String? get parentRegisterId => throw _privateConstructorUsedError;
   String get code => throw _privateConstructorUsedError;
   String get name => throw _privateConstructorUsedError;
+  String get welcomeText => throw _privateConstructorUsedError;
   DisplayDeviceType get type => throw _privateConstructorUsedError;
   bool get isActive => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
@@ -45,9 +46,10 @@ abstract class $DisplayDeviceModelCopyWith<$Res> {
   $Res call({
     String id,
     String companyId,
-    String parentRegisterId,
+    String? parentRegisterId,
     String code,
     String name,
+    String welcomeText,
     DisplayDeviceType type,
     bool isActive,
     DateTime createdAt,
@@ -73,9 +75,10 @@ class _$DisplayDeviceModelCopyWithImpl<$Res, $Val extends DisplayDeviceModel>
   $Res call({
     Object? id = null,
     Object? companyId = null,
-    Object? parentRegisterId = null,
+    Object? parentRegisterId = freezed,
     Object? code = null,
     Object? name = null,
+    Object? welcomeText = null,
     Object? type = null,
     Object? isActive = null,
     Object? createdAt = null,
@@ -92,10 +95,10 @@ class _$DisplayDeviceModelCopyWithImpl<$Res, $Val extends DisplayDeviceModel>
                 ? _value.companyId
                 : companyId // ignore: cast_nullable_to_non_nullable
                       as String,
-            parentRegisterId: null == parentRegisterId
+            parentRegisterId: freezed == parentRegisterId
                 ? _value.parentRegisterId
                 : parentRegisterId // ignore: cast_nullable_to_non_nullable
-                      as String,
+                      as String?,
             code: null == code
                 ? _value.code
                 : code // ignore: cast_nullable_to_non_nullable
@@ -103,6 +106,10 @@ class _$DisplayDeviceModelCopyWithImpl<$Res, $Val extends DisplayDeviceModel>
             name: null == name
                 ? _value.name
                 : name // ignore: cast_nullable_to_non_nullable
+                      as String,
+            welcomeText: null == welcomeText
+                ? _value.welcomeText
+                : welcomeText // ignore: cast_nullable_to_non_nullable
                       as String,
             type: null == type
                 ? _value.type
@@ -142,9 +149,10 @@ abstract class _$$DisplayDeviceModelImplCopyWith<$Res>
   $Res call({
     String id,
     String companyId,
-    String parentRegisterId,
+    String? parentRegisterId,
     String code,
     String name,
+    String welcomeText,
     DisplayDeviceType type,
     bool isActive,
     DateTime createdAt,
@@ -169,9 +177,10 @@ class __$$DisplayDeviceModelImplCopyWithImpl<$Res>
   $Res call({
     Object? id = null,
     Object? companyId = null,
-    Object? parentRegisterId = null,
+    Object? parentRegisterId = freezed,
     Object? code = null,
     Object? name = null,
+    Object? welcomeText = null,
     Object? type = null,
     Object? isActive = null,
     Object? createdAt = null,
@@ -188,10 +197,10 @@ class __$$DisplayDeviceModelImplCopyWithImpl<$Res>
             ? _value.companyId
             : companyId // ignore: cast_nullable_to_non_nullable
                   as String,
-        parentRegisterId: null == parentRegisterId
+        parentRegisterId: freezed == parentRegisterId
             ? _value.parentRegisterId
             : parentRegisterId // ignore: cast_nullable_to_non_nullable
-                  as String,
+                  as String?,
         code: null == code
             ? _value.code
             : code // ignore: cast_nullable_to_non_nullable
@@ -199,6 +208,10 @@ class __$$DisplayDeviceModelImplCopyWithImpl<$Res>
         name: null == name
             ? _value.name
             : name // ignore: cast_nullable_to_non_nullable
+                  as String,
+        welcomeText: null == welcomeText
+            ? _value.welcomeText
+            : welcomeText // ignore: cast_nullable_to_non_nullable
                   as String,
         type: null == type
             ? _value.type
@@ -231,9 +244,10 @@ class _$DisplayDeviceModelImpl implements _DisplayDeviceModel {
   const _$DisplayDeviceModelImpl({
     required this.id,
     required this.companyId,
-    required this.parentRegisterId,
+    this.parentRegisterId,
     required this.code,
     this.name = '',
+    this.welcomeText = '',
     this.type = DisplayDeviceType.customerDisplay,
     this.isActive = true,
     required this.createdAt,
@@ -246,12 +260,15 @@ class _$DisplayDeviceModelImpl implements _DisplayDeviceModel {
   @override
   final String companyId;
   @override
-  final String parentRegisterId;
+  final String? parentRegisterId;
   @override
   final String code;
   @override
   @JsonKey()
   final String name;
+  @override
+  @JsonKey()
+  final String welcomeText;
   @override
   @JsonKey()
   final DisplayDeviceType type;
@@ -267,7 +284,7 @@ class _$DisplayDeviceModelImpl implements _DisplayDeviceModel {
 
   @override
   String toString() {
-    return 'DisplayDeviceModel(id: $id, companyId: $companyId, parentRegisterId: $parentRegisterId, code: $code, name: $name, type: $type, isActive: $isActive, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+    return 'DisplayDeviceModel(id: $id, companyId: $companyId, parentRegisterId: $parentRegisterId, code: $code, name: $name, welcomeText: $welcomeText, type: $type, isActive: $isActive, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
   }
 
   @override
@@ -282,6 +299,8 @@ class _$DisplayDeviceModelImpl implements _DisplayDeviceModel {
                 other.parentRegisterId == parentRegisterId) &&
             (identical(other.code, code) || other.code == code) &&
             (identical(other.name, name) || other.name == name) &&
+            (identical(other.welcomeText, welcomeText) ||
+                other.welcomeText == welcomeText) &&
             (identical(other.type, type) || other.type == type) &&
             (identical(other.isActive, isActive) ||
                 other.isActive == isActive) &&
@@ -301,6 +320,7 @@ class _$DisplayDeviceModelImpl implements _DisplayDeviceModel {
     parentRegisterId,
     code,
     name,
+    welcomeText,
     type,
     isActive,
     createdAt,
@@ -324,9 +344,10 @@ abstract class _DisplayDeviceModel implements DisplayDeviceModel {
   const factory _DisplayDeviceModel({
     required final String id,
     required final String companyId,
-    required final String parentRegisterId,
+    final String? parentRegisterId,
     required final String code,
     final String name,
+    final String welcomeText,
     final DisplayDeviceType type,
     final bool isActive,
     required final DateTime createdAt,
@@ -339,11 +360,13 @@ abstract class _DisplayDeviceModel implements DisplayDeviceModel {
   @override
   String get companyId;
   @override
-  String get parentRegisterId;
+  String? get parentRegisterId;
   @override
   String get code;
   @override
   String get name;
+  @override
+  String get welcomeText;
   @override
   DisplayDeviceType get type;
   @override

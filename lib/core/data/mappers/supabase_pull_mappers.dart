@@ -504,9 +504,10 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
       return DisplayDevicesCompanion(
         id: Value(json['id'] as String),
         companyId: Value(json['company_id'] as String),
-        parentRegisterId: Value(json['parent_register_id'] as String),
+        parentRegisterId: Value(json['parent_register_id'] as String?),
         code: Value(json['code'] as String),
         name: Value(json['name'] as String? ?? ''),
+        welcomeText: Value(json['welcome_text'] as String? ?? ''),
         type: Value(_enumFromName(DisplayDeviceType.values, json['type'])),
         isActive: Value(json['is_active'] as bool? ?? true),
         createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),

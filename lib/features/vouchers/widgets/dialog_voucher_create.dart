@@ -284,6 +284,7 @@ class _DialogVoucherCreateState extends ConsumerState<DialogVoucherCreate> {
       isTakeaway: true,
     );
     if (billResult is! Success<BillModel>) return;
+    if (!mounted) return;
     final bill = billResult.value;
 
     // 3. Create order with voucher item (noTax: rate=0, taxAmount=0)
@@ -352,9 +353,9 @@ class _DialogVoucherCreateState extends ConsumerState<DialogVoucherCreate> {
     final session = ref.read(activeRegisterSessionProvider).value;
     if (session == null) return 'O-0000';
     final sessionRepo = ref.read(registerSessionRepositoryProvider);
+    final registerModel = ref.read(activeRegisterProvider).value;
     final counterResult = await sessionRepo.incrementOrderCounter(session.id);
     if (counterResult is! Success<int>) return 'O-0000';
-    final registerModel = ref.read(activeRegisterProvider).value;
     final regNum = registerModel?.registerNumber ?? 0;
     return 'O$regNum-${counterResult.value.toString().padLeft(4, '0')}';
   }
@@ -372,7 +373,7 @@ class _DialogVoucherCreateState extends ConsumerState<DialogVoucherCreate> {
       context: context,
       builder: (_) => _ItemSearchDialog(companyId: company.id),
     );
-    if (selected != null) {
+    if (selected != null && mounted) {
       setState(() {
         _selectedItemId = selected.id;
         _selectedItemName = selected.name;
@@ -387,7 +388,7 @@ class _DialogVoucherCreateState extends ConsumerState<DialogVoucherCreate> {
       context: context,
       builder: (_) => _CategorySearchDialog(companyId: company.id),
     );
-    if (selected != null) {
+    if (selected != null && mounted) {
       setState(() {
         _selectedCategoryId = selected.id;
         _selectedCategoryName = selected.name;

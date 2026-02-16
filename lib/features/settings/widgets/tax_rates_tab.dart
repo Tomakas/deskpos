@@ -144,6 +144,7 @@ class TaxRatesTab extends ConsumerWidget {
     );
 
     if (result != true || labelCtrl.text.trim().isEmpty) return;
+    if (!context.mounted) return;
 
     final company = ref.read(currentCompanyProvider)!;
     final repo = ref.read(taxRateRepositoryProvider);
@@ -186,8 +187,7 @@ class TaxRatesTab extends ConsumerWidget {
         ],
       ),
     );
-    if (confirmed == true) {
-      await ref.read(taxRateRepositoryProvider).delete(taxRate.id);
-    }
+    if (confirmed != true || !context.mounted) return;
+    await ref.read(taxRateRepositoryProvider).delete(taxRate.id);
   }
 }

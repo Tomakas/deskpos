@@ -283,6 +283,7 @@ class _RecipesTabState extends ConsumerState<RecipesTab> {
     }
 
     if (result != true || parentProductId == null) return;
+    if (!mounted) return;
 
     await _saveRecipe(ref, parentProductId!, existingComponents, components);
   }
@@ -352,11 +353,10 @@ class _RecipesTabState extends ConsumerState<RecipesTab> {
         ],
       ),
     );
-    if (confirmed == true) {
-      final repo = ref.read(productRecipeRepositoryProvider);
-      for (final c in components) {
-        await repo.delete(c.id);
-      }
+    if (confirmed != true || !mounted) return;
+    final repo = ref.read(productRecipeRepositoryProvider);
+    for (final c in components) {
+      await repo.delete(c.id);
     }
   }
 }

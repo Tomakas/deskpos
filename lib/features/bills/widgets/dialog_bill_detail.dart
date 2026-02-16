@@ -602,20 +602,24 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
     // Resolve display code if not cached
     if (_displayCode == null) {
       final register = await ref.read(activeRegisterProvider.future);
+      if (!mounted) return;
       if (register == null) return;
-      final devices = await ref.read(displayDeviceRepositoryProvider)
-          .getByParentRegister(register.id);
+      final displayDeviceRepo = ref.read(displayDeviceRepositoryProvider);
+      final devices = await displayDeviceRepo.getByParentRegister(register.id);
+      if (!mounted) return;
       final customerDisplay = devices
           .where((d) => d.type == DisplayDeviceType.customerDisplay)
           .firstOrNull;
       if (customerDisplay == null) return;
       _displayCode = customerDisplay.code;
       await ref.read(customerDisplayChannelProvider).join('display:${_displayCode!}');
+      if (!mounted) return;
     }
 
     // Build display items from bill orders
     final orderRepo = ref.read(orderRepositoryProvider);
     final items = await orderRepo.getOrderItemsByBill(bill.id);
+    if (!mounted) return;
     final activeItems = items.where((i) =>
         i.status != PrepStatus.cancelled && i.status != PrepStatus.voided).toList();
 
@@ -663,6 +667,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
       ),
     );
     if (confirmed != true) return;
+    if (!mounted) return;
 
     final repo = ref.read(billRepositoryProvider);
     final result = await repo.cancelBill(bill.id);
@@ -682,6 +687,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
       ),
     );
     if (result == null) return;
+    if (!mounted) return;
     await ref.read(billRepositoryProvider).updateDiscount(
       bill.id,
       result.$1,
@@ -691,7 +697,9 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
 
   Future<void> _redeemLoyalty(BuildContext context, WidgetRef ref, BillModel bill) async {
     if (bill.customerId == null) return;
-    final customer = await ref.read(customerRepositoryProvider).getById(bill.customerId!);
+    final customerRepo = ref.read(customerRepositoryProvider);
+    final customer = await customerRepo.getById(bill.customerId!);
+    if (!mounted) return;
     if (customer == null || customer.points <= 0) return;
 
     final company = ref.read(currentCompanyProvider);
@@ -699,9 +707,9 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
 
     final settingsRepo = ref.read(companySettingsRepositoryProvider);
     final settings = await settingsRepo.getOrCreate(company.id);
+    if (!mounted) return;
     if (settings.loyaltyPointValue <= 0) return;
 
-    if (!context.mounted) return;
     await showDialog<bool>(
       context: context,
       builder: (_) => DialogLoyaltyRedeem(
@@ -717,16 +725,16 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
       context: context,
       builder: (_) => const DialogVoucherRedeem(),
     );
-    if (code == null || !context.mounted) return;
+    if (code == null || !mounted) return;
 
     final company = ref.read(currentCompanyProvider);
     if (company == null) return;
 
     final voucherRepo = ref.read(voucherRepositoryProvider);
     final result = await voucherRepo.validateForBill(code, company.id, bill);
+    if (!mounted) return;
     if (result is Failure) {
       // Validation failed — show error text in a simple dialog
-      if (!context.mounted) return;
       final l = context.l10n;
       final errorKey = (result as Failure).message;
       final errorMsg = switch (errorKey) {
@@ -774,25 +782,28 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
   }
 
   Future<void> _selectCustomer(BuildContext context, WidgetRef ref, BillModel bill) async {
+    final billRepo = ref.read(billRepositoryProvider);
     final result = await showCustomerSearchDialogRaw(
       context,
       ref,
       showRemoveButton: bill.customerId != null || bill.customerName != null,
     );
     if (result == null) return;
+    if (!mounted) return;
     if (result is CustomerModel) {
-      await ref.read(billRepositoryProvider).updateCustomer(bill.id, result.id);
+      await billRepo.updateCustomer(bill.id, result.id);
     } else if (result is String) {
       // Free-text customer name
-      await ref.read(billRepositoryProvider).updateCustomerName(bill.id, result);
+      await billRepo.updateCustomerName(bill.id, result);
     } else {
       // _RemoveCustomer sentinel
-      await ref.read(billRepositoryProvider).updateCustomer(bill.id, null);
+      await billRepo.updateCustomer(bill.id, null);
     }
   }
 
   Future<void> _moveBill(BuildContext context, WidgetRef ref, BillModel bill) async {
     final l = context.l10n;
+    final billRepo = ref.read(billRepositoryProvider);
     final result = await showDialog<NewBillResult>(
       context: context,
       builder: (_) => DialogNewBill(
@@ -802,7 +813,8 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
       ),
     );
     if (result == null) return;
-    await ref.read(billRepositoryProvider).moveBill(
+    if (!mounted) return;
+    await billRepo.moveBill(
       bill.id,
       tableId: result.tableId,
       numberOfGuests: result.numberOfGuests,
@@ -810,14 +822,15 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
   }
 
   Future<void> _mergeBill(BuildContext context, WidgetRef ref, BillModel bill) async {
+    final billRepo = ref.read(billRepositoryProvider);
     final targetBillId = await showDialog<String>(
       context: context,
       builder: (_) => DialogMergeBill(excludeBillId: bill.id),
     );
-    if (targetBillId == null || !context.mounted) return;
+    if (targetBillId == null || !mounted) return;
 
-    final result = await ref.read(billRepositoryProvider).mergeBill(bill.id, targetBillId);
-    if (result is Success && context.mounted) {
+    final result = await billRepo.mergeBill(bill.id, targetBillId);
+    if (result is Success && mounted) {
       Navigator.pop(context);
       showDialog(
         context: context,
@@ -827,11 +840,13 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
   }
 
   Future<void> _splitBill(BuildContext context, WidgetRef ref, BillModel bill) async {
+    final billRepo = ref.read(billRepositoryProvider);
+    final tableRepo = ref.read(tableRepositoryProvider);
     final splitResult = await showDialog<SplitBillResult>(
       context: context,
       builder: (_) => DialogSplitBill(billId: bill.id),
     );
-    if (splitResult == null || !context.mounted) return;
+    if (splitResult == null || !mounted) return;
 
     final company = ref.read(currentCompanyProvider);
     final user = ref.read(activeUserProvider);
@@ -841,7 +856,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
       // Create new bill (same table, 0 guests)
       final register = ref.read(activeRegisterProvider).value;
       final activeSession = ref.read(activeRegisterSessionProvider).value;
-      final newBillResult = await ref.read(billRepositoryProvider).createBill(
+      final newBillResult = await billRepo.createBill(
         companyId: company.id,
         userId: user.id,
         currencyId: bill.currencyId,
@@ -849,29 +864,30 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
         registerId: register?.id,
         registerSessionId: activeSession?.id,
       );
-      if (newBillResult is! Success<BillModel> || !context.mounted) return;
+      if (newBillResult is! Success<BillModel> || !mounted) return;
       final newBill = newBillResult.value;
 
       // Split items to new bill
-      await ref.read(billRepositoryProvider).splitBill(
+      await billRepo.splitBill(
         sourceBillId: bill.id,
         targetBillId: newBill.id,
         orderItemIds: splitResult.orderItemIds,
         userId: user.id,
         registerId: register?.id,
       );
+      if (!mounted) return;
 
       // Get updated new bill for payment
-      final updatedResult = await ref.read(billRepositoryProvider).getById(newBill.id);
-      if (updatedResult is! Success<BillModel> || !context.mounted) return;
+      final updatedResult = await billRepo.getById(newBill.id);
+      if (updatedResult is! Success<BillModel> || !mounted) return;
 
       // Resolve table name for payment dialog
       String? tableName;
       if (bill.tableId != null) {
-        final table = await ref.read(tableRepositoryProvider).getById(bill.tableId!);
+        final table = await tableRepo.getById(bill.tableId!);
         tableName = table?.name;
       }
-      if (!context.mounted) return;
+      if (!mounted) return;
 
       // Open payment dialog for new bill
       await showDialog<bool>(
@@ -890,12 +906,12 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
           initialNumberOfGuests: 0,
         ),
       );
-      if (newBillConfig == null || !context.mounted) return;
+      if (newBillConfig == null || !mounted) return;
 
       // Create new bill
       final register2 = ref.read(activeRegisterProvider).value;
       final activeSession2 = ref.read(activeRegisterSessionProvider).value;
-      final newBillResult = await ref.read(billRepositoryProvider).createBill(
+      final newBillResult = await billRepo.createBill(
         companyId: company.id,
         userId: user.id,
         currencyId: bill.currencyId,
@@ -904,10 +920,10 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
         registerId: register2?.id,
         registerSessionId: activeSession2?.id,
       );
-      if (newBillResult is! Success<BillModel> || !context.mounted) return;
+      if (newBillResult is! Success<BillModel> || !mounted) return;
 
       // Split items to new bill
-      await ref.read(billRepositoryProvider).splitBill(
+      await billRepo.splitBill(
         sourceBillId: bill.id,
         targetBillId: newBillResult.value.id,
         orderItemIds: splitResult.orderItemIds,
@@ -931,6 +947,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
       ),
     );
     if (confirmed != true) return;
+    if (!mounted) return;
 
     final session = ref.read(activeRegisterSessionProvider).valueOrNull;
     final user = ref.read(activeUserProvider);
@@ -949,17 +966,18 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
   Future<void> _payBill(BuildContext context, WidgetRef ref, BillModel bill) async {
     String? tableName;
     if (bill.tableId != null) {
-      final table = await ref.read(tableRepositoryProvider).getById(bill.tableId!);
+      final tableRepo = ref.read(tableRepositoryProvider);
+      final table = await tableRepo.getById(bill.tableId!);
       tableName = table?.name;
     }
 
-    if (!context.mounted) return;
+    if (!mounted) return;
 
     final paid = await showDialog<bool>(
       context: context,
       builder: (_) => DialogPayment(bill: bill, tableName: tableName),
     );
-    if (paid == true && context.mounted) {
+    if (paid == true && mounted) {
       Navigator.pop(context);
     }
   }
@@ -1156,7 +1174,6 @@ class _OrderSection extends ConsumerWidget {
                             ),
                           ),
                           if (item.status == PrepStatus.created ||
-                              item.status == PrepStatus.inPrep ||
                               item.status == PrepStatus.ready)
                             PopupMenuButton<PrepStatus>(
                               iconSize: 16,
@@ -1222,7 +1239,7 @@ class _OrderSection extends ConsumerWidget {
         ],
       ),
     );
-    if (result != null) {
+    if (result != null && context.mounted) {
       await ref.read(orderRepositoryProvider).updateOrderNotes(
         order.id,
         result.isEmpty ? null : result,
@@ -1290,7 +1307,7 @@ class _OrderSection extends ConsumerWidget {
         ],
       ),
     );
-    if (result != null) {
+    if (result != null && context.mounted) {
       await ref.read(orderRepositoryProvider).updateItemNotes(
         item.id,
         result.isEmpty ? null : result,
@@ -1319,16 +1336,18 @@ class _OrderSection extends ConsumerWidget {
     final session = ref.read(activeRegisterSessionProvider).valueOrNull;
     final registerModel = ref.read(activeRegisterProvider).value;
     final regNum = registerModel?.registerNumber ?? 0;
+    final orderRepo = ref.read(orderRepositoryProvider);
+    final billRepo = ref.read(billRepositoryProvider);
     String stornoNumber = 'X$regNum-0000';
     if (session != null) {
       final sessionRepo = ref.read(registerSessionRepositoryProvider);
       final counter = await sessionRepo.incrementOrderCounter(session.id);
+      if (!context.mounted) return;
       if (counter is Success<int>) {
         stornoNumber = 'X$regNum-${counter.value.toString().padLeft(4, '0')}';
       }
     }
 
-    final orderRepo = ref.read(orderRepositoryProvider);
     await orderRepo.voidItem(
       orderId: order.id,
       orderItemId: item.id,
@@ -1337,7 +1356,7 @@ class _OrderSection extends ConsumerWidget {
       stornoOrderNumber: stornoNumber,
       registerId: registerModel?.id,
     );
-    await ref.read(billRepositoryProvider).updateTotals(order.billId);
+    await billRepo.updateTotals(order.billId);
   }
 
   Future<void> _editItemDiscount(BuildContext context, WidgetRef ref, OrderItemModel item) async {
@@ -1351,6 +1370,7 @@ class _OrderSection extends ConsumerWidget {
       ),
     );
     if (result == null) return;
+    if (!context.mounted) return;
     final orderRepo = ref.read(orderRepositoryProvider);
     await orderRepo.updateItemDiscount(item.id, result.$1, result.$2);
     // Recalc bill totals
@@ -1372,6 +1392,7 @@ class _OrderSection extends ConsumerWidget {
       ),
     );
     if (confirmed != true) return;
+    if (!context.mounted) return;
 
     final session = ref.read(activeRegisterSessionProvider).valueOrNull;
     final user = ref.read(activeUserProvider);
@@ -1395,12 +1416,8 @@ class _OrderSection extends ConsumerWidget {
     switch (current) {
       case PrepStatus.created:
         return [
-          PopupMenuItem(value: PrepStatus.inPrep, child: Text(l.prepStatusInPrep)),
-          PopupMenuItem(value: PrepStatus.cancelled, child: Text(l.prepStatusCancelled)),
-        ];
-      case PrepStatus.inPrep:
-        return [
           PopupMenuItem(value: PrepStatus.ready, child: Text(l.prepStatusReady)),
+          PopupMenuItem(value: PrepStatus.cancelled, child: Text(l.prepStatusCancelled)),
           PopupMenuItem(value: PrepStatus.voided, child: Text(l.prepStatusVoided)),
         ];
       case PrepStatus.ready:

@@ -24,7 +24,7 @@ class ScreenOrders extends ConsumerStatefulWidget {
 
 class _ScreenOrdersState extends ConsumerState<ScreenOrders> {
   bool _sessionScope = true;
-  Set<PrepStatus> _statusFilter = {PrepStatus.created, PrepStatus.inPrep, PrepStatus.ready};
+  Set<PrepStatus> _statusFilter = {PrepStatus.created, PrepStatus.ready};
 
   @override
   Widget build(BuildContext context) {
@@ -143,6 +143,8 @@ class _ScreenOrdersState extends ConsumerState<ScreenOrders> {
     // Generate storno order number
     final session = ref.read(activeRegisterSessionProvider).valueOrNull;
     final registerModel = ref.read(activeRegisterProvider).value;
+    final orderRepo = ref.read(orderRepositoryProvider);
+    final billRepo = ref.read(billRepositoryProvider);
     final regNum = registerModel?.registerNumber ?? 0;
     String stornoNumber = 'X$regNum-0000';
     if (session != null) {
@@ -153,7 +155,6 @@ class _ScreenOrdersState extends ConsumerState<ScreenOrders> {
       }
     }
 
-    final orderRepo = ref.read(orderRepositoryProvider);
     await orderRepo.voidItem(
       orderId: order.id,
       orderItemId: item.id,
@@ -162,7 +163,7 @@ class _ScreenOrdersState extends ConsumerState<ScreenOrders> {
       stornoOrderNumber: stornoNumber,
       registerId: registerModel?.id,
     );
-    await ref.read(billRepositoryProvider).updateTotals(order.billId);
+    await billRepo.updateTotals(order.billId);
   }
 }
 
@@ -694,7 +695,6 @@ class _OrderItemCard extends ConsumerWidget {
 // ---------------------------------------------------------------------------
 String _statusLabel(PrepStatus status, AppLocalizations l) => switch (status) {
       PrepStatus.created => l.ordersFilterCreated,
-      PrepStatus.inPrep => l.ordersFilterInPrep,
       PrepStatus.ready => l.ordersFilterReady,
       PrepStatus.delivered => l.ordersFilterDelivered,
       PrepStatus.cancelled => l.ordersFilterStorno,
@@ -703,25 +703,21 @@ String _statusLabel(PrepStatus status, AppLocalizations l) => switch (status) {
 
 bool _isItemActive(PrepStatus status) =>
     status == PrepStatus.created ||
-    status == PrepStatus.inPrep ||
     status == PrepStatus.ready;
 
 PrepStatus? _nextStatus(PrepStatus current) => switch (current) {
-      PrepStatus.created => PrepStatus.inPrep,
-      PrepStatus.inPrep => PrepStatus.ready,
+      PrepStatus.created => PrepStatus.ready,
       PrepStatus.ready => PrepStatus.delivered,
       _ => null,
     };
 
 PrepStatus? _prevStatus(PrepStatus current) => switch (current) {
-      PrepStatus.inPrep => PrepStatus.created,
-      PrepStatus.ready => PrepStatus.inPrep,
+      PrepStatus.ready => PrepStatus.created,
       PrepStatus.delivered => PrepStatus.ready,
       _ => null,
     };
 
 String _nextStatusLabel(PrepStatus status, AppLocalizations l) => switch (status) {
-      PrepStatus.inPrep => l.ordersFilterInPrep,
       PrepStatus.ready => l.ordersFilterReady,
       PrepStatus.delivered => l.ordersFilterDelivered,
       _ => '',
@@ -744,7 +740,6 @@ class _OrderStatusFilterBar extends StatelessWidget {
     // (statuses, label, color)
     final filters = <(Set<PrepStatus>, String, Color)>[
       ({PrepStatus.created}, l.ordersFilterCreated, PrepStatus.created.color(context)),
-      ({PrepStatus.inPrep}, l.ordersFilterInPrep, PrepStatus.inPrep.color(context)),
       ({PrepStatus.ready}, l.ordersFilterReady, PrepStatus.ready.color(context)),
       ({PrepStatus.delivered}, l.ordersFilterDelivered, PrepStatus.delivered.color(context)),
       ({PrepStatus.cancelled, PrepStatus.voided}, l.ordersFilterStorno, PrepStatus.cancelled.color(context)),

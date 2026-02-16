@@ -908,12 +908,6 @@ abstract class AppLocalizations {
   /// **'Vytvořeno'**
   String get prepStatusCreated;
 
-  /// No description provided for @prepStatusInPrep.
-  ///
-  /// In cs, this message translates to:
-  /// **'Připravuje se'**
-  String get prepStatusInPrep;
-
   /// No description provided for @prepStatusReady.
   ///
   /// In cs, this message translates to:
@@ -4064,12 +4058,6 @@ abstract class AppLocalizations {
   /// **'Vytvořené'**
   String get ordersFilterCreated;
 
-  /// No description provided for @ordersFilterInPrep.
-  ///
-  /// In cs, this message translates to:
-  /// **'Připravované'**
-  String get ordersFilterInPrep;
-
   /// No description provided for @ordersFilterReady.
   ///
   /// In cs, this message translates to:
@@ -4109,13 +4097,13 @@ abstract class AppLocalizations {
   /// No description provided for @ordersTimeCreated.
   ///
   /// In cs, this message translates to:
-  /// **'Čas vytvoření objednávky'**
+  /// **'Vytvořeno'**
   String get ordersTimeCreated;
 
   /// No description provided for @ordersTimeUpdated.
   ///
   /// In cs, this message translates to:
-  /// **'Čas poslední změny'**
+  /// **'Změněno'**
   String get ordersTimeUpdated;
 
   /// No description provided for @ordersTableLabel.
@@ -4615,6 +4603,24 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'KDS'**
   String get displayDeviceAddKds;
+
+  /// No description provided for @displayWelcomeText.
+  ///
+  /// In cs, this message translates to:
+  /// **'Uvítací text'**
+  String get displayWelcomeText;
+
+  /// No description provided for @displayDefaultNameKds.
+  ///
+  /// In cs, this message translates to:
+  /// **'Objednávkový systém'**
+  String get displayDefaultNameKds;
+
+  /// No description provided for @displayDefaultWelcomeText.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vítejte u nás!'**
+  String get displayDefaultWelcomeText;
 }
 
 class _AppLocalizationsDelegate

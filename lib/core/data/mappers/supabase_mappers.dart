@@ -505,6 +505,7 @@ Map<String, dynamic> displayDeviceToSupabaseJson(DisplayDeviceModel m) => {
       'parent_register_id': m.parentRegisterId,
       'code': m.code,
       'name': m.name,
+      'welcome_text': m.welcomeText,
       'type': m.type.name,
       'is_active': m.isActive,
     };

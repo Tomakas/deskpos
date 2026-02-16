@@ -134,7 +134,7 @@ class _SuppliersTabState extends ConsumerState<SuppliersTab> {
       await _delete(context, ref, existing!);
       return;
     }
-    if (result != true || nameCtrl.text.trim().isEmpty) return;
+    if (result != true || nameCtrl.text.trim().isEmpty || !mounted) return;
 
     final company = ref.read(currentCompanyProvider)!;
     final repo = ref.read(supplierRepositoryProvider);

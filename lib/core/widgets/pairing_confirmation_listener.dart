@@ -96,6 +96,7 @@ class _PairingConfirmationDialog extends ConsumerWidget {
 
   Future<void> _respond(WidgetRef ref, bool confirmed) async {
     final channel = ref.read(pairingChannelProvider);
+    final notifier = ref.read(pendingPairingRequestProvider.notifier);
     if (confirmed) {
       await channel.send({
         'action': 'pairing_confirmed',
@@ -109,6 +110,6 @@ class _PairingConfirmationDialog extends ConsumerWidget {
         'request_id': request.requestId,
       });
     }
-    ref.read(pendingPairingRequestProvider.notifier).state = null;
+    notifier.state = null;
   }
 }

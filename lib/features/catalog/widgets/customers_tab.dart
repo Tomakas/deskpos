@@ -204,7 +204,7 @@ class _CustomersTabState extends ConsumerState<CustomersTab> {
       await _delete(context, ref, existing!);
       return;
     }
-    if (result != true || firstNameCtrl.text.trim().isEmpty || lastNameCtrl.text.trim().isEmpty) {
+    if (result != true || firstNameCtrl.text.trim().isEmpty || lastNameCtrl.text.trim().isEmpty || !mounted) {
       return;
     }
 

@@ -19,7 +19,7 @@ import 'package:go_router/go_router.dart';
 
 /// Kitchen Display System — a touch-optimized, kitchen-facing order board.
 ///
-/// Shows active orders (created → inPrep → ready) as full-width cards with
+/// Shows active orders (created → ready) as full-width cards with
 /// elapsed time since creation. Kitchen staff taps the order-level button to
 /// advance items with the lowest status. Individual items can also be advanced
 /// independently. Storno orders are excluded from the KDS view.
@@ -33,7 +33,6 @@ class ScreenKds extends ConsumerStatefulWidget {
 class _ScreenKdsState extends ConsumerState<ScreenKds> {
   Set<PrepStatus> _statusFilter = {
     PrepStatus.created,
-    PrepStatus.inPrep,
     PrepStatus.ready,
   };
   Timer? _ticker;
@@ -60,86 +59,93 @@ class _ScreenKdsState extends ConsumerState<ScreenKds> {
     final company = ref.watch(currentCompanyProvider);
     if (company == null) return const SizedBox.shrink();
 
-    return Stack(
-      children: [
-        Scaffold(
-          appBar: AppBar(title: Text(l.kdsTitle)),
-          body: Column(
+    return Scaffold(
+      appBar: AppBar(
+        leading: Builder(
+          builder: (ctx) => IconButton(
+            icon: const Icon(Icons.menu),
+            onPressed: () => Scaffold.of(ctx).openDrawer(),
+          ),
+        ),
+        title: Text(l.kdsTitle),
+        actions: [
+          _KdsClockWidget(),
+          const SizedBox(width: 16),
+        ],
+      ),
+      drawer: Drawer(
+        child: SafeArea(
+          child: ListView(
+            padding: EdgeInsets.zero,
             children: [
-              // Order cards list
-              Expanded(
-                child: StreamBuilder<List<OrderModel>>(
-                  stream: ref
-                      .watch(orderRepositoryProvider)
-                      .watchByCompany(company.id),
-                  builder: (context, snap) {
-                    final allOrders = snap.data ?? [];
-                    // Exclude storno orders from KDS view
-                    final nonStorno =
-                        allOrders.where((o) => !o.isStorno).toList();
-                    final orders = _applyStatusFilter(nonStorno);
-
-                    if (orders.isEmpty) {
-                      return Center(
-                        child: Text(
-                          l.kdsNoOrders,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyLarge
-                              ?.copyWith(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onSurfaceVariant,
-                              ),
-                        ),
-                      );
-                    }
-
-                    return ListView.separated(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
-                      itemCount: orders.length,
-                      separatorBuilder: (_, _) => const SizedBox(height: 8),
-                      itemBuilder: (_, i) => _KdsOrderCard(
-                        order: orders[i],
-                        onBump: () => _bumpOrder(orders[i]),
-                        onItemBump: (item) => _bumpItem(orders[i], item),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              // Status filter bar
-              _KdsStatusFilterBar(
-                selected: _statusFilter,
-                onChanged: (filter) =>
-                    setState(() => _statusFilter = filter),
+              ListTile(
+                leading: const Icon(Icons.logout),
+                title: Text(l.actionLogout),
+                onTap: () {
+                  final session = ref.read(sessionManagerProvider);
+                  session.logoutAll();
+                  ref.read(activeUserProvider.notifier).state = null;
+                  ref.read(loggedInUsersProvider.notifier).state = [];
+                  context.go('/login');
+                },
               ),
             ],
           ),
         ),
-        // Logout button — absolute top-right, over AppBar
-        Positioned(
-          top: 0,
-          right: 0,
-          child: SafeArea(
-            child: IconButton.filled(
-              iconSize: 32,
-              style: IconButton.styleFrom(
-                minimumSize: const Size(64, 64),
-              ),
-              icon: const Icon(Icons.logout),
-              onPressed: () {
-                final session = ref.read(sessionManagerProvider);
-                session.logoutAll();
-                ref.read(activeUserProvider.notifier).state = null;
-                ref.read(loggedInUsersProvider.notifier).state = [];
-                context.go('/login');
+      ),
+      body: Column(
+        children: [
+          // Order cards list
+          Expanded(
+            child: StreamBuilder<List<OrderModel>>(
+              stream: ref
+                  .watch(orderRepositoryProvider)
+                  .watchByCompany(company.id),
+              builder: (context, snap) {
+                final allOrders = snap.data ?? [];
+                // Exclude storno orders from KDS view
+                final nonStorno =
+                    allOrders.where((o) => !o.isStorno).toList();
+                final orders = _applyStatusFilter(nonStorno);
+
+                if (orders.isEmpty) {
+                  return Center(
+                    child: Text(
+                      l.kdsNoOrders,
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodyLarge
+                          ?.copyWith(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurfaceVariant,
+                          ),
+                    ),
+                  );
+                }
+
+                return ListView.separated(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 16, vertical: 8),
+                  itemCount: orders.length,
+                  separatorBuilder: (_, _) => const SizedBox(height: 8),
+                  itemBuilder: (_, i) => _KdsOrderCard(
+                    order: orders[i],
+                    onBump: () => _bumpOrder(orders[i]),
+                    onItemBump: (item) => _bumpItem(orders[i], item),
+                  ),
+                );
               },
             ),
           ),
-        ),
-      ],
+          // Status filter bar
+          _KdsStatusFilterBar(
+            selected: _statusFilter,
+            onChanged: (filter) =>
+                setState(() => _statusFilter = filter),
+          ),
+        ],
+      ),
     );
   }
 
@@ -246,10 +252,9 @@ class _KdsOrderCard extends ConsumerWidget {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Col 1: order identity + status button (horizontal)
+                    // Col 1: order number + status button (single row)
                     Expanded(
                       child: Row(
-                        mainAxisSize: MainAxisSize.min,
                         children: [
                           Container(
                             width: 10,
@@ -260,48 +265,60 @@ class _KdsOrderCard extends ConsumerWidget {
                               color: statusColor,
                             ),
                           ),
-                        Text(
-                          order.orderNumber,
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        if (lowestNext != null)
-                          SizedBox(
-                            height: 40,
-                            child: FilledButton.tonal(
-                              style: FilledButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 12),
-                                backgroundColor:
-                                    lowestColor.withValues(alpha: 0.15),
-                                foregroundColor: lowestColor,
-                                textStyle: theme.textTheme.labelSmall
-                                    ?.copyWith(fontWeight: FontWeight.w600),
-                              ),
-                              onPressed: onBump,
-                              child: Text(_statusLabel(lowestStatus!, l)),
-                            ),
-                          )
-                        else
-                          Container(
-                            height: 40,
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 12),
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              color: statusColor.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
+                          Flexible(
                             child: Text(
-                              _statusLabel(order.status, l),
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: statusColor,
-                                fontWeight: FontWeight.w600,
+                              order.orderNumber,
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
                               ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
+                          const SizedBox(width: 8),
+                          if (lowestNext != null)
+                            Flexible(
+                              child: SizedBox(
+                              height: 36,
+                              child: FilledButton.tonal(
+                                style: FilledButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12),
+                                  backgroundColor:
+                                      lowestColor.withValues(alpha: 0.15),
+                                  foregroundColor: lowestColor,
+                                  textStyle: theme.textTheme.labelSmall
+                                      ?.copyWith(fontWeight: FontWeight.w600),
+                                ),
+                                clipBehavior: Clip.hardEdge,
+                                onPressed: onBump,
+                                child: Text(
+                                  _statusLabel(lowestStatus!, l),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ),
+                            )
+                          else
+                            Flexible(
+                              child: Container(
+                              height: 36,
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 12),
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: statusColor.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(18),
+                              ),
+                              child: Text(
+                                _statusLabel(order.status, l),
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: statusColor,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            ),
                         ],
                       ),
                     ),
@@ -311,33 +328,12 @@ class _KdsOrderCard extends ConsumerWidget {
                       child: _BillInfoTable(billId: order.billId),
                     ),
                     const SizedBox(width: 16),
-                    // Col 3: times + elapsed badge
+                    // Col 3: times
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        _TimeTable(
-                          createdAt: order.createdAt,
-                          updatedAt: order.updatedAt,
-                        ),
-                        const SizedBox(height: 4),
-                        // Elapsed time badge
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: urgencyColor.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            l.kdsMinAgo(elapsedMin.toString()),
-                            style: theme.textTheme.labelMedium?.copyWith(
-                              color: urgencyColor,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
+                      child: _TimeTable(
+                        createdAt: order.createdAt,
+                        updatedAt: order.updatedAt,
+                        urgencyColor: urgencyColor,
                       ),
                     ),
                   ],
@@ -477,36 +473,45 @@ class _KdsItemCard extends StatelessWidget {
                               color: theme.colorScheme.onSurfaceVariant,
                             ),
                           ),
-                        // Next-status button (fixed slot for layout stability)
-                        SizedBox(
-                          height: 40,
-                          width: 100,
-                          child: next != null
-                              ? FilledButton.tonal(
-                                  style: FilledButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 10),
-                                    backgroundColor: next.color(context)
-                                        .withValues(alpha: 0.15),
-                                    foregroundColor: next.color(context),
-                                    textStyle: theme.textTheme.labelSmall
-                                        ?.copyWith(fontWeight: FontWeight.w600),
-                                  ),
-                                  onPressed: onBump,
-                                  child: Text(_nextStatusLabel(next, l)),
-                                )
-                              : isVoided
-                                  ? Center(
-                                      child: Text(
-                                        l.ordersFilterStorno,
-                                        style: theme.textTheme.labelSmall
-                                            ?.copyWith(
-                                          color: context.appColors.danger,
-                                          fontWeight: FontWeight.w600,
+                        // Next-status button (flex to fit narrow screens)
+                        Flexible(
+                          child: Align(
+                          alignment: Alignment.centerRight,
+                          child: SizedBox(
+                            height: 40,
+                            child: next != null
+                                ? FilledButton.tonal(
+                                    style: FilledButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 10),
+                                      backgroundColor: next.color(context)
+                                          .withValues(alpha: 0.15),
+                                      foregroundColor: next.color(context),
+                                      textStyle: theme.textTheme.labelSmall
+                                          ?.copyWith(fontWeight: FontWeight.w600),
+                                    ),
+                                    clipBehavior: Clip.hardEdge,
+                                    onPressed: onBump,
+                                    child: Text(
+                                      _nextStatusLabel(next, l),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  )
+                                : isVoided
+                                    ? Center(
+                                        child: Text(
+                                          l.ordersFilterStorno,
+                                          style: theme.textTheme.labelSmall
+                                              ?.copyWith(
+                                            color: context.appColors.danger,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
                                         ),
-                                      ),
-                                    )
-                                  : null,
+                                      )
+                                    : null,
+                          ),
+                        ),
                         ),
                       ],
                     ),
@@ -586,16 +591,16 @@ class _BillInfoTable extends ConsumerWidget {
                         ? tableName
                         : '–';
 
-                return Table(
-                  defaultColumnWidth: const IntrinsicColumnWidth(),
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    TableRow(children: [
-                      Text('${l.ordersTableLabel}: ', style: labelStyle),
-                      Text(tableDisplay, style: valueStyle),
+                    Row(children: [
+                      Flexible(child: Text('${l.ordersTableLabel}: ', style: labelStyle, overflow: TextOverflow.ellipsis)),
+                      Flexible(flex: 2, child: Text(tableDisplay, style: valueStyle, overflow: TextOverflow.ellipsis)),
                     ]),
-                    TableRow(children: [
-                      Text('${l.ordersCustomerLabel}: ', style: labelStyle),
-                      Text(customerDisplay, style: valueStyle),
+                    Row(children: [
+                      Flexible(child: Text('${l.ordersCustomerLabel}: ', style: labelStyle, overflow: TextOverflow.ellipsis)),
+                      Flexible(flex: 2, child: Text(customerDisplay, style: valueStyle, overflow: TextOverflow.ellipsis)),
                     ]),
                   ],
                 );
@@ -615,9 +620,11 @@ class _TimeTable extends ConsumerWidget {
   const _TimeTable({
     required this.createdAt,
     required this.updatedAt,
+    required this.urgencyColor,
   });
   final DateTime createdAt;
   final DateTime updatedAt;
+  final Color urgencyColor;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -629,20 +636,71 @@ class _TimeTable extends ConsumerWidget {
     );
     final valueStyle = theme.textTheme.bodySmall;
 
-    return Table(
-      defaultColumnWidth: const IntrinsicColumnWidth(),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        TableRow(children: [
-          Text('${l.ordersTimeCreated}: ',
-              style: labelStyle, textAlign: TextAlign.right),
-          Text(ref.fmtTime(createdAt), style: valueStyle),
-        ]),
-        TableRow(children: [
-          Text('${l.ordersTimeUpdated}: ',
-              style: labelStyle, textAlign: TextAlign.right),
-          Text(ref.fmtTime(updatedAt), style: valueStyle),
-        ]),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Flexible(child: Text('${l.ordersTimeCreated}: ',
+                style: labelStyle, overflow: TextOverflow.ellipsis)),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+              decoration: BoxDecoration(
+                color: urgencyColor.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(ref.fmtTime(createdAt), style: valueStyle?.copyWith(
+                color: urgencyColor,
+                fontWeight: FontWeight.bold,
+              )),
+            ),
+          ],
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Flexible(child: Text('${l.ordersTimeUpdated}: ',
+                style: labelStyle, overflow: TextOverflow.ellipsis)),
+            Text(ref.fmtTime(updatedAt), style: valueStyle),
+          ],
+        ),
       ],
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Live clock for KDS AppBar
+// ---------------------------------------------------------------------------
+class _KdsClockWidget extends ConsumerStatefulWidget {
+  @override
+  ConsumerState<_KdsClockWidget> createState() => _KdsClockWidgetState();
+}
+
+class _KdsClockWidgetState extends ConsumerState<_KdsClockWidget> {
+  late Timer _timer;
+  DateTime _now = DateTime.now();
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() => _now = DateTime.now());
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context, ) {
+    return Text(
+      '${ref.fmtDate(_now)}  ${ref.fmtTimeSeconds(_now)}',
+      style: Theme.of(context).textTheme.titleMedium,
     );
   }
 }
@@ -652,7 +710,6 @@ class _TimeTable extends ConsumerWidget {
 // ---------------------------------------------------------------------------
 String _statusLabel(PrepStatus status, AppLocalizations l) => switch (status) {
       PrepStatus.created => l.ordersFilterCreated,
-      PrepStatus.inPrep => l.ordersFilterInPrep,
       PrepStatus.ready => l.ordersFilterReady,
       PrepStatus.delivered => l.ordersFilterDelivered,
       PrepStatus.cancelled => l.ordersFilterStorno,
@@ -660,14 +717,12 @@ String _statusLabel(PrepStatus status, AppLocalizations l) => switch (status) {
     };
 
 PrepStatus? _nextStatus(PrepStatus current) => switch (current) {
-      PrepStatus.created => PrepStatus.inPrep,
-      PrepStatus.inPrep => PrepStatus.ready,
+      PrepStatus.created => PrepStatus.ready,
       PrepStatus.ready => PrepStatus.delivered,
       _ => null,
     };
 
 String _nextStatusLabel(PrepStatus status, AppLocalizations l) => switch (status) {
-      PrepStatus.inPrep => l.ordersFilterInPrep,
       PrepStatus.ready => l.ordersFilterReady,
       PrepStatus.delivered => l.ordersFilterDelivered,
       _ => '',
@@ -695,7 +750,6 @@ class _KdsStatusFilterBar extends StatelessWidget {
     final l = context.l10n;
     final filters = <(Set<PrepStatus>, String, Color)>[
       ({PrepStatus.created}, l.ordersFilterCreated, PrepStatus.created.color(context)),
-      ({PrepStatus.inPrep}, l.ordersFilterInPrep, PrepStatus.inPrep.color(context)),
       ({PrepStatus.ready}, l.ordersFilterReady, PrepStatus.ready.color(context)),
       ({PrepStatus.delivered}, l.ordersFilterDelivered, PrepStatus.delivered.color(context)),
     ];

@@ -183,7 +183,6 @@
   },
 
   "prepStatusCreated": "Vytvořeno",
-  "prepStatusInPrep": "Připravuje se",
   "prepStatusReady": "Připraveno",
   "prepStatusDelivered": "Doručeno",
   "prepStatusCancelled": "Zrušeno",
@@ -854,15 +853,14 @@
   "ordersTitle": "Objednávky",
   "ordersFilterActive": "Aktivní",
   "ordersFilterCreated": "Vytvořené",
-  "ordersFilterInPrep": "Připravované",
   "ordersFilterReady": "Hotové",
   "ordersFilterDelivered": "Doručené",
   "ordersFilterStorno": "Stornované",
   "ordersScopeSession": "Session",
   "ordersScopeAll": "Vše",
   "ordersNoOrders": "Žádné objednávky",
-  "ordersTimeCreated": "Čas vytvoření objednávky",
-  "ordersTimeUpdated": "Čas poslední změny",
+  "ordersTimeCreated": "Vytvořeno",
+  "ordersTimeUpdated": "Změněno",
   "ordersTableLabel": "Stůl",
   "ordersCustomerLabel": "Zákazník",
   "ordersStornoPrefix": "STORNO",
@@ -967,5 +965,8 @@
   "displayDevicesTitle": "Displeje",
   "displayDevicesEmpty": "Žádné displeje",
   "displayDeviceAddCustomer": "Zákaznický",
-  "displayDeviceAddKds": "KDS"
+  "displayDeviceAddKds": "KDS",
+  "displayWelcomeText": "Uvítací text",
+  "displayDefaultNameKds": "Objednávkový systém",
+  "displayDefaultWelcomeText": "Vítejte u nás!"
 }

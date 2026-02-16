@@ -186,7 +186,7 @@ class _TablesTabState extends ConsumerState<TablesTab> {
       ),
     );
 
-    if (result != true || nameCtrl.text.trim().isEmpty) return;
+    if (result != true || nameCtrl.text.trim().isEmpty || !mounted) return;
 
     final company = ref.read(currentCompanyProvider)!;
     final repo = ref.read(tableRepositoryProvider);
@@ -225,8 +225,7 @@ class _TablesTabState extends ConsumerState<TablesTab> {
         ],
       ),
     );
-    if (confirmed == true) {
-      await ref.read(tableRepositoryProvider).delete(table.id);
-    }
+    if (confirmed != true || !mounted) return;
+    await ref.read(tableRepositoryProvider).delete(table.id);
   }
 }

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/data/enums/layout_item_type.dart';
 import '../../../core/data/models/category_model.dart';
 import '../../../core/data/models/item_model.dart';
+import '../../../core/data/models/register_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/repositories/layout_item_repository.dart';
@@ -132,13 +133,13 @@ class _DialogAutoArrangeState extends ConsumerState<DialogAutoArrange> {
   Future<void> _execute(
     BuildContext context,
     WidgetRef ref,
-    dynamic register,
+    RegisterModel? register,
   ) async {
     if (register == null) return;
 
     final l = context.l10n;
-    final rows = register.gridRows as int;
-    final cols = register.gridCols as int;
+    final rows = register.gridRows;
+    final cols = register.gridCols;
     final maxOnRoot = _variant == _ArrangeVariant.horizontal ? rows : cols;
 
     final company = ref.read(currentCompanyProvider);
@@ -183,6 +184,7 @@ class _DialogAutoArrangeState extends ConsumerState<DialogAutoArrange> {
 
       final activeItems =
           items.where((i) => i.isActive && i.isSellable).toList();
+      if (!mounted) return;
 
       final registerId = register.id as String;
       final companyId = company.id;

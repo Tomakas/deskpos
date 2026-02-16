@@ -357,6 +357,7 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
       ),
     );
 
+    if (!mounted) return;
     setState(() {
       _filterItemType = itemType;
       _filterCategoryId = categoryId;
@@ -532,7 +533,7 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
       await _delete(context, ref, existing!);
       return;
     }
-    if (result != true || nameCtrl.text.trim().isEmpty) return;
+    if (result != true || nameCtrl.text.trim().isEmpty || !mounted) return;
 
     final company = ref.read(currentCompanyProvider)!;
     final repo = ref.read(itemRepositoryProvider);
@@ -596,8 +597,7 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
         ],
       ),
     );
-    if (confirmed == true) {
-      await ref.read(itemRepositoryProvider).delete(item.id);
-    }
+    if (confirmed != true || !mounted) return;
+    await ref.read(itemRepositoryProvider).delete(item.id);
   }
 }

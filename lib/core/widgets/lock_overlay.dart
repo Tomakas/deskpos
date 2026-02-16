@@ -251,15 +251,16 @@ class _LockOverlayState extends ConsumerState<LockOverlay> {
     // For already-logged-in users, check if PIN can be skipped
     final company = ref.read(currentCompanyProvider);
     if (company != null) {
-      final settings = await ref
-          .read(companySettingsRepositoryProvider)
-          .getByCompany(company.id);
+      final settingsRepo = ref.read(companySettingsRepositoryProvider);
+      final settings = await settingsRepo.getByCompany(company.id);
+      if (!mounted) return;
       if (settings != null && !settings.requirePinOnSwitch) {
         _onSuccess();
         return;
       }
     }
 
+    if (!mounted) return;
     setState(() => _step = _LockStep.pin);
   }
 
@@ -330,11 +331,13 @@ class _LockOverlayState extends ConsumerState<LockOverlay> {
     // Create shift if register session is active and user has no open shift
     final company = ref.read(currentCompanyProvider);
     if (company != null) {
-      final regSession = await ref.read(registerSessionRepositoryProvider).getActiveSession(company.id);
+      final regSessionRepo = ref.read(registerSessionRepositoryProvider);
+      final shiftRepo = ref.read(shiftRepositoryProvider);
+      final regSession = await regSessionRepo.getActiveSession(company.id);
+      if (!mounted) return;
       if (regSession != null) {
-        final shiftRepo = ref.read(shiftRepositoryProvider);
         final existing = await shiftRepo.getActiveShiftForUser(_selectedUser!.id, regSession.id);
-        if (existing == null) {
+        if (existing == null && mounted) {
           await shiftRepo.create(
             companyId: company.id,
             registerSessionId: regSession.id,
@@ -344,6 +347,7 @@ class _LockOverlayState extends ConsumerState<LockOverlay> {
       }
     }
 
+    if (!mounted) return;
     widget.onUnlocked(_selectedUser!, _isNewLogin);
   }
 

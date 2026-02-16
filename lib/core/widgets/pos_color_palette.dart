@@ -2,17 +2,24 @@ import 'package:flutter/material.dart';
 
 /// Shared preset colors used across color pickers in the app.
 const kColorPresets = [
-  '#F44336', // Red
-  '#E91E63', // Pink
-  '#FF9800', // Orange
-  '#FFC107', // Amber
-  '#4CAF50', // Green
-  '#009688', // Teal
-  '#2196F3', // Blue
-  '#3F51B5', // Indigo
-  '#9C27B0', // Purple
-  '#795548', // Brown
-  '#607D8B', // Blue Grey
+  '#E53935', // Red
+  '#EC407A', // Pink
+  '#AB47BC', // Purple
+  '#5C6BC0', // Indigo
+  '#1E88E5', // Blue
+  '#00ACC1', // Cyan
+  '#00897B', // Teal
+  '#43A047', // Green
+  '#7CB342', // Light Green
+  '#C0CA33', // Lime
+  '#FDD835', // Yellow
+  '#FFB300', // Amber
+  '#FB8C00', // Orange
+  '#FF5722', // Deep Orange
+  '#6D4C41', // Brown
+  '#78909C', // Blue Grey
+  '#BDBDBD', // Light Grey
+  '#FFFFFF', // White
   '#000000', // Black
 ];
 
@@ -46,26 +53,26 @@ class PosColorPalette extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Wrap(
-      spacing: 8,
-      runSpacing: 8,
+      spacing: 6,
+      runSpacing: 6,
       children: [
         // "None" / default option
         GestureDetector(
           onTap: () => onColorSelected(null),
           child: Container(
-            width: 32,
-            height: 32,
+            width: 28,
+            height: 28,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(
                 color: selectedColor == null
                     ? theme.colorScheme.primary
                     : theme.dividerColor,
-                width: selectedColor == null ? 3 : 1,
+                width: selectedColor == null ? 2.5 : 1,
               ),
             ),
             child: const Center(
-              child: Icon(Icons.block, size: 16),
+              child: Icon(Icons.block, size: 14),
             ),
           ),
         ),
@@ -74,16 +81,18 @@ class PosColorPalette extends StatelessWidget {
           GestureDetector(
             onTap: () => onColorSelected(hex),
             child: Container(
-              width: 32,
-              height: 32,
+              width: 28,
+              height: 28,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: parseHexColor(hex),
                 border: Border.all(
                   color: selectedColor == hex
                       ? theme.colorScheme.primary
-                      : Colors.transparent,
-                  width: 3,
+                      : hex == '#FFFFFF'
+                          ? theme.dividerColor
+                          : Colors.transparent,
+                  width: selectedColor == hex ? 2.5 : hex == '#FFFFFF' ? 1 : 2.5,
                 ),
               ),
             ),

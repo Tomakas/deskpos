@@ -9,9 +9,10 @@ class DisplayDeviceModel with _$DisplayDeviceModel {
   const factory DisplayDeviceModel({
     required String id,
     required String companyId,
-    required String parentRegisterId,
+    String? parentRegisterId,
     required String code,
     @Default('') String name,
+    @Default('') String welcomeText,
     @Default(DisplayDeviceType.customerDisplay) DisplayDeviceType type,
     @Default(true) bool isActive,
     required DateTime createdAt,

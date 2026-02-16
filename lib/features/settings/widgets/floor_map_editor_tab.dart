@@ -1015,7 +1015,7 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
       ),
     );
 
-    if (result == null) return;
+    if (result == null || !mounted) return;
 
     final company = ref.read(currentCompanyProvider)!;
 
@@ -1225,7 +1225,7 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
       ),
     );
 
-    if (result == null) return;
+    if (result == null || !mounted) return;
 
     final repo = ref.read(tableRepositoryProvider);
 
@@ -1404,7 +1404,7 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
       ),
     );
 
-    if (result == null) return;
+    if (result == null || !mounted) return;
 
     final repo = ref.read(mapElementRepositoryProvider);
 

@@ -133,6 +133,7 @@ class _ScreenConnectCompanyState extends ConsumerState<ScreenConnectCompany> {
 
       // KDS devices don't need register binding — skip selection
       final prefs = await SharedPreferences.getInstance();
+      if (!mounted) return;
       if (prefs.getString('display_type') == 'kds') {
         _finalize();
         return;
@@ -160,8 +161,11 @@ class _ScreenConnectCompanyState extends ConsumerState<ScreenConnectCompany> {
   }
 
   Future<void> _selectRegister(RegisterModel register) async {
-    final myDeviceId = await ref.read(deviceIdProvider.future);
-    await ref.read(deviceRegistrationRepositoryProvider).bind(
+    final deviceIdFuture = ref.read(deviceIdProvider.future);
+    final deviceRegRepo = ref.read(deviceRegistrationRepositoryProvider);
+    final myDeviceId = await deviceIdFuture;
+    if (!mounted) return;
+    await deviceRegRepo.bind(
       companyId: _companyId!,
       registerId: register.id,
       deviceId: myDeviceId,

@@ -317,7 +317,9 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
     int loyaltyEarn = 0;
     final company = ref.read(currentCompanyProvider);
     if (company != null && _bill.customerId != null) {
-      final settings = await ref.read(companySettingsRepositoryProvider).getOrCreate(company.id);
+      final settingsRepo = ref.read(companySettingsRepositoryProvider);
+      final settings = await settingsRepo.getOrCreate(company.id);
+      if (!mounted) return;
       loyaltyEarn = settings.loyaltyEarnRate;
     }
 
@@ -377,6 +379,7 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
       if (mounted) setState(() => _processing = false);
       return;
     }
+    if (!mounted) return;
 
     // Record the payment
     final repo = ref.read(billRepositoryProvider);

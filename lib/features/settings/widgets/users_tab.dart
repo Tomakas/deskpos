@@ -138,7 +138,7 @@ class _UsersTabState extends ConsumerState<UsersTab> {
       context: context,
       builder: (_) => _UserEditDialog(roles: roles, existing: existing),
     );
-    if (result == null) return;
+    if (result == null || !mounted) return;
 
     final company = ref.read(currentCompanyProvider)!;
     final userRepo = ref.read(userRepositoryProvider);
@@ -198,9 +198,8 @@ class _UsersTabState extends ConsumerState<UsersTab> {
         ],
       ),
     );
-    if (confirmed == true) {
-      await ref.read(userRepositoryProvider).delete(user.id);
-    }
+    if (confirmed != true || !mounted) return;
+    await ref.read(userRepositoryProvider).delete(user.id);
   }
 }
 
