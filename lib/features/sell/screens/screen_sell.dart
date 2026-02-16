@@ -1052,7 +1052,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
       context.pop();
     } else {
       // User cancelled payment — cancel the bill and create fresh one for retry
-      await billRepo.cancelBill(billId);
+      await billRepo.cancelBill(billId, userId: ref.read(activeUserProvider)?.id);
       await billRepo.updateTotals(billId);
       if (mounted) await _createQuickBill();
     }
@@ -1076,7 +1076,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
 
       // Cancel the quick bill before creating a regular one
       if (_quickBillId != null) {
-        await billRepo.cancelBill(_quickBillId!);
+        await billRepo.cancelBill(_quickBillId!, userId: ref.read(activeUserProvider)?.id);
         if (!mounted) return;
         _quickBillId = null;
       }

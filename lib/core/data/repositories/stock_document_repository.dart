@@ -109,7 +109,10 @@ class StockDocumentRepository {
             updatedAt: now,
           );
 
-          await stockMovementRepo.createMovement(movement);
+          final movementResult = await stockMovementRepo.createMovement(movement);
+          if (movementResult case Failure(:final message)) {
+            throw Exception(message);
+          }
 
           // Adjust stock level
           final delta = direction == StockMovementDirection.inbound
@@ -227,7 +230,10 @@ class StockDocumentRepository {
             updatedAt: now,
           );
 
-          await stockMovementRepo.createMovement(movement);
+          final movementResult = await stockMovementRepo.createMovement(movement);
+          if (movementResult case Failure(:final message)) {
+            throw Exception(message);
+          }
 
           // Set absolute quantity (inventory sets the truth)
           await stockLevelRepo.setQuantity(

@@ -235,6 +235,7 @@ class CustomerRepository
   Future<Result<void>> updateTrackingOnPayment({
     required String customerId,
     required int billTotal,
+    bool updateLastVisit = true,
   }) async {
     try {
       final now = DateTime.now();
@@ -247,8 +248,8 @@ class CustomerRepository
       await db.transaction(() async {
         await (db.update(db.customers)..where((t) => t.id.equals(customerId))).write(
           CustomersCompanion(
-            totalSpent: Value(newTotalSpent),
-            lastVisitDate: Value(now),
+            totalSpent: Value(newTotalSpent < 0 ? 0 : newTotalSpent),
+            lastVisitDate: updateLastVisit ? Value(now) : const Value.absent(),
             updatedAt: Value(now),
           ),
         );

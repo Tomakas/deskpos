@@ -3,9 +3,11 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 
 import '../../database/app_database.dart';
+import '../../logging/app_logger.dart';
 import '../mappers/entity_mappers.dart';
 import '../mappers/supabase_mappers.dart';
 import '../models/tax_rate_model.dart';
+import '../result.dart';
 import 'base_company_scoped_repository.dart';
 
 class TaxRateRepository
@@ -56,50 +58,56 @@ class TaxRateRepository
         updatedAt: Value(now),
       );
 
-  Future<void> clearDefault(String companyId, {String? exceptId}) async {
-    // 1. Find affected records before update
-    final selectQuery = db.select(db.taxRates)
-      ..where((t) =>
-          t.companyId.equals(companyId) &
-          t.isDefault.equals(true) &
-          t.deletedAt.isNull());
-    if (exceptId != null) {
-      selectQuery.where((t) => t.id.equals(exceptId).not());
-    }
-    final affected = await selectQuery.get();
-    if (affected.isEmpty) return;
-
-    // 2. Bulk update + 3. Enqueue in a single transaction
-    await db.transaction(() async {
-      final updateQuery = db.update(db.taxRates)
+  Future<Result<void>> clearDefault(String companyId, {String? exceptId}) async {
+    try {
+      // 1. Find affected records before update
+      final selectQuery = db.select(db.taxRates)
         ..where((t) =>
             t.companyId.equals(companyId) &
             t.isDefault.equals(true) &
             t.deletedAt.isNull());
       if (exceptId != null) {
-        updateQuery.where((t) => t.id.equals(exceptId).not());
+        selectQuery.where((t) => t.id.equals(exceptId).not());
       }
-      await updateQuery.write(TaxRatesCompanion(
-        isDefault: const Value(false),
-        updatedAt: Value(DateTime.now()),
-      ));
+      final affected = await selectQuery.get();
+      if (affected.isEmpty) return const Success(null);
 
-      if (syncQueueRepo != null) {
-        for (final entity in affected) {
-          final updated = await (db.select(db.taxRates)
-                ..where((t) => t.id.equals(entity.id)))
-              .getSingle();
-          final model = taxRateFromEntity(updated);
-          await syncQueueRepo!.enqueue(
-            companyId: model.companyId,
-            entityType: supabaseTableName,
-            entityId: model.id,
-            operation: 'update',
-            payload: jsonEncode(taxRateToSupabaseJson(model)),
-          );
+      // 2. Bulk update + 3. Enqueue in a single transaction
+      await db.transaction(() async {
+        final updateQuery = db.update(db.taxRates)
+          ..where((t) =>
+              t.companyId.equals(companyId) &
+              t.isDefault.equals(true) &
+              t.deletedAt.isNull());
+        if (exceptId != null) {
+          updateQuery.where((t) => t.id.equals(exceptId).not());
         }
-      }
-    });
+        await updateQuery.write(TaxRatesCompanion(
+          isDefault: const Value(false),
+          updatedAt: Value(DateTime.now()),
+        ));
+
+        if (syncQueueRepo != null) {
+          for (final entity in affected) {
+            final updated = await (db.select(db.taxRates)
+                  ..where((t) => t.id.equals(entity.id)))
+                .getSingle();
+            final model = taxRateFromEntity(updated);
+            await syncQueueRepo!.enqueue(
+              companyId: model.companyId,
+              entityType: supabaseTableName,
+              entityId: model.id,
+              operation: 'update',
+              payload: jsonEncode(taxRateToSupabaseJson(model)),
+            );
+          }
+        }
+      });
+      return const Success(null);
+    } catch (e, s) {
+      AppLogger.error('Failed to clear default tax rate', error: e, stackTrace: s);
+      return Failure('Failed to clear default tax rate: $e');
+    }
   }
 
   @override

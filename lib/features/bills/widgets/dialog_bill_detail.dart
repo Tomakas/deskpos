@@ -670,7 +670,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
     if (!mounted) return;
 
     final repo = ref.read(billRepositoryProvider);
-    final result = await repo.cancelBill(bill.id);
+    final result = await repo.cancelBill(bill.id, userId: ref.read(activeUserProvider)?.id);
     if (result is Success) {
       await repo.updateTotals(bill.id);
       if (context.mounted) Navigator.pop(context);

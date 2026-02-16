@@ -3,12 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/data/mappers/entity_mappers.dart';
 import '../../../core/data/models/company_model.dart';
 import '../../../core/data/models/company_settings_model.dart';
 import '../../../core/data/models/currency_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
-import '../../../core/data/providers/database_provider.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
@@ -76,12 +74,14 @@ class _CompanyInfoTabState extends ConsumerState<CompanyInfoTab> {
     if (company == null) return;
 
     // Load currencies
-    final db = ref.read(appDatabaseProvider);
-    final rows = await (db.select(db.currencies)
-          ..where((t) => t.deletedAt.isNull()))
-        .get();
+    final currencyRepo = ref.read(currencyRepositoryProvider);
+    final currencyResult = await currencyRepo.getAll();
+    final allCurrencies = switch (currencyResult) {
+      Success(value: final list) => list,
+      Failure() => <CurrencyModel>[],
+    };
     final unique = <String, CurrencyModel>{};
-    for (final r in rows.map(currencyFromEntity)) {
+    for (final r in allCurrencies) {
       unique.putIfAbsent(r.code, () => r);
     }
     final currencies = unique.values.toList()

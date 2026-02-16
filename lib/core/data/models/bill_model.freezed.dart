@@ -42,6 +42,7 @@ mixin _$BillModel {
   int get paidAmount => throw _privateConstructorUsedError;
   int get loyaltyPointsUsed => throw _privateConstructorUsedError;
   int get loyaltyDiscountAmount => throw _privateConstructorUsedError;
+  int get loyaltyPointsEarned => throw _privateConstructorUsedError;
   int get voucherDiscountAmount => throw _privateConstructorUsedError;
   String? get voucherId => throw _privateConstructorUsedError;
   DateTime get openedAt => throw _privateConstructorUsedError;
@@ -90,6 +91,7 @@ abstract class $BillModelCopyWith<$Res> {
     int paidAmount,
     int loyaltyPointsUsed,
     int loyaltyDiscountAmount,
+    int loyaltyPointsEarned,
     int voucherDiscountAmount,
     String? voucherId,
     DateTime openedAt,
@@ -142,6 +144,7 @@ class _$BillModelCopyWithImpl<$Res, $Val extends BillModel>
     Object? paidAmount = null,
     Object? loyaltyPointsUsed = null,
     Object? loyaltyDiscountAmount = null,
+    Object? loyaltyPointsEarned = null,
     Object? voucherDiscountAmount = null,
     Object? voucherId = freezed,
     Object? openedAt = null,
@@ -254,6 +257,10 @@ class _$BillModelCopyWithImpl<$Res, $Val extends BillModel>
                 ? _value.loyaltyDiscountAmount
                 : loyaltyDiscountAmount // ignore: cast_nullable_to_non_nullable
                       as int,
+            loyaltyPointsEarned: null == loyaltyPointsEarned
+                ? _value.loyaltyPointsEarned
+                : loyaltyPointsEarned // ignore: cast_nullable_to_non_nullable
+                      as int,
             voucherDiscountAmount: null == voucherDiscountAmount
                 ? _value.voucherDiscountAmount
                 : voucherDiscountAmount // ignore: cast_nullable_to_non_nullable
@@ -331,6 +338,7 @@ abstract class _$$BillModelImplCopyWith<$Res>
     int paidAmount,
     int loyaltyPointsUsed,
     int loyaltyDiscountAmount,
+    int loyaltyPointsEarned,
     int voucherDiscountAmount,
     String? voucherId,
     DateTime openedAt,
@@ -382,6 +390,7 @@ class __$$BillModelImplCopyWithImpl<$Res>
     Object? paidAmount = null,
     Object? loyaltyPointsUsed = null,
     Object? loyaltyDiscountAmount = null,
+    Object? loyaltyPointsEarned = null,
     Object? voucherDiscountAmount = null,
     Object? voucherId = freezed,
     Object? openedAt = null,
@@ -494,6 +503,10 @@ class __$$BillModelImplCopyWithImpl<$Res>
             ? _value.loyaltyDiscountAmount
             : loyaltyDiscountAmount // ignore: cast_nullable_to_non_nullable
                   as int,
+        loyaltyPointsEarned: null == loyaltyPointsEarned
+            ? _value.loyaltyPointsEarned
+            : loyaltyPointsEarned // ignore: cast_nullable_to_non_nullable
+                  as int,
         voucherDiscountAmount: null == voucherDiscountAmount
             ? _value.voucherDiscountAmount
             : voucherDiscountAmount // ignore: cast_nullable_to_non_nullable
@@ -564,6 +577,7 @@ class _$BillModelImpl implements _BillModel {
     this.paidAmount = 0,
     this.loyaltyPointsUsed = 0,
     this.loyaltyDiscountAmount = 0,
+    this.loyaltyPointsEarned = 0,
     this.voucherDiscountAmount = 0,
     this.voucherId,
     required this.openedAt,
@@ -638,6 +652,9 @@ class _$BillModelImpl implements _BillModel {
   final int loyaltyDiscountAmount;
   @override
   @JsonKey()
+  final int loyaltyPointsEarned;
+  @override
+  @JsonKey()
   final int voucherDiscountAmount;
   @override
   final String? voucherId;
@@ -658,7 +675,7 @@ class _$BillModelImpl implements _BillModel {
 
   @override
   String toString() {
-    return 'BillModel(id: $id, companyId: $companyId, customerId: $customerId, customerName: $customerName, sectionId: $sectionId, tableId: $tableId, registerId: $registerId, lastRegisterId: $lastRegisterId, registerSessionId: $registerSessionId, openedByUserId: $openedByUserId, billNumber: $billNumber, numberOfGuests: $numberOfGuests, isTakeaway: $isTakeaway, status: $status, currencyId: $currencyId, subtotalGross: $subtotalGross, subtotalNet: $subtotalNet, discountAmount: $discountAmount, discountType: $discountType, taxTotal: $taxTotal, totalGross: $totalGross, roundingAmount: $roundingAmount, paidAmount: $paidAmount, loyaltyPointsUsed: $loyaltyPointsUsed, loyaltyDiscountAmount: $loyaltyDiscountAmount, voucherDiscountAmount: $voucherDiscountAmount, voucherId: $voucherId, openedAt: $openedAt, closedAt: $closedAt, mapPosX: $mapPosX, mapPosY: $mapPosY, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+    return 'BillModel(id: $id, companyId: $companyId, customerId: $customerId, customerName: $customerName, sectionId: $sectionId, tableId: $tableId, registerId: $registerId, lastRegisterId: $lastRegisterId, registerSessionId: $registerSessionId, openedByUserId: $openedByUserId, billNumber: $billNumber, numberOfGuests: $numberOfGuests, isTakeaway: $isTakeaway, status: $status, currencyId: $currencyId, subtotalGross: $subtotalGross, subtotalNet: $subtotalNet, discountAmount: $discountAmount, discountType: $discountType, taxTotal: $taxTotal, totalGross: $totalGross, roundingAmount: $roundingAmount, paidAmount: $paidAmount, loyaltyPointsUsed: $loyaltyPointsUsed, loyaltyDiscountAmount: $loyaltyDiscountAmount, loyaltyPointsEarned: $loyaltyPointsEarned, voucherDiscountAmount: $voucherDiscountAmount, voucherId: $voucherId, openedAt: $openedAt, closedAt: $closedAt, mapPosX: $mapPosX, mapPosY: $mapPosY, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
   }
 
   @override
@@ -713,6 +730,8 @@ class _$BillModelImpl implements _BillModel {
                 other.loyaltyPointsUsed == loyaltyPointsUsed) &&
             (identical(other.loyaltyDiscountAmount, loyaltyDiscountAmount) ||
                 other.loyaltyDiscountAmount == loyaltyDiscountAmount) &&
+            (identical(other.loyaltyPointsEarned, loyaltyPointsEarned) ||
+                other.loyaltyPointsEarned == loyaltyPointsEarned) &&
             (identical(other.voucherDiscountAmount, voucherDiscountAmount) ||
                 other.voucherDiscountAmount == voucherDiscountAmount) &&
             (identical(other.voucherId, voucherId) ||
@@ -759,6 +778,7 @@ class _$BillModelImpl implements _BillModel {
     paidAmount,
     loyaltyPointsUsed,
     loyaltyDiscountAmount,
+    loyaltyPointsEarned,
     voucherDiscountAmount,
     voucherId,
     openedAt,
@@ -806,6 +826,7 @@ abstract class _BillModel implements BillModel {
     final int paidAmount,
     final int loyaltyPointsUsed,
     final int loyaltyDiscountAmount,
+    final int loyaltyPointsEarned,
     final int voucherDiscountAmount,
     final String? voucherId,
     required final DateTime openedAt,
@@ -867,6 +888,8 @@ abstract class _BillModel implements BillModel {
   int get loyaltyPointsUsed;
   @override
   int get loyaltyDiscountAmount;
+  @override
+  int get loyaltyPointsEarned;
   @override
   int get voucherDiscountAmount;
   @override

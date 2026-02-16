@@ -326,6 +326,7 @@ Map<String, dynamic> billToSupabaseJson(BillModel m) => {
       'paid_amount': m.paidAmount,
       'loyalty_points_used': m.loyaltyPointsUsed,
       'loyalty_discount_amount': m.loyaltyDiscountAmount,
+      'loyalty_points_earned': m.loyaltyPointsEarned,
       'voucher_discount_amount': m.voucherDiscountAmount,
       'voucher_id': m.voucherId,
       'opened_at': toIso8601Utc(m.openedAt),

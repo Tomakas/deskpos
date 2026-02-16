@@ -190,23 +190,28 @@ class RegisterRepository {
     }
   }
 
-  Future<RegisterModel?> updateGrid(String registerId, int gridRows, int gridCols) async {
-    return await _db.transaction(() async {
-      final now = DateTime.now();
-      await (_db.update(_db.registers)..where((t) => t.id.equals(registerId)))
-          .write(RegistersCompanion(
-        gridRows: Value(gridRows),
-        gridCols: Value(gridCols),
-        updatedAt: Value(now),
-      ));
-      final entity = await (_db.select(_db.registers)
-            ..where((t) => t.id.equals(registerId)))
-          .getSingleOrNull();
-      if (entity == null) return null;
-      final model = registerFromEntity(entity);
-      await _enqueue('update', model);
-      return model;
-    });
+  Future<Result<RegisterModel?>> updateGrid(String registerId, int gridRows, int gridCols) async {
+    try {
+      return await _db.transaction(() async {
+        final now = DateTime.now();
+        await (_db.update(_db.registers)..where((t) => t.id.equals(registerId)))
+            .write(RegistersCompanion(
+          gridRows: Value(gridRows),
+          gridCols: Value(gridCols),
+          updatedAt: Value(now),
+        ));
+        final entity = await (_db.select(_db.registers)
+              ..where((t) => t.id.equals(registerId)))
+            .getSingleOrNull();
+        if (entity == null) return const Success(null);
+        final model = registerFromEntity(entity);
+        await _enqueue('update', model);
+        return Success(model);
+      });
+    } catch (e, s) {
+      AppLogger.error('Failed to update register grid', error: e, stackTrace: s);
+      return Failure('Failed to update register grid: $e');
+    }
   }
 
   /// Sets the given register as main and clears isMain from all others in the company.
@@ -253,57 +258,75 @@ class RegisterRepository {
   }
 
   /// Sets the boundDeviceId on a register (marks it as bound to a device).
-  Future<void> setBoundDevice(String registerId, String deviceId) async {
-    await _db.transaction(() async {
-      final now = DateTime.now();
-      await (_db.update(_db.registers)..where((t) => t.id.equals(registerId)))
-          .write(RegistersCompanion(
-        boundDeviceId: Value(deviceId),
-        updatedAt: Value(now),
-      ));
-      final entity = await (_db.select(_db.registers)
-            ..where((t) => t.id.equals(registerId)))
-          .getSingleOrNull();
-      if (entity != null) {
-        await _enqueue('update', registerFromEntity(entity));
-      }
-    });
+  Future<Result<void>> setBoundDevice(String registerId, String deviceId) async {
+    try {
+      await _db.transaction(() async {
+        final now = DateTime.now();
+        await (_db.update(_db.registers)..where((t) => t.id.equals(registerId)))
+            .write(RegistersCompanion(
+          boundDeviceId: Value(deviceId),
+          updatedAt: Value(now),
+        ));
+        final entity = await (_db.select(_db.registers)
+              ..where((t) => t.id.equals(registerId)))
+            .getSingleOrNull();
+        if (entity != null) {
+          await _enqueue('update', registerFromEntity(entity));
+        }
+      });
+      return const Success(null);
+    } catch (e, s) {
+      AppLogger.error('Failed to set bound device', error: e, stackTrace: s);
+      return Failure('Failed to set bound device: $e');
+    }
   }
 
   /// Sets (or clears) the activeBillId on a register.
-  Future<void> setActiveBill(String registerId, String? billId) async {
-    await _db.transaction(() async {
-      final now = DateTime.now();
-      await (_db.update(_db.registers)..where((t) => t.id.equals(registerId)))
-          .write(RegistersCompanion(
-        activeBillId: Value(billId),
-        updatedAt: Value(now),
-      ));
-      final entity = await (_db.select(_db.registers)
-            ..where((t) => t.id.equals(registerId)))
-          .getSingleOrNull();
-      if (entity != null) {
-        await _enqueue('update', registerFromEntity(entity));
-      }
-    });
+  Future<Result<void>> setActiveBill(String registerId, String? billId) async {
+    try {
+      await _db.transaction(() async {
+        final now = DateTime.now();
+        await (_db.update(_db.registers)..where((t) => t.id.equals(registerId)))
+            .write(RegistersCompanion(
+          activeBillId: Value(billId),
+          updatedAt: Value(now),
+        ));
+        final entity = await (_db.select(_db.registers)
+              ..where((t) => t.id.equals(registerId)))
+            .getSingleOrNull();
+        if (entity != null) {
+          await _enqueue('update', registerFromEntity(entity));
+        }
+      });
+      return const Success(null);
+    } catch (e, s) {
+      AppLogger.error('Failed to set active bill', error: e, stackTrace: s);
+      return Failure('Failed to set active bill: $e');
+    }
   }
 
   /// Clears the boundDeviceId on a register (releases it for other devices).
-  Future<void> clearBoundDevice(String registerId) async {
-    await _db.transaction(() async {
-      final now = DateTime.now();
-      await (_db.update(_db.registers)..where((t) => t.id.equals(registerId)))
-          .write(RegistersCompanion(
-        boundDeviceId: const Value(null),
-        updatedAt: Value(now),
-      ));
-      final entity = await (_db.select(_db.registers)
-            ..where((t) => t.id.equals(registerId)))
-          .getSingleOrNull();
-      if (entity != null) {
-        await _enqueue('update', registerFromEntity(entity));
-      }
-    });
+  Future<Result<void>> clearBoundDevice(String registerId) async {
+    try {
+      await _db.transaction(() async {
+        final now = DateTime.now();
+        await (_db.update(_db.registers)..where((t) => t.id.equals(registerId)))
+            .write(RegistersCompanion(
+          boundDeviceId: const Value(null),
+          updatedAt: Value(now),
+        ));
+        final entity = await (_db.select(_db.registers)
+              ..where((t) => t.id.equals(registerId)))
+            .getSingleOrNull();
+        if (entity != null) {
+          await _enqueue('update', registerFromEntity(entity));
+        }
+      });
+      return const Success(null);
+    } catch (e, s) {
+      AppLogger.error('Failed to clear bound device', error: e, stackTrace: s);
+      return Failure('Failed to clear bound device: $e');
+    }
   }
 
   Future<void> _enqueue(String operation, RegisterModel model) async {

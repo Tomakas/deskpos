@@ -8,7 +8,6 @@ import 'package:uuid/uuid.dart';
 
 import '../../auth/auth_service.dart';
 import '../../auth/session_manager.dart';
-import '../mappers/entity_mappers.dart';
 import '../models/company_model.dart';
 import '../models/currency_model.dart';
 import '../models/device_registration_model.dart';
@@ -138,13 +137,8 @@ final currentCurrencyProvider = FutureProvider<CurrencyModel?>((ref) async {
   final company = ref.watch(currentCompanyProvider);
   if (company == null) return null;
 
-  final db = ref.watch(appDatabaseProvider);
-  final row = await (db.select(db.currencies)
-        ..where((t) => t.id.equals(company.defaultCurrencyId)))
-      .getSingleOrNull();
-
-  if (row == null) return null;
-  return currencyFromEntity(row);
+  final currencyRepo = ref.watch(currencyRepositoryProvider);
+  return currencyRepo.getById(company.defaultCurrencyId);
 });
 
 /// Provides the app locale string from company settings (reactive via stream).

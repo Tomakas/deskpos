@@ -10,6 +10,7 @@ import '../repositories/customer_repository.dart';
 import '../repositories/customer_transaction_repository.dart';
 import '../repositories/company_repository.dart';
 import '../repositories/company_settings_repository.dart';
+import '../repositories/currency_repository.dart';
 import '../repositories/device_registration_repository.dart';
 import '../repositories/item_repository.dart';
 import '../repositories/layout_item_repository.dart';
@@ -56,6 +57,12 @@ final deviceRegistrationRepositoryProvider = Provider<DeviceRegistrationReposito
     ref.watch(appDatabaseProvider),
     registerRepo: ref.watch(registerRepositoryProvider),
   );
+});
+
+// --- Read-only repositories ---
+
+final currencyRepositoryProvider = Provider<CurrencyRepository>((ref) {
+  return CurrencyRepository(ref.watch(appDatabaseProvider));
 });
 
 // --- Domain repositories ---

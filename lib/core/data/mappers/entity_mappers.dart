@@ -407,6 +407,7 @@ BillModel billFromEntity(Bill e) => BillModel(
       paidAmount: e.paidAmount,
       loyaltyPointsUsed: e.loyaltyPointsUsed,
       loyaltyDiscountAmount: e.loyaltyDiscountAmount,
+      loyaltyPointsEarned: e.loyaltyPointsEarned,
       voucherDiscountAmount: e.voucherDiscountAmount,
       voucherId: e.voucherId,
       openedAt: e.openedAt,

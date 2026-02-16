@@ -245,25 +245,32 @@ class BillRepository {
     try {
       final loyaltyDiscountAmount = pointsToUse * pointValue;
 
-      await (_db.update(_db.bills)..where((t) => t.id.equals(billId))).write(
-        BillsCompanion(
-          loyaltyPointsUsed: Value(pointsToUse),
-          loyaltyDiscountAmount: Value(loyaltyDiscountAmount),
-          updatedAt: Value(DateTime.now()),
-        ),
-      );
+      final billEntity = await _db.transaction(() async {
+        await (_db.update(_db.bills)..where((t) => t.id.equals(billId))).write(
+          BillsCompanion(
+            loyaltyPointsUsed: Value(pointsToUse),
+            loyaltyDiscountAmount: Value(loyaltyDiscountAmount),
+            updatedAt: Value(DateTime.now()),
+          ),
+        );
+        final entity = await (_db.select(_db.bills)
+              ..where((t) => t.id.equals(billId)))
+            .getSingle();
+        await _enqueueBill('update', billFromEntity(entity));
+        return entity;
+      });
 
       // Deduct points from customer
-      final billEntity = await (_db.select(_db.bills)
-            ..where((t) => t.id.equals(billId)))
-          .getSingle();
       if (billEntity.customerId != null && customerRepo != null) {
-        await customerRepo!.adjustPoints(
+        final pointsResult = await customerRepo!.adjustPoints(
           customerId: billEntity.customerId!,
           delta: -pointsToUse,
           processedByUserId: processedByUserId,
           orderId: billId,
         );
+        if (pointsResult case Failure(:final message)) {
+          return Failure(message);
+        }
       }
 
       // Recalculate totals
@@ -289,8 +296,9 @@ class BillRepository {
     try {
       final now = DateTime.now();
       final paymentId = const Uuid().v7();
+      int earnedPoints = 0;
 
-      // Atomic: insert payment + update bill + enqueue
+      // Atomic: insert payment + update bill + store earned points + enqueue
       final updatedBill = await _db.transaction(() async {
         await _db.into(_db.payments).insert(PaymentsCompanion.insert(
           id: paymentId,
@@ -322,6 +330,22 @@ class BillRepository {
           ),
         );
 
+        // Calculate and store earned loyalty points (inside transaction for sync)
+        if (isPaid && loyaltyEarnRate > 0) {
+          final currentBill = await (_db.select(_db.bills)
+                ..where((t) => t.id.equals(billId)))
+              .getSingle();
+          earnedPoints = (billFromEntity(currentBill).totalGross * loyaltyEarnRate) ~/ 10000;
+          if (earnedPoints > 0) {
+            await (_db.update(_db.bills)..where((t) => t.id.equals(billId))).write(
+              BillsCompanion(
+                loyaltyPointsEarned: Value(earnedPoints),
+                updatedAt: Value(DateTime.now()),
+              ),
+            );
+          }
+        }
+
         final paymentEntity = await (_db.select(_db.payments)
               ..where((t) => t.id.equals(paymentId)))
             .getSingle();
@@ -345,16 +369,13 @@ class BillRepository {
         );
 
         // Auto-earn loyalty points
-        if (loyaltyEarnRate > 0) {
-          final earnedPoints = (updatedBill.totalGross * loyaltyEarnRate) ~/ 10000;
-          if (earnedPoints > 0) {
-            await customerRepo!.adjustPoints(
-              customerId: updatedBill.customerId!,
-              delta: earnedPoints,
-              processedByUserId: userId ?? '',
-              orderId: billId,
-            );
-          }
+        if (earnedPoints > 0) {
+          await customerRepo!.adjustPoints(
+            customerId: updatedBill.customerId!,
+            delta: earnedPoints,
+            processedByUserId: userId ?? '',
+            orderId: billId,
+          );
         }
       }
 
@@ -365,7 +386,7 @@ class BillRepository {
     }
   }
 
-  Future<Result<BillModel>> cancelBill(String billId) async {
+  Future<Result<BillModel>> cancelBill(String billId, {String? userId}) async {
     try {
       final bill = await (_db.select(_db.bills)
             ..where((t) => t.id.equals(billId)))
@@ -411,6 +432,17 @@ class BillRepository {
         await _enqueueBill('update', b);
         return b;
       });
+
+      // Return redeemed loyalty points on cancel
+      if (bill.loyaltyPointsUsed > 0 && bill.customerId != null && customerRepo != null) {
+        await customerRepo!.adjustPoints(
+          customerId: bill.customerId!,
+          delta: bill.loyaltyPointsUsed,
+          processedByUserId: userId ?? bill.openedByUserId,
+          orderId: billId,
+        );
+      }
+
       return Success(cancelledBill);
     } catch (e, s) {
       AppLogger.error('Failed to cancel bill', error: e, stackTrace: s);
@@ -642,6 +674,7 @@ class BillRepository {
           BillsCompanion(
             status: const Value(BillStatus.refunded),
             paidAmount: const Value(0),
+            loyaltyPointsEarned: const Value(0),
             updatedAt: Value(now),
           ),
         );
@@ -690,6 +723,37 @@ class BillRepository {
         await _enqueueBill('update', b);
         return b;
       });
+
+      // Reverse loyalty on refund
+      if (bill.customerId != null && customerRepo != null) {
+        // Return redeemed points
+        if (bill.loyaltyPointsUsed > 0) {
+          await customerRepo!.adjustPoints(
+            customerId: bill.customerId!,
+            delta: bill.loyaltyPointsUsed,
+            processedByUserId: userId,
+            orderId: billId,
+          );
+        }
+
+        // Reverse earned points
+        if (bill.loyaltyPointsEarned > 0) {
+          await customerRepo!.adjustPoints(
+            customerId: bill.customerId!,
+            delta: -bill.loyaltyPointsEarned,
+            processedByUserId: userId,
+            orderId: billId,
+          );
+        }
+
+        // Reverse totalSpent (without updating lastVisitDate)
+        await customerRepo!.updateTrackingOnPayment(
+          customerId: bill.customerId!,
+          billTotal: -bill.totalGross,
+          updateLastVisit: false,
+        );
+      }
+
       return Success(refundedBill);
     } catch (e, s) {
       AppLogger.error('Failed to refund bill', error: e, stackTrace: s);
@@ -746,6 +810,14 @@ class BillRepository {
       final refundMethodId = payments.first.paymentMethodId;
       final isCash = cashMethodIds.contains(refundMethodId);
 
+      // Calculate proportional loyalty earned reversal
+      final proportionalEarned = (bill.totalGross > 0 && bill.loyaltyPointsEarned > 0)
+          ? (bill.loyaltyPointsEarned * refundAmount / bill.totalGross).round()
+          : 0;
+      final newLoyaltyPointsEarned = (bill.loyaltyPointsEarned - proportionalEarned).clamp(0, bill.loyaltyPointsEarned);
+      final newPaidAmount = bill.paidAmount - refundAmount;
+      final isFullyRefunded = newPaidAmount <= 0;
+
       final refundPaymentId = const Uuid().v7();
 
       // Atomic: create negative payment + void item + update bill + enqueue
@@ -771,13 +843,11 @@ class BillRepository {
           ),
         );
 
-        // Update bill paid amount
-        final newPaidAmount = bill.paidAmount - refundAmount;
-        final isFullyRefunded = newPaidAmount <= 0;
-
+        // Update bill paid amount + loyalty earned
         await (_db.update(_db.bills)..where((t) => t.id.equals(billId))).write(
           BillsCompanion(
             paidAmount: Value(newPaidAmount),
+            loyaltyPointsEarned: Value(isFullyRefunded ? 0 : newLoyaltyPointsEarned),
             status: isFullyRefunded
                 ? const Value(BillStatus.refunded)
                 : const Value.absent(),
@@ -826,6 +896,36 @@ class BillRepository {
         }
       });
 
+      // Reverse loyalty on item refund
+      if (bill.customerId != null && customerRepo != null) {
+        // Proportional earned points reversal
+        if (proportionalEarned > 0) {
+          await customerRepo!.adjustPoints(
+            customerId: bill.customerId!,
+            delta: -proportionalEarned,
+            processedByUserId: userId,
+            orderId: billId,
+          );
+        }
+
+        // If fully refunded, also return redeemed points
+        if (isFullyRefunded && bill.loyaltyPointsUsed > 0) {
+          await customerRepo!.adjustPoints(
+            customerId: bill.customerId!,
+            delta: bill.loyaltyPointsUsed,
+            processedByUserId: userId,
+            orderId: billId,
+          );
+        }
+
+        // Reverse partial totalSpent
+        await customerRepo!.updateTrackingOnPayment(
+          customerId: bill.customerId!,
+          billTotal: -refundAmount,
+          updateLastVisit: false,
+        );
+      }
+
       // Recalculate totals (has its own transaction + enqueue)
       return updateTotals(billId);
     } catch (e, s) {
@@ -839,7 +939,10 @@ class BillRepository {
       if (orderRepo == null) return const Failure('OrderRepository not available');
 
       // Move all orders from source to target
-      await orderRepo!.reassignOrdersToBill(sourceBillId, targetBillId);
+      final reassignResult = await orderRepo!.reassignOrdersToBill(sourceBillId, targetBillId);
+      if (reassignResult case Failure(:final message)) {
+        return Failure(message);
+      }
 
       // Cancel source bill (atomic with enqueue)
       final now = DateTime.now();
@@ -886,13 +989,16 @@ class BillRepository {
           .getSingle();
 
       // Move selected items to new order on target bill
-      await orderRepo!.splitItemsToNewOrder(
+      final splitResult = await orderRepo!.splitItemsToNewOrder(
         targetBillId: targetBillId,
         companyId: sourceBill.companyId,
         userId: userId,
         orderItemIds: orderItemIds,
         registerId: registerId,
       );
+      if (splitResult case Failure(:final message)) {
+        return Failure(message);
+      }
 
       // Recalculate both bill totals
       await updateTotals(sourceBillId);

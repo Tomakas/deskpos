@@ -349,7 +349,7 @@ class _DialogVoucherCreateState extends ConsumerState<DialogVoucherCreate> {
       if (mounted) Navigator.pop(context, model);
     } else {
       // Payment cancelled — cancel the bill
-      await billRepo.cancelBill(bill.id);
+      await billRepo.cancelBill(bill.id, userId: ref.read(activeUserProvider)?.id);
       await billRepo.updateTotals(bill.id);
     }
   }

@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-02-16 (evening) — Loyalty reversal
+
+### Features
+- **refundBill**: Reverse earned loyalty points, return redeemed points, reverse totalSpent on full bill refund
+- **refundItem**: Proportional reversal of earned loyalty points, partial totalSpent reversal; returns redeemed points when bill is fully refunded via item refunds
+- **cancelBill**: Return redeemed loyalty points when cancelling bill with loyalty discount
+- **recordPayment**: Store `loyaltyPointsEarned` on bill inside transaction (ensures correct sync to Supabase)
+
+### Schema
+- Added `loyalty_points_earned` (int, default 0) column to `bills` table (Drift + Supabase migration)
+- `updateTrackingOnPayment`: Added `updateLastVisit` parameter, `totalSpent` floored at 0
+
+### Documentation
+- PROJECT.md: Updated bills schema, BillRepository method descriptions, cancelBill rules, BillStatus notes with loyalty reversal workflow
+
+---
+
 ## 2026-02-16 — Audit fixes (TMR audit)
 
 ### Supabase Migrations

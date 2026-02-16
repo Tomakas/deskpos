@@ -304,6 +304,7 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
         paidAmount: Value(json['paid_amount'] as int? ?? 0),
         loyaltyPointsUsed: Value(json['loyalty_points_used'] as int? ?? 0),
         loyaltyDiscountAmount: Value(json['loyalty_discount_amount'] as int? ?? 0),
+        loyaltyPointsEarned: Value(json['loyalty_points_earned'] as int? ?? 0),
         voucherDiscountAmount: Value(json['voucher_discount_amount'] as int? ?? 0),
         voucherId: Value(json['voucher_id'] as String?),
         openedAt: Value(_requireDateTime(json['opened_at'])),

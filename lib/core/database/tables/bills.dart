@@ -31,6 +31,7 @@ class Bills extends Table with SyncColumnsMixin {
   IntColumn get paidAmount => integer().withDefault(const Constant(0))();
   IntColumn get loyaltyPointsUsed => integer().withDefault(const Constant(0))();
   IntColumn get loyaltyDiscountAmount => integer().withDefault(const Constant(0))();
+  IntColumn get loyaltyPointsEarned => integer().withDefault(const Constant(0))();
   IntColumn get voucherDiscountAmount => integer().withDefault(const Constant(0))();
   TextColumn get voucherId => text().nullable()();
   DateTimeColumn get openedAt => dateTime()();

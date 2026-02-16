@@ -3,10 +3,12 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 
 import '../../database/app_database.dart';
+import '../../logging/app_logger.dart';
 import '../enums/stock_movement_direction.dart';
 import '../mappers/entity_mappers.dart';
 import '../mappers/supabase_mappers.dart';
 import '../models/stock_movement_model.dart';
+import '../result.dart';
 import 'sync_queue_repository.dart';
 
 class StockMovementRepository {
@@ -16,12 +18,17 @@ class StockMovementRepository {
   final SyncQueueRepository? syncQueueRepo;
 
   /// Inserts a stock movement and enqueues for sync.
-  Future<StockMovementModel> createMovement(StockMovementModel model) async {
-    await _db.transaction(() async {
-      await _db.into(_db.stockMovements).insert(stockMovementToCompanion(model));
-      await _enqueue('insert', model);
-    });
-    return model;
+  Future<Result<StockMovementModel>> createMovement(StockMovementModel model) async {
+    try {
+      await _db.transaction(() async {
+        await _db.into(_db.stockMovements).insert(stockMovementToCompanion(model));
+        await _enqueue('insert', model);
+      });
+      return Success(model);
+    } catch (e, s) {
+      AppLogger.error('Failed to create stock movement', error: e, stackTrace: s);
+      return Failure('Failed to create stock movement: $e');
+    }
   }
 
   /// Watches all movements for a document.

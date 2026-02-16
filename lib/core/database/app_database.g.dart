@@ -373,6 +373,17 @@ class $BillsTable extends Bills with TableInfo<$BillsTable, Bill> {
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
+  static const VerificationMeta _loyaltyPointsEarnedMeta =
+      const VerificationMeta('loyaltyPointsEarned');
+  @override
+  late final GeneratedColumn<int> loyaltyPointsEarned = GeneratedColumn<int>(
+    'loyalty_points_earned',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
   static const VerificationMeta _voucherDiscountAmountMeta =
       const VerificationMeta('voucherDiscountAmount');
   @override
@@ -473,6 +484,7 @@ class $BillsTable extends Bills with TableInfo<$BillsTable, Bill> {
     paidAmount,
     loyaltyPointsUsed,
     loyaltyDiscountAmount,
+    loyaltyPointsEarned,
     voucherDiscountAmount,
     voucherId,
     openedAt,
@@ -721,6 +733,15 @@ class $BillsTable extends Bills with TableInfo<$BillsTable, Bill> {
         ),
       );
     }
+    if (data.containsKey('loyalty_points_earned')) {
+      context.handle(
+        _loyaltyPointsEarnedMeta,
+        loyaltyPointsEarned.isAcceptableOrUnknown(
+          data['loyalty_points_earned']!,
+          _loyaltyPointsEarnedMeta,
+        ),
+      );
+    }
     if (data.containsKey('voucher_discount_amount')) {
       context.handle(
         _voucherDiscountAmountMeta,
@@ -903,6 +924,10 @@ class $BillsTable extends Bills with TableInfo<$BillsTable, Bill> {
         DriftSqlType.int,
         data['${effectivePrefix}loyalty_discount_amount'],
       )!,
+      loyaltyPointsEarned: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}loyalty_points_earned'],
+      )!,
       voucherDiscountAmount: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}voucher_discount_amount'],
@@ -980,6 +1005,7 @@ class Bill extends DataClass implements Insertable<Bill> {
   final int paidAmount;
   final int loyaltyPointsUsed;
   final int loyaltyDiscountAmount;
+  final int loyaltyPointsEarned;
   final int voucherDiscountAmount;
   final String? voucherId;
   final DateTime openedAt;
@@ -1019,6 +1045,7 @@ class Bill extends DataClass implements Insertable<Bill> {
     required this.paidAmount,
     required this.loyaltyPointsUsed,
     required this.loyaltyDiscountAmount,
+    required this.loyaltyPointsEarned,
     required this.voucherDiscountAmount,
     this.voucherId,
     required this.openedAt,
@@ -1091,6 +1118,7 @@ class Bill extends DataClass implements Insertable<Bill> {
     map['paid_amount'] = Variable<int>(paidAmount);
     map['loyalty_points_used'] = Variable<int>(loyaltyPointsUsed);
     map['loyalty_discount_amount'] = Variable<int>(loyaltyDiscountAmount);
+    map['loyalty_points_earned'] = Variable<int>(loyaltyPointsEarned);
     map['voucher_discount_amount'] = Variable<int>(voucherDiscountAmount);
     if (!nullToAbsent || voucherId != null) {
       map['voucher_id'] = Variable<String>(voucherId);
@@ -1166,6 +1194,7 @@ class Bill extends DataClass implements Insertable<Bill> {
       paidAmount: Value(paidAmount),
       loyaltyPointsUsed: Value(loyaltyPointsUsed),
       loyaltyDiscountAmount: Value(loyaltyDiscountAmount),
+      loyaltyPointsEarned: Value(loyaltyPointsEarned),
       voucherDiscountAmount: Value(voucherDiscountAmount),
       voucherId: voucherId == null && nullToAbsent
           ? const Value.absent()
@@ -1229,6 +1258,9 @@ class Bill extends DataClass implements Insertable<Bill> {
       loyaltyDiscountAmount: serializer.fromJson<int>(
         json['loyaltyDiscountAmount'],
       ),
+      loyaltyPointsEarned: serializer.fromJson<int>(
+        json['loyaltyPointsEarned'],
+      ),
       voucherDiscountAmount: serializer.fromJson<int>(
         json['voucherDiscountAmount'],
       ),
@@ -1279,6 +1311,7 @@ class Bill extends DataClass implements Insertable<Bill> {
       'paidAmount': serializer.toJson<int>(paidAmount),
       'loyaltyPointsUsed': serializer.toJson<int>(loyaltyPointsUsed),
       'loyaltyDiscountAmount': serializer.toJson<int>(loyaltyDiscountAmount),
+      'loyaltyPointsEarned': serializer.toJson<int>(loyaltyPointsEarned),
       'voucherDiscountAmount': serializer.toJson<int>(voucherDiscountAmount),
       'voucherId': serializer.toJson<String?>(voucherId),
       'openedAt': serializer.toJson<DateTime>(openedAt),
@@ -1321,6 +1354,7 @@ class Bill extends DataClass implements Insertable<Bill> {
     int? paidAmount,
     int? loyaltyPointsUsed,
     int? loyaltyDiscountAmount,
+    int? loyaltyPointsEarned,
     int? voucherDiscountAmount,
     Value<String?> voucherId = const Value.absent(),
     DateTime? openedAt,
@@ -1368,6 +1402,7 @@ class Bill extends DataClass implements Insertable<Bill> {
     paidAmount: paidAmount ?? this.paidAmount,
     loyaltyPointsUsed: loyaltyPointsUsed ?? this.loyaltyPointsUsed,
     loyaltyDiscountAmount: loyaltyDiscountAmount ?? this.loyaltyDiscountAmount,
+    loyaltyPointsEarned: loyaltyPointsEarned ?? this.loyaltyPointsEarned,
     voucherDiscountAmount: voucherDiscountAmount ?? this.voucherDiscountAmount,
     voucherId: voucherId.present ? voucherId.value : this.voucherId,
     openedAt: openedAt ?? this.openedAt,
@@ -1453,6 +1488,9 @@ class Bill extends DataClass implements Insertable<Bill> {
       loyaltyDiscountAmount: data.loyaltyDiscountAmount.present
           ? data.loyaltyDiscountAmount.value
           : this.loyaltyDiscountAmount,
+      loyaltyPointsEarned: data.loyaltyPointsEarned.present
+          ? data.loyaltyPointsEarned.value
+          : this.loyaltyPointsEarned,
       voucherDiscountAmount: data.voucherDiscountAmount.present
           ? data.voucherDiscountAmount.value
           : this.voucherDiscountAmount,
@@ -1499,6 +1537,7 @@ class Bill extends DataClass implements Insertable<Bill> {
           ..write('paidAmount: $paidAmount, ')
           ..write('loyaltyPointsUsed: $loyaltyPointsUsed, ')
           ..write('loyaltyDiscountAmount: $loyaltyDiscountAmount, ')
+          ..write('loyaltyPointsEarned: $loyaltyPointsEarned, ')
           ..write('voucherDiscountAmount: $voucherDiscountAmount, ')
           ..write('voucherId: $voucherId, ')
           ..write('openedAt: $openedAt, ')
@@ -1543,6 +1582,7 @@ class Bill extends DataClass implements Insertable<Bill> {
     paidAmount,
     loyaltyPointsUsed,
     loyaltyDiscountAmount,
+    loyaltyPointsEarned,
     voucherDiscountAmount,
     voucherId,
     openedAt,
@@ -1586,6 +1626,7 @@ class Bill extends DataClass implements Insertable<Bill> {
           other.paidAmount == this.paidAmount &&
           other.loyaltyPointsUsed == this.loyaltyPointsUsed &&
           other.loyaltyDiscountAmount == this.loyaltyDiscountAmount &&
+          other.loyaltyPointsEarned == this.loyaltyPointsEarned &&
           other.voucherDiscountAmount == this.voucherDiscountAmount &&
           other.voucherId == this.voucherId &&
           other.openedAt == this.openedAt &&
@@ -1627,6 +1668,7 @@ class BillsCompanion extends UpdateCompanion<Bill> {
   final Value<int> paidAmount;
   final Value<int> loyaltyPointsUsed;
   final Value<int> loyaltyDiscountAmount;
+  final Value<int> loyaltyPointsEarned;
   final Value<int> voucherDiscountAmount;
   final Value<String?> voucherId;
   final Value<DateTime> openedAt;
@@ -1667,6 +1709,7 @@ class BillsCompanion extends UpdateCompanion<Bill> {
     this.paidAmount = const Value.absent(),
     this.loyaltyPointsUsed = const Value.absent(),
     this.loyaltyDiscountAmount = const Value.absent(),
+    this.loyaltyPointsEarned = const Value.absent(),
     this.voucherDiscountAmount = const Value.absent(),
     this.voucherId = const Value.absent(),
     this.openedAt = const Value.absent(),
@@ -1708,6 +1751,7 @@ class BillsCompanion extends UpdateCompanion<Bill> {
     this.paidAmount = const Value.absent(),
     this.loyaltyPointsUsed = const Value.absent(),
     this.loyaltyDiscountAmount = const Value.absent(),
+    this.loyaltyPointsEarned = const Value.absent(),
     this.voucherDiscountAmount = const Value.absent(),
     this.voucherId = const Value.absent(),
     required DateTime openedAt,
@@ -1755,6 +1799,7 @@ class BillsCompanion extends UpdateCompanion<Bill> {
     Expression<int>? paidAmount,
     Expression<int>? loyaltyPointsUsed,
     Expression<int>? loyaltyDiscountAmount,
+    Expression<int>? loyaltyPointsEarned,
     Expression<int>? voucherDiscountAmount,
     Expression<String>? voucherId,
     Expression<DateTime>? openedAt,
@@ -1797,6 +1842,8 @@ class BillsCompanion extends UpdateCompanion<Bill> {
       if (loyaltyPointsUsed != null) 'loyalty_points_used': loyaltyPointsUsed,
       if (loyaltyDiscountAmount != null)
         'loyalty_discount_amount': loyaltyDiscountAmount,
+      if (loyaltyPointsEarned != null)
+        'loyalty_points_earned': loyaltyPointsEarned,
       if (voucherDiscountAmount != null)
         'voucher_discount_amount': voucherDiscountAmount,
       if (voucherId != null) 'voucher_id': voucherId,
@@ -1841,6 +1888,7 @@ class BillsCompanion extends UpdateCompanion<Bill> {
     Value<int>? paidAmount,
     Value<int>? loyaltyPointsUsed,
     Value<int>? loyaltyDiscountAmount,
+    Value<int>? loyaltyPointsEarned,
     Value<int>? voucherDiscountAmount,
     Value<String?>? voucherId,
     Value<DateTime>? openedAt,
@@ -1883,6 +1931,7 @@ class BillsCompanion extends UpdateCompanion<Bill> {
       loyaltyPointsUsed: loyaltyPointsUsed ?? this.loyaltyPointsUsed,
       loyaltyDiscountAmount:
           loyaltyDiscountAmount ?? this.loyaltyDiscountAmount,
+      loyaltyPointsEarned: loyaltyPointsEarned ?? this.loyaltyPointsEarned,
       voucherDiscountAmount:
           voucherDiscountAmount ?? this.voucherDiscountAmount,
       voucherId: voucherId ?? this.voucherId,
@@ -1999,6 +2048,9 @@ class BillsCompanion extends UpdateCompanion<Bill> {
         loyaltyDiscountAmount.value,
       );
     }
+    if (loyaltyPointsEarned.present) {
+      map['loyalty_points_earned'] = Variable<int>(loyaltyPointsEarned.value);
+    }
     if (voucherDiscountAmount.present) {
       map['voucher_discount_amount'] = Variable<int>(
         voucherDiscountAmount.value,
@@ -2060,6 +2112,7 @@ class BillsCompanion extends UpdateCompanion<Bill> {
           ..write('paidAmount: $paidAmount, ')
           ..write('loyaltyPointsUsed: $loyaltyPointsUsed, ')
           ..write('loyaltyDiscountAmount: $loyaltyDiscountAmount, ')
+          ..write('loyaltyPointsEarned: $loyaltyPointsEarned, ')
           ..write('voucherDiscountAmount: $voucherDiscountAmount, ')
           ..write('voucherId: $voucherId, ')
           ..write('openedAt: $openedAt, ')
@@ -31281,7 +31334,7 @@ class $TablesTable extends Tables with TableInfo<$TablesTable, TableEntity> {
     false,
     type: DriftSqlType.int,
     requiredDuringInsert: false,
-    defaultValue: const Constant(1),
+    defaultValue: const Constant(3),
   );
   static const VerificationMeta _gridHeightMeta = const VerificationMeta(
     'gridHeight',
@@ -31293,7 +31346,7 @@ class $TablesTable extends Tables with TableInfo<$TablesTable, TableEntity> {
     false,
     type: DriftSqlType.int,
     requiredDuringInsert: false,
-    defaultValue: const Constant(1),
+    defaultValue: const Constant(3),
   );
   static const VerificationMeta _colorMeta = const VerificationMeta('color');
   @override
@@ -37313,6 +37366,7 @@ typedef $$BillsTableCreateCompanionBuilder =
       Value<int> paidAmount,
       Value<int> loyaltyPointsUsed,
       Value<int> loyaltyDiscountAmount,
+      Value<int> loyaltyPointsEarned,
       Value<int> voucherDiscountAmount,
       Value<String?> voucherId,
       required DateTime openedAt,
@@ -37355,6 +37409,7 @@ typedef $$BillsTableUpdateCompanionBuilder =
       Value<int> paidAmount,
       Value<int> loyaltyPointsUsed,
       Value<int> loyaltyDiscountAmount,
+      Value<int> loyaltyPointsEarned,
       Value<int> voucherDiscountAmount,
       Value<String?> voucherId,
       Value<DateTime> openedAt,
@@ -37531,6 +37586,11 @@ class $$BillsTableFilterComposer extends Composer<_$AppDatabase, $BillsTable> {
 
   ColumnFilters<int> get loyaltyDiscountAmount => $composableBuilder(
     column: $table.loyaltyDiscountAmount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get loyaltyPointsEarned => $composableBuilder(
+    column: $table.loyaltyPointsEarned,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -37734,6 +37794,11 @@ class $$BillsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get loyaltyPointsEarned => $composableBuilder(
+    column: $table.loyaltyPointsEarned,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get voucherDiscountAmount => $composableBuilder(
     column: $table.voucherDiscountAmount,
     builder: (column) => ColumnOrderings(column),
@@ -37915,6 +37980,11 @@ class $$BillsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<int> get loyaltyPointsEarned => $composableBuilder(
+    column: $table.loyaltyPointsEarned,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<int> get voucherDiscountAmount => $composableBuilder(
     column: $table.voucherDiscountAmount,
     builder: (column) => column,
@@ -37996,6 +38066,7 @@ class $$BillsTableTableManager
                 Value<int> paidAmount = const Value.absent(),
                 Value<int> loyaltyPointsUsed = const Value.absent(),
                 Value<int> loyaltyDiscountAmount = const Value.absent(),
+                Value<int> loyaltyPointsEarned = const Value.absent(),
                 Value<int> voucherDiscountAmount = const Value.absent(),
                 Value<String?> voucherId = const Value.absent(),
                 Value<DateTime> openedAt = const Value.absent(),
@@ -38036,6 +38107,7 @@ class $$BillsTableTableManager
                 paidAmount: paidAmount,
                 loyaltyPointsUsed: loyaltyPointsUsed,
                 loyaltyDiscountAmount: loyaltyDiscountAmount,
+                loyaltyPointsEarned: loyaltyPointsEarned,
                 voucherDiscountAmount: voucherDiscountAmount,
                 voucherId: voucherId,
                 openedAt: openedAt,
@@ -38078,6 +38150,7 @@ class $$BillsTableTableManager
                 Value<int> paidAmount = const Value.absent(),
                 Value<int> loyaltyPointsUsed = const Value.absent(),
                 Value<int> loyaltyDiscountAmount = const Value.absent(),
+                Value<int> loyaltyPointsEarned = const Value.absent(),
                 Value<int> voucherDiscountAmount = const Value.absent(),
                 Value<String?> voucherId = const Value.absent(),
                 required DateTime openedAt,
@@ -38118,6 +38191,7 @@ class $$BillsTableTableManager
                 paidAmount: paidAmount,
                 loyaltyPointsUsed: loyaltyPointsUsed,
                 loyaltyDiscountAmount: loyaltyDiscountAmount,
+                loyaltyPointsEarned: loyaltyPointsEarned,
                 voucherDiscountAmount: voucherDiscountAmount,
                 voucherId: voucherId,
                 openedAt: openedAt,
