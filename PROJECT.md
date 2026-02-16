@@ -1041,7 +1041,7 @@ Všechny aktivní tabulky obsahují společné sync sloupce (viz [SyncColumnsMix
 
 | Tabulka | Sloupce |
 |---------|---------|
-| **tables** | id (T), company_id →companies, section_id →sections?, table_name (T), capacity (I), is_active (B), grid_row (I), grid_col (I), grid_width (I, default 1), grid_height (I, default 1), shape (T — TableShape, default rectangle) |
+| **tables** | id (T), company_id →companies, section_id →sections?, table_name (T), capacity (I), is_active (B), grid_row (I), grid_col (I), grid_width (I, default 3), grid_height (I, default 3), shape (T — TableShape, default rectangle) |
 | **map_elements** | id (T), company_id →companies, section_id →sections (nullable), grid_row (I), grid_col (I), grid_width (I, default 2), grid_height (I, default 2), label (T, nullable), color (T, nullable — hex #RRGGBB), shape (T — TableShape, default rectangle) |
 
 ##### Sekce
@@ -1096,6 +1096,7 @@ Všechny aktivní tabulky obsahují společné sync sloupce (viz [SyncColumnsMix
 - `welcome_text` — konfigurovatelný uvítací text pro idle obrazovku customer displeje
 - `type` — `customerDisplay` nebo `kds`
 - Používá `SyncColumnsMixin` — synchronizuje se přes outbox
+- **Pairing lookup**: RPC funkce `lookup_display_device_by_code(lookup_code)` (SECURITY DEFINER) — vrací `company_id`, `name`, `welcome_text`, `type` pro anonymní párování bez broad anon SELECT policy
 
 ##### Layout grid
 
@@ -1160,7 +1161,7 @@ Klientské timestampy se ukládají v **UTC**.
 
 #### RLS a přístupová politika
 
-- **Anon přístup** povolen pouze pro `global_currencies` (read-only)
+- **Anon přístup**: `global_currencies` (read-only SELECT policy), `lookup_display_device_by_code` RPC (SECURITY DEFINER, vrací 4 pole pro pairing flow)
 - `roles`, `permissions`, `role_permissions` jsou **read-only pro authenticated**
 - Sync tabulky vyžadují authenticated + company-scope policy
 
@@ -1259,7 +1260,7 @@ Edge Function `wipe` (`supabase/functions/wipe/index.ts`) slouží k úplnému s
 2. Smaže company-scoped tabulky v reverse FK dependency order (children first)
 3. Smaže záznam firmy (`companies`)
 4. Smaže globální tabulky (currencies, roles, permissions, role_permissions)
-5. Vyčistí `audit_log` a `sync_metadata`
+5. Vyčistí `audit_log`
 
 **Volání z klienta (CloudTab):**
 - `Supabase.instance.client.functions.invoke('wipe')` → sign out → smazání lokální DB → navigace na `/onboarding`

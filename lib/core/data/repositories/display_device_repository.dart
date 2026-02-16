@@ -70,33 +70,30 @@ class DisplayDeviceRepository {
     return entity == null ? null : displayDeviceFromEntity(entity);
   }
 
-  /// Direct Supabase REST query for display device by code.
-  /// Used by display devices that don't have local data.
+  /// Narrow RPC lookup for pairing flow — returns only the fields needed.
+  /// Uses SECURITY DEFINER function, no broad anon SELECT policy required.
   Future<DisplayDeviceModel?> lookupByCode(String code) async {
     if (supabaseClient == null) return null;
     try {
       final response = await supabaseClient!
-          .from('display_devices')
-          .select()
-          .eq('code', code)
-          .eq('is_active', true)
-          .isFilter('deleted_at', null)
-          .maybeSingle();
+          .rpc('lookup_display_device_by_code', params: {'lookup_code': code});
       if (response == null) return null;
+      final json = response as Map<String, dynamic>;
+      // RPC returns only fields needed for pairing; the rest are placeholders
+      // not read by the pairing flow in screen_display_code.dart.
       return DisplayDeviceModel(
-        id: response['id'] as String,
-        companyId: response['company_id'] as String,
-        parentRegisterId: response['parent_register_id'] as String?,
-        code: response['code'] as String,
-        name: response['name'] as String? ?? '',
-        welcomeText: response['welcome_text'] as String? ?? '',
+        id: '',
+        companyId: json['company_id'] as String,
+        code: code,
+        name: json['name'] as String? ?? '',
+        welcomeText: json['welcome_text'] as String? ?? '',
         type: DisplayDeviceType.values.firstWhere(
-          (e) => e.name == response['type'],
+          (e) => e.name == json['type'],
           orElse: () => DisplayDeviceType.customerDisplay,
         ),
-        isActive: response['is_active'] as bool? ?? true,
-        createdAt: DateTime.tryParse(response['created_at'] as String? ?? '') ?? DateTime.now(),
-        updatedAt: DateTime.tryParse(response['updated_at'] as String? ?? '') ?? DateTime.now(),
+        isActive: true,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
       );
     } catch (e, s) {
       AppLogger.error('Failed to lookup display device by code', error: e, stackTrace: s);

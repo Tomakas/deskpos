@@ -1,5 +1,28 @@
 # Changelog
 
+## 2026-02-16 — Audit fixes (TMR audit)
+
+### Supabase Migrations
+- **F-02**: Removed stale `inPrep` value from `prep_status` enum (recreated type without it)
+- **F-03**: Dropped redundant columns from `display_devices` (`server_created_at`, `server_updated_at`, `last_synced_at`, `version`), set NOT NULL on `client_created_at`/`client_updated_at`
+- **F-05**: Added missing FK indexes on `display_devices` (`company_id`, `parent_register_id`)
+- **F-06**: Replaced broad anon SELECT policy on `display_devices` with SECURITY DEFINER RPC `lookup_display_device_by_code`
+- **F-08**: Renamed triggers to `trg_display_devices_lww` / `trg_display_devices_timestamps` (consistent naming)
+- **F-10**: Renamed `loyalty_earn_per_hundred_czk` → `loyalty_earn_rate`, `loyalty_point_value_halere` → `loyalty_point_value` in `company_settings`
+
+### Fixes
+- **F-01**: Wipe Edge Function — added missing `customers` table, removed non-existent `device_registrations` and `sync_metadata` references
+- **F-09**: Drift `tables` — changed `gridWidth`/`gridHeight` defaults from 1 to 3 (matches Supabase and pull mapper fallbacks)
+- **F-10**: Updated push/pull mappers for renamed `company_settings` loyalty columns
+
+### Security
+- **F-06**: `display_device_repository.dart` — `lookupByCode` now uses narrow RPC instead of direct table query (anon access scoped to single record, 4 fields only)
+
+### Documentation
+- PROJECT.md: Updated `tables` grid defaults, wipe EF description, RLS anon access policy, display_devices pairing RPC
+
+---
+
 ## 2026-02-12 — Milník 3.9: Multi-register architektura (6 fází)
 
 ### Phase 1 — Schema + Device Binding

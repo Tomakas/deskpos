@@ -417,8 +417,8 @@ Map<String, dynamic> companySettingsToSupabaseJson(CompanySettingsModel m) => {
       ),
       'require_pin_on_switch': m.requirePinOnSwitch,
       'auto_lock_timeout_minutes': m.autoLockTimeoutMinutes,
-      'loyalty_earn_per_hundred_czk': m.loyaltyEarnRate,
-      'loyalty_point_value_halere': m.loyaltyPointValue,
+      'loyalty_earn_rate': m.loyaltyEarnRate,
+      'loyalty_point_value': m.loyaltyPointValue,
       'locale': m.locale,
     };
 

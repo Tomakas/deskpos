@@ -30,10 +30,10 @@ const COMPANY_TABLES = [
   "bills",
   "layout_items",
   "display_devices",
-  "device_registrations",
   "registers",
   "product_recipes",
   "reservations",
+  "customers",
   "warehouses",
   "map_elements",
   "tables",
@@ -140,7 +140,6 @@ Deno.serve(async (req) => {
 
     // --- Clean audit log ---
     await serviceClient.from("audit_log").delete().eq("company_id", companyId);
-    await serviceClient.from("sync_metadata").delete().eq("company_id", companyId);
 
     if (errors.length > 0) {
       console.error(`Wipe completed with ${errors.length} errors:`, errors);
