@@ -8,6 +8,7 @@ import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/sync_providers.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../core/logging/app_logger.dart';
 
 class ScreenOnboarding extends ConsumerStatefulWidget {
@@ -136,15 +137,6 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
                     child: Text(l.onboardingCustomerDisplay),
                   ),
                 ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: OutlinedButton(
-                    onPressed: () => context.go('/display-code?type=kds'),
-                    child: Text(l.onboardingKdsDisplay),
-                  ),
-                ),
               ],
             ),
           ),
@@ -211,7 +203,7 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
     );
   }
 
-  List<Widget> _buildCompanyStep(dynamic l) {
+  List<Widget> _buildCompanyStep(AppLocalizations l) {
     return [
       TextFormField(
         controller: _companyNameCtrl,
@@ -278,7 +270,7 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
     ];
   }
 
-  List<Widget> _buildAdminStep(dynamic l) {
+  List<Widget> _buildAdminStep(AppLocalizations l) {
     return [
       TextFormField(
         controller: _fullNameCtrl,

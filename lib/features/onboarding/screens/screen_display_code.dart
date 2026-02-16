@@ -1,12 +1,18 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' hide BroadcastChannel;
+import 'package:uuid/uuid.dart';
 
+import '../../../core/data/models/display_device_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/logging/app_logger.dart';
+import '../../../core/sync/broadcast_channel.dart';
 import '../../../core/widgets/pos_numpad.dart';
 
 class ScreenDisplayCode extends ConsumerStatefulWidget {
@@ -20,10 +26,37 @@ class ScreenDisplayCode extends ConsumerStatefulWidget {
 class _ScreenDisplayCodeState extends ConsumerState<ScreenDisplayCode> {
   String _code = '';
   bool _isLooking = false;
+  bool _isWaiting = false;
   String? _error;
 
+  BroadcastChannel? _pairingChannel;
+  StreamSubscription<Map<String, dynamic>>? _pairingSub;
+  Timer? _timeoutTimer;
+  Timer? _retryTimer;
+  String? _requestId;
+
+  bool get _isBusy => _isLooking || _isWaiting;
+
+  @override
+  void dispose() {
+    _cleanupPairing();
+    super.dispose();
+  }
+
+  void _cleanupPairing() {
+    _retryTimer?.cancel();
+    _retryTimer = null;
+    _timeoutTimer?.cancel();
+    _timeoutTimer = null;
+    _pairingSub?.cancel();
+    _pairingSub = null;
+    _pairingChannel?.dispose();
+    _pairingChannel = null;
+    _requestId = null;
+  }
+
   void _onDigit(String digit) {
-    if (_code.length >= 6 || _isLooking) return;
+    if (_code.length >= 6 || _isBusy) return;
     setState(() {
       _code += digit;
       _error = null;
@@ -32,7 +65,7 @@ class _ScreenDisplayCodeState extends ConsumerState<ScreenDisplayCode> {
   }
 
   void _onBackspace() {
-    if (_code.isEmpty || _isLooking) return;
+    if (_code.isEmpty || _isBusy) return;
     setState(() {
       _code = _code.substring(0, _code.length - 1);
       _error = null;
@@ -76,33 +109,61 @@ class _ScreenDisplayCodeState extends ConsumerState<ScreenDisplayCode> {
                 ],
               ),
               const SizedBox(height: 12),
-              // Error / loading
+              // Status area
               SizedBox(
-                height: 24,
-                child: _isLooking
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : _error != null
-                        ? Text(
-                            _error!,
-                            style: TextStyle(
-                              color: theme.colorScheme.error,
-                              fontSize: 13,
+                height: _isWaiting ? 80 : 24,
+                child: _isWaiting
+                    ? Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            l.displayCodeWaitingForConfirmation,
+                            style: theme.textTheme.bodySmall,
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 4),
+                          GestureDetector(
+                            onTap: _cancelWaiting,
+                            child: Text(
+                              l.actionCancel,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.primary,
+                                decoration: TextDecoration.underline,
+                              ),
                             ),
+                          ),
+                        ],
+                      )
+                    : _isLooking
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : null,
+                        : _error != null
+                            ? Text(
+                                _error!,
+                                style: TextStyle(
+                                  color: theme.colorScheme.error,
+                                  fontSize: 13,
+                                ),
+                              )
+                            : null,
               ),
               const SizedBox(height: 16),
               PosNumpad(
                 width: 280,
-                enabled: !_isLooking,
+                enabled: !_isBusy,
                 onDigit: _onDigit,
                 onBackspace: _onBackspace,
                 bottomLeftChild: const Icon(Icons.arrow_back),
-                onBottomLeft: () => context.go('/onboarding'),
+                onBottomLeft: _isBusy ? null : () => context.go('/onboarding'),
               ),
             ],
           ),
@@ -134,6 +195,85 @@ class _ScreenDisplayCodeState extends ConsumerState<ScreenDisplayCode> {
         return;
       }
 
+      // Device found — request pairing confirmation from main POS
+      setState(() {
+        _isLooking = false;
+        _isWaiting = true;
+      });
+
+      await _requestPairing(device);
+    } catch (e, s) {
+      AppLogger.error('Display code lookup failed', error: e, stackTrace: s);
+      if (mounted) {
+        setState(() {
+          _isLooking = false;
+          _error = context.l10n.displayCodeError;
+          _code = '';
+        });
+      }
+    }
+  }
+
+  Future<void> _requestPairing(DisplayDeviceModel device) async {
+    try {
+      _requestId = const Uuid().v4();
+      _pairingChannel = BroadcastChannel(Supabase.instance.client);
+
+      // Register listener BEFORE join to avoid missing messages
+      _pairingSub = _pairingChannel!.stream.listen((payload) {
+        final action = payload['action'] as String?;
+        final code = payload['code'] as String?;
+        final requestId = payload['request_id'] as String?;
+        if (code != _code) return; // not for us
+        if (requestId != null && requestId != _requestId) return; // not our request
+
+        if (action == 'pairing_confirmed') {
+          _onConfirmed(device);
+        } else if (action == 'pairing_rejected') {
+          _onRejected();
+        }
+      });
+
+      await _pairingChannel!.join('pairing:${device.companyId}');
+
+      if (!mounted) {
+        _cleanupPairing();
+        return;
+      }
+
+      // Send pairing request immediately, then retry every 5s
+      final payload = {
+        'action': 'pairing_request',
+        'code': _code,
+        'device_name': device.name,
+        'device_type': device.type.name,
+        'request_id': _requestId,
+      };
+      await _pairingChannel!.send(payload);
+      _retryTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+        _pairingChannel?.send(payload);
+      });
+
+      // Timeout after 60s
+      _timeoutTimer = Timer(const Duration(seconds: 60), _onTimeout);
+    } catch (e, s) {
+      AppLogger.error('Pairing request failed', error: e, stackTrace: s);
+      _cleanupPairing();
+      if (mounted) {
+        setState(() {
+          _isWaiting = false;
+          _error = context.l10n.displayCodeError;
+          _code = '';
+        });
+      }
+    }
+  }
+
+  Future<void> _onConfirmed(DisplayDeviceModel device) async {
+    if (!mounted) return;
+    _cleanupPairing();
+
+    try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('display_code', _code);
       await prefs.setString('display_type', widget.type);
@@ -149,21 +289,45 @@ class _ScreenDisplayCodeState extends ConsumerState<ScreenDisplayCode> {
 
       if (!mounted) return;
 
-      if (widget.type == 'customer_display') {
-        context.go('/customer-display');
-      } else {
-        context.go('/connect-company');
-      }
+      context.go('/customer-display');
     } catch (e, s) {
-      AppLogger.error('Display code lookup failed', error: e, stackTrace: s);
+      AppLogger.error('Pairing finalization failed', error: e, stackTrace: s);
       if (mounted) {
         setState(() {
-          _isLooking = false;
+          _isWaiting = false;
           _error = context.l10n.displayCodeError;
           _code = '';
         });
       }
     }
+  }
+
+  void _onRejected() {
+    if (!mounted) return;
+    _cleanupPairing();
+    setState(() {
+      _isWaiting = false;
+      _error = context.l10n.displayCodeRejected;
+      _code = '';
+    });
+  }
+
+  void _onTimeout() {
+    if (!mounted) return;
+    _cleanupPairing();
+    setState(() {
+      _isWaiting = false;
+      _error = context.l10n.displayCodeTimeout;
+      _code = '';
+    });
+  }
+
+  void _cancelWaiting() {
+    _cleanupPairing();
+    setState(() {
+      _isWaiting = false;
+      _code = '';
+    });
   }
 }
 

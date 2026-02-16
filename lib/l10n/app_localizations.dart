@@ -4544,6 +4544,54 @@ abstract class AppLocalizations {
   /// **'Chyba při hledání kódu'**
   String get displayCodeError;
 
+  /// No description provided for @displayCodeWaitingForConfirmation.
+  ///
+  /// In cs, this message translates to:
+  /// **'Čeká se na potvrzení obsluhou…'**
+  String get displayCodeWaitingForConfirmation;
+
+  /// No description provided for @displayCodeRejected.
+  ///
+  /// In cs, this message translates to:
+  /// **'Připojení bylo zamítnuto'**
+  String get displayCodeRejected;
+
+  /// No description provided for @displayCodeTimeout.
+  ///
+  /// In cs, this message translates to:
+  /// **'Obsluha neodpověděla. Zkuste to znovu.'**
+  String get displayCodeTimeout;
+
+  /// No description provided for @pairingRequestTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Žádost o připojení'**
+  String get pairingRequestTitle;
+
+  /// No description provided for @pairingRequestMessage.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zařízení se chce připojit k této pokladně:'**
+  String get pairingRequestMessage;
+
+  /// No description provided for @pairingRequestCode.
+  ///
+  /// In cs, this message translates to:
+  /// **'Kód'**
+  String get pairingRequestCode;
+
+  /// No description provided for @pairingConfirm.
+  ///
+  /// In cs, this message translates to:
+  /// **'Potvrdit'**
+  String get pairingConfirm;
+
+  /// No description provided for @pairingReject.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zamítnout'**
+  String get pairingReject;
+
   /// No description provided for @displayDevicesTitle.
   ///
   /// In cs, this message translates to:

@@ -2309,6 +2309,32 @@ class AppLocalizationsCs extends AppLocalizations {
   String get displayCodeError => 'Chyba při hledání kódu';
 
   @override
+  String get displayCodeWaitingForConfirmation =>
+      'Čeká se na potvrzení obsluhou…';
+
+  @override
+  String get displayCodeRejected => 'Připojení bylo zamítnuto';
+
+  @override
+  String get displayCodeTimeout => 'Obsluha neodpověděla. Zkuste to znovu.';
+
+  @override
+  String get pairingRequestTitle => 'Žádost o připojení';
+
+  @override
+  String get pairingRequestMessage =>
+      'Zařízení se chce připojit k této pokladně:';
+
+  @override
+  String get pairingRequestCode => 'Kód';
+
+  @override
+  String get pairingConfirm => 'Potvrdit';
+
+  @override
+  String get pairingReject => 'Zamítnout';
+
+  @override
   String get displayDevicesTitle => 'Displeje';
 
   @override

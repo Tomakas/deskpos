@@ -13,8 +13,9 @@ import '../../../core/data/models/table_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../core/utils/formatting_ext.dart';
-import '../../settings/widgets/dialog_mode_selector.dart';
+import 'package:go_router/go_router.dart';
 
 /// Kitchen Display System — a touch-optimized, kitchen-facing order board.
 ///
@@ -117,7 +118,7 @@ class _ScreenKdsState extends ConsumerState<ScreenKds> {
             ],
           ),
         ),
-        // Mode-switch button — absolute top-right, over AppBar
+        // Logout button — absolute top-right, over AppBar
         Positioned(
           top: 0,
           right: 0,
@@ -127,13 +128,14 @@ class _ScreenKdsState extends ConsumerState<ScreenKds> {
               style: IconButton.styleFrom(
                 minimumSize: const Size(64, 64),
               ),
-              icon: const Icon(Icons.swap_horiz),
-              onPressed: () => showDialog(
-                context: context,
-                builder: (_) => const DialogModeSelector(
-                  currentMode: RegisterMode.kds,
-                ),
-              ),
+              icon: const Icon(Icons.logout),
+              onPressed: () {
+                final session = ref.read(sessionManagerProvider);
+                session.logoutAll();
+                ref.read(activeUserProvider.notifier).state = null;
+                ref.read(loggedInUsersProvider.notifier).state = [];
+                context.go('/login');
+              },
             ),
           ),
         ),
@@ -648,7 +650,7 @@ class _TimeTable extends ConsumerWidget {
 // ---------------------------------------------------------------------------
 // Shared helpers
 // ---------------------------------------------------------------------------
-String _statusLabel(PrepStatus status, dynamic l) => switch (status) {
+String _statusLabel(PrepStatus status, AppLocalizations l) => switch (status) {
       PrepStatus.created => l.ordersFilterCreated,
       PrepStatus.inPrep => l.ordersFilterInPrep,
       PrepStatus.ready => l.ordersFilterReady,
@@ -664,7 +666,7 @@ PrepStatus? _nextStatus(PrepStatus current) => switch (current) {
       _ => null,
     };
 
-String _nextStatusLabel(PrepStatus status, dynamic l) => switch (status) {
+String _nextStatusLabel(PrepStatus status, AppLocalizations l) => switch (status) {
       PrepStatus.inPrep => l.ordersFilterInPrep,
       PrepStatus.ready => l.ordersFilterReady,
       PrepStatus.delivered => l.ordersFilterDelivered,

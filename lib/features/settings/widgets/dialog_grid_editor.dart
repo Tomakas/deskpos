@@ -8,6 +8,7 @@ import '../../../core/data/models/layout_item_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../core/utils/formatting_ext.dart';
 import '../../../core/utils/search_utils.dart';
 import '../../../core/widgets/pos_color_palette.dart';
@@ -414,7 +415,7 @@ class _DialogGridEditorState extends ConsumerState<DialogGridEditor> {
   }
 
   Future<void> _selectItem(
-      BuildContext context, List<ItemModel> allItems, dynamic l) async {
+      BuildContext context, List<ItemModel> allItems, AppLocalizations l) async {
     final sellableItems =
         allItems.where((i) => i.isActive && i.isSellable).toList();
     final selected = await showDialog<ItemModel>(
@@ -482,7 +483,7 @@ class _DialogGridEditorState extends ConsumerState<DialogGridEditor> {
   }
 
   Future<void> _selectCategory(BuildContext context,
-      List<CategoryModel> allCategories, dynamic l) async {
+      List<CategoryModel> allCategories, AppLocalizations l) async {
     final activeCategories =
         allCategories.where((c) => c.isActive).toList();
     final selected = await showDialog<CategoryModel>(

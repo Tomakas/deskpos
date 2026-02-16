@@ -954,6 +954,15 @@
   "displayCodeBack": "Zpět",
   "displayCodeNotFound": "Kód nenalezen",
   "displayCodeError": "Chyba při hledání kódu",
+  "displayCodeWaitingForConfirmation": "Čeká se na potvrzení obsluhou\u2026",
+  "displayCodeRejected": "Připojení bylo zamítnuto",
+  "displayCodeTimeout": "Obsluha neodpověděla. Zkuste to znovu.",
+
+  "pairingRequestTitle": "Žádost o připojení",
+  "pairingRequestMessage": "Zařízení se chce připojit k této pokladně:",
+  "pairingRequestCode": "Kód",
+  "pairingConfirm": "Potvrdit",
+  "pairingReject": "Zamítnout",
 
   "displayDevicesTitle": "Displeje",
   "displayDevicesEmpty": "Žádné displeje",

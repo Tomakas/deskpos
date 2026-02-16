@@ -34,12 +34,13 @@ int _pow10(int exp) {
   return result;
 }
 
-/// Default CZK currency used as fallback while the actual currency is loading.
+/// Neutral fallback currency used when the actual currency is not yet available.
+/// Empty symbol prevents displaying a wrong currency sign in edge cases.
 final _fallbackCurrency = CurrencyModel(
   id: '',
-  code: 'CZK',
-  symbol: 'Kč',
-  name: 'Česká koruna',
+  code: '',
+  symbol: '',
+  name: '',
   decimalPlaces: 2,
   createdAt: DateTime(2020),
   updatedAt: DateTime(2020),

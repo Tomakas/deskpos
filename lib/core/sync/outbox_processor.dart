@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../data/repositories/sync_queue_repository.dart';
 import '../logging/app_logger.dart';
+import 'sync_service.dart';
 
 class OutboxProcessor {
   OutboxProcessor({
@@ -26,6 +27,8 @@ class OutboxProcessor {
 
   void start() {
     stop();
+    // Reset previously failed entries so they get retried with correct ordering.
+    _syncQueueRepo.resetFailed();
     _timer = Timer.periodic(_interval, (_) => processQueue());
     AppLogger.info('OutboxProcessor started', tag: 'SYNC');
   }
@@ -50,6 +53,15 @@ class OutboxProcessor {
 
       final entries = await _syncQueueRepo.getPending();
       if (entries.isEmpty) return;
+
+      // Sort by FK dependency order so parent rows are pushed before children.
+      final order = SyncService.tableDependencyOrder;
+      entries.sort((a, b) {
+        final ia = order.indexOf(a.entityType);
+        final ib = order.indexOf(b.entityType);
+        // Unknown tables go last; within the same table keep createdAt order.
+        return (ia == -1 ? 999 : ia).compareTo(ib == -1 ? 999 : ib);
+      });
 
       AppLogger.debug('Processing ${entries.length} outbox entries', tag: 'SYNC');
 
@@ -115,8 +127,9 @@ class OutboxProcessor {
       await _handleError(entry, 'EF error: ${e.reasonPhrase ?? e.toString()}', false);
     } on AuthException catch (e) {
       await _handleError(entry, e.message, true);
-    } catch (e) {
+    } catch (e, s) {
       // Network or other transient error
+      AppLogger.error('Outbox unexpected error: $e', error: e, stackTrace: s, tag: 'SYNC');
       await _handleError(entry, e.toString(), false);
     }
   }

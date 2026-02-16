@@ -6,6 +6,7 @@ import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/providers/sync_providers.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../core/logging/app_logger.dart';
 
 class ScreenCloudAuth extends ConsumerStatefulWidget {
@@ -133,7 +134,7 @@ class _ScreenCloudAuthState extends ConsumerState<ScreenCloudAuth> {
     return _buildAuthForm(l);
   }
 
-  Widget _buildConnectedView(dynamic l) {
+  Widget _buildConnectedView(AppLocalizations l) {
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -168,7 +169,7 @@ class _ScreenCloudAuthState extends ConsumerState<ScreenCloudAuth> {
     );
   }
 
-  Widget _buildAuthForm(dynamic l) {
+  Widget _buildAuthForm(AppLocalizations l) {
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Form(

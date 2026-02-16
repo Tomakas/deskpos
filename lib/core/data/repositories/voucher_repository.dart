@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:drift/drift.dart';
 
 import '../../database/app_database.dart';
+import '../../logging/app_logger.dart';
 import '../enums/voucher_status.dart';
 import '../enums/voucher_type.dart';
 import '../mappers/entity_mappers.dart';
@@ -133,7 +134,8 @@ class VoucherRepository
       );
 
       return update(updated);
-    } catch (e) {
+    } catch (e, s) {
+      AppLogger.error('Failed to redeem voucher: $e', error: e, stackTrace: s, tag: 'VOUCHER');
       return Failure('Failed to redeem voucher: $e');
     }
   }

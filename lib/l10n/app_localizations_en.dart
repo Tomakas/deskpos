@@ -2311,6 +2311,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String get displayCodeError => 'Error looking up code';
 
   @override
+  String get displayCodeWaitingForConfirmation =>
+      'Waiting for operator confirmation…';
+
+  @override
+  String get displayCodeRejected => 'Connection was rejected';
+
+  @override
+  String get displayCodeTimeout => 'No response from operator. Try again.';
+
+  @override
+  String get pairingRequestTitle => 'Connection request';
+
+  @override
+  String get pairingRequestMessage =>
+      'A device wants to connect to this register:';
+
+  @override
+  String get pairingRequestCode => 'Code';
+
+  @override
+  String get pairingConfirm => 'Confirm';
+
+  @override
+  String get pairingReject => 'Reject';
+
+  @override
   String get displayDevicesTitle => 'Displays';
 
   @override

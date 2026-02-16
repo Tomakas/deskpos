@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/data/enums/cash_movement_type.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/utils/formatting_ext.dart';
@@ -164,7 +165,7 @@ class _DialogCashMovementState extends ConsumerState<DialogCashMovement> {
   // Amount display
   // ---------------------------------------------------------------------------
 
-  Widget _buildAmountDisplay(ThemeData theme, dynamic l) {
+  Widget _buildAmountDisplay(ThemeData theme, AppLocalizations l) {
     return Row(
       children: [
         Text(l.cashMovementAmount, style: theme.textTheme.titleMedium),
@@ -194,7 +195,7 @@ class _DialogCashMovementState extends ConsumerState<DialogCashMovement> {
   // Numpad + VKLAD / VÝBĚR
   // ---------------------------------------------------------------------------
 
-  Widget _buildNumpadAndActions(ThemeData theme, dynamic l) {
+  Widget _buildNumpadAndActions(ThemeData theme, AppLocalizations l) {
     const rowHeight = PosDialogTheme.numpadLargeHeight;
     const gap = PosDialogTheme.numpadLargeGap;
     const totalHeight = rowHeight * 4 + gap * 3;

@@ -22,6 +22,7 @@ import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/providers/sync_providers.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../core/utils/formatting_ext.dart';
 import '../../../core/widgets/pos_table.dart';
 import '../providers/z_report_providers.dart';
@@ -954,7 +955,7 @@ class _BillsTable extends ConsumerWidget {
     );
   }
 
-  String _resolveTableName(BillModel bill, Map<String, TableModel> tableMap, dynamic l) {
+  String _resolveTableName(BillModel bill, Map<String, TableModel> tableMap, AppLocalizations l) {
     if (bill.isTakeaway) return '${bill.billNumber} — ${l.billsQuickBill}';
     if (bill.tableId == null) return '${bill.billNumber} — ${l.billDetailNoTable}';
     final table = tableMap[bill.tableId];

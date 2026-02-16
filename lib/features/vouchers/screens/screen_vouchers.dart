@@ -7,6 +7,7 @@ import '../../../core/data/models/voucher_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../core/utils/formatting_ext.dart';
 import '../../../core/widgets/pos_table.dart';
 import '../widgets/dialog_voucher_create.dart';
@@ -133,7 +134,7 @@ class _ScreenVouchersState extends ConsumerState<ScreenVouchers> {
     );
   }
 
-  List<PosColumn<VoucherModel>> _buildColumns(dynamic l) {
+  List<PosColumn<VoucherModel>> _buildColumns(AppLocalizations l) {
     return [
       PosColumn<VoucherModel>(
         label: l.voucherCode,
@@ -178,13 +179,13 @@ class _ScreenVouchersState extends ConsumerState<ScreenVouchers> {
     ];
   }
 
-  String _typeLabel(VoucherType type, dynamic l) => switch (type) {
+  String _typeLabel(VoucherType type, AppLocalizations l) => switch (type) {
         VoucherType.gift => l.voucherTypeGift,
         VoucherType.deposit => l.voucherTypeDeposit,
         VoucherType.discount => l.voucherTypeDiscount,
       };
 
-  String _statusLabel(VoucherStatus status, dynamic l) => switch (status) {
+  String _statusLabel(VoucherStatus status, AppLocalizations l) => switch (status) {
         VoucherStatus.active => l.voucherStatusActive,
         VoucherStatus.redeemed => l.voucherStatusRedeemed,
         VoucherStatus.expired => l.voucherStatusExpired,

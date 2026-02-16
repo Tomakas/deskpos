@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatting_ext.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
@@ -236,7 +237,7 @@ class _DialogClosingSessionState extends ConsumerState<DialogClosingSession> {
   // Section: Session info
   // ---------------------------------------------------------------------------
 
-  Widget _buildSessionInfo(dynamic l, ThemeData theme) {
+  Widget _buildSessionInfo(AppLocalizations l, ThemeData theme) {
     final duration = DateTime.now().difference(_data.sessionOpenedAt);
 
     return Column(
@@ -263,7 +264,7 @@ class _DialogClosingSessionState extends ConsumerState<DialogClosingSession> {
   // Section: Revenue breakdown
   // ---------------------------------------------------------------------------
 
-  Widget _buildRevenue(dynamic l, ThemeData theme) {
+  Widget _buildRevenue(AppLocalizations l, ThemeData theme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -316,7 +317,7 @@ class _DialogClosingSessionState extends ConsumerState<DialogClosingSession> {
   // Section: Cash reconciliation
   // ---------------------------------------------------------------------------
 
-  Widget _buildCashReconciliation(dynamic l, ThemeData theme) {
+  Widget _buildCashReconciliation(AppLocalizations l, ThemeData theme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -357,7 +358,7 @@ class _DialogClosingSessionState extends ConsumerState<DialogClosingSession> {
   // Closing cash input + difference
   // ---------------------------------------------------------------------------
 
-  Widget _buildClosingCashInput(dynamic l, ThemeData theme) {
+  Widget _buildClosingCashInput(AppLocalizations l, ThemeData theme) {
     final diff = _difference;
 
     return Column(
@@ -390,7 +391,7 @@ class _DialogClosingSessionState extends ConsumerState<DialogClosingSession> {
   // Actions
   // ---------------------------------------------------------------------------
 
-  Widget _buildActions(dynamic l, ThemeData theme) {
+  Widget _buildActions(AppLocalizations l, ThemeData theme) {
     return PosDialogActions(
       height: 40,
       spacing: 6,

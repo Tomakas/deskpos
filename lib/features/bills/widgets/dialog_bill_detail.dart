@@ -18,6 +18,7 @@ import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/providers/sync_providers.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatting_ext.dart';
 import 'dialog_customer_search.dart';
@@ -98,7 +99,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
     );
   }
 
-  Widget _buildHeader(BuildContext context, WidgetRef ref, BillModel bill, dynamic l) {
+  Widget _buildHeader(BuildContext context, WidgetRef ref, BillModel bill, AppLocalizations l) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
@@ -181,7 +182,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
     );
   }
 
-  Widget _buildBillTitle(BuildContext context, WidgetRef ref, BillModel bill, dynamic l) {
+  Widget _buildBillTitle(BuildContext context, WidgetRef ref, BillModel bill, AppLocalizations l) {
     final billNum = l.billDetailBillNumber(bill.billNumber);
 
     if (bill.isTakeaway) {
@@ -213,7 +214,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
     );
   }
 
-  Widget _buildTotalSpentLine(BuildContext context, WidgetRef ref, BillModel bill, dynamic l) {
+  Widget _buildTotalSpentLine(BuildContext context, WidgetRef ref, BillModel bill, AppLocalizations l) {
     return StreamBuilder<int>(
       stream: ref.watch(orderRepositoryProvider).watchByBill(bill.id).asyncMap((orders) async {
         final activeOrders = orders.where((o) =>
@@ -280,7 +281,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
     );
   }
 
-  Widget _buildOrderList(BuildContext context, WidgetRef ref, BillModel bill, dynamic l) {
+  Widget _buildOrderList(BuildContext context, WidgetRef ref, BillModel bill, AppLocalizations l) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -447,7 +448,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
     );
   }
 
-  Widget _buildRightButtons(BuildContext context, WidgetRef ref, BillModel bill, dynamic l) {
+  Widget _buildRightButtons(BuildContext context, WidgetRef ref, BillModel bill, AppLocalizations l) {
     final isOpened = bill.status == BillStatus.opened;
     return SizedBox(
       width: 100,
@@ -509,7 +510,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
     );
   }
 
-  Widget _buildFooter(BuildContext context, WidgetRef ref, BillModel bill, dynamic l) {
+  Widget _buildFooter(BuildContext context, WidgetRef ref, BillModel bill, AppLocalizations l) {
     final isClosed = bill.status != BillStatus.opened;
     final isPaid = bill.status == BillStatus.paid;
 
@@ -650,7 +651,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
     setState(() => _didShowOnDisplay = false);
   }
 
-  Future<void> _cancelBill(BuildContext context, WidgetRef ref, BillModel bill, dynamic l) async {
+  Future<void> _cancelBill(BuildContext context, WidgetRef ref, BillModel bill, AppLocalizations l) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
@@ -917,7 +918,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
     }
   }
 
-  Future<void> _refundBill(BuildContext context, WidgetRef ref, BillModel bill, dynamic l) async {
+  Future<void> _refundBill(BuildContext context, WidgetRef ref, BillModel bill, AppLocalizations l) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
@@ -1390,7 +1391,7 @@ class _OrderSection extends ConsumerWidget {
     repo.updateItemStatus(item.id, order.id, status);
   }
 
-  List<PopupMenuEntry<PrepStatus>> _availableTransitions(PrepStatus current, dynamic l) {
+  List<PopupMenuEntry<PrepStatus>> _availableTransitions(PrepStatus current, AppLocalizations l) {
     switch (current) {
       case PrepStatus.created:
         return [

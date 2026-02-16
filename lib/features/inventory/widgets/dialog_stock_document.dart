@@ -11,6 +11,7 @@ import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/repositories/stock_document_repository.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 
@@ -279,7 +280,7 @@ class _DialogStockDocumentState extends ConsumerState<DialogStockDocument> {
 
   Future<List<ItemModel>?> _searchItemDialog(
     BuildContext context,
-    dynamic l,
+    AppLocalizations l,
   ) async {
     return showDialog<List<ItemModel>>(
       context: context,
@@ -337,7 +338,7 @@ class _DialogStockDocumentState extends ConsumerState<DialogStockDocument> {
     }
   }
 
-  String _strategyLabel(dynamic l, PurchasePriceStrategy strategy) {
+  String _strategyLabel(AppLocalizations l, PurchasePriceStrategy strategy) {
     return switch (strategy) {
       PurchasePriceStrategy.overwrite => context.l10n.stockStrategyOverwrite,
       PurchasePriceStrategy.keep => context.l10n.stockStrategyKeep,

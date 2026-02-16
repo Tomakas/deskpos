@@ -21,6 +21,7 @@ import '../../../core/data/providers/sync_providers.dart';
 import '../../../core/data/repositories/order_repository.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatting_ext.dart';
@@ -140,7 +141,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     final items = await orderRepo.getOrderItems(order.id);
     final channel = ref.read(kdsBroadcastChannelProvider);
     channel.send({
-      'type': 'new_order',
+      'action': 'new_order',
       'order': orderToSupabaseJson(order),
       'order_items': items.map(orderItemToSupabaseJson).toList(),
     });
@@ -251,7 +252,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     );
   }
 
-  Widget _buildToolbar(BuildContext context, dynamic l) {
+  Widget _buildToolbar(BuildContext context, AppLocalizations l) {
     return Container(
       height: 52,
       padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -352,7 +353,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     );
   }
 
-  Widget _buildCart(BuildContext context, dynamic l) {
+  Widget _buildCart(BuildContext context, AppLocalizations l) {
     final theme = Theme.of(context);
     int total = 0;
     for (final entry in _cart) {
@@ -547,7 +548,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     );
   }
 
-  Widget _buildSearchResults(BuildContext context, WidgetRef ref, dynamic l) {
+  Widget _buildSearchResults(BuildContext context, WidgetRef ref, AppLocalizations l) {
     final company = ref.watch(currentCompanyProvider);
     if (company == null) return const SizedBox.shrink();
 
@@ -573,7 +574,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     );
   }
 
-  Widget _buildGrid(BuildContext context, WidgetRef ref, RegisterModel register, dynamic l) {
+  Widget _buildGrid(BuildContext context, WidgetRef ref, RegisterModel register, AppLocalizations l) {
     final company = ref.watch(currentCompanyProvider);
     if (company == null) return const SizedBox.shrink();
 
@@ -594,7 +595,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     RegisterModel register,
     List<LayoutItemModel> layoutItems,
     String companyId,
-    dynamic l,
+    AppLocalizations l,
   ) {
     final rows = register.gridRows;
     final cols = register.gridCols;
@@ -646,7 +647,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     int col,
     RegisterModel register,
     String companyId,
-    dynamic l,
+    AppLocalizations l,
   ) {
     final layoutItem = layoutItems.where((li) => li.gridRow == row && li.gridCol == col).firstOrNull;
 

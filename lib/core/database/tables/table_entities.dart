@@ -14,8 +14,8 @@ class Tables extends Table with SyncColumnsMixin {
   BoolColumn get isActive => boolean().withDefault(const Constant(true))();
   IntColumn get gridRow => integer().withDefault(const Constant(0))();
   IntColumn get gridCol => integer().withDefault(const Constant(0))();
-  IntColumn get gridWidth => integer().withDefault(const Constant(3))();
-  IntColumn get gridHeight => integer().withDefault(const Constant(3))();
+  IntColumn get gridWidth => integer().withDefault(const Constant(1))();
+  IntColumn get gridHeight => integer().withDefault(const Constant(1))();
   TextColumn get color => text().nullable()();
   IntColumn get fontSize => integer().nullable()();
   IntColumn get fillStyle => integer().withDefault(const Constant(1))();

@@ -7,6 +7,7 @@ import '../../../core/data/models/tax_rate_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/pos_table.dart';
 
@@ -76,7 +77,7 @@ class TaxRatesTab extends ConsumerWidget {
     );
   }
 
-  String _typeLabel(dynamic l, TaxCalcType type) {
+  String _typeLabel(AppLocalizations l, TaxCalcType type) {
     return switch (type) {
       TaxCalcType.regular => l.taxTypeRegular,
       TaxCalcType.noTax => l.taxTypeNoTax,

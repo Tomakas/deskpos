@@ -10,6 +10,7 @@ import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/providers/sync_providers.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../core/logging/app_logger.dart';
 
 enum _Step { credentials, searching, companyPreview, syncing, selectRegister, done }
@@ -241,7 +242,7 @@ class _ScreenConnectCompanyState extends ConsumerState<ScreenConnectCompany> {
     );
   }
 
-  Widget _buildForm(dynamic l) {
+  Widget _buildForm(AppLocalizations l) {
     return Form(
       key: _formKey,
       child: Column(
@@ -307,7 +308,7 @@ class _ScreenConnectCompanyState extends ConsumerState<ScreenConnectCompany> {
     );
   }
 
-  Widget _buildCompanyPreview(dynamic l) {
+  Widget _buildCompanyPreview(AppLocalizations l) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -331,7 +332,7 @@ class _ScreenConnectCompanyState extends ConsumerState<ScreenConnectCompany> {
     );
   }
 
-  Widget _buildRegisterSelection(dynamic l) {
+  Widget _buildRegisterSelection(AppLocalizations l) {
     final theme = Theme.of(context);
 
     return FutureBuilder<String>(

@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide BroadcastChannel;
 
 import '../../auth/supabase_auth_service.dart';
+import '../../logging/app_logger.dart';
 import '../../sync/broadcast_channel.dart';
 import '../../sync/outbox_processor.dart';
 import '../../sync/realtime_service.dart';
@@ -97,6 +98,95 @@ final kdsBroadcastChannelProvider = Provider<BroadcastChannel>((ref) {
   final channel = BroadcastChannel(Supabase.instance.client);
   ref.onDispose(() => channel.dispose());
   return channel;
+});
+
+// --- Pairing confirmation ---
+
+/// Broadcast channel for display pairing confirmation.
+final pairingChannelProvider = Provider<BroadcastChannel>((ref) {
+  final channel = BroadcastChannel(Supabase.instance.client);
+  ref.onDispose(() => channel.dispose());
+  return channel;
+});
+
+/// Pending pairing request awaiting operator confirmation on main register.
+class PairingRequest {
+  PairingRequest({
+    required this.code,
+    required this.deviceName,
+    required this.deviceType,
+    required this.requestId,
+  });
+  final String code;
+  final String deviceName;
+  final String deviceType;
+  final String requestId;
+}
+
+final pendingPairingRequestProvider = StateProvider<PairingRequest?>((ref) => null);
+
+/// Auto-subscribes main register to pairing channel.
+/// Watch this from app root to activate.
+final pairingListenerProvider = Provider<void>((ref) {
+  final company = ref.watch(currentCompanyProvider);
+  final register = ref.watch(activeRegisterProvider).value;
+
+  // Only main register listens for pairing requests
+  if (company == null || register == null || !register.isMain) {
+    AppLogger.debug(
+      'pairingListener: skipped (company=${company?.id}, register=${register?.id}, isMain=${register?.isMain})',
+      tag: 'PAIRING',
+    );
+    return;
+  }
+
+  AppLogger.info(
+    'pairingListener: subscribing to pairing:${company.id}',
+    tag: 'PAIRING',
+  );
+
+  final channel = ref.watch(pairingChannelProvider);
+  final displayDeviceRepo = ref.read(displayDeviceRepositoryProvider);
+  var disposed = false;
+
+  // Register stream listener BEFORE join to avoid missing messages
+  final sub = channel.stream.listen((payload) {
+    final action = payload['action'] as String?;
+    AppLogger.debug('pairingListener: received broadcast action=$action', tag: 'PAIRING');
+    if (action != 'pairing_request') return;
+
+    final code = payload['code'] as String? ?? '';
+    final requestId = payload['request_id'] as String? ?? '';
+
+    // Verify code exists in local DB before showing dialog
+    displayDeviceRepo.getByCode(code).then((device) {
+      if (disposed) return;
+      if (device == null) {
+        AppLogger.warn(
+          'Pairing request for unknown code: $code',
+          tag: 'PAIRING',
+        );
+        return;
+      }
+      ref.read(pendingPairingRequestProvider.notifier).state = PairingRequest(
+        code: code,
+        deviceName: payload['device_name'] as String? ?? device.name,
+        deviceType: payload['device_type'] as String? ?? '',
+        requestId: requestId,
+      );
+    });
+  });
+
+  // Join the channel (messages arriving after join will be caught by listener above)
+  channel.join('pairing:${company.id}').then((_) {
+    if (disposed) channel.leave();
+  });
+
+  ref.onDispose(() {
+    disposed = true;
+    sub.cancel();
+    channel.leave();
+  });
 });
 
 // --- Sync lifecycle watcher ---

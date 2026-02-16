@@ -85,15 +85,10 @@ final appInitProvider = FutureProvider<_AppInitState>((ref) async {
     Failure() => false,
   };
 
-  // KDS needs company data + login — use kdsMode after company sync
-  if (displayCode != null && displayType == 'kds') {
-    return hasCompany ? _AppInitState.kdsMode : _AppInitState.needsOnboarding;
-  }
-
   return hasCompany ? _AppInitState.needsLogin : _AppInitState.needsOnboarding;
 });
 
-enum _AppInitState { needsOnboarding, needsLogin, displayMode, kdsMode }
+enum _AppInitState { needsOnboarding, needsLogin, displayMode }
 
 /// Re-export for use in routing
 typedef AppInitState = _AppInitState;

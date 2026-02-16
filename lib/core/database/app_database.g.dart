@@ -31227,7 +31227,7 @@ class $TablesTable extends Tables with TableInfo<$TablesTable, TableEntity> {
     false,
     type: DriftSqlType.int,
     requiredDuringInsert: false,
-    defaultValue: const Constant(3),
+    defaultValue: const Constant(1),
   );
   static const VerificationMeta _gridHeightMeta = const VerificationMeta(
     'gridHeight',
@@ -31239,7 +31239,7 @@ class $TablesTable extends Tables with TableInfo<$TablesTable, TableEntity> {
     false,
     type: DriftSqlType.int,
     requiredDuringInsert: false,
-    defaultValue: const Constant(3),
+    defaultValue: const Constant(1),
   );
   static const VerificationMeta _colorMeta = const VerificationMeta('color');
   @override

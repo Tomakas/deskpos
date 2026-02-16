@@ -9,6 +9,7 @@ import '../../../core/data/models/register_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../core/widgets/pos_table.dart';
 
 // ---------------------------------------------------------------------------
@@ -314,7 +315,7 @@ class RegistersTab extends ConsumerWidget {
   Widget _buildBindingCell(
     BuildContext context,
     WidgetRef ref,
-    dynamic l,
+    AppLocalizations l,
     RegisterModel register,
     dynamic deviceReg,
     String? myDeviceId,
@@ -367,7 +368,7 @@ class RegistersTab extends ConsumerWidget {
     );
   }
 
-  String _registerTypeLabel(dynamic l, HardwareType type) {
+  String _registerTypeLabel(AppLocalizations l, HardwareType type) {
     return switch (type) {
       HardwareType.local => l.registerTypeLocal,
       HardwareType.mobile => l.registerTypeMobile,
@@ -375,7 +376,7 @@ class RegistersTab extends ConsumerWidget {
     };
   }
 
-  String _displayTypeLabel(dynamic l, DisplayDeviceType type) {
+  String _displayTypeLabel(AppLocalizations l, DisplayDeviceType type) {
     return switch (type) {
       DisplayDeviceType.customerDisplay => l.modeCustomerDisplay,
       DisplayDeviceType.kds => l.modeKDS,
@@ -677,7 +678,7 @@ class RegistersTab extends ConsumerWidget {
 class _PaymentFlags extends StatelessWidget {
   const _PaymentFlags({required this.register, required this.l});
   final RegisterModel register;
-  final dynamic l;
+  final AppLocalizations l;
 
   @override
   Widget build(BuildContext context) {

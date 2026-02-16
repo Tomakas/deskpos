@@ -120,8 +120,8 @@ class SyncLifecycleManager {
     Map<String, dynamic> payload,
   ) async {
     try {
-      final type = payload['type'] as String?;
-      if (type != 'new_order') return;
+      final action = payload['action'] as String?;
+      if (action != 'new_order') return;
 
       final orderJson = payload['order'] as Map<String, dynamic>?;
       final itemsJson = payload['order_items'] as List?;

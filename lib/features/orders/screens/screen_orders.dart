@@ -11,6 +11,7 @@ import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatting_ext.dart';
 
@@ -691,7 +692,7 @@ class _OrderItemCard extends ConsumerWidget {
 // ---------------------------------------------------------------------------
 // Shared helpers
 // ---------------------------------------------------------------------------
-String _statusLabel(PrepStatus status, dynamic l) => switch (status) {
+String _statusLabel(PrepStatus status, AppLocalizations l) => switch (status) {
       PrepStatus.created => l.ordersFilterCreated,
       PrepStatus.inPrep => l.ordersFilterInPrep,
       PrepStatus.ready => l.ordersFilterReady,
@@ -719,7 +720,7 @@ PrepStatus? _prevStatus(PrepStatus current) => switch (current) {
       _ => null,
     };
 
-String _nextStatusLabel(PrepStatus status, dynamic l) => switch (status) {
+String _nextStatusLabel(PrepStatus status, AppLocalizations l) => switch (status) {
       PrepStatus.inPrep => l.ordersFilterInPrep,
       PrepStatus.ready => l.ordersFilterReady,
       PrepStatus.delivered => l.ordersFilterDelivered,

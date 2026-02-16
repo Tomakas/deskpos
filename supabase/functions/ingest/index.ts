@@ -149,6 +149,14 @@ Deno.serve(async (req) => {
         return respond({ ok: false, error_type: "lww_conflict" });
       }
 
+      // FK violation — parent row may not be synced yet, client should retry
+      if (code === "23503") {
+        await logAudit(user.id, companyId, table, entityId, operation, idempotency_key, "fk_pending", `${code}: ${upsertError.message}`);
+        return respond(
+          { ok: false, error_type: "transient", code, message: upsertError.message },
+        );
+      }
+
       // Permanent DB errors — client should not retry
       if (code.startsWith("23") || code.startsWith("PGRST") || code.startsWith("42")) {
         await logAudit(user.id, companyId, table, entityId, operation, idempotency_key, "error", `${code}: ${upsertError.message}`);

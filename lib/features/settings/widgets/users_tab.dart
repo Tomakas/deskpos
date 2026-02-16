@@ -10,6 +10,7 @@ import '../../../core/data/models/user_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/search_utils.dart';
 import '../../../core/widgets/pos_table.dart';
@@ -117,7 +118,7 @@ class _UsersTabState extends ConsumerState<UsersTab> {
     );
   }
 
-  String _roleLabel(dynamic l, List<RoleModel> roles, String roleId) {
+  String _roleLabel(AppLocalizations l, List<RoleModel> roles, String roleId) {
     final role = roles.where((r) => r.id == roleId).firstOrNull;
     if (role == null) return '-';
     return switch (role.name) {

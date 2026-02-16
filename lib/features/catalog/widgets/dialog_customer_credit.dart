@@ -7,6 +7,7 @@ import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatting_ext.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
@@ -151,7 +152,7 @@ class _DialogCustomerCreditState extends ConsumerState<DialogCustomerCredit> {
     );
   }
 
-  Widget _buildNumpadAndActions(ThemeData theme, dynamic l) {
+  Widget _buildNumpadAndActions(ThemeData theme, AppLocalizations l) {
     const rowHeight = PosDialogTheme.numpadLargeHeight;
     const gap = PosDialogTheme.numpadLargeGap;
     const totalHeight = rowHeight * 4 + gap * 3;

@@ -38,8 +38,8 @@ class SyncService {
     'role_permissions',
   };
 
-  // Pull order respects FK dependencies
-  static const _pullTables = [
+  // Table order respects FK dependencies (used for both pull and push).
+  static const tableDependencyOrder = [
     'currencies',
     'companies',
     'company_settings',
@@ -99,7 +99,7 @@ class SyncService {
     final version = _pullVersion;
     try {
       AppLogger.debug('SyncService: pulling all tables', tag: 'SYNC');
-      for (final tableName in _pullTables) {
+      for (final tableName in tableDependencyOrder) {
         if (_pullVersion != version) {
           AppLogger.info('SyncService: pull cancelled', tag: 'SYNC');
           break;
@@ -289,6 +289,8 @@ class SyncService {
         return _db.stockDocuments;
       case 'stock_movements':
         return _db.stockMovements;
+      case 'display_devices':
+        return _db.displayDevices;
       default:
         throw ArgumentError('Unknown Drift table: $tableName');
     }

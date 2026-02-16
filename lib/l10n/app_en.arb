@@ -954,6 +954,15 @@
   "displayCodeBack": "Back",
   "displayCodeNotFound": "Code not found",
   "displayCodeError": "Error looking up code",
+  "displayCodeWaitingForConfirmation": "Waiting for operator confirmation\u2026",
+  "displayCodeRejected": "Connection was rejected",
+  "displayCodeTimeout": "No response from operator. Try again.",
+
+  "pairingRequestTitle": "Connection request",
+  "pairingRequestMessage": "A device wants to connect to this register:",
+  "pairingRequestCode": "Code",
+  "pairingConfirm": "Confirm",
+  "pairingReject": "Reject",
 
   "displayDevicesTitle": "Displays",
   "displayDevicesEmpty": "No display devices",

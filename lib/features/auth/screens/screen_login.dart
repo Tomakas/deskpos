@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/auth/auth_service.dart';
 import '../../../core/auth/pin_helper.dart';
@@ -11,7 +12,10 @@ import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../core/widgets/pos_numpad.dart';
+
+enum _LoginMode { pos, kds }
 
 class ScreenLogin extends ConsumerStatefulWidget {
   const ScreenLogin({super.key});
@@ -29,11 +33,21 @@ class _ScreenLoginState extends ConsumerState<ScreenLogin> {
   List<UserModel> _users = [];
   bool _loaded = false;
   bool _isLoggingIn = false;
+  _LoginMode _selectedMode = _LoginMode.pos;
 
   @override
   void initState() {
     super.initState();
     _loadUsers();
+    _loadSavedMode();
+  }
+
+  Future<void> _loadSavedMode() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getString('login_mode');
+    if (saved == 'kds' && mounted) {
+      setState(() => _selectedMode = _LoginMode.kds);
+    }
   }
 
   Future<void> _loadUsers() async {
@@ -67,7 +81,7 @@ class _ScreenLoginState extends ConsumerState<ScreenLogin> {
     return Scaffold(
       body: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 360),
+          constraints: const BoxConstraints(maxWidth: 600),
           child: _selectedUser != null
               ? _buildPinEntry(l)
               : _buildUserList(l),
@@ -76,31 +90,75 @@ class _ScreenLoginState extends ConsumerState<ScreenLogin> {
     );
   }
 
-  Widget _buildUserList(dynamic l) {
+  Widget _buildModeColumn(AppLocalizations l, {bool enabled = true}) {
+    final theme = Theme.of(context);
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(l.modeTitle, style: theme.textTheme.headlineMedium),
+        const SizedBox(height: 32),
+        RadioGroup<_LoginMode>(
+          groupValue: _selectedMode,
+          onChanged: enabled
+              ? (v) => setState(() { if (v != null) _selectedMode = v; })
+              : (v) {},
+          child: Column(
+            children: [
+              RadioListTile<_LoginMode>(
+                title: Text(l.modePOS),
+                value: _LoginMode.pos,
+              ),
+              RadioListTile<_LoginMode>(
+                title: Text(l.modeKDS),
+                value: _LoginMode.kds,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildUserList(AppLocalizations l) {
     if (!_loaded) {
       return const CircularProgressIndicator();
     }
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(l.loginTitle, style: Theme.of(context).textTheme.headlineMedium),
-        const SizedBox(height: 32),
-        ..._users.map((user) => Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: OutlinedButton(
-                  onPressed: () => setState(() {
-                    _selectedUser = user;
-                    _error = null;
-                    _pinCtrl.clear();
-                  }),
-                  child: Text(user.fullName),
-                ),
-              ),
-            )),
+        // Left column: users
+        Expanded(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(l.loginTitle, style: Theme.of(context).textTheme.headlineMedium),
+              const SizedBox(height: 32),
+              ..._users.map((user) => Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: SizedBox(
+                      width: double.infinity,
+                      height: 52,
+                      child: OutlinedButton(
+                        onPressed: () => setState(() {
+                          _selectedUser = user;
+                          _error = null;
+                          _pinCtrl.clear();
+                        }),
+                        child: Text(user.fullName),
+                      ),
+                    ),
+                  )),
+            ],
+          ),
+        ),
+        const SizedBox(width: 32),
+        // Right column: mode selector
+        Expanded(
+          child: _buildModeColumn(l),
+        ),
       ],
     );
   }
@@ -122,54 +180,67 @@ class _ScreenLoginState extends ConsumerState<ScreenLogin> {
     });
   }
 
-  Widget _buildPinEntry(dynamic l) {
+  Widget _buildPinEntry(AppLocalizations l) {
     final pinLength = _pinCtrl.text.length;
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          _selectedUser!.fullName,
-          style: Theme.of(context).textTheme.headlineMedium,
-        ),
-        const SizedBox(height: 24),
-        // PIN stars
-        SizedBox(
-          height: 32,
-          child: Text(
-            '*' * pinLength,
-            style: TextStyle(
-              fontSize: 28,
-              letterSpacing: 12,
-              color: Theme.of(context).colorScheme.primary,
-            ),
+        // Left column: PIN entry
+        Expanded(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                _selectedUser!.fullName,
+                style: Theme.of(context).textTheme.headlineMedium,
+              ),
+              const SizedBox(height: 24),
+              // PIN stars
+              SizedBox(
+                height: 32,
+                child: Text(
+                  '*' * pinLength,
+                  style: TextStyle(
+                    fontSize: 28,
+                    letterSpacing: 12,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              // Error / lockout text
+              if (_lockSeconds != null)
+                Text(
+                  l.loginLockedOut(_lockSeconds!),
+                  style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 13),
+                )
+              else if (_error != null)
+                Text(
+                  _error!,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 13),
+                ),
+              const SizedBox(height: 16),
+              // Numpad
+              PosNumpad(
+                width: 280,
+                enabled: _lockSeconds == null && !_isLoggingIn,
+                onDigit: _numpadTap,
+                onBackspace: _numpadBackspace,
+                bottomLeftChild: const Icon(Icons.arrow_back),
+                onBottomLeft: () => setState(() {
+                  _selectedUser = null;
+                  _error = null;
+                  _pinCtrl.clear();
+                }),
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 8),
-        // Error / lockout text
-        if (_lockSeconds != null)
-          Text(
-            l.loginLockedOut(_lockSeconds!),
-            style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 13),
-          )
-        else if (_error != null)
-          Text(
-            _error!,
-            style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 13),
-          ),
-        const SizedBox(height: 16),
-        // Numpad
-        PosNumpad(
-          width: 280,
-          enabled: _lockSeconds == null && !_isLoggingIn,
-          onDigit: _numpadTap,
-          onBackspace: _numpadBackspace,
-          bottomLeftChild: const Icon(Icons.arrow_back),
-          onBottomLeft: () => setState(() {
-            _selectedUser = null;
-            _error = null;
-            _pinCtrl.clear();
-          }),
+        const SizedBox(width: 32),
+        // Right column: mode (disabled during PIN entry)
+        Expanded(
+          child: _buildModeColumn(l, enabled: false),
         ),
       ],
     );
@@ -211,12 +282,14 @@ class _ScreenLoginState extends ConsumerState<ScreenLogin> {
       final authService = ref.read(authServiceProvider);
       authService.resetAttempts();
       session.login(_selectedUser!);
-      ref.read(activeUserProvider.notifier).state = _selectedUser;
-      ref.read(loggedInUsersProvider.notifier).state = session.loggedInUsers;
+      // NOTE: activeUserProvider/loggedInUsersProvider are set AFTER async work
+      // to avoid triggering the router redirect (→ /bills) before we navigate.
       final companyRepo = ref.read(companyRepositoryProvider);
       final companyResult = await companyRepo.getFirst();
       if (companyResult case Success(value: final company?)) {
         ref.read(currentCompanyProvider.notifier).state = company;
+        // Ensure currency is loaded before navigating to price-displaying screens
+        await ref.read(currentCurrencyProvider.future);
         // Create shift if register session is active
         final regSession = await ref.read(registerSessionRepositoryProvider).getActiveSession(company.id);
         if (regSession != null) {
@@ -231,7 +304,14 @@ class _ScreenLoginState extends ConsumerState<ScreenLogin> {
           }
         }
       }
-      if (mounted) context.go('/bills');
+      // Persist selected mode
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('login_mode', _selectedMode == _LoginMode.kds ? 'kds' : 'pos');
+      // Set auth providers just before navigation to prevent premature router redirect
+      ref.read(activeUserProvider.notifier).state = _selectedUser;
+      ref.read(loggedInUsersProvider.notifier).state = session.loggedInUsers;
+      // Navigate based on mode
+      if (mounted) context.go(_selectedMode == _LoginMode.kds ? '/kds' : '/bills');
     } finally {
       if (mounted) setState(() => _isLoggingIn = false);
     }
