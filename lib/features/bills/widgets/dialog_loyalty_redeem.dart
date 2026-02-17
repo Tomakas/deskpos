@@ -30,6 +30,7 @@ class DialogLoyaltyRedeem extends ConsumerStatefulWidget {
 
 class _DialogLoyaltyRedeemState extends ConsumerState<DialogLoyaltyRedeem> {
   String _input = '';
+  bool _isProcessing = false;
 
   int get _pointsToUse => int.tryParse(_input) ?? 0;
   int get _discountAmount => _pointsToUse * widget.pointValue;
@@ -59,17 +60,22 @@ class _DialogLoyaltyRedeemState extends ConsumerState<DialogLoyaltyRedeem> {
   }
 
   Future<void> _confirm() async {
-    if (!_isValid) return;
-    final user = ref.read(activeUserProvider);
-    final repo = ref.read(billRepositoryProvider);
-    final result = await repo.applyLoyaltyDiscount(
-      widget.bill.id,
-      _pointsToUse,
-      widget.pointValue,
-      user?.id ?? '',
-    );
-    if (mounted && result is Success) {
-      Navigator.pop(context, true);
+    if (!_isValid || _isProcessing) return;
+    setState(() => _isProcessing = true);
+    try {
+      final user = ref.read(activeUserProvider);
+      final repo = ref.read(billRepositoryProvider);
+      final result = await repo.applyLoyaltyDiscount(
+        widget.bill.id,
+        _pointsToUse,
+        widget.pointValue,
+        user?.id ?? '',
+      );
+      if (mounted && result is Success) {
+        Navigator.pop(context, true);
+      }
+    } finally {
+      if (mounted) setState(() => _isProcessing = false);
     }
   }
 
@@ -145,7 +151,7 @@ class _DialogLoyaltyRedeemState extends ConsumerState<DialogLoyaltyRedeem> {
             ),
             FilledButton(
               style: PosButtonStyles.confirm(context),
-              onPressed: _isValid ? _confirm : null,
+              onPressed: _isValid && !_isProcessing ? _confirm : null,
               child: Text(l.paymentConfirm),
             ),
           ],

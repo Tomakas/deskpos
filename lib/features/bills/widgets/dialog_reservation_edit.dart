@@ -32,6 +32,8 @@ class _DialogReservationEditState extends ConsumerState<DialogReservationEdit> {
   String? _tableId;
   late ReservationStatus _status;
 
+  bool _isProcessing = false;
+
   bool get _isEdit => widget.reservation != null;
 
   @override
@@ -110,56 +112,68 @@ class _DialogReservationEditState extends ConsumerState<DialogReservationEdit> {
   }
 
   Future<void> _save() async {
-    final name = _nameCtrl.text.trim();
-    if (name.isEmpty) return;
+    if (_isProcessing) return;
+    setState(() => _isProcessing = true);
+    try {
+      final name = _nameCtrl.text.trim();
+      if (name.isEmpty) return;
 
-    final company = ref.read(currentCompanyProvider);
-    if (company == null) return;
+      final company = ref.read(currentCompanyProvider);
+      if (company == null) return;
 
-    final repo = ref.read(reservationRepositoryProvider);
-    final partySize = int.tryParse(_partySizeCtrl.text.trim()) ?? 2;
-    final phone = _phoneCtrl.text.trim();
-    final notes = _notesCtrl.text.trim();
+      final repo = ref.read(reservationRepositoryProvider);
+      final partySize = int.tryParse(_partySizeCtrl.text.trim()) ?? 2;
+      final phone = _phoneCtrl.text.trim();
+      final notes = _notesCtrl.text.trim();
 
-    if (_isEdit) {
-      final updated = widget.reservation!.copyWith(
-        customerId: _customerId,
-        customerName: name,
-        customerPhone: phone.isEmpty ? null : phone,
-        reservationDate: _combinedDateTime,
-        partySize: partySize,
-        tableId: _tableId,
-        notes: notes.isEmpty ? null : notes,
-        status: _status,
-      );
-      await repo.update(updated);
-    } else {
-      final now = DateTime.now();
-      final model = ReservationModel(
-        id: const Uuid().v7(),
-        companyId: company.id,
-        customerId: _customerId,
-        customerName: name,
-        customerPhone: phone.isEmpty ? null : phone,
-        reservationDate: _combinedDateTime,
-        partySize: partySize,
-        tableId: _tableId,
-        notes: notes.isEmpty ? null : notes,
-        status: _status,
-        createdAt: now,
-        updatedAt: now,
-      );
-      await repo.create(model);
+      if (_isEdit) {
+        final updated = widget.reservation!.copyWith(
+          customerId: _customerId,
+          customerName: name,
+          customerPhone: phone.isEmpty ? null : phone,
+          reservationDate: _combinedDateTime,
+          partySize: partySize,
+          tableId: _tableId,
+          notes: notes.isEmpty ? null : notes,
+          status: _status,
+        );
+        await repo.update(updated);
+      } else {
+        final now = DateTime.now();
+        final model = ReservationModel(
+          id: const Uuid().v7(),
+          companyId: company.id,
+          customerId: _customerId,
+          customerName: name,
+          customerPhone: phone.isEmpty ? null : phone,
+          reservationDate: _combinedDateTime,
+          partySize: partySize,
+          tableId: _tableId,
+          notes: notes.isEmpty ? null : notes,
+          status: _status,
+          createdAt: now,
+          updatedAt: now,
+        );
+        await repo.create(model);
+      }
+
+      if (mounted) Navigator.pop(context, true);
+    } finally {
+      if (mounted) setState(() => _isProcessing = false);
     }
-
-    if (mounted) Navigator.pop(context, true);
   }
 
   Future<void> _delete() async {
-    if (!_isEdit) return;
-    final repo = ref.read(reservationRepositoryProvider);
-    await repo.delete(widget.reservation!.id);
-    if (mounted) Navigator.pop(context, true);
+    if (_isProcessing) return;
+    setState(() => _isProcessing = true);
+    try {
+      if (!_isEdit) return;
+      final repo = ref.read(reservationRepositoryProvider);
+      await repo.delete(widget.reservation!.id);
+      if (mounted) Navigator.pop(context, true);
+    } finally {
+      if (mounted) setState(() => _isProcessing = false);
+    }
   }
 
   String _statusLabel(ReservationStatus s) {
@@ -305,7 +319,7 @@ class _DialogReservationEditState extends ConsumerState<DialogReservationEdit> {
                   children: [
                     if (_isEdit)
                       TextButton(
-                        onPressed: _delete,
+                        onPressed: !_isProcessing ? _delete : null,
                         style: TextButton.styleFrom(foregroundColor: theme.colorScheme.error),
                         child: Text(l.reservationDelete),
                       ),
@@ -316,7 +330,7 @@ class _DialogReservationEditState extends ConsumerState<DialogReservationEdit> {
                     ),
                     const SizedBox(width: 8),
                     FilledButton(
-                      onPressed: _save,
+                      onPressed: !_isProcessing ? _save : null,
                       child: Text(l.reservationSave),
                     ),
                   ],

@@ -41,6 +41,7 @@ class DialogBillDetail extends ConsumerStatefulWidget {
 
 class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
   bool _showSummary = false;
+  bool _isProcessing = false;
   bool _didShowOnDisplay = false;
   String? _displayCode;
 
@@ -458,39 +459,39 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
           children: [
             _SideButton(
               label: l.billDetailCustomer,
-              onPressed: isOpened ? () => _selectCustomer(context, ref, bill) : null,
+              onPressed: isOpened && !_isProcessing ? () => _selectCustomer(context, ref, bill) : null,
             ),
             const SizedBox(height: 4),
             _SideButton(
               label: l.billDetailMove,
-              onPressed: isOpened ? () => _moveBill(context, ref, bill) : null,
+              onPressed: isOpened && !_isProcessing ? () => _moveBill(context, ref, bill) : null,
             ),
             const SizedBox(height: 4),
             _SideButton(
               label: l.billDetailMerge,
-              onPressed: isOpened ? () => _mergeBill(context, ref, bill) : null,
+              onPressed: isOpened && !_isProcessing ? () => _mergeBill(context, ref, bill) : null,
             ),
             const SizedBox(height: 4),
             _SideButton(
               label: l.billDetailSplit,
-              onPressed: isOpened ? () => _splitBill(context, ref, bill) : null,
+              onPressed: isOpened && !_isProcessing ? () => _splitBill(context, ref, bill) : null,
             ),
             const SizedBox(height: 4),
             _SideButton(
               label: l.billDetailDiscount,
-              onPressed: isOpened ? () => _applyBillDiscount(context, ref, bill) : null,
+              onPressed: isOpened && !_isProcessing ? () => _applyBillDiscount(context, ref, bill) : null,
             ),
             const SizedBox(height: 4),
             _SideButton(
               label: l.loyaltyRedeem,
-              onPressed: isOpened && bill.customerId != null
+              onPressed: isOpened && !_isProcessing && bill.customerId != null
                   ? () => _redeemLoyalty(context, ref, bill)
                   : null,
             ),
             const SizedBox(height: 4),
             _SideButton(
               label: l.billDetailVoucher,
-              onPressed: isOpened ? () => _applyVoucher(context, ref, bill) : null,
+              onPressed: isOpened && !_isProcessing ? () => _applyVoucher(context, ref, bill) : null,
             ),
             const SizedBox(height: 4),
             _SideButton(
@@ -547,7 +548,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
               width: 130,
               child: FilledButton(
                 style: PosButtonStyles.warningFilled(context),
-                onPressed: () => _refundBill(context, ref, bill, l),
+                onPressed: !_isProcessing ? () => _refundBill(context, ref, bill, l) : null,
                 child: Text(l.refundButton),
               ),
             ),
@@ -560,7 +561,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
               width: 130,
               child: OutlinedButton(
                 style: PosButtonStyles.destructiveOutlined(context),
-                onPressed: () => _cancelBill(context, ref, bill, l),
+                onPressed: !_isProcessing ? () => _cancelBill(context, ref, bill, l) : null,
                 child: Text(l.billDetailCancel),
               ),
             ),
@@ -573,7 +574,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
               width: 130,
               child: FilledButton(
                 style: PosButtonStyles.confirm(context),
-                onPressed: () => _payBill(context, ref, bill),
+                onPressed: !_isProcessing ? () => _payBill(context, ref, bill) : null,
                 child: Text(l.billDetailPay),
               ),
             ),
@@ -656,129 +657,153 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
   }
 
   Future<void> _cancelBill(BuildContext context, WidgetRef ref, BillModel bill, AppLocalizations l) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        content: Text(l.billDetailConfirmCancel),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
-        ],
-      ),
-    );
-    if (confirmed != true) return;
-    if (!mounted) return;
+    if (_isProcessing) return;
+    setState(() => _isProcessing = true);
+    try {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (_) => AlertDialog(
+          content: Text(l.billDetailConfirmCancel),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
+            TextButton(onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
+          ],
+        ),
+      );
+      if (confirmed != true) return;
+      if (!mounted) return;
 
-    final repo = ref.read(billRepositoryProvider);
-    final result = await repo.cancelBill(bill.id, userId: ref.read(activeUserProvider)?.id);
-    if (result is Success) {
-      await repo.updateTotals(bill.id);
-      if (context.mounted) Navigator.pop(context);
+      final repo = ref.read(billRepositoryProvider);
+      final result = await repo.cancelBill(bill.id, userId: ref.read(activeUserProvider)?.id);
+      if (result is Success) {
+        await repo.updateTotals(bill.id);
+        if (context.mounted) Navigator.pop(context);
+      }
+    } finally {
+      if (mounted) setState(() => _isProcessing = false);
     }
   }
 
   Future<void> _applyBillDiscount(BuildContext context, WidgetRef ref, BillModel bill) async {
-    final result = await showDialog<(DiscountType, int)?>(
-      context: context,
-      builder: (_) => DialogDiscount(
-        currentDiscount: bill.discountAmount,
-        currentDiscountType: bill.discountType ?? DiscountType.absolute,
-        referenceAmount: bill.subtotalGross,
-      ),
-    );
-    if (result == null) return;
-    if (!mounted) return;
-    await ref.read(billRepositoryProvider).updateDiscount(
-      bill.id,
-      result.$1,
-      result.$2,
-    );
+    if (_isProcessing) return;
+    setState(() => _isProcessing = true);
+    try {
+      final result = await showDialog<(DiscountType, int)?>(
+        context: context,
+        builder: (_) => DialogDiscount(
+          currentDiscount: bill.discountAmount,
+          currentDiscountType: bill.discountType ?? DiscountType.absolute,
+          referenceAmount: bill.subtotalGross,
+        ),
+      );
+      if (result == null) return;
+      if (!mounted) return;
+      await ref.read(billRepositoryProvider).updateDiscount(
+        bill.id,
+        result.$1,
+        result.$2,
+      );
+    } finally {
+      if (mounted) setState(() => _isProcessing = false);
+    }
   }
 
   Future<void> _redeemLoyalty(BuildContext context, WidgetRef ref, BillModel bill) async {
-    if (bill.customerId == null) return;
-    final customerRepo = ref.read(customerRepositoryProvider);
-    final customer = await customerRepo.getById(bill.customerId!, includeDeleted: true);
-    if (!mounted) return;
-    if (customer == null || customer.points <= 0) return;
+    if (_isProcessing) return;
+    setState(() => _isProcessing = true);
+    try {
+      if (bill.customerId == null) return;
+      final customerRepo = ref.read(customerRepositoryProvider);
+      final customer = await customerRepo.getById(bill.customerId!, includeDeleted: true);
+      if (!mounted) return;
+      if (customer == null || customer.points <= 0) return;
 
-    final company = ref.read(currentCompanyProvider);
-    if (company == null) return;
+      final company = ref.read(currentCompanyProvider);
+      if (company == null) return;
 
-    final settingsRepo = ref.read(companySettingsRepositoryProvider);
-    final settings = await settingsRepo.getOrCreate(company.id);
-    if (!mounted) return;
-    if (settings.loyaltyPointValue <= 0) return;
+      final settingsRepo = ref.read(companySettingsRepositoryProvider);
+      final settings = await settingsRepo.getOrCreate(company.id);
+      if (!mounted) return;
+      if (settings.loyaltyPointValue <= 0) return;
 
-    await showDialog<bool>(
-      context: context,
-      builder: (_) => DialogLoyaltyRedeem(
-        bill: bill,
-        customer: customer,
-        pointValue: settings.loyaltyPointValue,
-      ),
-    );
+      await showDialog<bool>(
+        context: context,
+        builder: (_) => DialogLoyaltyRedeem(
+          bill: bill,
+          customer: customer,
+          pointValue: settings.loyaltyPointValue,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isProcessing = false);
+    }
   }
 
   Future<void> _applyVoucher(BuildContext context, WidgetRef ref, BillModel bill) async {
-    final code = await showDialog<String>(
-      context: context,
-      builder: (_) => const DialogVoucherRedeem(),
-    );
-    if (code == null || !mounted) return;
-
-    final company = ref.read(currentCompanyProvider);
-    if (company == null) return;
-
-    final voucherRepo = ref.read(voucherRepositoryProvider);
-    final result = await voucherRepo.validateForBill(code, company.id, bill);
-    if (!mounted) return;
-    if (result is Failure) {
-      // Validation failed — show error text in a simple dialog
-      final l = context.l10n;
-      final errorKey = (result as Failure).message;
-      final errorMsg = switch (errorKey) {
-        'voucherInvalid' => l.voucherInvalid,
-        'voucherExpiredError' => l.voucherExpiredError,
-        'voucherAlreadyUsed' => l.voucherAlreadyUsed,
-        'voucherMinOrderNotMet' => l.voucherMinOrderNotMet,
-        'voucherCustomerMismatch' => l.voucherCustomerMismatch,
-        _ => errorKey,
-      };
-      showDialog(
+    if (_isProcessing) return;
+    setState(() => _isProcessing = true);
+    try {
+      final code = await showDialog<String>(
         context: context,
-        builder: (_) => AlertDialog(
-          content: Text(errorMsg),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK')),
-          ],
-        ),
+        builder: (_) => const DialogVoucherRedeem(),
       );
-      return;
-    }
+      if (code == null || !mounted) return;
 
-    final voucher = (result as Success).value;
-    // Calculate discount amount based on voucher type
-    int discountAmount;
-    if (voucher.type == VoucherType.gift || voucher.type == VoucherType.deposit) {
-      // Cap at bill total
-      discountAmount = voucher.value.clamp(0, bill.totalGross);
-    } else {
-      // Discount voucher
-      if (voucher.discountType == DiscountType.percent) {
-        discountAmount = (bill.subtotalGross * voucher.value / 10000).round();
-      } else {
-        discountAmount = voucher.value.clamp(0, bill.subtotalGross);
+      final company = ref.read(currentCompanyProvider);
+      if (company == null) return;
+
+      final voucherRepo = ref.read(voucherRepositoryProvider);
+      final result = await voucherRepo.validateForBill(code, company.id, bill);
+      if (!mounted) return;
+      if (result is Failure) {
+        // Validation failed — show error text in a simple dialog
+        final l = context.l10n;
+        final errorKey = (result as Failure).message;
+        final errorMsg = switch (errorKey) {
+          'voucherInvalid' => l.voucherInvalid,
+          'voucherExpiredError' => l.voucherExpiredError,
+          'voucherAlreadyUsed' => l.voucherAlreadyUsed,
+          'voucherMinOrderNotMet' => l.voucherMinOrderNotMet,
+          'voucherCustomerMismatch' => l.voucherCustomerMismatch,
+          _ => errorKey,
+        };
+        showDialog(
+          context: context,
+          builder: (_) => AlertDialog(
+            content: Text(errorMsg),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK')),
+            ],
+          ),
+        );
+        return;
       }
-    }
 
-    final billRepo = ref.read(billRepositoryProvider);
-    await billRepo.applyVoucher(
-      billId: bill.id,
-      voucherId: voucher.id,
-      voucherDiscountAmount: discountAmount,
-    );
-    await voucherRepo.redeem(voucher.id, bill.id);
+      final voucher = (result as Success).value;
+      // Calculate discount amount based on voucher type
+      int discountAmount;
+      if (voucher.type == VoucherType.gift || voucher.type == VoucherType.deposit) {
+        // Cap at bill total
+        discountAmount = voucher.value.clamp(0, bill.totalGross);
+      } else {
+        // Discount voucher
+        if (voucher.discountType == DiscountType.percent) {
+          discountAmount = (bill.subtotalGross * voucher.value / 10000).round();
+        } else {
+          discountAmount = voucher.value.clamp(0, bill.subtotalGross);
+        }
+      }
+
+      final billRepo = ref.read(billRepositoryProvider);
+      await billRepo.applyVoucher(
+        billId: bill.id,
+        voucherId: voucher.id,
+        voucherDiscountAmount: discountAmount,
+      );
+      await voucherRepo.redeem(voucher.id, bill.id);
+    } finally {
+      if (mounted) setState(() => _isProcessing = false);
+    }
   }
 
   Future<void> _selectCustomer(BuildContext context, WidgetRef ref, BillModel bill) async {
@@ -822,163 +847,187 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
   }
 
   Future<void> _mergeBill(BuildContext context, WidgetRef ref, BillModel bill) async {
-    final billRepo = ref.read(billRepositoryProvider);
-    final targetBillId = await showDialog<String>(
-      context: context,
-      builder: (_) => DialogMergeBill(excludeBillId: bill.id),
-    );
-    if (targetBillId == null || !mounted) return;
-
-    final result = await billRepo.mergeBill(bill.id, targetBillId);
-    if (result is Success && mounted) {
-      Navigator.pop(context);
-      showDialog(
+    if (_isProcessing) return;
+    setState(() => _isProcessing = true);
+    try {
+      final billRepo = ref.read(billRepositoryProvider);
+      final targetBillId = await showDialog<String>(
         context: context,
-        builder: (_) => DialogBillDetail(billId: targetBillId),
+        builder: (_) => DialogMergeBill(excludeBillId: bill.id),
       );
+      if (targetBillId == null || !mounted) return;
+
+      final result = await billRepo.mergeBill(bill.id, targetBillId);
+      if (result is Success && mounted) {
+        Navigator.pop(context);
+        showDialog(
+          context: context,
+          builder: (_) => DialogBillDetail(billId: targetBillId),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isProcessing = false);
     }
   }
 
   Future<void> _splitBill(BuildContext context, WidgetRef ref, BillModel bill) async {
-    final billRepo = ref.read(billRepositoryProvider);
-    final tableRepo = ref.read(tableRepositoryProvider);
-    final splitResult = await showDialog<SplitBillResult>(
-      context: context,
-      builder: (_) => DialogSplitBill(billId: bill.id),
-    );
-    if (splitResult == null || !mounted) return;
-
-    final company = ref.read(currentCompanyProvider);
-    final user = ref.read(activeUserProvider);
-    if (company == null || user == null) return;
-
-    if (splitResult.payImmediately) {
-      // Create new bill (same table, 0 guests)
-      final register = ref.read(activeRegisterProvider).value;
-      final activeSession = ref.read(activeRegisterSessionProvider).value;
-      final newBillResult = await billRepo.createBill(
-        companyId: company.id,
-        userId: user.id,
-        currencyId: bill.currencyId,
-        tableId: bill.tableId,
-        registerId: register?.id,
-        registerSessionId: activeSession?.id,
+    if (_isProcessing) return;
+    setState(() => _isProcessing = true);
+    try {
+      final billRepo = ref.read(billRepositoryProvider);
+      final tableRepo = ref.read(tableRepositoryProvider);
+      final splitResult = await showDialog<SplitBillResult>(
+        context: context,
+        builder: (_) => DialogSplitBill(billId: bill.id),
       );
-      if (newBillResult is! Success<BillModel> || !mounted) return;
-      final newBill = newBillResult.value;
+      if (splitResult == null || !mounted) return;
 
-      // Split items to new bill
-      await billRepo.splitBill(
-        sourceBillId: bill.id,
-        targetBillId: newBill.id,
-        orderItemIds: splitResult.orderItemIds,
-        userId: user.id,
-        registerId: register?.id,
-      );
-      if (!mounted) return;
+      final company = ref.read(currentCompanyProvider);
+      final user = ref.read(activeUserProvider);
+      if (company == null || user == null) return;
 
-      // Get updated new bill for payment
-      final updatedResult = await billRepo.getById(newBill.id);
-      if (updatedResult is! Success<BillModel> || !mounted) return;
+      if (splitResult.payImmediately) {
+        // Create new bill (same table, 0 guests)
+        final register = ref.read(activeRegisterProvider).value;
+        final activeSession = ref.read(activeRegisterSessionProvider).value;
+        final newBillResult = await billRepo.createBill(
+          companyId: company.id,
+          userId: user.id,
+          currencyId: bill.currencyId,
+          tableId: bill.tableId,
+          registerId: register?.id,
+          registerSessionId: activeSession?.id,
+        );
+        if (newBillResult is! Success<BillModel> || !mounted) return;
+        final newBill = newBillResult.value;
 
-      // Resolve table name for payment dialog
-      String? tableName;
-      if (bill.tableId != null) {
-        final table = await tableRepo.getById(bill.tableId!);
-        tableName = table?.name;
+        // Split items to new bill
+        await billRepo.splitBill(
+          sourceBillId: bill.id,
+          targetBillId: newBill.id,
+          orderItemIds: splitResult.orderItemIds,
+          userId: user.id,
+          registerId: register?.id,
+        );
+        if (!mounted) return;
+
+        // Get updated new bill for payment
+        final updatedResult = await billRepo.getById(newBill.id);
+        if (updatedResult is! Success<BillModel> || !mounted) return;
+
+        // Resolve table name for payment dialog
+        String? tableName;
+        if (bill.tableId != null) {
+          final table = await tableRepo.getById(bill.tableId!);
+          tableName = table?.name;
+        }
+        if (!mounted) return;
+
+        // Open payment dialog for new bill
+        await showDialog<bool>(
+          context: context,
+          builder: (_) => DialogPayment(bill: updatedResult.value, tableName: tableName),
+        );
+        // Stay on original bill detail (auto-refreshed via stream)
+      } else {
+        // Show DialogNewBill for target configuration
+        final l = context.l10n;
+        final newBillConfig = await showDialog<NewBillResult>(
+          context: context,
+          builder: (_) => DialogNewBill(
+            title: l.splitBillTitle,
+            initialTableId: bill.tableId,
+            initialNumberOfGuests: 0,
+          ),
+        );
+        if (newBillConfig == null || !mounted) return;
+
+        // Create new bill
+        final register2 = ref.read(activeRegisterProvider).value;
+        final activeSession2 = ref.read(activeRegisterSessionProvider).value;
+        final newBillResult = await billRepo.createBill(
+          companyId: company.id,
+          userId: user.id,
+          currencyId: bill.currencyId,
+          tableId: newBillConfig.tableId,
+          numberOfGuests: newBillConfig.numberOfGuests,
+          registerId: register2?.id,
+          registerSessionId: activeSession2?.id,
+        );
+        if (newBillResult is! Success<BillModel> || !mounted) return;
+
+        // Split items to new bill
+        await billRepo.splitBill(
+          sourceBillId: bill.id,
+          targetBillId: newBillResult.value.id,
+          orderItemIds: splitResult.orderItemIds,
+          userId: user.id,
+          registerId: register2?.id,
+        );
+        // Stay on original bill detail (auto-refreshed via stream)
       }
-      if (!mounted) return;
-
-      // Open payment dialog for new bill
-      await showDialog<bool>(
-        context: context,
-        builder: (_) => DialogPayment(bill: updatedResult.value, tableName: tableName),
-      );
-      // Stay on original bill detail (auto-refreshed via stream)
-    } else {
-      // Show DialogNewBill for target configuration
-      final l = context.l10n;
-      final newBillConfig = await showDialog<NewBillResult>(
-        context: context,
-        builder: (_) => DialogNewBill(
-          title: l.splitBillTitle,
-          initialTableId: bill.tableId,
-          initialNumberOfGuests: 0,
-        ),
-      );
-      if (newBillConfig == null || !mounted) return;
-
-      // Create new bill
-      final register2 = ref.read(activeRegisterProvider).value;
-      final activeSession2 = ref.read(activeRegisterSessionProvider).value;
-      final newBillResult = await billRepo.createBill(
-        companyId: company.id,
-        userId: user.id,
-        currencyId: bill.currencyId,
-        tableId: newBillConfig.tableId,
-        numberOfGuests: newBillConfig.numberOfGuests,
-        registerId: register2?.id,
-        registerSessionId: activeSession2?.id,
-      );
-      if (newBillResult is! Success<BillModel> || !mounted) return;
-
-      // Split items to new bill
-      await billRepo.splitBill(
-        sourceBillId: bill.id,
-        targetBillId: newBillResult.value.id,
-        orderItemIds: splitResult.orderItemIds,
-        userId: user.id,
-        registerId: register2?.id,
-      );
-      // Stay on original bill detail (auto-refreshed via stream)
+    } finally {
+      if (mounted) setState(() => _isProcessing = false);
     }
   }
 
   Future<void> _refundBill(BuildContext context, WidgetRef ref, BillModel bill, AppLocalizations l) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: Text(l.refundTitle),
-        content: Text(l.refundConfirmFull),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
-        ],
-      ),
-    );
-    if (confirmed != true) return;
-    if (!mounted) return;
+    if (_isProcessing) return;
+    setState(() => _isProcessing = true);
+    try {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: Text(l.refundTitle),
+          content: Text(l.refundConfirmFull),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
+            TextButton(onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
+          ],
+        ),
+      );
+      if (confirmed != true) return;
+      if (!mounted) return;
 
-    final session = ref.read(activeRegisterSessionProvider).valueOrNull;
-    final user = ref.read(activeUserProvider);
-    if (session == null || user == null) return;
+      final session = ref.read(activeRegisterSessionProvider).valueOrNull;
+      final user = ref.read(activeUserProvider);
+      if (session == null || user == null) return;
 
-    final register = ref.read(activeRegisterProvider).value;
-    final repo = ref.read(billRepositoryProvider);
-    await repo.refundBill(
-      billId: bill.id,
-      registerSessionId: session.id,
-      userId: user.id,
-      registerId: register?.id,
-    );
+      final register = ref.read(activeRegisterProvider).value;
+      final repo = ref.read(billRepositoryProvider);
+      await repo.refundBill(
+        billId: bill.id,
+        registerSessionId: session.id,
+        userId: user.id,
+        registerId: register?.id,
+      );
+    } finally {
+      if (mounted) setState(() => _isProcessing = false);
+    }
   }
 
   Future<void> _payBill(BuildContext context, WidgetRef ref, BillModel bill) async {
-    String? tableName;
-    if (bill.tableId != null) {
-      final tableRepo = ref.read(tableRepositoryProvider);
-      final table = await tableRepo.getById(bill.tableId!);
-      tableName = table?.name;
-    }
+    if (_isProcessing) return;
+    setState(() => _isProcessing = true);
+    try {
+      String? tableName;
+      if (bill.tableId != null) {
+        final tableRepo = ref.read(tableRepositoryProvider);
+        final table = await tableRepo.getById(bill.tableId!);
+        tableName = table?.name;
+      }
 
-    if (!mounted) return;
+      if (!mounted) return;
 
-    final paid = await showDialog<bool>(
-      context: context,
-      builder: (_) => DialogPayment(bill: bill, tableName: tableName),
-    );
-    if (paid == true && mounted) {
-      Navigator.pop(context);
+      final paid = await showDialog<bool>(
+        context: context,
+        builder: (_) => DialogPayment(bill: bill, tableName: tableName),
+      );
+      if (paid == true && mounted) {
+        Navigator.pop(context);
+      }
+    } finally {
+      if (mounted) setState(() => _isProcessing = false);
     }
   }
 }
