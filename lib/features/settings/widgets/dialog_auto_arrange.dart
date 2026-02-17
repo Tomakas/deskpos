@@ -186,7 +186,7 @@ class _DialogAutoArrangeState extends ConsumerState<DialogAutoArrange> {
           items.where((i) => i.isActive && i.isSellable).toList();
       if (!mounted) return;
 
-      final registerId = register.id as String;
+      final registerId = register.id;
       final companyId = company.id;
 
       final cells = _variant == _ArrangeVariant.horizontal

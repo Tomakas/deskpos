@@ -93,21 +93,21 @@ class OutboxProcessor {
           'table': entityType,
           'operation': operation,
           'payload': payload,
-          'idempotency_key': entry.idempotencyKey as String,
+          'idempotency_key': entry.idempotencyKey,
         },
       );
 
       final data = response.data;
       if (data is Map<String, dynamic>) {
         if (data['ok'] == true) {
-          await _syncQueueRepo.markCompleted(entry.id as String);
+          await _syncQueueRepo.markCompleted(entry.id);
           AppLogger.debug('Pushed $operation $entityType/${entry.entityId}', tag: 'SYNC');
         } else {
           final errorType = data['error_type'] as String? ?? 'unknown';
           final message = data['message'] as String? ?? errorType;
 
           if (errorType == 'lww_conflict') {
-            await _syncQueueRepo.markCompleted(entry.id as String);
+            await _syncQueueRepo.markCompleted(entry.id);
             AppLogger.info(
               'LWW conflict for $entityType/${entry.entityId} — marked completed',
               tag: 'SYNC',

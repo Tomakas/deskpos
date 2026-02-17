@@ -744,7 +744,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
 
       final settingsRepo = ref.read(companySettingsRepositoryProvider);
       final settings = await settingsRepo.getOrCreate(company.id);
-      if (!mounted) return;
+      if (!context.mounted) return;
       if (settings.loyaltyPointValue <= 0) return;
 
       await showDialog<bool>(
@@ -775,7 +775,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
 
       final voucherRepo = ref.read(voucherRepositoryProvider);
       final result = await voucherRepo.validateForBill(code, company.id, bill);
-      if (!mounted) return;
+      if (!context.mounted) return;
       if (result is Failure) {
         // Validation failed — show error text in a simple dialog
         final l = context.l10n;
@@ -876,10 +876,10 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
         context: context,
         builder: (_) => DialogMergeBill(excludeBillId: bill.id),
       );
-      if (targetBillId == null || !mounted) return;
+      if (targetBillId == null || !context.mounted) return;
 
       final result = await billRepo.mergeBill(bill.id, targetBillId);
-      if (result is Success && mounted) {
+      if (result is Success && context.mounted) {
         Navigator.pop(context);
         showDialog(
           context: context,
@@ -901,7 +901,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
         context: context,
         builder: (_) => DialogSplitBill(billId: bill.id),
       );
-      if (splitResult == null || !mounted) return;
+      if (splitResult == null || !context.mounted) return;
 
       final company = ref.read(currentCompanyProvider);
       final user = ref.read(activeUserProvider);
@@ -934,7 +934,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
 
         // Get updated new bill for payment
         final updatedResult = await billRepo.getById(newBill.id);
-        if (updatedResult is! Success<BillModel> || !mounted) return;
+        if (updatedResult is! Success<BillModel> || !context.mounted) return;
 
         // Resolve table name for payment dialog
         String? tableName;
@@ -942,7 +942,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
           final table = await tableRepo.getById(bill.tableId!);
           tableName = table?.name;
         }
-        if (!mounted) return;
+        if (!context.mounted) return;
 
         // Open payment dialog for new bill
         await showDialog<bool>(
@@ -961,7 +961,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
             initialNumberOfGuests: 0,
           ),
         );
-        if (newBillConfig == null || !mounted) return;
+        if (newBillConfig == null || !context.mounted) return;
 
         // Create new bill
         final register2 = ref.read(activeRegisterProvider).value;
@@ -1038,13 +1038,13 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
         tableName = table?.name;
       }
 
-      if (!mounted) return;
+      if (!context.mounted) return;
 
       final paid = await showDialog<bool>(
         context: context,
         builder: (_) => DialogPayment(bill: bill, tableName: tableName),
       );
-      if (paid == true && mounted) {
+      if (paid == true && context.mounted) {
         Navigator.pop(context);
       }
     } finally {
