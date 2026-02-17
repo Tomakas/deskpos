@@ -40,6 +40,10 @@ class CustomerTransactionRepository extends BaseCompanyScopedRepository<
       t.companyId.equals(companyId) & t.deletedAt.isNull();
 
   @override
+  Expression<bool> whereNotDeleted($CustomerTransactionsTable t) =>
+      t.deletedAt.isNull();
+
+  @override
   List<OrderingTerm Function($CustomerTransactionsTable)> get defaultOrderBy =>
       [(t) => OrderingTerm.desc(t.createdAt)];
 

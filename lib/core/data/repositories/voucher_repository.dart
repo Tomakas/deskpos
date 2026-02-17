@@ -43,6 +43,9 @@ class VoucherRepository
       t.companyId.equals(companyId) & t.deletedAt.isNull();
 
   @override
+  Expression<bool> whereNotDeleted($VouchersTable t) => t.deletedAt.isNull();
+
+  @override
   List<OrderingTerm Function($VouchersTable)> get defaultOrderBy =>
       [(t) => OrderingTerm.desc(t.createdAt)];
 
@@ -114,26 +117,28 @@ class VoucherRepository
   /// Mark voucher as redeemed
   Future<Result<VoucherModel>> redeem(String voucherId, String billId) async {
     try {
-      final now = DateTime.now();
-      final entity = await (db.select(db.vouchers)
-            ..where((t) => t.id.equals(voucherId)))
-          .getSingle();
-      final current = voucherFromEntity(entity);
+      return await db.transaction(() async {
+        final now = DateTime.now();
+        final entity = await (db.select(db.vouchers)
+              ..where((t) => t.id.equals(voucherId)))
+            .getSingle();
+        final current = voucherFromEntity(entity);
 
-      final newUsedCount = current.usedCount + 1;
-      final newStatus = newUsedCount >= current.maxUses
-          ? VoucherStatus.redeemed
-          : current.status;
+        final newUsedCount = current.usedCount + 1;
+        final newStatus = newUsedCount >= current.maxUses
+            ? VoucherStatus.redeemed
+            : current.status;
 
-      final updated = current.copyWith(
-        usedCount: newUsedCount,
-        status: newStatus,
-        redeemedAt: now,
-        redeemedOnBillId: billId,
-        updatedAt: now,
-      );
+        final updated = current.copyWith(
+          usedCount: newUsedCount,
+          status: newStatus,
+          redeemedAt: now,
+          redeemedOnBillId: billId,
+          updatedAt: now,
+        );
 
-      return update(updated);
+        return update(updated);
+      });
     } catch (e, s) {
       AppLogger.error('Failed to redeem voucher: $e', error: e, stackTrace: s, tag: 'VOUCHER');
       return Failure('Failed to redeem voucher: $e');

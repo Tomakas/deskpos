@@ -20,10 +20,12 @@ class CurrencyRepository {
     }
   }
 
-  Future<CurrencyModel?> getById(String id) async {
-    final entity = await (_db.select(_db.currencies)
-          ..where((t) => t.id.equals(id)))
-        .getSingleOrNull();
+  Future<CurrencyModel?> getById(String id, {bool includeDeleted = false}) async {
+    final query = _db.select(_db.currencies)..where((t) => t.id.equals(id));
+    if (!includeDeleted) {
+      query.where((t) => t.deletedAt.isNull());
+    }
+    final entity = await query.getSingleOrNull();
     return entity == null ? null : currencyFromEntity(entity);
   }
 }

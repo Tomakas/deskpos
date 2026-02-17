@@ -41,15 +41,15 @@ class ZReportService {
   final RegisterRepository registerRepo;
 
   Future<ZReportData?> buildZReport(String sessionId) async {
-    final session = await registerSessionRepo.getById(sessionId);
+    final session = await registerSessionRepo.getById(sessionId, includeDeleted: true);
     if (session == null) return null;
 
-    // Resolve who opened the session
-    final openedByUser = await userRepo.getById(session.openedByUserId);
+    // Resolve who opened the session (may be soft-deleted)
+    final openedByUser = await userRepo.getById(session.openedByUserId, includeDeleted: true);
     final openedByName = openedByUser?.username ?? '-';
 
-    // Resolve register name
-    final register = await registerRepo.getById(session.registerId);
+    // Resolve register name (may be soft-deleted)
+    final register = await registerRepo.getById(session.registerId, includeDeleted: true);
     final registerName = register != null
         ? (register.name.isNotEmpty ? register.name : register.code)
         : null;
@@ -99,10 +99,10 @@ class ZReportService {
         .map((e) => PaymentTypeSummary(name: e.$1, amount: e.$2, count: e.$3, isCash: e.$4))
         .toList();
 
-    // Resolve tips by user to usernames
+    // Resolve tips by user to usernames (may be soft-deleted)
     final tipsByUser = <String, (String, int)>{};
     for (final entry in tipsByUserId.entries) {
-      final user = await userRepo.getById(entry.key);
+      final user = await userRepo.getById(entry.key, includeDeleted: true);
       final username = user?.username ?? '-';
       tipsByUser[entry.key] = (username, entry.value);
     }
@@ -167,7 +167,7 @@ class ZReportService {
     final shifts = await shiftRepo.getBySession(sessionId);
     final shiftDurations = <String, (String, Duration)>{};
     for (final shift in shifts) {
-      final user = await userRepo.getById(shift.userId);
+      final user = await userRepo.getById(shift.userId, includeDeleted: true);
       final username = user?.username ?? '-';
       final end = shift.logoutAt ?? session.closedAt ?? DateTime.now();
       final dur = end.difference(shift.loginAt);
@@ -229,11 +229,11 @@ class ZReportService {
 
     if (sessionsInRange.isEmpty) return null;
 
-    // Resolve registers by ID (getById includes soft-deleted registers)
+    // Resolve registers by ID (includeDeleted for historical data)
     final registerCache = <String, RegisterModel?>{};
     for (final s in sessionsInRange) {
       if (!registerCache.containsKey(s.registerId)) {
-        registerCache[s.registerId] = await registerRepo.getById(s.registerId);
+        registerCache[s.registerId] = await registerRepo.getById(s.registerId, includeDeleted: true);
       }
     }
 
@@ -366,7 +366,7 @@ class ZReportService {
       // Shifts
       final shifts = await shiftRepo.getBySession(session.id);
       for (final shift in shifts) {
-        final user = await userRepo.getById(shift.userId);
+        final user = await userRepo.getById(shift.userId, includeDeleted: true);
         final username = user?.username ?? '-';
         final end = shift.logoutAt ?? session.closedAt ?? DateTime.now();
         final dur = end.difference(shift.loginAt);
@@ -383,10 +383,10 @@ class ZReportService {
         .map((e) => PaymentTypeSummary(name: e.$1, amount: e.$2, count: e.$3, isCash: e.$4))
         .toList();
 
-    // Resolve tips by user
+    // Resolve tips by user (may be soft-deleted)
     final tipsByUser = <String, (String, int)>{};
     for (final entry in tipsByUserId.entries) {
-      final user = await userRepo.getById(entry.key);
+      final user = await userRepo.getById(entry.key, includeDeleted: true);
       final username = user?.username ?? '-';
       tipsByUser[entry.key] = (username, entry.value);
     }
@@ -472,8 +472,8 @@ class ZReportService {
         .fold(earliest, (a, b) => b.isAfter(a) ? b : a);
     final duration = latest.difference(earliest);
 
-    // Opened by: first session's opener
-    final firstOpener = await userRepo.getById(sessionsInRange.first.openedByUserId);
+    // Opened by: first session's opener (may be soft-deleted)
+    final firstOpener = await userRepo.getById(sessionsInRange.first.openedByUserId, includeDeleted: true);
 
     return ZReportData(
       sessionId: 'venue-${dateFrom.millisecondsSinceEpoch}',
@@ -515,13 +515,13 @@ class ZReportService {
 
     for (final session in sessions) {
       if (!userCache.containsKey(session.openedByUserId)) {
-        final user = await userRepo.getById(session.openedByUserId);
+        final user = await userRepo.getById(session.openedByUserId, includeDeleted: true);
         userCache[session.openedByUserId] = user?.username ?? '-';
       }
       final userName = userCache[session.openedByUserId]!;
 
       if (!registerCache.containsKey(session.registerId)) {
-        final reg = await registerRepo.getById(session.registerId);
+        final reg = await registerRepo.getById(session.registerId, includeDeleted: true);
         registerCache[session.registerId] = reg != null
             ? (reg.name.isNotEmpty ? reg.name : reg.code)
             : '-';

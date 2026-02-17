@@ -20,11 +20,13 @@ class RoleRepository {
     }
   }
 
-  Future<Result<RoleModel>> getById(String id) async {
+  Future<Result<RoleModel>> getById(String id, {bool includeDeleted = false}) async {
     try {
-      final entity = await (_db.select(_db.roles)
-            ..where((t) => t.id.equals(id)))
-          .getSingleOrNull();
+      final query = _db.select(_db.roles)..where((t) => t.id.equals(id));
+      if (!includeDeleted) {
+        query.where((t) => t.deletedAt.isNull());
+      }
+      final entity = await query.getSingleOrNull();
       if (entity == null) return const Failure('Role not found');
       return Success(roleFromEntity(entity));
     } catch (e, s) {

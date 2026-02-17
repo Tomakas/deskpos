@@ -135,30 +135,32 @@ class LayoutItemRepository {
     required int gridCol,
   }) async {
     try {
-      final now = DateTime.now();
-      final existing = await (_db.select(_db.layoutItems)
-            ..where((t) =>
-                t.registerId.equals(registerId) &
-                t.page.equals(page) &
-                t.gridRow.equals(gridRow) &
-                t.gridCol.equals(gridCol) &
-                t.deletedAt.isNull()))
-          .getSingleOrNull();
+      return await _db.transaction(() async {
+        final now = DateTime.now();
+        final existing = await (_db.select(_db.layoutItems)
+              ..where((t) =>
+                  t.registerId.equals(registerId) &
+                  t.page.equals(page) &
+                  t.gridRow.equals(gridRow) &
+                  t.gridCol.equals(gridCol) &
+                  t.deletedAt.isNull()))
+            .getSingleOrNull();
 
-      if (existing != null) {
-        await (_db.update(_db.layoutItems)..where((t) => t.id.equals(existing.id))).write(
-          LayoutItemsCompanion(
-            deletedAt: Value(now),
-            updatedAt: Value(now),
-          ),
-        );
-        // Re-read deleted entity for sync payload
-        final deletedEntity = await (_db.select(_db.layoutItems)
-              ..where((t) => t.id.equals(existing.id)))
-            .getSingle();
-        await _enqueueLayoutItem('delete', layoutItemFromEntity(deletedEntity));
-      }
-      return const Success(null);
+        if (existing != null) {
+          await (_db.update(_db.layoutItems)..where((t) => t.id.equals(existing.id))).write(
+            LayoutItemsCompanion(
+              deletedAt: Value(now),
+              updatedAt: Value(now),
+            ),
+          );
+          // Re-read deleted entity for sync payload
+          final deletedEntity = await (_db.select(_db.layoutItems)
+                ..where((t) => t.id.equals(existing.id)))
+              .getSingle();
+          await _enqueueLayoutItem('delete', layoutItemFromEntity(deletedEntity));
+        }
+        return const Success(null);
+      });
     } catch (e, s) {
       AppLogger.error('Failed to clear layout cell', error: e, stackTrace: s);
       return Failure('Failed to clear layout cell: $e');

@@ -199,10 +199,13 @@ class RegisterSessionRepository {
     return entities.map(registerSessionFromEntity).toList();
   }
 
-  Future<RegisterSessionModel?> getById(String sessionId) async {
-    final entity = await (_db.select(_db.registerSessions)
-          ..where((t) => t.id.equals(sessionId)))
-        .getSingleOrNull();
+  Future<RegisterSessionModel?> getById(String sessionId, {bool includeDeleted = false}) async {
+    final query = _db.select(_db.registerSessions)
+      ..where((t) => t.id.equals(sessionId));
+    if (!includeDeleted) {
+      query.where((t) => t.deletedAt.isNull());
+    }
+    final entity = await query.getSingleOrNull();
     return entity == null ? null : registerSessionFromEntity(entity);
   }
 

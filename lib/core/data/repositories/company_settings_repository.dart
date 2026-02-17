@@ -41,6 +41,9 @@ class CompanySettingsRepository
       t.companyId.equals(companyId) & t.deletedAt.isNull();
 
   @override
+  Expression<bool> whereNotDeleted($CompanySettingsTable t) => t.deletedAt.isNull();
+
+  @override
   List<OrderingTerm Function($CompanySettingsTable)> get defaultOrderBy =>
       [(t) => OrderingTerm.asc(t.createdAt)];
 

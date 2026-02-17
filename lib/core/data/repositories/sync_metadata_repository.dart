@@ -22,25 +22,27 @@ class SyncMetadataRepository {
     String tableName,
     DateTime pulledAt,
   ) async {
-    final existing = await (_db.select(_db.syncMetadata)
-          ..where((t) =>
-              t.companyId.equals(companyId) & t.entityTableName.equals(tableName)))
-        .getSingleOrNull();
+    await _db.transaction(() async {
+      final existing = await (_db.select(_db.syncMetadata)
+            ..where((t) =>
+                t.companyId.equals(companyId) & t.entityTableName.equals(tableName)))
+          .getSingleOrNull();
 
-    if (existing != null) {
-      await (_db.update(_db.syncMetadata)
-            ..where((t) => t.id.equals(existing.id)))
-          .write(SyncMetadataCompanion(
-        lastPulledAt: Value(pulledAt),
-        updatedAt: Value(DateTime.now()),
-      ));
-    } else {
-      await _db.into(_db.syncMetadata).insert(SyncMetadataCompanion.insert(
-        id: _uuid.v7(),
-        companyId: companyId,
-        entityTableName: tableName,
-        lastPulledAt: Value(pulledAt),
-      ));
-    }
+      if (existing != null) {
+        await (_db.update(_db.syncMetadata)
+              ..where((t) => t.id.equals(existing.id)))
+            .write(SyncMetadataCompanion(
+          lastPulledAt: Value(pulledAt),
+          updatedAt: Value(DateTime.now()),
+        ));
+      } else {
+        await _db.into(_db.syncMetadata).insert(SyncMetadataCompanion.insert(
+          id: _uuid.v7(),
+          companyId: companyId,
+          entityTableName: tableName,
+          lastPulledAt: Value(pulledAt),
+        ));
+      }
+    });
   }
 }

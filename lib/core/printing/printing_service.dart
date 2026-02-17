@@ -38,8 +38,8 @@ class PrintingService {
   final UserRepository userRepo;
 
   Future<ReceiptData?> buildReceiptData(String billId, {CurrencyModel? currency}) async {
-    // 1. Get bill
-    final billResult = await billRepo.getById(billId);
+    // 1. Get bill (includeDeleted: receipt may be reprinted after cancellation)
+    final billResult = await billRepo.getById(billId, includeDeleted: true);
     if (billResult is! Success) {
       AppLogger.error('buildReceiptData: bill not found for $billId');
       return null;
@@ -47,7 +47,7 @@ class PrintingService {
     final bill = (billResult as Success).value;
 
     // 2. Get company
-    final companyResult = await companyRepo.getById(bill.companyId);
+    final companyResult = await companyRepo.getById(bill.companyId, includeDeleted: true);
     if (companyResult is! Success) {
       AppLogger.error('buildReceiptData: company not found for ${bill.companyId}');
       return null;
@@ -64,28 +64,28 @@ class PrintingService {
     // 4. Get payments
     final payments = await paymentRepo.getByBill(billId);
 
-    // 5. Get payment method names
+    // 5. Get payment method names (may be soft-deleted since bill was paid)
     final methodIds = payments.map((p) => p.paymentMethodId).toSet();
     final methods = <String, String>{};
     for (final methodId in methodIds) {
-      final method = await paymentMethodRepo.getById(methodId);
+      final method = await paymentMethodRepo.getById(methodId, includeDeleted: true);
       if (method != null) {
         methods[methodId] = method.name;
       }
     }
 
-    // 6. Get table name
+    // 6. Get table name (may be soft-deleted since bill was created)
     String? tableName;
     if (bill.tableId != null) {
-      final table = await tableRepo.getById(bill.tableId!);
+      final table = await tableRepo.getById(bill.tableId!, includeDeleted: true);
       if (table != null) {
         tableName = table.name;
       }
     }
 
-    // 7. Get cashier name
+    // 7. Get cashier name (may be soft-deleted since bill was created)
     String cashierName = '';
-    final user = await userRepo.getById(bill.openedByUserId);
+    final user = await userRepo.getById(bill.openedByUserId, includeDeleted: true);
     if (user != null) {
       cashierName = user.fullName;
     }

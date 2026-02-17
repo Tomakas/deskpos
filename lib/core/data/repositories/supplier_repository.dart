@@ -36,6 +36,9 @@ class SupplierRepository
       t.companyId.equals(companyId) & t.deletedAt.isNull();
 
   @override
+  Expression<bool> whereNotDeleted($SuppliersTable t) => t.deletedAt.isNull();
+
+  @override
   List<OrderingTerm Function($SuppliersTable)> get defaultOrderBy =>
       [(t) => OrderingTerm.asc(t.supplierName)];
 

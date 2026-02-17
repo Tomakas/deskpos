@@ -329,7 +329,7 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
       if (!mounted) return;
       // Resolve who opened the session
       final userRepo = ref.read(userRepositoryProvider);
-      final openedByUser = await userRepo.getById(session.openedByUserId);
+      final openedByUser = await userRepo.getById(session.openedByUserId, includeDeleted: true);
       if (!mounted) return;
       final openedByName = openedByUser?.username ?? '-';
 
@@ -625,7 +625,7 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
 
     final rows = <ShiftDisplayRow>[];
     for (final shift in shifts) {
-      final user = await userRepo.getById(shift.userId);
+      final user = await userRepo.getById(shift.userId, includeDeleted: true);
       rows.add(ShiftDisplayRow(
         username: user?.username ?? '-',
         loginAt: shift.loginAt,

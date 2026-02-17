@@ -36,6 +36,9 @@ class ProductRecipeRepository
       t.companyId.equals(companyId) & t.deletedAt.isNull();
 
   @override
+  Expression<bool> whereNotDeleted($ProductRecipesTable t) => t.deletedAt.isNull();
+
+  @override
   List<OrderingTerm Function($ProductRecipesTable)> get defaultOrderBy =>
       [(t) => OrderingTerm.asc(t.parentProductId)];
 

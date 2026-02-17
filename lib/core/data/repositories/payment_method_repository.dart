@@ -38,6 +38,10 @@ class PaymentMethodRepository
       t.companyId.equals(companyId) & t.deletedAt.isNull();
 
   @override
+  Expression<bool> whereNotDeleted($PaymentMethodsTable t) =>
+      t.deletedAt.isNull();
+
+  @override
   List<OrderingTerm Function($PaymentMethodsTable)> get defaultOrderBy =>
       [(t) => OrderingTerm.asc(t.name)];
 

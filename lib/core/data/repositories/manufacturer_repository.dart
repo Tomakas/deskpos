@@ -36,6 +36,9 @@ class ManufacturerRepository
       t.companyId.equals(companyId) & t.deletedAt.isNull();
 
   @override
+  Expression<bool> whereNotDeleted($ManufacturersTable t) => t.deletedAt.isNull();
+
+  @override
   List<OrderingTerm Function($ManufacturersTable)> get defaultOrderBy =>
       [(t) => OrderingTerm.asc(t.name)];
 

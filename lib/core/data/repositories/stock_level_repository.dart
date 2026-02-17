@@ -66,16 +66,16 @@ class StockLevelRepository {
     required double delta,
   }) async {
     try {
-      final getResult = await getOrCreate(
-        companyId: companyId,
-        warehouseId: warehouseId,
-        itemId: itemId,
-      );
-      switch (getResult) {
-        case Failure(:final message):
-          return Failure(message);
-        case Success(value: final level):
-          return await _db.transaction(() async {
+      return await _db.transaction(() async {
+        final getResult = await getOrCreate(
+          companyId: companyId,
+          warehouseId: warehouseId,
+          itemId: itemId,
+        );
+        switch (getResult) {
+          case Failure(:final message):
+            return Failure(message);
+          case Success(value: final level):
             final now = DateTime.now();
             final newQuantity = level.quantity + delta;
 
@@ -89,8 +89,8 @@ class StockLevelRepository {
             final updated = level.copyWith(quantity: newQuantity, updatedAt: now);
             await _enqueue('update', updated);
             return Success(updated);
-          });
-      }
+        }
+      });
     } catch (e, s) {
       AppLogger.error('Failed to adjust stock level', error: e, stackTrace: s);
       return Failure('Failed to adjust stock level: $e');

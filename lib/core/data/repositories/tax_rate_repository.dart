@@ -40,6 +40,9 @@ class TaxRateRepository
       t.companyId.equals(companyId) & t.deletedAt.isNull();
 
   @override
+  Expression<bool> whereNotDeleted($TaxRatesTable t) => t.deletedAt.isNull();
+
+  @override
   List<OrderingTerm Function($TaxRatesTable)> get defaultOrderBy =>
       [(t) => OrderingTerm.desc(t.isDefault)];
 
@@ -110,11 +113,4 @@ class TaxRateRepository
     }
   }
 
-  @override
-  Future<TaxRateModel?> getById(String id) async {
-    final entity = await (db.select(db.taxRates)
-          ..where((t) => t.id.equals(id) & t.deletedAt.isNull()))
-        .getSingleOrNull();
-    return entity == null ? null : taxRateFromEntity(entity);
-  }
 }

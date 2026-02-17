@@ -36,6 +36,9 @@ class MapElementRepository
       t.companyId.equals(companyId) & t.deletedAt.isNull();
 
   @override
+  Expression<bool> whereNotDeleted($MapElementsTable t) => t.deletedAt.isNull();
+
+  @override
   List<OrderingTerm Function($MapElementsTable)> get defaultOrderBy =>
       [(t) => OrderingTerm.asc(t.gridRow)];
 

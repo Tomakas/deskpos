@@ -42,6 +42,9 @@ class CustomerRepository
       t.companyId.equals(companyId) & t.deletedAt.isNull();
 
   @override
+  Expression<bool> whereNotDeleted($CustomersTable t) => t.deletedAt.isNull();
+
+  @override
   List<OrderingTerm Function($CustomersTable)> get defaultOrderBy =>
       [(t) => OrderingTerm.asc(t.lastName)];
 
@@ -88,16 +91,16 @@ class CustomerRepository
     String? orderId,
   }) async {
     try {
-      final entity = await (db.select(db.customers)
-            ..where((t) => t.id.equals(customerId)))
-          .getSingle();
-      final customer = customerFromEntity(entity);
-      final newPoints = customer.points + delta;
-
       final now = DateTime.now();
       final txId = const Uuid().v7();
 
       await db.transaction(() async {
+        final entity = await (db.select(db.customers)
+              ..where((t) => t.id.equals(customerId)))
+            .getSingle();
+        final customer = customerFromEntity(entity);
+        final newPoints = customer.points + delta;
+
         await (db.update(db.customers)..where((t) => t.id.equals(customerId))).write(
           CustomersCompanion(
             points: Value(newPoints),
@@ -162,19 +165,19 @@ class CustomerRepository
     String? orderId,
   }) async {
     try {
-      final entity = await (db.select(db.customers)
-            ..where((t) => t.id.equals(customerId)))
-          .getSingle();
-      final customer = customerFromEntity(entity);
-      final newCredit = customer.credit + delta;
-      if (newCredit < 0) {
-        return const Failure('Credit cannot go below 0');
-      }
-
       final now = DateTime.now();
       final txId = const Uuid().v7();
 
-      await db.transaction(() async {
+      return await db.transaction(() async {
+        final entity = await (db.select(db.customers)
+              ..where((t) => t.id.equals(customerId)))
+            .getSingle();
+        final customer = customerFromEntity(entity);
+        final newCredit = customer.credit + delta;
+        if (newCredit < 0) {
+          return const Failure('Credit cannot go below 0');
+        }
+
         await (db.update(db.customers)..where((t) => t.id.equals(customerId))).write(
           CustomersCompanion(
             credit: Value(newCredit),
@@ -223,9 +226,9 @@ class CustomerRepository
             payload: jsonEncode(customerTransactionToSupabaseJson(tx)),
           );
         }
-      });
 
-      return const Success(null);
+        return const Success(null);
+      });
     } catch (e, s) {
       AppLogger.error('Failed to adjust credit', error: e, stackTrace: s);
       return Failure('Failed to adjust credit: $e');
@@ -239,13 +242,14 @@ class CustomerRepository
   }) async {
     try {
       final now = DateTime.now();
-      final entity = await (db.select(db.customers)
-            ..where((t) => t.id.equals(customerId)))
-          .getSingle();
-      final customer = customerFromEntity(entity);
-      final newTotalSpent = customer.totalSpent + billTotal;
 
       await db.transaction(() async {
+        final entity = await (db.select(db.customers)
+              ..where((t) => t.id.equals(customerId)))
+            .getSingle();
+        final customer = customerFromEntity(entity);
+        final newTotalSpent = customer.totalSpent + billTotal;
+
         await (db.update(db.customers)..where((t) => t.id.equals(customerId))).write(
           CustomersCompanion(
             totalSpent: Value(newTotalSpent < 0 ? 0 : newTotalSpent),

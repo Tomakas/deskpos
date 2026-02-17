@@ -23,6 +23,7 @@ abstract class BaseCompanyScopedRepository<TTable extends Table,
   Insertable<TEntity> toDeleteCompanion(DateTime now);
   Expression<bool> whereId(TTable t, String id);
   Expression<bool> whereCompanyScope(TTable t, String companyId);
+  Expression<bool> whereNotDeleted(TTable t);
   List<OrderingTerm Function(TTable)> get defaultOrderBy;
   String get entityName;
 
@@ -124,10 +125,12 @@ abstract class BaseCompanyScopedRepository<TTable extends Table,
         .map((rows) => rows.map(fromEntity).toList());
   }
 
-  Future<TModel?> getById(String id) async {
-    final entity = await (db.select(table)
-          ..where((t) => whereId(t, id)))
-        .getSingleOrNull();
+  Future<TModel?> getById(String id, {bool includeDeleted = false}) async {
+    final query = db.select(table)..where((t) => whereId(t, id));
+    if (!includeDeleted) {
+      query.where((t) => whereNotDeleted(t));
+    }
+    final entity = await query.getSingleOrNull();
     return entity == null ? null : fromEntity(entity);
   }
 }

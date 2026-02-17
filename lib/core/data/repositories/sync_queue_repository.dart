@@ -69,16 +69,18 @@ class SyncQueueRepository {
   }
 
   Future<void> incrementRetry(String id, String error) async {
-    final entry = await (_db.select(_db.syncQueue)
-          ..where((t) => t.id.equals(id)))
-        .getSingle();
-    await (_db.update(_db.syncQueue)..where((t) => t.id.equals(id)))
-        .write(SyncQueueCompanion(
-      status: const Value('pending'),
-      retryCount: Value(entry.retryCount + 1),
-      errorMessage: Value(error),
-      lastErrorAt: Value(DateTime.now()),
-    ));
+    await _db.transaction(() async {
+      final entry = await (_db.select(_db.syncQueue)
+            ..where((t) => t.id.equals(id)))
+          .getSingle();
+      await (_db.update(_db.syncQueue)..where((t) => t.id.equals(id)))
+          .write(SyncQueueCompanion(
+        status: const Value('pending'),
+        retryCount: Value(entry.retryCount + 1),
+        errorMessage: Value(error),
+        lastErrorAt: Value(DateTime.now()),
+      ));
+    });
   }
 
   Future<void> resetStuck({Duration threshold = const Duration(minutes: 5)}) async {

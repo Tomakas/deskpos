@@ -40,6 +40,9 @@ class SectionRepository
       t.companyId.equals(companyId) & t.deletedAt.isNull();
 
   @override
+  Expression<bool> whereNotDeleted($SectionsTable t) => t.deletedAt.isNull();
+
+  @override
   List<OrderingTerm Function($SectionsTable)> get defaultOrderBy =>
       [(t) => OrderingTerm.asc(t.name)];
 

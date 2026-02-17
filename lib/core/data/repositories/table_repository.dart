@@ -36,6 +36,9 @@ class TableRepository
       t.companyId.equals(companyId) & t.deletedAt.isNull();
 
   @override
+  Expression<bool> whereNotDeleted($TablesTable t) => t.deletedAt.isNull();
+
+  @override
   List<OrderingTerm Function($TablesTable)> get defaultOrderBy =>
       [(t) => OrderingTerm.asc(t.name)];
 

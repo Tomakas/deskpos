@@ -152,7 +152,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
                 const SizedBox(height: 2),
                 if (bill.customerId != null)
                   FutureBuilder<CustomerModel?>(
-                    future: ref.watch(customerRepositoryProvider).getById(bill.customerId!),
+                    future: ref.watch(customerRepositoryProvider).getById(bill.customerId!, includeDeleted: true),
                     builder: (context, snap) {
                       final customer = snap.data;
                       if (customer == null) return const SizedBox.shrink();
@@ -263,7 +263,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
 
   Widget _buildCustomerLoyaltyInfo(BuildContext context, WidgetRef ref, BillModel bill) {
     return FutureBuilder<CustomerModel?>(
-      future: ref.watch(customerRepositoryProvider).getById(bill.customerId!),
+      future: ref.watch(customerRepositoryProvider).getById(bill.customerId!, includeDeleted: true),
       builder: (context, snap) {
         final customer = snap.data;
         if (customer == null) return const SizedBox.shrink();
@@ -698,7 +698,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
   Future<void> _redeemLoyalty(BuildContext context, WidgetRef ref, BillModel bill) async {
     if (bill.customerId == null) return;
     final customerRepo = ref.read(customerRepositoryProvider);
-    final customer = await customerRepo.getById(bill.customerId!);
+    final customer = await customerRepo.getById(bill.customerId!, includeDeleted: true);
     if (!mounted) return;
     if (customer == null || customer.points <= 0) return;
 

@@ -79,11 +79,13 @@ class BillRepository {
     }
   }
 
-  Future<Result<BillModel>> getById(String id) async {
+  Future<Result<BillModel>> getById(String id, {bool includeDeleted = false}) async {
     try {
-      final entity = await (_db.select(_db.bills)
-            ..where((t) => t.id.equals(id)))
-          .getSingleOrNull();
+      final query = _db.select(_db.bills)..where((t) => t.id.equals(id));
+      if (!includeDeleted) {
+        query.where((t) => t.deletedAt.isNull());
+      }
+      final entity = await query.getSingleOrNull();
       if (entity == null) return const Failure('Bill not found');
       return Success(billFromEntity(entity));
     } catch (e, s) {
@@ -92,8 +94,12 @@ class BillRepository {
     }
   }
 
-  Stream<BillModel?> watchById(String id) {
-    return (_db.select(_db.bills)..where((t) => t.id.equals(id)))
+  Stream<BillModel?> watchById(String id, {bool includeDeleted = false}) {
+    final query = _db.select(_db.bills)..where((t) => t.id.equals(id));
+    if (!includeDeleted) {
+      query.where((t) => t.deletedAt.isNull());
+    }
+    return query
         .watchSingleOrNull()
         .map((e) => e == null ? null : billFromEntity(e));
   }
@@ -150,69 +156,69 @@ class BillRepository {
 
   Future<Result<BillModel>> updateTotals(String billId) async {
     try {
-      // Get all active order items for this bill
-      final orders = await (_db.select(_db.orders)
-            ..where((t) =>
-                t.billId.equals(billId) &
-                t.deletedAt.isNull()))
-          .get();
-      final activeOrderIds = orders
-          .where((o) =>
-              o.status != PrepStatus.cancelled &&
-              o.status != PrepStatus.voided &&
-              !o.isStorno)
-          .map((o) => o.id)
-          .toSet();
-
-      int subtotalGross = 0;
-      int taxTotal = 0;
-
-      if (activeOrderIds.isNotEmpty) {
-        final items = await (_db.select(_db.orderItems)
-              ..where((t) =>
-                  t.orderId.isIn(activeOrderIds) &
-                  t.deletedAt.isNull() &
-                  t.status.isNotIn([PrepStatus.cancelled.name, PrepStatus.voided.name])))
-            .get();
-
-        for (final item in items) {
-          final itemSubtotal = (item.salePriceAtt * item.quantity).round();
-          final itemTax = (item.saleTaxAmount * item.quantity).round();
-
-          // Apply item discount
-          int itemDiscount = 0;
-          if (item.discount > 0) {
-            if (item.discountType == DiscountType.percent) {
-              itemDiscount = (itemSubtotal * item.discount / 10000).round();
-            } else {
-              itemDiscount = item.discount;
-            }
-          }
-
-          subtotalGross += itemSubtotal - itemDiscount;
-          taxTotal += itemTax;
-        }
-      }
-
-      // Read bill for bill-level discount
-      final billEntity = await (_db.select(_db.bills)
-            ..where((t) => t.id.equals(billId)))
-          .getSingle();
-
-      // Apply bill discount
-      int billDiscount = 0;
-      if (billEntity.discountAmount > 0) {
-        if (billEntity.discountType == DiscountType.percent) {
-          billDiscount = (subtotalGross * billEntity.discountAmount / 10000).round();
-        } else {
-          billDiscount = billEntity.discountAmount;
-        }
-      }
-
-      final subtotalNet = subtotalGross - taxTotal;
-      final totalGross = subtotalGross - billDiscount - billEntity.loyaltyDiscountAmount - billEntity.voucherDiscountAmount + billEntity.roundingAmount;
-
       return await _db.transaction(() async {
+        // Get all active order items for this bill
+        final orders = await (_db.select(_db.orders)
+              ..where((t) =>
+                  t.billId.equals(billId) &
+                  t.deletedAt.isNull()))
+            .get();
+        final activeOrderIds = orders
+            .where((o) =>
+                o.status != PrepStatus.cancelled &&
+                o.status != PrepStatus.voided &&
+                !o.isStorno)
+            .map((o) => o.id)
+            .toSet();
+
+        int subtotalGross = 0;
+        int taxTotal = 0;
+
+        if (activeOrderIds.isNotEmpty) {
+          final items = await (_db.select(_db.orderItems)
+                ..where((t) =>
+                    t.orderId.isIn(activeOrderIds) &
+                    t.deletedAt.isNull() &
+                    t.status.isNotIn([PrepStatus.cancelled.name, PrepStatus.voided.name])))
+              .get();
+
+          for (final item in items) {
+            final itemSubtotal = (item.salePriceAtt * item.quantity).round();
+            final itemTax = (item.saleTaxAmount * item.quantity).round();
+
+            // Apply item discount
+            int itemDiscount = 0;
+            if (item.discount > 0) {
+              if (item.discountType == DiscountType.percent) {
+                itemDiscount = (itemSubtotal * item.discount / 10000).round();
+              } else {
+                itemDiscount = item.discount;
+              }
+            }
+
+            subtotalGross += itemSubtotal - itemDiscount;
+            taxTotal += itemTax;
+          }
+        }
+
+        // Read bill for bill-level discount
+        final billEntity = await (_db.select(_db.bills)
+              ..where((t) => t.id.equals(billId)))
+            .getSingle();
+
+        // Apply bill discount
+        int billDiscount = 0;
+        if (billEntity.discountAmount > 0) {
+          if (billEntity.discountType == DiscountType.percent) {
+            billDiscount = (subtotalGross * billEntity.discountAmount / 10000).round();
+          } else {
+            billDiscount = billEntity.discountAmount;
+          }
+        }
+
+        final subtotalNet = subtotalGross - taxTotal;
+        final totalGross = subtotalGross - billDiscount - billEntity.loyaltyDiscountAmount - billEntity.voucherDiscountAmount + billEntity.roundingAmount;
+
         await (_db.update(_db.bills)..where((t) => t.id.equals(billId))).write(
           BillsCompanion(
             subtotalGross: Value(subtotalGross),
@@ -486,14 +492,16 @@ class BillRepository {
     int discountAmount,
   ) async {
     try {
-      await (_db.update(_db.bills)..where((t) => t.id.equals(billId))).write(
-        BillsCompanion(
-          discountType: Value(discountType),
-          discountAmount: Value(discountAmount),
-          updatedAt: Value(DateTime.now()),
-        ),
-      );
-      return updateTotals(billId);
+      return await _db.transaction(() async {
+        await (_db.update(_db.bills)..where((t) => t.id.equals(billId))).write(
+          BillsCompanion(
+            discountType: Value(discountType),
+            discountAmount: Value(discountAmount),
+            updatedAt: Value(DateTime.now()),
+          ),
+        );
+        return updateTotals(billId);
+      });
     } catch (e, s) {
       AppLogger.error('Failed to update bill discount', error: e, stackTrace: s);
       return Failure('Failed to update bill discount: $e');
@@ -506,14 +514,16 @@ class BillRepository {
     required int voucherDiscountAmount,
   }) async {
     try {
-      await (_db.update(_db.bills)..where((t) => t.id.equals(billId))).write(
-        BillsCompanion(
-          voucherDiscountAmount: Value(voucherDiscountAmount),
-          voucherId: Value(voucherId),
-          updatedAt: Value(DateTime.now()),
-        ),
-      );
-      return updateTotals(billId);
+      return await _db.transaction(() async {
+        await (_db.update(_db.bills)..where((t) => t.id.equals(billId))).write(
+          BillsCompanion(
+            voucherDiscountAmount: Value(voucherDiscountAmount),
+            voucherId: Value(voucherId),
+            updatedAt: Value(DateTime.now()),
+          ),
+        );
+        return updateTotals(billId);
+      });
     } catch (e, s) {
       AppLogger.error('Failed to apply voucher', error: e, stackTrace: s);
       return Failure('Failed to apply voucher: $e');
@@ -522,14 +532,16 @@ class BillRepository {
 
   Future<Result<BillModel>> removeVoucher(String billId) async {
     try {
-      await (_db.update(_db.bills)..where((t) => t.id.equals(billId))).write(
-        BillsCompanion(
-          voucherDiscountAmount: const Value(0),
-          voucherId: const Value(null),
-          updatedAt: Value(DateTime.now()),
-        ),
-      );
-      return updateTotals(billId);
+      return await _db.transaction(() async {
+        await (_db.update(_db.bills)..where((t) => t.id.equals(billId))).write(
+          BillsCompanion(
+            voucherDiscountAmount: const Value(0),
+            voucherId: const Value(null),
+            updatedAt: Value(DateTime.now()),
+          ),
+        );
+        return updateTotals(billId);
+      });
     } catch (e, s) {
       AppLogger.error('Failed to remove voucher', error: e, stackTrace: s);
       return Failure('Failed to remove voucher: $e');

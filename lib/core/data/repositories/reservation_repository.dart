@@ -36,6 +36,9 @@ class ReservationRepository
       t.companyId.equals(companyId) & t.deletedAt.isNull();
 
   @override
+  Expression<bool> whereNotDeleted($ReservationsTable t) => t.deletedAt.isNull();
+
+  @override
   List<OrderingTerm Function($ReservationsTable)> get defaultOrderBy =>
       [(t) => OrderingTerm.desc(t.reservationDate)];
 

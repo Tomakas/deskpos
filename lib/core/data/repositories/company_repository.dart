@@ -33,11 +33,13 @@ class CompanyRepository {
     }
   }
 
-  Future<Result<CompanyModel>> getById(String id) async {
+  Future<Result<CompanyModel>> getById(String id, {bool includeDeleted = false}) async {
     try {
-      final entity = await (_db.select(_db.companies)
-            ..where((t) => t.id.equals(id)))
-          .getSingleOrNull();
+      final query = _db.select(_db.companies)..where((t) => t.id.equals(id));
+      if (!includeDeleted) {
+        query.where((t) => t.deletedAt.isNull());
+      }
+      final entity = await query.getSingleOrNull();
       if (entity == null) return const Failure('Company not found');
       return Success(companyFromEntity(entity));
     } catch (e, s) {

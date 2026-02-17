@@ -38,6 +38,9 @@ class UserRepository
       t.companyId.equals(companyId) & t.deletedAt.isNull();
 
   @override
+  Expression<bool> whereNotDeleted($UsersTable t) => t.deletedAt.isNull();
+
+  @override
   List<OrderingTerm Function($UsersTable)> get defaultOrderBy =>
       [(t) => OrderingTerm.asc(t.fullName)];
 
@@ -60,11 +63,13 @@ class UserRepository
         updatedAt: Value(now),
       );
 
-  Future<Result<UserModel>> getByIdResult(String id) async {
+  Future<Result<UserModel>> getByIdResult(String id, {bool includeDeleted = false}) async {
     try {
-      final entity = await (db.select(db.users)
-            ..where((t) => t.id.equals(id)))
-          .getSingleOrNull();
+      final query = db.select(db.users)..where((t) => t.id.equals(id));
+      if (!includeDeleted) {
+        query.where((t) => t.deletedAt.isNull());
+      }
+      final entity = await query.getSingleOrNull();
       if (entity == null) return const Failure('User not found');
       return Success(userFromEntity(entity));
     } catch (e, s) {

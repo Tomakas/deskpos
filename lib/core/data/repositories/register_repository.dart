@@ -39,16 +39,23 @@ class RegisterRepository {
         .map((e) => e == null ? null : registerFromEntity(e));
   }
 
-  Future<RegisterModel?> getById(String registerId) async {
-    final entity = await (_db.select(_db.registers)
-          ..where((t) => t.id.equals(registerId)))
-        .getSingleOrNull();
+  Future<RegisterModel?> getById(String registerId, {bool includeDeleted = false}) async {
+    final query = _db.select(_db.registers)
+      ..where((t) => t.id.equals(registerId));
+    if (!includeDeleted) {
+      query.where((t) => t.deletedAt.isNull());
+    }
+    final entity = await query.getSingleOrNull();
     return entity == null ? null : registerFromEntity(entity);
   }
 
-  Stream<RegisterModel?> watchById(String registerId) {
-    return (_db.select(_db.registers)
-          ..where((t) => t.id.equals(registerId)))
+  Stream<RegisterModel?> watchById(String registerId, {bool includeDeleted = false}) {
+    final query = _db.select(_db.registers)
+      ..where((t) => t.id.equals(registerId));
+    if (!includeDeleted) {
+      query.where((t) => t.deletedAt.isNull());
+    }
+    return query
         .watchSingleOrNull()
         .map((e) => e == null ? null : registerFromEntity(e));
   }
