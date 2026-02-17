@@ -10,6 +10,7 @@ import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/sync_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/logging/app_logger.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatting_ext.dart';
 
 /// Customer-facing display that shows content via Supabase Broadcast.
@@ -174,7 +175,7 @@ class _ScreenCustomerDisplayState extends ConsumerState<ScreenCustomerDisplay> {
           Icon(
             isSuccess ? Icons.check_circle_outline : Icons.info_outline,
             size: 80,
-            color: isSuccess ? Colors.green.shade600 : theme.colorScheme.primary,
+            color: isSuccess ? context.appColors.success : theme.colorScheme.primary,
           ),
           const SizedBox(height: 24),
           Text(
@@ -311,7 +312,7 @@ class _BroadcastTotalsFooter extends ConsumerWidget {
               label: l.customerDisplayDiscount,
               amount: -content.discountAmount,
               style: theme.textTheme.titleMedium?.copyWith(
-                color: Colors.green,
+                color: context.appColors.positive,
               ),
             ),
           ],

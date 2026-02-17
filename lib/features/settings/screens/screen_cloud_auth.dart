@@ -8,6 +8,7 @@ import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/logging/app_logger.dart';
+import '../../../core/theme/app_colors.dart';
 
 class ScreenCloudAuth extends ConsumerStatefulWidget {
   const ScreenCloudAuth({super.key});
@@ -118,7 +119,7 @@ class _ScreenCloudAuthState extends ConsumerState<ScreenCloudAuth> {
         children: [
           Row(
             children: [
-              const Icon(Icons.cloud_done, color: Colors.green, size: 28),
+              Icon(Icons.cloud_done, color: context.appColors.success, size: 28),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
@@ -160,7 +161,7 @@ class _ScreenCloudAuthState extends ConsumerState<ScreenCloudAuth> {
           children: [
             Row(
               children: [
-                const Icon(Icons.cloud_off, color: Colors.grey, size: 28),
+                Icon(Icons.cloud_off, color: context.appColors.inactiveIndicator, size: 28),
                 const SizedBox(width: 12),
                 Text(
                   l.cloudDisconnected,

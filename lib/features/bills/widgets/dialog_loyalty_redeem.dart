@@ -147,7 +147,7 @@ class _DialogLoyaltyRedeemState extends ConsumerState<DialogLoyaltyRedeem> {
             ),
             FilledButton.tonal(
               onPressed: _useMax,
-              child: Text('Max: $_maxPoints'),
+              child: Text(l.loyaltyMaxPoints(_maxPoints)),
             ),
             FilledButton(
               style: PosButtonStyles.confirm(context),

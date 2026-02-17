@@ -302,20 +302,17 @@ class StockDocumentRepository {
     switch (strategy) {
       case PurchasePriceStrategy.overwrite:
         updatedPrice = newPrice;
-        break;
       case PurchasePriceStrategy.keep:
         // Only set if no existing price
         if (currentPrice == null) {
           updatedPrice = newPrice;
         }
-        break;
       case PurchasePriceStrategy.average:
         if (currentPrice == null) {
           updatedPrice = newPrice;
         } else {
           updatedPrice = ((currentPrice + newPrice) / 2).round();
         }
-        break;
       case PurchasePriceStrategy.weightedAverage:
         if (currentPrice == null) {
           updatedPrice = newPrice;
@@ -339,7 +336,6 @@ class StockDocumentRepository {
                 ((currentPrice * existingQty + newPrice * quantity) / totalQty).round();
           }
         }
-        break;
     }
 
     if (updatedPrice != null && updatedPrice != currentPrice) {

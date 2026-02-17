@@ -12,6 +12,7 @@ import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/logging/app_logger.dart';
+import '../../../core/theme/app_colors.dart';
 
 enum _Step { credentials, searching, companyPreview, syncing, selectRegister, done }
 
@@ -408,7 +409,7 @@ class _ScreenConnectCompanyState extends ConsumerState<ScreenConnectCompany> {
                         register.name.isEmpty ? register.code : register.name),
                     subtitle: Text(l.registerBoundOnOtherDevice),
                     trailing:
-                        Icon(Icons.lock, size: 18, color: Colors.orange.shade700),
+                        Icon(Icons.lock, size: 18, color: context.appColors.warning),
                   ),
                 ),
               ),

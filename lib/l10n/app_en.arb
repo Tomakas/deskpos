@@ -982,5 +982,15 @@
   "cloudConnectedAs": "Connected as {email}",
   "@cloudConnectedAs": {
     "placeholders": { "email": { "type": "String" } }
+  },
+
+  "actionOk": "OK",
+  "errorGeneric": "Error: {error}",
+  "@errorGeneric": {
+    "placeholders": { "error": { "type": "Object" } }
+  },
+  "loyaltyMaxPoints": "Max: {points}",
+  "@loyaltyMaxPoints": {
+    "placeholders": { "points": { "type": "Object" } }
   }
 }

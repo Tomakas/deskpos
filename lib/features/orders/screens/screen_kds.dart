@@ -217,7 +217,7 @@ class _KdsOrderCard extends ConsumerWidget {
     final statusColor = order.status.color(context);
     final elapsed = DateTime.now().difference(order.createdAt);
     final elapsedMin = elapsed.inMinutes;
-    final urgencyColor = _urgencyColor(elapsedMin);
+    final urgencyColor = _urgencyColor(elapsedMin, context.appColors);
 
     return Card(
       shape: RoundedRectangleBorder(
@@ -728,10 +728,10 @@ String _nextStatusLabel(PrepStatus status, AppLocalizations l) => switch (status
       _ => '',
     };
 
-Color _urgencyColor(int minutes) {
-  if (minutes < 5) return Colors.green;
-  if (minutes < 10) return Colors.orange;
-  return Colors.red;
+Color _urgencyColor(int minutes, AppColorsExtension colors) {
+  if (minutes < 5) return colors.success;
+  if (minutes < 10) return colors.warning;
+  return colors.danger;
 }
 
 // ---------------------------------------------------------------------------

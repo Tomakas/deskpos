@@ -253,7 +253,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Error: $e')),
+        error: (e, _) => Center(child: Text(context.l10n.errorGeneric(e.toString()))),
       ),
     );
   }

@@ -217,82 +217,43 @@ class SyncService {
     // else: local is newer or equal — skip (outbox will push local version)
   }
 
-  TableInfo _getDriftTable(String tableName) {
-    switch (tableName) {
-      case 'currencies':
-        return _db.currencies;
-      case 'companies':
-        return _db.companies;
-      case 'company_settings':
-        return _db.companySettings;
-      case 'roles':
-        return _db.roles;
-      case 'permissions':
-        return _db.permissions;
-      case 'role_permissions':
-        return _db.rolePermissions;
-      case 'sections':
-        return _db.sections;
-      case 'categories':
-        return _db.categories;
-      case 'items':
-        return _db.items;
-      case 'suppliers':
-        return _db.suppliers;
-      case 'manufacturers':
-        return _db.manufacturers;
-      case 'customers':
-        return _db.customers;
-      case 'reservations':
-        return _db.reservations;
-      case 'customer_transactions':
-        return _db.customerTransactions;
-      case 'product_recipes':
-        return _db.productRecipes;
-      case 'tables':
-        return _db.tables;
-      case 'map_elements':
-        return _db.mapElements;
-      case 'payment_methods':
-        return _db.paymentMethods;
-      case 'tax_rates':
-        return _db.taxRates;
-      case 'users':
-        return _db.users;
-      case 'user_permissions':
-        return _db.userPermissions;
-      case 'registers':
-        return _db.registers;
-      case 'register_sessions':
-        return _db.registerSessions;
-      case 'layout_items':
-        return _db.layoutItems;
-      case 'bills':
-        return _db.bills;
-      case 'orders':
-        return _db.orders;
-      case 'order_items':
-        return _db.orderItems;
-      case 'payments':
-        return _db.payments;
-      case 'cash_movements':
-        return _db.cashMovements;
-      case 'shifts':
-        return _db.shifts;
-      case 'warehouses':
-        return _db.warehouses;
-      case 'vouchers':
-        return _db.vouchers;
-      case 'stock_levels':
-        return _db.stockLevels;
-      case 'stock_documents':
-        return _db.stockDocuments;
-      case 'stock_movements':
-        return _db.stockMovements;
-      case 'display_devices':
-        return _db.displayDevices;
-      default:
-        throw ArgumentError('Unknown Drift table: $tableName');
-    }
-  }
+  TableInfo _getDriftTable(String tableName) => switch (tableName) {
+    'currencies' => _db.currencies,
+    'companies' => _db.companies,
+    'company_settings' => _db.companySettings,
+    'roles' => _db.roles,
+    'permissions' => _db.permissions,
+    'role_permissions' => _db.rolePermissions,
+    'sections' => _db.sections,
+    'categories' => _db.categories,
+    'items' => _db.items,
+    'suppliers' => _db.suppliers,
+    'manufacturers' => _db.manufacturers,
+    'customers' => _db.customers,
+    'reservations' => _db.reservations,
+    'customer_transactions' => _db.customerTransactions,
+    'product_recipes' => _db.productRecipes,
+    'tables' => _db.tables,
+    'map_elements' => _db.mapElements,
+    'payment_methods' => _db.paymentMethods,
+    'tax_rates' => _db.taxRates,
+    'users' => _db.users,
+    'user_permissions' => _db.userPermissions,
+    'registers' => _db.registers,
+    'register_sessions' => _db.registerSessions,
+    'layout_items' => _db.layoutItems,
+    'bills' => _db.bills,
+    'orders' => _db.orders,
+    'order_items' => _db.orderItems,
+    'payments' => _db.payments,
+    'cash_movements' => _db.cashMovements,
+    'shifts' => _db.shifts,
+    'warehouses' => _db.warehouses,
+    'vouchers' => _db.vouchers,
+    'stock_levels' => _db.stockLevels,
+    'stock_documents' => _db.stockDocuments,
+    'stock_movements' => _db.stockMovements,
+    'display_devices' => _db.displayDevices,
+    _ => throw ArgumentError('Unknown Drift table: $tableName'),
+  };
 }

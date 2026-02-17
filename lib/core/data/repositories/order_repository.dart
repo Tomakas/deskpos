@@ -141,12 +141,12 @@ class OrderRepository {
     final orders = await (_db.select(_db.orders)
           ..where((t) => t.billId.equals(billId) & t.deletedAt.isNull()))
         .get();
-    final items = <OrderItemModel>[];
-    for (final order in orders) {
-      final orderItems = await getOrderItems(order.id);
-      items.addAll(orderItems);
-    }
-    return items;
+    if (orders.isEmpty) return [];
+    final orderIds = orders.map((o) => o.id).toList();
+    final entities = await (_db.select(_db.orderItems)
+          ..where((t) => t.orderId.isIn(orderIds) & t.deletedAt.isNull()))
+        .get();
+    return entities.map(orderItemFromEntity).toList();
   }
 
   Future<List<OrderItemModel>> getOrderItems(String orderId) async {
@@ -616,14 +616,11 @@ class OrderRepository {
       final now = DateTime.now();
       final newOrderId = const Uuid().v7();
 
-      // Collect source order IDs before moving items
-      final sourceOrderIds = <String>{};
-      for (final itemId in orderItemIds) {
-        final item = await (_db.select(_db.orderItems)
-              ..where((t) => t.id.equals(itemId)))
-            .getSingle();
-        sourceOrderIds.add(item.orderId);
-      }
+      // Collect source order IDs before moving items (single batch query)
+      final itemEntities = await (_db.select(_db.orderItems)
+            ..where((t) => t.id.isIn(orderItemIds)))
+          .get();
+      final sourceOrderIds = itemEntities.map((e) => e.orderId).toSet();
 
       await _db.transaction(() async {
         // Create new order on target bill
@@ -640,18 +637,21 @@ class OrderRepository {
         // Move items to new order
         int subtotalGross = 0;
         int taxTotal = 0;
+        final itemMap = {for (final e in itemEntities) e.id: e};
         for (final itemId in orderItemIds) {
           await (_db.update(_db.orderItems)..where((t) => t.id.equals(itemId))).write(
             OrderItemsCompanion(orderId: Value(newOrderId), updatedAt: Value(now)),
           );
-          final itemEntity = await (_db.select(_db.orderItems)
-                ..where((t) => t.id.equals(itemId)))
-              .getSingle();
-          final itemSubtotal = (itemEntity.salePriceAtt * itemEntity.quantity).round();
-          final itemTax = (itemEntity.saleTaxAmount * itemEntity.quantity).round();
+          final original = itemMap[itemId]!;
+          final itemSubtotal = (original.salePriceAtt * original.quantity).round();
+          final itemTax = (original.saleTaxAmount * original.quantity).round();
           subtotalGross += itemSubtotal;
           taxTotal += itemTax;
-          await _enqueueOrderItem('update', orderItemFromEntity(itemEntity));
+          final movedModel = orderItemFromEntity(original).copyWith(
+            orderId: newOrderId,
+            updatedAt: now,
+          );
+          await _enqueueOrderItem('update', movedModel);
         }
 
         // Update new order totals

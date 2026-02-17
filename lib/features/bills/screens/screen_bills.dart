@@ -295,23 +295,23 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
       int totalRevenue = 0;
       int totalTips = 0;
 
-      for (final bill in sessionBills) {
-        final payments = await paymentRepo.getByBill(bill.id);
-        for (final p in payments) {
-          final method = methodMap[p.paymentMethodId];
-          final methodName = method?.name ?? '-';
-          final isCash = method?.type == PaymentType.cash;
-          final cashReceived = p.amount + p.tipIncludedAmount;
-          final existing = paymentsByMethod[p.paymentMethodId];
-          paymentsByMethod[p.paymentMethodId] = (
-            methodName,
-            (existing?.$2 ?? 0) + cashReceived,
-            (existing?.$3 ?? 0) + 1,
-            isCash,
-          );
-          totalRevenue += p.amount;
-          totalTips += p.tipIncludedAmount;
-        }
+      final allPayments = await paymentRepo.getByBillIds(
+        sessionBills.map((b) => b.id).toList(),
+      );
+      for (final p in allPayments) {
+        final method = methodMap[p.paymentMethodId];
+        final methodName = method?.name ?? '-';
+        final isCash = method?.type == PaymentType.cash;
+        final cashReceived = p.amount + p.tipIncludedAmount;
+        final existing = paymentsByMethod[p.paymentMethodId];
+        paymentsByMethod[p.paymentMethodId] = (
+          methodName,
+          (existing?.$2 ?? 0) + cashReceived,
+          (existing?.$3 ?? 0) + 1,
+          isCash,
+        );
+        totalRevenue += p.amount;
+        totalTips += p.tipIncludedAmount;
       }
 
       final paymentSummaries = paymentsByMethod.values
@@ -635,9 +635,14 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
     final shifts = await shiftRepo.getByCompany(company.id);
     if (!mounted) return;
 
+    final uniqueUserIds = shifts.map((s) => s.userId).toSet();
+    final userMap = <String, UserModel?>{};
+    for (final uid in uniqueUserIds) {
+      userMap[uid] = await userRepo.getById(uid, includeDeleted: true);
+    }
     final rows = <ShiftDisplayRow>[];
     for (final shift in shifts) {
-      final user = await userRepo.getById(shift.userId, includeDeleted: true);
+      final user = userMap[shift.userId];
       rows.add(ShiftDisplayRow(
         username: user?.username ?? '-',
         loginAt: shift.loginAt,

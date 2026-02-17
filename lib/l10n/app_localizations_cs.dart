@@ -2380,4 +2380,17 @@ class AppLocalizationsCs extends AppLocalizations {
   String cloudConnectedAs(String email) {
     return 'Připojeno jako $email';
   }
+
+  @override
+  String get actionOk => 'OK';
+
+  @override
+  String errorGeneric(Object error) {
+    return 'Chyba: $error';
+  }
+
+  @override
+  String loyaltyMaxPoints(Object points) {
+    return 'Max: $points';
+  }
 }

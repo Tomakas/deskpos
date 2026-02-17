@@ -32,12 +32,17 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
   late BillModel _bill;
   int? _customAmount;
   CustomerModel? _customer;
+  Future<List<PaymentMethodModel>>? _paymentMethodsFuture;
 
   @override
   void initState() {
     super.initState();
     _bill = widget.bill;
     _loadCustomer();
+    final company = ref.read(currentCompanyProvider);
+    if (company != null) {
+      _paymentMethodsFuture = ref.read(paymentMethodRepositoryProvider).getAll(company.id);
+    }
   }
 
   Future<void> _loadCustomer() async {
@@ -256,11 +261,8 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
 
   Widget _buildPaymentsList(BuildContext context, List<PaymentModel> payments) {
     final theme = Theme.of(context);
-    final methodRepo = ref.read(paymentMethodRepositoryProvider);
-    final company = ref.read(currentCompanyProvider);
-
     return FutureBuilder<List<PaymentMethodModel>>(
-      future: company != null ? methodRepo.getAll(company.id) : Future.value([]),
+      future: _paymentMethodsFuture ?? Future.value([]),
       builder: (context, snap) {
         final methods = snap.data ?? [];
         final methodMap = {for (final m in methods) m.id: m.name};

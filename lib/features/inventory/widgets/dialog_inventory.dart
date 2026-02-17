@@ -8,6 +8,7 @@ import '../../../core/data/repositories/stock_document_repository.dart';
 import '../../../core/data/repositories/stock_level_repository.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_table.dart';
 
@@ -132,7 +133,7 @@ class _DialogInventoryState extends ConsumerState<DialogInventory> {
                         style: diff != 0
                             ? TextStyle(
                                 color: diff > 0
-                                    ? Colors.green
+                                    ? context.appColors.positive
                                     : theme.colorScheme.error,
                                 fontWeight: FontWeight.bold,
                               )

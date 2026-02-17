@@ -10,6 +10,7 @@ import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/pos_table.dart';
 
 // ---------------------------------------------------------------------------
@@ -333,12 +334,12 @@ class RegistersTab extends ConsumerWidget {
       return Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.link, size: 18, color: Colors.green),
+          Icon(Icons.link, size: 18, color: context.appColors.activeIndicator),
           const SizedBox(width: 4),
           Text(
             l.registerBoundHere,
-            style: const TextStyle(
-              color: Colors.green,
+            style: TextStyle(
+              color: context.appColors.activeIndicator,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -351,13 +352,13 @@ class RegistersTab extends ConsumerWidget {
       return Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.lock, size: 16, color: Colors.orange.shade700),
+          Icon(Icons.lock, size: 16, color: context.appColors.warning),
           const SizedBox(width: 4),
           Flexible(
             child: Text(
               l.registerBoundOnOtherDevice,
               style: TextStyle(
-                color: Colors.orange.shade700,
+                color: context.appColors.warning,
                 fontSize: 12,
               ),
               overflow: TextOverflow.ellipsis,

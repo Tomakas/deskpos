@@ -4681,6 +4681,24 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Připojeno jako {email}'**
   String cloudConnectedAs(String email);
+
+  /// No description provided for @actionOk.
+  ///
+  /// In cs, this message translates to:
+  /// **'OK'**
+  String get actionOk;
+
+  /// No description provided for @errorGeneric.
+  ///
+  /// In cs, this message translates to:
+  /// **'Chyba: {error}'**
+  String errorGeneric(Object error);
+
+  /// No description provided for @loyaltyMaxPoints.
+  ///
+  /// In cs, this message translates to:
+  /// **'Max: {points}'**
+  String loyaltyMaxPoints(Object points);
 }
 
 class _AppLocalizationsDelegate

@@ -187,7 +187,7 @@ class _OrderCard extends ConsumerWidget {
     final isStorno = order.isStorno;
     final statusColor = order.status.color(context);
     final elapsed = DateTime.now().difference(order.createdAt);
-    final urgencyColor = _urgencyColor(elapsed.inMinutes);
+    final urgencyColor = _urgencyColor(elapsed.inMinutes, context.appColors);
 
     return Card(
       shape: RoundedRectangleBorder(
@@ -753,10 +753,10 @@ PrepStatus? _prevStatus(PrepStatus current) => switch (current) {
       _ => null,
     };
 
-Color _urgencyColor(int minutes) {
-  if (minutes < 5) return Colors.green;
-  if (minutes < 10) return Colors.orange;
-  return Colors.red;
+Color _urgencyColor(int minutes, AppColorsExtension colors) {
+  if (minutes < 5) return colors.success;
+  if (minutes < 10) return colors.warning;
+  return colors.danger;
 }
 
 String _nextStatusLabel(PrepStatus status, AppLocalizations l) => switch (status) {

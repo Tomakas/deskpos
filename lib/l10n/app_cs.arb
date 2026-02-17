@@ -982,5 +982,9 @@
   "cloudConnectedAs": "Připojeno jako {email}",
   "@cloudConnectedAs": {
     "placeholders": { "email": { "type": "String" } }
-  }
+  },
+
+  "actionOk": "OK",
+  "errorGeneric": "Chyba: {error}",
+  "loyaltyMaxPoints": "Max: {points}"
 }

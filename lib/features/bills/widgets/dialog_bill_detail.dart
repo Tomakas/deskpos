@@ -44,6 +44,30 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
   bool _isProcessing = false;
   bool _didShowOnDisplay = false;
   String? _displayCode;
+  String? _cachedCustomerId;
+  Future<CustomerModel?>? _customerFuture;
+  String? _cachedOrderKey;
+  Future<List<OrderItemModel>>? _orderItemsFuture;
+
+  Future<CustomerModel?> _getCustomerFuture(String customerId) {
+    if (_cachedCustomerId != customerId || _customerFuture == null) {
+      _cachedCustomerId = customerId;
+      _customerFuture = ref.read(customerRepositoryProvider)
+          .getById(customerId, includeDeleted: true);
+    }
+    return _customerFuture!;
+  }
+
+  Future<List<OrderItemModel>> _getOrderItemsFuture(List<OrderModel> activeOrders) {
+    final key = activeOrders.map((o) => o.id).join(',');
+    if (_cachedOrderKey != key || _orderItemsFuture == null) {
+      _cachedOrderKey = key;
+      final orderRepo = ref.read(orderRepositoryProvider);
+      _orderItemsFuture = Future.wait(activeOrders.map((o) => orderRepo.getOrderItems(o.id)))
+          .then((lists) => lists.expand((l) => l).toList());
+    }
+    return _orderItemsFuture!;
+  }
 
   @override
   void dispose() {
@@ -153,7 +177,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
                 const SizedBox(height: 2),
                 if (bill.customerId != null)
                   FutureBuilder<CustomerModel?>(
-                    future: ref.watch(customerRepositoryProvider).getById(bill.customerId!, includeDeleted: true),
+                    future: _getCustomerFuture(bill.customerId!),
                     builder: (context, snap) {
                       final customer = snap.data;
                       if (customer == null) return const SizedBox.shrink();
@@ -264,7 +288,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
 
   Widget _buildCustomerLoyaltyInfo(BuildContext context, WidgetRef ref, BillModel bill) {
     return FutureBuilder<CustomerModel?>(
-      future: ref.watch(customerRepositoryProvider).getById(bill.customerId!, includeDeleted: true),
+      future: _getCustomerFuture(bill.customerId!),
       builder: (context, snap) {
         final customer = snap.data;
         if (customer == null) return const SizedBox.shrink();
@@ -362,11 +386,8 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
       return const SizedBox.shrink();
     }
 
-    final orderRepo = ref.watch(orderRepositoryProvider);
-
     return FutureBuilder<List<OrderItemModel>>(
-      future: Future.wait(activeOrders.map((o) => orderRepo.getOrderItems(o.id)))
-          .then((lists) => lists.expand((l) => l).toList()),
+      future: _getOrderItemsFuture(activeOrders),
       builder: (context, snap) {
         final allItems = isCancelled
             ? (snap.data ?? [])
@@ -772,7 +793,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
           builder: (_) => AlertDialog(
             content: Text(errorMsg),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK')),
+              TextButton(onPressed: () => Navigator.pop(context), child: Text(context.l10n.actionOk)),
             ],
           ),
         );

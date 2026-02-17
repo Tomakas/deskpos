@@ -23,4 +23,13 @@ class PaymentRepository {
         .get();
     return entities.map(paymentFromEntity).toList();
   }
+
+  Future<List<PaymentModel>> getByBillIds(List<String> billIds) async {
+    if (billIds.isEmpty) return [];
+    final entities = await (_db.select(_db.payments)
+          ..where((t) => t.billId.isIn(billIds) & t.deletedAt.isNull())
+          ..orderBy([(t) => OrderingTerm.asc(t.paidAt)]))
+        .get();
+    return entities.map(paymentFromEntity).toList();
+  }
 }
