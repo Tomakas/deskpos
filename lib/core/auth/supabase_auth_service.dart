@@ -40,8 +40,8 @@ class SupabaseAuthService {
       }
       AppLogger.info('Supabase sign up successful', tag: 'SYNC');
       return Success(userId);
-    } on AuthException catch (e) {
-      AppLogger.error('Supabase sign up failed', tag: 'SYNC', error: e);
+    } on AuthException catch (e, s) {
+      AppLogger.error('Supabase sign up failed', tag: 'SYNC', error: e, stackTrace: s);
       return Failure(e.message);
     } catch (e, s) {
       AppLogger.error('Supabase sign up failed', tag: 'SYNC', error: e, stackTrace: s);
@@ -58,8 +58,8 @@ class SupabaseAuthService {
       }
       AppLogger.info('Supabase sign in successful', tag: 'SYNC');
       return Success(userId);
-    } on AuthException catch (e) {
-      AppLogger.error('Supabase sign in failed', tag: 'SYNC', error: e);
+    } on AuthException catch (e, s) {
+      AppLogger.error('Supabase sign in failed', tag: 'SYNC', error: e, stackTrace: s);
       return Failure(e.message);
     } catch (e, s) {
       AppLogger.error('Supabase sign in failed', tag: 'SYNC', error: e, stackTrace: s);

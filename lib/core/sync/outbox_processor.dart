@@ -123,11 +123,11 @@ class OutboxProcessor {
         // Unexpected response format — treat as transient
         await _handleError(entry, 'Unexpected EF response: $data', false);
       }
-    } on FunctionException catch (e) {
+    } on FunctionException catch (e, s) {
       // EF returned 500 or network error — transient, retry
-      await _handleError(entry, 'EF error: ${e.reasonPhrase ?? e.toString()}', false);
-    } on AuthException catch (e) {
-      await _handleError(entry, e.message, true);
+      await _handleError(entry, 'EF error: ${e.reasonPhrase ?? e.toString()}', false, s);
+    } on AuthException catch (e, s) {
+      await _handleError(entry, e.message, true, s);
     } catch (e, s) {
       // Network or other transient error
       AppLogger.error('Outbox unexpected error: $e', error: e, stackTrace: s, tag: 'SYNC');
@@ -135,7 +135,7 @@ class OutboxProcessor {
     }
   }
 
-  Future<void> _handleError(SyncQueueData entry, String error, bool permanent) async {
+  Future<void> _handleError(SyncQueueData entry, String error, bool permanent, [StackTrace? stackTrace]) async {
     final id = entry.id;
     final retryCount = entry.retryCount;
 
@@ -144,6 +144,7 @@ class OutboxProcessor {
       AppLogger.error(
         'Outbox entry $id permanently failed: $error',
         tag: 'SYNC',
+        stackTrace: stackTrace,
       );
     } else {
       await _syncQueueRepo.incrementRetry(id, error);

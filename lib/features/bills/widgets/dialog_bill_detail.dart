@@ -539,7 +539,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
             ),
           ),
           if (isPaid &&
-              (ref.read(activeRegisterProvider).value?.allowRefunds ?? true)) ...[
+              (ref.watch(activeRegisterProvider).value?.allowRefunds ?? true)) ...[
             const SizedBox(width: 12),
             // Refund
             SizedBox(
@@ -1100,7 +1100,7 @@ class _OrderSection extends ConsumerWidget {
                     ? () => _editItemNotes(context, ref, item)
                     : (isPaid &&
                             item.status != PrepStatus.voided &&
-                            (ref.read(activeRegisterProvider).value?.allowRefunds ?? true))
+                            (ref.watch(activeRegisterProvider).value?.allowRefunds ?? true))
                         ? () => _refundItem(context, ref, item)
                         : null,
                 child: Container(

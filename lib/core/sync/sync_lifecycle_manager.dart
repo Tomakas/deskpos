@@ -252,10 +252,15 @@ class SyncLifecycleManager {
       }
     }
 
-    // Push registers (not in companyRepos)
+    // Remaining tables not in companyRepos — order matches tableDependencyOrder.
+
+    // Push user_permissions (11)
+    await _enqueueUserPermissions(companyId);
+
+    // Push registers (18)
     await _enqueueRegisters(companyId);
 
-    // Push display_devices (depends on registers)
+    // Push display_devices (19, depends on registers)
     await _enqueueCompanyTable(
       companyId,
       'display_devices',
@@ -263,34 +268,7 @@ class SyncLifecycleManager {
       (e) => displayDeviceToSupabaseJson(displayDeviceFromEntity(e as DisplayDevice)),
     );
 
-    // Push user_permissions (not in companyRepos)
-    await _enqueueUserPermissions(companyId);
-
-    // Push register_sessions
-    await _enqueueCompanyTable(
-      companyId,
-      'register_sessions',
-      _db.registerSessions,
-      (e) => registerSessionToSupabaseJson(registerSessionFromEntity(e as RegisterSession)),
-    );
-
-    // Push cash_movements (depends on register_sessions)
-    await _enqueueCompanyTable(
-      companyId,
-      'cash_movements',
-      _db.cashMovements,
-      (e) => cashMovementToSupabaseJson(cashMovementFromEntity(e as CashMovement)),
-    );
-
-    // Push shifts (depends on register_sessions)
-    await _enqueueCompanyTable(
-      companyId,
-      'shifts',
-      _db.shifts,
-      (e) => shiftToSupabaseJson(shiftFromEntity(e as Shift)),
-    );
-
-    // Push layout_items
+    // Push layout_items (20)
     await _enqueueCompanyTable(
       companyId,
       'layout_items',
@@ -298,31 +276,7 @@ class SyncLifecycleManager {
       (e) => layoutItemToSupabaseJson(layoutItemFromEntity(e as LayoutItem)),
     );
 
-    // Push stock_levels (depends on warehouses, items)
-    await _enqueueCompanyTable(
-      companyId,
-      'stock_levels',
-      _db.stockLevels,
-      (e) => stockLevelToSupabaseJson(stockLevelFromEntity(e as StockLevel)),
-    );
-
-    // Push stock_documents (depends on warehouses, suppliers)
-    await _enqueueCompanyTable(
-      companyId,
-      'stock_documents',
-      _db.stockDocuments,
-      (e) => stockDocumentToSupabaseJson(stockDocumentFromEntity(e as StockDocument)),
-    );
-
-    // Push stock_movements (depends on stock_documents, items)
-    await _enqueueCompanyTable(
-      companyId,
-      'stock_movements',
-      _db.stockMovements,
-      (e) => stockMovementToSupabaseJson(stockMovementFromEntity(e as StockMovement)),
-    );
-
-    // Push bills
+    // Push bills (24)
     await _enqueueCompanyTable(
       companyId,
       'bills',
@@ -330,7 +284,7 @@ class SyncLifecycleManager {
       (e) => billToSupabaseJson(billFromEntity(e as Bill)),
     );
 
-    // Push orders (depends on bills)
+    // Push orders (25, depends on bills)
     await _enqueueCompanyTable(
       companyId,
       'orders',
@@ -338,7 +292,7 @@ class SyncLifecycleManager {
       (e) => orderToSupabaseJson(orderFromEntity(e as Order)),
     );
 
-    // Push order_items (depends on orders)
+    // Push order_items (26, depends on orders)
     await _enqueueCompanyTable(
       companyId,
       'order_items',
@@ -346,12 +300,60 @@ class SyncLifecycleManager {
       (e) => orderItemToSupabaseJson(orderItemFromEntity(e as OrderItem)),
     );
 
-    // Push payments (depends on bills)
+    // Push payments (27, depends on bills)
     await _enqueueCompanyTable(
       companyId,
       'payments',
       _db.payments,
       (e) => paymentToSupabaseJson(paymentFromEntity(e as Payment)),
+    );
+
+    // Push register_sessions (28)
+    await _enqueueCompanyTable(
+      companyId,
+      'register_sessions',
+      _db.registerSessions,
+      (e) => registerSessionToSupabaseJson(registerSessionFromEntity(e as RegisterSession)),
+    );
+
+    // Push cash_movements (29, depends on register_sessions)
+    await _enqueueCompanyTable(
+      companyId,
+      'cash_movements',
+      _db.cashMovements,
+      (e) => cashMovementToSupabaseJson(cashMovementFromEntity(e as CashMovement)),
+    );
+
+    // Push shifts (30, depends on register_sessions)
+    await _enqueueCompanyTable(
+      companyId,
+      'shifts',
+      _db.shifts,
+      (e) => shiftToSupabaseJson(shiftFromEntity(e as Shift)),
+    );
+
+    // Push stock_levels (33, depends on warehouses, items)
+    await _enqueueCompanyTable(
+      companyId,
+      'stock_levels',
+      _db.stockLevels,
+      (e) => stockLevelToSupabaseJson(stockLevelFromEntity(e as StockLevel)),
+    );
+
+    // Push stock_documents (34, depends on warehouses, suppliers)
+    await _enqueueCompanyTable(
+      companyId,
+      'stock_documents',
+      _db.stockDocuments,
+      (e) => stockDocumentToSupabaseJson(stockDocumentFromEntity(e as StockDocument)),
+    );
+
+    // Push stock_movements (35, depends on stock_documents, items)
+    await _enqueueCompanyTable(
+      companyId,
+      'stock_movements',
+      _db.stockMovements,
+      (e) => stockMovementToSupabaseJson(stockMovementFromEntity(e as StockMovement)),
     );
   }
 

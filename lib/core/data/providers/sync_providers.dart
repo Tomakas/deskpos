@@ -61,24 +61,25 @@ final syncLifecycleManagerProvider = Provider<SyncLifecycleManager>((ref) {
     syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
     companyRepo: ref.watch(companyRepositoryProvider),
     kdsBroadcastChannel: ref.watch(kdsBroadcastChannelProvider),
+    // Order matches tableDependencyOrder (FK parents before children).
     companyRepos: [
-      ref.watch(companySettingsRepositoryProvider),
-      ref.watch(sectionRepositoryProvider),
-      ref.watch(taxRateRepositoryProvider),
-      ref.watch(paymentMethodRepositoryProvider),
-      ref.watch(supplierRepositoryProvider),
-      ref.watch(manufacturerRepositoryProvider),
-      ref.watch(categoryRepositoryProvider),
-      ref.watch(itemRepositoryProvider),
-      ref.watch(tableRepositoryProvider),
-      ref.watch(mapElementRepositoryProvider),
-      ref.watch(userRepositoryProvider),
-      ref.watch(customerRepositoryProvider),
-      ref.watch(warehouseRepositoryProvider),
-      ref.watch(productRecipeRepositoryProvider),
-      ref.watch(reservationRepositoryProvider),
-      ref.watch(voucherRepositoryProvider),
-      ref.watch(customerTransactionRepositoryProvider),
+      ref.watch(companySettingsRepositoryProvider),    // company_settings (2)
+      ref.watch(sectionRepositoryProvider),            // sections (6)
+      ref.watch(taxRateRepositoryProvider),            // tax_rates (7)
+      ref.watch(paymentMethodRepositoryProvider),      // payment_methods (8)
+      ref.watch(categoryRepositoryProvider),           // categories (9)
+      ref.watch(userRepositoryProvider),               // users (10)
+      ref.watch(tableRepositoryProvider),              // tables (12)
+      ref.watch(mapElementRepositoryProvider),         // map_elements (13)
+      ref.watch(supplierRepositoryProvider),           // suppliers (14)
+      ref.watch(manufacturerRepositoryProvider),       // manufacturers (15)
+      ref.watch(itemRepositoryProvider),               // items (16)
+      ref.watch(productRecipeRepositoryProvider),      // product_recipes (17)
+      ref.watch(customerRepositoryProvider),           // customers (21)
+      ref.watch(reservationRepositoryProvider),        // reservations (22)
+      ref.watch(warehouseRepositoryProvider),          // warehouses (23)
+      ref.watch(customerTransactionRepositoryProvider),// customer_transactions (31)
+      ref.watch(voucherRepositoryProvider),            // vouchers (32)
     ],
     db: ref.watch(appDatabaseProvider),
   );
