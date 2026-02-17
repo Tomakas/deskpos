@@ -67,7 +67,7 @@ class ShiftRepository {
     }
   }
 
-  Future<void> closeAllForSession(String registerSessionId) async {
+  Future<Result<void>> closeAllForSession(String registerSessionId) async {
     try {
       await _db.transaction(() async {
         final openShifts = await (_db.select(_db.shifts)
@@ -89,8 +89,10 @@ class ShiftRepository {
           await _enqueue('update', shiftFromEntity(updated));
         }
       });
+      return const Success(null);
     } catch (e, s) {
       AppLogger.error('Failed to close all shifts for session', error: e, stackTrace: s);
+      return Failure('Failed to close all shifts for session: $e');
     }
   }
 

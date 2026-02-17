@@ -381,8 +381,8 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
       if (result == null || !context.mounted) return;
 
       // Close all shifts for this session
-      await ref.read(shiftRepositoryProvider).closeAllForSession(session.id);
-      if (!mounted) return;
+      final closeShiftsResult = await ref.read(shiftRepositoryProvider).closeAllForSession(session.id);
+      if (closeShiftsResult is Failure || !mounted) return;
 
       final difference = result.closingCash - expectedCash;
       await ref.read(registerSessionRepositoryProvider).closeSession(
