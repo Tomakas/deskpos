@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
@@ -110,7 +109,7 @@ class _ScreenCloudAuthState extends ConsumerState<ScreenCloudAuth> {
   }
 
   Widget _buildConnectedView(AppLocalizations l) {
-    final email = Supabase.instance.client.auth.currentUser?.email;
+    final email = ref.read(supabaseAuthServiceProvider).currentUserEmail;
 
     return Padding(
       padding: const EdgeInsets.all(24),

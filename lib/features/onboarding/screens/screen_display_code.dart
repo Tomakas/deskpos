@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' hide BroadcastChannel;
 import 'package:uuid/uuid.dart';
 
 import '../../../core/data/models/display_device_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
+import '../../../core/data/providers/sync_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/sync/broadcast_channel.dart';
@@ -50,7 +50,7 @@ class _ScreenDisplayCodeState extends ConsumerState<ScreenDisplayCode> {
     _timeoutTimer = null;
     _pairingSub?.cancel();
     _pairingSub = null;
-    _pairingChannel?.dispose();
+    _pairingChannel?.leave();
     _pairingChannel = null;
     _requestId = null;
   }
@@ -217,7 +217,7 @@ class _ScreenDisplayCodeState extends ConsumerState<ScreenDisplayCode> {
   Future<void> _requestPairing(DisplayDeviceModel device) async {
     try {
       _requestId = const Uuid().v4();
-      _pairingChannel = BroadcastChannel(Supabase.instance.client);
+      _pairingChannel = ref.read(pairingChannelProvider);
 
       // Register listener BEFORE join to avoid missing messages
       _pairingSub = _pairingChannel!.stream.listen((payload) {

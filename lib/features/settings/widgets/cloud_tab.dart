@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/database_provider.dart';
@@ -114,12 +113,7 @@ class CloudTab extends ConsumerWidget {
 
       // Wipe server data so re-onboarding starts clean
       if (authService.isAuthenticated) {
-        try {
-          await Supabase.instance.client.functions.invoke('wipe');
-          AppLogger.info('Server data wiped', tag: 'SYNC');
-        } catch (e, s) {
-          AppLogger.error('Server wipe failed (continuing with local delete)', error: e, stackTrace: s);
-        }
+        await authService.wipeServerData();
         await authService.signOut();
       }
 

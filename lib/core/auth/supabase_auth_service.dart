@@ -13,7 +13,20 @@ class SupabaseAuthService {
 
   String? get currentUserId => _auth.currentUser?.id;
 
+  String? get currentUserEmail => _auth.currentUser?.email;
+
   Stream<AuthState> get authStateChanges => _auth.onAuthStateChange;
+
+  /// Invoke the server-side wipe Edge Function.
+  /// Failure is non-fatal — logs internally, never throws.
+  Future<void> wipeServerData() async {
+    try {
+      await _client.functions.invoke('wipe');
+      AppLogger.info('Server data wiped', tag: 'SYNC');
+    } catch (e, s) {
+      AppLogger.error('Server wipe failed (continuing with local delete)', error: e, stackTrace: s);
+    }
+  }
 
   Future<Result<String>> signUp(String email, String password) async {
     try {
