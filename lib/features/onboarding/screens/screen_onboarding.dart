@@ -86,7 +86,7 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
                         child: FilterChip(
                           label: SizedBox(
                             width: double.infinity,
-                            child: Text('Čeština', textAlign: TextAlign.center),
+                            child: Text(l.languageCzech, textAlign: TextAlign.center),
                           ),
                           selected: _selectedLocale == 'cs',
                           onSelected: (_) => _setLocale('cs'),
@@ -100,7 +100,7 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
                         child: FilterChip(
                           label: SizedBox(
                             width: double.infinity,
-                            child: Text('English', textAlign: TextAlign.center),
+                            child: Text(l.languageEnglish, textAlign: TextAlign.center),
                           ),
                           selected: _selectedLocale == 'en',
                           onSelected: (_) => _setLocale('en'),

@@ -216,7 +216,7 @@ class _DialogVoucherCreateState extends ConsumerState<DialogVoucherCreate> {
             if (_expiresAt != null)
               TextButton(
                 onPressed: () => setState(() => _expiresAt = null),
-                child: const Text('X'),
+                child: const Icon(Icons.close, size: 18),
               ),
             TextButton(
               onPressed: () async {

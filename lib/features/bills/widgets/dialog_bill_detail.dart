@@ -539,79 +539,84 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           // Close
-          SizedBox(
-            height: 44,
-            width: 130,
-            child: FilledButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(l.actionClose),
+          Expanded(
+            child: SizedBox(
+              height: 44,
+              child: FilledButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(l.actionClose),
+              ),
             ),
           ),
           const SizedBox(width: 12),
           // Print receipt
-          SizedBox(
-            height: 44,
-            width: 130,
-            child: FilledButton(
-              onPressed: () => showReceiptPrintDialog(context, ref, bill.id),
-              child: Text(l.billDetailPrint),
+          Expanded(
+            child: SizedBox(
+              height: 44,
+              child: FilledButton(
+                onPressed: () => showReceiptPrintDialog(context, ref, bill.id),
+                child: Text(l.billDetailPrint),
+              ),
             ),
           ),
           if (isPaid &&
               (ref.watch(activeRegisterProvider).value?.allowRefunds ?? true)) ...[
             const SizedBox(width: 12),
             // Refund
-            SizedBox(
-              height: 44,
-              width: 130,
-              child: FilledButton(
-                style: PosButtonStyles.warningFilled(context),
-                onPressed: !_isProcessing ? () => _refundBill(context, ref, bill, l) : null,
-                child: Text(l.refundButton),
+            Expanded(
+              child: SizedBox(
+                height: 44,
+                child: FilledButton(
+                  style: PosButtonStyles.warningFilled(context),
+                  onPressed: !_isProcessing ? () => _refundBill(context, ref, bill, l) : null,
+                  child: Text(l.refundButton),
+                ),
               ),
             ),
           ],
           if (!isClosed) ...[
             const SizedBox(width: 12),
             // Cancel bill
-            SizedBox(
-              height: 44,
-              width: 130,
-              child: OutlinedButton(
-                style: PosButtonStyles.destructiveOutlined(context),
-                onPressed: !_isProcessing ? () => _cancelBill(context, ref, bill, l) : null,
-                child: Text(l.billDetailCancel),
+            Expanded(
+              child: SizedBox(
+                height: 44,
+                child: OutlinedButton(
+                  style: PosButtonStyles.destructiveOutlined(context),
+                  onPressed: !_isProcessing ? () => _cancelBill(context, ref, bill, l) : null,
+                  child: Text(l.billDetailCancel),
+                ),
               ),
             ),
           ],
           if (!isClosed && bill.totalGross > 0) ...[
             const SizedBox(width: 12),
             // Pay
-            SizedBox(
-              height: 44,
-              width: 130,
-              child: FilledButton(
-                style: PosButtonStyles.confirm(context),
-                onPressed: !_isProcessing ? () => _payBill(context, ref, bill) : null,
-                child: Text(l.billDetailPay),
+            Expanded(
+              child: SizedBox(
+                height: 44,
+                child: FilledButton(
+                  style: PosButtonStyles.confirm(context),
+                  onPressed: !_isProcessing ? () => _payBill(context, ref, bill) : null,
+                  child: Text(l.billDetailPay),
+                ),
               ),
             ),
           ],
           if (!isClosed) ...[
             const SizedBox(width: 12),
             // Order
-            SizedBox(
-              height: 44,
-              width: 130,
-              child: FilledButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  context.push('/sell/${bill.id}');
-                },
-                child: Text(l.billDetailOrder),
+            Expanded(
+              child: SizedBox(
+                height: 44,
+                child: FilledButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    context.push('/sell/${bill.id}');
+                  },
+                  child: Text(l.billDetailOrder),
+                ),
               ),
             ),
           ],
