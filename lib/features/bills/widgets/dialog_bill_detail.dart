@@ -43,11 +43,39 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
   bool _showSummary = false;
   bool _isProcessing = false;
   bool _didShowOnDisplay = false;
+  bool _didSendThankYou = false;
+  bool _hasCustomerDisplay = false;
   String? _displayCode;
   String? _cachedCustomerId;
   Future<CustomerModel?>? _customerFuture;
   String? _cachedOrderKey;
   Future<List<OrderItemModel>>? _orderItemsFuture;
+
+  // Cached reference for use in dispose() where ref is no longer available.
+  late final _displayChannel = ref.read(customerDisplayChannelProvider);
+
+  @override
+  void initState() {
+    super.initState();
+    _checkCustomerDisplay();
+  }
+
+  Future<void> _checkCustomerDisplay() async {
+    final register = await ref.read(activeRegisterProvider.future);
+    if (!mounted || register == null) return;
+    final devices = await ref.read(displayDeviceRepositoryProvider)
+        .getByParentRegister(register.id);
+    if (!mounted) return;
+    final customerDisplay = devices
+        .where((d) => d.type == DisplayDeviceType.customerDisplay)
+        .firstOrNull;
+    if (customerDisplay != null) {
+      _displayCode = customerDisplay.code;
+      await _displayChannel.join('display:${_displayCode!}');
+      if (!mounted) return;
+      setState(() => _hasCustomerDisplay = true);
+    }
+  }
 
   Future<CustomerModel?> _getCustomerFuture(String customerId) {
     if (_cachedCustomerId != customerId || _customerFuture == null) {
@@ -71,8 +99,8 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
 
   @override
   void dispose() {
-    if (_didShowOnDisplay && _displayCode != null) {
-      ref.read(customerDisplayChannelProvider).send(const DisplayIdle().toJson());
+    if (!_didSendThankYou && _didShowOnDisplay && _displayCode != null) {
+      _displayChannel.send(const DisplayIdle().toJson());
     }
     super.dispose();
   }
@@ -136,7 +164,31 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildBillTitle(context, ref, bill, l),
+                Row(
+                  children: [
+                    Flexible(child: _buildBillTitle(context, ref, bill, l)),
+                    if (_hasCustomerDisplay) ...[
+                      const SizedBox(width: 8),
+                      IconButton(
+                        icon: Icon(
+                          _didShowOnDisplay ? Icons.visibility_off : Icons.visibility,
+                          size: 20,
+                        ),
+                        onPressed: () {
+                          if (_didShowOnDisplay) {
+                            _hideFromDisplay();
+                          } else {
+                            _showOnDisplay(bill);
+                          }
+                        },
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        visualDensity: VisualDensity.compact,
+                        tooltip: l.billDetailShowOnDisplay,
+                      ),
+                    ],
+                  ],
+                ),
                 const SizedBox(height: 2),
                 _buildTotalSpentLine(context, ref, bill, l),
                 if (bill.customerId != null)
@@ -478,53 +530,55 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
         child: Column(
           children: [
-            _SideButton(
-              label: l.billDetailCustomer,
-              onPressed: isOpened && !_isProcessing ? () => _selectCustomer(context, ref, bill) : null,
+            Expanded(
+              child: _SideButton(
+                label: l.billDetailCustomer,
+                onPressed: isOpened && !_isProcessing ? () => _selectCustomer(context, ref, bill) : null,
+              ),
             ),
             const SizedBox(height: 4),
-            _SideButton(
-              label: l.billDetailMove,
-              onPressed: isOpened && !_isProcessing ? () => _moveBill(context, ref, bill) : null,
+            Expanded(
+              child: _SideButton(
+                label: l.billDetailMove,
+                onPressed: isOpened && !_isProcessing ? () => _moveBill(context, ref, bill) : null,
+              ),
             ),
             const SizedBox(height: 4),
-            _SideButton(
-              label: l.billDetailMerge,
-              onPressed: isOpened && !_isProcessing ? () => _mergeBill(context, ref, bill) : null,
+            Expanded(
+              child: _SideButton(
+                label: l.billDetailMerge,
+                onPressed: isOpened && !_isProcessing ? () => _mergeBill(context, ref, bill) : null,
+              ),
             ),
             const SizedBox(height: 4),
-            _SideButton(
-              label: l.billDetailSplit,
-              onPressed: isOpened && !_isProcessing ? () => _splitBill(context, ref, bill) : null,
+            Expanded(
+              child: _SideButton(
+                label: l.billDetailSplit,
+                onPressed: isOpened && !_isProcessing ? () => _splitBill(context, ref, bill) : null,
+              ),
             ),
             const SizedBox(height: 4),
-            _SideButton(
-              label: l.billDetailDiscount,
-              onPressed: isOpened && !_isProcessing ? () => _applyBillDiscount(context, ref, bill) : null,
+            Expanded(
+              child: _SideButton(
+                label: l.billDetailDiscount,
+                onPressed: isOpened && !_isProcessing ? () => _applyBillDiscount(context, ref, bill) : null,
+              ),
             ),
             const SizedBox(height: 4),
-            _SideButton(
-              label: l.loyaltyRedeem,
-              onPressed: isOpened && !_isProcessing && bill.customerId != null
-                  ? () => _redeemLoyalty(context, ref, bill)
-                  : null,
+            Expanded(
+              child: _SideButton(
+                label: l.loyaltyRedeem,
+                onPressed: isOpened && !_isProcessing && bill.customerId != null
+                    ? () => _redeemLoyalty(context, ref, bill)
+                    : null,
+              ),
             ),
             const SizedBox(height: 4),
-            _SideButton(
-              label: l.billDetailVoucher,
-              onPressed: isOpened && !_isProcessing ? () => _applyVoucher(context, ref, bill) : null,
-            ),
-            const SizedBox(height: 4),
-            _SideButton(
-              icon: _didShowOnDisplay ? Icons.visibility_off : Icons.visibility,
-              label: l.billDetailShowOnDisplay,
-              onPressed: () {
-                if (_didShowOnDisplay) {
-                  _hideFromDisplay();
-                } else {
-                  _showOnDisplay(bill);
-                }
-              },
+            Expanded(
+              child: _SideButton(
+                label: l.billDetailVoucher,
+                onPressed: isOpened && !_isProcessing ? () => _applyVoucher(context, ref, bill) : null,
+              ),
             ),
           ],
         ),
@@ -639,7 +693,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
           .firstOrNull;
       if (customerDisplay == null) return;
       _displayCode = customerDisplay.code;
-      await ref.read(customerDisplayChannelProvider).join('display:${_displayCode!}');
+      await _displayChannel.join('display:${_displayCode!}');
       if (!mounted) return;
     }
 
@@ -671,15 +725,28 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
       discountAmount: bill.discountAmount,
     );
 
-    ref.read(customerDisplayChannelProvider).send(content.toJson());
+    _displayChannel.send(content.toJson());
     setState(() => _didShowOnDisplay = true);
   }
 
   void _hideFromDisplay() {
     if (_displayCode != null) {
-      ref.read(customerDisplayChannelProvider).send(const DisplayIdle().toJson());
+      _displayChannel.send(const DisplayIdle().toJson());
     }
     setState(() => _didShowOnDisplay = false);
+  }
+
+  void _sendThankYou(BuildContext context) {
+    if (_displayCode == null) return;
+    _didSendThankYou = true;
+    final l = context.l10n;
+    _displayChannel.send(
+      DisplayMessage(
+        text: l.customerDisplayThankYou,
+        messageType: 'success',
+        autoClearAfterMs: 10000,
+      ).toJson(),
+    );
   }
 
   Future<void> _cancelBill(BuildContext context, WidgetRef ref, BillModel bill, AppLocalizations l) async {
@@ -950,10 +1017,13 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
         if (!context.mounted) return;
 
         // Open payment dialog for new bill
-        await showDialog<bool>(
+        final splitPaid = await showDialog<bool>(
           context: context,
           builder: (_) => DialogPayment(bill: updatedResult.value, tableName: tableName),
         );
+        if (splitPaid == true && context.mounted) {
+          _sendThankYou(context);
+        }
         // Stay on original bill detail (auto-refreshed via stream)
       } else {
         // Show DialogNewBill for target configuration
@@ -1050,6 +1120,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
         builder: (_) => DialogPayment(bill: bill, tableName: tableName),
       );
       if (paid == true && context.mounted) {
+        _sendThankYou(context);
         Navigator.pop(context);
       }
     } finally {
@@ -1062,32 +1133,19 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
 // Side button for right panel
 // ---------------------------------------------------------------------------
 class _SideButton extends StatelessWidget {
-  const _SideButton({required this.label, required this.onPressed, this.icon});
+  const _SideButton({required this.label, required this.onPressed});
   final String label;
   final VoidCallback? onPressed;
-  final IconData? icon;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
-      height: 40,
+      height: double.infinity,
       child: FilledButton.tonal(
         onPressed: onPressed,
         style: null,
-        child: icon != null
-            ? Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(icon, size: 14),
-                  const SizedBox(width: 4),
-                  Flexible(
-                    child: Text(label, style: const TextStyle(fontSize: 11), textAlign: TextAlign.center, overflow: TextOverflow.clip, maxLines: 1),
-                  ),
-                ],
-              )
-            : Text(label, style: const TextStyle(fontSize: 11), textAlign: TextAlign.center),
+        child: Text(label, style: const TextStyle(fontSize: 11), textAlign: TextAlign.center),
       ),
     );
   }

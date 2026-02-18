@@ -57,9 +57,11 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
   bool _isSearchOpen = false;
   String? _quickBillId;
   String? _displayCode;
+  bool _didSendThankYou = false;
 
   // Cached references for use in dispose() where ref is no longer available.
   late final _billRepo = ref.read(billRepositoryProvider);
+  late final _displayChannel = ref.read(customerDisplayChannelProvider);
 
   @override
   void initState() {
@@ -73,7 +75,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
 
   @override
   void dispose() {
-    _pushDisplayIdle();
+    if (!_didSendThankYou) _pushDisplayIdle();
     if (_quickBillId != null) {
       _billRepo.cancelBill(_quickBillId!);
     }
@@ -93,7 +95,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
         .firstOrNull;
     if (customerDisplay != null && mounted) {
       _displayCode = customerDisplay.code;
-      await ref.read(customerDisplayChannelProvider).join('display:${_displayCode!}');
+      await _displayChannel.join('display:${_displayCode!}');
       AppLogger.info(
         'ScreenSell: joined display:${_displayCode!}',
         tag: 'BROADCAST',
@@ -128,12 +130,12 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
             total: subtotal,
           );
 
-    ref.read(customerDisplayChannelProvider).send(content.toJson());
+    _displayChannel.send(content.toJson());
   }
 
   void _pushDisplayIdle() {
     if (_displayCode == null) return;
-    ref.read(customerDisplayChannelProvider).send(const DisplayIdle().toJson());
+    _displayChannel.send(const DisplayIdle().toJson());
   }
 
   Future<void> _broadcastKdsOrder(OrderModel order) async {
@@ -1040,12 +1042,13 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
       _quickBillId = null;
       // Send thank-you message to customer display
       if (_displayCode != null && mounted) {
+        _didSendThankYou = true;
         final l = context.l10n;
-        ref.read(customerDisplayChannelProvider).send(
+        _displayChannel.send(
           DisplayMessage(
             text: l.customerDisplayThankYou,
             messageType: 'success',
-            autoClearAfterMs: 5000,
+            autoClearAfterMs: 10000,
           ).toJson(),
         );
       }
