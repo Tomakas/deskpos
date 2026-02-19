@@ -39,17 +39,6 @@ const ALLOWED_TABLES = new Set([
   "stock_levels",
   "stock_documents",
   "stock_movements",
-  "currencies",
-  "roles",
-  "permissions",
-  "role_permissions",
-]);
-
-const GLOBAL_TABLES = new Set([
-  "currencies",
-  "roles",
-  "permissions",
-  "role_permissions",
 ]);
 
 interface IngestRequest {
@@ -104,34 +93,32 @@ Deno.serve(async (req) => {
     const companyId = payload.company_id as string | undefined;
     const entityId = payload.id as string;
 
-    if (!GLOBAL_TABLES.has(table)) {
-      if (table === "companies") {
-        if (payload.auth_user_id !== user.id) {
-          await logAudit(user.id, companyId, table, entityId, operation, idempotency_key, "forbidden");
-          return respond(
-            { ok: false, error_type: "rejected", message: "Company auth_user_id mismatch" },
-          );
-        }
-      } else {
-        if (!companyId) {
-          return respond(
-            { ok: false, error_type: "rejected", message: "Missing company_id in payload" },
-          );
-        }
+    if (table === "companies") {
+      if (payload.auth_user_id !== user.id) {
+        await logAudit(user.id, companyId, table, entityId, operation, idempotency_key, "forbidden");
+        return respond(
+          { ok: false, error_type: "rejected", message: "Company auth_user_id mismatch" },
+        );
+      }
+    } else {
+      if (!companyId) {
+        return respond(
+          { ok: false, error_type: "rejected", message: "Missing company_id in payload" },
+        );
+      }
 
-        const { data: company } = await serviceClient
-          .from("companies")
-          .select("id")
-          .eq("id", companyId)
-          .eq("auth_user_id", user.id)
-          .maybeSingle();
+      const { data: company } = await serviceClient
+        .from("companies")
+        .select("id")
+        .eq("id", companyId)
+        .eq("auth_user_id", user.id)
+        .maybeSingle();
 
-        if (!company) {
-          await logAudit(user.id, companyId, table, entityId, operation, idempotency_key, "forbidden");
-          return respond(
-            { ok: false, error_type: "rejected", message: "Not authorized for this company" },
-          );
-        }
+      if (!company) {
+        await logAudit(user.id, companyId, table, entityId, operation, idempotency_key, "forbidden");
+        return respond(
+          { ok: false, error_type: "rejected", message: "Not authorized for this company" },
+        );
       }
     }
 

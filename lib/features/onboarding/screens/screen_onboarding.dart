@@ -475,6 +475,22 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
     }
     setState(() => _isSubmitting = true);
 
+    // Pull server-owned global tables before seeding local data.
+    // User must have internet (they just authenticated with Supabase).
+    final syncService = ref.read(syncServiceProvider);
+    const globalTables = ['currencies', 'roles', 'permissions', 'role_permissions'];
+    try {
+      for (final table in globalTables) {
+        await syncService.pullTable('_global', table);
+      }
+    } catch (e, s) {
+      AppLogger.error('Failed to pull global tables', error: e, stackTrace: s);
+      if (!mounted) return;
+      setState(() => _isSubmitting = false);
+      return;
+    }
+    if (!mounted) return;
+
     final seedService = ref.read(seedServiceProvider);
     final deviceIdFuture = ref.read(deviceIdProvider.future);
 

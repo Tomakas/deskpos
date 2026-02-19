@@ -22,6 +22,8 @@ class DialogChangeTotalToPay extends ConsumerStatefulWidget {
 
 class _DialogChangeTotalToPayState extends ConsumerState<DialogChangeTotalToPay> {
   String _input = '';
+  bool _replaceOnNextDigit = true;
+  late final List<int> _displayQuick;
 
   int get _amountInMinor {
     final currency = ref.read(currentCurrencyProvider).value;
@@ -31,33 +33,53 @@ class _DialogChangeTotalToPayState extends ConsumerState<DialogChangeTotalToPay>
   @override
   void initState() {
     super.initState();
-    // Pre-fill with original amount
     final currency = ref.read(currentCurrencyProvider).value;
-    _input = minorUnitsToInputString(widget.originalAmount, currency);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l = context.l10n;
-    final theme = Theme.of(context);
-    // Quick buttons — round amounts around the original
-    final currency = ref.watch(currentCurrencyProvider).value;
+    // Compute quick amounts — round up to nearest 10, 50, 100, 500
     final originalWhole = wholeUnitsFromMinor(widget.originalAmount, currency) + 1;
     final quickAmounts = <int>[];
-    // Round up to nearest 10, 50, 100, 500
     for (final step in [10, 50, 100, 500]) {
       final rounded = ((originalWhole / step).ceil() * step);
       if (rounded > 0 && !quickAmounts.contains(rounded)) {
         quickAmounts.add(rounded);
       }
     }
-    // Keep max 4 unique values
-    final displayQuick = quickAmounts.take(4).toList();
+    _displayQuick = quickAmounts.take(4).toList();
+    // Pre-fill with first quick amount
+    _input = _displayQuick.isNotEmpty
+        ? _displayQuick.first.toString()
+        : minorUnitsToInputString(widget.originalAmount, currency);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    final theme = Theme.of(context);
+    final difference = _amountInMinor - widget.originalAmount;
+    final diffColor = difference > 0
+        ? Colors.green
+        : difference < 0
+            ? theme.colorScheme.error
+            : theme.colorScheme.onSurface;
+
+    final smallStyle = theme.textTheme.bodyMedium;
+    final bigStyle = theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold);
+    final diffStyle = smallStyle?.copyWith(color: diffColor, fontWeight: FontWeight.bold);
 
     return PosDialogShell(
       title: l.changeTotalTitle,
-      maxWidth: 540,
-      maxHeight: 500,
+      titleWidget: Wrap(
+        alignment: WrapAlignment.center,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: 6,
+        children: [
+          Text(ref.money(widget.originalAmount), style: smallStyle),
+          Text('→', style: smallStyle),
+          Text(ref.money(_amountInMinor), style: bigStyle),
+          Text('(${ref.moneyWithSign(difference)})', style: diffStyle),
+        ],
+      ),
+      maxWidth: 440,
+      maxHeight: 400,
       expandHeight: true,
       padding: const EdgeInsets.all(20),
       children: [
@@ -66,67 +88,47 @@ class _DialogChangeTotalToPayState extends ConsumerState<DialogChangeTotalToPay>
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // Left: quick buttons
-              SizedBox(
-                width: 90,
+              Expanded(
                 child: Column(
                   children: [
-                    for (final amount in displayQuick) ...[
+                    for (var i = 0; i < _displayQuick.length; i++) ...[
+                      if (i > 0) const SizedBox(height: 8),
                       Expanded(
                         child: SizedBox(
                           width: double.infinity,
-                          child: OutlinedButton(
-                            onPressed: () => setState(() => _input = amount.toString()),
-                            child: Text('$amount'),
+                          child: FilledButton.tonal(
+                            onPressed: () => setState(() {
+                              _input = _displayQuick[i].toString();
+                              _replaceOnNextDigit = true;
+                            }),
+                            child: Text('${_displayQuick[i]}'),
                           ),
                         ),
                       ),
-                      const SizedBox(height: 8),
                     ],
-                  ],
-                ),
-              ),
-              const SizedBox(width: 16),
-              // Center: display
-              Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      '${l.changeTotalOriginal}: ${ref.money(widget.originalAmount)}',
-                      style: theme.textTheme.bodyMedium,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '${l.changeTotalEdited}:',
-                      style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: theme.dividerColor),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        _input.isEmpty ? '0' : _input,
-                        style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
                   ],
                 ),
               ),
               const SizedBox(width: 16),
               // Right: numpad
               Expanded(
-                flex: 2,
+                flex: 3,
                 child: PosNumpad(
                   expand: true,
-                  onDigit: (d) => setState(() => _input += d),
+                  onDigit: (d) => setState(() {
+                    if (_replaceOnNextDigit) {
+                      _input = d;
+                      _replaceOnNextDigit = false;
+                    } else {
+                      _input += d;
+                    }
+                  }),
                   onBackspace: () {
                     if (_input.isNotEmpty) {
-                      setState(() => _input = _input.substring(0, _input.length - 1));
+                      setState(() {
+                        _replaceOnNextDigit = false;
+                        _input = _input.substring(0, _input.length - 1);
+                      });
                     }
                   },
                   onClear: () => setState(() => _input = ''),

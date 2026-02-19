@@ -17,8 +17,14 @@ import '../../features/sell/screens/screen_sell.dart';
 import '../../features/settings/screens/screen_register_settings.dart';
 import '../../features/settings/screens/screen_settings.dart';
 import '../../features/settings/screens/screen_venue_settings.dart';
+import '../data/enums/sell_mode.dart';
 import '../data/providers/auth_providers.dart';
 import '../data/providers/permission_providers.dart';
+
+String _homeRoute(Ref ref) {
+  final register = ref.read(activeRegisterProvider).valueOrNull;
+  return register?.sellMode == SellMode.retail ? '/sell' : '/bills';
+}
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -56,10 +62,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         return '/login';
       }
 
-      // Authenticated but on login/onboarding — go to bills
+      // Authenticated but on login/onboarding — go to home
       if (isAuthenticated &&
           (path == '/login' || path == '/onboarding' || path == '/loading' || path == '/connect-company')) {
-        return '/bills';
+        return _homeRoute(ref);
       }
 
       return null;
@@ -109,7 +115,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/settings/company',
         redirect: (context, state) {
           final hasPermission = ref.read(hasPermissionProvider('settings.manage'));
-          if (!hasPermission) return '/bills';
+          if (!hasPermission) return _homeRoute(ref);
           return null;
         },
         builder: (context, state) => const ScreenCompanySettings(),
@@ -118,7 +124,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/settings/venue',
         redirect: (context, state) {
           final hasPermission = ref.read(hasPermissionProvider('settings.manage'));
-          if (!hasPermission) return '/bills';
+          if (!hasPermission) return _homeRoute(ref);
           return null;
         },
         builder: (context, state) => const ScreenVenueSettings(),
@@ -127,7 +133,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/settings/register',
         redirect: (context, state) {
           final hasPermission = ref.read(hasPermissionProvider('settings.manage'));
-          if (!hasPermission) return '/bills';
+          if (!hasPermission) return _homeRoute(ref);
           return null;
         },
         builder: (context, state) => const ScreenRegisterSettings(),
@@ -136,7 +142,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/catalog',
         redirect: (context, state) {
           final hasPermission = ref.read(hasPermissionProvider('settings.manage'));
-          if (!hasPermission) return '/bills';
+          if (!hasPermission) return _homeRoute(ref);
           return null;
         },
         builder: (context, state) => const ScreenCatalog(),
@@ -145,7 +151,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/inventory',
         redirect: (context, state) {
           final hasPermission = ref.read(hasPermissionProvider('settings.manage'));
-          if (!hasPermission) return '/bills';
+          if (!hasPermission) return _homeRoute(ref);
           return null;
         },
         builder: (context, state) => const ScreenInventory(),
@@ -154,7 +160,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/orders',
         redirect: (context, state) {
           final hasPermission = ref.read(hasPermissionProvider('orders.view'));
-          if (!hasPermission) return '/bills';
+          if (!hasPermission) return _homeRoute(ref);
           return null;
         },
         builder: (context, state) => const ScreenOrders(),
@@ -167,7 +173,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/vouchers',
         redirect: (context, state) {
           final hasPermission = ref.read(hasPermissionProvider('settings.manage'));
-          if (!hasPermission) return '/bills';
+          if (!hasPermission) return _homeRoute(ref);
           return null;
         },
         builder: (context, state) => const ScreenVouchers(),
@@ -178,8 +184,9 @@ final routerProvider = Provider<GoRouter>((ref) {
 
 class _RouterNotifier extends ChangeNotifier {
   _RouterNotifier(this._ref) {
-    _ref.listen(appInitProvider, (_, _) => notifyListeners());
-    _ref.listen(activeUserProvider, (_, _) => notifyListeners());
+    _ref.listen(appInitProvider, (_, __) => notifyListeners());
+    _ref.listen(activeUserProvider, (_, __) => notifyListeners());
+    _ref.listen(activeRegisterProvider, (_, __) => notifyListeners());
   }
   final Ref _ref;
 }

@@ -8,6 +8,8 @@ import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/printing_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/file_opener.dart';
+import '../../../core/utils/formatters.dart';
 import '../../../core/utils/formatting_ext.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/printing/receipt_data.dart';
@@ -18,14 +20,6 @@ class DialogZReport extends ConsumerWidget {
   const DialogZReport({super.key, required this.data});
   final ZReportData data;
 
-  String _fmtDuration(Duration d) {
-    final h = d.inHours;
-    final m = d.inMinutes.remainder(60);
-    if (h > 0 && m > 0) return '${h}h ${m}min';
-    if (h > 0) return '${h}h';
-    return '${m}min';
-  }
-
   String _fmtTaxRate(int basisPoints) {
     final pct = basisPoints / 100;
     return pct == pct.roundToDouble() ? '${pct.round()}%' : '${pct.toStringAsFixed(1)}%';
@@ -33,6 +27,7 @@ class DialogZReport extends ConsumerWidget {
 
   ZReportLabels _buildLabels(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
+    final locale = ref.read(appLocaleProvider).value ?? 'cs';
     return ZReportLabels(
       reportTitle: l.zReportTitle,
       session: l.zReportSessionInfo,
@@ -68,6 +63,9 @@ class DialogZReport extends ConsumerWidget {
       cashDifference: l.zReportCashDifference,
       shiftsTitle: l.zReportShiftsTitle,
       currencySymbol: ref.currencySymbol,
+      locale: locale,
+      formatDuration: (d) => formatDuration(d,
+          hm: l.durationHoursMinutes, hOnly: l.durationHoursOnly, mOnly: l.durationMinutesOnly),
       currency: ref.watch(currentCurrencyProvider).value,
     );
   }
@@ -76,6 +74,9 @@ class DialogZReport extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
     final theme = Theme.of(context);
+
+    String fmtDur(Duration d) => formatDuration(d,
+        hm: l.durationHoursMinutes, hOnly: l.durationHoursOnly, mOnly: l.durationMinutesOnly);
 
     final isVenueReport = data.registerBreakdowns.isNotEmpty;
     final title = isVenueReport ? l.zReportVenueReportTitle : l.zReportTitle;
@@ -96,7 +97,7 @@ class DialogZReport extends ConsumerWidget {
                 if (data.closedAt != null)
                   _row(context, l.zReportClosedAt,
                       '${ref.fmtDate(data.closedAt!)} ${ref.fmtTime(data.closedAt!)}'),
-                _row(context, l.zReportDuration, _fmtDuration(data.duration)),
+                _row(context, l.zReportDuration, fmtDur(data.duration)),
                 _row(context, l.zReportOpenedBy, data.openedByName),
                 const Divider(height: 24),
 
@@ -239,7 +240,7 @@ class DialogZReport extends ConsumerWidget {
                   Text(l.zReportShiftsTitle, style: theme.textTheme.titleSmall),
                   const SizedBox(height: 8),
                   for (final entry in data.shiftDurations.values)
-                    _row(context, entry.$1, _fmtDuration(entry.$2)),
+                    _row(context, entry.$1, fmtDur(entry.$2)),
                   const SizedBox(height: 16),
                 ],
 
@@ -257,7 +258,7 @@ class DialogZReport extends ConsumerWidget {
                           if (!dir.existsSync()) dir.createSync(recursive: true);
                           final file = File('${dir.path}/z_report_${data.sessionId}.pdf');
                           await file.writeAsBytes(bytes);
-                          await Process.run('open', [file.path]);
+                          await FileOpener.share(file.path);
                         } catch (e, s) {
                           AppLogger.error('Failed to print Z-report', error: e, stackTrace: s);
                         }

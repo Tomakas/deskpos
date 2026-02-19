@@ -170,6 +170,7 @@
   "sellCartEmpty": "Košík je prázdný",
   "sellTotal": "Celkem",
   "sellCancelOrder": "Zrušit",
+  "sellClearCart": "Vymazat košík",
   "sellSaveToBill": "Uložit",
   "sellSubmitOrder": "Objednat",
   "sellSearch": "Vyhledat",
@@ -289,6 +290,10 @@
   "settingsSectionCompanyInfo": "Informace o firmě",
   "settingsSectionSecurity": "Zabezpečení",
   "settingsSectionCloud": "Cloud",
+  "settingsSectionSellOptions": "Volby prodeje",
+  "settingsSellMode": "Režim prodeje",
+  "sellModeGastro": "Gastro",
+  "sellModeRetail": "Retail",
   "settingsSectionGrid": "Zobrazení mřížky",
   "companyFieldVatNumber": "DIČ",
   "settingsLanguage": "Jazyk aplikace",
@@ -307,6 +312,10 @@
   "cloudEmailRequired": "E-mail je povinný",
   "cloudPasswordRequired": "Heslo je povinné",
   "cloudPasswordLength": "Heslo musí mít alespoň 6 znaků",
+
+  "cloudDiagnostics": "Diagnostika",
+  "cloudExportLogs": "Exportovat logy",
+  "cloudExportLogsDescription": "Otevře soubor s logy aplikace pro řešení problémů.",
 
   "cloudDangerZone": "Nebezpečná zóna",
   "cloudDeleteLocalData": "Smazat lokální data",
@@ -380,10 +389,12 @@
   "paymentOtherCurrency": "Jiná měna",
   "paymentEet": "EET",
   "paymentEditAmount": "Upravit částku",
+  "paymentMoreActions": "Další akce",
   "paymentMixPayments": "Mix plateb",
   "paymentOtherPayment": "Jiná platba",
   "paymentPrintReceipt": "Tisk dokladu",
   "paymentPrintYes": "ANO",
+  "paymentPrintNo": "NE",
   "paymentTip": "Spropitné: {amount}",
   "@paymentTip": {
     "placeholders": { "amount": { "type": "String" } }
@@ -405,8 +416,9 @@
   "refundFullBill": "Celý účet",
   "refundSelectItems": "Vybrat položky",
   "changeTotalTitle": "Upravit částku",
-  "changeTotalOriginal": "Původní částka",
-  "changeTotalEdited": "Upravená částka",
+  "changeTotalOriginal": "Původní",
+  "changeTotalEdited": "Upravená",
+  "changeTotalDifference": "Změna",
 
   "newBillSave": "Uložit",
   "newBillOrder": "Objednat",
@@ -688,6 +700,7 @@
   "reservationColumnStatus": "Stav",
 
   "paymentTypeCredit": "Kredit",
+  "paymentTypeVoucher": "Stravenky",
 
   "loyaltySectionTitle": "Věrnostní program",
   "loyaltyEarnRate": "Bodů za {unit}",
@@ -897,6 +910,9 @@
   "registerAllowCash": "Hotovost",
   "registerAllowCard": "Karta",
   "registerAllowTransfer": "Převod",
+  "registerAllowCredit": "Kredit",
+  "registerAllowVoucher": "Stravenky",
+  "registerAllowOther": "Ostatní",
   "registerAllowRefunds": "Refundy",
   "registerPaymentFlags": "Povolené platby",
   "registerTypeLocal": "Stacionární",
@@ -929,12 +945,8 @@
 
   "modeTitle": "Režim",
   "modePOS": "Pokladna",
-  "modePOSDescription": "Standardní prodejní režim",
   "modeKDS": "Objednávkový displej",
-  "modeKDSDescription": "Zobrazuje aktivní objednávky pro kuchyni",
   "modeCustomerDisplay": "Zákaznický displej",
-  "modeCustomerDisplayDescription": "Zobrazuje účet zákazníkovi",
-  "modeCustomerDisplaySelectRegister": "Sledovaná pokladna",
 
   "customerDisplayThankYou": "Děkujeme!",
   "customerDisplayPaid": "Zaplaceno",
@@ -984,7 +996,27 @@
     "placeholders": { "email": { "type": "String" } }
   },
 
+  "actionExitApp": "Ukončit aplikaci",
   "actionOk": "OK",
   "errorGeneric": "Chyba: {error}",
-  "loyaltyMaxPoints": "Max: {points}"
+  "@errorGeneric": {
+    "placeholders": { "error": { "type": "Object" } }
+  },
+  "loyaltyMaxPoints": "Max: {points}",
+  "@loyaltyMaxPoints": {
+    "placeholders": { "points": { "type": "Object" } }
+  },
+
+  "durationHoursMinutes": "{h} h {m} min",
+  "@durationHoursMinutes": {
+    "placeholders": { "h": { "type": "int" }, "m": { "type": "int" } }
+  },
+  "durationHoursOnly": "{h} h",
+  "@durationHoursOnly": {
+    "placeholders": { "h": { "type": "int" } }
+  },
+  "durationMinutesOnly": "{m} min",
+  "@durationMinutesOnly": {
+    "placeholders": { "m": { "type": "int" } }
+  }
 }

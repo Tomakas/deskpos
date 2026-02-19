@@ -3,5 +3,6 @@ enum PaymentType {
   card,
   bank,
   credit,
+  voucher,
   other,
 }

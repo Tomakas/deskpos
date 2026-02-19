@@ -399,6 +399,9 @@ class AppLocalizationsCs extends AppLocalizations {
   String get sellCancelOrder => 'Zrušit';
 
   @override
+  String get sellClearCart => 'Vymazat košík';
+
+  @override
   String get sellSaveToBill => 'Uložit';
 
   @override
@@ -685,6 +688,18 @@ class AppLocalizationsCs extends AppLocalizations {
   String get settingsSectionCloud => 'Cloud';
 
   @override
+  String get settingsSectionSellOptions => 'Volby prodeje';
+
+  @override
+  String get settingsSellMode => 'Režim prodeje';
+
+  @override
+  String get sellModeGastro => 'Gastro';
+
+  @override
+  String get sellModeRetail => 'Retail';
+
+  @override
   String get settingsSectionGrid => 'Zobrazení mřížky';
 
   @override
@@ -734,6 +749,16 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get cloudPasswordLength => 'Heslo musí mít alespoň 6 znaků';
+
+  @override
+  String get cloudDiagnostics => 'Diagnostika';
+
+  @override
+  String get cloudExportLogs => 'Exportovat logy';
+
+  @override
+  String get cloudExportLogsDescription =>
+      'Otevře soubor s logy aplikace pro řešení problémů.';
 
   @override
   String get cloudDangerZone => 'Nebezpečná zóna';
@@ -935,6 +960,9 @@ class AppLocalizationsCs extends AppLocalizations {
   String get paymentEditAmount => 'Upravit částku';
 
   @override
+  String get paymentMoreActions => 'Další akce';
+
+  @override
   String get paymentMixPayments => 'Mix plateb';
 
   @override
@@ -945,6 +973,9 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get paymentPrintYes => 'ANO';
+
+  @override
+  String get paymentPrintNo => 'NE';
 
   @override
   String paymentTip(String amount) {
@@ -984,10 +1015,13 @@ class AppLocalizationsCs extends AppLocalizations {
   String get changeTotalTitle => 'Upravit částku';
 
   @override
-  String get changeTotalOriginal => 'Původní částka';
+  String get changeTotalOriginal => 'Původní';
 
   @override
-  String get changeTotalEdited => 'Upravená částka';
+  String get changeTotalEdited => 'Upravená';
+
+  @override
+  String get changeTotalDifference => 'Změna';
 
   @override
   String get newBillSave => 'Uložit';
@@ -1699,6 +1733,9 @@ class AppLocalizationsCs extends AppLocalizations {
   String get paymentTypeCredit => 'Kredit';
 
   @override
+  String get paymentTypeVoucher => 'Stravenky';
+
+  @override
   String get loyaltySectionTitle => 'Věrnostní program';
 
   @override
@@ -2162,6 +2199,15 @@ class AppLocalizationsCs extends AppLocalizations {
   String get registerAllowTransfer => 'Převod';
 
   @override
+  String get registerAllowCredit => 'Kredit';
+
+  @override
+  String get registerAllowVoucher => 'Stravenky';
+
+  @override
+  String get registerAllowOther => 'Ostatní';
+
+  @override
   String get registerAllowRefunds => 'Refundy';
 
   @override
@@ -2245,22 +2291,10 @@ class AppLocalizationsCs extends AppLocalizations {
   String get modePOS => 'Pokladna';
 
   @override
-  String get modePOSDescription => 'Standardní prodejní režim';
-
-  @override
   String get modeKDS => 'Objednávkový displej';
 
   @override
-  String get modeKDSDescription => 'Zobrazuje aktivní objednávky pro kuchyni';
-
-  @override
   String get modeCustomerDisplay => 'Zákaznický displej';
-
-  @override
-  String get modeCustomerDisplayDescription => 'Zobrazuje účet zákazníkovi';
-
-  @override
-  String get modeCustomerDisplaySelectRegister => 'Sledovaná pokladna';
 
   @override
   String get customerDisplayThankYou => 'Děkujeme!';
@@ -2382,6 +2416,9 @@ class AppLocalizationsCs extends AppLocalizations {
   }
 
   @override
+  String get actionExitApp => 'Ukončit aplikaci';
+
+  @override
   String get actionOk => 'OK';
 
   @override
@@ -2392,5 +2429,20 @@ class AppLocalizationsCs extends AppLocalizations {
   @override
   String loyaltyMaxPoints(Object points) {
     return 'Max: $points';
+  }
+
+  @override
+  String durationHoursMinutes(int h, int m) {
+    return '$h h $m min';
+  }
+
+  @override
+  String durationHoursOnly(int h) {
+    return '$h h';
+  }
+
+  @override
+  String durationMinutesOnly(int m) {
+    return '$m min';
   }
 }

@@ -11,6 +11,7 @@ export 'prep_status.dart';
 export 'purchase_price_strategy.dart';
 export 'reservation_status.dart';
 export 'role_name.dart';
+export 'sell_mode.dart';
 export 'stock_document_type.dart';
 export 'stock_movement_direction.dart';
 export 'table_shape.dart';

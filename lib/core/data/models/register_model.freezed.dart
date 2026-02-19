@@ -29,12 +29,16 @@ mixin _$RegisterModel {
   bool get allowCash => throw _privateConstructorUsedError;
   bool get allowCard => throw _privateConstructorUsedError;
   bool get allowTransfer => throw _privateConstructorUsedError;
+  bool get allowCredit => throw _privateConstructorUsedError;
+  bool get allowVoucher => throw _privateConstructorUsedError;
+  bool get allowOther => throw _privateConstructorUsedError;
   bool get allowRefunds => throw _privateConstructorUsedError;
   String? get boundDeviceId => throw _privateConstructorUsedError;
   String? get activeBillId => throw _privateConstructorUsedError;
   int get gridRows => throw _privateConstructorUsedError;
   int get gridCols => throw _privateConstructorUsedError;
   String? get displayCartJson => throw _privateConstructorUsedError;
+  SellMode get sellMode => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
   DateTime get updatedAt => throw _privateConstructorUsedError;
   DateTime? get deletedAt => throw _privateConstructorUsedError;
@@ -66,12 +70,16 @@ abstract class $RegisterModelCopyWith<$Res> {
     bool allowCash,
     bool allowCard,
     bool allowTransfer,
+    bool allowCredit,
+    bool allowVoucher,
+    bool allowOther,
     bool allowRefunds,
     String? boundDeviceId,
     String? activeBillId,
     int gridRows,
     int gridCols,
     String? displayCartJson,
+    SellMode sellMode,
     DateTime createdAt,
     DateTime updatedAt,
     DateTime? deletedAt,
@@ -105,12 +113,16 @@ class _$RegisterModelCopyWithImpl<$Res, $Val extends RegisterModel>
     Object? allowCash = null,
     Object? allowCard = null,
     Object? allowTransfer = null,
+    Object? allowCredit = null,
+    Object? allowVoucher = null,
+    Object? allowOther = null,
     Object? allowRefunds = null,
     Object? boundDeviceId = freezed,
     Object? activeBillId = freezed,
     Object? gridRows = null,
     Object? gridCols = null,
     Object? displayCartJson = freezed,
+    Object? sellMode = null,
     Object? createdAt = null,
     Object? updatedAt = null,
     Object? deletedAt = freezed,
@@ -165,6 +177,18 @@ class _$RegisterModelCopyWithImpl<$Res, $Val extends RegisterModel>
                 ? _value.allowTransfer
                 : allowTransfer // ignore: cast_nullable_to_non_nullable
                       as bool,
+            allowCredit: null == allowCredit
+                ? _value.allowCredit
+                : allowCredit // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            allowVoucher: null == allowVoucher
+                ? _value.allowVoucher
+                : allowVoucher // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            allowOther: null == allowOther
+                ? _value.allowOther
+                : allowOther // ignore: cast_nullable_to_non_nullable
+                      as bool,
             allowRefunds: null == allowRefunds
                 ? _value.allowRefunds
                 : allowRefunds // ignore: cast_nullable_to_non_nullable
@@ -189,6 +213,10 @@ class _$RegisterModelCopyWithImpl<$Res, $Val extends RegisterModel>
                 ? _value.displayCartJson
                 : displayCartJson // ignore: cast_nullable_to_non_nullable
                       as String?,
+            sellMode: null == sellMode
+                ? _value.sellMode
+                : sellMode // ignore: cast_nullable_to_non_nullable
+                      as SellMode,
             createdAt: null == createdAt
                 ? _value.createdAt
                 : createdAt // ignore: cast_nullable_to_non_nullable
@@ -229,12 +257,16 @@ abstract class _$$RegisterModelImplCopyWith<$Res>
     bool allowCash,
     bool allowCard,
     bool allowTransfer,
+    bool allowCredit,
+    bool allowVoucher,
+    bool allowOther,
     bool allowRefunds,
     String? boundDeviceId,
     String? activeBillId,
     int gridRows,
     int gridCols,
     String? displayCartJson,
+    SellMode sellMode,
     DateTime createdAt,
     DateTime updatedAt,
     DateTime? deletedAt,
@@ -267,12 +299,16 @@ class __$$RegisterModelImplCopyWithImpl<$Res>
     Object? allowCash = null,
     Object? allowCard = null,
     Object? allowTransfer = null,
+    Object? allowCredit = null,
+    Object? allowVoucher = null,
+    Object? allowOther = null,
     Object? allowRefunds = null,
     Object? boundDeviceId = freezed,
     Object? activeBillId = freezed,
     Object? gridRows = null,
     Object? gridCols = null,
     Object? displayCartJson = freezed,
+    Object? sellMode = null,
     Object? createdAt = null,
     Object? updatedAt = null,
     Object? deletedAt = freezed,
@@ -327,6 +363,18 @@ class __$$RegisterModelImplCopyWithImpl<$Res>
             ? _value.allowTransfer
             : allowTransfer // ignore: cast_nullable_to_non_nullable
                   as bool,
+        allowCredit: null == allowCredit
+            ? _value.allowCredit
+            : allowCredit // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        allowVoucher: null == allowVoucher
+            ? _value.allowVoucher
+            : allowVoucher // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        allowOther: null == allowOther
+            ? _value.allowOther
+            : allowOther // ignore: cast_nullable_to_non_nullable
+                  as bool,
         allowRefunds: null == allowRefunds
             ? _value.allowRefunds
             : allowRefunds // ignore: cast_nullable_to_non_nullable
@@ -351,6 +399,10 @@ class __$$RegisterModelImplCopyWithImpl<$Res>
             ? _value.displayCartJson
             : displayCartJson // ignore: cast_nullable_to_non_nullable
                   as String?,
+        sellMode: null == sellMode
+            ? _value.sellMode
+            : sellMode // ignore: cast_nullable_to_non_nullable
+                  as SellMode,
         createdAt: null == createdAt
             ? _value.createdAt
             : createdAt // ignore: cast_nullable_to_non_nullable
@@ -384,12 +436,16 @@ class _$RegisterModelImpl implements _RegisterModel {
     this.allowCash = true,
     this.allowCard = true,
     this.allowTransfer = true,
+    this.allowCredit = true,
+    this.allowVoucher = true,
+    this.allowOther = true,
     this.allowRefunds = false,
     this.boundDeviceId,
     this.activeBillId,
     this.gridRows = 5,
     this.gridCols = 8,
     this.displayCartJson,
+    this.sellMode = SellMode.gastro,
     required this.createdAt,
     required this.updatedAt,
     this.deletedAt,
@@ -428,6 +484,15 @@ class _$RegisterModelImpl implements _RegisterModel {
   final bool allowTransfer;
   @override
   @JsonKey()
+  final bool allowCredit;
+  @override
+  @JsonKey()
+  final bool allowVoucher;
+  @override
+  @JsonKey()
+  final bool allowOther;
+  @override
+  @JsonKey()
   final bool allowRefunds;
   @override
   final String? boundDeviceId;
@@ -442,6 +507,9 @@ class _$RegisterModelImpl implements _RegisterModel {
   @override
   final String? displayCartJson;
   @override
+  @JsonKey()
+  final SellMode sellMode;
+  @override
   final DateTime createdAt;
   @override
   final DateTime updatedAt;
@@ -450,7 +518,7 @@ class _$RegisterModelImpl implements _RegisterModel {
 
   @override
   String toString() {
-    return 'RegisterModel(id: $id, companyId: $companyId, code: $code, name: $name, registerNumber: $registerNumber, parentRegisterId: $parentRegisterId, isMain: $isMain, isActive: $isActive, type: $type, allowCash: $allowCash, allowCard: $allowCard, allowTransfer: $allowTransfer, allowRefunds: $allowRefunds, boundDeviceId: $boundDeviceId, activeBillId: $activeBillId, gridRows: $gridRows, gridCols: $gridCols, displayCartJson: $displayCartJson, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+    return 'RegisterModel(id: $id, companyId: $companyId, code: $code, name: $name, registerNumber: $registerNumber, parentRegisterId: $parentRegisterId, isMain: $isMain, isActive: $isActive, type: $type, allowCash: $allowCash, allowCard: $allowCard, allowTransfer: $allowTransfer, allowCredit: $allowCredit, allowVoucher: $allowVoucher, allowOther: $allowOther, allowRefunds: $allowRefunds, boundDeviceId: $boundDeviceId, activeBillId: $activeBillId, gridRows: $gridRows, gridCols: $gridCols, displayCartJson: $displayCartJson, sellMode: $sellMode, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
   }
 
   @override
@@ -477,6 +545,12 @@ class _$RegisterModelImpl implements _RegisterModel {
                 other.allowCard == allowCard) &&
             (identical(other.allowTransfer, allowTransfer) ||
                 other.allowTransfer == allowTransfer) &&
+            (identical(other.allowCredit, allowCredit) ||
+                other.allowCredit == allowCredit) &&
+            (identical(other.allowVoucher, allowVoucher) ||
+                other.allowVoucher == allowVoucher) &&
+            (identical(other.allowOther, allowOther) ||
+                other.allowOther == allowOther) &&
             (identical(other.allowRefunds, allowRefunds) ||
                 other.allowRefunds == allowRefunds) &&
             (identical(other.boundDeviceId, boundDeviceId) ||
@@ -489,6 +563,8 @@ class _$RegisterModelImpl implements _RegisterModel {
                 other.gridCols == gridCols) &&
             (identical(other.displayCartJson, displayCartJson) ||
                 other.displayCartJson == displayCartJson) &&
+            (identical(other.sellMode, sellMode) ||
+                other.sellMode == sellMode) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.updatedAt, updatedAt) ||
@@ -512,12 +588,16 @@ class _$RegisterModelImpl implements _RegisterModel {
     allowCash,
     allowCard,
     allowTransfer,
+    allowCredit,
+    allowVoucher,
+    allowOther,
     allowRefunds,
     boundDeviceId,
     activeBillId,
     gridRows,
     gridCols,
     displayCartJson,
+    sellMode,
     createdAt,
     updatedAt,
     deletedAt,
@@ -546,12 +626,16 @@ abstract class _RegisterModel implements RegisterModel {
     final bool allowCash,
     final bool allowCard,
     final bool allowTransfer,
+    final bool allowCredit,
+    final bool allowVoucher,
+    final bool allowOther,
     final bool allowRefunds,
     final String? boundDeviceId,
     final String? activeBillId,
     final int gridRows,
     final int gridCols,
     final String? displayCartJson,
+    final SellMode sellMode,
     required final DateTime createdAt,
     required final DateTime updatedAt,
     final DateTime? deletedAt,
@@ -582,6 +666,12 @@ abstract class _RegisterModel implements RegisterModel {
   @override
   bool get allowTransfer;
   @override
+  bool get allowCredit;
+  @override
+  bool get allowVoucher;
+  @override
+  bool get allowOther;
+  @override
   bool get allowRefunds;
   @override
   String? get boundDeviceId;
@@ -593,6 +683,8 @@ abstract class _RegisterModel implements RegisterModel {
   int get gridCols;
   @override
   String? get displayCartJson;
+  @override
+  SellMode get sellMode;
   @override
   DateTime get createdAt;
   @override

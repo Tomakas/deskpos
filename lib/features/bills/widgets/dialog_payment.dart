@@ -29,10 +29,13 @@ class DialogPayment extends ConsumerStatefulWidget {
 
 class _DialogPaymentState extends ConsumerState<DialogPayment> {
   bool _processing = false;
+  bool _printReceipt = true;
+  bool _showOtherPayments = false;
   late BillModel _bill;
   int? _customAmount;
   CustomerModel? _customer;
   Future<List<PaymentMethodModel>>? _paymentMethodsFuture;
+  Stream<List<PaymentMethodModel>>? _paymentMethodsStream;
 
   @override
   void initState() {
@@ -42,6 +45,7 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
     final company = ref.read(currentCompanyProvider);
     if (company != null) {
       _paymentMethodsFuture = ref.read(paymentMethodRepositoryProvider).getAll(company.id);
+      _paymentMethodsStream = ref.read(paymentMethodRepositoryProvider).watchAll(company.id);
     }
   }
 
@@ -86,11 +90,11 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
                       const SizedBox(height: 8),
                       Expanded(
                         child: _SideButton(
-                          label: l.paymentEditAmount,
-                          onPressed: _remaining > 0 ? () => _editAmount(context) : null,
+                          label: l.paymentMoreActions,
+                          onPressed: null,
                         ),
                       ),
-                      const Spacer(),
+                      const SizedBox(height: 8),
                       Expanded(
                         child: _SideButton(
                           label: l.actionCancel,
@@ -164,18 +168,16 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
                           ),
                         ),
                         const SizedBox(height: 4),
-                        Text(
+                        _amountBlock(
+                          context,
                           ref.money(_customAmount!),
-                          style: theme.textTheme.headlineLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                          onTap: _remaining > 0 ? () => _editAmount(context) : null,
                         ),
                       ] else ...[
-                        Text(
+                        _amountBlock(
+                          context,
                           ref.money(_remaining),
-                          style: theme.textTheme.headlineLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                          onTap: _remaining > 0 ? () => _editAmount(context) : null,
                         ),
                       ],
                       const SizedBox(height: 12),
@@ -187,10 +189,13 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
                           ),
                         )
                       else
-                        Text(
-                          '${l.paymentPrintReceipt}: ${l.paymentPrintYes}',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
+                        GestureDetector(
+                          onTap: () => setState(() => _printReceipt = !_printReceipt),
+                          child: Text(
+                            '${l.paymentPrintReceipt}: ${_printReceipt ? l.paymentPrintYes : l.paymentPrintNo}',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       const Spacer(),
@@ -198,57 +203,107 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
                   ),
                 ),
               ),
-              // Right sidebar — payment methods
+              // Right sidebar — payment methods (4 slots: 3 methods + 1 action)
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.all(12),
                   child: StreamBuilder<List<PaymentMethodModel>>(
-                    stream: ref.watch(paymentMethodRepositoryProvider).watchAll(company.id),
+                    stream: _paymentMethodsStream,
                     builder: (context, snap) {
                       final methods = (snap.data ?? []).where((m) => m.isActive).toList();
                       final register = ref.watch(activeRegisterProvider).value;
-                      // Separate credit methods from regular methods,
-                      // filtering by register payment flags
-                      final regularMethods = methods
-                          .where((m) => m.type != PaymentType.credit)
-                          .where((m) {
+
+                      // Filter all methods by register flags
+                      bool isAllowedByRegister(PaymentMethodModel m) {
                         if (register == null) return true;
                         return switch (m.type) {
                           PaymentType.cash => register.allowCash,
                           PaymentType.card => register.allowCard,
                           PaymentType.bank => register.allowTransfer,
-                          _ => true,
+                          PaymentType.credit => register.allowCredit,
+                          PaymentType.voucher => register.allowVoucher,
+                          PaymentType.other => register.allowOther,
                         };
-                      }).toList();
-                      final creditMethod = methods.where((m) => m.type == PaymentType.credit).firstOrNull;
-                      return Column(
-                        children: [
-                          for (var i = 0; i < regularMethods.length; i++) ...[
-                            if (i > 0) const SizedBox(height: 8),
-                            Expanded(
-                              child: _PaymentMethodButton(
-                                label: regularMethods[i].name.toUpperCase(),
-                                onPressed: _processing || _remaining <= 0
-                                    ? null
-                                    : () => _pay(context, regularMethods[i].id),
+                      }
+
+                      // Primary: cash, card, bank
+                      const primaryTypes = {PaymentType.cash, PaymentType.card, PaymentType.bank};
+                      final primaryMethods = methods
+                          .where((m) => primaryTypes.contains(m.type))
+                          .where(isAllowedByRegister)
+                          .toList();
+
+                      // Secondary: credit (only with customer + credit), voucher, other
+                      final creditMethod = methods
+                          .where((m) => m.type == PaymentType.credit)
+                          .where(isAllowedByRegister)
+                          .firstOrNull;
+                      final secondaryMethods = <PaymentMethodModel>[
+                        ...methods.where((m) => m.type == PaymentType.voucher).where(isAllowedByRegister),
+                        if (creditMethod != null && _customer != null && _customer!.credit > 0)
+                          creditMethod,
+                        ...methods.where((m) => m.type == PaymentType.other).where(isAllowedByRegister),
+                      ];
+
+                      if (!_showOtherPayments) {
+                        // Primary view: up to 3 payment methods + "Jiná platba"
+                        return Column(
+                          children: [
+                            for (var i = 0; i < 3; i++) ...[
+                              if (i > 0) const SizedBox(height: 8),
+                              Expanded(
+                                child: i < primaryMethods.length
+                                    ? _PaymentMethodButton(
+                                        label: primaryMethods[i].name.toUpperCase(),
+                                        onPressed: _processing || _remaining <= 0
+                                            ? null
+                                            : () => _pay(context, primaryMethods[i].id),
+                                      )
+                                    : const SizedBox.shrink(),
                               ),
-                            ),
-                          ],
-                          if (creditMethod != null && _customer != null && _customer!.credit > 0) ...[
+                            ],
                             const SizedBox(height: 8),
                             Expanded(
-                              child: _PaymentMethodButton(
-                                label: '${creditMethod.name.toUpperCase()}\n(${ref.money(_customer!.credit)})',
-                                onPressed: _processing || _remaining <= 0
-                                    ? null
-                                    : () => _payWithCredit(context, creditMethod.id),
+                              child: _SideButton(
+                                label: l.paymentOtherPayment,
+                                onPressed: secondaryMethods.isNotEmpty
+                                    ? () => setState(() => _showOtherPayments = true)
+                                    : null,
                               ),
                             ),
                           ],
-                          const SizedBox(height: 8),
-                          Expanded(child: _SideButton(label: l.paymentOtherPayment, onPressed: null)),
-                        ],
-                      );
+                        );
+                      } else {
+                        // Secondary view: up to 3 secondary methods + "Zpět"
+                        return Column(
+                          children: [
+                            for (var i = 0; i < 3; i++) ...[
+                              if (i > 0) const SizedBox(height: 8),
+                              Expanded(
+                                child: i < secondaryMethods.length
+                                    ? _PaymentMethodButton(
+                                        label: (secondaryMethods[i].type == PaymentType.credit
+                                            ? l.paymentTypeCredit
+                                            : secondaryMethods[i].name).toUpperCase(),
+                                        onPressed: _processing || _remaining <= 0
+                                            ? null
+                                            : secondaryMethods[i].type == PaymentType.credit
+                                                ? () => _payWithCredit(context, secondaryMethods[i].id)
+                                                : () => _pay(context, secondaryMethods[i].id),
+                                      )
+                                    : const SizedBox.shrink(),
+                              ),
+                            ],
+                            const SizedBox(height: 8),
+                            Expanded(
+                              child: _SideButton(
+                                label: l.wizardBack,
+                                onPressed: () => setState(() => _showOtherPayments = false),
+                              ),
+                            ),
+                          ],
+                        );
+                      }
                     },
                   ),
                 ),
@@ -302,6 +357,34 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
           ],
         );
       },
+    );
+  }
+
+  Widget _amountBlock(BuildContext context, String amount, {VoidCallback? onTap}) {
+    final theme = Theme.of(context);
+    return SizedBox(
+      width: double.infinity,
+      child: Material(
+        color: theme.colorScheme.primaryContainer,
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                amount,
+                style: theme.textTheme.headlineLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.onPrimaryContainer,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 

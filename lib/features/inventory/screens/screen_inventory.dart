@@ -50,7 +50,8 @@ class _ScreenInventoryState extends ConsumerState<ScreenInventory>
   Future<void> _initWarehouse() async {
     final company = ref.read(currentCompanyProvider);
     if (company == null) return;
-    final warehouse = await ref.read(warehouseRepositoryProvider).getDefault(company.id);
+    final locale = ref.read(appLocaleProvider).value ?? 'cs';
+    final warehouse = await ref.read(warehouseRepositoryProvider).getDefault(company.id, locale: locale);
     if (mounted) {
       setState(() {
         _warehouseId = warehouse.id;

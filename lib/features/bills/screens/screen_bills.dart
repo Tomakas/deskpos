@@ -5,17 +5,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/data/enums/bill_status.dart';
-import '../../../core/theme/app_colors.dart';
 import '../../../core/data/enums/prep_status.dart';
-import '../../../core/data/models/order_model.dart';
-import '../../../core/data/enums/cash_movement_type.dart';
-import '../../../core/data/enums/hardware_type.dart';
-import '../../../core/data/enums/payment_type.dart';
+import '../../../core/data/enums/sell_mode.dart';
 import '../../../core/data/models/bill_model.dart';
 import '../../../core/data/models/customer_model.dart';
+import '../../../core/data/models/order_model.dart';
+import '../../../core/data/models/register_session_model.dart';
 import '../../../core/data/models/section_model.dart';
 import '../../../core/data/models/table_model.dart';
-import '../../../core/data/models/register_session_model.dart';
 import '../../../core/data/models/user_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/permission_providers.dart';
@@ -23,20 +20,15 @@ import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/providers/sync_providers.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
-import '../../../l10n/app_localizations.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/formatters.dart';
 import '../../../core/utils/formatting_ext.dart';
 import '../../../core/widgets/pos_table.dart';
-import '../providers/z_report_providers.dart';
+import '../../../l10n/app_localizations.dart';
+import '../../shared/session_helpers.dart' as helpers;
 import '../widgets/dialog_bill_detail.dart';
-import '../widgets/dialog_cash_journal.dart';
-import '../widgets/dialog_cash_movement.dart';
-import '../widgets/dialog_closing_session.dart';
 import '../widgets/dialog_new_bill.dart';
-import '../widgets/dialog_opening_cash.dart';
-import '../widgets/dialog_z_report.dart';
 import '../widgets/dialog_reservations_list.dart';
-import '../widgets/dialog_shifts_list.dart';
-import '../widgets/dialog_z_report_list.dart';
 import '../widgets/floor_map_view.dart';
 
 enum _SortField { table, total, lastOrder }
@@ -149,30 +141,7 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
     if (_isProcessing) return;
     setState(() => _isProcessing = true);
     try {
-      final session = ref.read(sessionManagerProvider);
-      final activeUser = session.activeUser;
-      // Close active shift before logout
-      if (activeUser != null) {
-        final company = ref.read(currentCompanyProvider);
-        if (company != null) {
-          final regSessionRepo = ref.read(registerSessionRepositoryProvider);
-          final shiftRepo = ref.read(shiftRepositoryProvider);
-          final regSession = await regSessionRepo.getActiveSession(company.id);
-          if (!mounted) return;
-          if (regSession != null) {
-            final activeShift = await shiftRepo.getActiveShiftForUser(activeUser.id, regSession.id);
-            if (activeShift != null) {
-              await shiftRepo.closeShift(activeShift.id);
-            }
-          }
-        }
-      }
-      session.logoutActive();
-      if (!mounted) return;
-      ref.read(activeUserProvider.notifier).state = null;
-      ref.read(loggedInUsersProvider.notifier).state = session.loggedInUsers;
-      if (!context.mounted) return;
-      context.go('/login');
+      await helpers.performLogout(context, ref);
     } finally {
       if (mounted) setState(() => _isProcessing = false);
     }
@@ -211,7 +180,13 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
   }
 
   Future<void> _createQuickBill(BuildContext context) async {
-    context.push('/sell');
+    final register = await ref.read(activeRegisterProvider.future);
+    if (!context.mounted) return;
+    if (register?.sellMode == SellMode.retail) {
+      context.go('/sell');
+    } else {
+      context.push('/sell');
+    }
   }
 
   Future<void> _createBillFromResult(BuildContext context, NewBillResult result) async {
@@ -256,245 +231,17 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
     if (_isProcessing) return;
     setState(() => _isProcessing = true);
     try {
-    final l = context.l10n;
-    final company = ref.read(currentCompanyProvider);
-    final user = ref.read(activeUserProvider);
-    if (company == null || user == null) return;
-
-    if (hasSession) {
-      // --- Closing session ---
-      final sessionAsync = ref.read(activeRegisterSessionProvider);
-      final session = sessionAsync.valueOrNull;
-      if (session == null) return;
-
-      // Build closing data
-      final cashMovements = await ref.read(cashMovementRepositoryProvider).getBySession(session.id);
-      if (!mounted) return;
-      final cashDeposits = cashMovements
-          .where((m) => m.type == CashMovementType.deposit)
-          .fold(0, (sum, m) => sum + m.amount);
-      final cashWithdrawals = cashMovements
-          .where((m) => m.type == CashMovementType.withdrawal || m.type == CashMovementType.expense || m.type == CashMovementType.handover)
-          .fold(0, (sum, m) => sum + m.amount);
-
-      // Payment summaries: get all bills paid during this session
-      final billRepo = ref.read(billRepositoryProvider);
-      final allBills = await billRepo.getByCompany(company.id);
-      if (!mounted) return;
-      final sessionBills = allBills.where((b) =>
-          b.closedAt != null && b.closedAt!.isAfter(session.openedAt)).toList();
-
-      final paymentRepo = ref.read(paymentRepositoryProvider);
-      final paymentMethodRepo = ref.read(paymentMethodRepositoryProvider);
-      final allMethods = await paymentMethodRepo.getAll(company.id);
-      if (!mounted) return;
-      final methodMap = {for (final m in allMethods) m.id: m};
-
-      // Aggregate payments by method
-      final paymentsByMethod = <String, (String name, int amount, int count, bool isCash)>{};
-      int totalRevenue = 0;
-      int totalTips = 0;
-
-      final allPayments = await paymentRepo.getByBillIds(
-        sessionBills.map((b) => b.id).toList(),
-      );
-      for (final p in allPayments) {
-        final method = methodMap[p.paymentMethodId];
-        final methodName = method?.name ?? '-';
-        final isCash = method?.type == PaymentType.cash;
-        final cashReceived = p.amount + p.tipIncludedAmount;
-        final existing = paymentsByMethod[p.paymentMethodId];
-        paymentsByMethod[p.paymentMethodId] = (
-          methodName,
-          (existing?.$2 ?? 0) + cashReceived,
-          (existing?.$3 ?? 0) + 1,
-          isCash,
-        );
-        totalRevenue += p.amount;
-        totalTips += p.tipIncludedAmount;
-      }
-
-      final paymentSummaries = paymentsByMethod.values
-          .map((e) => PaymentTypeSummary(name: e.$1, amount: e.$2, count: e.$3, isCash: e.$4))
-          .toList();
-
-      final openingCash = session.openingCash ?? 0;
-      final cashRevenue = paymentSummaries
-          .where((s) => s.isCash)
-          .fold(0, (sum, s) => sum + s.amount);
-      final expectedCash = openingCash + cashRevenue + cashDeposits - cashWithdrawals;
-
-      final billsPaid = sessionBills.where((b) => b.status == BillStatus.paid).length;
-      final billsCancelled = sessionBills.where((b) => b.status == BillStatus.cancelled).length;
-
-      // Compute open bills across entire company
-      final openBills = allBills.where((b) => b.status == BillStatus.opened).toList();
-      final openBillsCount = openBills.length;
-      final openBillsAmount = openBills.fold(0, (sum, b) => sum + b.totalGross);
-
-      if (!mounted) return;
-      // Resolve who opened the session
-      final userRepo = ref.read(userRepositoryProvider);
-      final openedByUser = await userRepo.getById(session.openedByUserId, includeDeleted: true);
-      if (!mounted) return;
-      final openedByName = openedByUser?.username ?? '-';
-
-      if (!context.mounted) return;
-
-      // Warn about open bills before closing
-      if (openBillsCount > 0) {
-        final l = context.l10n;
-        final shouldContinue = await showDialog<bool>(
-          context: context,
-          builder: (dialogContext) => AlertDialog(
-            title: Text(l.closingOpenBillsWarningTitle),
-            content: Text(l.closingOpenBillsWarningMessage(openBillsCount, ref.money(openBillsAmount))),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(dialogContext, false),
-                child: Text(l.actionCancel),
-              ),
-              FilledButton(
-                onPressed: () => Navigator.pop(dialogContext, true),
-                child: Text(l.closingOpenBillsContinue),
-              ),
-            ],
-          ),
-        );
-        if (shouldContinue != true || !context.mounted) return;
-      }
-
-      final closingData = ClosingSessionData(
-        sessionOpenedAt: session.openedAt,
-        openedByUserName: openedByName,
-        openingCash: openingCash,
-        expectedCash: expectedCash,
-        paymentSummaries: paymentSummaries,
-        totalRevenue: totalRevenue,
-        totalTips: totalTips,
-        billsPaid: billsPaid,
-        billsCancelled: billsCancelled,
-        cashDeposits: cashDeposits,
-        cashWithdrawals: cashWithdrawals,
-        openBillsCount: openBillsCount,
-        openBillsAmount: openBillsAmount,
-      );
-
-      final result = await showDialog<ClosingSessionResult>(
-        context: context,
-        builder: (_) => DialogClosingSession(data: closingData),
-      );
-      if (result == null || !context.mounted) return;
-
-      // Close all shifts for this session
-      final closeShiftsResult = await ref.read(shiftRepositoryProvider).closeAllForSession(session.id);
-      if (closeShiftsResult is Failure || !mounted) return;
-
-      final difference = result.closingCash - expectedCash;
-      await ref.read(registerSessionRepositoryProvider).closeSession(
-        session.id,
-        closingCash: result.closingCash,
-        expectedCash: expectedCash,
-        difference: difference,
-        openBillsAtCloseCount: openBillsCount,
-        openBillsAtCloseAmount: openBillsAmount,
-      );
-      if (!mounted) return;
-
-      // Cash handover: if mobile register with parent, transfer cash to parent session
-      final register = await ref.read(activeRegisterProvider.future);
-      if (!mounted) return;
-      if (register != null &&
-          register.type == HardwareType.mobile &&
-          register.parentRegisterId != null &&
-          result.closingCash > 0) {
-        final parentSession = await ref.read(registerSessionRepositoryProvider)
-            .getActiveSession(company.id, registerId: register.parentRegisterId);
+      if (hasSession) {
+        await helpers.closeSession(context, ref);
+      } else {
+        await helpers.openSession(context, ref);
+        // In retail mode, navigate to sell screen after opening session
         if (!mounted) return;
-        if (parentSession != null) {
-          final cashMovementRepo = ref.read(cashMovementRepositoryProvider);
-          final registerName = register.name.isNotEmpty ? register.name : register.code;
-
-          // Withdrawal from mobile register (on the now-closed session)
-          await cashMovementRepo.create(
-            companyId: company.id,
-            registerSessionId: session.id,
-            userId: user.id,
-            type: CashMovementType.handover,
-            amount: result.closingCash,
-            reason: l.cashHandoverReason(registerName),
-          );
-          if (!mounted) return;
-
-          // Deposit on parent register session
-          await cashMovementRepo.create(
-            companyId: company.id,
-            registerSessionId: parentSession.id,
-            userId: user.id,
-            type: CashMovementType.deposit,
-            amount: result.closingCash,
-            reason: l.cashHandoverReason(registerName),
-          );
+        final register = await ref.read(activeRegisterProvider.future);
+        if (register?.sellMode == SellMode.retail && context.mounted) {
+          context.go('/sell');
         }
       }
-    } else {
-      // --- Opening session ---
-      final register = await ref.read(activeRegisterProvider.future);
-      if (!mounted) return;
-      if (register == null) return;
-
-      final sessionRepo = ref.read(registerSessionRepositoryProvider);
-      final lastClosingCash = await sessionRepo.getLastClosingCash(company.id, registerId: register.id);
-
-      if (!context.mounted) return;
-
-      final openingCash = await showDialog<int>(
-        context: context,
-        builder: (_) => DialogOpeningCash(initialAmount: lastClosingCash),
-      );
-      if (openingCash == null || !context.mounted) return;
-
-      // Snapshot open bills at session open
-      final allBillsForOpen = await ref.read(billRepositoryProvider).getByCompany(company.id);
-      if (!mounted) return;
-      final openBillsForOpen = allBillsForOpen.where((b) => b.status == BillStatus.opened).toList();
-      final openBillsForOpenAmount = openBillsForOpen.fold(0, (sum, b) => sum + b.totalGross);
-
-      final openResult = await sessionRepo.openSession(
-        companyId: company.id,
-        registerId: register.id,
-        userId: user.id,
-        openingCash: openingCash,
-        openBillsAtOpenCount: openBillsForOpen.length,
-        openBillsAtOpenAmount: openBillsForOpenAmount,
-      );
-      if (!mounted) return;
-
-      // If opening amount differs from previous closing cash → create correction movement
-      if (lastClosingCash != null && openingCash != lastClosingCash && openResult is Success) {
-        final newSession = (openResult as Success).value;
-        final diff = openingCash - lastClosingCash;
-        await ref.read(cashMovementRepositoryProvider).create(
-          companyId: company.id,
-          registerSessionId: newSession.id,
-          userId: user.id,
-          type: diff > 0 ? CashMovementType.deposit : CashMovementType.withdrawal,
-          amount: diff.abs(),
-          reason: l.autoCorrection,
-        );
-        if (!mounted) return;
-      }
-
-      // Create shift for current user after opening session
-      if (openResult is Success) {
-        final newSession = (openResult as Success).value;
-        await ref.read(shiftRepositoryProvider).create(
-          companyId: company.id,
-          registerSessionId: newSession.id,
-          userId: user.id,
-        );
-      }
-    }
     } finally {
       if (mounted) setState(() => _isProcessing = false);
     }
@@ -504,157 +251,18 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
     if (_isProcessing) return;
     setState(() => _isProcessing = true);
     try {
-      final company = ref.read(currentCompanyProvider);
-      final user = ref.read(activeUserProvider);
-      final session = ref.read(activeRegisterSessionProvider).valueOrNull;
-      if (company == null || user == null || session == null) return;
-
-      final cashMovementRepo = ref.read(cashMovementRepositoryProvider);
-      final movements = await cashMovementRepo.getBySession(session.id);
-      if (!mounted) return;
-
-      // Compute current cash balance: opening + deposits - withdrawals + cash revenue
-      final openingCash = session.openingCash ?? 0;
-      final deposits = movements
-          .where((m) => m.type == CashMovementType.deposit)
-          .fold(0, (sum, m) => sum + m.amount);
-      final withdrawals = movements
-          .where((m) => m.type == CashMovementType.withdrawal || m.type == CashMovementType.expense || m.type == CashMovementType.handover)
-          .fold(0, (sum, m) => sum + m.amount);
-
-      // Cash revenue from sales paid during this session
-      final billRepo = ref.read(billRepositoryProvider);
-      final allBills = await billRepo.getByCompany(company.id);
-      if (!mounted) return;
-      final sessionBills = allBills.where((b) =>
-          b.closedAt != null && b.closedAt!.isAfter(session.openedAt)).toList();
-
-      final paymentRepo = ref.read(paymentRepositoryProvider);
-      final paymentMethodRepo = ref.read(paymentMethodRepositoryProvider);
-      final allMethods = await paymentMethodRepo.getAll(company.id);
-      if (!mounted) return;
-      final cashMethodIds = allMethods
-          .where((m) => m.type == PaymentType.cash)
-          .map((m) => m.id)
-          .toSet();
-
-      int cashRevenue = 0;
-      final sales = <CashJournalSale>[];
-      final billNumberMap = {for (final b in sessionBills) b.id: b.billNumber};
-
-      for (final bill in sessionBills) {
-        final payments = await paymentRepo.getByBill(bill.id);
-        for (final p in payments) {
-          if (cashMethodIds.contains(p.paymentMethodId)) {
-            final cashReceived = p.amount + p.tipIncludedAmount;
-            cashRevenue += cashReceived;
-            sales.add(CashJournalSale(
-              createdAt: p.paidAt,
-              amount: cashReceived,
-              billNumber: billNumberMap[bill.id],
-            ));
-          }
-        }
-      }
-
-      final currentBalance = openingCash + deposits - withdrawals + cashRevenue;
-
-      if (!context.mounted) return;
-
-      final result = await showDialog<CashMovementResult>(
-        context: context,
-        builder: (_) => DialogCashJournal(
-          movements: movements,
-          sales: sales,
-          currentBalance: currentBalance,
-          openingCash: openingCash,
-          openedAt: session.openedAt,
-        ),
-      );
-      if (result == null) return;
-
-      await cashMovementRepo.create(
-        companyId: company.id,
-        registerSessionId: session.id,
-        userId: user.id,
-        type: result.type,
-        amount: result.amount,
-        reason: result.reason,
-      );
+      await helpers.showCashJournalDialog(context, ref);
     } finally {
       if (mounted) setState(() => _isProcessing = false);
     }
   }
 
   Future<void> _showZReports(BuildContext context) async {
-    final company = ref.read(currentCompanyProvider);
-    if (company == null) return;
-
-    final zReportService = ref.read(zReportServiceProvider);
-    final summaries = await zReportService.getSessionSummaries(company.id);
-    if (!mounted) return;
-
-    if (!context.mounted) return;
-
-    await showDialog(
-      context: context,
-      builder: (_) => DialogZReportList(
-        sessions: summaries,
-        onSessionSelected: (sessionId) async {
-          Navigator.pop(context);
-          final zReport = await zReportService.buildZReport(sessionId);
-          if (zReport != null && context.mounted) {
-            showDialog(
-              context: context,
-              builder: (_) => DialogZReport(data: zReport),
-            );
-          }
-        },
-        onVenueReport: (dateFrom, dateTo) async {
-          Navigator.pop(context);
-          final venueReport = await zReportService.buildVenueZReport(
-            company.id, dateFrom, dateTo,
-          );
-          if (venueReport != null && context.mounted) {
-            showDialog(
-              context: context,
-              builder: (_) => DialogZReport(data: venueReport),
-            );
-          }
-        },
-      ),
-    );
+    await helpers.showZReportsDialog(context, ref);
   }
 
   Future<void> _showShifts(BuildContext context) async {
-    final company = ref.read(currentCompanyProvider);
-    if (company == null) return;
-
-    final shiftRepo = ref.read(shiftRepositoryProvider);
-    final userRepo = ref.read(userRepositoryProvider);
-    final shifts = await shiftRepo.getByCompany(company.id);
-    if (!mounted) return;
-
-    final uniqueUserIds = shifts.map((s) => s.userId).toSet();
-    final userMap = <String, UserModel?>{};
-    for (final uid in uniqueUserIds) {
-      userMap[uid] = await userRepo.getById(uid, includeDeleted: true);
-    }
-    final rows = <ShiftDisplayRow>[];
-    for (final shift in shifts) {
-      final user = userMap[shift.userId];
-      rows.add(ShiftDisplayRow(
-        username: user?.username ?? '-',
-        loginAt: shift.loginAt,
-        logoutAt: shift.logoutAt,
-      ));
-    }
-
-    if (!context.mounted) return;
-    showDialog(
-      context: context,
-      builder: (_) => DialogShiftsList(shifts: rows),
-    );
+    await helpers.showShiftsDialog(context, ref);
   }
 
   void _showReservations(BuildContext context) {
@@ -716,15 +324,28 @@ class _SectionTabBar extends ConsumerWidget {
           }
         }
 
+        final canPop = GoRouter.of(context).canPop();
+
         return Container(
           height: 48,
-          padding: const EdgeInsets.only(left: 16),
+          padding: EdgeInsets.only(left: canPop ? 4 : 16),
           alignment: Alignment.centerLeft,
           decoration: BoxDecoration(
             border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor)),
           ),
           child: Row(
             children: [
+              if (canPop) ...[
+                SizedBox(
+                  width: 40,
+                  height: 40,
+                  child: IconButton(
+                    icon: const Icon(Icons.arrow_back),
+                    onPressed: () => context.pop(),
+                  ),
+                ),
+                const SizedBox(width: 4),
+              ],
               for (var i = 0; i < sections.length; i++) ...[
                 if (i > 0) const SizedBox(width: 8),
                 Expanded(
@@ -1050,13 +671,11 @@ class _RelativeTimeCellState extends State<_RelativeTimeCell> {
   }
 
   String _formatRelativeTime(BuildContext context, DateTime time) {
+    final l = context.l10n;
     final diff = DateTime.now().difference(time);
-    if (diff.inMinutes < 1) return context.l10n.billTimeJustNow;
-    if (diff.inMinutes < 60) return '${diff.inMinutes}min';
-    final hours = diff.inHours;
-    final mins = diff.inMinutes % 60;
-    if (mins == 0) return '${hours}h';
-    return '${hours}h ${mins}m';
+    if (diff.inMinutes < 1) return l.billTimeJustNow;
+    return formatDuration(diff,
+        hm: l.durationHoursMinutes, hOnly: l.durationHoursOnly, mOnly: l.durationMinutesOnly);
   }
 
   @override

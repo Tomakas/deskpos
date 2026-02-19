@@ -209,32 +209,6 @@ class SyncLifecycleManager {
       );
     }
 
-    // Push global reference data (no company_id)
-    await _enqueueGlobalTable(
-      companyId,
-      'currencies',
-      _db.currencies,
-      (e) => currencyToSupabaseJson(currencyFromEntity(e as Currency)),
-    );
-    await _enqueueGlobalTable(
-      companyId,
-      'roles',
-      _db.roles,
-      (e) => roleToSupabaseJson(roleFromEntity(e as Role)),
-    );
-    await _enqueueGlobalTable(
-      companyId,
-      'permissions',
-      _db.permissions,
-      (e) => permissionToSupabaseJson(permissionFromEntity(e as Permission)),
-    );
-    await _enqueueGlobalTable(
-      companyId,
-      'role_permissions',
-      _db.rolePermissions,
-      (e) => rolePermissionToSupabaseJson(rolePermissionFromEntity(e as RolePermission)),
-    );
-
     // Push company — RLS on child tables requires company to exist
     await _enqueueCompany(companyId);
 
@@ -369,38 +343,6 @@ class SyncLifecycleManager {
         payload: jsonEncode(json),
       );
       AppLogger.info('Enqueued company for initial sync', tag: 'SYNC');
-    }
-  }
-
-  Future<void> _enqueueGlobalTable(
-    String companyId,
-    String tableName,
-    TableInfo table,
-    Map<String, dynamic> Function(dynamic entity) toJson,
-  ) async {
-    try {
-      final entities = await _db.select(table).get();
-      for (final entity in entities) {
-        final json = toJson(entity);
-        await _syncQueueRepo.enqueue(
-          companyId: companyId,
-          entityType: tableName,
-          entityId: (entity as dynamic).id as String,
-          operation: 'insert',
-          payload: jsonEncode(json),
-        );
-      }
-      AppLogger.info(
-        'Enqueued ${entities.length} existing $tableName for initial sync',
-        tag: 'SYNC',
-      );
-    } catch (e, s) {
-      AppLogger.error(
-        'Failed to enqueue existing $tableName',
-        tag: 'SYNC',
-        error: e,
-        stackTrace: s,
-      );
     }
   }
 

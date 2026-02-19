@@ -60,7 +60,8 @@ class WarehouseRepository
 
   /// Returns the default warehouse for a company.
   /// Creates one lazily if none exists.
-  Future<WarehouseModel> getDefault(String companyId) async {
+  /// [locale] is used for the default warehouse name when creating.
+  Future<WarehouseModel> getDefault(String companyId, {String locale = 'cs'}) async {
     final entity = await (db.select(db.warehouses)
           ..where((t) => t.companyId.equals(companyId) & t.isDefault.equals(true) & t.deletedAt.isNull()))
         .getSingleOrNull();
@@ -72,7 +73,7 @@ class WarehouseRepository
     final model = WarehouseModel(
       id: const Uuid().v7(),
       companyId: companyId,
-      name: 'Hlavní sklad',
+      name: locale == 'en' ? 'Main Warehouse' : 'Hlavní sklad',
       isDefault: true,
       isActive: true,
       createdAt: now,

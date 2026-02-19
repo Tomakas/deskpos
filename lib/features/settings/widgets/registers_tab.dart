@@ -426,6 +426,9 @@ class RegistersTab extends ConsumerWidget {
     var allowCash = existing?.allowCash ?? true;
     var allowCard = existing?.allowCard ?? true;
     var allowTransfer = existing?.allowTransfer ?? true;
+    var allowCredit = existing?.allowCredit ?? true;
+    var allowVoucher = existing?.allowVoucher ?? true;
+    var allowOther = existing?.allowOther ?? true;
     var allowRefunds = existing?.allowRefunds ?? false;
 
     final result = await showDialog<bool>(
@@ -494,6 +497,24 @@ class RegistersTab extends ConsumerWidget {
                         setDialogState(() => allowTransfer = v),
                   ),
                   SwitchListTile(
+                    title: Text(l.registerAllowCredit),
+                    value: allowCredit,
+                    onChanged: (v) =>
+                        setDialogState(() => allowCredit = v),
+                  ),
+                  SwitchListTile(
+                    title: Text(l.registerAllowVoucher),
+                    value: allowVoucher,
+                    onChanged: (v) =>
+                        setDialogState(() => allowVoucher = v),
+                  ),
+                  SwitchListTile(
+                    title: Text(l.registerAllowOther),
+                    value: allowOther,
+                    onChanged: (v) =>
+                        setDialogState(() => allowOther = v),
+                  ),
+                  SwitchListTile(
                     title: Text(l.registerAllowRefunds),
                     value: allowRefunds,
                     onChanged: (v) =>
@@ -531,6 +552,9 @@ class RegistersTab extends ConsumerWidget {
         allowCash: allowCash,
         allowCard: allowCard,
         allowTransfer: allowTransfer,
+        allowCredit: allowCredit,
+        allowVoucher: allowVoucher,
+        allowOther: allowOther,
         allowRefunds: allowRefunds,
       ));
       if (isMain && !existing.isMain) {
@@ -548,6 +572,9 @@ class RegistersTab extends ConsumerWidget {
         allowCash: allowCash,
         allowCard: allowCard,
         allowTransfer: allowTransfer,
+        allowCredit: allowCredit,
+        allowVoucher: allowVoucher,
+        allowOther: allowOther,
         allowRefunds: allowRefunds,
       );
     }
@@ -778,6 +805,9 @@ class _PaymentFlags extends StatelessWidget {
     if (register.allowCash) flags.add(l.registerAllowCash);
     if (register.allowCard) flags.add(l.registerAllowCard);
     if (register.allowTransfer) flags.add(l.registerAllowTransfer);
+    if (register.allowCredit) flags.add(l.registerAllowCredit);
+    if (register.allowVoucher) flags.add(l.registerAllowVoucher);
+    if (register.allowOther) flags.add(l.registerAllowOther);
     if (register.allowRefunds) flags.add(l.registerAllowRefunds);
     return Text(
       flags.join(', '),

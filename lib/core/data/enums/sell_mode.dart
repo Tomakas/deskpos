@@ -1,0 +1,4 @@
+enum SellMode {
+  gastro,
+  retail,
+}

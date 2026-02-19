@@ -116,14 +116,6 @@ CurrencyModel currencyFromEntity(Currency e) => CurrencyModel(
       deletedAt: e.deletedAt,
     );
 
-CurrenciesCompanion currencyToCompanion(CurrencyModel m) => CurrenciesCompanion.insert(
-      id: m.id,
-      code: m.code,
-      symbol: m.symbol,
-      name: m.name,
-      decimalPlaces: m.decimalPlaces,
-    );
-
 // --- User ---
 UserModel userFromEntity(User e) => UserModel(
       id: e.id,
@@ -165,11 +157,6 @@ RoleModel roleFromEntity(Role e) => RoleModel(
       deletedAt: e.deletedAt,
     );
 
-RolesCompanion roleToCompanion(RoleModel m) => RolesCompanion.insert(
-      id: m.id,
-      name: m.name,
-    );
-
 // --- Permission ---
 PermissionModel permissionFromEntity(Permission e) => PermissionModel(
       id: e.id,
@@ -182,14 +169,6 @@ PermissionModel permissionFromEntity(Permission e) => PermissionModel(
       deletedAt: e.deletedAt,
     );
 
-PermissionsCompanion permissionToCompanion(PermissionModel m) => PermissionsCompanion.insert(
-      id: m.id,
-      code: m.code,
-      name: m.name,
-      description: Value(m.description),
-      category: m.category,
-    );
-
 // --- RolePermission ---
 RolePermissionModel rolePermissionFromEntity(RolePermission e) => RolePermissionModel(
       id: e.id,
@@ -198,13 +177,6 @@ RolePermissionModel rolePermissionFromEntity(RolePermission e) => RolePermission
       createdAt: e.createdAt,
       updatedAt: e.updatedAt,
       deletedAt: e.deletedAt,
-    );
-
-RolePermissionsCompanion rolePermissionToCompanion(RolePermissionModel m) =>
-    RolePermissionsCompanion.insert(
-      id: m.id,
-      roleId: m.roleId,
-      permissionId: m.permissionId,
     );
 
 // --- UserPermission ---
@@ -524,12 +496,16 @@ RegisterModel registerFromEntity(Register e) => RegisterModel(
       allowCash: e.allowCash,
       allowCard: e.allowCard,
       allowTransfer: e.allowTransfer,
+      allowCredit: e.allowCredit,
+      allowVoucher: e.allowVoucher,
+      allowOther: e.allowOther,
       allowRefunds: e.allowRefunds,
       boundDeviceId: e.boundDeviceId,
       activeBillId: e.activeBillId,
       gridRows: e.gridRows,
       gridCols: e.gridCols,
       displayCartJson: e.displayCartJson,
+      sellMode: e.sellMode,
       createdAt: e.createdAt,
       updatedAt: e.updatedAt,
       deletedAt: e.deletedAt,

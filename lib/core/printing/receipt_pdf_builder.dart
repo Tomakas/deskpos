@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
@@ -40,8 +39,6 @@ class ReceiptPdfBuilder {
     final smallStyle = pw.TextStyle(font: regular, fontSize: 7.5);
     final headerStyle = pw.TextStyle(font: bold, fontSize: 12);
     final totalStyle = pw.TextStyle(font: bold, fontSize: 13);
-
-    final dateFormat = DateFormat('d.M.yyyy HH:mm', 'cs');
 
     doc.addPage(
       pw.Page(
@@ -105,7 +102,7 @@ class ReceiptPdfBuilder {
             else if (data.tableName != null)
               _infoRow('${labels.table}: ${data.tableName}', baseStyle),
             _infoRow(
-              '${labels.date}: ${dateFormat.format(data.closedAt ?? data.openedAt)}',
+              '${labels.date}: ${formatDateForPrint(data.closedAt ?? data.openedAt, labels.locale)}',
               baseStyle,
             ),
             _infoRow('${labels.cashier}: ${data.cashierName}', baseStyle),

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/data/enums/display_device_type.dart';
+import '../../../core/data/enums/sell_mode.dart';
 import '../../../core/data/enums/layout_item_type.dart';
 import '../../../core/data/mappers/supabase_mappers.dart';
 import '../../../core/data/models/bill_model.dart';
@@ -26,8 +27,10 @@ import '../../../core/logging/app_logger.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatting_ext.dart';
 import '../../../core/widgets/pos_color_palette.dart';
+import '../../../core/data/providers/permission_providers.dart';
 import '../../bills/widgets/dialog_customer_search.dart';
 import '../../bills/widgets/dialog_payment.dart';
+import '../../shared/session_helpers.dart' as helpers;
 
 class ScreenSell extends ConsumerStatefulWidget {
   const ScreenSell({super.key, this.billId});
@@ -55,12 +58,11 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
   Timer? _debounce;
   String _searchQuery = '';
   bool _isSearchOpen = false;
-  String? _quickBillId;
   String? _displayCode;
   bool _didSendThankYou = false;
+  bool _isRetailMode = false;
 
-  // Cached references for use in dispose() where ref is no longer available.
-  late final _billRepo = ref.read(billRepositoryProvider);
+  // Cached reference for use in dispose() where ref is no longer available.
   late final _displayChannel = ref.read(customerDisplayChannelProvider);
 
   @override
@@ -68,17 +70,11 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     super.initState();
     _loadCustomerName();
     _initDisplayBroadcast();
-    if (widget.isQuickSale) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _createQuickBill());
-    }
   }
 
   @override
   void dispose() {
     if (!_didSendThankYou) _pushDisplayIdle();
-    if (_quickBillId != null) {
-      _billRepo.cancelBill(_quickBillId!);
-    }
     _debounce?.cancel();
     _searchController.dispose();
     super.dispose();
@@ -150,33 +146,32 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     });
   }
 
-  Future<void> _createQuickBill() async {
-    final company = ref.read(currentCompanyProvider);
-    final user = ref.read(activeUserProvider);
-    if (company == null || user == null) return;
+  /// Retail mode: clears cart state for the next sale.
+  void _resetForNextSale() {
+    setState(() {
+      _cart.clear();
+      _orderNotes = null;
+      _customerId = null;
+      _customerName = null;
+      _currentPage = 0;
+      _pageStack.clear();
+      _didSendThankYou = false;
+    });
+    _pushDisplayIdle();
+  }
 
-    final billRepo = ref.read(billRepositoryProvider);
-    final sectionRepo = ref.read(sectionRepositoryProvider);
-    final sections = await sectionRepo.watchAll(company.id).first;
-    if (!mounted) return;
-    final defaultSection = sections.where((s) => s.isDefault).firstOrNull ?? sections.firstOrNull;
-    final register = await ref.read(activeRegisterProvider.future);
-    if (!mounted) return;
-    final session = ref.read(activeRegisterSessionProvider).value;
-
-    final billResult = await billRepo.createBill(
-      companyId: company.id,
-      userId: user.id,
-      currencyId: company.defaultCurrencyId,
-      sectionId: defaultSection?.id,
-      registerId: register?.id,
-      registerSessionId: session?.id,
-      isTakeaway: true,
-      numberOfGuests: 1,
-    );
-
-    if (billResult is Success<BillModel> && mounted) {
-      setState(() => _quickBillId = billResult.value.id);
+  void _onCancelTap(BuildContext context) {
+    if (_cart.isNotEmpty) {
+      // Remove last entry (item or separator)
+      setState(() => _cart.removeLast());
+      _pushToDisplay();
+    } else {
+      // Empty cart — go home
+      if (_isRetailMode) {
+        _resetForNextSale();
+      } else {
+        context.pop();
+      }
     }
   }
 
@@ -213,51 +208,61 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
-    final register = ref.watch(activeRegisterProvider);
+    final registerAsync = ref.watch(activeRegisterProvider);
+    final reg = registerAsync.valueOrNull;
 
-    return Scaffold(
-      body: register.when(
-        data: (reg) {
-          if (reg == null) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(32),
-                child: Text(
-                  l.registerNotBoundMessage,
-                  style: Theme.of(context).textTheme.bodyLarge,
-                  textAlign: TextAlign.center,
+    // Latch retail mode once register loads — stable across provider reloads
+    if (reg != null) {
+      _isRetailMode = reg.sellMode == SellMode.retail;
+    }
+
+    Widget body;
+    if (registerAsync.isLoading && reg == null) {
+      // First load — no previous data yet
+      body = const Center(child: CircularProgressIndicator());
+    } else if (reg == null) {
+      body = Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Text(
+            l.registerNotBoundMessage,
+            style: Theme.of(context).textTheme.bodyLarge,
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
+    } else {
+      body = Row(
+        children: [
+          // Left panel - Cart (20%)
+          SizedBox(
+            width: 280,
+            child: _buildCart(context, l),
+          ),
+          // Right panel - Toolbar + Grid (80%)
+          Expanded(
+            child: Column(
+              children: [
+                _buildToolbar(context, l),
+                const Divider(height: 1),
+                Expanded(
+                  child: _searchQuery.isNotEmpty
+                      ? _buildSearchResults(context, ref, l)
+                      : _buildGrid(context, ref, reg, l),
                 ),
-              ),
-            );
-          }
-          return Row(
-            children: [
-              // Left panel - Cart (20%)
-              SizedBox(
-                width: 280,
-                child: _buildCart(context, l),
-              ),
-              // Right panel - Toolbar + Grid (80%)
-              Expanded(
-                child: Column(
-                  children: [
-                    _buildToolbar(context, l),
-                    const Divider(height: 1),
-                    Expanded(
-                      child: _searchQuery.isNotEmpty
-                          ? _buildSearchResults(context, ref, l)
-                          : _buildGrid(context, ref, reg, l),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text(context.l10n.errorGeneric(e.toString()))),
-      ),
-    );
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+
+    Widget scaffold = Scaffold(body: body);
+
+    if (_isRetailMode) {
+      return PopScope(canPop: false, child: scaffold);
+    }
+    return scaffold;
   }
 
   Widget _buildToolbar(BuildContext context, AppLocalizations l) {
@@ -318,13 +323,15 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
                 ),
                 const SizedBox(width: 8),
                 _toolbarChip(l.sellNote, selected: _orderNotes != null && _orderNotes!.isNotEmpty, onSelected: () => _showOrderNoteDialog(context)),
-                const SizedBox(width: 8),
-                _toolbarChip(l.sellSeparator, onSelected: _cart.isEmpty ? null : () {
-                  if (_cart.isNotEmpty && _cart.last is! _CartSeparator) {
-                    setState(() => _cart.add(const _CartSeparator()));
-                    _pushToDisplay();
-                  }
-                }),
+                if (!_isRetailMode) ...[
+                  const SizedBox(width: 8),
+                  _toolbarChip(l.sellSeparator, onSelected: _cart.isEmpty ? null : () {
+                    if (_cart.isNotEmpty && _cart.last is! _CartSeparator) {
+                      setState(() => _cart.add(const _CartSeparator()));
+                      _pushToDisplay();
+                    }
+                  }),
+                ],
                 const SizedBox(width: 8),
                 _toolbarChip(l.sellActions, onSelected: null),
                 if (_currentPage > 0) ...[
@@ -380,9 +387,16 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
           // Header
           Container(
             height: 48,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            alignment: Alignment.centerLeft,
-            child: Text(l.sellCartSummary, style: theme.textTheme.titleMedium),
+            padding: EdgeInsets.only(left: _isRetailMode ? 4 : 16, right: 16),
+            child: Row(
+              children: [
+                if (_isRetailMode)
+                  const _RetailMenuButton(),
+                Expanded(
+                  child: Text(l.sellCartSummary, style: theme.textTheme.titleMedium),
+                ),
+              ],
+            ),
           ),
           const Divider(height: 1),
           // Items
@@ -471,20 +485,27 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
           ),
           // Actions
           if (widget.isQuickSale) ...[
+            // Cancel + Save to bill | Pay
             Padding(
               padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
               child: Row(
                 children: [
                   Expanded(
-                    child: SizedBox(
-                      height: 44,
-                      child: OutlinedButton(
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: theme.colorScheme.error,
-                          side: BorderSide(color: theme.colorScheme.error),
+                    child: GestureDetector(
+                      onLongPress: _cart.isEmpty ? null : () {
+                        setState(() => _cart.clear());
+                        _pushToDisplay();
+                      },
+                      child: SizedBox(
+                        height: 44,
+                        child: OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: theme.colorScheme.error,
+                            side: BorderSide(color: theme.colorScheme.error),
+                          ),
+                          onPressed: () => _onCancelTap(context),
+                          child: Text(l.sellCancelOrder),
                         ),
-                        onPressed: () => context.pop(),
-                        child: Text(l.sellCancelOrder),
                       ),
                     ),
                   ),
@@ -740,7 +761,6 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
   }
 
   Future<void> _selectCustomer(BuildContext context) async {
-    final billRepo = ref.read(billRepositoryProvider);
     final result = await showCustomerSearchDialogRaw(
       context,
       ref,
@@ -748,10 +768,11 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     );
     if (!mounted) return;
     if (result == null) return;
-    final billId = widget.billId ?? _quickBillId;
+    // For existing bills, persist immediately; for quick sale, defer to submission
+    final billId = widget.billId;
     if (result is CustomerModel) {
       if (billId != null) {
-        await billRepo.updateCustomer(billId, result.id);
+        await ref.read(billRepositoryProvider).updateCustomer(billId, result.id);
       }
       if (mounted) {
         setState(() {
@@ -762,7 +783,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     } else if (result is String) {
       // Free-text customer name
       if (billId != null) {
-        await billRepo.updateCustomerName(billId, result);
+        await ref.read(billRepositoryProvider).updateCustomerName(billId, result);
       }
       if (mounted) {
         setState(() {
@@ -773,7 +794,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     } else {
       // _RemoveCustomer sentinel
       if (billId != null) {
-        await billRepo.updateCustomer(billId, null);
+        await ref.read(billRepositoryProvider).updateCustomer(billId, null);
       }
       if (mounted) {
         setState(() {
@@ -980,85 +1001,97 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
 
   Future<void> _submitQuickSale(BuildContext context, WidgetRef ref) async {
     if (_isSubmitting) return;
-    final billId = _quickBillId;
-    if (billId == null) return;
     setState(() => _isSubmitting = true);
     try {
-    final company = ref.read(currentCompanyProvider);
-    final user = ref.read(activeUserProvider);
-    if (company == null || user == null) return;
+      final company = ref.read(currentCompanyProvider);
+      final user = ref.read(activeUserProvider);
+      if (company == null || user == null) return;
 
-    final billRepo = ref.read(billRepositoryProvider);
-    final orderRepo = ref.read(orderRepositoryProvider);
+      final billRepo = ref.read(billRepositoryProvider);
+      final orderRepo = ref.read(orderRepositoryProvider);
+      final sectionRepo = ref.read(sectionRepositoryProvider);
 
-    // Update customer on the quick bill if set
-    if (_customerId != null) {
-      await billRepo.updateCustomer(billId, _customerId);
+      // Create bill on-demand
+      final sections = await sectionRepo.watchAll(company.id).first;
       if (!mounted) return;
-    } else if (_customerName != null) {
-      await billRepo.updateCustomerName(billId, _customerName!);
+      final defaultSection = sections.where((s) => s.isDefault).firstOrNull ?? sections.firstOrNull;
+      final register = await ref.read(activeRegisterProvider.future);
       if (!mounted) return;
-    }
+      final session = ref.read(activeRegisterSessionProvider).value;
 
-    // Create order(s)
-    final groups = _splitCartIntoGroups();
-    final register = await ref.read(activeRegisterProvider.future);
-    if (!mounted) return;
-    for (var i = 0; i < groups.length; i++) {
-      final orderNumber = await _nextOrderNumber(ref);
-      if (!mounted) return;
-      final orderItems = await _buildOrderItemsFromGroup(ref, groups[i]);
-      if (!mounted) return;
-      final result = await orderRepo.createOrderWithItems(
+      final billResult = await billRepo.createBill(
         companyId: company.id,
-        billId: billId,
         userId: user.id,
-        orderNumber: orderNumber,
-        items: orderItems,
-        orderNotes: i == 0 ? _orderNotes : null,
+        currencyId: company.defaultCurrencyId,
+        sectionId: defaultSection?.id,
+        customerId: _customerId,
+        customerName: _customerId == null ? _customerName : null,
         registerId: register?.id,
+        registerSessionId: session?.id,
+        isTakeaway: true,
+        numberOfGuests: 1,
       );
-      if (result is Success<OrderModel>) {
-        _broadcastKdsOrder(result.value);
-      }
-    }
-    await billRepo.updateTotals(billId);
+      if (billResult is! Success<BillModel>) return;
+      final billId = billResult.value.id;
 
-    if (!context.mounted) return;
-
-    // Fetch updated bill with totals
-    final updatedBillResult = await billRepo.getById(billId);
-    if (updatedBillResult is! Success<BillModel>) return;
-
-    if (!context.mounted) return;
-
-    // Show payment dialog
-    final paid = await showDialog<bool>(
-      context: context,
-      builder: (_) => DialogPayment(bill: updatedBillResult.value),
-    );
-
-    if (paid == true && context.mounted) {
-      _quickBillId = null;
-      // Send thank-you message to customer display
-      if (_displayCode != null && mounted) {
-        _didSendThankYou = true;
-        final l = context.l10n;
-        _displayChannel.send(
-          DisplayMessage(
-            text: l.customerDisplayThankYou,
-            messageType: 'success',
-            autoClearAfterMs: 10000,
-          ).toJson(),
+      // Create order(s)
+      final groups = _splitCartIntoGroups();
+      for (var i = 0; i < groups.length; i++) {
+        final orderNumber = await _nextOrderNumber(ref);
+        if (!mounted) return;
+        final orderItems = await _buildOrderItemsFromGroup(ref, groups[i]);
+        if (!mounted) return;
+        final result = await orderRepo.createOrderWithItems(
+          companyId: company.id,
+          billId: billId,
+          userId: user.id,
+          orderNumber: orderNumber,
+          items: orderItems,
+          orderNotes: i == 0 ? _orderNotes : null,
+          registerId: register?.id,
         );
+        if (result is Success<OrderModel>) {
+          _broadcastKdsOrder(result.value);
+        }
       }
-      context.pop();
-    } else {
-      // User cancelled payment — cancel the bill and create fresh one for retry
-      await billRepo.cancelBill(billId, userId: ref.read(activeUserProvider)?.id);
       await billRepo.updateTotals(billId);
-      if (mounted) await _createQuickBill();
-    }
+
+      if (!context.mounted) return;
+
+      // Fetch updated bill with totals
+      final updatedBillResult = await billRepo.getById(billId);
+      if (updatedBillResult is! Success<BillModel>) return;
+
+      if (!context.mounted) return;
+
+      // Show payment dialog
+      final paid = await showDialog<bool>(
+        context: context,
+        builder: (_) => DialogPayment(bill: updatedBillResult.value),
+      );
+
+      if (paid == true && context.mounted) {
+        // Send thank-you message to customer display
+        if (_displayCode != null && mounted) {
+          _didSendThankYou = true;
+          final l = context.l10n;
+          _displayChannel.send(
+            DisplayMessage(
+              text: l.customerDisplayThankYou,
+              messageType: 'success',
+              autoClearAfterMs: 10000,
+            ).toJson(),
+          );
+        }
+        if (_isRetailMode) {
+          _resetForNextSale();
+        } else {
+          context.pop();
+        }
+      } else {
+        // User cancelled payment — cancel the bill
+        await billRepo.cancelBill(billId, userId: ref.read(activeUserProvider)?.id);
+      }
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
@@ -1076,13 +1109,6 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
       final billRepo = ref.read(billRepositoryProvider);
       final sectionRepo = ref.read(sectionRepositoryProvider);
       final orderRepo = ref.read(orderRepositoryProvider);
-
-      // Cancel the quick bill before creating a regular one
-      if (_quickBillId != null) {
-        await billRepo.cancelBill(_quickBillId!, userId: ref.read(activeUserProvider)?.id);
-        if (!mounted) return;
-        _quickBillId = null;
-      }
 
       // Resolve default section
       final sections = await sectionRepo.watchAll(company.id).first;
@@ -1130,7 +1156,11 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
       await billRepo.updateTotals(bill.id);
 
       if (!context.mounted) return;
-      context.pop();
+      if (_isRetailMode) {
+        _resetForNextSale();
+      } else {
+        context.pop();
+      }
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
@@ -1151,6 +1181,137 @@ class _CartItem {
   final String? saleTaxRateId;
   double quantity = 1;
   String? notes;
+}
+
+class _RetailMenuButton extends ConsumerWidget {
+  const _RetailMenuButton();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = context.l10n;
+    final canManage = ref.watch(hasPermissionProvider('settings.manage'));
+    final canViewOrders = ref.watch(hasPermissionProvider('orders.view'));
+    final sessionAsync = ref.watch(activeRegisterSessionProvider);
+    final hasSession = sessionAsync.valueOrNull != null;
+
+    return PopupMenuButton<String>(
+      icon: const Icon(Icons.menu),
+      tooltip: l.billsMore,
+      itemBuilder: (_) => [
+        PopupMenuItem(
+          value: 'toggle-session',
+          height: 48,
+          child: Text(hasSession ? l.registerSessionClose : l.registerSessionStart),
+        ),
+        if (hasSession)
+          PopupMenuItem(value: 'cash-journal', height: 48, child: Text(l.billsCashJournal)),
+        PopupMenuItem(
+          value: 'z-reports',
+          enabled: canManage,
+          height: 48,
+          child: Text(l.moreReports),
+        ),
+        PopupMenuItem(
+          value: 'shifts',
+          enabled: canManage,
+          height: 48,
+          child: Text(l.moreShifts),
+        ),
+        const PopupMenuDivider(),
+        PopupMenuItem(
+          value: 'bills',
+          height: 48,
+          child: Text(l.billsTitle),
+        ),
+        PopupMenuItem(
+          value: 'orders',
+          enabled: canViewOrders,
+          height: 48,
+          child: Text(l.ordersTitle),
+        ),
+        PopupMenuItem(
+          value: 'catalog',
+          enabled: canManage,
+          height: 48,
+          child: Text(l.moreCatalog),
+        ),
+        PopupMenuItem(
+          value: 'inventory',
+          enabled: canManage,
+          height: 48,
+          child: Text(l.billsInventory),
+        ),
+        PopupMenuItem(
+          value: 'vouchers',
+          enabled: canManage,
+          height: 48,
+          child: Text(l.vouchersTitle),
+        ),
+        const PopupMenuDivider(),
+        PopupMenuItem(
+          value: 'company-settings',
+          enabled: canManage,
+          height: 48,
+          child: Text(l.moreCompanySettings),
+        ),
+        PopupMenuItem(
+          value: 'venue-settings',
+          enabled: canManage,
+          height: 48,
+          child: Text(l.moreVenueSettings),
+        ),
+        PopupMenuItem(
+          value: 'register-settings',
+          enabled: canManage,
+          height: 48,
+          child: Text(l.moreRegisterSettings),
+        ),
+        const PopupMenuDivider(),
+        PopupMenuItem(
+          value: 'logout',
+          height: 48,
+          child: Text(l.actionLogout),
+        ),
+      ],
+      onSelected: (value) => _onMenuSelected(context, ref, value),
+    );
+  }
+
+  Future<void> _onMenuSelected(BuildContext context, WidgetRef ref, String value) async {
+    switch (value) {
+      case 'toggle-session':
+        final hasSession = ref.read(activeRegisterSessionProvider).valueOrNull != null;
+        if (hasSession) {
+          await helpers.closeSession(context, ref);
+        } else {
+          await helpers.openSession(context, ref);
+        }
+      case 'cash-journal':
+        await helpers.showCashJournalDialog(context, ref);
+      case 'z-reports':
+        await helpers.showZReportsDialog(context, ref);
+      case 'shifts':
+        await helpers.showShiftsDialog(context, ref);
+      case 'bills':
+        if (context.mounted) context.push('/bills');
+      case 'orders':
+        if (context.mounted) context.push('/orders');
+      case 'catalog':
+        if (context.mounted) context.push('/catalog');
+      case 'inventory':
+        if (context.mounted) context.push('/inventory');
+      case 'vouchers':
+        if (context.mounted) context.push('/vouchers');
+      case 'company-settings':
+        if (context.mounted) context.push('/settings/company');
+      case 'venue-settings':
+        if (context.mounted) context.push('/settings/venue');
+      case 'register-settings':
+        if (context.mounted) context.push('/settings/register');
+      case 'logout':
+        await helpers.performLogout(context, ref);
+    }
+  }
 }
 
 class _ItemButton extends StatelessWidget {

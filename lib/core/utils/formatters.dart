@@ -1,6 +1,7 @@
 import 'package:intl/intl.dart';
 
 import '../data/models/currency_model.dart';
+import '../logging/app_logger.dart';
 
 // ---------------------------------------------------------------------------
 // Currency formatting
@@ -57,6 +58,9 @@ String formatMoney(
   CurrencyModel? currency, {
   String appLocale = 'cs',
 }) {
+  if (currency == null) {
+    AppLogger.warn('formatMoney: currency is null, using fallback');
+  }
   final c = currency ?? _fallbackCurrency;
   final divisor = c.decimalPlaces > 0 ? _pow10(c.decimalPlaces) : 1;
   final amount = minorUnits / divisor;
@@ -193,4 +197,39 @@ String formatDateForPrint(DateTime dt, String locale) {
   return formatDateTime(dt, locale)
       .replaceAll('\u00A0', ' ')
       .replaceAll('\u202F', ' ');
+}
+
+/// Date only for print output — replaces non-breaking spaces.
+String formatDateOnlyForPrint(DateTime dt, String locale) {
+  return formatDate(dt, locale)
+      .replaceAll('\u00A0', ' ')
+      .replaceAll('\u202F', ' ');
+}
+
+/// Time only for print output — replaces non-breaking spaces.
+String formatTimeForPrint(DateTime dt, String locale) {
+  return formatTime(dt, locale)
+      .replaceAll('\u00A0', ' ')
+      .replaceAll('\u202F', ' ');
+}
+
+// ---------------------------------------------------------------------------
+// Duration formatting
+// ---------------------------------------------------------------------------
+
+/// Formats a [Duration] using localized hour/minute labels.
+///
+/// [hm], [hOnly], [mOnly] are localized format strings from l10n
+/// (e.g., l.durationHoursMinutes, l.durationHoursOnly, l.durationMinutesOnly).
+String formatDuration(
+  Duration d, {
+  required String Function(int h, int m) hm,
+  required String Function(int h) hOnly,
+  required String Function(int m) mOnly,
+}) {
+  final h = d.inHours;
+  final m = d.inMinutes.remainder(60);
+  if (h > 0 && m > 0) return hm(h, m);
+  if (h > 0) return hOnly(h);
+  return mOnly(m);
 }

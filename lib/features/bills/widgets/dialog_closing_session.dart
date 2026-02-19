@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/formatters.dart';
 import '../../../core/utils/formatting_ext.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
@@ -131,14 +132,6 @@ class _DialogClosingSessionState extends ConsumerState<DialogClosingSession> {
   // Helpers
   // ---------------------------------------------------------------------------
 
-  String _fmtDuration(Duration d) {
-    final h = d.inHours;
-    final m = d.inMinutes.remainder(60);
-    if (h > 0 && m > 0) return '${h}h ${m}min';
-    if (h > 0) return '${h}h';
-    return '${m}min';
-  }
-
   int? get _closingCashMinor {
     final parsed = int.tryParse(_closingCashCtrl.text);
     return parsed == null ? null : parsed * 100;
@@ -250,7 +243,8 @@ class _DialogClosingSessionState extends ConsumerState<DialogClosingSession> {
           '${ref.fmtDate(_data.sessionOpenedAt)} ${ref.fmtTime(_data.sessionOpenedAt)}',
         ),
         _row(l.closingOpenedBy, _data.openedByUserName),
-        _row(l.closingDuration, _fmtDuration(duration)),
+        _row(l.closingDuration, formatDuration(duration,
+            hm: l.durationHoursMinutes, hOnly: l.durationHoursOnly, mOnly: l.durationMinutesOnly)),
         _row(l.closingBillsPaid, '${_data.billsPaid}'),
         if (_data.billsCancelled > 0)
           _row(l.closingBillsCancelled, '${_data.billsCancelled}'),

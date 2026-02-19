@@ -124,6 +124,7 @@ class ReceiptLabels {
     required this.thankYou,
     required this.ico,
     required this.dic,
+    required this.locale,
   });
 
   final String subtotal;
@@ -145,6 +146,7 @@ class ReceiptLabels {
   final String thankYou;
   final String ico;
   final String dic;
+  final String locale;
 }
 
 class ZReportLabels {
@@ -183,6 +185,8 @@ class ZReportLabels {
     required this.cashDifference,
     required this.shiftsTitle,
     required this.currencySymbol,
+    required this.locale,
+    required this.formatDuration,
     this.currency,
   });
 
@@ -220,5 +224,7 @@ class ZReportLabels {
   final String cashDifference;
   final String shiftsTitle;
   final String currencySymbol;
+  final String locale;
+  final String Function(Duration) formatDuration;
   final CurrencyModel? currency;
 }

@@ -8,7 +8,6 @@ import '../models/customer_transaction_model.dart';
 import '../models/company_model.dart';
 import '../models/display_device_model.dart';
 import '../models/company_settings_model.dart';
-import '../models/currency_model.dart';
 import '../models/item_model.dart';
 import '../models/layout_item_model.dart';
 import '../models/map_element_model.dart';
@@ -17,14 +16,11 @@ import '../models/order_item_model.dart';
 import '../models/order_model.dart';
 import '../models/payment_method_model.dart';
 import '../models/payment_model.dart';
-import '../models/permission_model.dart';
 import '../models/product_recipe_model.dart';
 import '../models/register_model.dart';
 import '../models/reservation_model.dart';
 import '../models/voucher_model.dart';
 import '../models/register_session_model.dart';
-import '../models/role_model.dart';
-import '../models/role_permission_model.dart';
 import '../models/section_model.dart';
 import '../models/shift_model.dart';
 import '../models/stock_document_model.dart';
@@ -444,55 +440,6 @@ Map<String, dynamic> companyToSupabaseJson(CompanyModel m) => {
       'deleted_at': toIso8601Utc(m.deletedAt),
     };
 
-// --- Global tables (no company_id) ---
-
-Map<String, dynamic> currencyToSupabaseJson(CurrencyModel m) => {
-      ..._baseGlobalSyncFields(
-        id: m.id,
-        createdAt: m.createdAt,
-        updatedAt: m.updatedAt,
-        deletedAt: m.deletedAt,
-      ),
-      'code': m.code,
-      'symbol': m.symbol,
-      'name': m.name,
-      'decimal_places': m.decimalPlaces,
-    };
-
-Map<String, dynamic> roleToSupabaseJson(RoleModel m) => {
-      ..._baseGlobalSyncFields(
-        id: m.id,
-        createdAt: m.createdAt,
-        updatedAt: m.updatedAt,
-        deletedAt: m.deletedAt,
-      ),
-      'name': m.name.name,
-    };
-
-Map<String, dynamic> permissionToSupabaseJson(PermissionModel m) => {
-      ..._baseGlobalSyncFields(
-        id: m.id,
-        createdAt: m.createdAt,
-        updatedAt: m.updatedAt,
-        deletedAt: m.deletedAt,
-      ),
-      'code': m.code,
-      'name': m.name,
-      'description': m.description,
-      'category': m.category,
-    };
-
-Map<String, dynamic> rolePermissionToSupabaseJson(RolePermissionModel m) => {
-      ..._baseGlobalSyncFields(
-        id: m.id,
-        createdAt: m.createdAt,
-        updatedAt: m.updatedAt,
-        deletedAt: m.deletedAt,
-      ),
-      'role_id': m.roleId,
-      'permission_id': m.permissionId,
-    };
-
 // --- Company-scoped tables (new) ---
 
 Map<String, dynamic> displayDeviceToSupabaseJson(DisplayDeviceModel m) => {
@@ -531,10 +478,14 @@ Map<String, dynamic> registerToSupabaseJson(RegisterModel m) => {
       'allow_cash': m.allowCash,
       'allow_card': m.allowCard,
       'allow_transfer': m.allowTransfer,
+      'allow_credit': m.allowCredit,
+      'allow_voucher': m.allowVoucher,
+      'allow_other': m.allowOther,
       'allow_refunds': m.allowRefunds,
       'grid_rows': m.gridRows,
       'grid_cols': m.gridCols,
       'display_cart_json': m.displayCartJson,
+      'sell_mode': m.sellMode.name,
     };
 
 Map<String, dynamic> registerSessionToSupabaseJson(RegisterSessionModel m) => {

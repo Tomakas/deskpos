@@ -9,6 +9,7 @@ import '../../../core/data/providers/printing_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/printing/receipt_data.dart';
+import '../../../core/utils/file_opener.dart';
 
 /// Generates receipt PDF, saves to temp file, and opens with system viewer.
 /// On macOS, Preview.app opens with built-in print (Cmd+P).
@@ -19,6 +20,7 @@ Future<void> showReceiptPrintDialog(
 ) async {
   final l = context.l10n;
   final service = ref.read(printingServiceProvider);
+  final locale = ref.read(appLocaleProvider).value ?? 'cs';
 
   final labels = ReceiptLabels(
     subtotal: l.receiptSubtotal,
@@ -40,6 +42,7 @@ Future<void> showReceiptPrintDialog(
     thankYou: l.receiptThankYou,
     ico: l.receiptIco,
     dic: l.receiptDic,
+    locale: locale,
   );
 
   try {
@@ -55,7 +58,7 @@ Future<void> showReceiptPrintDialog(
     if (!dir.existsSync()) dir.createSync(recursive: true);
     final file = File('${dir.path}/receipt_$billId.pdf');
     await file.writeAsBytes(pdfBytes);
-    await Process.run('open', [file.path]);
+    await FileOpener.share(file.path);
   } catch (e, s) {
     AppLogger.error('Failed to print receipt', error: e, stackTrace: s);
   }

@@ -6,6 +6,7 @@ class PosDialogShell extends StatelessWidget {
   const PosDialogShell({
     super.key,
     required this.title,
+    this.titleWidget,
     required this.children,
     this.maxWidth = 420,
     this.maxHeight,
@@ -16,6 +17,7 @@ class PosDialogShell extends StatelessWidget {
   });
 
   final String title;
+  final Widget? titleWidget;
   final List<Widget> children;
   final double maxWidth;
   final double? maxHeight;
@@ -28,7 +30,7 @@ class PosDialogShell extends StatelessWidget {
   Widget build(BuildContext context) {
     final style = titleStyle ?? Theme.of(context).textTheme.titleLarge;
     final content = <Widget>[
-      Center(child: Text(title, style: style)),
+      titleWidget != null ? Center(child: titleWidget!) : Center(child: Text(title, style: style)),
       const SizedBox(height: PosDialogTheme.sectionSpacing),
       ...children,
     ];

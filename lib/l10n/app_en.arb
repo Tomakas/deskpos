@@ -170,6 +170,7 @@
   "sellCartEmpty": "Cart is empty",
   "sellTotal": "Total",
   "sellCancelOrder": "Cancel",
+  "sellClearCart": "Clear Cart",
   "sellSaveToBill": "Save",
   "sellSubmitOrder": "Order",
   "sellSearch": "Search",
@@ -289,6 +290,10 @@
   "settingsSectionCompanyInfo": "Company Information",
   "settingsSectionSecurity": "Security",
   "settingsSectionCloud": "Cloud",
+  "settingsSectionSellOptions": "Sell Options",
+  "settingsSellMode": "Sell Mode",
+  "sellModeGastro": "Gastro",
+  "sellModeRetail": "Retail",
   "settingsSectionGrid": "Grid Display",
   "companyFieldVatNumber": "VAT Number",
   "settingsLanguage": "App language",
@@ -307,6 +312,10 @@
   "cloudEmailRequired": "Email is required",
   "cloudPasswordRequired": "Password is required",
   "cloudPasswordLength": "Password must be at least 6 characters",
+
+  "cloudDiagnostics": "Diagnostics",
+  "cloudExportLogs": "Export Logs",
+  "cloudExportLogsDescription": "Opens the application log file for troubleshooting.",
 
   "cloudDangerZone": "Danger Zone",
   "cloudDeleteLocalData": "Delete Local Data",
@@ -380,10 +389,12 @@
   "paymentOtherCurrency": "Other Currency",
   "paymentEet": "EET",
   "paymentEditAmount": "Edit Amount",
+  "paymentMoreActions": "More Actions",
   "paymentMixPayments": "Mixed Payments",
   "paymentOtherPayment": "Other Payment",
   "paymentPrintReceipt": "Print Receipt",
   "paymentPrintYes": "YES",
+  "paymentPrintNo": "NO",
   "paymentTip": "Tip: {amount}",
   "@paymentTip": {
     "placeholders": { "amount": { "type": "String" } }
@@ -405,8 +416,9 @@
   "refundFullBill": "Full Bill",
   "refundSelectItems": "Select Items",
   "changeTotalTitle": "Edit Amount",
-  "changeTotalOriginal": "Original Amount",
-  "changeTotalEdited": "Edited Amount",
+  "changeTotalOriginal": "Original",
+  "changeTotalEdited": "Edited",
+  "changeTotalDifference": "Change",
 
   "newBillSave": "Save",
   "newBillOrder": "Order",
@@ -688,6 +700,7 @@
   "reservationColumnStatus": "Status",
 
   "paymentTypeCredit": "Credit",
+  "paymentTypeVoucher": "Meal Vouchers",
 
   "loyaltySectionTitle": "Loyalty Program",
   "loyaltyEarnRate": "Points per {unit}",
@@ -897,6 +910,9 @@
   "registerAllowCash": "Cash",
   "registerAllowCard": "Card",
   "registerAllowTransfer": "Transfer",
+  "registerAllowCredit": "Credit",
+  "registerAllowVoucher": "Meal Vouchers",
+  "registerAllowOther": "Other",
   "registerAllowRefunds": "Refunds",
   "registerPaymentFlags": "Allowed Payments",
   "registerTypeLocal": "Local",
@@ -929,12 +945,8 @@
 
   "modeTitle": "Mode",
   "modePOS": "POS",
-  "modePOSDescription": "Standard sales mode",
   "modeKDS": "Kitchen Display",
-  "modeKDSDescription": "Displays active orders for kitchen",
   "modeCustomerDisplay": "Customer Display",
-  "modeCustomerDisplayDescription": "Shows bill to customer",
-  "modeCustomerDisplaySelectRegister": "Monitored Register",
 
   "customerDisplayThankYou": "Thank You!",
   "customerDisplayPaid": "Paid",
@@ -984,6 +996,7 @@
     "placeholders": { "email": { "type": "String" } }
   },
 
+  "actionExitApp": "Exit App",
   "actionOk": "OK",
   "errorGeneric": "Error: {error}",
   "@errorGeneric": {
@@ -992,5 +1005,18 @@
   "loyaltyMaxPoints": "Max: {points}",
   "@loyaltyMaxPoints": {
     "placeholders": { "points": { "type": "Object" } }
+  },
+
+  "durationHoursMinutes": "{h} h {m} min",
+  "@durationHoursMinutes": {
+    "placeholders": { "h": { "type": "int" }, "m": { "type": "int" } }
+  },
+  "durationHoursOnly": "{h} h",
+  "@durationHoursOnly": {
+    "placeholders": { "h": { "type": "int" } }
+  },
+  "durationMinutesOnly": "{m} min",
+  "@durationMinutesOnly": {
+    "placeholders": { "m": { "type": "int" } }
   }
 }

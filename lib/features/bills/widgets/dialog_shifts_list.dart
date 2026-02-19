@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/utils/formatters.dart';
 import '../../../core/utils/formatting_ext.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_table.dart';
@@ -43,14 +44,6 @@ class _DialogShiftsListState extends ConsumerState<DialogShiftsList> {
     }).toList();
   }
 
-  String _fmtDuration(Duration d) {
-    final h = d.inHours;
-    final m = d.inMinutes.remainder(60);
-    if (h > 0 && m > 0) return '${h}h ${m}min';
-    if (h > 0) return '${h}h';
-    return '${m}min';
-  }
-
   Future<void> _pickDate(BuildContext context, bool isFrom) async {
     final initial = isFrom ? _dateFrom : _dateTo;
     final result = await showDatePicker(
@@ -75,6 +68,8 @@ class _DialogShiftsListState extends ConsumerState<DialogShiftsList> {
     final l = context.l10n;
     final theme = Theme.of(context);
     final filtered = _filteredShifts;
+    String fmtDur(Duration d) => formatDuration(d,
+        hm: l.durationHoursMinutes, hOnly: l.durationHoursOnly, mOnly: l.durationMinutesOnly);
 
     return PosDialogShell(
       title: l.shiftsListTitle,
@@ -126,7 +121,7 @@ class _DialogShiftsListState extends ConsumerState<DialogShiftsList> {
                 numeric: true,
                 cellBuilder: (s) {
                   final duration = (s.logoutAt ?? DateTime.now()).difference(s.loginAt);
-                  return Text(_fmtDuration(duration), textAlign: TextAlign.right);
+                  return Text(fmtDur(duration), textAlign: TextAlign.right);
                 },
               ),
             ],

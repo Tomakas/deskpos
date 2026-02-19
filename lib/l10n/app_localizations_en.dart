@@ -400,6 +400,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sellCancelOrder => 'Cancel';
 
   @override
+  String get sellClearCart => 'Clear Cart';
+
+  @override
   String get sellSaveToBill => 'Save';
 
   @override
@@ -688,6 +691,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsSectionCloud => 'Cloud';
 
   @override
+  String get settingsSectionSellOptions => 'Sell Options';
+
+  @override
+  String get settingsSellMode => 'Sell Mode';
+
+  @override
+  String get sellModeGastro => 'Gastro';
+
+  @override
+  String get sellModeRetail => 'Retail';
+
+  @override
   String get settingsSectionGrid => 'Grid Display';
 
   @override
@@ -737,6 +752,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cloudPasswordLength => 'Password must be at least 6 characters';
+
+  @override
+  String get cloudDiagnostics => 'Diagnostics';
+
+  @override
+  String get cloudExportLogs => 'Export Logs';
+
+  @override
+  String get cloudExportLogsDescription =>
+      'Opens the application log file for troubleshooting.';
 
   @override
   String get cloudDangerZone => 'Danger Zone';
@@ -937,6 +962,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paymentEditAmount => 'Edit Amount';
 
   @override
+  String get paymentMoreActions => 'More Actions';
+
+  @override
   String get paymentMixPayments => 'Mixed Payments';
 
   @override
@@ -947,6 +975,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get paymentPrintYes => 'YES';
+
+  @override
+  String get paymentPrintNo => 'NO';
 
   @override
   String paymentTip(String amount) {
@@ -987,10 +1018,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get changeTotalTitle => 'Edit Amount';
 
   @override
-  String get changeTotalOriginal => 'Original Amount';
+  String get changeTotalOriginal => 'Original';
 
   @override
-  String get changeTotalEdited => 'Edited Amount';
+  String get changeTotalEdited => 'Edited';
+
+  @override
+  String get changeTotalDifference => 'Change';
 
   @override
   String get newBillSave => 'Save';
@@ -1701,6 +1735,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paymentTypeCredit => 'Credit';
 
   @override
+  String get paymentTypeVoucher => 'Meal Vouchers';
+
+  @override
   String get loyaltySectionTitle => 'Loyalty Program';
 
   @override
@@ -2164,6 +2201,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get registerAllowTransfer => 'Transfer';
 
   @override
+  String get registerAllowCredit => 'Credit';
+
+  @override
+  String get registerAllowVoucher => 'Meal Vouchers';
+
+  @override
+  String get registerAllowOther => 'Other';
+
+  @override
   String get registerAllowRefunds => 'Refunds';
 
   @override
@@ -2247,22 +2293,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get modePOS => 'POS';
 
   @override
-  String get modePOSDescription => 'Standard sales mode';
-
-  @override
   String get modeKDS => 'Kitchen Display';
 
   @override
-  String get modeKDSDescription => 'Displays active orders for kitchen';
-
-  @override
   String get modeCustomerDisplay => 'Customer Display';
-
-  @override
-  String get modeCustomerDisplayDescription => 'Shows bill to customer';
-
-  @override
-  String get modeCustomerDisplaySelectRegister => 'Monitored Register';
 
   @override
   String get customerDisplayThankYou => 'Thank You!';
@@ -2385,6 +2419,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get actionExitApp => 'Exit App';
+
+  @override
   String get actionOk => 'OK';
 
   @override
@@ -2395,5 +2432,20 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String loyaltyMaxPoints(Object points) {
     return 'Max: $points';
+  }
+
+  @override
+  String durationHoursMinutes(int h, int m) {
+    return '$h h $m min';
+  }
+
+  @override
+  String durationHoursOnly(int h) {
+    return '$h h';
+  }
+
+  @override
+  String durationMinutesOnly(int m) {
+    return '$m min';
   }
 }

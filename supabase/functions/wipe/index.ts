@@ -14,7 +14,7 @@ function respond(body: Record<string, unknown>, status = 200) {
 
 // Tables in reverse FK dependency order (children first, parents last).
 // Company-scoped tables are deleted WHERE company_id = ?.
-// Global tables are deleted unconditionally (1 company = 1 Supabase project).
+// Global tables (currencies, roles, permissions, role_permissions) are server-owned and survive wipe.
 const COMPANY_TABLES = [
   "stock_movements",
   "stock_documents",
@@ -47,13 +47,6 @@ const COMPANY_TABLES = [
   "tax_rates",
   "sections",
   "company_settings",
-];
-
-const GLOBAL_TABLES = [
-  "role_permissions",
-  "permissions",
-  "roles",
-  "currencies",
 ];
 
 Deno.serve(async (req) => {
@@ -122,19 +115,6 @@ Deno.serve(async (req) => {
       if (error) {
         errors.push(`companies: ${error.code} ${error.message}`);
         console.error("Wipe companies failed:", error);
-      }
-    }
-
-    // --- Delete global tables (1 company = 1 Supabase project) ---
-    for (const table of GLOBAL_TABLES) {
-      const { error } = await serviceClient
-        .from(table)
-        .delete()
-        .neq("id", "__never_matches__");  // delete all rows
-
-      if (error) {
-        errors.push(`${table}: ${error.code} ${error.message}`);
-        console.error(`Wipe ${table} failed:`, error);
       }
     }
 

@@ -51,17 +51,31 @@ class _ScreenCustomerDisplayState extends ConsumerState<ScreenCustomerDisplay> {
       if (mounted) setState(() {});
     }
 
-    if (_code == null || !mounted) return;
+    if (_code == null || !mounted) {
+      if (_code == null) {
+        AppLogger.warn('CustomerDisplay: no code available, cannot join', tag: 'BROADCAST');
+      }
+      return;
+    }
 
     final channel = ref.read(customerDisplayChannelProvider);
     await channel.join('display:$_code');
-    _sub = channel.stream.listen(_onBroadcast);
+    _sub = channel.stream.listen(
+      _onBroadcast,
+      onError: (Object e, StackTrace s) {
+        AppLogger.error('CustomerDisplay: stream error on display:$_code', tag: 'BROADCAST', error: e, stackTrace: s);
+      },
+      onDone: () {
+        AppLogger.info('CustomerDisplay: stream closed for display:$_code', tag: 'BROADCAST');
+      },
+    );
     AppLogger.info('CustomerDisplay: joined display:$_code', tag: 'BROADCAST');
   }
 
   void _onBroadcast(Map<String, dynamic> payload) {
     _autoClearTimer?.cancel();
     final content = CustomerDisplayContent.fromJson(payload);
+    AppLogger.debug('CustomerDisplay: received broadcast, type=${content.runtimeType}', tag: 'BROADCAST');
     setState(() => _content = content);
 
     // Auto-clear messages after timeout
@@ -77,6 +91,7 @@ class _ScreenCustomerDisplayState extends ConsumerState<ScreenCustomerDisplay> {
 
   @override
   void dispose() {
+    AppLogger.debug('CustomerDisplay: disposing', tag: 'BROADCAST');
     _autoClearTimer?.cancel();
     _tapResetTimer?.cancel();
     _sub?.cancel();
@@ -205,6 +220,7 @@ class _ScreenCustomerDisplayState extends ConsumerState<ScreenCustomerDisplay> {
   }
 
   Future<void> _disconnect() async {
+    AppLogger.info('CustomerDisplay: disconnecting from display:$_code', tag: 'BROADCAST');
     final channel = ref.read(customerDisplayChannelProvider);
     channel.leave();
 

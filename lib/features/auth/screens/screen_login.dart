@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -8,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/auth/auth_service.dart';
 import '../../../core/auth/pin_helper.dart';
 import '../../../core/data/models/user_model.dart';
+import '../../../core/data/enums/sell_mode.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/result.dart';
@@ -90,33 +93,14 @@ class _ScreenLoginState extends ConsumerState<ScreenLogin> {
     );
   }
 
-  Widget _buildModeColumn(AppLocalizations l, {bool enabled = true}) {
-    final theme = Theme.of(context);
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(l.modeTitle, style: theme.textTheme.headlineMedium),
-        const SizedBox(height: 32),
-        RadioGroup<_LoginMode>(
-          groupValue: _selectedMode,
-          onChanged: enabled
-              ? (v) => setState(() { if (v != null) _selectedMode = v; })
-              : (v) {},
-          child: Column(
-            children: [
-              RadioListTile<_LoginMode>(
-                title: Text(l.modePOS),
-                value: _LoginMode.pos,
-              ),
-              RadioListTile<_LoginMode>(
-                title: Text(l.modeKDS),
-                value: _LoginMode.kds,
-              ),
-            ],
-          ),
-        ),
+  Widget _buildModeDropdown(AppLocalizations l) {
+    return DropdownButton<_LoginMode>(
+      value: _selectedMode,
+      isExpanded: true,
+      onChanged: (v) => setState(() { if (v != null) _selectedMode = v; }),
+      items: [
+        DropdownMenuItem(value: _LoginMode.pos, child: Text(l.modePOS)),
+        DropdownMenuItem(value: _LoginMode.kds, child: Text(l.modeKDS)),
       ],
     );
   }
@@ -126,38 +110,38 @@ class _ScreenLoginState extends ConsumerState<ScreenLogin> {
       return const CircularProgressIndicator();
     }
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        // Left column: users
-        Expanded(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(l.loginTitle, style: Theme.of(context).textTheme.headlineMedium),
-              const SizedBox(height: 32),
-              ..._users.map((user) => Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: SizedBox(
-                      width: double.infinity,
-                      height: 52,
-                      child: OutlinedButton(
-                        onPressed: () => setState(() {
-                          _selectedUser = user;
-                          _error = null;
-                          _pinCtrl.clear();
-                        }),
-                        child: Text(user.fullName),
-                      ),
-                    ),
-                  )),
-            ],
-          ),
-        ),
-        const SizedBox(width: 32),
-        // Right column: mode selector
-        Expanded(
-          child: _buildModeColumn(l),
+        Text(l.loginTitle, style: Theme.of(context).textTheme.headlineMedium),
+        const SizedBox(height: 32),
+        ..._users.map((user) => Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: OutlinedButton(
+                  onPressed: () => setState(() {
+                    _selectedUser = user;
+                    _error = null;
+                    _pinCtrl.clear();
+                  }),
+                  child: Text(user.fullName),
+                ),
+              ),
+            )),
+        const SizedBox(height: 24),
+        _buildModeDropdown(l),
+        const SizedBox(height: 24),
+        TextButton(
+          onPressed: () {
+            if (Platform.isMacOS || Platform.isWindows || Platform.isLinux) {
+              exit(0);
+            } else {
+              SystemNavigator.pop();
+            }
+          },
+          child: Text(l.actionExitApp),
         ),
       ],
     );
@@ -183,64 +167,51 @@ class _ScreenLoginState extends ConsumerState<ScreenLogin> {
   Widget _buildPinEntry(AppLocalizations l) {
     final pinLength = _pinCtrl.text.length;
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        // Left column: PIN entry
-        Expanded(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                _selectedUser!.fullName,
-                style: Theme.of(context).textTheme.headlineMedium,
-              ),
-              const SizedBox(height: 24),
-              // PIN stars
-              SizedBox(
-                height: 32,
-                child: Text(
-                  '*' * pinLength,
-                  style: TextStyle(
-                    fontSize: 28,
-                    letterSpacing: 12,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-              // Error / lockout text
-              if (_lockSeconds != null)
-                Text(
-                  l.loginLockedOut(_lockSeconds!),
-                  style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 13),
-                )
-              else if (_error != null)
-                Text(
-                  _error!,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 13),
-                ),
-              const SizedBox(height: 16),
-              // Numpad
-              PosNumpad(
-                width: 280,
-                enabled: _lockSeconds == null && !_isLoggingIn,
-                onDigit: _numpadTap,
-                onBackspace: _numpadBackspace,
-                bottomLeftChild: const Icon(Icons.arrow_back),
-                onBottomLeft: () => setState(() {
-                  _selectedUser = null;
-                  _error = null;
-                  _pinCtrl.clear();
-                }),
-              ),
-            ],
+        Text(
+          _selectedUser!.fullName,
+          style: Theme.of(context).textTheme.headlineMedium,
+        ),
+        const SizedBox(height: 24),
+        // PIN stars
+        SizedBox(
+          height: 32,
+          child: Text(
+            '*' * pinLength,
+            style: TextStyle(
+              fontSize: 28,
+              letterSpacing: 12,
+              color: Theme.of(context).colorScheme.primary,
+            ),
           ),
         ),
-        const SizedBox(width: 32),
-        // Right column: mode (disabled during PIN entry)
-        Expanded(
-          child: _buildModeColumn(l, enabled: false),
+        const SizedBox(height: 8),
+        // Error / lockout text
+        if (_lockSeconds != null)
+          Text(
+            l.loginLockedOut(_lockSeconds!),
+            style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 13),
+          )
+        else if (_error != null)
+          Text(
+            _error!,
+            style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 13),
+          ),
+        const SizedBox(height: 16),
+        // Numpad
+        PosNumpad(
+          width: 280,
+          enabled: _lockSeconds == null && !_isLoggingIn,
+          onDigit: _numpadTap,
+          onBackspace: _numpadBackspace,
+          bottomLeftChild: const Icon(Icons.arrow_back),
+          onBottomLeft: () => setState(() {
+            _selectedUser = null;
+            _error = null;
+            _pinCtrl.clear();
+          }),
         ),
       ],
     );
@@ -316,7 +287,15 @@ class _ScreenLoginState extends ConsumerState<ScreenLogin> {
       ref.read(activeUserProvider.notifier).state = _selectedUser;
       ref.read(loggedInUsersProvider.notifier).state = session.loggedInUsers;
       // Navigate based on mode
-      if (mounted) context.go(_selectedMode == _LoginMode.kds ? '/kds' : '/bills');
+      if (mounted) {
+        if (_selectedMode == _LoginMode.kds) {
+          context.go('/kds');
+        } else {
+          final reg = await ref.read(activeRegisterProvider.future);
+          if (!mounted) return;
+          context.go(reg?.sellMode == SellMode.retail ? '/sell' : '/bills');
+        }
+      }
     } finally {
       if (mounted) setState(() => _isLoggingIn = false);
     }

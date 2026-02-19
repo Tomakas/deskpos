@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
@@ -30,14 +29,6 @@ class ZReportPdfBuilder {
         : '${pct.toStringAsFixed(1)}%';
   }
 
-  String _fmtDuration(Duration d) {
-    final h = d.inHours;
-    final m = d.inMinutes.remainder(60);
-    if (h > 0 && m > 0) return '${h}h ${m}min';
-    if (h > 0) return '${h}h';
-    return '${m}min';
-  }
-
   Future<Uint8List> build() async {
     final doc = pw.Document();
 
@@ -48,8 +39,8 @@ class ZReportPdfBuilder {
     final smallStyle = pw.TextStyle(font: regular, fontSize: 9);
     final smallBoldStyle = pw.TextStyle(font: bold, fontSize: 9);
 
-    final dateFormat = DateFormat('d.M.yyyy', 'cs');
-    final timeFormat = DateFormat('HH:mm', 'cs');
+    String fmtDate(DateTime dt) => formatDateOnlyForPrint(dt, labels.locale);
+    String fmtTime(DateTime dt) => formatTimeForPrint(dt, labels.locale);
 
     doc.addPage(
       pw.MultiPage(
@@ -66,13 +57,13 @@ class ZReportPdfBuilder {
           pw.Text(labels.session, style: sectionStyle),
           pw.SizedBox(height: 6),
           _row(labels.openedAt,
-              '${dateFormat.format(data.openedAt)} ${timeFormat.format(data.openedAt)}',
+              '${fmtDate(data.openedAt)} ${fmtTime(data.openedAt)}',
               baseStyle),
           if (data.closedAt != null)
             _row(labels.closedAt,
-                '${dateFormat.format(data.closedAt!)} ${timeFormat.format(data.closedAt!)}',
+                '${fmtDate(data.closedAt!)} ${fmtTime(data.closedAt!)}',
                 baseStyle),
-          _row(labels.duration, _fmtDuration(data.duration), baseStyle),
+          _row(labels.duration, labels.formatDuration(data.duration), baseStyle),
           _row(labels.openedBy, data.openedByName, baseStyle),
           pw.Divider(),
 
@@ -207,7 +198,7 @@ class ZReportPdfBuilder {
             pw.Text(labels.shiftsTitle, style: sectionStyle),
             pw.SizedBox(height: 6),
             for (final entry in data.shiftDurations.values)
-              _row(entry.$1, _fmtDuration(entry.$2), baseStyle),
+              _row(entry.$1, labels.formatDuration(entry.$2), baseStyle),
           ],
         ],
       ),

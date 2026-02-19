@@ -17,19 +17,15 @@ import '../mappers/entity_mappers.dart';
 import '../models/category_model.dart';
 import '../models/company_model.dart';
 import '../models/company_settings_model.dart';
-import '../models/currency_model.dart';
 import '../models/customer_model.dart';
 import '../models/item_model.dart';
 import '../models/manufacturer_model.dart';
 import '../models/map_element_model.dart';
 import '../models/payment_method_model.dart';
-import '../models/permission_model.dart';
 import '../models/register_model.dart';
-import '../models/role_model.dart';
 import '../models/section_model.dart';
 import '../models/supplier_model.dart';
 import '../models/table_model.dart';
-import '../models/role_permission_model.dart';
 import '../models/tax_rate_model.dart';
 import '../models/user_model.dart';
 import '../models/user_permission_model.dart';
@@ -58,11 +54,31 @@ class SeedService {
     required String authUserId,
   }) async {
     try {
+      // Look up server-owned global data (pulled during onboarding)
+      final currencyEntity = await (_db.select(_db.currencies)
+            ..where((c) => c.code.equals(defaultCurrencyCode)))
+          .getSingleOrNull();
+      if (currencyEntity == null) {
+        return Failure('Currency $defaultCurrencyCode not found. Global data not pulled.');
+      }
+      final currencyId = currencyEntity.id;
+
+      final adminRoleEntity = await (_db.select(_db.roles)
+            ..where((r) => r.name.equalsValue(RoleName.admin)))
+          .getSingleOrNull();
+      if (adminRoleEntity == null) {
+        return Failure('Admin role not found. Global data not pulled.');
+      }
+      final adminRoleId = adminRoleEntity.id;
+
+      final permissionEntities = await (_db.select(_db.permissions)
+            ..where((p) => p.deletedAt.isNull()))
+          .get();
+      if (permissionEntities.isEmpty) {
+        return Failure('Permissions not found. Global data not pulled.');
+      }
+
       final companyId = _id();
-      var currencyId = _id();
-      final adminRoleId = _id();
-      final operatorRoleId = _id();
-      final helperRoleId = _id();
       final userId = _id();
       final registerId = _id();
       final now = DateTime.now();
@@ -73,38 +89,7 @@ class SeedService {
         // Bilingual helper — returns Czech or English string based on locale
         String t(String cs, String en) => locale == 'en' ? en : cs;
 
-        // 1. Currencies (global table — check-before-insert to avoid duplicates)
-        final currencyDefs = [
-          (code: 'CZK', symbol: 'Kč', name: 'Česká koruna', decimalPlaces: 2),
-          (code: 'EUR', symbol: '€', name: 'Euro', decimalPlaces: 2),
-          (code: 'USD', symbol: '\$', name: 'US Dollar', decimalPlaces: 2),
-          (code: 'PLN', symbol: 'zł', name: 'Polski złoty', decimalPlaces: 2),
-          (code: 'HUF', symbol: 'Ft', name: 'Magyar forint', decimalPlaces: 0),
-        ];
-        for (final def in currencyDefs) {
-          final existing = await (_db.select(_db.currencies)
-                ..where((c) => c.code.equals(def.code)))
-              .getSingleOrNull();
-          if (existing == null) {
-            final id = def.code == defaultCurrencyCode ? currencyId : _id();
-            await _db.into(_db.currencies).insert(currencyToCompanion(
-              CurrencyModel(
-                id: id,
-                code: def.code,
-                symbol: def.symbol,
-                name: def.name,
-                decimalPlaces: def.decimalPlaces,
-                createdAt: now,
-                updatedAt: now,
-              ),
-            ));
-          } else if (def.code == defaultCurrencyCode) {
-            // Ensure currencyId points to the existing default currency for company
-            currencyId = existing.id;
-          }
-        }
-
-        // 2. Company
+        // 1. Company
         final company = CompanyModel(
           id: companyId,
           name: companyName,
@@ -120,7 +105,7 @@ class SeedService {
         );
         await _db.into(_db.companies).insert(companyToCompanion(company));
 
-        // 2b. Company settings (defaults)
+        // 1b. Company settings (defaults)
         final settings = CompanySettingsModel(
           id: _id(),
           companyId: companyId,
@@ -130,7 +115,7 @@ class SeedService {
         );
         await _db.into(_db.companySettings).insert(companySettingsToCompanion(settings));
 
-        // 3. Tax rates
+        // 2. Tax rates
         final taxRate21Id = _id();
         final taxRate12Id = _id();
         final taxRates = [
@@ -167,80 +152,7 @@ class SeedService {
           await _db.into(_db.taxRates).insert(taxRateToCompanion(tr));
         }
 
-        // 4. Permissions (16)
-        final permissionDefs = _getPermissionDefinitions();
-        final permissionModels = <PermissionModel>[];
-        for (final def in permissionDefs) {
-          final p = PermissionModel(
-            id: _id(),
-            code: def['code']!,
-            name: def['name']!,
-            description: def['description'],
-            category: def['category']!,
-            createdAt: now,
-            updatedAt: now,
-          );
-          permissionModels.add(p);
-          await _db.into(_db.permissions).insert(permissionToCompanion(p));
-        }
-
-        // 5. Roles
-        final roles = [
-          RoleModel(id: helperRoleId, name: RoleName.helper, createdAt: now, updatedAt: now),
-          RoleModel(id: operatorRoleId, name: RoleName.operator, createdAt: now, updatedAt: now),
-          RoleModel(id: adminRoleId, name: RoleName.admin, createdAt: now, updatedAt: now),
-        ];
-        for (final r in roles) {
-          await _db.into(_db.roles).insert(roleToCompanion(r));
-        }
-
-        // 6. Role permissions
-        final helperCodes = {
-          'bills.create',
-          'bills.view',
-          'orders.create',
-          'orders.view',
-          'products.view',
-          'customers.view',
-        };
-        final operatorCodes = {
-          ...helperCodes,
-          'bills.void',
-          'bills.discount',
-          'orders.void',
-          'orders.discount',
-          'tables.manage',
-        };
-        final adminCodes = {
-          ...operatorCodes,
-          'products.manage',
-          'users.view',
-          'users.manage',
-          'settings.manage',
-          'customers.manage',
-        };
-
-        final roleCodeMap = {
-          helperRoleId: helperCodes,
-          operatorRoleId: operatorCodes,
-          adminRoleId: adminCodes,
-        };
-
-        for (final entry in roleCodeMap.entries) {
-          for (final code in entry.value) {
-            final perm = permissionModels.firstWhere((p) => p.code == code);
-            final rp = RolePermissionModel(
-              id: _id(),
-              roleId: entry.key,
-              permissionId: perm.id,
-              createdAt: now,
-              updatedAt: now,
-            );
-            await _db.into(_db.rolePermissions).insert(rolePermissionToCompanion(rp));
-          }
-        }
-
-        // 7. Payment methods
+        // 3. Payment methods
         final paymentMethods = [
           PaymentMethodModel(
             id: _id(),
@@ -275,12 +187,21 @@ class SeedService {
             createdAt: now,
             updatedAt: now,
           ),
+          PaymentMethodModel(
+            id: _id(),
+            companyId: companyId,
+            name: t('Stravenky', 'Meal Vouchers'),
+            type: PaymentType.voucher,
+            isActive: true,
+            createdAt: now,
+            updatedAt: now,
+          ),
         ];
         for (final pm in paymentMethods) {
           await _db.into(_db.paymentMethods).insert(paymentMethodToCompanion(pm));
         }
 
-        // 8. Sections — always create Hlavní, demo adds Zahrádka + Interní
+        // 4. Sections — always create Hlavní, demo adds Zahrádka + Interní
         final hlavniId = _id();
         await _db.into(_db.sections).insert(sectionToCompanion(
           SectionModel(id: hlavniId, companyId: companyId, name: t('Hlavní', 'Main'), color: '#4CAF50', isDefault: true, createdAt: now, updatedAt: now),
@@ -301,7 +222,7 @@ class SeedService {
           }
         }
 
-        // 9. Register
+        // 5. Register
         final register = RegisterModel(
           id: registerId,
           companyId: companyId,
@@ -330,7 +251,7 @@ class SeedService {
               type: register.type,
             ));
 
-        // 9b. Auto-bind device to the main register
+        // 5b. Auto-bind device to the main register
         await _db.into(_db.deviceRegistrations).insert(
           DeviceRegistrationsCompanion.insert(
             id: _id(),
@@ -340,7 +261,7 @@ class SeedService {
           ),
         );
 
-        // 10. Admin user
+        // 6. Admin user
         final user = UserModel(
           id: userId,
           companyId: companyId,
@@ -353,13 +274,13 @@ class SeedService {
         );
         await _db.into(_db.users).insert(userToCompanion(user));
 
-        // 11. User permissions (admin gets all 16)
-        for (final perm in permissionModels) {
+        // 7. User permissions (admin gets all permissions)
+        for (final permEntity in permissionEntities) {
           final up = UserPermissionModel(
             id: _id(),
             companyId: companyId,
             userId: userId,
-            permissionId: perm.id,
+            permissionId: permEntity.id,
             grantedBy: userId,
             createdAt: now,
             updatedAt: now,
@@ -372,7 +293,7 @@ class SeedService {
         // ── DEMO DATA (only with withTestData) ──
 
         if (withTestData) {
-          // 12. Tables — Hlavní & Zahrádka placed on floor map, Interní off-map
+          // 8. Tables — Hlavní & Zahrádka placed on floor map, Interní off-map
           final tables = [
             // Hlavní section — floor map layout
             TableModel(id: _id(), companyId: companyId, name: t('Stůl 1', 'Table 1'), sectionId: hlavniId, capacity: 4, gridRow: 1, gridCol: 1, gridWidth: 4, gridHeight: 4, shape: TableShape.round, fontSize: 14, createdAt: now, updatedAt: now),
@@ -400,7 +321,7 @@ class SeedService {
             await _db.into(_db.tables).insert(tableToCompanion(t));
           }
 
-          // 12b. Map elements — Hlavní section floor map decorations
+          // 8b. Map elements — Hlavní section floor map decorations
           final mapElements = [
             MapElementModel(id: _id(), companyId: companyId, sectionId: hlavniId, gridRow: 0, gridCol: 6, gridWidth: 1, gridHeight: 11, color: '#000000', fillStyle: 1, borderStyle: 1, createdAt: now, updatedAt: now),
             MapElementModel(id: _id(), companyId: companyId, sectionId: hlavniId, gridRow: 7, gridCol: 24, gridWidth: 2, gridHeight: 11, label: 'BAR', color: '#795548', fillStyle: 2, borderStyle: 2, createdAt: now, updatedAt: now),
@@ -415,7 +336,7 @@ class SeedService {
             await _db.into(_db.mapElements).insert(mapElementToCompanion(e));
           }
 
-          // 13. Suppliers & Manufacturers (IDs needed by items below)
+          // 9. Suppliers & Manufacturers (IDs needed by items below)
           final supplierMakroId = _id();
           final supplierNapojeId = _id();
           final suppliers = [
@@ -454,7 +375,7 @@ class SeedService {
             await _db.into(_db.manufacturers).insert(manufacturerToCompanion(m));
           }
 
-          // 14. Categories
+          // 10. Categories
           final catNapoje = _id();
           final catPivo = _id();
           final catHlavniJidla = _id();
@@ -475,7 +396,7 @@ class SeedService {
             await _db.into(_db.categories).insert(categoryToCompanion(c));
           }
 
-          // 15. Items — all ItemType variants, realistic SKU/prices/relations
+          // 11. Items — all ItemType variants, realistic SKU/prices/relations
           final sellableByCategory = <String, List<String>>{};
 
           Future<void> ins(ItemModel item) async {
@@ -558,7 +479,7 @@ class SeedService {
           await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catSluzby, name: t('Pronájem sálu (hodina)', 'Hall Rental (hour)'), itemType: ItemType.service, sku: 'SLU-001', unitPrice: 150000, saleTaxRateId: taxRate21Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
           await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catSluzby, name: t('Raut – obsluha (osoba)', 'Catering – Staff (person)'), itemType: ItemType.service, sku: 'SLU-002', unitPrice: 50000, saleTaxRateId: taxRate21Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
 
-          // 16. Layout items for sell grid (horizontal — matches auto-arrange)
+          // 12. Layout items for sell grid (horizontal — matches auto-arrange)
           final gridRows = 5;
           final gridCols = 8;
           final categoryIds = [catNapoje, catPivo, catHlavniJidla,
@@ -642,7 +563,7 @@ class SeedService {
             }
           }
 
-          // 17. Customers (varying completeness for testing)
+          // 13. Customers (varying completeness for testing)
           final customers = [
             // Frequent guest — has everything, recent visit, points, spending history
             CustomerModel(id: _id(), companyId: companyId, firstName: 'Martin', lastName: 'Svoboda', email: 'martin.svoboda@email.cz', phone: '+420 777 111 222', points: 120, totalSpent: 458000, lastVisitDate: now.subtract(const Duration(days: 3)), createdAt: now, updatedAt: now),
@@ -669,24 +590,4 @@ class SeedService {
     }
   }
 
-  List<Map<String, String>> _getPermissionDefinitions() {
-    return [
-      {'code': 'bills.create', 'name': 'Create bill', 'category': 'bills'},
-      {'code': 'bills.view', 'name': 'View bills', 'category': 'bills'},
-      {'code': 'bills.void', 'name': 'Void bill', 'category': 'bills'},
-      {'code': 'bills.discount', 'name': 'Apply bill discount', 'category': 'bills'},
-      {'code': 'orders.create', 'name': 'Create order', 'category': 'orders'},
-      {'code': 'orders.view', 'name': 'View orders', 'category': 'orders'},
-      {'code': 'orders.void', 'name': 'Void order', 'category': 'orders'},
-      {'code': 'orders.discount', 'name': 'Apply item discount', 'category': 'orders'},
-      {'code': 'products.view', 'name': 'View products', 'category': 'products'},
-      {'code': 'products.manage', 'name': 'Manage products', 'category': 'products'},
-      {'code': 'tables.manage', 'name': 'Manage tables', 'category': 'tables'},
-      {'code': 'users.view', 'name': 'View users', 'category': 'users'},
-      {'code': 'users.manage', 'name': 'Manage users', 'category': 'users'},
-      {'code': 'settings.manage', 'name': 'Manage settings', 'category': 'settings'},
-      {'code': 'customers.view', 'name': 'View customers', 'category': 'customers'},
-      {'code': 'customers.manage', 'name': 'Manage customers', 'category': 'customers'},
-    ];
-  }
 }

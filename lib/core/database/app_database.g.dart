@@ -21555,6 +21555,51 @@ class $RegistersTable extends Registers
     ),
     defaultValue: const Constant(true),
   );
+  static const VerificationMeta _allowCreditMeta = const VerificationMeta(
+    'allowCredit',
+  );
+  @override
+  late final GeneratedColumn<bool> allowCredit = GeneratedColumn<bool>(
+    'allow_credit',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("allow_credit" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  static const VerificationMeta _allowVoucherMeta = const VerificationMeta(
+    'allowVoucher',
+  );
+  @override
+  late final GeneratedColumn<bool> allowVoucher = GeneratedColumn<bool>(
+    'allow_voucher',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("allow_voucher" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  static const VerificationMeta _allowOtherMeta = const VerificationMeta(
+    'allowOther',
+  );
+  @override
+  late final GeneratedColumn<bool> allowOther = GeneratedColumn<bool>(
+    'allow_other',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("allow_other" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
   static const VerificationMeta _allowRefundsMeta = const VerificationMeta(
     'allowRefunds',
   );
@@ -21628,6 +21673,16 @@ class $RegistersTable extends Registers
     requiredDuringInsert: false,
   );
   @override
+  late final GeneratedColumnWithTypeConverter<SellMode, String> sellMode =
+      GeneratedColumn<String>(
+        'sell_mode',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultValue: Constant(SellMode.gastro.name),
+      ).withConverter<SellMode>($RegistersTable.$convertersellMode);
+  @override
   List<GeneratedColumn> get $columns => [
     lastSyncedAt,
     version,
@@ -21648,12 +21703,16 @@ class $RegistersTable extends Registers
     allowCash,
     allowCard,
     allowTransfer,
+    allowCredit,
+    allowVoucher,
+    allowOther,
     allowRefunds,
     boundDeviceId,
     activeBillId,
     gridRows,
     gridCols,
     displayCartJson,
+    sellMode,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -21796,6 +21855,30 @@ class $RegistersTable extends Registers
         ),
       );
     }
+    if (data.containsKey('allow_credit')) {
+      context.handle(
+        _allowCreditMeta,
+        allowCredit.isAcceptableOrUnknown(
+          data['allow_credit']!,
+          _allowCreditMeta,
+        ),
+      );
+    }
+    if (data.containsKey('allow_voucher')) {
+      context.handle(
+        _allowVoucherMeta,
+        allowVoucher.isAcceptableOrUnknown(
+          data['allow_voucher']!,
+          _allowVoucherMeta,
+        ),
+      );
+    }
+    if (data.containsKey('allow_other')) {
+      context.handle(
+        _allowOtherMeta,
+        allowOther.isAcceptableOrUnknown(data['allow_other']!, _allowOtherMeta),
+      );
+    }
     if (data.containsKey('allow_refunds')) {
       context.handle(
         _allowRefundsMeta,
@@ -21931,6 +22014,18 @@ class $RegistersTable extends Registers
         DriftSqlType.bool,
         data['${effectivePrefix}allow_transfer'],
       )!,
+      allowCredit: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}allow_credit'],
+      )!,
+      allowVoucher: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}allow_voucher'],
+      )!,
+      allowOther: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}allow_other'],
+      )!,
       allowRefunds: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}allow_refunds'],
@@ -21955,6 +22050,12 @@ class $RegistersTable extends Registers
         DriftSqlType.string,
         data['${effectivePrefix}display_cart_json'],
       ),
+      sellMode: $RegistersTable.$convertersellMode.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}sell_mode'],
+        )!,
+      ),
     );
   }
 
@@ -21965,6 +22066,8 @@ class $RegistersTable extends Registers
 
   static JsonTypeConverter2<HardwareType, String, String> $convertertype =
       const EnumNameConverter<HardwareType>(HardwareType.values);
+  static JsonTypeConverter2<SellMode, String, String> $convertersellMode =
+      const EnumNameConverter<SellMode>(SellMode.values);
 }
 
 class Register extends DataClass implements Insertable<Register> {
@@ -21987,12 +22090,16 @@ class Register extends DataClass implements Insertable<Register> {
   final bool allowCash;
   final bool allowCard;
   final bool allowTransfer;
+  final bool allowCredit;
+  final bool allowVoucher;
+  final bool allowOther;
   final bool allowRefunds;
   final String? boundDeviceId;
   final String? activeBillId;
   final int gridRows;
   final int gridCols;
   final String? displayCartJson;
+  final SellMode sellMode;
   const Register({
     this.lastSyncedAt,
     required this.version,
@@ -22013,12 +22120,16 @@ class Register extends DataClass implements Insertable<Register> {
     required this.allowCash,
     required this.allowCard,
     required this.allowTransfer,
+    required this.allowCredit,
+    required this.allowVoucher,
+    required this.allowOther,
     required this.allowRefunds,
     this.boundDeviceId,
     this.activeBillId,
     required this.gridRows,
     required this.gridCols,
     this.displayCartJson,
+    required this.sellMode,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -22056,6 +22167,9 @@ class Register extends DataClass implements Insertable<Register> {
     map['allow_cash'] = Variable<bool>(allowCash);
     map['allow_card'] = Variable<bool>(allowCard);
     map['allow_transfer'] = Variable<bool>(allowTransfer);
+    map['allow_credit'] = Variable<bool>(allowCredit);
+    map['allow_voucher'] = Variable<bool>(allowVoucher);
+    map['allow_other'] = Variable<bool>(allowOther);
     map['allow_refunds'] = Variable<bool>(allowRefunds);
     if (!nullToAbsent || boundDeviceId != null) {
       map['bound_device_id'] = Variable<String>(boundDeviceId);
@@ -22067,6 +22181,11 @@ class Register extends DataClass implements Insertable<Register> {
     map['grid_cols'] = Variable<int>(gridCols);
     if (!nullToAbsent || displayCartJson != null) {
       map['display_cart_json'] = Variable<String>(displayCartJson);
+    }
+    {
+      map['sell_mode'] = Variable<String>(
+        $RegistersTable.$convertersellMode.toSql(sellMode),
+      );
     }
     return map;
   }
@@ -22102,6 +22221,9 @@ class Register extends DataClass implements Insertable<Register> {
       allowCash: Value(allowCash),
       allowCard: Value(allowCard),
       allowTransfer: Value(allowTransfer),
+      allowCredit: Value(allowCredit),
+      allowVoucher: Value(allowVoucher),
+      allowOther: Value(allowOther),
       allowRefunds: Value(allowRefunds),
       boundDeviceId: boundDeviceId == null && nullToAbsent
           ? const Value.absent()
@@ -22114,6 +22236,7 @@ class Register extends DataClass implements Insertable<Register> {
       displayCartJson: displayCartJson == null && nullToAbsent
           ? const Value.absent()
           : Value(displayCartJson),
+      sellMode: Value(sellMode),
     );
   }
 
@@ -22144,12 +22267,18 @@ class Register extends DataClass implements Insertable<Register> {
       allowCash: serializer.fromJson<bool>(json['allowCash']),
       allowCard: serializer.fromJson<bool>(json['allowCard']),
       allowTransfer: serializer.fromJson<bool>(json['allowTransfer']),
+      allowCredit: serializer.fromJson<bool>(json['allowCredit']),
+      allowVoucher: serializer.fromJson<bool>(json['allowVoucher']),
+      allowOther: serializer.fromJson<bool>(json['allowOther']),
       allowRefunds: serializer.fromJson<bool>(json['allowRefunds']),
       boundDeviceId: serializer.fromJson<String?>(json['boundDeviceId']),
       activeBillId: serializer.fromJson<String?>(json['activeBillId']),
       gridRows: serializer.fromJson<int>(json['gridRows']),
       gridCols: serializer.fromJson<int>(json['gridCols']),
       displayCartJson: serializer.fromJson<String?>(json['displayCartJson']),
+      sellMode: $RegistersTable.$convertersellMode.fromJson(
+        serializer.fromJson<String>(json['sellMode']),
+      ),
     );
   }
   @override
@@ -22177,12 +22306,18 @@ class Register extends DataClass implements Insertable<Register> {
       'allowCash': serializer.toJson<bool>(allowCash),
       'allowCard': serializer.toJson<bool>(allowCard),
       'allowTransfer': serializer.toJson<bool>(allowTransfer),
+      'allowCredit': serializer.toJson<bool>(allowCredit),
+      'allowVoucher': serializer.toJson<bool>(allowVoucher),
+      'allowOther': serializer.toJson<bool>(allowOther),
       'allowRefunds': serializer.toJson<bool>(allowRefunds),
       'boundDeviceId': serializer.toJson<String?>(boundDeviceId),
       'activeBillId': serializer.toJson<String?>(activeBillId),
       'gridRows': serializer.toJson<int>(gridRows),
       'gridCols': serializer.toJson<int>(gridCols),
       'displayCartJson': serializer.toJson<String?>(displayCartJson),
+      'sellMode': serializer.toJson<String>(
+        $RegistersTable.$convertersellMode.toJson(sellMode),
+      ),
     };
   }
 
@@ -22206,12 +22341,16 @@ class Register extends DataClass implements Insertable<Register> {
     bool? allowCash,
     bool? allowCard,
     bool? allowTransfer,
+    bool? allowCredit,
+    bool? allowVoucher,
+    bool? allowOther,
     bool? allowRefunds,
     Value<String?> boundDeviceId = const Value.absent(),
     Value<String?> activeBillId = const Value.absent(),
     int? gridRows,
     int? gridCols,
     Value<String?> displayCartJson = const Value.absent(),
+    SellMode? sellMode,
   }) => Register(
     lastSyncedAt: lastSyncedAt.present ? lastSyncedAt.value : this.lastSyncedAt,
     version: version ?? this.version,
@@ -22238,6 +22377,9 @@ class Register extends DataClass implements Insertable<Register> {
     allowCash: allowCash ?? this.allowCash,
     allowCard: allowCard ?? this.allowCard,
     allowTransfer: allowTransfer ?? this.allowTransfer,
+    allowCredit: allowCredit ?? this.allowCredit,
+    allowVoucher: allowVoucher ?? this.allowVoucher,
+    allowOther: allowOther ?? this.allowOther,
     allowRefunds: allowRefunds ?? this.allowRefunds,
     boundDeviceId: boundDeviceId.present
         ? boundDeviceId.value
@@ -22248,6 +22390,7 @@ class Register extends DataClass implements Insertable<Register> {
     displayCartJson: displayCartJson.present
         ? displayCartJson.value
         : this.displayCartJson,
+    sellMode: sellMode ?? this.sellMode,
   );
   Register copyWithCompanion(RegistersCompanion data) {
     return Register(
@@ -22282,6 +22425,15 @@ class Register extends DataClass implements Insertable<Register> {
       allowTransfer: data.allowTransfer.present
           ? data.allowTransfer.value
           : this.allowTransfer,
+      allowCredit: data.allowCredit.present
+          ? data.allowCredit.value
+          : this.allowCredit,
+      allowVoucher: data.allowVoucher.present
+          ? data.allowVoucher.value
+          : this.allowVoucher,
+      allowOther: data.allowOther.present
+          ? data.allowOther.value
+          : this.allowOther,
       allowRefunds: data.allowRefunds.present
           ? data.allowRefunds.value
           : this.allowRefunds,
@@ -22296,6 +22448,7 @@ class Register extends DataClass implements Insertable<Register> {
       displayCartJson: data.displayCartJson.present
           ? data.displayCartJson.value
           : this.displayCartJson,
+      sellMode: data.sellMode.present ? data.sellMode.value : this.sellMode,
     );
   }
 
@@ -22321,12 +22474,16 @@ class Register extends DataClass implements Insertable<Register> {
           ..write('allowCash: $allowCash, ')
           ..write('allowCard: $allowCard, ')
           ..write('allowTransfer: $allowTransfer, ')
+          ..write('allowCredit: $allowCredit, ')
+          ..write('allowVoucher: $allowVoucher, ')
+          ..write('allowOther: $allowOther, ')
           ..write('allowRefunds: $allowRefunds, ')
           ..write('boundDeviceId: $boundDeviceId, ')
           ..write('activeBillId: $activeBillId, ')
           ..write('gridRows: $gridRows, ')
           ..write('gridCols: $gridCols, ')
-          ..write('displayCartJson: $displayCartJson')
+          ..write('displayCartJson: $displayCartJson, ')
+          ..write('sellMode: $sellMode')
           ..write(')'))
         .toString();
   }
@@ -22352,12 +22509,16 @@ class Register extends DataClass implements Insertable<Register> {
     allowCash,
     allowCard,
     allowTransfer,
+    allowCredit,
+    allowVoucher,
+    allowOther,
     allowRefunds,
     boundDeviceId,
     activeBillId,
     gridRows,
     gridCols,
     displayCartJson,
+    sellMode,
   ]);
   @override
   bool operator ==(Object other) =>
@@ -22382,12 +22543,16 @@ class Register extends DataClass implements Insertable<Register> {
           other.allowCash == this.allowCash &&
           other.allowCard == this.allowCard &&
           other.allowTransfer == this.allowTransfer &&
+          other.allowCredit == this.allowCredit &&
+          other.allowVoucher == this.allowVoucher &&
+          other.allowOther == this.allowOther &&
           other.allowRefunds == this.allowRefunds &&
           other.boundDeviceId == this.boundDeviceId &&
           other.activeBillId == this.activeBillId &&
           other.gridRows == this.gridRows &&
           other.gridCols == this.gridCols &&
-          other.displayCartJson == this.displayCartJson);
+          other.displayCartJson == this.displayCartJson &&
+          other.sellMode == this.sellMode);
 }
 
 class RegistersCompanion extends UpdateCompanion<Register> {
@@ -22410,12 +22575,16 @@ class RegistersCompanion extends UpdateCompanion<Register> {
   final Value<bool> allowCash;
   final Value<bool> allowCard;
   final Value<bool> allowTransfer;
+  final Value<bool> allowCredit;
+  final Value<bool> allowVoucher;
+  final Value<bool> allowOther;
   final Value<bool> allowRefunds;
   final Value<String?> boundDeviceId;
   final Value<String?> activeBillId;
   final Value<int> gridRows;
   final Value<int> gridCols;
   final Value<String?> displayCartJson;
+  final Value<SellMode> sellMode;
   final Value<int> rowid;
   const RegistersCompanion({
     this.lastSyncedAt = const Value.absent(),
@@ -22437,12 +22606,16 @@ class RegistersCompanion extends UpdateCompanion<Register> {
     this.allowCash = const Value.absent(),
     this.allowCard = const Value.absent(),
     this.allowTransfer = const Value.absent(),
+    this.allowCredit = const Value.absent(),
+    this.allowVoucher = const Value.absent(),
+    this.allowOther = const Value.absent(),
     this.allowRefunds = const Value.absent(),
     this.boundDeviceId = const Value.absent(),
     this.activeBillId = const Value.absent(),
     this.gridRows = const Value.absent(),
     this.gridCols = const Value.absent(),
     this.displayCartJson = const Value.absent(),
+    this.sellMode = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   RegistersCompanion.insert({
@@ -22465,12 +22638,16 @@ class RegistersCompanion extends UpdateCompanion<Register> {
     this.allowCash = const Value.absent(),
     this.allowCard = const Value.absent(),
     this.allowTransfer = const Value.absent(),
+    this.allowCredit = const Value.absent(),
+    this.allowVoucher = const Value.absent(),
+    this.allowOther = const Value.absent(),
     this.allowRefunds = const Value.absent(),
     this.boundDeviceId = const Value.absent(),
     this.activeBillId = const Value.absent(),
     this.gridRows = const Value.absent(),
     this.gridCols = const Value.absent(),
     this.displayCartJson = const Value.absent(),
+    this.sellMode = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        companyId = Value(companyId),
@@ -22496,12 +22673,16 @@ class RegistersCompanion extends UpdateCompanion<Register> {
     Expression<bool>? allowCash,
     Expression<bool>? allowCard,
     Expression<bool>? allowTransfer,
+    Expression<bool>? allowCredit,
+    Expression<bool>? allowVoucher,
+    Expression<bool>? allowOther,
     Expression<bool>? allowRefunds,
     Expression<String>? boundDeviceId,
     Expression<String>? activeBillId,
     Expression<int>? gridRows,
     Expression<int>? gridCols,
     Expression<String>? displayCartJson,
+    Expression<String>? sellMode,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -22524,12 +22705,16 @@ class RegistersCompanion extends UpdateCompanion<Register> {
       if (allowCash != null) 'allow_cash': allowCash,
       if (allowCard != null) 'allow_card': allowCard,
       if (allowTransfer != null) 'allow_transfer': allowTransfer,
+      if (allowCredit != null) 'allow_credit': allowCredit,
+      if (allowVoucher != null) 'allow_voucher': allowVoucher,
+      if (allowOther != null) 'allow_other': allowOther,
       if (allowRefunds != null) 'allow_refunds': allowRefunds,
       if (boundDeviceId != null) 'bound_device_id': boundDeviceId,
       if (activeBillId != null) 'active_bill_id': activeBillId,
       if (gridRows != null) 'grid_rows': gridRows,
       if (gridCols != null) 'grid_cols': gridCols,
       if (displayCartJson != null) 'display_cart_json': displayCartJson,
+      if (sellMode != null) 'sell_mode': sellMode,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -22554,12 +22739,16 @@ class RegistersCompanion extends UpdateCompanion<Register> {
     Value<bool>? allowCash,
     Value<bool>? allowCard,
     Value<bool>? allowTransfer,
+    Value<bool>? allowCredit,
+    Value<bool>? allowVoucher,
+    Value<bool>? allowOther,
     Value<bool>? allowRefunds,
     Value<String?>? boundDeviceId,
     Value<String?>? activeBillId,
     Value<int>? gridRows,
     Value<int>? gridCols,
     Value<String?>? displayCartJson,
+    Value<SellMode>? sellMode,
     Value<int>? rowid,
   }) {
     return RegistersCompanion(
@@ -22582,12 +22771,16 @@ class RegistersCompanion extends UpdateCompanion<Register> {
       allowCash: allowCash ?? this.allowCash,
       allowCard: allowCard ?? this.allowCard,
       allowTransfer: allowTransfer ?? this.allowTransfer,
+      allowCredit: allowCredit ?? this.allowCredit,
+      allowVoucher: allowVoucher ?? this.allowVoucher,
+      allowOther: allowOther ?? this.allowOther,
       allowRefunds: allowRefunds ?? this.allowRefunds,
       boundDeviceId: boundDeviceId ?? this.boundDeviceId,
       activeBillId: activeBillId ?? this.activeBillId,
       gridRows: gridRows ?? this.gridRows,
       gridCols: gridCols ?? this.gridCols,
       displayCartJson: displayCartJson ?? this.displayCartJson,
+      sellMode: sellMode ?? this.sellMode,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -22654,6 +22847,15 @@ class RegistersCompanion extends UpdateCompanion<Register> {
     if (allowTransfer.present) {
       map['allow_transfer'] = Variable<bool>(allowTransfer.value);
     }
+    if (allowCredit.present) {
+      map['allow_credit'] = Variable<bool>(allowCredit.value);
+    }
+    if (allowVoucher.present) {
+      map['allow_voucher'] = Variable<bool>(allowVoucher.value);
+    }
+    if (allowOther.present) {
+      map['allow_other'] = Variable<bool>(allowOther.value);
+    }
     if (allowRefunds.present) {
       map['allow_refunds'] = Variable<bool>(allowRefunds.value);
     }
@@ -22671,6 +22873,11 @@ class RegistersCompanion extends UpdateCompanion<Register> {
     }
     if (displayCartJson.present) {
       map['display_cart_json'] = Variable<String>(displayCartJson.value);
+    }
+    if (sellMode.present) {
+      map['sell_mode'] = Variable<String>(
+        $RegistersTable.$convertersellMode.toSql(sellMode.value),
+      );
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -22700,12 +22907,16 @@ class RegistersCompanion extends UpdateCompanion<Register> {
           ..write('allowCash: $allowCash, ')
           ..write('allowCard: $allowCard, ')
           ..write('allowTransfer: $allowTransfer, ')
+          ..write('allowCredit: $allowCredit, ')
+          ..write('allowVoucher: $allowVoucher, ')
+          ..write('allowOther: $allowOther, ')
           ..write('allowRefunds: $allowRefunds, ')
           ..write('boundDeviceId: $boundDeviceId, ')
           ..write('activeBillId: $activeBillId, ')
           ..write('gridRows: $gridRows, ')
           ..write('gridCols: $gridCols, ')
           ..write('displayCartJson: $displayCartJson, ')
+          ..write('sellMode: $sellMode, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -46906,12 +47117,16 @@ typedef $$RegistersTableCreateCompanionBuilder =
       Value<bool> allowCash,
       Value<bool> allowCard,
       Value<bool> allowTransfer,
+      Value<bool> allowCredit,
+      Value<bool> allowVoucher,
+      Value<bool> allowOther,
       Value<bool> allowRefunds,
       Value<String?> boundDeviceId,
       Value<String?> activeBillId,
       Value<int> gridRows,
       Value<int> gridCols,
       Value<String?> displayCartJson,
+      Value<SellMode> sellMode,
       Value<int> rowid,
     });
 typedef $$RegistersTableUpdateCompanionBuilder =
@@ -46935,12 +47150,16 @@ typedef $$RegistersTableUpdateCompanionBuilder =
       Value<bool> allowCash,
       Value<bool> allowCard,
       Value<bool> allowTransfer,
+      Value<bool> allowCredit,
+      Value<bool> allowVoucher,
+      Value<bool> allowOther,
       Value<bool> allowRefunds,
       Value<String?> boundDeviceId,
       Value<String?> activeBillId,
       Value<int> gridRows,
       Value<int> gridCols,
       Value<String?> displayCartJson,
+      Value<SellMode> sellMode,
       Value<int> rowid,
     });
 
@@ -47049,6 +47268,21 @@ class $$RegistersTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<bool> get allowCredit => $composableBuilder(
+    column: $table.allowCredit,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get allowVoucher => $composableBuilder(
+    column: $table.allowVoucher,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get allowOther => $composableBuilder(
+    column: $table.allowOther,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<bool> get allowRefunds => $composableBuilder(
     column: $table.allowRefunds,
     builder: (column) => ColumnFilters(column),
@@ -47078,6 +47312,12 @@ class $$RegistersTableFilterComposer
     column: $table.displayCartJson,
     builder: (column) => ColumnFilters(column),
   );
+
+  ColumnWithTypeConverterFilters<SellMode, SellMode, String> get sellMode =>
+      $composableBuilder(
+        column: $table.sellMode,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
 }
 
 class $$RegistersTableOrderingComposer
@@ -47184,6 +47424,21 @@ class $$RegistersTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get allowCredit => $composableBuilder(
+    column: $table.allowCredit,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get allowVoucher => $composableBuilder(
+    column: $table.allowVoucher,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get allowOther => $composableBuilder(
+    column: $table.allowOther,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<bool> get allowRefunds => $composableBuilder(
     column: $table.allowRefunds,
     builder: (column) => ColumnOrderings(column),
@@ -47211,6 +47466,11 @@ class $$RegistersTableOrderingComposer
 
   ColumnOrderings<String> get displayCartJson => $composableBuilder(
     column: $table.displayCartJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sellMode => $composableBuilder(
+    column: $table.sellMode,
     builder: (column) => ColumnOrderings(column),
   );
 }
@@ -47293,6 +47553,21 @@ class $$RegistersTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<bool> get allowCredit => $composableBuilder(
+    column: $table.allowCredit,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get allowVoucher => $composableBuilder(
+    column: $table.allowVoucher,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get allowOther => $composableBuilder(
+    column: $table.allowOther,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<bool> get allowRefunds => $composableBuilder(
     column: $table.allowRefunds,
     builder: (column) => column,
@@ -47318,6 +47593,9 @@ class $$RegistersTableAnnotationComposer
     column: $table.displayCartJson,
     builder: (column) => column,
   );
+
+  GeneratedColumnWithTypeConverter<SellMode, String> get sellMode =>
+      $composableBuilder(column: $table.sellMode, builder: (column) => column);
 }
 
 class $$RegistersTableTableManager
@@ -47367,12 +47645,16 @@ class $$RegistersTableTableManager
                 Value<bool> allowCash = const Value.absent(),
                 Value<bool> allowCard = const Value.absent(),
                 Value<bool> allowTransfer = const Value.absent(),
+                Value<bool> allowCredit = const Value.absent(),
+                Value<bool> allowVoucher = const Value.absent(),
+                Value<bool> allowOther = const Value.absent(),
                 Value<bool> allowRefunds = const Value.absent(),
                 Value<String?> boundDeviceId = const Value.absent(),
                 Value<String?> activeBillId = const Value.absent(),
                 Value<int> gridRows = const Value.absent(),
                 Value<int> gridCols = const Value.absent(),
                 Value<String?> displayCartJson = const Value.absent(),
+                Value<SellMode> sellMode = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => RegistersCompanion(
                 lastSyncedAt: lastSyncedAt,
@@ -47394,12 +47676,16 @@ class $$RegistersTableTableManager
                 allowCash: allowCash,
                 allowCard: allowCard,
                 allowTransfer: allowTransfer,
+                allowCredit: allowCredit,
+                allowVoucher: allowVoucher,
+                allowOther: allowOther,
                 allowRefunds: allowRefunds,
                 boundDeviceId: boundDeviceId,
                 activeBillId: activeBillId,
                 gridRows: gridRows,
                 gridCols: gridCols,
                 displayCartJson: displayCartJson,
+                sellMode: sellMode,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -47423,12 +47709,16 @@ class $$RegistersTableTableManager
                 Value<bool> allowCash = const Value.absent(),
                 Value<bool> allowCard = const Value.absent(),
                 Value<bool> allowTransfer = const Value.absent(),
+                Value<bool> allowCredit = const Value.absent(),
+                Value<bool> allowVoucher = const Value.absent(),
+                Value<bool> allowOther = const Value.absent(),
                 Value<bool> allowRefunds = const Value.absent(),
                 Value<String?> boundDeviceId = const Value.absent(),
                 Value<String?> activeBillId = const Value.absent(),
                 Value<int> gridRows = const Value.absent(),
                 Value<int> gridCols = const Value.absent(),
                 Value<String?> displayCartJson = const Value.absent(),
+                Value<SellMode> sellMode = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => RegistersCompanion.insert(
                 lastSyncedAt: lastSyncedAt,
@@ -47450,12 +47740,16 @@ class $$RegistersTableTableManager
                 allowCash: allowCash,
                 allowCard: allowCard,
                 allowTransfer: allowTransfer,
+                allowCredit: allowCredit,
+                allowVoucher: allowVoucher,
+                allowOther: allowOther,
                 allowRefunds: allowRefunds,
                 boundDeviceId: boundDeviceId,
                 activeBillId: activeBillId,
                 gridRows: gridRows,
                 gridCols: gridCols,
                 displayCartJson: displayCartJson,
+                sellMode: sellMode,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

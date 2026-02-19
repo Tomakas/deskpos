@@ -854,6 +854,12 @@ abstract class AppLocalizations {
   /// **'Zrušit'**
   String get sellCancelOrder;
 
+  /// No description provided for @sellClearCart.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vymazat košík'**
+  String get sellClearCart;
+
   /// No description provided for @sellSaveToBill.
   ///
   /// In cs, this message translates to:
@@ -1400,6 +1406,30 @@ abstract class AppLocalizations {
   /// **'Cloud'**
   String get settingsSectionCloud;
 
+  /// No description provided for @settingsSectionSellOptions.
+  ///
+  /// In cs, this message translates to:
+  /// **'Volby prodeje'**
+  String get settingsSectionSellOptions;
+
+  /// No description provided for @settingsSellMode.
+  ///
+  /// In cs, this message translates to:
+  /// **'Režim prodeje'**
+  String get settingsSellMode;
+
+  /// No description provided for @sellModeGastro.
+  ///
+  /// In cs, this message translates to:
+  /// **'Gastro'**
+  String get sellModeGastro;
+
+  /// No description provided for @sellModeRetail.
+  ///
+  /// In cs, this message translates to:
+  /// **'Retail'**
+  String get sellModeRetail;
+
   /// No description provided for @settingsSectionGrid.
   ///
   /// In cs, this message translates to:
@@ -1501,6 +1531,24 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Heslo musí mít alespoň 6 znaků'**
   String get cloudPasswordLength;
+
+  /// No description provided for @cloudDiagnostics.
+  ///
+  /// In cs, this message translates to:
+  /// **'Diagnostika'**
+  String get cloudDiagnostics;
+
+  /// No description provided for @cloudExportLogs.
+  ///
+  /// In cs, this message translates to:
+  /// **'Exportovat logy'**
+  String get cloudExportLogs;
+
+  /// No description provided for @cloudExportLogsDescription.
+  ///
+  /// In cs, this message translates to:
+  /// **'Otevře soubor s logy aplikace pro řešení problémů.'**
+  String get cloudExportLogsDescription;
 
   /// No description provided for @cloudDangerZone.
   ///
@@ -1892,6 +1940,12 @@ abstract class AppLocalizations {
   /// **'Upravit částku'**
   String get paymentEditAmount;
 
+  /// No description provided for @paymentMoreActions.
+  ///
+  /// In cs, this message translates to:
+  /// **'Další akce'**
+  String get paymentMoreActions;
+
   /// No description provided for @paymentMixPayments.
   ///
   /// In cs, this message translates to:
@@ -1915,6 +1969,12 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'ANO'**
   String get paymentPrintYes;
+
+  /// No description provided for @paymentPrintNo.
+  ///
+  /// In cs, this message translates to:
+  /// **'NE'**
+  String get paymentPrintNo;
 
   /// No description provided for @paymentTip.
   ///
@@ -1985,14 +2045,20 @@ abstract class AppLocalizations {
   /// No description provided for @changeTotalOriginal.
   ///
   /// In cs, this message translates to:
-  /// **'Původní částka'**
+  /// **'Původní'**
   String get changeTotalOriginal;
 
   /// No description provided for @changeTotalEdited.
   ///
   /// In cs, this message translates to:
-  /// **'Upravená částka'**
+  /// **'Upravená'**
   String get changeTotalEdited;
+
+  /// No description provided for @changeTotalDifference.
+  ///
+  /// In cs, this message translates to:
+  /// **'Změna'**
+  String get changeTotalDifference;
 
   /// No description provided for @newBillSave.
   ///
@@ -3386,6 +3452,12 @@ abstract class AppLocalizations {
   /// **'Kredit'**
   String get paymentTypeCredit;
 
+  /// No description provided for @paymentTypeVoucher.
+  ///
+  /// In cs, this message translates to:
+  /// **'Stravenky'**
+  String get paymentTypeVoucher;
+
   /// No description provided for @loyaltySectionTitle.
   ///
   /// In cs, this message translates to:
@@ -4262,6 +4334,24 @@ abstract class AppLocalizations {
   /// **'Převod'**
   String get registerAllowTransfer;
 
+  /// No description provided for @registerAllowCredit.
+  ///
+  /// In cs, this message translates to:
+  /// **'Kredit'**
+  String get registerAllowCredit;
+
+  /// No description provided for @registerAllowVoucher.
+  ///
+  /// In cs, this message translates to:
+  /// **'Stravenky'**
+  String get registerAllowVoucher;
+
+  /// No description provided for @registerAllowOther.
+  ///
+  /// In cs, this message translates to:
+  /// **'Ostatní'**
+  String get registerAllowOther;
+
   /// No description provided for @registerAllowRefunds.
   ///
   /// In cs, this message translates to:
@@ -4418,41 +4508,17 @@ abstract class AppLocalizations {
   /// **'Pokladna'**
   String get modePOS;
 
-  /// No description provided for @modePOSDescription.
-  ///
-  /// In cs, this message translates to:
-  /// **'Standardní prodejní režim'**
-  String get modePOSDescription;
-
   /// No description provided for @modeKDS.
   ///
   /// In cs, this message translates to:
   /// **'Objednávkový displej'**
   String get modeKDS;
 
-  /// No description provided for @modeKDSDescription.
-  ///
-  /// In cs, this message translates to:
-  /// **'Zobrazuje aktivní objednávky pro kuchyni'**
-  String get modeKDSDescription;
-
   /// No description provided for @modeCustomerDisplay.
   ///
   /// In cs, this message translates to:
   /// **'Zákaznický displej'**
   String get modeCustomerDisplay;
-
-  /// No description provided for @modeCustomerDisplayDescription.
-  ///
-  /// In cs, this message translates to:
-  /// **'Zobrazuje účet zákazníkovi'**
-  String get modeCustomerDisplayDescription;
-
-  /// No description provided for @modeCustomerDisplaySelectRegister.
-  ///
-  /// In cs, this message translates to:
-  /// **'Sledovaná pokladna'**
-  String get modeCustomerDisplaySelectRegister;
 
   /// No description provided for @customerDisplayThankYou.
   ///
@@ -4682,6 +4748,12 @@ abstract class AppLocalizations {
   /// **'Připojeno jako {email}'**
   String cloudConnectedAs(String email);
 
+  /// No description provided for @actionExitApp.
+  ///
+  /// In cs, this message translates to:
+  /// **'Ukončit aplikaci'**
+  String get actionExitApp;
+
   /// No description provided for @actionOk.
   ///
   /// In cs, this message translates to:
@@ -4699,6 +4771,24 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Max: {points}'**
   String loyaltyMaxPoints(Object points);
+
+  /// No description provided for @durationHoursMinutes.
+  ///
+  /// In cs, this message translates to:
+  /// **'{h} h {m} min'**
+  String durationHoursMinutes(int h, int m);
+
+  /// No description provided for @durationHoursOnly.
+  ///
+  /// In cs, this message translates to:
+  /// **'{h} h'**
+  String durationHoursOnly(int h);
+
+  /// No description provided for @durationMinutesOnly.
+  ///
+  /// In cs, this message translates to:
+  /// **'{m} min'**
+  String durationMinutesOnly(int m);
 }
 
 class _AppLocalizationsDelegate
