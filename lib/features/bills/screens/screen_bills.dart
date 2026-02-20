@@ -341,7 +341,9 @@ class _SectionTabBar extends ConsumerWidget {
                   height: 40,
                   child: IconButton(
                     icon: const Icon(Icons.arrow_back),
-                    onPressed: () => context.pop(),
+                    onPressed: () {
+                      if (GoRouter.of(context).canPop()) context.pop();
+                    },
                   ),
                 ),
                 const SizedBox(width: 4),

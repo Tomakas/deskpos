@@ -1293,7 +1293,9 @@ class _RetailMenuButton extends ConsumerWidget {
       case 'shifts':
         await helpers.showShiftsDialog(context, ref);
       case 'bills':
-        if (context.mounted) context.push('/bills');
+        if (context.mounted) {
+          _isRetailMode ? context.push('/bills') : context.go('/bills');
+        }
       case 'orders':
         if (context.mounted) context.push('/orders');
       case 'catalog':
