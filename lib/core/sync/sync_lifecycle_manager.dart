@@ -178,6 +178,17 @@ class SyncLifecycleManager {
           }
         }
       }
+
+      final modifiersJson = payload['order_item_modifiers'] as List?;
+      if (modifiersJson != null) {
+        for (final mod in modifiersJson) {
+          final modMap = mod as Map<String, dynamic>;
+          final modId = modMap['id'] as String?;
+          if (modId != null) {
+            await _syncService.mergeRow(companyId, 'order_item_modifiers', modId, modMap);
+          }
+        }
+      }
     } catch (e, s) {
       AppLogger.error(
         'SyncLifecycleManager: failed to process KDS broadcast',

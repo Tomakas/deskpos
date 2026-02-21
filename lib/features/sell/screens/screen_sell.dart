@@ -143,13 +143,23 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
 
   Future<void> _broadcastKdsOrder(OrderModel order) async {
     final orderRepo = ref.read(orderRepositoryProvider);
+    final modRepo = ref.read(orderItemModifierRepositoryProvider);
     final channel = ref.read(kdsBroadcastChannelProvider);
     final items = await orderRepo.getOrderItems(order.id);
     if (!mounted) return;
+
+    // Collect modifiers for all order items
+    final allModifiers = <Map<String, dynamic>>[];
+    for (final item in items) {
+      final mods = await modRepo.getByOrderItem(item.id);
+      allModifiers.addAll(mods.map(orderItemModifierToSupabaseJson));
+    }
+
     channel.send({
       'action': 'new_order',
       'order': orderToSupabaseJson(order),
       'order_items': items.map(orderItemToSupabaseJson).toList(),
+      'order_item_modifiers': allModifiers,
     });
   }
 

@@ -771,17 +771,34 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cloudDeleteLocalDataDescription =>
-      'Deletes all data from this device including bills, items, settings and users. Data stored in cloud will remain intact.';
+      'Deletes data from this device. Server data will remain intact and will sync back after sign-in.';
 
   @override
-  String get cloudDeleteLocalDataConfirmTitle => 'Delete all local data?';
+  String get cloudDeleteLocalDataConfirmTitle => 'Delete local data?';
 
   @override
   String get cloudDeleteLocalDataConfirmMessage =>
-      'This action is irreversible. All local data will be deleted and the app will return to the welcome screen.';
+      'All local data will be deleted and the app will return to the welcome screen. Server data will remain intact.';
 
   @override
-  String get cloudDeleteLocalDataConfirm => 'Delete All';
+  String get cloudDeleteLocalDataConfirm => 'Delete';
+
+  @override
+  String get cloudDeleteAllData => 'Delete All Data';
+
+  @override
+  String get cloudDeleteAllDataDescription =>
+      'Deletes all data from this device and from the server. This action is irreversible.';
+
+  @override
+  String get cloudDeleteAllDataConfirmTitle => 'Delete all data?';
+
+  @override
+  String get cloudDeleteAllDataConfirmMessage =>
+      'All data will be permanently deleted from this device and from the server. The app will return to the welcome screen.';
+
+  @override
+  String get cloudDeleteAllDataConfirm => 'Delete All';
 
   @override
   String get infoPanelSync => 'Sync';

@@ -1565,26 +1565,56 @@ abstract class AppLocalizations {
   /// No description provided for @cloudDeleteLocalDataDescription.
   ///
   /// In cs, this message translates to:
-  /// **'Smaže všechna data z tohoto zařízení včetně účtů, položek, nastavení a uživatelů. Data uložená v cloudu zůstanou zachována.'**
+  /// **'Smaže data z tohoto zařízení. Data na serveru zůstanou zachována a po přihlášení se znovu stáhnou.'**
   String get cloudDeleteLocalDataDescription;
 
   /// No description provided for @cloudDeleteLocalDataConfirmTitle.
   ///
   /// In cs, this message translates to:
-  /// **'Smazat všechna lokální data?'**
+  /// **'Smazat lokální data?'**
   String get cloudDeleteLocalDataConfirmTitle;
 
   /// No description provided for @cloudDeleteLocalDataConfirmMessage.
   ///
   /// In cs, this message translates to:
-  /// **'Tato akce je nevratná. Všechna lokální data budou smazána a aplikace se vrátí na úvodní obrazovku.'**
+  /// **'Všechna lokální data budou smazána a aplikace se vrátí na úvodní obrazovku. Data na serveru zůstanou zachována.'**
   String get cloudDeleteLocalDataConfirmMessage;
 
   /// No description provided for @cloudDeleteLocalDataConfirm.
   ///
   /// In cs, this message translates to:
-  /// **'Smazat vše'**
+  /// **'Smazat'**
   String get cloudDeleteLocalDataConfirm;
+
+  /// No description provided for @cloudDeleteAllData.
+  ///
+  /// In cs, this message translates to:
+  /// **'Smazat vše'**
+  String get cloudDeleteAllData;
+
+  /// No description provided for @cloudDeleteAllDataDescription.
+  ///
+  /// In cs, this message translates to:
+  /// **'Smaže všechna data z tohoto zařízení i ze serveru. Tato akce je nevratná.'**
+  String get cloudDeleteAllDataDescription;
+
+  /// No description provided for @cloudDeleteAllDataConfirmTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Smazat všechna data?'**
+  String get cloudDeleteAllDataConfirmTitle;
+
+  /// No description provided for @cloudDeleteAllDataConfirmMessage.
+  ///
+  /// In cs, this message translates to:
+  /// **'Všechna data budou nenávratně smazána z tohoto zařízení i ze serveru. Aplikace se vrátí na úvodní obrazovku.'**
+  String get cloudDeleteAllDataConfirmMessage;
+
+  /// No description provided for @cloudDeleteAllDataConfirm.
+  ///
+  /// In cs, this message translates to:
+  /// **'Smazat vše'**
+  String get cloudDeleteAllDataConfirm;
 
   /// No description provided for @infoPanelSync.
   ///

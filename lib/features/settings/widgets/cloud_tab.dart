@@ -95,6 +95,28 @@ class CloudTab extends ConsumerWidget {
               ),
             ),
           ),
+          const SizedBox(height: 24),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              l.cloudDeleteAllDataDescription,
+              style: theme.textTheme.bodySmall,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: SizedBox(
+              height: 48,
+              child: FilledButton(
+                style: FilledButton.styleFrom(
+                  backgroundColor: theme.colorScheme.error,
+                ),
+                onPressed: () => _deleteAllData(context, ref),
+                child: Text(l.cloudDeleteAllData),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -110,15 +132,40 @@ class CloudTab extends ConsumerWidget {
 
   Future<void> _deleteLocalData(BuildContext context, WidgetRef ref) async {
     final l = context.l10n;
-    // Cache router before async gaps — context may become defunct after
-    // provider changes trigger widget tree disposal.
-    final router = GoRouter.of(context);
+    final confirmed = await _showConfirmDialog(
+      context,
+      title: l.cloudDeleteLocalDataConfirmTitle,
+      message: l.cloudDeleteLocalDataConfirmMessage,
+      confirm: l.cloudDeleteLocalDataConfirm,
+    );
+    if (confirmed != true || !context.mounted) return;
+    await _performDelete(context, ref, wipeServer: false);
+  }
 
-    final confirmed = await showDialog<bool>(
+  Future<void> _deleteAllData(BuildContext context, WidgetRef ref) async {
+    final l = context.l10n;
+    final confirmed = await _showConfirmDialog(
+      context,
+      title: l.cloudDeleteAllDataConfirmTitle,
+      message: l.cloudDeleteAllDataConfirmMessage,
+      confirm: l.cloudDeleteAllDataConfirm,
+    );
+    if (confirmed != true || !context.mounted) return;
+    await _performDelete(context, ref, wipeServer: true);
+  }
+
+  Future<bool?> _showConfirmDialog(
+    BuildContext context, {
+    required String title,
+    required String message,
+    required String confirm,
+  }) {
+    final l = context.l10n;
+    return showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(l.cloudDeleteLocalDataConfirmTitle),
-        content: Text(l.cloudDeleteLocalDataConfirmMessage),
+        title: Text(title),
+        content: Text(message),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -129,13 +176,21 @@ class CloudTab extends ConsumerWidget {
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
             onPressed: () => Navigator.pop(ctx, true),
-            child: Text(l.cloudDeleteLocalDataConfirm),
+            child: Text(confirm),
           ),
         ],
       ),
     );
+  }
 
-    if (confirmed != true || !context.mounted) return;
+  Future<void> _performDelete(
+    BuildContext context,
+    WidgetRef ref, {
+    required bool wipeServer,
+  }) async {
+    // Cache router before async gaps — context may become defunct after
+    // provider changes trigger widget tree disposal.
+    final router = GoRouter.of(context);
 
     try {
       // Cache all refs before async gaps to avoid using defunct context/ref
@@ -147,9 +202,10 @@ class CloudTab extends ConsumerWidget {
       // Stop sync BEFORE deleting data to prevent re-pull race condition
       syncManager.stop();
 
-      // Wipe server data so re-onboarding starts clean
       if (authService.isAuthenticated) {
-        await authService.wipeServerData();
+        if (wipeServer) {
+          await authService.wipeServerData();
+        }
         await authService.signOut();
       }
 
@@ -177,7 +233,7 @@ class CloudTab extends ConsumerWidget {
       ref.invalidate(appDatabaseProvider);
       ref.invalidate(appInitProvider);
     } catch (e, s) {
-      AppLogger.error('Failed to delete local data', error: e, stackTrace: s);
+      AppLogger.error('Failed to delete data', error: e, stackTrace: s);
       return;
     }
 

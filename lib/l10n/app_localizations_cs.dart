@@ -768,17 +768,34 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get cloudDeleteLocalDataDescription =>
-      'Smaže všechna data z tohoto zařízení včetně účtů, položek, nastavení a uživatelů. Data uložená v cloudu zůstanou zachována.';
+      'Smaže data z tohoto zařízení. Data na serveru zůstanou zachována a po přihlášení se znovu stáhnou.';
 
   @override
-  String get cloudDeleteLocalDataConfirmTitle => 'Smazat všechna lokální data?';
+  String get cloudDeleteLocalDataConfirmTitle => 'Smazat lokální data?';
 
   @override
   String get cloudDeleteLocalDataConfirmMessage =>
-      'Tato akce je nevratná. Všechna lokální data budou smazána a aplikace se vrátí na úvodní obrazovku.';
+      'Všechna lokální data budou smazána a aplikace se vrátí na úvodní obrazovku. Data na serveru zůstanou zachována.';
 
   @override
-  String get cloudDeleteLocalDataConfirm => 'Smazat vše';
+  String get cloudDeleteLocalDataConfirm => 'Smazat';
+
+  @override
+  String get cloudDeleteAllData => 'Smazat vše';
+
+  @override
+  String get cloudDeleteAllDataDescription =>
+      'Smaže všechna data z tohoto zařízení i ze serveru. Tato akce je nevratná.';
+
+  @override
+  String get cloudDeleteAllDataConfirmTitle => 'Smazat všechna data?';
+
+  @override
+  String get cloudDeleteAllDataConfirmMessage =>
+      'Všechna data budou nenávratně smazána z tohoto zařízení i ze serveru. Aplikace se vrátí na úvodní obrazovku.';
+
+  @override
+  String get cloudDeleteAllDataConfirm => 'Smazat vše';
 
   @override
   String get infoPanelSync => 'Synchronizace';
