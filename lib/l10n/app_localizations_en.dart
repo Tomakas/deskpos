@@ -682,6 +682,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsTabUsers => 'Users';
 
   @override
+  String get settingsTabLog => 'Log';
+
+  @override
   String get settingsSectionCompanyInfo => 'Company Information';
 
   @override

@@ -11,7 +11,6 @@ import '../../../core/data/providers/database_provider.dart';
 import '../../../core/data/providers/sync_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/logging/app_logger.dart';
-import '../../../core/utils/file_opener.dart';
 import '../screens/screen_cloud_auth.dart';
 
 class CloudTab extends ConsumerWidget {
@@ -35,33 +34,6 @@ class CloudTab extends ConsumerWidget {
             ),
           ),
           const ScreenCloudAuth(),
-          const SizedBox(height: 32),
-          const Divider(),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Text(
-              l.cloudDiagnostics,
-              style: theme.textTheme.titleMedium,
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Text(
-              l.cloudExportLogsDescription,
-              style: theme.textTheme.bodySmall,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: SizedBox(
-              height: 48,
-              child: OutlinedButton(
-                onPressed: () => _exportLogs(),
-                child: Text(l.cloudExportLogs),
-              ),
-            ),
-          ),
           const SizedBox(height: 32),
           const Divider(),
           Padding(
@@ -120,14 +92,6 @@ class CloudTab extends ConsumerWidget {
         ],
       ),
     );
-  }
-
-  Future<void> _exportLogs() async {
-    final logPath = AppLogger.logFilePath;
-    if (logPath == null) return;
-    final file = File(logPath);
-    if (!await file.exists()) return;
-    await FileOpener.share(logPath);
   }
 
   Future<void> _deleteLocalData(BuildContext context, WidgetRef ref) async {

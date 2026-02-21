@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../widgets/cloud_tab.dart';
 import '../widgets/company_info_tab.dart';
+import '../widgets/log_tab.dart';
 import '../widgets/payment_methods_tab.dart';
 import '../widgets/security_tab.dart';
 import '../widgets/tax_rates_tab.dart';
@@ -17,7 +18,7 @@ class ScreenCompanySettings extends ConsumerWidget {
     final l = context.l10n;
 
     return DefaultTabController(
-      length: 6,
+      length: 7,
       child: Scaffold(
         appBar: AppBar(
           title: Text(l.settingsCompanyTitle),
@@ -29,6 +30,7 @@ class ScreenCompanySettings extends ConsumerWidget {
               Tab(text: l.settingsSectionCloud),
               Tab(text: l.settingsTaxRates),
               Tab(text: l.settingsPaymentMethods),
+              Tab(text: l.settingsTabLog),
             ],
           ),
         ),
@@ -40,6 +42,7 @@ class ScreenCompanySettings extends ConsumerWidget {
             CloudTab(),
             TaxRatesTab(),
             PaymentMethodsTab(),
+            LogTab(),
           ],
         ),
       ),

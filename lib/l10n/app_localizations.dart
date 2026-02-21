@@ -1388,6 +1388,12 @@ abstract class AppLocalizations {
   /// **'Uživatelé'**
   String get settingsTabUsers;
 
+  /// No description provided for @settingsTabLog.
+  ///
+  /// In cs, this message translates to:
+  /// **'Log'**
+  String get settingsTabLog;
+
   /// No description provided for @settingsSectionCompanyInfo.
   ///
   /// In cs, this message translates to:

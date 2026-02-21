@@ -679,6 +679,9 @@ class AppLocalizationsCs extends AppLocalizations {
   String get settingsTabUsers => 'Uživatelé';
 
   @override
+  String get settingsTabLog => 'Log';
+
+  @override
   String get settingsSectionCompanyInfo => 'Informace o firmě';
 
   @override
