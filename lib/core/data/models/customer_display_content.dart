@@ -72,6 +72,7 @@ class DisplayItem {
     required this.unitPrice,
     required this.totalPrice,
     this.notes,
+    this.modifiers = const [],
   });
 
   final String name;
@@ -79,6 +80,7 @@ class DisplayItem {
   final int unitPrice;
   final int totalPrice;
   final String? notes;
+  final List<DisplayModifier> modifiers;
 
   Map<String, dynamic> toJson() => {
         'name': name,
@@ -86,6 +88,8 @@ class DisplayItem {
         'unitPrice': unitPrice,
         'totalPrice': totalPrice,
         if (notes != null) 'notes': notes,
+        if (modifiers.isNotEmpty)
+          'modifiers': modifiers.map((m) => m.toJson()).toList(),
       };
 
   factory DisplayItem.fromJson(Map<String, dynamic> json) {
@@ -95,6 +99,32 @@ class DisplayItem {
       unitPrice: json['unitPrice'] as int? ?? 0,
       totalPrice: json['totalPrice'] as int? ?? 0,
       notes: json['notes'] as String?,
+      modifiers: (json['modifiers'] as List?)
+              ?.map((m) => DisplayModifier.fromJson(m as Map<String, dynamic>))
+              .toList() ??
+          const [],
+    );
+  }
+}
+
+class DisplayModifier {
+  const DisplayModifier({
+    required this.name,
+    required this.unitPrice,
+  });
+
+  final String name;
+  final int unitPrice;
+
+  Map<String, dynamic> toJson() => {
+        'name': name,
+        'unitPrice': unitPrice,
+      };
+
+  factory DisplayModifier.fromJson(Map<String, dynamic> json) {
+    return DisplayModifier(
+      name: json['name'] as String? ?? '',
+      unitPrice: json['unitPrice'] as int? ?? 0,
     );
   }
 }

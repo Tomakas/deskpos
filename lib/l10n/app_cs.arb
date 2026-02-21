@@ -1018,5 +1018,31 @@
   "durationMinutesOnly": "{m} min",
   "@durationMinutesOnly": {
     "placeholders": { "m": { "type": "int" } }
-  }
+  },
+
+  "variantPickerTitle": "Vyberte variantu",
+  "addVariant": "Přidat variantu",
+  "editVariant": "Upravit variantu",
+  "variants": "Varianty",
+  "noVariants": "Žádné varianty",
+
+  "modifiers": "Modifikátory",
+  "modifierGroups": "Skupiny modifikátorů",
+  "modifierGroupName": "Název skupiny",
+  "addModifierGroup": "Přidat skupinu",
+  "editModifierGroup": "Upravit skupinu",
+  "deleteModifierGroup": "Smazat skupinu",
+  "minSelections": "Min. výběr",
+  "maxSelections": "Max. výběr",
+  "required": "Povinné",
+  "optional": "Volitelné",
+  "unlimited": "Neomezeno",
+  "addModifier": "Přidat modifikátor",
+  "selectModifiers": "Vybrat modifikátory",
+  "editModifiers": "Upravit modifikátory",
+  "noModifierGroups": "Žádné skupiny modifikátorů",
+  "modifierTotal": "Celkem s modifikátory",
+  "modifierGroupRequired": "Povinná skupina",
+  "assignModifierGroup": "Přiřadit skupinu",
+  "removeModifierGroup": "Odebrat skupinu"
 }

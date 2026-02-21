@@ -776,6 +776,73 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
         lastSyncedAt: Value(now),
       );
 
+    case 'modifier_groups':
+      return ModifierGroupsCompanion(
+        id: Value(json['id'] as String),
+        companyId: Value(json['company_id'] as String),
+        name: Value(json['name'] as String),
+        minSelections: Value(json['min_selections'] as int? ?? 0),
+        maxSelections: Value(json['max_selections'] as int?),
+        sortOrder: Value(json['sort_order'] as int? ?? 0),
+        createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
+        updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
+        deletedAt: Value(_parseDateTime(json['deleted_at'])),
+        serverCreatedAt: Value(_parseDateTime(json['created_at'])),
+        serverUpdatedAt: Value(_parseDateTime(json['updated_at'])),
+        lastSyncedAt: Value(now),
+      );
+
+    case 'modifier_group_items':
+      return ModifierGroupItemsCompanion(
+        id: Value(json['id'] as String),
+        companyId: Value(json['company_id'] as String),
+        modifierGroupId: Value(json['modifier_group_id'] as String),
+        itemId: Value(json['item_id'] as String),
+        sortOrder: Value(json['sort_order'] as int? ?? 0),
+        isDefault: Value(json['is_default'] as bool? ?? false),
+        createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
+        updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
+        deletedAt: Value(_parseDateTime(json['deleted_at'])),
+        serverCreatedAt: Value(_parseDateTime(json['created_at'])),
+        serverUpdatedAt: Value(_parseDateTime(json['updated_at'])),
+        lastSyncedAt: Value(now),
+      );
+
+    case 'item_modifier_groups':
+      return ItemModifierGroupsCompanion(
+        id: Value(json['id'] as String),
+        companyId: Value(json['company_id'] as String),
+        itemId: Value(json['item_id'] as String),
+        modifierGroupId: Value(json['modifier_group_id'] as String),
+        sortOrder: Value(json['sort_order'] as int? ?? 0),
+        createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
+        updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
+        deletedAt: Value(_parseDateTime(json['deleted_at'])),
+        serverCreatedAt: Value(_parseDateTime(json['created_at'])),
+        serverUpdatedAt: Value(_parseDateTime(json['updated_at'])),
+        lastSyncedAt: Value(now),
+      );
+
+    case 'order_item_modifiers':
+      return OrderItemModifiersCompanion(
+        id: Value(json['id'] as String),
+        companyId: Value(json['company_id'] as String),
+        orderItemId: Value(json['order_item_id'] as String),
+        modifierItemId: Value(json['modifier_item_id'] as String),
+        modifierGroupId: Value(json['modifier_group_id'] as String),
+        modifierItemName: Value(json['modifier_item_name'] as String? ?? ''),
+        quantity: Value((json['quantity'] as num?)?.toDouble() ?? 1.0),
+        unitPrice: Value(json['unit_price'] as int),
+        taxRate: Value(json['tax_rate'] as int),
+        taxAmount: Value(json['tax_amount'] as int),
+        createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
+        updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
+        deletedAt: Value(_parseDateTime(json['deleted_at'])),
+        serverCreatedAt: Value(_parseDateTime(json['created_at'])),
+        serverUpdatedAt: Value(_parseDateTime(json['updated_at'])),
+        lastSyncedAt: Value(now),
+      );
+
     default:
       throw ArgumentError('Unknown table for pull: $tableName');
   }

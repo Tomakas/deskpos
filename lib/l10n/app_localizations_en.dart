@@ -2448,4 +2448,76 @@ class AppLocalizationsEn extends AppLocalizations {
   String durationMinutesOnly(int m) {
     return '$m min';
   }
+
+  @override
+  String get variantPickerTitle => 'Select variant';
+
+  @override
+  String get addVariant => 'Add variant';
+
+  @override
+  String get editVariant => 'Edit variant';
+
+  @override
+  String get variants => 'Variants';
+
+  @override
+  String get noVariants => 'No variants';
+
+  @override
+  String get modifiers => 'Modifiers';
+
+  @override
+  String get modifierGroups => 'Modifier Groups';
+
+  @override
+  String get modifierGroupName => 'Group Name';
+
+  @override
+  String get addModifierGroup => 'Add Group';
+
+  @override
+  String get editModifierGroup => 'Edit Group';
+
+  @override
+  String get deleteModifierGroup => 'Delete Group';
+
+  @override
+  String get minSelections => 'Min. Selections';
+
+  @override
+  String get maxSelections => 'Max. Selections';
+
+  @override
+  String get required => 'Required';
+
+  @override
+  String get optional => 'Optional';
+
+  @override
+  String get unlimited => 'Unlimited';
+
+  @override
+  String get addModifier => 'Add Modifier';
+
+  @override
+  String get selectModifiers => 'Select Modifiers';
+
+  @override
+  String get editModifiers => 'Edit Modifiers';
+
+  @override
+  String get noModifierGroups => 'No modifier groups';
+
+  @override
+  String get modifierTotal => 'Total with modifiers';
+
+  @override
+  String get modifierGroupRequired => 'Required group';
+
+  @override
+  String get assignModifierGroup => 'Assign Group';
+
+  @override
+  String get removeModifierGroup => 'Remove Group';
 }

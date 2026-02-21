@@ -143,6 +143,19 @@ class ReceiptPdfBuilder {
                     ),
                   ),
                 ),
+              for (final mod in item.modifiers)
+                pw.Padding(
+                  padding: const pw.EdgeInsets.only(left: 12),
+                  child: pw.Row(
+                    children: [
+                      pw.Expanded(
+                        child: pw.Text('+ ${mod.name}', style: smallStyle),
+                      ),
+                      if (mod.unitPrice > 0)
+                        pw.Text(_fmtMoney(mod.unitPrice), style: smallStyle),
+                    ],
+                  ),
+                ),
             ],
 
             _divider(),

@@ -5,6 +5,7 @@ import '../data/enums/prep_status.dart';
 import '../data/models/currency_model.dart';
 import '../data/repositories/bill_repository.dart';
 import '../data/repositories/company_repository.dart';
+import '../data/repositories/order_item_modifier_repository.dart';
 import '../data/repositories/order_repository.dart';
 import '../data/repositories/payment_method_repository.dart';
 import '../data/repositories/payment_repository.dart';
@@ -27,6 +28,7 @@ class PrintingService {
     required this.companyRepo,
     required this.tableRepo,
     required this.userRepo,
+    required this.orderItemModifierRepo,
   });
 
   final BillRepository billRepo;
@@ -36,6 +38,7 @@ class PrintingService {
   final CompanyRepository companyRepo;
   final TableRepository tableRepo;
   final UserRepository userRepo;
+  final OrderItemModifierRepository orderItemModifierRepo;
 
   Future<ReceiptData?> buildReceiptData(String billId, {CurrencyModel? currency}) async {
     // 1. Get bill (includeDeleted: receipt may be reprinted after cancellation)
@@ -90,7 +93,7 @@ class PrintingService {
       cashierName = user.fullName;
     }
 
-    // 8. Build receipt items
+    // 8. Build receipt items (with modifiers)
     final receiptItems = <ReceiptItemData>[];
     for (final item in activeItems) {
       final itemTotal = (item.salePriceAtt * item.quantity).round();
@@ -103,6 +106,14 @@ class PrintingService {
         }
       }
 
+      // Load modifiers for this order item
+      final mods = await orderItemModifierRepo.getByOrderItem(item.id);
+      final receiptMods = mods.map((m) => ReceiptModifierData(
+        name: m.modifierItemName,
+        unitPrice: m.unitPrice,
+        quantity: m.quantity,
+      )).toList();
+
       receiptItems.add(ReceiptItemData(
         name: item.itemName,
         quantity: item.quantity,
@@ -111,6 +122,7 @@ class PrintingService {
         taxRateBasisPoints: item.saleTaxRateAtt,
         discount: itemDiscount,
         notes: item.notes,
+        modifiers: receiptMods,
       ));
     }
 

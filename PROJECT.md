@@ -918,9 +918,9 @@ Navíc každá tabulka definuje: `createdAt`, `updatedAt`, `deletedAt` (soft del
 
 #### Přehled tabulek
 
-##### Aktivní tabulky (39) — registrované v @DriftDatabase
+##### Aktivní tabulky (43) — registrované v @DriftDatabase
 
-**Doménové tabulky (36):**
+**Doménové tabulky (40):**
 
 | SQL tabulka | Drift Table | Drift Entity | Model |
 |-------------|-------------|--------------|-------|
@@ -934,10 +934,14 @@ Navíc každá tabulka definuje: `createdAt`, `updatedAt`, `deletedAt` (soft del
 | `customer_transactions` | `CustomerTransactions` | `CustomerTransaction` | `CustomerTransactionModel` |
 | `display_devices` | `DisplayDevices` | `DisplayDevice` | `DisplayDeviceModel` |
 | `items` | `Items` | `Item` | `ItemModel` |
+| `item_modifier_groups` | `ItemModifierGroups` | `ItemModifierGroup` | `ItemModifierGroupModel` |
 | `layout_items` | `LayoutItems` | `LayoutItem` | `LayoutItemModel` |
 | `manufacturers` | `Manufacturers` | `Manufacturer` | `ManufacturerModel` |
 | `map_elements` | `MapElements` | `MapElementEntity` | `MapElementModel` |
+| `modifier_groups` | `ModifierGroups` | `ModifierGroup` | `ModifierGroupModel` |
+| `modifier_group_items` | `ModifierGroupItems` | `ModifierGroupItem` | `ModifierGroupItemModel` |
 | `order_items` | `OrderItems` | `OrderItem` | `OrderItemModel` |
+| `order_item_modifiers` | `OrderItemModifiers` | `OrderItemModifier` | `OrderItemModifierModel` |
 | `orders` | `Orders` | `Order` | `OrderModel` |
 | `payment_methods` | `PaymentMethods` | `PaymentMethod` | `PaymentMethodModel` |
 | `payments` | `Payments` | `Payment` | `PaymentModel` |
@@ -979,14 +983,7 @@ Navíc každá tabulka definuje: `createdAt`, `updatedAt`, `deletedAt` (soft del
 > **Poznámky:**
 > - `TableEntity` používá `@DataClassName('TableEntity')` anotaci (konflikt s Drift `Table`)
 > - `SyncQueue` a `SyncMetadata` nepoužívají `SyncColumnsMixin` (vlastní timestamps)
-> - **Drift vs Supabase:** Drift má 39 tabulek (36 doménových + device_registrations + sync_queue + sync_metadata). Supabase má 38 tabulek (36 doménových + sync_queue + audit_log). `device_registrations` a `sync_metadata` jsou Drift-only, `audit_log` je server-only.
-
-##### Plánované tabulky (budoucí rozšíření)
-
-| SQL tabulka | Drift Table | Kdy |
-|-------------|-------------|-----|
-| `item_modifiers` | `ItemModifiers` | Gastro rozšíření |
-| `order_item_modifiers` | `OrderItemModifiers` | Gastro rozšíření |
+> - **Drift vs Supabase:** Drift má 43 tabulek (40 doménových + device_registrations + sync_queue + sync_metadata). Supabase má 42 tabulek (40 doménových + sync_queue + audit_log). `device_registrations` a `sync_metadata` jsou Drift-only, `audit_log` je server-only.
 
 #### Sloupce tabulek
 
@@ -1013,6 +1010,10 @@ Všechny aktivní tabulky obsahují společné sync sloupce (viz [SyncColumnsMix
 | **categories** | id (T), company_id →companies, name (T), parent_id →categories?, is_active (B, default true) |
 | **suppliers** | id (T), company_id →companies, supplier_name (T), contact_person (T?), email (T?), phone (T?) |
 | **manufacturers** | id (T), company_id →companies, name (T) |
+| **modifier_groups** | id (T), company_id →companies, name (T), min_selections (I, default 0), max_selections (I?), sort_order (I, default 0) |
+| **modifier_group_items** | id (T), company_id →companies, modifier_group_id →modifier_groups, item_id →items, sort_order (I, default 0), is_default (B, default false) |
+| **item_modifier_groups** | id (T), company_id →companies, item_id →items, modifier_group_id →modifier_groups, sort_order (I, default 0) |
+| **order_item_modifiers** | id (T), company_id →companies, order_item_id →order_items, modifier_item_id →items, modifier_group_id →modifier_groups, modifier_item_name (T), quantity (R, default 1.0), unit_price (I), tax_rate (I), tax_amount (I) |
 | **product_recipes** | id (T), company_id →companies, parent_product_id →items, component_product_id →items, quantity_required (R) |
 | **tax_rates** | id (T), company_id →companies, label (T), type (T — TaxCalcType), rate (I), is_default (B — max 1 per company) |
 | **currencies** | id (T), code (T), symbol (T), name (T), decimal_places (I) |
@@ -1995,7 +1996,10 @@ Po odeslání formuláře se v jedné transakci vytvoří:
 | Section | 1 (3 s demo) | Hlavní (zelená). S `withTestData`: + Zahrádka (oranžová), Interní (šedá) |
 | Table | 0 (18 s demo) | S `withTestData`: Hlavní: Stůl 1–7 + Bar 1–3 (kap. 4, 4×4 / 2×2), Zahrádka: Stolek 1–5 (kap. 2, 2×2), Interní: Majitel, Repre, Odpisy (kap. 0, off-map) |
 | Category | 0 (7 s demo) | S `withTestData`: Nápoje, Pivo, Hlavní jídla, Předkrmy, Dezerty, Suroviny, Služby |
-| Item | 0 (47 s demo) | S `withTestData`: 9 nápojů, 6 piv, 9 hlavních jídel (4 regular + 1 recipe + 1 burger parent + 3 varianty), 3 modifikátory, 5 předkrmů, 5 dezertů, 5 surovin (ingredience), 3 counter items, 2 služby |
+| Item | 0 (51 s demo) | S `withTestData`: 9 nápojů, 6 piv, 9 hlavních jídel (4 regular + 1 recipe + 1 burger parent + 3 varianty), 7 modifikátorů (Extra sýr, Extra slanina, Hranolky, Kečup, Majonéza, BBQ omáčka, Salát), 5 předkrmů, 5 dezertů, 5 surovin (ingredience), 3 counter items, 2 služby |
+| ModifierGroup | 0 (3 s demo) | S `withTestData`: Přílohy (min:0, max:1), Extra ingredience (min:0, max:∞), Omáčky (min:0, max:2) |
+| ModifierGroupItem | 0 (7 s demo) | S `withTestData`: přiřazení modifikátorů do skupin |
+| ItemModifierGroup | 0 (3 s demo) | S `withTestData`: přiřazení všech 3 skupin k Burger produktu |
 | Supplier | 0 (2 s demo) | S `withTestData`: Makro Cash & Carry, Nápoje Express a.s. |
 | Manufacturer | 0 (2 s demo) | S `withTestData`: Plzeňský Prazdroj, Kofola ČeskoSlovensko |
 | Customer | 0 (5 s demo) | S `withTestData`: Martin Svoboda, Lucie Černá, Tomáš Krejčí, Eva Nováková, Petr Veselý |
@@ -2008,8 +2012,9 @@ Po odeslání formuláře se v jedné transakci vytvoří:
 2. TaxRates, Permissions, Roles, RolePermissions
 3. PaymentMethods, Sections, Tables
 4. Suppliers, Manufacturers, Categories, Items
-5. Customers, Register
-6. User → UserPermissions
+5. ModifierGroups, ModifierGroupItems, ItemModifierGroups
+6. Customers, Register
+7. User → UserPermissions
 
 Po dokončení se zobrazí `ScreenLogin`.
 
@@ -2651,13 +2656,15 @@ Funkce, které nejsou součástí aktuálního plánu. Mohou se přidat kdykoli 
 
 > **Implementováno:** Vizuální mapa stolů — `FloorMapView` (runtime, per-sekce) + `FloorMapEditorTab` (editor v nastavení provozovny). Mřížka 32×20, drag & drop přesun, tvar stolu (rectangle/round), grid pozice na tabulce `tables` (grid_row, grid_col, grid_width, grid_height, shape). Dekorativní prvky mapy (stěny, bary, zóny, popisky) — tabulka `map_elements` s volitelnou barvou a textem. Editor: single tap = výběr s 4 rohovými resize handles, double tap = edit dialog, long press = drag přesun. Runtime: neinteraktivní vrstvení (barevné prvky pod stoly, textové nad).
 
-- Modifikátory položek — tabulky `item_modifiers`, `order_item_modifiers` (extra sýr, bez cibule apod.)
+> **Implementováno:** Modifikátory položek — 4 tabulky (`modifier_groups`, `modifier_group_items`, `item_modifier_groups`, `order_item_modifiers`). Skupiny modifikátorů s pravidly výběru (min/max), přiřazení k produktům (dědičnost na varianty). Sell screen: modifier dialog (povinný pro skupiny s min≥1, volitelný skip pro nepovinné). Košík: modifikátory pod položkou, effectiveUnitPrice = base + Σ(modifier prices). Order tracking: snapshoty v `order_item_modifiers`. Downstream: KDS, customer display, bill detail, receipt PDF. Katalog: tab "Modifikátory" (správa skupin + items), přiřazení skupin k produktům v editačním dialogu. Storno: kopírování modifikátorů do storno objednávky.
 
 > **Pozn.:** Rezervace jsou implementovány v Etapě 3.7 (Milník 3.7).
 
 ### Pokročilé produkty
 
 > **Pozn.:** Varianty produktů (`parent_id` ve items, item_type: variant), hierarchické kategorie (`parent_id` v categories) a alternativní SKU (`alt_sku`) jsou implementovány v Etapě 3.4.
+
+> **Implementováno:** Variant picker na sell screen — tap na produkt s variantami otevře výběrový dialog, varianty v katalogu pod produktem (ExpansionTile), správa přes sub-dialog (název, cena, SKU). Varianty dědí kategorii, daňovou sazbu a jednotku z rodiče. Vyhledávání na sell screen filtruje modifikátory, varianty zůstávají vyhledatelné.
 
 - Barcode scanner integrace
 - ~~Hromadný import produktů (CSV)~~ → přesunuto do Milníku 4.4 (Task4.13)

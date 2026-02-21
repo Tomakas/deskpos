@@ -66,6 +66,7 @@ class ReceiptItemData {
     required this.taxRateBasisPoints,
     this.discount = 0,
     this.notes,
+    this.modifiers = const [],
   });
 
   final String name;
@@ -75,6 +76,19 @@ class ReceiptItemData {
   final int taxRateBasisPoints;
   final int discount;
   final String? notes;
+  final List<ReceiptModifierData> modifiers;
+}
+
+class ReceiptModifierData {
+  const ReceiptModifierData({
+    required this.name,
+    required this.unitPrice,
+    this.quantity = 1.0,
+  });
+
+  final String name;
+  final int unitPrice;
+  final double quantity;
 }
 
 class ReceiptTaxRow {

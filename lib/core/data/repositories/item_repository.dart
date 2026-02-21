@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import '../../database/app_database.dart';
 import '../../utils/search_utils.dart';
+import '../enums/item_type.dart';
 import '../mappers/entity_mappers.dart';
 import '../mappers/supabase_mappers.dart';
 import '../models/item_model.dart';
@@ -72,13 +73,38 @@ class ItemRepository
         updatedAt: Value(now),
       );
 
+  /// Returns active variants for a given parent product.
+  Stream<List<ItemModel>> watchVariants(String parentId) {
+    return (db.select(db.items)
+          ..where((t) =>
+              t.parentId.equals(parentId) &
+              t.itemType.equalsValue(ItemType.variant) &
+              t.deletedAt.isNull())
+          ..orderBy([(t) => OrderingTerm.asc(t.name)]))
+        .watch()
+        .map((rows) => rows.map(fromEntity).toList());
+  }
+
+  /// Quick check whether a product has at least one active variant.
+  Future<bool> hasVariants(String itemId) async {
+    final query = db.select(db.items)
+      ..where((t) =>
+          t.parentId.equals(itemId) &
+          t.itemType.equalsValue(ItemType.variant) &
+          t.deletedAt.isNull())
+      ..limit(1);
+    final result = await query.get();
+    return result.isNotEmpty;
+  }
+
   Stream<List<ItemModel>> search(String companyId, String query) {
     final normalizedQuery = normalizeSearch(query);
     return (db.select(db.items)
           ..where((t) =>
               t.companyId.equals(companyId) &
               t.deletedAt.isNull() &
-              t.isSellable.equals(true))
+              t.isSellable.equals(true) &
+              t.itemType.isNotInValues([ItemType.modifier]))
           ..orderBy([(t) => OrderingTerm.asc(t.name)]))
         .watch()
         .map((rows) => rows

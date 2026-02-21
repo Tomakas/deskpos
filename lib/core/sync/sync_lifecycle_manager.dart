@@ -274,7 +274,15 @@ class SyncLifecycleManager {
       (e) => orderItemToSupabaseJson(orderItemFromEntity(e as OrderItem)),
     );
 
-    // Push payments (27, depends on bills)
+    // Push order_item_modifiers (27, depends on order_items + modifier_groups)
+    await _enqueueCompanyTable(
+      companyId,
+      'order_item_modifiers',
+      _db.orderItemModifiers,
+      (e) => orderItemModifierToSupabaseJson(orderItemModifierFromEntity(e as OrderItemModifier)),
+    );
+
+    // Push payments (28, depends on bills)
     await _enqueueCompanyTable(
       companyId,
       'payments',

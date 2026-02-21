@@ -6,7 +6,9 @@ import '../../../core/data/enums/item_type.dart';
 import '../../../core/data/enums/unit_type.dart';
 import '../../../core/data/models/category_model.dart';
 import '../../../core/data/models/item_model.dart';
+import '../../../core/data/models/item_modifier_group_model.dart';
 import '../../../core/data/models/manufacturer_model.dart';
+import '../../../core/data/models/modifier_group_model.dart';
 import '../../../core/data/models/supplier_model.dart';
 import '../../../core/data/models/tax_rate_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
@@ -511,6 +513,16 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
                     value: isStockTracked,
                     onChanged: (v) => setDialogState(() => isStockTracked = v),
                   ),
+                  // Variants section — only for existing products
+                  if (existing != null && existing.itemType == ItemType.product)
+                    _VariantsExpansionTile(
+                      product: existing,
+                      categories: categories,
+                      taxRates: taxRates,
+                    ),
+                  // Modifier groups section — only for existing products
+                  if (existing != null && existing.itemType == ItemType.product)
+                    _ModifierGroupsExpansionTile(product: existing),
                 ],
               ),
             ),
@@ -599,5 +611,284 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
     );
     if (confirmed != true || !mounted) return;
     await ref.read(itemRepositoryProvider).delete(item.id);
+  }
+}
+
+class _VariantsExpansionTile extends ConsumerWidget {
+  const _VariantsExpansionTile({
+    required this.product,
+    required this.categories,
+    required this.taxRates,
+  });
+  final ItemModel product;
+  final List<CategoryModel> categories;
+  final List<TaxRateModel> taxRates;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = context.l10n;
+    final theme = Theme.of(context);
+
+    return ExpansionTile(
+      title: Text(l.variants),
+      children: [
+        StreamBuilder<List<ItemModel>>(
+          stream: ref.watch(itemRepositoryProvider).watchVariants(product.id),
+          builder: (context, snap) {
+            final variants = snap.data ?? [];
+            if (variants.isEmpty) {
+              return Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(l.noVariants, style: theme.textTheme.bodySmall),
+              );
+            }
+            return Column(
+              children: [
+                for (final v in variants)
+                  ListTile(
+                    dense: true,
+                    title: Text(v.name),
+                    trailing: Text(ref.moneyValue(v.unitPrice)),
+                    onTap: () => _showVariantEditDialog(context, ref, v),
+                    onLongPress: () => _confirmDeleteVariant(context, ref, v),
+                  ),
+              ],
+            );
+          },
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => _showVariantEditDialog(context, ref, null),
+              icon: const Icon(Icons.add, size: 18),
+              label: Text(l.addVariant),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _showVariantEditDialog(BuildContext context, WidgetRef ref, ItemModel? existing) async {
+    final l = context.l10n;
+    final nameCtrl = TextEditingController(text: existing?.name ?? '');
+    final currency = ref.read(currentCurrencyProvider).value;
+    final priceCtrl = TextEditingController(
+      text: existing != null
+          ? minorUnitsToInputString(existing.unitPrice, currency)
+          : minorUnitsToInputString(product.unitPrice, currency),
+    );
+    final skuCtrl = TextEditingController(text: existing?.sku ?? '');
+    final altSkuCtrl = TextEditingController(text: existing?.altSku ?? '');
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(existing == null ? l.addVariant : l.editVariant),
+        content: SizedBox(
+          width: 400,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameCtrl,
+                decoration: InputDecoration(labelText: l.fieldName),
+                autofocus: true,
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: priceCtrl,
+                decoration: InputDecoration(labelText: l.fieldPrice),
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: skuCtrl,
+                decoration: const InputDecoration(labelText: 'SKU'),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: altSkuCtrl,
+                decoration: InputDecoration(labelText: l.fieldAltSku),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l.actionCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(l.actionSave),
+          ),
+        ],
+      ),
+    );
+
+    if (result != true || nameCtrl.text.trim().isEmpty) return;
+    if (!context.mounted) return;
+
+    final repo = ref.read(itemRepositoryProvider);
+    final priceInCents = parseMoney(priceCtrl.text, currency);
+    final now = DateTime.now();
+
+    if (existing != null) {
+      await repo.update(existing.copyWith(
+        name: nameCtrl.text.trim(),
+        unitPrice: priceInCents,
+        sku: skuCtrl.text.trim().isNotEmpty ? skuCtrl.text.trim() : null,
+        altSku: altSkuCtrl.text.trim().isNotEmpty ? altSkuCtrl.text.trim() : null,
+      ));
+    } else {
+      await repo.create(ItemModel(
+        id: const Uuid().v7(),
+        companyId: product.companyId,
+        name: nameCtrl.text.trim(),
+        categoryId: product.categoryId,
+        unitPrice: priceInCents,
+        saleTaxRateId: product.saleTaxRateId,
+        itemType: ItemType.variant,
+        unit: product.unit,
+        parentId: product.id,
+        sku: skuCtrl.text.trim().isNotEmpty ? skuCtrl.text.trim() : null,
+        altSku: altSkuCtrl.text.trim().isNotEmpty ? altSkuCtrl.text.trim() : null,
+        createdAt: now,
+        updatedAt: now,
+      ));
+    }
+  }
+
+  Future<void> _confirmDeleteVariant(BuildContext context, WidgetRef ref, ItemModel variant) async {
+    final l = context.l10n;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        content: Text(l.confirmDelete),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    await ref.read(itemRepositoryProvider).delete(variant.id);
+  }
+}
+
+class _ModifierGroupsExpansionTile extends ConsumerWidget {
+  const _ModifierGroupsExpansionTile({required this.product});
+  final ItemModel product;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = context.l10n;
+    final theme = Theme.of(context);
+    final company = ref.watch(currentCompanyProvider);
+    if (company == null) return const SizedBox.shrink();
+
+    return StreamBuilder<List<ItemModifierGroupModel>>(
+      stream: ref.watch(itemModifierGroupRepositoryProvider).watchByItem(product.id),
+      builder: (context, assignSnap) {
+        final assignments = assignSnap.data ?? [];
+
+        return StreamBuilder<List<ModifierGroupModel>>(
+          stream: ref.watch(modifierGroupRepositoryProvider).watchAll(company.id),
+          builder: (context, groupsSnap) {
+            final allGroups = groupsSnap.data ?? [];
+            final groupMap = {for (final g in allGroups) g.id: g};
+
+            return ExpansionTile(
+              title: Text(l.modifierGroups),
+              children: [
+                if (assignments.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text(l.noModifierGroups, style: theme.textTheme.bodySmall),
+                  ),
+                for (final assignment in assignments)
+                  Builder(
+                    builder: (context) {
+                      final group = groupMap[assignment.modifierGroupId];
+                      if (group == null) return const SizedBox.shrink();
+                      final rule = group.minSelections >= 1
+                          ? l.modifierGroupRequired
+                          : l.optional;
+                      final maxLabel = group.maxSelections?.toString() ?? l.unlimited;
+                      return ListTile(
+                        dense: true,
+                        title: Text(group.name),
+                        subtitle: Text('$rule  ·  ${l.minSelections}: ${group.minSelections}  ·  ${l.maxSelections}: $maxLabel'),
+                        trailing: IconButton(
+                          icon: Icon(Icons.close, size: 18, color: theme.colorScheme.error),
+                          onPressed: () async {
+                            await ref.read(itemModifierGroupRepositoryProvider).delete(assignment.id);
+                          },
+                        ),
+                      );
+                    },
+                  ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () => _showAssignGroupDialog(context, ref, allGroups, assignments),
+                      icon: const Icon(Icons.add, size: 18),
+                      label: Text(l.assignModifierGroup),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _showAssignGroupDialog(
+    BuildContext context,
+    WidgetRef ref,
+    List<ModifierGroupModel> allGroups,
+    List<ItemModifierGroupModel> existing,
+  ) async {
+    final l = context.l10n;
+    final assignedIds = existing.map((e) => e.modifierGroupId).toSet();
+    final available = allGroups.where((g) => !assignedIds.contains(g.id)).toList();
+
+    if (available.isEmpty) return;
+
+    final selected = await showDialog<ModifierGroupModel>(
+      context: context,
+      builder: (ctx) => SimpleDialog(
+        title: Text(l.assignModifierGroup),
+        children: [
+          for (final group in available)
+            SimpleDialogOption(
+              onPressed: () => Navigator.pop(ctx, group),
+              child: Text(group.name),
+            ),
+        ],
+      ),
+    );
+
+    if (selected == null || !context.mounted) return;
+
+    final now = DateTime.now();
+    await ref.read(itemModifierGroupRepositoryProvider).create(
+      ItemModifierGroupModel(
+        id: const Uuid().v7(),
+        companyId: product.companyId,
+        itemId: product.id,
+        modifierGroupId: selected.id,
+        sortOrder: existing.length,
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
   }
 }

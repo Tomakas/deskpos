@@ -12,8 +12,12 @@ import '../models/company_settings_model.dart';
 import '../models/currency_model.dart';
 import '../models/device_registration_model.dart';
 import '../models/item_model.dart';
+import '../models/item_modifier_group_model.dart';
 import '../models/layout_item_model.dart';
 import '../models/manufacturer_model.dart';
+import '../models/modifier_group_item_model.dart';
+import '../models/modifier_group_model.dart';
+import '../models/order_item_modifier_model.dart';
 import '../models/order_item_model.dart';
 import '../models/order_model.dart';
 import '../models/payment_method_model.dart';
@@ -941,4 +945,105 @@ VouchersCompanion voucherToCompanion(VoucherModel m) => VouchersCompanion.insert
       redeemedOnBillId: Value(m.redeemedOnBillId),
       sourceBillId: Value(m.sourceBillId),
       note: Value(m.note),
+    );
+
+// --- ModifierGroup ---
+ModifierGroupModel modifierGroupFromEntity(ModifierGroup e) => ModifierGroupModel(
+      id: e.id,
+      companyId: e.companyId,
+      name: e.name,
+      minSelections: e.minSelections,
+      maxSelections: e.maxSelections,
+      sortOrder: e.sortOrder,
+      createdAt: e.createdAt,
+      updatedAt: e.updatedAt,
+      deletedAt: e.deletedAt,
+    );
+
+ModifierGroupsCompanion modifierGroupToCompanion(ModifierGroupModel m) =>
+    ModifierGroupsCompanion.insert(
+      id: m.id,
+      companyId: m.companyId,
+      name: m.name,
+      minSelections: Value(m.minSelections),
+      maxSelections: Value(m.maxSelections),
+      sortOrder: Value(m.sortOrder),
+    );
+
+// --- ModifierGroupItem ---
+ModifierGroupItemModel modifierGroupItemFromEntity(ModifierGroupItem e) =>
+    ModifierGroupItemModel(
+      id: e.id,
+      companyId: e.companyId,
+      modifierGroupId: e.modifierGroupId,
+      itemId: e.itemId,
+      sortOrder: e.sortOrder,
+      isDefault: e.isDefault,
+      createdAt: e.createdAt,
+      updatedAt: e.updatedAt,
+      deletedAt: e.deletedAt,
+    );
+
+ModifierGroupItemsCompanion modifierGroupItemToCompanion(ModifierGroupItemModel m) =>
+    ModifierGroupItemsCompanion.insert(
+      id: m.id,
+      companyId: m.companyId,
+      modifierGroupId: m.modifierGroupId,
+      itemId: m.itemId,
+      sortOrder: Value(m.sortOrder),
+      isDefault: Value(m.isDefault),
+    );
+
+// --- ItemModifierGroup ---
+ItemModifierGroupModel itemModifierGroupFromEntity(ItemModifierGroup e) =>
+    ItemModifierGroupModel(
+      id: e.id,
+      companyId: e.companyId,
+      itemId: e.itemId,
+      modifierGroupId: e.modifierGroupId,
+      sortOrder: e.sortOrder,
+      createdAt: e.createdAt,
+      updatedAt: e.updatedAt,
+      deletedAt: e.deletedAt,
+    );
+
+ItemModifierGroupsCompanion itemModifierGroupToCompanion(ItemModifierGroupModel m) =>
+    ItemModifierGroupsCompanion.insert(
+      id: m.id,
+      companyId: m.companyId,
+      itemId: m.itemId,
+      modifierGroupId: m.modifierGroupId,
+      sortOrder: Value(m.sortOrder),
+    );
+
+// --- OrderItemModifier ---
+OrderItemModifierModel orderItemModifierFromEntity(OrderItemModifier e) =>
+    OrderItemModifierModel(
+      id: e.id,
+      companyId: e.companyId,
+      orderItemId: e.orderItemId,
+      modifierItemId: e.modifierItemId,
+      modifierGroupId: e.modifierGroupId,
+      modifierItemName: e.modifierItemName,
+      quantity: e.quantity,
+      unitPrice: e.unitPrice,
+      taxRate: e.taxRate,
+      taxAmount: e.taxAmount,
+      createdAt: e.createdAt,
+      updatedAt: e.updatedAt,
+      deletedAt: e.deletedAt,
+    );
+
+OrderItemModifiersCompanion orderItemModifierToCompanion(OrderItemModifierModel m) =>
+    OrderItemModifiersCompanion.insert(
+      id: m.id,
+      companyId: m.companyId,
+      orderItemId: m.orderItemId,
+      modifierItemId: m.modifierItemId,
+      modifierGroupId: m.modifierGroupId,
+      modifierItemName: Value(m.modifierItemName),
+      quantity: Value(m.quantity),
+      unitPrice: m.unitPrice,
+      taxRate: m.taxRate,
+      taxAmount: m.taxAmount,
     );

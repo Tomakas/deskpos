@@ -562,7 +562,6 @@ class _OrderItemCard extends ConsumerWidget {
     final theme = Theme.of(context);
     final isVoided =
         item.status == PrepStatus.voided || item.status == PrepStatus.cancelled;
-    final price = (item.salePriceAtt * item.quantity).round();
     final prev = canChangeStatus ? _prevStatus(item.status) : null;
     final next = canChangeStatus ? _nextStatus(item.status) : null;
 
@@ -604,116 +603,147 @@ class _OrderItemCard extends ConsumerWidget {
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                    child: Row(
-                      children: [
-                        // Status dot
-                        Container(
-                          width: 10,
-                          height: 10,
-                          margin: const EdgeInsets.only(right: 6),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: item.status.color(context),
-                          ),
-                        ),
-                        // Quantity
-                        SizedBox(
-                          width: 32,
-                          child: Text(
-                            '${item.quantity.toStringAsFixed(item.quantity == item.quantity.roundToDouble() ? 0 : 1)}x',
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              decoration: isVoided ? TextDecoration.lineThrough : null,
-                              color: isVoided ? theme.colorScheme.onSurfaceVariant : null,
-                            ),
-                          ),
-                        ),
-                        // Item name
-                        Expanded(
-                          child: Text(
-                            item.itemName,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              decoration: isVoided ? TextDecoration.lineThrough : null,
-                              color: isVoided ? theme.colorScheme.onSurfaceVariant : null,
-                            ),
-                          ),
-                        ),
-                        // Notes icon
-                        if (item.notes != null && item.notes!.isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.only(right: 4),
-                            child: Icon(
-                              Icons.note,
-                              size: 14,
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        // Price
-                        Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: Text(
-                            ref.money(price),
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              decoration: isVoided ? TextDecoration.lineThrough : null,
-                              color: isVoided ? theme.colorScheme.onSurfaceVariant : null,
-                            ),
-                          ),
-                        ),
-                        // Prev-status button
-                        if (prev != null)
-                          SizedBox(
-                            height: 40,
-                            width: 40,
-                            child: IconButton.filled(
-                              style: IconButton.styleFrom(
-                                backgroundColor:
-                                    prev.color(context).withValues(alpha: 0.15),
-                                foregroundColor: prev.color(context),
-                              ),
-                              onPressed: () => onStatusChange(prev),
-                              icon: const Icon(Icons.undo, size: 18),
-                            ),
-                          ),
-                        if (prev != null) const SizedBox(width: 4),
-                        // Next-status button / voided label
-                        Flexible(
-                          child: Align(
-                            alignment: Alignment.centerRight,
-                            child: SizedBox(
-                              height: 40,
-                              child: next != null
-                                  ? FilledButton.tonal(
-                                      style: FilledButton.styleFrom(
-                                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: StreamBuilder(
+                      stream: ref.watch(orderItemModifierRepositoryProvider).watchByOrderItem(item.id),
+                      builder: (context, modSnap) {
+                        final mods = modSnap.data ?? [];
+                        final modTotal = mods.fold<int>(0, (sum, m) => sum + (m.unitPrice * m.quantity * item.quantity).round());
+                        final price = (item.salePriceAtt * item.quantity).round() + modTotal;
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Row(
+                              children: [
+                                // Status dot
+                                Container(
+                                  width: 10,
+                                  height: 10,
+                                  margin: const EdgeInsets.only(right: 6),
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: item.status.color(context),
+                                  ),
+                                ),
+                                // Quantity
+                                SizedBox(
+                                  width: 32,
+                                  child: Text(
+                                    '${item.quantity.toStringAsFixed(item.quantity == item.quantity.roundToDouble() ? 0 : 1)}x',
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      decoration: isVoided ? TextDecoration.lineThrough : null,
+                                      color: isVoided ? theme.colorScheme.onSurfaceVariant : null,
+                                    ),
+                                  ),
+                                ),
+                                // Item name
+                                Expanded(
+                                  child: Text(
+                                    item.itemName,
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      decoration: isVoided ? TextDecoration.lineThrough : null,
+                                      color: isVoided ? theme.colorScheme.onSurfaceVariant : null,
+                                    ),
+                                  ),
+                                ),
+                                // Notes icon
+                                if (item.notes != null && item.notes!.isNotEmpty)
+                                  Padding(
+                                    padding: const EdgeInsets.only(right: 4),
+                                    child: Icon(
+                                      Icons.note,
+                                      size: 14,
+                                      color: theme.colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                // Price
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 8),
+                                  child: Text(
+                                    ref.money(price),
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      decoration: isVoided ? TextDecoration.lineThrough : null,
+                                      color: isVoided ? theme.colorScheme.onSurfaceVariant : null,
+                                    ),
+                                  ),
+                                ),
+                                // Prev-status button
+                                if (prev != null)
+                                  SizedBox(
+                                    height: 40,
+                                    width: 40,
+                                    child: IconButton.filled(
+                                      style: IconButton.styleFrom(
                                         backgroundColor:
-                                            next.color(context).withValues(alpha: 0.15),
-                                        foregroundColor: next.color(context),
-                                        textStyle: theme.textTheme.labelSmall
-                                            ?.copyWith(fontWeight: FontWeight.w600),
+                                            prev.color(context).withValues(alpha: 0.15),
+                                        foregroundColor: prev.color(context),
                                       ),
-                                      clipBehavior: Clip.hardEdge,
-                                      onPressed: () => onStatusChange(next),
-                                      child: Text(
-                                        _nextStatusLabel(next, l),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    )
-                                  : isVoided
-                                      ? Center(
-                                          child: Text(
-                                            l.ordersFilterStorno,
-                                            style: theme.textTheme.labelSmall?.copyWith(
-                                              color: context.appColors.danger,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        )
-                                      : null,
+                                      onPressed: () => onStatusChange(prev),
+                                      icon: const Icon(Icons.undo, size: 18),
+                                    ),
+                                  ),
+                                if (prev != null) const SizedBox(width: 4),
+                                // Next-status button / voided label
+                                Flexible(
+                                  child: Align(
+                                    alignment: Alignment.centerRight,
+                                    child: SizedBox(
+                                      height: 40,
+                                      child: next != null
+                                          ? FilledButton.tonal(
+                                              style: FilledButton.styleFrom(
+                                                padding: const EdgeInsets.symmetric(horizontal: 10),
+                                                backgroundColor:
+                                                    next.color(context).withValues(alpha: 0.15),
+                                                foregroundColor: next.color(context),
+                                                textStyle: theme.textTheme.labelSmall
+                                                    ?.copyWith(fontWeight: FontWeight.w600),
+                                              ),
+                                              clipBehavior: Clip.hardEdge,
+                                              onPressed: () => onStatusChange(next),
+                                              child: Text(
+                                                _nextStatusLabel(next, l),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            )
+                                          : isVoided
+                                              ? Center(
+                                                  child: Text(
+                                                    l.ordersFilterStorno,
+                                                    style: theme.textTheme.labelSmall?.copyWith(
+                                                      color: context.appColors.danger,
+                                                      fontWeight: FontWeight.w600,
+                                                    ),
+                                                    overflow: TextOverflow.ellipsis,
+                                                  ),
+                                                )
+                                              : null,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
-                        ),
-                      ],
+                            // Modifiers
+                            if (mods.isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.only(left: 48, top: 2),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    for (final mod in mods)
+                                      Text(
+                                        '+ ${mod.modifierItemName}',
+                                        style: theme.textTheme.bodySmall?.copyWith(
+                                          color: theme.colorScheme.onSurfaceVariant,
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                          ],
+                        );
+                      },
                     ),
                   ),
                 ),

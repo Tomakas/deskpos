@@ -9,7 +9,11 @@ import '../models/company_model.dart';
 import '../models/display_device_model.dart';
 import '../models/company_settings_model.dart';
 import '../models/item_model.dart';
+import '../models/item_modifier_group_model.dart';
 import '../models/layout_item_model.dart';
+import '../models/modifier_group_item_model.dart';
+import '../models/modifier_group_model.dart';
+import '../models/order_item_modifier_model.dart';
 import '../models/map_element_model.dart';
 import '../models/manufacturer_model.dart';
 import '../models/order_item_model.dart';
@@ -681,4 +685,63 @@ Map<String, dynamic> voucherToSupabaseJson(VoucherModel m) => {
       'redeemed_on_bill_id': m.redeemedOnBillId,
       'source_bill_id': m.sourceBillId,
       'note': m.note,
+    };
+
+Map<String, dynamic> modifierGroupToSupabaseJson(ModifierGroupModel m) => {
+      ..._baseSyncFields(
+        id: m.id,
+        companyId: m.companyId,
+        createdAt: m.createdAt,
+        updatedAt: m.updatedAt,
+        deletedAt: m.deletedAt,
+      ),
+      'name': m.name,
+      'min_selections': m.minSelections,
+      'max_selections': m.maxSelections,
+      'sort_order': m.sortOrder,
+    };
+
+Map<String, dynamic> modifierGroupItemToSupabaseJson(ModifierGroupItemModel m) => {
+      ..._baseSyncFields(
+        id: m.id,
+        companyId: m.companyId,
+        createdAt: m.createdAt,
+        updatedAt: m.updatedAt,
+        deletedAt: m.deletedAt,
+      ),
+      'modifier_group_id': m.modifierGroupId,
+      'item_id': m.itemId,
+      'sort_order': m.sortOrder,
+      'is_default': m.isDefault,
+    };
+
+Map<String, dynamic> itemModifierGroupToSupabaseJson(ItemModifierGroupModel m) => {
+      ..._baseSyncFields(
+        id: m.id,
+        companyId: m.companyId,
+        createdAt: m.createdAt,
+        updatedAt: m.updatedAt,
+        deletedAt: m.deletedAt,
+      ),
+      'item_id': m.itemId,
+      'modifier_group_id': m.modifierGroupId,
+      'sort_order': m.sortOrder,
+    };
+
+Map<String, dynamic> orderItemModifierToSupabaseJson(OrderItemModifierModel m) => {
+      ..._baseSyncFields(
+        id: m.id,
+        companyId: m.companyId,
+        createdAt: m.createdAt,
+        updatedAt: m.updatedAt,
+        deletedAt: m.deletedAt,
+      ),
+      'order_item_id': m.orderItemId,
+      'modifier_item_id': m.modifierItemId,
+      'modifier_group_id': m.modifierGroupId,
+      'modifier_item_name': m.modifierItemName,
+      'quantity': m.quantity,
+      'unit_price': m.unitPrice,
+      'tax_rate': m.taxRate,
+      'tax_amount': m.taxAmount,
     };

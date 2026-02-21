@@ -16,10 +16,14 @@ import 'tables/company_settings.dart';
 import 'tables/currencies.dart';
 import 'tables/device_registrations.dart';
 import 'tables/display_devices.dart';
+import 'tables/item_modifier_groups.dart';
 import 'tables/items.dart';
 import 'tables/layout_items.dart';
 import 'tables/map_elements.dart';
 import 'tables/manufacturers.dart';
+import 'tables/modifier_group_items.dart';
+import 'tables/modifier_groups.dart';
+import 'tables/order_item_modifiers.dart';
 import 'tables/order_items.dart';
 import 'tables/orders.dart';
 import 'tables/payment_methods.dart';
@@ -59,10 +63,14 @@ part 'app_database.g.dart';
   Currencies,
   DeviceRegistrations,
   DisplayDevices,
+  ItemModifierGroups,
   Items,
   LayoutItems,
   MapElements,
   Manufacturers,
+  ModifierGroupItems,
+  ModifierGroups,
+  OrderItemModifiers,
   OrderItems,
   Orders,
   PaymentMethods,

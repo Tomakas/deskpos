@@ -1018,5 +1018,31 @@
   "durationMinutesOnly": "{m} min",
   "@durationMinutesOnly": {
     "placeholders": { "m": { "type": "int" } }
-  }
+  },
+
+  "variantPickerTitle": "Select variant",
+  "addVariant": "Add variant",
+  "editVariant": "Edit variant",
+  "variants": "Variants",
+  "noVariants": "No variants",
+
+  "modifiers": "Modifiers",
+  "modifierGroups": "Modifier Groups",
+  "modifierGroupName": "Group Name",
+  "addModifierGroup": "Add Group",
+  "editModifierGroup": "Edit Group",
+  "deleteModifierGroup": "Delete Group",
+  "minSelections": "Min. Selections",
+  "maxSelections": "Max. Selections",
+  "required": "Required",
+  "optional": "Optional",
+  "unlimited": "Unlimited",
+  "addModifier": "Add Modifier",
+  "selectModifiers": "Select Modifiers",
+  "editModifiers": "Edit Modifiers",
+  "noModifierGroups": "No modifier groups",
+  "modifierTotal": "Total with modifiers",
+  "modifierGroupRequired": "Required group",
+  "assignModifierGroup": "Assign Group",
+  "removeModifierGroup": "Remove Group"
 }

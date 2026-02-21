@@ -12,9 +12,11 @@ import '../enums/stock_movement_direction.dart';
 import '../mappers/entity_mappers.dart';
 import '../mappers/supabase_mappers.dart';
 import '../models/order_item_model.dart';
+import '../models/order_item_modifier_model.dart';
 import '../models/order_model.dart';
 import '../models/stock_movement_model.dart';
 import '../result.dart';
+import 'order_item_modifier_repository.dart';
 import 'stock_level_repository.dart';
 import 'stock_movement_repository.dart';
 import 'sync_queue_repository.dart';
@@ -25,11 +27,13 @@ class OrderRepository {
     this.syncQueueRepo,
     this.stockLevelRepo,
     this.stockMovementRepo,
+    this.orderItemModifierRepo,
   });
   final AppDatabase _db;
   final SyncQueueRepository? syncQueueRepo;
   final StockLevelRepository? stockLevelRepo;
   final StockMovementRepository? stockMovementRepo;
+  final OrderItemModifierRepository? orderItemModifierRepo;
 
   Future<Result<OrderModel>> createOrderWithItems({
     required String companyId,
@@ -60,11 +64,17 @@ class OrderRepository {
           status: PrepStatus.created,
         ));
 
-        // Insert order items
+        // Insert order items and their modifiers
         for (final item in items) {
           final itemId = const Uuid().v7();
-          final itemSubtotal = (item.salePriceAtt * item.quantity).round();
-          final itemTax = (item.saleTaxAmount * item.quantity).round();
+          // Item base cost
+          int itemSubtotal = (item.salePriceAtt * item.quantity).round();
+          int itemTax = (item.saleTaxAmount * item.quantity).round();
+          // Add modifier costs (each modifier × item quantity)
+          for (final mod in item.modifiers) {
+            itemSubtotal += (mod.unitPrice * mod.quantity * item.quantity).round();
+            itemTax += (mod.taxAmount * mod.quantity * item.quantity).round();
+          }
           subtotalGross += itemSubtotal;
           taxTotal += itemTax;
 
@@ -81,6 +91,27 @@ class OrderRepository {
             notes: Value(item.notes),
             status: PrepStatus.created,
           ));
+
+          // Insert order item modifiers
+          if (item.modifiers.isNotEmpty) {
+            final modifierModels = item.modifiers.map((mod) => OrderItemModifierModel(
+              id: const Uuid().v7(),
+              companyId: companyId,
+              orderItemId: itemId,
+              modifierItemId: mod.modifierItemId,
+              modifierGroupId: mod.modifierGroupId,
+              modifierItemName: mod.modifierItemName,
+              quantity: mod.quantity,
+              unitPrice: mod.unitPrice,
+              taxRate: mod.taxRate,
+              taxAmount: mod.taxAmount,
+              createdAt: now,
+              updatedAt: now,
+            )).toList();
+            if (orderItemModifierRepo != null) {
+              await orderItemModifierRepo!.createBatch(modifierModels);
+            }
+          }
         }
 
         // Update order totals
@@ -458,9 +489,58 @@ class OrderRepository {
           status: PrepStatus.delivered,
         ));
 
-        // 7. Update storno order totals
-        final itemSubtotal = (itemEntity.salePriceAtt * itemEntity.quantity).round();
-        final itemTax = (itemEntity.saleTaxAmount * itemEntity.quantity).round();
+        // 6b. Copy modifiers from voided item to storno item
+        final voidedMods = await (_db.select(_db.orderItemModifiers)
+              ..where((t) => t.orderItemId.equals(orderItemId) & t.deletedAt.isNull()))
+            .get();
+        for (final mod in voidedMods) {
+          final stornoModId = const Uuid().v7();
+          await _db.into(_db.orderItemModifiers).insert(
+            OrderItemModifiersCompanion.insert(
+              id: stornoModId,
+              companyId: companyId,
+              orderItemId: stornoItemId,
+              modifierItemId: mod.modifierItemId,
+              modifierGroupId: mod.modifierGroupId,
+              modifierItemName: Value(mod.modifierItemName),
+              quantity: Value(mod.quantity),
+              unitPrice: mod.unitPrice,
+              taxRate: mod.taxRate,
+              taxAmount: mod.taxAmount,
+            ),
+          );
+          if (orderItemModifierRepo != null) {
+            final modModel = OrderItemModifierModel(
+              id: stornoModId,
+              companyId: companyId,
+              orderItemId: stornoItemId,
+              modifierItemId: mod.modifierItemId,
+              modifierGroupId: mod.modifierGroupId,
+              modifierItemName: mod.modifierItemName,
+              quantity: mod.quantity,
+              unitPrice: mod.unitPrice,
+              taxRate: mod.taxRate,
+              taxAmount: mod.taxAmount,
+              createdAt: now,
+              updatedAt: now,
+            );
+            await syncQueueRepo?.enqueue(
+              companyId: companyId,
+              entityType: 'order_item_modifiers',
+              entityId: stornoModId,
+              operation: 'insert',
+              payload: jsonEncode(orderItemModifierToSupabaseJson(modModel)),
+            );
+          }
+        }
+
+        // 7. Update storno order totals (including modifiers)
+        int itemSubtotal = (itemEntity.salePriceAtt * itemEntity.quantity).round();
+        int itemTax = (itemEntity.saleTaxAmount * itemEntity.quantity).round();
+        for (final mod in voidedMods) {
+          itemSubtotal += (mod.unitPrice * mod.quantity * itemEntity.quantity).round();
+          itemTax += (mod.taxAmount * mod.quantity * itemEntity.quantity).round();
+        }
         await (_db.update(_db.orders)..where((t) => t.id.equals(stornoOrderId))).write(
           OrdersCompanion(
             itemCount: const Value(1),
@@ -771,10 +851,26 @@ class OrderRepository {
           ..where((t) => t.orderId.equals(orderId) & t.deletedAt.isNull()
               & t.status.isNotIn([PrepStatus.cancelled.name, PrepStatus.voided.name])))
         .get();
+    // Load modifiers for these items
+    final itemIds = items.map((i) => i.id).toList();
+    final allMods = itemIds.isEmpty
+        ? <OrderItemModifier>[]
+        : await (_db.select(_db.orderItemModifiers)
+              ..where((t) => t.orderItemId.isIn(itemIds) & t.deletedAt.isNull()))
+            .get();
+    final modsByItem = <String, List<OrderItemModifier>>{};
+    for (final mod in allMods) {
+      modsByItem.putIfAbsent(mod.orderItemId, () => []).add(mod);
+    }
+
     int gross = 0, tax = 0;
     for (final item in items) {
       gross += (item.salePriceAtt * item.quantity).round();
       tax += (item.saleTaxAmount * item.quantity).round();
+      for (final mod in modsByItem[item.id] ?? <OrderItemModifier>[]) {
+        gross += (mod.unitPrice * mod.quantity * item.quantity).round();
+        tax += (mod.taxAmount * mod.quantity * item.quantity).round();
+      }
     }
     await (_db.update(_db.orders)..where((t) => t.id.equals(orderId))).write(
       OrdersCompanion(
@@ -966,6 +1062,7 @@ class OrderItemInput {
     required this.saleTaxRateAtt,
     required this.saleTaxAmount,
     this.notes,
+    this.modifiers = const [],
   });
 
   final String itemId;
@@ -975,4 +1072,25 @@ class OrderItemInput {
   final int saleTaxRateAtt;
   final int saleTaxAmount;
   final String? notes;
+  final List<OrderItemModifierInput> modifiers;
+}
+
+class OrderItemModifierInput {
+  const OrderItemModifierInput({
+    required this.modifierItemId,
+    required this.modifierItemName,
+    required this.modifierGroupId,
+    this.quantity = 1.0,
+    required this.unitPrice,
+    required this.taxRate,
+    required this.taxAmount,
+  });
+
+  final String modifierItemId;
+  final String modifierItemName;
+  final String modifierGroupId;
+  final double quantity;
+  final int unitPrice;
+  final int taxRate;
+  final int taxAmount;
 }

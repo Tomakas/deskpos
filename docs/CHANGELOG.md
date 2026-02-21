@@ -1,5 +1,73 @@
 # Changelog
 
+## 2026-02-21 — Varianty a Modifikátory
+
+### Features
+- **Variant picker** (sell screen): Tap na produkt s variantami otevře výběrový dialog; varianty v košíku vždy jako konkrétní varianta
+- **Variant management** (katalog): ExpansionTile v product edit dialogu, CRUD sub-dialog (název, cena, SKU, alt SKU)
+- **Modifier groups**: Kompletní CRUD — skupiny s pravidly výběru (min/max selections), správa modifier items ve skupinách
+- **Modifier assignment**: Přiřazení modifier groups k produktům přes catalog edit dialog, dědičnost na varianty
+- **Modifier selection** (sell screen): Dialog s radio buttons (single-select) a checkboxy (multi-select), running total, validace povinných skupin
+- **Cart modifiers**: Modifikátory zobrazeny pod položkou, effectiveUnitPrice = base + Σ(modifier prices), dedup klíč zahrnuje sorted modifier set
+- **Order tracking**: Snapshot modifikátorů v `order_item_modifiers` (denormalizovaný název, cena, daň)
+- **Storno**: Kopírování modifikátorů do storno objednávky, reversování stock, zahrnutí modifier cen v totals
+- **KDS display**: Modifikátory pod položkou (+ name, bodySmall)
+- **Customer display**: Modifikátory v effectiveUnitPrice
+- **Bill detail**: Modifikátory pod order items
+- **Receipt PDF**: Modifikátory odsazené pod položkou, menší font, cena trailing
+
+### Schema
+- 4 nové tabulky: `modifier_groups`, `modifier_group_items`, `item_modifier_groups`, `order_item_modifiers`
+- Supabase migrace: `20260221_001_add_modifier_tables.sql` (CREATE TABLE, indexes, RLS, triggers, realtime)
+
+### New Files
+- `lib/core/database/tables/modifier_groups.dart`
+- `lib/core/database/tables/modifier_group_items.dart`
+- `lib/core/database/tables/item_modifier_groups.dart`
+- `lib/core/database/tables/order_item_modifiers.dart`
+- `lib/core/data/models/modifier_group_model.dart`
+- `lib/core/data/models/modifier_group_item_model.dart`
+- `lib/core/data/models/item_modifier_group_model.dart`
+- `lib/core/data/models/order_item_modifier_model.dart`
+- `lib/core/data/repositories/modifier_group_repository.dart`
+- `lib/core/data/repositories/modifier_group_item_repository.dart`
+- `lib/core/data/repositories/item_modifier_group_repository.dart`
+- `lib/core/data/repositories/order_item_modifier_repository.dart`
+- `lib/features/catalog/widgets/catalog_modifiers_tab.dart`
+- `supabase/migrations/20260221_001_add_modifier_tables.sql`
+
+### Modified
+- `lib/features/sell/screens/screen_sell.dart` — _CartItem + _CartModifier, variant picker, modifier dialog, cart dedup, order item modifier inputs
+- `lib/core/data/repositories/order_repository.dart` — createOrderWithItems (modifier insert + totals), voidItem (modifier copy + stock), _recalculateOrderTotals
+- `lib/core/data/repositories/bill_repository.dart` — updateTotals (batch-load modifiers, include in gross/tax)
+- `lib/core/data/repositories/item_repository.dart` — watchVariants, hasVariants, search filter (exclude modifiers)
+- `lib/core/printing/receipt_data.dart` — ReceiptModifierData, modifiers on ReceiptItemData
+- `lib/core/printing/printing_service.dart` — orderItemModifierRepo dependency, load modifiers per item
+- `lib/core/printing/receipt_pdf_builder.dart` — render modifier lines
+- `lib/core/data/providers/repository_providers.dart` — 4 new repository providers
+- `lib/core/data/providers/printing_providers.dart` — orderItemModifierRepo
+- `lib/core/data/mappers/entity_mappers.dart` — 4 new fromEntity/toCompanion pairs
+- `lib/core/data/mappers/supabase_mappers.dart` — 4 new toSupabaseJson functions
+- `lib/core/data/mappers/supabase_pull_mappers.dart` — 4 new fromSupabasePull cases
+- `lib/core/database/app_database.dart` — 4 new tables registered
+- `lib/core/sync/sync_service.dart` — tableDependencyOrder + _getDriftTable
+- `lib/core/sync/realtime_service.dart` — 3 new realtime tables
+- `lib/core/data/services/seed_service.dart` — modifier groups, items, assignments seed data
+- `lib/features/catalog/screens/screen_catalog.dart` — Modifiers tab (7 tabs)
+- `lib/features/catalog/widgets/catalog_products_tab.dart` — _ModifierGroupsExpansionTile, _VariantsExpansionTile
+- `lib/features/orders/screens/screen_kds.dart` — modifier display on KDS cards
+- `lib/features/bills/widgets/dialog_bill_detail.dart` — modifier display under order items
+- `supabase/functions/ingest/index.ts` — 4 new ALLOWED_TABLES
+- `supabase/functions/wipe/index.ts` — 4 new COMPANY_TABLES
+
+### Localization
+- Added keys: variants, addVariant, editVariant, noVariants, variantPickerTitle, modifiers, modifierGroups, modifierGroupName, addModifierGroup, editModifierGroup, deleteModifierGroup, minSelections, maxSelections, required, optional, unlimited, addModifier, selectModifiers, noModifierGroups, modifierTotal, modifierGroupRequired, assignModifierGroup, removeModifierGroup
+
+### Documentation
+- PROJECT.md: Active tables 39→43, 4 new table columns, removed planned tables section, updated seed data, Gastro/Pokročilé produkty sections
+
+---
+
 ## 2026-02-16 (evening) — Loyalty reversal
 
 ### Features

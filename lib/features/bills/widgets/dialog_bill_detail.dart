@@ -296,12 +296,18 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
       stream: ref.watch(orderRepositoryProvider).watchByBill(bill.id).asyncMap((orders) async {
         final activeOrders = orders.where((o) =>
             o.status != PrepStatus.cancelled && o.status != PrepStatus.voided && !o.isStorno);
+        final modRepo = ref.read(orderItemModifierRepositoryProvider);
         int total = 0;
         for (final order in activeOrders) {
           final items = await ref.read(orderRepositoryProvider).getOrderItems(order.id);
           for (final item in items) {
             if (item.status != PrepStatus.cancelled && item.status != PrepStatus.voided) {
               total += (item.salePriceAtt * item.quantity).round();
+              // Include modifier costs
+              final mods = await modRepo.getByOrderItem(item.id);
+              for (final mod in mods) {
+                total += (mod.unitPrice * mod.quantity * item.quantity).round();
+              }
             }
           }
         }
@@ -699,6 +705,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
 
     // Build display items from bill orders
     final orderRepo = ref.read(orderRepositoryProvider);
+    final modRepo = ref.read(orderItemModifierRepositoryProvider);
     final items = await orderRepo.getOrderItemsByBill(bill.id);
     if (!mounted) return;
     final activeItems = items.where((i) =>
@@ -707,14 +714,21 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
     final displayItems = <DisplayItem>[];
     int subtotal = 0;
     for (final item in activeItems) {
-      final totalPrice = (item.salePriceAtt * item.quantity).round();
+      final mods = await modRepo.getByOrderItem(item.id);
+      final modTotal = mods.fold<int>(0, (sum, m) => sum + (m.unitPrice * m.quantity).round());
+      final effectiveUnitPrice = item.salePriceAtt + modTotal;
+      final totalPrice = (effectiveUnitPrice * item.quantity).round();
       subtotal += totalPrice;
       displayItems.add(DisplayItem(
         name: item.itemName,
         quantity: item.quantity,
-        unitPrice: item.salePriceAtt,
+        unitPrice: effectiveUnitPrice,
         totalPrice: totalPrice,
         notes: item.notes,
+        modifiers: mods.map((m) => DisplayModifier(
+          name: m.modifierItemName,
+          unitPrice: m.unitPrice,
+        )).toList(),
       ));
     }
 
@@ -1243,96 +1257,120 @@ class _OrderSection extends ConsumerWidget {
                       bottom: BorderSide(color: Theme.of(context).dividerColor.withValues(alpha: 0.2)),
                     ),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
+                  child: StreamBuilder(
+                    stream: ref.watch(orderItemModifierRepositoryProvider).watchByOrderItem(item.id),
+                    builder: (context, modSnap) {
+                      final mods = modSnap.data ?? [];
+                      final modTotal = mods.fold<int>(0, (sum, m) => sum + (m.unitPrice * m.quantity * item.quantity).round());
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          SizedBox(
-                            width: 44,
-                            child: Text(
-                              ref.fmtTime(order.createdAt),
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
+                          Row(
+                            children: [
+                              SizedBox(
+                                width: 44,
+                                child: Text(
+                                  ref.fmtTime(order.createdAt),
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                              ),
+                              SizedBox(
+                                width: 36,
+                                child: Text(
+                                  '${item.quantity.toStringAsFixed(item.quantity == item.quantity.roundToDouble() ? 0 : 1)} ${context.l10n.unitPcs}',
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                              ),
+                              Expanded(child: Text(item.itemName, style: Theme.of(context).textTheme.bodyMedium)),
+                              SizedBox(
+                                width: 100,
+                                child: () {
+                                  final itemSubtotal = (item.salePriceAtt * item.quantity).round() + modTotal;
+                                  if (item.discount > 0) {
+                                    final itemDiscount = item.discountType == DiscountType.percent
+                                        ? (itemSubtotal * item.discount / 10000).round()
+                                        : item.discount;
+                                    final discountedPrice = itemSubtotal - itemDiscount;
+                                    return Row(
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      children: [
+                                        Text(
+                                          ref.moneyValue(itemSubtotal),
+                                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                            decoration: TextDecoration.lineThrough,
+                                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          ref.money(discountedPrice),
+                                          style: Theme.of(context).textTheme.bodyMedium,
+                                        ),
+                                      ],
+                                    );
+                                  }
+                                  return Text(
+                                    ref.money(itemSubtotal),
+                                    textAlign: TextAlign.right,
+                                    style: Theme.of(context).textTheme.bodyMedium,
+                                  );
+                                }(),
+                              ),
+                              const SizedBox(width: 8),
+                              Container(
+                                width: 8,
+                                height: 8,
+                                decoration: BoxDecoration(
+                                  color: item.status.color(context),
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              if (item.status == PrepStatus.created ||
+                                  item.status == PrepStatus.ready)
+                                PopupMenuButton<PrepStatus>(
+                                  iconSize: 16,
+                                  padding: EdgeInsets.zero,
+                                  onSelected: (status) =>
+                                      _changeItemStatus(ref, item, status),
+                                  itemBuilder: (_) =>
+                                      _availableTransitions(item.status, l),
+                                )
+                              else
+                                const SizedBox(width: 32),
+                            ],
                           ),
-                          SizedBox(
-                            width: 36,
-                            child: Text(
-                              '${item.quantity.toStringAsFixed(item.quantity == item.quantity.roundToDouble() ? 0 : 1)} ${context.l10n.unitPcs}',
-                              style: Theme.of(context).textTheme.bodySmall,
+                          // Item notes
+                          if (item.notes != null && item.notes!.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(left: 80, bottom: 2),
+                              child: Text(
+                                item.notes!,
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  fontStyle: FontStyle.italic,
+                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                ),
+                              ),
                             ),
-                          ),
-                          Expanded(child: Text(item.itemName, style: Theme.of(context).textTheme.bodyMedium)),
-                          SizedBox(
-                            width: 100,
-                            child: () {
-                              final itemSubtotal = (item.salePriceAtt * item.quantity).round();
-                              if (item.discount > 0) {
-                                final itemDiscount = item.discountType == DiscountType.percent
-                                    ? (itemSubtotal * item.discount / 10000).round()
-                                    : item.discount;
-                                final discountedPrice = itemSubtotal - itemDiscount;
-                                return Row(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  children: [
+                          // Order item modifiers
+                          if (mods.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(left: 80, bottom: 2),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  for (final mod in mods)
                                     Text(
-                                      ref.moneyValue(itemSubtotal),
+                                      '+ ${mod.modifierItemName}${mod.unitPrice > 0 ? '  ${ref.money(mod.unitPrice)}' : ''}',
                                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                        decoration: TextDecoration.lineThrough,
                                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                                       ),
                                     ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      ref.money(discountedPrice),
-                                      style: Theme.of(context).textTheme.bodyMedium,
-                                    ),
-                                  ],
-                                );
-                              }
-                              return Text(
-                                ref.money(itemSubtotal),
-                                textAlign: TextAlign.right,
-                                style: Theme.of(context).textTheme.bodyMedium,
-                              );
-                            }(),
-                          ),
-                          const SizedBox(width: 8),
-                          Container(
-                            width: 8,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              color: item.status.color(context),
-                              shape: BoxShape.circle,
+                                ],
+                              ),
                             ),
-                          ),
-                          if (item.status == PrepStatus.created ||
-                              item.status == PrepStatus.ready)
-                            PopupMenuButton<PrepStatus>(
-                              iconSize: 16,
-                              padding: EdgeInsets.zero,
-                              onSelected: (status) =>
-                                  _changeItemStatus(ref, item, status),
-                              itemBuilder: (_) =>
-                                  _availableTransitions(item.status, l),
-                            )
-                          else
-                            const SizedBox(width: 32),
                         ],
-                      ),
-                      // Item notes
-                      if (item.notes != null && item.notes!.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(left: 80, bottom: 2),
-                          child: Text(
-                            item.notes!,
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              fontStyle: FontStyle.italic,
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ),
-                    ],
+                      );
+                    },
                   ),
                 ),
               ),

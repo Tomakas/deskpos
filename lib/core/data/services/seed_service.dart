@@ -19,7 +19,10 @@ import '../models/company_model.dart';
 import '../models/company_settings_model.dart';
 import '../models/customer_model.dart';
 import '../models/item_model.dart';
+import '../models/item_modifier_group_model.dart';
 import '../models/manufacturer_model.dart';
+import '../models/modifier_group_item_model.dart';
+import '../models/modifier_group_model.dart';
 import '../models/map_element_model.dart';
 import '../models/payment_method_model.dart';
 import '../models/register_model.dart';
@@ -401,7 +404,11 @@ class SeedService {
 
           Future<void> ins(ItemModel item) async {
             await _db.into(_db.items).insert(itemToCompanion(item));
-            if (item.isSellable && item.categoryId != null) {
+            // Only place sellable non-variant/modifier items on the grid
+            if (item.isSellable &&
+                item.categoryId != null &&
+                item.itemType != ItemType.variant &&
+                item.itemType != ItemType.modifier) {
               sellableByCategory
                   .putIfAbsent(item.categoryId!, () => [])
                   .add(item.id);
@@ -445,9 +452,20 @@ class SeedService {
           await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catHlavniJidla, name: t('Burger – double', 'Burger – Double'), itemType: ItemType.variant, sku: 'HJ-006-DBL', unitPrice: 25900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, parentId: burgerParentId, createdAt: now, updatedAt: now));
           await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catHlavniJidla, name: t('Burger – vegetariánský', 'Burger – Vegetarian'), itemType: ItemType.variant, sku: 'HJ-006-VEG', unitPrice: 18900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, parentId: burgerParentId, createdAt: now, updatedAt: now));
           // Modifiers (no category, no SKU — add-ons across menu)
-          await ins(ItemModel(id: _id(), companyId: companyId, name: t('Extra sýr', 'Extra Cheese'), itemType: ItemType.modifier, unitPrice: 2900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
-          await ins(ItemModel(id: _id(), companyId: companyId, name: t('Extra slanina', 'Extra Bacon'), itemType: ItemType.modifier, unitPrice: 3900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
-          await ins(ItemModel(id: _id(), companyId: companyId, name: t('Příloha hranolky', 'Side Fries'), itemType: ItemType.modifier, unitPrice: 4900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
+          final modExtraSyrId = _id();
+          final modExtraSlaId = _id();
+          final modHranolkyId = _id();
+          final modKecupId = _id();
+          final modMajonezaId = _id();
+          final modBbqId = _id();
+          final modSalatId = _id();
+          await ins(ItemModel(id: modExtraSyrId, companyId: companyId, name: t('Extra sýr', 'Extra Cheese'), itemType: ItemType.modifier, unitPrice: 2900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
+          await ins(ItemModel(id: modExtraSlaId, companyId: companyId, name: t('Extra slanina', 'Extra Bacon'), itemType: ItemType.modifier, unitPrice: 3900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
+          await ins(ItemModel(id: modHranolkyId, companyId: companyId, name: t('Příloha hranolky', 'Side Fries'), itemType: ItemType.modifier, unitPrice: 4900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
+          await ins(ItemModel(id: modKecupId, companyId: companyId, name: t('Kečup', 'Ketchup'), itemType: ItemType.modifier, unitPrice: 0, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
+          await ins(ItemModel(id: modMajonezaId, companyId: companyId, name: t('Majonéza', 'Mayonnaise'), itemType: ItemType.modifier, unitPrice: 0, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
+          await ins(ItemModel(id: modBbqId, companyId: companyId, name: t('BBQ omáčka', 'BBQ Sauce'), itemType: ItemType.modifier, unitPrice: 1500, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
+          await ins(ItemModel(id: modSalatId, companyId: companyId, name: t('Salát', 'Salad'), itemType: ItemType.modifier, unitPrice: 3900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
 
           // ── Předkrmy (12%) ──
           await ins(ItemModel(id: _id(), companyId: companyId, categoryId: catPredkrmy, name: t('Tatarský biftek', 'Beef Tartare'), itemType: ItemType.product, sku: 'PK-001', unitPrice: 18900, saleTaxRateId: taxRate12Id, unit: UnitType.ks, createdAt: now, updatedAt: now));
@@ -578,6 +596,46 @@ class SeedService {
           ];
           for (final c in customers) {
             await _db.into(_db.customers).insert(customerToCompanion(c));
+          }
+
+          // 14. Modifier groups
+          final mgPrilohyId = _id();
+          final mgExtraId = _id();
+          final mgOmackyId = _id();
+          final modifierGroups = [
+            ModifierGroupModel(id: mgPrilohyId, companyId: companyId, name: t('Přílohy', 'Side Dishes'), minSelections: 0, maxSelections: 1, sortOrder: 0, createdAt: now, updatedAt: now),
+            ModifierGroupModel(id: mgExtraId, companyId: companyId, name: t('Extra ingredience', 'Extra Ingredients'), minSelections: 0, sortOrder: 1, createdAt: now, updatedAt: now),
+            ModifierGroupModel(id: mgOmackyId, companyId: companyId, name: t('Omáčky', 'Sauces'), minSelections: 0, maxSelections: 2, sortOrder: 2, createdAt: now, updatedAt: now),
+          ];
+          for (final mg in modifierGroups) {
+            await _db.into(_db.modifierGroups).insert(modifierGroupToCompanion(mg));
+          }
+
+          // 15. Modifier group items — assign modifier items to groups
+          final modifierGroupItems = [
+            // Přílohy: Hranolky (default), Salát
+            ModifierGroupItemModel(id: _id(), companyId: companyId, modifierGroupId: mgPrilohyId, itemId: modHranolkyId, sortOrder: 0, isDefault: true, createdAt: now, updatedAt: now),
+            ModifierGroupItemModel(id: _id(), companyId: companyId, modifierGroupId: mgPrilohyId, itemId: modSalatId, sortOrder: 1, createdAt: now, updatedAt: now),
+            // Extra ingredience: Extra sýr, Extra slanina
+            ModifierGroupItemModel(id: _id(), companyId: companyId, modifierGroupId: mgExtraId, itemId: modExtraSyrId, sortOrder: 0, createdAt: now, updatedAt: now),
+            ModifierGroupItemModel(id: _id(), companyId: companyId, modifierGroupId: mgExtraId, itemId: modExtraSlaId, sortOrder: 1, createdAt: now, updatedAt: now),
+            // Omáčky: Kečup, Majonéza, BBQ
+            ModifierGroupItemModel(id: _id(), companyId: companyId, modifierGroupId: mgOmackyId, itemId: modKecupId, sortOrder: 0, createdAt: now, updatedAt: now),
+            ModifierGroupItemModel(id: _id(), companyId: companyId, modifierGroupId: mgOmackyId, itemId: modMajonezaId, sortOrder: 1, createdAt: now, updatedAt: now),
+            ModifierGroupItemModel(id: _id(), companyId: companyId, modifierGroupId: mgOmackyId, itemId: modBbqId, sortOrder: 2, createdAt: now, updatedAt: now),
+          ];
+          for (final mgi in modifierGroupItems) {
+            await _db.into(_db.modifierGroupItems).insert(modifierGroupItemToCompanion(mgi));
+          }
+
+          // 16. Item modifier groups — assign modifier groups to burger
+          final itemModifierGroups = [
+            ItemModifierGroupModel(id: _id(), companyId: companyId, itemId: burgerParentId, modifierGroupId: mgPrilohyId, sortOrder: 0, createdAt: now, updatedAt: now),
+            ItemModifierGroupModel(id: _id(), companyId: companyId, itemId: burgerParentId, modifierGroupId: mgExtraId, sortOrder: 1, createdAt: now, updatedAt: now),
+            ItemModifierGroupModel(id: _id(), companyId: companyId, itemId: burgerParentId, modifierGroupId: mgOmackyId, sortOrder: 2, createdAt: now, updatedAt: now),
+          ];
+          for (final img in itemModifierGroups) {
+            await _db.into(_db.itemModifierGroups).insert(itemModifierGroupToCompanion(img));
           }
         }
       });

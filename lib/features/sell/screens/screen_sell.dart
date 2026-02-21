@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/data/enums/display_device_type.dart';
 import '../../../core/data/enums/sell_mode.dart';
+import '../../../core/data/enums/item_type.dart';
 import '../../../core/data/enums/layout_item_type.dart';
 import '../../../core/data/mappers/supabase_mappers.dart';
 import '../../../core/data/models/bill_model.dart';
@@ -13,6 +14,9 @@ import '../../../core/data/models/category_model.dart';
 import '../../../core/data/models/customer_display_content.dart';
 import '../../../core/data/models/customer_model.dart';
 import '../../../core/data/models/item_model.dart';
+import '../../../core/data/models/item_modifier_group_model.dart';
+import '../../../core/data/models/modifier_group_item_model.dart';
+import '../../../core/data/models/modifier_group_model.dart';
 import '../../../core/data/models/layout_item_model.dart';
 import '../../../core/data/models/order_model.dart';
 import '../../../core/data/models/register_model.dart';
@@ -106,14 +110,17 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     int subtotal = 0;
     for (final entry in _cart) {
       if (entry is _CartItem) {
-        final totalPrice = (entry.unitPrice * entry.quantity).round();
+        final totalPrice = (entry.effectiveUnitPrice * entry.quantity).round();
         subtotal += totalPrice;
         items.add(DisplayItem(
           name: entry.name,
           quantity: entry.quantity,
-          unitPrice: entry.unitPrice,
+          unitPrice: entry.effectiveUnitPrice,
           totalPrice: totalPrice,
           notes: entry.notes,
+          modifiers: entry.modifiers
+              .map((m) => DisplayModifier(name: m.name, unitPrice: m.unitPrice))
+              .toList(),
         ));
       }
     }
@@ -373,7 +380,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     int total = 0;
     for (final entry in _cart) {
       if (entry is _CartItem) {
-        total += (entry.unitPrice * entry.quantity).round();
+        total += (entry.effectiveUnitPrice * entry.quantity).round();
       }
     }
 
@@ -445,6 +452,13 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
                                 item.quantity == item.quantity.roundToDouble() ? 0 : 1,
                               )),
                             ),
+                            for (final mod in item.modifiers)
+                              Text(
+                                '+ ${mod.name}${mod.unitPrice > 0 ? '  +${ref.money(mod.unitPrice)}' : ''}',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
                             if (item.notes != null && item.notes!.isNotEmpty)
                               Text(
                                 item.notes!,
@@ -455,7 +469,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
                               ),
                           ],
                         ),
-                        trailing: Text(ref.money((item.unitPrice * item.quantity).round())),
+                        trailing: Text(ref.money((item.effectiveUnitPrice * item.quantity).round())),
                         onTap: () => _showItemNoteDialog(context, item),
                         onLongPress: () {
                           setState(() {
@@ -706,9 +720,13 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     final item = allItems.where((i) => i.id == layoutItem.itemId).firstOrNull;
     if (item == null) return const SizedBox.shrink();
 
+    // Hide price for parent products that have variants (they are just containers)
+    final hasVariants = item.itemType == ItemType.product &&
+        allItems.any((v) => v.parentId == item.id && v.itemType == ItemType.variant);
+
     return _ItemButton(
       label: layoutItem.label ?? item.name,
-      subtitle: ref.money(item.unitPrice),
+      subtitle: hasVariants ? null : ref.money(item.unitPrice),
       color: layoutItem.color != null
           ? parseHexColor(layoutItem.color)
           : Theme.of(context).colorScheme.primaryContainer,
@@ -865,17 +883,136 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     }
   }
 
-  void _addToCart(WidgetRef ref, ItemModel item, String companyId) {
+  Future<void> _addToCart(WidgetRef ref, ItemModel item, String companyId) async {
+    // Variant items: add directly (user picked from search or sub-grid)
+    // Product items: check for variants first
+    ItemModel selectedItem = item;
+    if (item.itemType == ItemType.product) {
+      final variants = await ref.read(itemRepositoryProvider).watchVariants(item.id).first;
+      if (variants.isNotEmpty) {
+        if (!mounted) return;
+        final selected = await _showVariantPickerDialog(item, variants);
+        if (selected == null || !mounted) return;
+        selectedItem = selected;
+      }
+    }
+
+    // Check for modifier groups (on item itself + inherited from parent)
+    final groups = await _loadModifierGroups(ref, selectedItem);
+    if (!mounted) return;
+
+    final hasRequired = groups.any((g) => g.group.minSelections > 0);
+    if (groups.isNotEmpty && hasRequired) {
+      // Mandatory modifier groups — must show dialog
+      final modifiers = await _showModifierDialog(selectedItem, groups);
+      if (modifiers == null || !mounted) return;
+      _addItemToCart(selectedItem, modifiers: modifiers);
+    } else {
+      // No modifier groups or all optional — add directly
+      _addItemToCart(selectedItem);
+    }
+  }
+
+  Future<List<_ModifierGroupWithItems>> _loadModifierGroups(WidgetRef ref, ItemModel item) async {
+    final imgRepo = ref.read(itemModifierGroupRepositoryProvider);
+    final mgRepo = ref.read(modifierGroupRepositoryProvider);
+    final mgiRepo = ref.read(modifierGroupItemRepositoryProvider);
+    final itemRepo = ref.read(itemRepositoryProvider);
+
+    // Get assignments for this item + parent (inheritance)
+    final assignments = await imgRepo.getByItem(item.id);
+    List<ItemModifierGroupModel> parentAssignments = [];
+    if (item.parentId != null) {
+      parentAssignments = await imgRepo.getByItem(item.parentId!);
+    }
+
+    // Merge, deduplicate by groupId
+    final allAssignments = [...assignments, ...parentAssignments];
+    final seenGroupIds = <String>{};
+    final uniqueAssignments = <ItemModifierGroupModel>[];
+    for (final a in allAssignments) {
+      if (seenGroupIds.add(a.modifierGroupId)) {
+        uniqueAssignments.add(a);
+      }
+    }
+
+    // Sort by sortOrder
+    uniqueAssignments.sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+
+    final result = <_ModifierGroupWithItems>[];
+    for (final assignment in uniqueAssignments) {
+      final group = await mgRepo.getById(assignment.modifierGroupId);
+      if (group == null || group.deletedAt != null) continue;
+
+      final groupItems = await mgiRepo.getByGroup(assignment.modifierGroupId);
+      final itemsWithDetail = <_ModifierGroupItemWithDetail>[];
+      for (final gi in groupItems) {
+        if (gi.deletedAt != null) continue;
+        final modItem = await itemRepo.getById(gi.itemId);
+        if (modItem == null || modItem.deletedAt != null) continue;
+        itemsWithDetail.add(_ModifierGroupItemWithDetail(groupItem: gi, item: modItem));
+      }
+      if (itemsWithDetail.isEmpty) continue;
+      result.add(_ModifierGroupWithItems(group: group, items: itemsWithDetail));
+    }
+    return result;
+  }
+
+  Future<ItemModel?> _showVariantPickerDialog(ItemModel parent, List<ItemModel> variants) async {
+    return showDialog<ItemModel>(
+      context: context,
+      builder: (ctx) => SimpleDialog(
+        title: Text(parent.name),
+        children: [
+          for (final v in variants)
+            SimpleDialogOption(
+              onPressed: () => Navigator.pop(ctx, v),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Row(
+                  children: [
+                    Expanded(child: Text(v.name)),
+                    Text(ref.money(v.unitPrice)),
+                  ],
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Future<List<_CartModifier>?> _showModifierDialog(
+    ItemModel item,
+    List<_ModifierGroupWithItems> groups,
+  ) async {
+    return showDialog<List<_CartModifier>>(
+      context: context,
+      builder: (ctx) => _ModifierSelectionDialog(
+        item: item,
+        groups: groups,
+        moneyFormatter: ref.money,
+      ),
+    );
+  }
+
+  void _addItemToCart(ItemModel item, {List<_CartModifier> modifiers = const []}) {
     setState(() {
       // Find last separator index
       int lastSepIdx = -1;
       for (int i = _cart.length - 1; i >= 0; i--) {
         if (_cart[i] is _CartSeparator) { lastSepIdx = i; break; }
       }
-      // Search only in current group
+      // Build merge key: itemId + sorted modifier item IDs
+      final modKey = (modifiers.map((m) => m.itemId).toList()..sort()).join(',');
+      // Search only in current group — items with notes never merge
       final existing = _cart.sublist(lastSepIdx + 1)
           .whereType<_CartItem>()
-          .where((c) => c.itemId == item.id)
+          .where((c) {
+            if (c.notes != null) return false;
+            final cModKey = (c.modifiers.map((m) => m.itemId).toList()..sort()).join(',');
+            return c.itemId == item.id && cModKey == modKey;
+          })
           .firstOrNull;
       if (existing != null) {
         existing.quantity++;
@@ -885,6 +1022,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
           name: item.name,
           unitPrice: item.unitPrice,
           saleTaxRateId: item.saleTaxRateId,
+          modifiers: modifiers,
         ));
       }
     });
@@ -907,6 +1045,29 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
         }
       }
 
+      // Build modifier inputs with resolved tax rates
+      final modInputs = <OrderItemModifierInput>[];
+      for (final mod in cartItem.modifiers) {
+        int modTaxBps = 0;
+        int modTaxAmount = 0;
+        if (mod.saleTaxRateId != null) {
+          final modTaxRate = await taxRateRepo.getById(mod.saleTaxRateId!);
+          if (!mounted) return orderItems;
+          if (modTaxRate != null) {
+            modTaxBps = modTaxRate.rate;
+            modTaxAmount = (mod.unitPrice * modTaxBps / (10000 + modTaxBps)).round();
+          }
+        }
+        modInputs.add(OrderItemModifierInput(
+          modifierItemId: mod.itemId,
+          modifierItemName: mod.name,
+          modifierGroupId: mod.modifierGroupId,
+          unitPrice: mod.unitPrice,
+          taxRate: modTaxBps,
+          taxAmount: modTaxAmount,
+        ));
+      }
+
       orderItems.add(OrderItemInput(
         itemId: cartItem.itemId,
         itemName: cartItem.name,
@@ -915,6 +1076,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
         saleTaxRateAtt: taxRateBps,
         saleTaxAmount: taxAmount,
         notes: cartItem.notes,
+        modifiers: modInputs,
       ));
     }
     return orderItems;
@@ -1173,14 +1335,48 @@ class _CartItem {
     required this.name,
     required this.unitPrice,
     this.saleTaxRateId,
+    this.modifiers = const [],
   });
 
   final String itemId;
   final String name;
   final int unitPrice;
   final String? saleTaxRateId;
+  final List<_CartModifier> modifiers;
   double quantity = 1;
   String? notes;
+
+  /// Unit price including modifiers
+  int get effectiveUnitPrice =>
+      unitPrice + modifiers.fold(0, (sum, m) => sum + m.unitPrice);
+}
+
+class _CartModifier {
+  const _CartModifier({
+    required this.itemId,
+    required this.name,
+    required this.unitPrice,
+    this.saleTaxRateId,
+    required this.modifierGroupId,
+  });
+
+  final String itemId;
+  final String name;
+  final int unitPrice;
+  final String? saleTaxRateId;
+  final String modifierGroupId;
+}
+
+class _ModifierGroupWithItems {
+  const _ModifierGroupWithItems({required this.group, required this.items});
+  final ModifierGroupModel group;
+  final List<_ModifierGroupItemWithDetail> items;
+}
+
+class _ModifierGroupItemWithDetail {
+  const _ModifierGroupItemWithDetail({required this.groupItem, required this.item});
+  final ModifierGroupItemModel groupItem;
+  final ItemModel item;
 }
 
 class _RetailMenuButton extends ConsumerWidget {
@@ -1315,6 +1511,202 @@ class _RetailMenuButton extends ConsumerWidget {
       case 'logout':
         await helpers.performLogout(context, ref);
     }
+  }
+}
+
+class _ModifierSelectionDialog extends StatefulWidget {
+  const _ModifierSelectionDialog({
+    required this.item,
+    required this.groups,
+    required this.moneyFormatter,
+  });
+  final ItemModel item;
+  final List<_ModifierGroupWithItems> groups;
+  final String Function(int) moneyFormatter;
+
+  @override
+  State<_ModifierSelectionDialog> createState() => _ModifierSelectionDialogState();
+}
+
+class _ModifierSelectionDialogState extends State<_ModifierSelectionDialog> {
+  // groupId → set of selected modifier item IDs
+  late final Map<String, Set<String>> _selections = {};
+
+  @override
+  void initState() {
+    super.initState();
+    // Pre-select defaults
+    for (final g in widget.groups) {
+      final defaults = <String>{};
+      for (final gi in g.items) {
+        if (gi.groupItem.isDefault) defaults.add(gi.item.id);
+      }
+      _selections[g.group.id] = defaults;
+    }
+  }
+
+  bool get _isValid {
+    for (final g in widget.groups) {
+      final selected = _selections[g.group.id]?.length ?? 0;
+      if (selected < g.group.minSelections) return false;
+    }
+    return true;
+  }
+
+  int get _modifierTotal {
+    int total = 0;
+    for (final g in widget.groups) {
+      final sel = _selections[g.group.id] ?? {};
+      for (final gi in g.items) {
+        if (sel.contains(gi.item.id)) total += gi.item.unitPrice;
+      }
+    }
+    return total;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    final theme = Theme.of(context);
+    final total = widget.item.unitPrice + _modifierTotal;
+
+    return AlertDialog(
+      title: Row(
+        children: [
+          Expanded(child: Text(widget.item.name)),
+          Text(widget.moneyFormatter(widget.item.unitPrice),
+              style: theme.textTheme.titleMedium),
+        ],
+      ),
+      content: SizedBox(
+        width: 400,
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (final g in widget.groups) ...[
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(g.group.name,
+                          style: theme.textTheme.titleSmall),
+                    ),
+                    Text(
+                      _groupRuleLabel(l, g.group),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                _buildGroupItems(g),
+              ],
+              const SizedBox(height: 16),
+              const Divider(),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(l.sellTotal, style: theme.textTheme.titleMedium),
+                  Text(widget.moneyFormatter(total), style: theme.textTheme.titleLarge),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(l.actionCancel),
+        ),
+        FilledButton(
+          onPressed: _isValid
+              ? () {
+                  final result = <_CartModifier>[];
+                  for (final g in widget.groups) {
+                    final sel = _selections[g.group.id] ?? {};
+                    for (final gi in g.items) {
+                      if (sel.contains(gi.item.id)) {
+                        result.add(_CartModifier(
+                          itemId: gi.item.id,
+                          name: gi.item.name,
+                          unitPrice: gi.item.unitPrice,
+                          saleTaxRateId: gi.item.saleTaxRateId,
+                          modifierGroupId: g.group.id,
+                        ));
+                      }
+                    }
+                  }
+                  Navigator.pop(context, result);
+                }
+              : null,
+          child: Text(l.actionAdd),
+        ),
+      ],
+    );
+  }
+
+  String _groupRuleLabel(AppLocalizations l, ModifierGroupModel g) {
+    if (g.minSelections > 0 && g.maxSelections == null) return l.required;
+    if (g.minSelections > 0) return '${g.minSelections}-${g.maxSelections}';
+    if (g.maxSelections != null) return '${l.optional} (max ${g.maxSelections})';
+    return l.optional;
+  }
+
+  Widget _buildGroupItems(_ModifierGroupWithItems g) {
+    final isSingleSelect = g.group.maxSelections == 1;
+    final sel = _selections[g.group.id] ?? {};
+
+    return Column(
+      children: [
+        for (final gi in g.items)
+          if (isSingleSelect)
+            RadioListTile<String>(
+              dense: true,
+              title: Text(gi.item.name),
+              secondary: gi.item.unitPrice > 0
+                  ? Text('+${widget.moneyFormatter(gi.item.unitPrice)}')
+                  : null,
+              value: gi.item.id,
+              groupValue: sel.length == 1 ? sel.first : null,
+              onChanged: (v) {
+                if (v != null) {
+                  setState(() => _selections[g.group.id] = {v});
+                }
+              },
+            )
+          else
+            CheckboxListTile(
+              dense: true,
+              title: Text(gi.item.name),
+              secondary: gi.item.unitPrice > 0
+                  ? Text('+${widget.moneyFormatter(gi.item.unitPrice)}')
+                  : null,
+              value: sel.contains(gi.item.id),
+              onChanged: _canToggle(g, gi.item.id, sel)
+                  ? (v) {
+                      setState(() {
+                        final s = _selections[g.group.id] ??= {};
+                        if (v == true) {
+                          s.add(gi.item.id);
+                        } else {
+                          s.remove(gi.item.id);
+                        }
+                      });
+                    }
+                  : null,
+            ),
+      ],
+    );
+  }
+
+  bool _canToggle(_ModifierGroupWithItems g, String itemId, Set<String> sel) {
+    if (sel.contains(itemId)) return true; // always allow deselect
+    if (g.group.maxSelections == null) return true; // unlimited
+    return sel.length < g.group.maxSelections!;
   }
 }
 

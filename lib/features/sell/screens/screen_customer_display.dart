@@ -268,11 +268,19 @@ class _DisplayItemRow extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(item.name, style: theme.textTheme.titleMedium),
+                for (final mod in item.modifiers)
+                  Text(
+                    '+ ${mod.name}${mod.unitPrice > 0 ? '  ${ref.money(mod.unitPrice)}' : ''}',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
                 if (item.notes != null && item.notes!.isNotEmpty)
                   Text(
                     item.notes!,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
+                      fontStyle: FontStyle.italic,
                     ),
                   ),
               ],

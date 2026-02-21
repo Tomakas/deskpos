@@ -4789,6 +4789,150 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'{m} min'**
   String durationMinutesOnly(int m);
+
+  /// No description provided for @variantPickerTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vyberte variantu'**
+  String get variantPickerTitle;
+
+  /// No description provided for @addVariant.
+  ///
+  /// In cs, this message translates to:
+  /// **'Přidat variantu'**
+  String get addVariant;
+
+  /// No description provided for @editVariant.
+  ///
+  /// In cs, this message translates to:
+  /// **'Upravit variantu'**
+  String get editVariant;
+
+  /// No description provided for @variants.
+  ///
+  /// In cs, this message translates to:
+  /// **'Varianty'**
+  String get variants;
+
+  /// No description provided for @noVariants.
+  ///
+  /// In cs, this message translates to:
+  /// **'Žádné varianty'**
+  String get noVariants;
+
+  /// No description provided for @modifiers.
+  ///
+  /// In cs, this message translates to:
+  /// **'Modifikátory'**
+  String get modifiers;
+
+  /// No description provided for @modifierGroups.
+  ///
+  /// In cs, this message translates to:
+  /// **'Skupiny modifikátorů'**
+  String get modifierGroups;
+
+  /// No description provided for @modifierGroupName.
+  ///
+  /// In cs, this message translates to:
+  /// **'Název skupiny'**
+  String get modifierGroupName;
+
+  /// No description provided for @addModifierGroup.
+  ///
+  /// In cs, this message translates to:
+  /// **'Přidat skupinu'**
+  String get addModifierGroup;
+
+  /// No description provided for @editModifierGroup.
+  ///
+  /// In cs, this message translates to:
+  /// **'Upravit skupinu'**
+  String get editModifierGroup;
+
+  /// No description provided for @deleteModifierGroup.
+  ///
+  /// In cs, this message translates to:
+  /// **'Smazat skupinu'**
+  String get deleteModifierGroup;
+
+  /// No description provided for @minSelections.
+  ///
+  /// In cs, this message translates to:
+  /// **'Min. výběr'**
+  String get minSelections;
+
+  /// No description provided for @maxSelections.
+  ///
+  /// In cs, this message translates to:
+  /// **'Max. výběr'**
+  String get maxSelections;
+
+  /// No description provided for @required.
+  ///
+  /// In cs, this message translates to:
+  /// **'Povinné'**
+  String get required;
+
+  /// No description provided for @optional.
+  ///
+  /// In cs, this message translates to:
+  /// **'Volitelné'**
+  String get optional;
+
+  /// No description provided for @unlimited.
+  ///
+  /// In cs, this message translates to:
+  /// **'Neomezeno'**
+  String get unlimited;
+
+  /// No description provided for @addModifier.
+  ///
+  /// In cs, this message translates to:
+  /// **'Přidat modifikátor'**
+  String get addModifier;
+
+  /// No description provided for @selectModifiers.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vybrat modifikátory'**
+  String get selectModifiers;
+
+  /// No description provided for @editModifiers.
+  ///
+  /// In cs, this message translates to:
+  /// **'Upravit modifikátory'**
+  String get editModifiers;
+
+  /// No description provided for @noModifierGroups.
+  ///
+  /// In cs, this message translates to:
+  /// **'Žádné skupiny modifikátorů'**
+  String get noModifierGroups;
+
+  /// No description provided for @modifierTotal.
+  ///
+  /// In cs, this message translates to:
+  /// **'Celkem s modifikátory'**
+  String get modifierTotal;
+
+  /// No description provided for @modifierGroupRequired.
+  ///
+  /// In cs, this message translates to:
+  /// **'Povinná skupina'**
+  String get modifierGroupRequired;
+
+  /// No description provided for @assignModifierGroup.
+  ///
+  /// In cs, this message translates to:
+  /// **'Přiřadit skupinu'**
+  String get assignModifierGroup;
+
+  /// No description provided for @removeModifierGroup.
+  ///
+  /// In cs, this message translates to:
+  /// **'Odebrat skupinu'**
+  String get removeModifierGroup;
 }
 
 class _AppLocalizationsDelegate

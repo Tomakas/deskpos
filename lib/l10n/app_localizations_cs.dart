@@ -2445,4 +2445,76 @@ class AppLocalizationsCs extends AppLocalizations {
   String durationMinutesOnly(int m) {
     return '$m min';
   }
+
+  @override
+  String get variantPickerTitle => 'Vyberte variantu';
+
+  @override
+  String get addVariant => 'Přidat variantu';
+
+  @override
+  String get editVariant => 'Upravit variantu';
+
+  @override
+  String get variants => 'Varianty';
+
+  @override
+  String get noVariants => 'Žádné varianty';
+
+  @override
+  String get modifiers => 'Modifikátory';
+
+  @override
+  String get modifierGroups => 'Skupiny modifikátorů';
+
+  @override
+  String get modifierGroupName => 'Název skupiny';
+
+  @override
+  String get addModifierGroup => 'Přidat skupinu';
+
+  @override
+  String get editModifierGroup => 'Upravit skupinu';
+
+  @override
+  String get deleteModifierGroup => 'Smazat skupinu';
+
+  @override
+  String get minSelections => 'Min. výběr';
+
+  @override
+  String get maxSelections => 'Max. výběr';
+
+  @override
+  String get required => 'Povinné';
+
+  @override
+  String get optional => 'Volitelné';
+
+  @override
+  String get unlimited => 'Neomezeno';
+
+  @override
+  String get addModifier => 'Přidat modifikátor';
+
+  @override
+  String get selectModifiers => 'Vybrat modifikátory';
+
+  @override
+  String get editModifiers => 'Upravit modifikátory';
+
+  @override
+  String get noModifierGroups => 'Žádné skupiny modifikátorů';
+
+  @override
+  String get modifierTotal => 'Celkem s modifikátory';
+
+  @override
+  String get modifierGroupRequired => 'Povinná skupina';
+
+  @override
+  String get assignModifierGroup => 'Přiřadit skupinu';
+
+  @override
+  String get removeModifierGroup => 'Odebrat skupinu';
 }

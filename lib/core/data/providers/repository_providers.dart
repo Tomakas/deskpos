@@ -12,8 +12,12 @@ import '../repositories/company_repository.dart';
 import '../repositories/company_settings_repository.dart';
 import '../repositories/currency_repository.dart';
 import '../repositories/device_registration_repository.dart';
+import '../repositories/item_modifier_group_repository.dart';
 import '../repositories/item_repository.dart';
 import '../repositories/layout_item_repository.dart';
+import '../repositories/modifier_group_item_repository.dart';
+import '../repositories/modifier_group_repository.dart';
+import '../repositories/order_item_modifier_repository.dart';
 import '../repositories/map_element_repository.dart';
 import '../repositories/manufacturer_repository.dart';
 import '../repositories/order_repository.dart';
@@ -163,6 +167,7 @@ final orderRepositoryProvider = Provider<OrderRepository>((ref) {
     syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
     stockLevelRepo: ref.watch(stockLevelRepositoryProvider),
     stockMovementRepo: ref.watch(stockMovementRepositoryProvider),
+    orderItemModifierRepo: ref.watch(orderItemModifierRepositoryProvider),
   );
 });
 
@@ -291,5 +296,35 @@ final stockDocumentRepositoryProvider = Provider<StockDocumentRepository>((ref) 
     syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
     stockLevelRepo: ref.watch(stockLevelRepositoryProvider),
     stockMovementRepo: ref.watch(stockMovementRepositoryProvider),
+  );
+});
+
+// --- Modifier repositories ---
+
+final modifierGroupRepositoryProvider = Provider<ModifierGroupRepository>((ref) {
+  return ModifierGroupRepository(
+    ref.watch(appDatabaseProvider),
+    syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
+  );
+});
+
+final modifierGroupItemRepositoryProvider = Provider<ModifierGroupItemRepository>((ref) {
+  return ModifierGroupItemRepository(
+    ref.watch(appDatabaseProvider),
+    syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
+  );
+});
+
+final itemModifierGroupRepositoryProvider = Provider<ItemModifierGroupRepository>((ref) {
+  return ItemModifierGroupRepository(
+    ref.watch(appDatabaseProvider),
+    syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
+  );
+});
+
+final orderItemModifierRepositoryProvider = Provider<OrderItemModifierRepository>((ref) {
+  return OrderItemModifierRepository(
+    ref.watch(appDatabaseProvider),
+    syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
   );
 });

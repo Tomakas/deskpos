@@ -182,11 +182,30 @@ class BillRepository {
                     t.status.isNotIn([PrepStatus.cancelled.name, PrepStatus.voided.name])))
               .get();
 
-          for (final item in items) {
-            final itemSubtotal = (item.salePriceAtt * item.quantity).round();
-            final itemTax = (item.saleTaxAmount * item.quantity).round();
+          // Batch-load modifiers for all active order items
+          final activeItemIds = items.map((i) => i.id).toList();
+          final allModifiers = activeItemIds.isEmpty
+              ? <OrderItemModifier>[]
+              : await (_db.select(_db.orderItemModifiers)
+                    ..where((t) => t.orderItemId.isIn(activeItemIds) & t.deletedAt.isNull()))
+                  .get();
+          final modsByItem = <String, List<OrderItemModifier>>{};
+          for (final mod in allModifiers) {
+            modsByItem.putIfAbsent(mod.orderItemId, () => []).add(mod);
+          }
 
-            // Apply item discount
+          for (final item in items) {
+            int itemSubtotal = (item.salePriceAtt * item.quantity).round();
+            int itemTax = (item.saleTaxAmount * item.quantity).round();
+
+            // Add modifier costs
+            final itemMods = modsByItem[item.id] ?? [];
+            for (final mod in itemMods) {
+              itemSubtotal += (mod.unitPrice * mod.quantity * item.quantity).round();
+              itemTax += (mod.taxAmount * mod.quantity * item.quantity).round();
+            }
+
+            // Apply item discount (on total including modifiers)
             int itemDiscount = 0;
             if (item.discount > 0) {
               if (item.discountType == DiscountType.percent) {
