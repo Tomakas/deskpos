@@ -118,7 +118,18 @@ Deno.serve(async (req) => {
       }
     }
 
-    // --- Clean audit log ---
+    // --- Clean system tables ---
+    {
+      const { error } = await serviceClient
+        .from("sync_queue")
+        .delete()
+        .eq("company_id", companyId);
+
+      if (error) {
+        errors.push(`sync_queue: ${error.code} ${error.message}`);
+        console.error("Wipe sync_queue failed:", error);
+      }
+    }
     await serviceClient.from("audit_log").delete().eq("company_id", companyId);
 
     if (errors.length > 0) {

@@ -1261,7 +1261,7 @@ Edge Function `wipe` (`supabase/functions/wipe/index.ts`) slouží k úplnému s
 1. Autentizace JWT → najde firmu podle `companies.auth_user_id = userId`
 2. Smaže company-scoped tabulky v reverse FK dependency order (children first)
 3. Smaže záznam firmy (`companies`)
-4. Vyčistí `audit_log` záznamy dané firmy
+4. Vyčistí systémové tabulky (`sync_queue`, `audit_log`) dané firmy
 
 > Globální tabulky (currencies, roles, permissions, role_permissions) jsou server-owned a wipe je záměrně nemaže.
 

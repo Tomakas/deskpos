@@ -324,7 +324,9 @@ class _SectionTabBar extends ConsumerWidget {
           }
         }
 
-        final canPop = GoRouter.of(context).canPop();
+        final register = ref.watch(activeRegisterProvider).valueOrNull;
+        final isGastro = register?.sellMode != SellMode.retail;
+        final canPop = !isGastro && GoRouter.of(context).canPop();
 
         return Container(
           height: 48,
@@ -1156,10 +1158,10 @@ class _InfoRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 120,
+          Expanded(
             child: Text(label, style: Theme.of(context).textTheme.bodySmall),
           ),
+          const SizedBox(width: 4),
           Expanded(
             child: Text(
               value,
