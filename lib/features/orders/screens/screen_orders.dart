@@ -113,6 +113,7 @@ class _ScreenOrdersState extends ConsumerState<ScreenOrders> {
                   separatorBuilder: (_, _) => const SizedBox(height: 8),
                   itemBuilder: (_, i) => _OrderCard(
                     order: orders[i],
+                    onBump: () => _bumpOrder(orders[i]),
                     onItemStatusChange: (item, status) =>
                         _changeItemStatus(orders[i], item, status),
                     onVoidItem: (item) => _voidItem(orders[i], item),
@@ -134,6 +135,31 @@ class _ScreenOrdersState extends ConsumerState<ScreenOrders> {
   List<OrderModel> _applyStatusFilter(List<OrderModel> orders) {
     if (_statusFilter.isEmpty) return orders;
     return orders.where((o) => _statusFilter.contains(o.status)).toList();
+  }
+
+  /// Bump items with the lowest active status to the next status.
+  Future<void> _bumpOrder(OrderModel order) async {
+    if (_isBumping) return;
+    _isBumping = true;
+    try {
+      final orderRepo = ref.read(orderRepositoryProvider);
+      final items = await orderRepo.watchOrderItems(order.id).first;
+      final activeItems = items.where((i) =>
+          i.status != PrepStatus.voided && i.status != PrepStatus.cancelled);
+      if (activeItems.isEmpty) return;
+      final lowestStatus = activeItems
+          .map((i) => i.status)
+          .reduce((a, b) => a.index < b.index ? a : b);
+      final next = _nextStatus(lowestStatus);
+      if (next == null) return;
+      for (final item in items) {
+        if (item.status == lowestStatus) {
+          await orderRepo.updateItemStatus(item.id, order.id, next);
+        }
+      }
+    } finally {
+      _isBumping = false;
+    }
   }
 
   Future<void> _changeItemStatus(
@@ -198,10 +224,12 @@ class _ScreenOrdersState extends ConsumerState<ScreenOrders> {
 class _OrderCard extends ConsumerWidget {
   const _OrderCard({
     required this.order,
+    required this.onBump,
     required this.onItemStatusChange,
     required this.onVoidItem,
   });
   final OrderModel order;
+  final VoidCallback onBump;
   final void Function(OrderItemModel, PrepStatus) onItemStatusChange;
   final void Function(OrderItemModel) onVoidItem;
 
@@ -300,13 +328,7 @@ class _OrderCard extends ConsumerWidget {
                                           ?.copyWith(fontWeight: FontWeight.w600),
                                     ),
                                     clipBehavior: Clip.hardEdge,
-                                    onPressed: () {
-                                      for (final item in items) {
-                                        if (item.status == lowestStatus) {
-                                          onItemStatusChange(item, lowestNext);
-                                        }
-                                      }
-                                    },
+                                    onPressed: onBump,
                                     child: Text(
                                       _statusLabel(lowestStatus!, l),
                                       overflow: TextOverflow.ellipsis,
