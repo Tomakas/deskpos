@@ -46,39 +46,55 @@ class SyncLifecycleManager {
   final BroadcastChannel? _kdsBroadcastChannel;
 
   bool _isRunning = false;
+  String? _currentCompanyId;
+  int _startGeneration = 0;
   StreamSubscription<Map<String, dynamic>>? _kdsSubscription;
 
   bool get isRunning => _isRunning;
 
   Future<void> start(String companyId) async {
     if (_isRunning) {
-      AppLogger.info('SyncLifecycleManager: start() skipped — already running', tag: 'SYNC');
-      return;
+      if (companyId == _currentCompanyId) {
+        AppLogger.info('SyncLifecycleManager: start() skipped — already running', tag: 'SYNC');
+        return;
+      }
+      // Company changed — stop old sync before starting new one
+      AppLogger.info(
+        'SyncLifecycleManager: company changed from $_currentCompanyId to $companyId, restarting',
+        tag: 'SYNC',
+      );
+      stop();
     }
     _isRunning = true;
+    _currentCompanyId = companyId;
+    final generation = ++_startGeneration;
 
     try {
       AppLogger.info('SyncLifecycleManager: starting', tag: 'SYNC');
 
       // Crash recovery: reset stuck processing entries
       await _syncQueueRepo.resetStuck();
+      if (_startGeneration != generation) return;
 
       // Retry recovery: reset permanently failed entries (e.g. after schema fix)
       await _syncQueueRepo.resetFailed();
+      if (_startGeneration != generation) return;
 
       // Cleanup old completed entries
       await _syncQueueRepo.deleteCompleted();
+      if (_startGeneration != generation) return;
 
       // Initial push: enqueue all existing entities that have never been synced
       await _initialPush(companyId);
+      if (_startGeneration != generation) return;
 
       // Drain all enqueued entries before starting the periodic timer.
       // Errors here must NOT prevent periodic processors from starting.
       try {
         const maxDrainIterations = 50;
-        for (var i = 0; i < maxDrainIterations && _isRunning; i++) {
+        for (var i = 0; i < maxDrainIterations && _startGeneration == generation; i++) {
           final pending = await _syncQueueRepo.countPending();
-          if (pending == 0) break;
+          if (pending == 0 || _startGeneration != generation) break;
           await _outboxProcessor.processQueue(limit: 500);
         }
       } catch (e, s) {
@@ -89,6 +105,8 @@ class SyncLifecycleManager {
           stackTrace: s,
         );
       }
+
+      if (_startGeneration != generation) return;
 
       // Start outbox push (periodic timer picks up remaining/failed entries)
       _outboxProcessor.start();
@@ -102,7 +120,9 @@ class SyncLifecycleManager {
       // Subscribe to KDS broadcast for instant order delivery
       _subscribeKdsBroadcast(companyId);
     } catch (e, s) {
+      if (_startGeneration != generation) return;
       _isRunning = false;
+      _currentCompanyId = null;
       // Stop any partially started services to prevent orphaned timers
       _stopServices();
       AppLogger.error(
@@ -123,6 +143,7 @@ class SyncLifecycleManager {
       return;
     }
     _isRunning = false;
+    _currentCompanyId = null;
     AppLogger.info('SyncLifecycleManager: stopping', tag: 'SYNC');
     _stopServices();
   }

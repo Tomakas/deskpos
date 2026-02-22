@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/logging/app_logger.dart';
@@ -66,6 +67,16 @@ class _LogTabState extends State<LogTab> {
     }
   }
 
+  Future<void> _clearLog() async {
+    final path = AppLogger.logFilePath;
+    if (path == null) return;
+    try {
+      final file = File(path);
+      if (await file.exists()) await file.writeAsString('');
+      if (mounted) setState(() => _logContent = '');
+    } catch (_) {}
+  }
+
   Future<void> _exportLogs() async {
     final logPath = AppLogger.logFilePath;
     if (logPath == null) return;
@@ -95,6 +106,18 @@ class _LogTabState extends State<LogTab> {
                 ),
                 tooltip: 'Auto-scroll',
                 onPressed: () => setState(() => _autoScroll = !_autoScroll),
+              ),
+              IconButton(
+                icon: const Icon(Icons.copy),
+                tooltip: 'Copy',
+                onPressed: _logContent.isEmpty
+                    ? null
+                    : () => Clipboard.setData(ClipboardData(text: _logContent)),
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete_outline),
+                tooltip: 'Clear',
+                onPressed: _logContent.isEmpty ? null : _clearLog,
               ),
               const SizedBox(width: 4),
               SizedBox(

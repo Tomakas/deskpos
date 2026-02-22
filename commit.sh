@@ -180,4 +180,8 @@ printf "Push to origin? [Y/n] "
 read -r push_choice
 if [ -z "$push_choice" ] || [[ "$push_choice" =~ ^[Yy]$ ]]; then
   git push
+  echo ""
+  echo "Triggering build workflow..."
+  gh workflow run build.yml --ref main
+  echo "Build triggered."
 fi
