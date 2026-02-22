@@ -27,10 +27,27 @@ jobs:
       - name: Build Windows
         run: flutter build windows --release
 
-      - name: Upload Windows artifact
+      - name: Download VC++ Redistributable
+        run: powershell -ExecutionPolicy Bypass -File windows/installer/download-vcredist.ps1
+
+      - name: Build installer (Inno Setup)
+        run: |
+          $version = "1.0.0"
+          if ($env:GITHUB_REF -match '^refs/tags/v(.+)$') {
+            $version = $Matches[1]
+          }
+          iscc "/DMyAppVersion=$version" windows/installer/deskpos.iss
+
+      - name: Upload installer
         uses: actions/upload-artifact@v4
         with:
-          name: deskpos-windows
+          name: deskpos-windows-installer
+          path: build/installer/DeskPOS-*-Setup.exe
+
+      - name: Upload raw build
+        uses: actions/upload-artifact@v4
+        with:
+          name: deskpos-windows-raw
           path: build/windows/x64/runner/Release/
 
   build-linux:

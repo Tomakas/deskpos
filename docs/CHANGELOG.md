@@ -1,5 +1,42 @@
 # Changelog
 
+## 2026-02-22 (evening)
+
+### Build & Distribution
+- **Windows installer**: Přidán Inno Setup skript (`windows/installer/deskpos.iss`) — generuje `DeskPOS-x.y.z-Setup.exe`
+- **VC++ Redistributable bundling**: Instalátor automaticky nainstaluje VC++ Runtime (MSVCP140.dll, VCRUNTIME140.dll) pokud na cílovém stroji chybí — uživatel o tom neví
+- **CI/CD**: GitHub Actions workflow rozšířen o stažení VC++ Redistributable, build instalátoru přes Inno Setup, upload jako artifact
+- **Dokumentace**: Sekce "Windows distribuce" přidána do PROJECT.md
+
+## 2026-02-22 — Sjednocení Orders a KDS, redesign košíku
+
+### Sell Screen
+- **Cart item redesign**: Nahrazení `ListTile(dense: true)` vlastním card layoutem — `InkWell` + `Container` s `surfaceContainerHigh` pozadím, zaoblenými rohy (8px). Hlavní řádek: `{qty}x {název} {cena}` baseline-aligned. Modifikátory odsazené pod názvem. Poznámky kurzívou.
+
+### Orders & KDS — Sjednocení
+- **Item notes**: Nahrazení nefunkční ikony `Icons.note` skutečným textem poznámky (odsazený, kurzíva, muted) v obou screenech
+- **Item tap**: Odebrání tap-on-row akcí z obou screenů — akce pouze přes explicitní tlačítka
+- **Bill info layout**: Orders přepsán na `Column` + `Row` + `Flexible` s ellipsis (jako KDS)
+- **Strip color**: Orders přepsán na `inactiveIndicator` pro voided/storno položky (jako KDS)
+- **Button height**: KDS order card status button sjednocen na 40px (jako Orders)
+- **Badge borderRadius**: KDS sjednocen na 20 (jako Orders)
+- **Storno v KDS**: Přidán 4. filtr Storno, červený border na storno kartách, "X" prefix, `_StornoRef` widget, storno guard na notes/bump
+- **Cena položky**: Přidána do KDS item cards (včetně modifikátorů)
+- **Prev-status (undo)**: Přidáno undo tlačítko do KDS item cards
+- **Void (storno) položky**: Přidán long press → void s potvrzovacím dialogem do KDS (včetně `_voidItem` metody)
+- **Session scope**: Nový `PopupMenuButton` s ikonou `schedule` v AppBar obou screenů (Session/Vše toggle), nahrazuje FilterChip row v Orders
+- **Live clock**: Přidán do Orders AppBar (jako KDS)
+- **Elapsed time ticker**: Přidán 15s timer do Orders pro živou aktualizaci urgency barev
+- **Bump debounce**: Přidán `_isBumping` guard do Orders `_changeItemStatus`
+- **Order-level bump**: Přidána `_bumpOrder` metoda do Orders (oprava bugu — inline for cyklus volal `_changeItemStatus` přes debounce guard, takže se bumpla jen první položka)
+- **KDS titul**: Přejmenován z `kdsTitle` na `ordersTitle` ("Objednávky")
+- **`mainAxisSize`**: Odebráno zbytečné `MainAxisSize.min` z Orders order card Row
+
+### Documentation
+- PROJECT.md: Aktualizace ScreenSell (cart layout), ScreenOrders (AppBar, item card, filtry, bump), ScreenKds (sjednocení s Orders, nové features), Task3.41
+
+---
+
 ## 2026-02-21 — Varianty a Modifikátory
 
 ### Features

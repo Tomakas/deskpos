@@ -246,7 +246,7 @@ Kompletní multi-register POS architektura: device binding, CRUD pokladen s plat
 - **Task3.38** ✅ CRUD pokladen + payment enforcement — `RegistersTab` (PosTable s add/edit/delete, HardwareType, parent register, payment flags) přesunuto do `ScreenVenueSettings` (4. tab). `ScreenRegisterSettings` má 2 taby (Aktuální pokladna, Režim). `DialogPayment` filtruje platební metody dle `register.allowCash/Card/Transfer/Credit/Voucher/Other`. `DialogVoucherCreate` respektuje `allowRefunds`. Režim zařízení (POS/KDS/Customer Display) se volí v ScreenRegisterSettings nebo přímo na login obrazovce (KDS).
 - **Task3.39** ✅ Z-report per register + cash handover — `CashMovementType.handover` pro mobile→local předání hotovosti. `ZReportService.buildVenueZReport` (agregace N sessions s per-register breakdowns). `RegisterSessionRepository` rozšíření: billCounter increment, getClosedSessions. `DialogZReport` zobrazuje per-register breakdown. `DialogZReportList` filtrování dle registeru.
 - **Task3.40** ✅ Supabase Realtime <2s sync — `RealtimeService` subscribuje PostgresChanges na 23 tabulek (vč. companies a display_devices). LWW merge přes `insertOnConflictUpdate` v `SyncService.mergeRow`. Reconnect → okamžitý `pullAll` (flag `_wasSubscribed`). Dual sync: polling 5min (fallback) + Realtime (instant).
-- **Task3.41** ✅ KDS (Kitchen Display System) — route `/kds`, volba režimu na login obrazovce (POS/KDS radio). Touch-optimized grid karet s objednávkami, live clock v AppBar, Drawer s logout. Status filter chips, per-item a full-order bump (created→ready→delivered). `_isBumping` guard proti double-tap. Storno ordery vyloučeny.
+- **Task3.41** ✅ KDS (Kitchen Display System) — route `/kds`, volba režimu na login obrazovce (POS/KDS radio). Touch-optimized seznam karet s objednávkami, live clock v AppBar, Drawer s logout. Status filter chips (4 filtry vč. storno), per-item a full-order bump (created→ready→delivered), prev-status undo, item void (long press). `_isBumping` guard proti double-tap. Session scope popup menu. Funkčně téměř identický s ScreenOrders — sdílí ceny, modifikátory, poznámky, storno zobrazení, urgency timer.
 - **Task3.42** ✅ Customer Display — route `/customer-display` (idle/active via `?code=` query param). Read-only zákaznická obrazovka pro sekundární monitor. Register-centric architektura: displej sleduje `activeBillId` a `displayCartJson` na registru (sync přes outbox). Idle mód (jméno firmy + konfigurovatelný uvítací text z `welcomeText`), cart preview mód (položky z `displayCartJson` před submitnutím objednávky), active mód (reálné objednávky + totaly), ThankYou mód (5s po zaplacení, pak návrat na idle). Discount výpočet z `subtotalGross - totalGross + roundingAmount`. Storno ordery a voided/cancelled položky filtrovány. Tlačítko „Zák. displej" v DialogBillDetail pro manuální odeslání účtu na displej (toggle s eye ikonou). Triple-tap na idle obrazovce pro odpárování displeje (skrytá akce).
 - **Task3.43** ✅ Display Devices + Pairing — nová tabulka `display_devices` (id, company_id, parent_register_id, code, name, welcome_text, type, is_active) s `DisplayDeviceType` enum (customerDisplay, kds). `DisplayDeviceModel` (Freezed), `DisplayDeviceRepository` (manual sync pattern), entity/supabase/pull mappers, sync registrace. `ScreenDisplayCode` — 6-digit kód pro spárování displeje s pokladnou. `PairingConfirmationListener` — modální overlay na hlavní pokladně pro potvrzení/zamítnutí párovací žádosti. `BroadcastChannel` wrapper pro Supabase Realtime broadcast (join/send/leave). Párovací protokol: displej odešle `pairing_request` přes broadcast kanál `pairing:{companyId}`, hlavní pokladna zobrazí potvrzovací dialog, odpověď `pairing_confirmed`/`pairing_rejected` zpět přes broadcast. Retry každých 5s, timeout 60s. Vstup přes ScreenOnboarding → "Customer Display" → `/display-code?type=customer_display`.
 - **Výsledek:** Plně multi-register POS: zařízení se bindují na pokladny, každá pokladna má konfiguraci platebních metod, Z-reporty per register i venue-wide, realtime sync mezi zařízeními <2s, kuchyňský displej, zákaznický displej a bezpečné párování displejů přes broadcast protokol.
@@ -1947,7 +1947,7 @@ graph TD
     ONBOARD --> |Customer Display| DISPLAYCODE[ScreenDisplayCode]
     CONNECT --> PIN
     PIN --> |PIN ověřen, POS režim| BILLS[ScreenBills]
-    PIN --> |PIN ověřen, KDS režim| KDS[ScreenKds]
+    PIN --> |PIN ověřen, KDS režim| KDS[ScreenKds - titul Objednávky]
 ```
 
 > **Aktuální stav:** Router začíná na `/loading`, čeká na `appInitProvider`. Žádná firma → `/onboarding` (volba: založit, připojit, nebo display). Wizard „Založit firmu" má 3 kroky: cloud účet (sign-up/sign-in) → firma → admin uživatel. Firma existuje → `/login` (PIN s volbou POS/KDS režimu). Po přihlášení → `/bills` (POS) nebo `/kds` (KDS) dle zvoleného režimu. Display mode → `/customer-display` nebo `/display-code`. Na dalších zařízeních se přihlašuje přes Settings → CloudTab (pouze sign-in).
@@ -2363,7 +2363,8 @@ Layout: **20/80 horizontální split**
 
 **Levý panel (20%) — Košík:**
 - Header: Souhrn položek
-- Seznam: množství × název, cena. Volitelný oddělovač (vizuální čára) — při odeslání se skupiny rozdělí na samostatné ordery.
+- Seznam: Vlastní card layout — každá položka v `InkWell` + `Container` s `surfaceContainerHigh` pozadím a zaoblenými rohy (8px). Hlavní řádek: `{qty}x {název}  {cena}` baseline-aligned v jednom `Row`. Modifikátory odsazené pod názvem (`+ název  +cena`, bodySmall, muted). Poznámky kurzívou pod modifikátory. Tap → dialog pro poznámku/+1, long press → dekrementace/odebrání.
+- Volitelný oddělovač (vizuální čára) — při odeslání se skupiny rozdělí na samostatné ordery.
 - Bottom: Celkem, Zrušit (červená), akční tlačítko:
   - **Rychlý prodej** (`billId = null`): **"Zaplatit"** (zelená) — vytvoří bill + order + otevře DialogPayment
   - **Stolový prodej** (`billId` zadáno): **"Objednat"** (modrá) — vytvoří order na existující bill (více orderů při použití oddělovače)
@@ -2523,55 +2524,52 @@ Layout: **Kartový seznam s filtry**
 └──────────────────────────────────────────────────────────┘
 ```
 
-**Karta objednávky:** Hlavička (číslo, stůl, čas vytvoření s urgency barvou, status barevně, akční tlačítko pro status přechod), seznam položek (qty, název, cena, poznámky). Čas vytvoření zobrazuje barevný badge: zelený (<5 min), oranžový (<10 min), červený (≥10 min). Storno ordery červeně s STORNO prefixem a referencí na původní order.
+**AppBar:** Titul "Objednávky" + `PopupMenuButton` s ikonou `schedule` (session scope: Session/Vše, default Session). Live clock vpravo (datum + čas, aktualizace 1s). Elapsed time ticker (15s) pro živou aktualizaci urgency barev.
 
-**Akce na kartě:**
-- Status přechody: created→ready→delivered (tlačítko na kartě)
-- Void jednotlivé položky → storno order (tap na položku, potvrzovací dialog)
+**Karta objednávky:** Hlavička se 3 sloupci (číslo + order-level bump tlačítko, bill info, čas vytvoření s urgency barvou). Bill info: `Column` + `Row` + `Flexible` s ellipsis. Čas vytvoření zobrazuje barevný badge: zelený (<5 min), oranžový (<10 min), červený (≥10 min). Storno ordery červeně s prefixem, referencí na původní order (`_StornoRef`) a červeným borderem.
 
-**Filtry (spodní lišta):** Aktivní (default: created+ready) / Vytvořené / Hotové / Doručené / Stornované. Styl: FilterChip row jako ScreenBills.
+**Order-level bump:** Tlačítko v hlavičce zobrazuje nejnižší aktivní status a bumpne všechny položky s tímto statusem na další (`_bumpOrder` metoda s `_isBumping` debounce guardem).
 
-**Scope toggle (horní lišta):** Aktuální session (default) / Vše.
+**Item card:** Barevný strip vlevo (status barva, `inactiveIndicator` pro voided/storno). Řádek: status dot + qty + název + cena (včetně modifikátorů) + prev-status undo tlačítko + next-status tlačítko. Modifikátory pod řádkem (odsazené 48px, bodySmall, muted). Poznámky kurzívou. Long press → void položky (s potvrzovacím dialogem, generuje storno objednávku).
+
+**Filtry (spodní lišta):** 4 filtry: Vytvořené / Hotové / Doručené / Stornované (cancelled+voided). Default: created+ready. FilterChip row s Expanded.
 
 **Přístup:** Menu DALŠÍ → "Objednávky" na ScreenBills. Permission: `orders.view`.
 
 #### ScreenKds (`/kds`) — Kitchen Display System
 
-Layout: **Grid karet s objednávkami** (touch-optimized pro kuchyňský personál)
+Layout: **Seznam karet s objednávkami** (touch-optimized pro kuchyňský personál). Funkčně téměř identický s ScreenOrders — sdílí stejnou strukturu karet, item cards, filtry a akce.
 
 ```
 ┌──────────────────────────────────────────────────────────┐
-│ KDS                                                       │
+│ Objednávky ⏱        14:32:05 22.02.2026                  │
 │──────────────────────────────────────────────────────────│
-│ ┌───────────────────┐  ┌───────────────────┐             │
-│ │ O-0003  Stůl 5    │  │ O-0002  Stůl 2    │             │
-│ │ ⏱ 12 min          │  │ ⏱ 27 min          │             │
-│ │                   │  │                   │             │
-│ │ 2× Pivo        ●  │  │ 3× Espresso    ●  │             │
-│ │ 1× Řízek       ●  │  │                   │             │
-│ │   📝 bez cibule   │  │                   │             │
-│ └───────────────────┘  └───────────────────┘             │
+│ ┌───────────────────────────────────────────────────────┐│
+│ │ ● O-0003  [Připravuje se]   Stůl 5   ⏱ 12 min       ││
+│ │ ● 2× Pivo              100 Kč   [← ][Hotové]        ││
+│ │ ● 1× Řízek             180 Kč   [← ][Hotové]        ││
+│ │     + Extra sýr  +20 Kč                              ││
+│ │     bez cibule                                       ││
+│ └───────────────────────────────────────────────────────┘│
 │──────────────────────────────────────────────────────────│
-│ [●Připravuje se] [Hotové] [Doručené]                      │
+│ [●Vytvořené] [Hotové] [Doručené] [Storno]               │
 └──────────────────────────────────────────────────────────┘
 ```
 
-**Karta objednávky:**
-- Hlavička: číslo objednávky, stůl, čas vytvoření (barva dle urgence)
-- Položky: qty × název, status dot (●), poznámky
-- Barva karty dle nejnižšího statusu: modrá (created), zelená (ready), šedá (delivered)
-- Storno ordery (`isStorno`) se nezobrazují
+**AppBar:** Titul "Objednávky" + `PopupMenuButton` s ikonou `schedule` (session scope: Session/Vše, default Session). Live clock vpravo. Hamburger menu → Drawer s logout.
 
-**Navigace:**
-- Drawer s logout (`Icons.logout`) přístupný přes hamburger menu v AppBar
-- Live clock (`_KdsClockWidget`) v AppBar — datum a čas aktualizovaný každou sekundu
+**Karta objednávky:** Shodná struktura s ScreenOrders — hlavička se 3 sloupci, order-level bump tlačítko (`_bumpOrder` s `_isBumping` guardem), bill info (`Column` + `Row` + `Flexible`), urgency barvy. Storno ordery: červený border, "X" prefix, `_StornoRef`.
 
-**Interakce:**
-- Tap na celou kartu → bump všech položek na další status (created→ready→delivered)
-- Tap na jednotlivou položku → bump jen té položky
-- `_isBumping` guard — zabraňuje přeskočení statusu při rychlém double-tap (try/finally pattern)
+**Item card:** Shodná s ScreenOrders — barevný strip, status dot, qty, název, cena (včetně modifikátorů), prev-status undo tlačítko, next-status tlačítko, modifikátory a poznámky pod řádkem. Long press → void položky. `_isBumping` debounce guard.
 
-**Filtry (spodní lišta):** Připravuje se (created+ready, default) / Hotové (ready) / Doručené (delivered). FilterChip row s Expanded.
+**Filtry (spodní lišta):** 4 filtry: Vytvořené / Hotové / Doručené / Stornované. Default: created+ready. Shodné s ScreenOrders.
+
+**Elapsed time ticker:** 15s timer pro živou aktualizaci urgency barev.
+
+**Rozdíly oproti ScreenOrders:**
+- Drawer s logout (hamburger menu) místo back button
+- Order-level bump — `_bumpOrder` metoda bump všechny položky s nejnižším statusem (KDS-specifický batch workflow)
+- Item-level bump — `_bumpItem` dedikovaná metoda (KDS má i `onBump` callback na item card)
 
 **Přístup:** Route `/kds`, volba režimu na login obrazovce (POS/KDS radio) nebo přes ScreenRegisterSettings. Bez permission guardu — přístup je řízen volbou režimu.
 
@@ -2682,7 +2680,7 @@ Funkce, které nejsou součástí aktuálního plánu. Mohou se přidat kdykoli 
 - Multi-currency operace (přepočty, více měn na jednom účtu)
 - Tisk inventurních předloh
 
-> **Pozn.:** KDS (Kitchen Display System) a Customer Display jsou implementovány v Milníku 3.9.
+> **Pozn.:** KDS (Kitchen Display System) a Customer Display jsou implementovány v Milníku 3.9. KDS a ScreenOrders jsou funkčně téměř identické — sdílí strukturu karet, item cards, filtry, akce, ceny, modifikátory, poznámky a storno zobrazení.
 
 ---
 
@@ -2704,6 +2702,35 @@ dart run build_runner build --delete-conflicting-outputs
 
 # Instalace závislostí
 flutter pub get
+```
+
+### Windows distribuce (Inno Setup)
+
+Windows build se distribuuje jako instalátor (`DeskPOS-x.y.z-Setup.exe`), který automaticky nainstaluje **VC++ Redistributable** (pokud chybí) — uživatel o tom neví a nemusí nic řešit.
+
+| Soubor | Účel |
+|--------|------|
+| `windows/installer/deskpos.iss` | Inno Setup skript — definice instalátoru |
+| `windows/installer/download-vcredist.ps1` | PowerShell skript — stáhne `vc_redist.x64.exe` pro přibalení |
+| `windows/installer/vcredist/` | Stažený redistributable (gitignored) |
+
+**CI/CD:** GitHub Actions workflow (`build.yml`) automaticky:
+1. Buildí Flutter Windows release
+2. Stáhne VC++ Redistributable
+3. Vytvoří instalátor přes Inno Setup (předinstalovaný na `windows-latest`)
+4. Uploadne výsledný `.exe` jako artifact
+
+**Lokální build instalátoru:**
+```bash
+# 1. Build Flutter
+flutter build windows --release
+
+# 2. Stáhni VC++ Redistributable
+powershell -File windows/installer/download-vcredist.ps1
+
+# 3. Vytvoř instalátor (vyžaduje Inno Setup nainstalovaný na Windows)
+iscc /DMyAppVersion=1.0.0 windows/installer/deskpos.iss
+# Výstup: build/installer/DeskPOS-1.0.0-Setup.exe
 ```
 
 ### Konfigurace prostředí (od Etapy 3)
