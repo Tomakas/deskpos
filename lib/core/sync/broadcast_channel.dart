@@ -14,6 +14,7 @@ class BroadcastChannel {
   RealtimeChannel? _channel;
   String? _channelName;
   bool _subscribed = false;
+  Timer? _reconnectTimer;
   final _controller = StreamController<Map<String, dynamic>>.broadcast();
 
   Stream<Map<String, dynamic>> get stream => _controller.stream;
@@ -63,6 +64,11 @@ class BroadcastChannel {
           completer.completeError(error);
         }
       }
+      if ((status == RealtimeSubscribeStatus.channelError ||
+              status == RealtimeSubscribeStatus.timedOut) &&
+          completer.isCompleted) {
+        _scheduleReconnect();
+      }
     });
 
     return completer.future;
@@ -94,6 +100,8 @@ class BroadcastChannel {
 
   /// Leave the current channel.
   void leave() {
+    _reconnectTimer?.cancel();
+    _reconnectTimer = null;
     if (_channel != null) {
       _supabase.removeChannel(_channel!);
       _channel = null;
@@ -104,7 +112,22 @@ class BroadcastChannel {
 
   /// Dispose — leave channel and close stream controller.
   void dispose() {
+    _reconnectTimer?.cancel();
+    _reconnectTimer = null;
     leave();
     _controller.close();
+  }
+
+  void _scheduleReconnect() {
+    if (_reconnectTimer?.isActive ?? false) return;
+    final name = _channelName;
+    if (name == null) return;
+    AppLogger.info('BroadcastChannel($name): scheduling reconnect in 10s', tag: 'BROADCAST');
+    _reconnectTimer = Timer(const Duration(seconds: 10), () {
+      if (_channelName != name) return;
+      AppLogger.info('BroadcastChannel($name): reconnecting...', tag: 'BROADCAST');
+      leave();
+      join(name);
+    });
   }
 }

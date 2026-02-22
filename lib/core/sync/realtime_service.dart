@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../data/mappers/supabase_pull_mappers.dart';
@@ -19,6 +21,8 @@ class RealtimeService {
 
   RealtimeChannel? _channel;
   bool _wasSubscribed = false;
+  String? _companyId;
+  Timer? _reconnectTimer;
 
   /// Company-scoped tables to subscribe to.
   /// Excludes global tables (currencies, roles, permissions, role_permissions)
@@ -56,6 +60,7 @@ class RealtimeService {
 
   void start(String companyId) {
     stop();
+    _companyId = companyId;
     _wasSubscribed = false;
     AppLogger.info(
       'RealtimeService: subscribing to ${_realtimeTables.length} tables',
@@ -86,11 +91,17 @@ class RealtimeService {
       }
       // On reconnect, trigger immediate pull to catch events missed during disconnection
       if (status == RealtimeSubscribeStatus.subscribed) {
+        _reconnectTimer?.cancel();
+        _reconnectTimer = null;
         if (_wasSubscribed) {
           AppLogger.info('RealtimeService: reconnected, triggering immediate pull', tag: 'REALTIME');
           _syncService.pullAll(companyId);
         }
         _wasSubscribed = true;
+      }
+      if (status == RealtimeSubscribeStatus.channelError ||
+          status == RealtimeSubscribeStatus.timedOut) {
+        _scheduleReconnect();
       }
     });
 
@@ -98,11 +109,29 @@ class RealtimeService {
   }
 
   void stop() {
+    _reconnectTimer?.cancel();
+    _reconnectTimer = null;
     if (_channel != null) {
       _supabase.removeChannel(_channel!);
       _channel = null;
       AppLogger.info('RealtimeService: unsubscribed', tag: 'REALTIME');
     }
+    _companyId = null;
+  }
+
+  void _scheduleReconnect() {
+    if (_reconnectTimer?.isActive ?? false) return;
+    if (_companyId == null) return;
+    AppLogger.info('RealtimeService: scheduling reconnect in 10s', tag: 'REALTIME');
+    _reconnectTimer = Timer(const Duration(seconds: 10), () {
+      final companyId = _companyId;
+      if (companyId == null) return;
+      final wasSubscribed = _wasSubscribed;
+      AppLogger.info('RealtimeService: reconnecting...', tag: 'REALTIME');
+      stop();
+      _wasSubscribed = wasSubscribed;
+      start(companyId);
+    });
   }
 
   void _handleChange(
