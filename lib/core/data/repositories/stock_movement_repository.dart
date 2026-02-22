@@ -4,7 +4,9 @@ import 'package:drift/drift.dart';
 
 import '../../database/app_database.dart';
 import '../../logging/app_logger.dart';
+import '../enums/stock_document_type.dart';
 import '../enums/stock_movement_direction.dart';
+import '../enums/unit_type.dart';
 import '../mappers/entity_mappers.dart';
 import '../mappers/supabase_mappers.dart';
 import '../models/stock_movement_model.dart';
@@ -65,6 +67,43 @@ class StockMovementRepository {
     return entities.map(stockMovementFromEntity).toList();
   }
 
+  /// Watches all movements for a company with item and document info via JOIN.
+  Stream<List<StockMovementWithItem>> watchByCompany(
+    String companyId, {
+    String? itemId,
+  }) {
+    var whereExpr = _db.stockMovements.companyId.equals(companyId) &
+        _db.stockMovements.deletedAt.isNull() &
+        _db.items.deletedAt.isNull();
+
+    if (itemId != null) {
+      whereExpr = whereExpr & _db.stockMovements.itemId.equals(itemId);
+    }
+
+    final query = _db.select(_db.stockMovements).join([
+      innerJoin(_db.items, _db.items.id.equalsExp(_db.stockMovements.itemId)),
+      leftOuterJoin(
+        _db.stockDocuments,
+        _db.stockDocuments.id.equalsExp(_db.stockMovements.stockDocumentId),
+      ),
+    ])
+      ..where(whereExpr)
+      ..orderBy([OrderingTerm.desc(_db.stockMovements.createdAt)]);
+
+    return query.watch().map((rows) => rows.map((row) {
+          final movement = stockMovementFromEntity(row.readTable(_db.stockMovements));
+          final item = row.readTable(_db.items);
+          final doc = row.readTableOrNull(_db.stockDocuments);
+          return StockMovementWithItem(
+            movement: movement,
+            itemName: item.name,
+            unit: item.unit,
+            documentType: doc?.type,
+            documentNumber: doc?.documentNumber,
+          );
+        }).toList());
+  }
+
   Future<void> _enqueue(String operation, StockMovementModel model) async {
     if (syncQueueRepo == null) return;
     final json = stockMovementToSupabaseJson(model);
@@ -76,4 +115,21 @@ class StockMovementRepository {
       payload: jsonEncode(json),
     );
   }
+}
+
+/// A stock movement combined with item and document information for display.
+class StockMovementWithItem {
+  StockMovementWithItem({
+    required this.movement,
+    required this.itemName,
+    required this.unit,
+    this.documentType,
+    this.documentNumber,
+  });
+
+  final StockMovementModel movement;
+  final String itemName;
+  final UnitType unit;
+  final StockDocumentType? documentType;
+  final String? documentNumber;
 }

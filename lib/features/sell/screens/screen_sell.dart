@@ -8,7 +8,6 @@ import '../../../core/data/enums/display_device_type.dart';
 import '../../../core/data/enums/sell_mode.dart';
 import '../../../core/data/enums/item_type.dart';
 import '../../../core/data/enums/layout_item_type.dart';
-import '../../../core/data/mappers/supabase_mappers.dart';
 import '../../../core/data/models/bill_model.dart';
 import '../../../core/data/models/category_model.dart';
 import '../../../core/data/models/customer_display_content.dart';
@@ -139,28 +138,6 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
   void _pushDisplayIdle() {
     if (_displayCode == null) return;
     _displayChannel.send(const DisplayIdle().toJson());
-  }
-
-  Future<void> _broadcastKdsOrder(OrderModel order) async {
-    final orderRepo = ref.read(orderRepositoryProvider);
-    final modRepo = ref.read(orderItemModifierRepositoryProvider);
-    final channel = ref.read(kdsBroadcastChannelProvider);
-    final items = await orderRepo.getOrderItems(order.id);
-    if (!mounted) return;
-
-    // Collect modifiers for all order items
-    final allModifiers = <Map<String, dynamic>>[];
-    for (final item in items) {
-      final mods = await modRepo.getByOrderItem(item.id);
-      allModifiers.addAll(mods.map(orderItemModifierToSupabaseJson));
-    }
-
-    channel.send({
-      'action': 'new_order',
-      'order': orderToSupabaseJson(order),
-      'order_items': items.map(orderItemToSupabaseJson).toList(),
-      'order_item_modifiers': allModifiers,
-    });
   }
 
   /// Retail mode: clears cart state for the next sale.
@@ -1195,7 +1172,6 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
         );
         if (result is Success<OrderModel>) {
           anySuccess = true;
-          _broadcastKdsOrder(result.value);
         }
       }
 
@@ -1251,7 +1227,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
         if (!mounted) return;
         final orderItems = await _buildOrderItemsFromGroup(ref, groups[i]);
         if (!mounted) return;
-        final result = await orderRepo.createOrderWithItems(
+        await orderRepo.createOrderWithItems(
           companyId: company.id,
           billId: billId,
           userId: user.id,
@@ -1260,9 +1236,6 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
           orderNotes: i == 0 ? _orderNotes : null,
           registerId: register?.id,
         );
-        if (result is Success<OrderModel>) {
-          _broadcastKdsOrder(result.value);
-        }
       }
       await billRepo.updateTotals(billId);
 
@@ -1350,7 +1323,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
         if (!mounted) return;
         final orderItems = await _buildOrderItemsFromGroup(ref, groups[i]);
         if (!mounted) return;
-        final result = await orderRepo.createOrderWithItems(
+        await orderRepo.createOrderWithItems(
           companyId: company.id,
           billId: bill.id,
           userId: user.id,
@@ -1359,9 +1332,6 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
           orderNotes: i == 0 ? _orderNotes : null,
           registerId: register?.id,
         );
-        if (result is Success<OrderModel>) {
-          _broadcastKdsOrder(result.value);
-        }
       }
       await billRepo.updateTotals(bill.id);
 

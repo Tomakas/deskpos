@@ -17,10 +17,12 @@ class DialogInventory extends ConsumerStatefulWidget {
     super.key,
     required this.companyId,
     required this.warehouseId,
+    this.itemIds,
   });
 
   final String companyId;
   final String warehouseId;
+  final Set<String>? itemIds;
 
   @override
   ConsumerState<DialogInventory> createState() => _DialogInventoryState();
@@ -54,15 +56,18 @@ class _DialogInventoryState extends ConsumerState<DialogInventory> {
                 .watchByWarehouse(widget.companyId, widget.warehouseId),
             builder: (context, snap) {
               final theme = Theme.of(context);
-              final levels = snap.data ?? [];
+              var levels = snap.data ?? [];
+              if (widget.itemIds != null) {
+                levels = levels.where((l) => widget.itemIds!.contains(l.itemId)).toList();
+              }
 
               // Ensure controllers exist for all items
               for (final item in levels) {
-                final itemId = item.stockLevel.itemId;
+                final itemId = item.itemId;
                 _controllers.putIfAbsent(
                   itemId,
                   () => TextEditingController(
-                    text: _formatQuantity(item.stockLevel.quantity),
+                    text: _formatQuantity(item.quantity),
                   ),
                 );
               }
@@ -77,28 +82,30 @@ class _DialogInventoryState extends ConsumerState<DialogInventory> {
                   PosColumn(
                     label: l.inventoryColumnUnit,
                     width: 80,
-                    cellBuilder: (item) => Text(item.unit.name),
+                    headerAlign: TextAlign.center,
+                    cellBuilder: (item) => Text(item.unit.name, textAlign: TextAlign.center),
                   ),
                   PosColumn(
                     label: l.inventoryColumnQuantity,
                     width: 80,
-                    numeric: true,
+                    headerAlign: TextAlign.center,
                     cellBuilder: (item) => Text(
-                      _formatQuantity(item.stockLevel.quantity),
-                      textAlign: TextAlign.right,
+                      _formatQuantity(item.quantity),
+                      textAlign: TextAlign.center,
                     ),
                   ),
                   PosColumn(
                     label: l.inventoryDialogActualQuantity,
                     width: 100,
-                    numeric: true,
+                    headerAlign: TextAlign.center,
                     cellBuilder: (item) {
-                      final controller = _controllers[item.stockLevel.itemId]!;
+                      final controller = _controllers[item.itemId]!;
                       return SizedBox(
                         width: 80,
                         child: TextField(
                           controller: controller,
                           decoration: const InputDecoration(isDense: true),
+                          textAlign: TextAlign.center,
                           keyboardType: const TextInputType.numberWithOptions(
                             decimal: true,
                           ),
@@ -115,21 +122,21 @@ class _DialogInventoryState extends ConsumerState<DialogInventory> {
                   PosColumn(
                     label: l.inventoryDialogDifference,
                     width: 80,
-                    numeric: true,
+                    headerAlign: TextAlign.center,
                     cellBuilder: (item) {
-                      final controller = _controllers[item.stockLevel.itemId]!;
+                      final controller = _controllers[item.itemId]!;
                       final actual =
                           double.tryParse(
                             controller.text.replaceAll(',', '.'),
                           ) ??
-                          item.stockLevel.quantity;
-                      final diff = actual - item.stockLevel.quantity;
+                          item.quantity;
+                      final diff = actual - item.quantity;
                       final diffText = diff == 0
                           ? '-'
                           : (diff > 0 ? '+' : '') + _formatQuantity(diff);
                       return Text(
                         diffText,
-                        textAlign: TextAlign.right,
+                        textAlign: TextAlign.center,
                         style: diff != 0
                             ? TextStyle(
                                 color: diff > 0
@@ -175,23 +182,26 @@ class _DialogInventoryState extends ConsumerState<DialogInventory> {
     final stockDocRepo = ref.read(stockDocumentRepositoryProvider);
 
     // Build inventory lines from current stock levels
-    final levels = await stockLevelRepo
+    var levels = await stockLevelRepo
         .watchByWarehouse(widget.companyId, widget.warehouseId)
         .first;
+    if (widget.itemIds != null) {
+      levels = levels.where((l) => widget.itemIds!.contains(l.itemId)).toList();
+    }
 
     final inventoryLines = <InventoryLine>[];
     for (final item in levels) {
-      final itemId = item.stockLevel.itemId;
+      final itemId = item.itemId;
       final controller = _controllers[itemId];
       if (controller == null) continue;
 
       final actualQty =
           double.tryParse(controller.text.replaceAll(',', '.')) ??
-          item.stockLevel.quantity;
+          item.quantity;
       inventoryLines.add(
         InventoryLine(
           itemId: itemId,
-          currentQuantity: item.stockLevel.quantity,
+          currentQuantity: item.quantity,
           actualQuantity: actualQty,
           purchasePrice: item.purchasePrice,
         ),

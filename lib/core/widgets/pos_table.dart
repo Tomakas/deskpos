@@ -11,6 +11,7 @@ class PosColumn<T> {
     this.width,
     required this.cellBuilder,
     this.numeric = false,
+    this.headerAlign,
   });
 
   final String label;
@@ -23,6 +24,9 @@ class PosColumn<T> {
 
   /// Right-aligns the header text.
   final bool numeric;
+
+  /// Explicit header alignment. When set, overrides [numeric].
+  final TextAlign? headerAlign;
 }
 
 // ---------------------------------------------------------------------------
@@ -116,7 +120,7 @@ class PosTable<T> extends StatelessWidget {
     return Text(
       col.label,
       style: style,
-      textAlign: col.numeric ? TextAlign.right : null,
+      textAlign: col.headerAlign ?? (col.numeric ? TextAlign.right : null),
     );
   }
 

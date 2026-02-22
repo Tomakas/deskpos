@@ -2,16 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/data/enums/stock_document_type.dart';
+import '../../../core/data/enums/stock_movement_direction.dart';
 import '../../../core/data/models/stock_document_model.dart';
 import '../../../core/data/models/supplier_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/repositories/stock_level_repository.dart';
+import '../../../core/data/repositories/stock_movement_repository.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/utils/formatting_ext.dart';
 import '../../../core/widgets/pos_table.dart';
 import '../../../l10n/app_localizations.dart';
 import '../widgets/dialog_inventory.dart';
+import '../widgets/dialog_inventory_type.dart';
 import '../widgets/dialog_stock_document.dart';
 
 class ScreenInventory extends ConsumerStatefulWidget {
@@ -30,7 +33,7 @@ class _ScreenInventoryState extends ConsumerState<ScreenInventory>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
   }
 
   @override
@@ -75,47 +78,43 @@ class _ScreenInventoryState extends ConsumerState<ScreenInventory>
     return Scaffold(
       appBar: AppBar(
         title: Text(l.inventoryTitle),
+        actions: [
+          FilledButton.icon(
+            onPressed: () => _openStockDocument(context, StockDocumentType.receipt),
+            icon: const Icon(Icons.add_box_outlined),
+            label: Text(l.inventoryReceipt),
+          ),
+          const SizedBox(width: 8),
+          FilledButton.tonalIcon(
+            onPressed: () => _openStockDocument(context, StockDocumentType.waste),
+            icon: const Icon(Icons.remove_circle_outline),
+            label: Text(l.inventoryWaste),
+          ),
+          const SizedBox(width: 8),
+          FilledButton.tonalIcon(
+            onPressed: () => _openStockDocument(context, StockDocumentType.correction),
+            icon: const Icon(Icons.edit_outlined),
+            label: Text(l.inventoryCorrection),
+          ),
+          const SizedBox(width: 8),
+          FilledButton.tonalIcon(
+            onPressed: () => _openInventoryDialog(context),
+            icon: const Icon(Icons.fact_check_outlined),
+            label: Text(l.inventoryInventory),
+          ),
+          const SizedBox(width: 16),
+        ],
         bottom: TabBar(
           controller: _tabController,
           tabs: [
             Tab(text: l.inventoryTabLevels),
             Tab(text: l.inventoryTabDocuments),
+            Tab(text: l.inventoryTabMovements),
           ],
         ),
       ),
       body: Column(
         children: [
-          // Action buttons
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                FilledButton.icon(
-                  onPressed: () => _openStockDocument(context, StockDocumentType.receipt),
-                  icon: const Icon(Icons.add_box_outlined),
-                  label: Text(l.inventoryReceipt),
-                ),
-                const SizedBox(width: 8),
-                FilledButton.tonalIcon(
-                  onPressed: () => _openStockDocument(context, StockDocumentType.waste),
-                  icon: const Icon(Icons.remove_circle_outline),
-                  label: Text(l.inventoryWaste),
-                ),
-                const SizedBox(width: 8),
-                FilledButton.tonalIcon(
-                  onPressed: () => _openStockDocument(context, StockDocumentType.correction),
-                  icon: const Icon(Icons.edit_outlined),
-                  label: Text(l.inventoryCorrection),
-                ),
-                const SizedBox(width: 8),
-                FilledButton.tonalIcon(
-                  onPressed: () => _openInventoryDialog(context),
-                  icon: const Icon(Icons.fact_check_outlined),
-                  label: Text(l.inventoryInventory),
-                ),
-              ],
-            ),
-          ),
           // Tab content
           Expanded(
             child: TabBarView(
@@ -128,6 +127,9 @@ class _ScreenInventoryState extends ConsumerState<ScreenInventory>
                 _StockDocumentsTab(
                   companyId: company.id,
                   warehouseId: _warehouseId!,
+                ),
+                _StockMovementsTab(
+                  companyId: company.id,
                 ),
               ],
             ),
@@ -155,11 +157,18 @@ class _ScreenInventoryState extends ConsumerState<ScreenInventory>
     final company = ref.read(currentCompanyProvider);
     if (company == null || _warehouseId == null) return;
 
+    final itemIds = await showDialog<Set<String>>(
+      context: context,
+      builder: (_) => DialogInventoryType(companyId: company.id),
+    );
+    if (itemIds == null || !context.mounted) return;
+
     await showDialog(
       context: context,
       builder: (_) => DialogInventory(
         companyId: company.id,
         warehouseId: _warehouseId!,
+        itemIds: itemIds.isEmpty ? null : itemIds,
       ),
     );
   }
@@ -184,25 +193,25 @@ class _StockLevelsTab extends ConsumerWidget {
         int totalValue = 0;
         for (final item in levels) {
           if (item.purchasePrice != null) {
-            totalValue += (item.purchasePrice! * item.stockLevel.quantity).round();
+            totalValue += (item.purchasePrice! * item.quantity).round();
           }
         }
 
         return PosTable<StockLevelWithItem>(
           columns: [
             PosColumn(label: l.inventoryColumnItem, flex: 3, cellBuilder: (item) => Text(item.itemName, overflow: TextOverflow.ellipsis)),
-            PosColumn(label: l.inventoryColumnUnit, flex: 1, cellBuilder: (item) => Text(item.unit.name)),
+            PosColumn(label: l.inventoryColumnUnit, flex: 1, headerAlign: TextAlign.center, cellBuilder: (item) => Text(item.unit.name, textAlign: TextAlign.center)),
             PosColumn(
               label: l.inventoryColumnQuantity,
               flex: 1,
-              numeric: true,
+              headerAlign: TextAlign.center,
               cellBuilder: (item) {
-                final qty = item.stockLevel.quantity;
-                final minQty = item.stockLevel.minQuantity;
+                final qty = item.quantity;
+                final minQty = item.minQuantity;
                 final isBelowMin = minQty != null && qty < minQty;
                 return Text(
                   _formatQuantity(qty),
-                  textAlign: TextAlign.right,
+                  textAlign: TextAlign.center,
                   style: isBelowMin
                       ? TextStyle(
                           color: Theme.of(context).colorScheme.error,
@@ -215,10 +224,10 @@ class _StockLevelsTab extends ConsumerWidget {
             PosColumn(
               label: l.inventoryColumnMinQuantity,
               flex: 1,
-              numeric: true,
+              headerAlign: TextAlign.center,
               cellBuilder: (item) => Text(
-                item.stockLevel.minQuantity != null ? _formatQuantity(item.stockLevel.minQuantity!) : '-',
-                textAlign: TextAlign.right,
+                item.minQuantity != null ? _formatQuantity(item.minQuantity!) : '-',
+                textAlign: TextAlign.center,
               ),
             ),
             PosColumn(
@@ -236,7 +245,7 @@ class _StockLevelsTab extends ConsumerWidget {
               numeric: true,
               cellBuilder: (item) {
                 final price = item.purchasePrice;
-                final value = price != null ? (price * item.stockLevel.quantity).round() : 0;
+                final value = price != null ? (price * item.quantity).round() : 0;
                 return Text(
                   price != null ? ref.moneyValue(value) : '-',
                   textAlign: TextAlign.right,
@@ -333,5 +342,152 @@ class _StockDocumentsTab extends ConsumerWidget {
       StockDocumentType.inventory => l.documentTypeInventory,
       StockDocumentType.correction => l.documentTypeCorrection,
     };
+  }
+}
+
+// --- Stock Movements Tab ---
+
+class _StockMovementsTab extends ConsumerStatefulWidget {
+  const _StockMovementsTab({required this.companyId});
+  final String companyId;
+
+  @override
+  ConsumerState<_StockMovementsTab> createState() => _StockMovementsTabState();
+}
+
+class _StockMovementsTabState extends ConsumerState<_StockMovementsTab> {
+  final _searchController = TextEditingController();
+  String _query = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: TextField(
+            controller: _searchController,
+            decoration: InputDecoration(
+              hintText: l.searchHint,
+              prefixIcon: const Icon(Icons.search),
+              suffixIcon: _query.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () {
+                        _searchController.clear();
+                        setState(() => _query = '');
+                      },
+                    )
+                  : null,
+              isDense: true,
+              border: const OutlineInputBorder(),
+            ),
+            onChanged: (v) => setState(() => _query = v.toLowerCase()),
+          ),
+        ),
+        // Movements table
+        Expanded(
+          child: StreamBuilder<List<StockMovementWithItem>>(
+            stream: ref.watch(stockMovementRepositoryProvider).watchByCompany(
+                  widget.companyId,
+                ),
+            builder: (context, snap) {
+              var movements = snap.data ?? [];
+              if (_query.isNotEmpty) {
+                movements = movements.where((m) {
+                  return m.itemName.toLowerCase().contains(_query) ||
+                      (m.documentNumber?.toLowerCase().contains(_query) ?? false);
+                }).toList();
+              }
+
+              return PosTable<StockMovementWithItem>(
+                columns: [
+                  PosColumn(
+                    label: l.movementColumnDate,
+                    flex: 2,
+                    cellBuilder: (item) => Text(
+                      ref.fmtDateTime(item.movement.createdAt),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  PosColumn(
+                    label: l.movementColumnItem,
+                    flex: 3,
+                    cellBuilder: (item) => Text(
+                      item.itemName,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  PosColumn(
+                    label: l.movementColumnQuantity,
+                    flex: 1,
+                    headerAlign: TextAlign.center,
+                    cellBuilder: (item) {
+                      final isInbound = item.movement.direction == StockMovementDirection.inbound;
+                      final sign = isInbound ? '+' : '-';
+                      return Text(
+                        '$sign${_formatQuantity(item.movement.quantity)}',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: isInbound
+                              ? Theme.of(context).colorScheme.primary
+                              : Theme.of(context).colorScheme.error,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      );
+                    },
+                  ),
+                  PosColumn(
+                    label: l.movementColumnType,
+                    flex: 2,
+                    cellBuilder: (item) => Text(
+                      _movementTypeLabel(l, item),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  PosColumn(
+                    label: l.movementColumnDocument,
+                    flex: 2,
+                    cellBuilder: (item) => Text(
+                      item.documentNumber ?? '-',
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+                items: movements,
+                emptyMessage: l.movementNoMovements,
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _movementTypeLabel(AppLocalizations l, StockMovementWithItem item) {
+    if (item.documentType != null) {
+      return switch (item.documentType!) {
+        StockDocumentType.receipt => l.documentTypeReceipt,
+        StockDocumentType.waste => l.documentTypeWaste,
+        StockDocumentType.inventory => l.documentTypeInventory,
+        StockDocumentType.correction => l.documentTypeCorrection,
+      };
+    }
+    return item.movement.direction == StockMovementDirection.outbound
+        ? l.movementTypeSale
+        : l.movementTypeReversal;
+  }
+
+  String _formatQuantity(double value) {
+    if (value == value.roundToDouble()) return value.toInt().toString();
+    return value.toStringAsFixed(2);
   }
 }

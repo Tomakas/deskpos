@@ -1489,6 +1489,9 @@ class AppLocalizationsCs extends AppLocalizations {
   String get inventoryTabDocuments => 'Doklady';
 
   @override
+  String get inventoryTabMovements => 'Pohyby';
+
+  @override
   String get documentColumnNumber => 'Číslo';
 
   @override
@@ -1520,6 +1523,33 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get documentTypeCorrection => 'Oprava';
+
+  @override
+  String get movementColumnDate => 'Datum';
+
+  @override
+  String get movementColumnItem => 'Položka';
+
+  @override
+  String get movementColumnQuantity => 'Množství';
+
+  @override
+  String get movementColumnType => 'Typ';
+
+  @override
+  String get movementColumnDocument => 'Doklad';
+
+  @override
+  String get movementNoMovements => 'Žádné skladové pohyby';
+
+  @override
+  String get movementFilterItem => 'Filtrovat dle položky';
+
+  @override
+  String get movementTypeSale => 'Prodej';
+
+  @override
+  String get movementTypeReversal => 'Storno';
 
   @override
   String get recipeComponents => 'Složky';
@@ -2537,4 +2567,43 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get removeModifierGroup => 'Odebrat skupinu';
+
+  @override
+  String get inventoryTypeTitle => 'Typ inventury';
+
+  @override
+  String get inventoryTypeComplete => 'Kompletní';
+
+  @override
+  String get inventoryTypeCompleteDesc => 'Všechny sledované položky';
+
+  @override
+  String get inventoryTypeByCategory => 'Dle kategorií';
+
+  @override
+  String get inventoryTypeByCategoryDesc => 'Položky vybraných kategorií';
+
+  @override
+  String get inventoryTypeBySupplier => 'Dle dodavatele';
+
+  @override
+  String get inventoryTypeBySupplierDesc => 'Položky vybraných dodavatelů';
+
+  @override
+  String get inventoryTypeByManufacturer => 'Dle výrobce';
+
+  @override
+  String get inventoryTypeByManufacturerDesc => 'Položky vybraných výrobců';
+
+  @override
+  String get inventoryTypeSelective => 'Selektivní';
+
+  @override
+  String get inventoryTypeSelectiveDesc => 'Ruční výběr položek';
+
+  @override
+  String get inventoryTypeContinue => 'Pokračovat';
+
+  @override
+  String get inventoryTypeNoItems => 'Žádné položky k výběru';
 }

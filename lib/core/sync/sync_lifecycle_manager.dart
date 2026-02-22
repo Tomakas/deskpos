@@ -12,7 +12,6 @@ import '../data/repositories/sync_queue_repository.dart';
 import '../data/result.dart';
 import '../database/app_database.dart';
 import '../logging/app_logger.dart';
-import 'broadcast_channel.dart';
 import 'outbox_processor.dart';
 import 'realtime_service.dart';
 import 'sync_service.dart';
@@ -26,15 +25,13 @@ class SyncLifecycleManager {
     required CompanyRepository companyRepo,
     required List<BaseCompanyScopedRepository> companyRepos,
     required AppDatabase db,
-    BroadcastChannel? kdsBroadcastChannel,
   })  : _outboxProcessor = outboxProcessor,
         _syncService = syncService,
         _realtimeService = realtimeService,
         _syncQueueRepo = syncQueueRepo,
         _companyRepo = companyRepo,
         _companyRepos = companyRepos,
-        _db = db,
-        _kdsBroadcastChannel = kdsBroadcastChannel;
+        _db = db;
 
   final OutboxProcessor _outboxProcessor;
   final SyncService _syncService;
@@ -43,12 +40,9 @@ class SyncLifecycleManager {
   final CompanyRepository _companyRepo;
   final List<BaseCompanyScopedRepository> _companyRepos;
   final AppDatabase _db;
-  final BroadcastChannel? _kdsBroadcastChannel;
-
   bool _isRunning = false;
   String? _currentCompanyId;
   int _startGeneration = 0;
-  StreamSubscription<Map<String, dynamic>>? _kdsSubscription;
 
   bool get isRunning => _isRunning;
 
@@ -111,14 +105,12 @@ class SyncLifecycleManager {
       // Start outbox push (periodic timer picks up remaining/failed entries)
       _outboxProcessor.start();
 
-      // Start pull sync (5-min polling as fallback)
+      // Start pull sync (30s polling as fallback)
       _syncService.startAutoSync(companyId);
 
       // Start realtime subscriptions (<2s latency)
       _realtimeService.start(companyId);
 
-      // Subscribe to KDS broadcast for instant order delivery
-      _subscribeKdsBroadcast(companyId);
     } catch (e, s) {
       if (_startGeneration != generation) return;
       _isRunning = false;
@@ -149,75 +141,9 @@ class SyncLifecycleManager {
   }
 
   void _stopServices() {
-    _kdsSubscription?.cancel();
-    _kdsSubscription = null;
-    _kdsBroadcastChannel?.leave();
     _realtimeService.stop();
     _outboxProcessor.stop();
     _syncService.stop();
-  }
-
-  Future<void> _subscribeKdsBroadcast(String companyId) async {
-    final channel = _kdsBroadcastChannel;
-    if (channel == null) return;
-
-    await channel.join('kds:$companyId');
-    _kdsSubscription = channel.stream.listen((payload) {
-      _handleKdsBroadcast(companyId, payload);
-    });
-    AppLogger.info('SyncLifecycleManager: subscribed to KDS broadcast', tag: 'SYNC');
-  }
-
-  Future<void> _handleKdsBroadcast(
-    String companyId,
-    Map<String, dynamic> payload,
-  ) async {
-    try {
-      final action = payload['action'] as String?;
-      if (action != 'new_order') return;
-
-      final orderJson = payload['order'] as Map<String, dynamic>?;
-      final itemsJson = payload['order_items'] as List?;
-      if (orderJson == null) return;
-
-      final orderId = orderJson['id'] as String?;
-      if (orderId == null) return;
-
-      AppLogger.debug(
-        'SyncLifecycleManager: KDS broadcast new_order id=$orderId',
-        tag: 'BROADCAST',
-      );
-
-      await _syncService.mergeRow(companyId, 'orders', orderId, orderJson);
-
-      if (itemsJson != null) {
-        for (final item in itemsJson) {
-          final itemMap = item as Map<String, dynamic>;
-          final itemId = itemMap['id'] as String?;
-          if (itemId != null) {
-            await _syncService.mergeRow(companyId, 'order_items', itemId, itemMap);
-          }
-        }
-      }
-
-      final modifiersJson = payload['order_item_modifiers'] as List?;
-      if (modifiersJson != null) {
-        for (final mod in modifiersJson) {
-          final modMap = mod as Map<String, dynamic>;
-          final modId = modMap['id'] as String?;
-          if (modId != null) {
-            await _syncService.mergeRow(companyId, 'order_item_modifiers', modId, modMap);
-          }
-        }
-      }
-    } catch (e, s) {
-      AppLogger.error(
-        'SyncLifecycleManager: failed to process KDS broadcast',
-        tag: 'BROADCAST',
-        error: e,
-        stackTrace: s,
-      );
-    }
   }
 
   Future<void> _initialPush(String companyId) async {

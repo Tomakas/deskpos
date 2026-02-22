@@ -28,7 +28,7 @@ class SyncService {
   Timer? _pullTimer;
   bool _isPulling = false;
   int _pullVersion = 0;
-  static const _pullInterval = Duration(minutes: 5);
+  static const _pullInterval = Duration(seconds: 30);
 
   // Global tables have no company_id — pull all rows without filter
   static const _globalTables = {

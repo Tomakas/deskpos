@@ -2972,6 +2972,12 @@ abstract class AppLocalizations {
   /// **'Doklady'**
   String get inventoryTabDocuments;
 
+  /// No description provided for @inventoryTabMovements.
+  ///
+  /// In cs, this message translates to:
+  /// **'Pohyby'**
+  String get inventoryTabMovements;
+
   /// No description provided for @documentColumnNumber.
   ///
   /// In cs, this message translates to:
@@ -3037,6 +3043,60 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Oprava'**
   String get documentTypeCorrection;
+
+  /// No description provided for @movementColumnDate.
+  ///
+  /// In cs, this message translates to:
+  /// **'Datum'**
+  String get movementColumnDate;
+
+  /// No description provided for @movementColumnItem.
+  ///
+  /// In cs, this message translates to:
+  /// **'Položka'**
+  String get movementColumnItem;
+
+  /// No description provided for @movementColumnQuantity.
+  ///
+  /// In cs, this message translates to:
+  /// **'Množství'**
+  String get movementColumnQuantity;
+
+  /// No description provided for @movementColumnType.
+  ///
+  /// In cs, this message translates to:
+  /// **'Typ'**
+  String get movementColumnType;
+
+  /// No description provided for @movementColumnDocument.
+  ///
+  /// In cs, this message translates to:
+  /// **'Doklad'**
+  String get movementColumnDocument;
+
+  /// No description provided for @movementNoMovements.
+  ///
+  /// In cs, this message translates to:
+  /// **'Žádné skladové pohyby'**
+  String get movementNoMovements;
+
+  /// No description provided for @movementFilterItem.
+  ///
+  /// In cs, this message translates to:
+  /// **'Filtrovat dle položky'**
+  String get movementFilterItem;
+
+  /// No description provided for @movementTypeSale.
+  ///
+  /// In cs, this message translates to:
+  /// **'Prodej'**
+  String get movementTypeSale;
+
+  /// No description provided for @movementTypeReversal.
+  ///
+  /// In cs, this message translates to:
+  /// **'Storno'**
+  String get movementTypeReversal;
 
   /// No description provided for @recipeComponents.
   ///
@@ -4969,6 +5029,84 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Odebrat skupinu'**
   String get removeModifierGroup;
+
+  /// No description provided for @inventoryTypeTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Typ inventury'**
+  String get inventoryTypeTitle;
+
+  /// No description provided for @inventoryTypeComplete.
+  ///
+  /// In cs, this message translates to:
+  /// **'Kompletní'**
+  String get inventoryTypeComplete;
+
+  /// No description provided for @inventoryTypeCompleteDesc.
+  ///
+  /// In cs, this message translates to:
+  /// **'Všechny sledované položky'**
+  String get inventoryTypeCompleteDesc;
+
+  /// No description provided for @inventoryTypeByCategory.
+  ///
+  /// In cs, this message translates to:
+  /// **'Dle kategorií'**
+  String get inventoryTypeByCategory;
+
+  /// No description provided for @inventoryTypeByCategoryDesc.
+  ///
+  /// In cs, this message translates to:
+  /// **'Položky vybraných kategorií'**
+  String get inventoryTypeByCategoryDesc;
+
+  /// No description provided for @inventoryTypeBySupplier.
+  ///
+  /// In cs, this message translates to:
+  /// **'Dle dodavatele'**
+  String get inventoryTypeBySupplier;
+
+  /// No description provided for @inventoryTypeBySupplierDesc.
+  ///
+  /// In cs, this message translates to:
+  /// **'Položky vybraných dodavatelů'**
+  String get inventoryTypeBySupplierDesc;
+
+  /// No description provided for @inventoryTypeByManufacturer.
+  ///
+  /// In cs, this message translates to:
+  /// **'Dle výrobce'**
+  String get inventoryTypeByManufacturer;
+
+  /// No description provided for @inventoryTypeByManufacturerDesc.
+  ///
+  /// In cs, this message translates to:
+  /// **'Položky vybraných výrobců'**
+  String get inventoryTypeByManufacturerDesc;
+
+  /// No description provided for @inventoryTypeSelective.
+  ///
+  /// In cs, this message translates to:
+  /// **'Selektivní'**
+  String get inventoryTypeSelective;
+
+  /// No description provided for @inventoryTypeSelectiveDesc.
+  ///
+  /// In cs, this message translates to:
+  /// **'Ruční výběr položek'**
+  String get inventoryTypeSelectiveDesc;
+
+  /// No description provided for @inventoryTypeContinue.
+  ///
+  /// In cs, this message translates to:
+  /// **'Pokračovat'**
+  String get inventoryTypeContinue;
+
+  /// No description provided for @inventoryTypeNoItems.
+  ///
+  /// In cs, this message translates to:
+  /// **'Žádné položky k výběru'**
+  String get inventoryTypeNoItems;
 }
 
 class _AppLocalizationsDelegate

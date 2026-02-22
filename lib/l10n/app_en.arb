@@ -596,6 +596,7 @@
 
   "inventoryTabLevels": "Levels",
   "inventoryTabDocuments": "Documents",
+  "inventoryTabMovements": "Movements",
 
   "documentColumnNumber": "Number",
   "documentColumnType": "Type",
@@ -609,6 +610,16 @@
   "documentTypeWaste": "Waste",
   "documentTypeInventory": "Inventory",
   "documentTypeCorrection": "Correction",
+
+  "movementColumnDate": "Date",
+  "movementColumnItem": "Item",
+  "movementColumnQuantity": "Quantity",
+  "movementColumnType": "Type",
+  "movementColumnDocument": "Document",
+  "movementNoMovements": "No stock movements",
+  "movementFilterItem": "Filter by item",
+  "movementTypeSale": "Sale",
+  "movementTypeReversal": "Reversal",
 
   "recipeComponents": "Components",
   "recipeComponentCount": "{count} components",
@@ -1050,5 +1061,19 @@
   "modifierTotal": "Total with modifiers",
   "modifierGroupRequired": "Required group",
   "assignModifierGroup": "Assign Group",
-  "removeModifierGroup": "Remove Group"
+  "removeModifierGroup": "Remove Group",
+
+  "inventoryTypeTitle": "Inventory Type",
+  "inventoryTypeComplete": "Complete",
+  "inventoryTypeCompleteDesc": "All stock-tracked items",
+  "inventoryTypeByCategory": "By Category",
+  "inventoryTypeByCategoryDesc": "Items from selected categories",
+  "inventoryTypeBySupplier": "By Supplier",
+  "inventoryTypeBySupplierDesc": "Items from selected suppliers",
+  "inventoryTypeByManufacturer": "By Manufacturer",
+  "inventoryTypeByManufacturerDesc": "Items from selected manufacturers",
+  "inventoryTypeSelective": "Selective",
+  "inventoryTypeSelectiveDesc": "Manual item selection",
+  "inventoryTypeContinue": "Continue",
+  "inventoryTypeNoItems": "No items to select"
 }

@@ -240,16 +240,16 @@ Storno jednotlivých položek (storno order), status timestamps, oddělovač cho
 
 #### Milník 3.9 — Multi-register architektura
 
-Kompletní multi-register POS architektura: device binding, CRUD pokladen s platebním enforcement, per-register Z-report s cash handover, Supabase Realtime <2s sync, KDS (Kitchen Display System) a Customer Display.
+Kompletní multi-register POS architektura: device binding, CRUD pokladen s platebním enforcement, per-register Z-report s cash handover, Supabase Broadcast from Database <2s sync, KDS (Kitchen Display System) a Customer Display.
 
 - **Task3.37** ✅ Schéma + device binding — lokální tabulka `device_registrations` (nesync) pro vazbu zařízení↔pokladna. Rozšíření `registers` (name, register_number, parent_register_id), `register_sessions` (bill_counter), `orders` (register_id), `payments` (register_id). Provider `activeRegisterProvider` (vrací null pokud není device binding). `DeviceRegistrationRepository` (bind/unbind/getForCompany).
 - **Task3.38** ✅ CRUD pokladen + payment enforcement — `RegistersTab` (PosTable s add/edit/delete, HardwareType, parent register, payment flags) přesunuto do `ScreenVenueSettings` (4. tab). `ScreenRegisterSettings` má 2 taby (Režim, Prodej). `DialogPayment` filtruje platební metody dle `register.allowCash/Card/Transfer/Credit/Voucher/Other`. `DialogVoucherCreate` respektuje `allowRefunds`. Režim zařízení (POS/KDS/Customer Display) se volí v ScreenRegisterSettings nebo přímo na login obrazovce (KDS).
 - **Task3.39** ✅ Z-report per register + cash handover — `CashMovementType.handover` pro mobile→local předání hotovosti. `ZReportService.buildVenueZReport` (agregace N sessions s per-register breakdowns). `RegisterSessionRepository` rozšíření: billCounter increment, getClosedSessions. `DialogZReport` zobrazuje per-register breakdown. `DialogZReportList` filtrování dle registeru.
-- **Task3.40** ✅ Supabase Realtime <2s sync — `RealtimeService` subscribuje PostgresChanges na 27 tabulek (vč. companies, display_devices a 4 modifier tabulek). LWW merge přes `insertOnConflictUpdate` v `SyncService.mergeRow`. Reconnect → okamžitý `pullAll` (flag `_wasSubscribed`). Dual sync: polling 5min (fallback) + Realtime (instant).
+- **Task3.40** ✅ Supabase Realtime <2s sync — `RealtimeService` subscribuje Broadcast from Database na kanálu `sync:{companyId}` (server-side triggers na 36 tabulkách volají `realtime.send()`). LWW merge přes `insertOnConflictUpdate` v `SyncService.mergeRow`. Reconnect → okamžitý `pullAll` (flag `_wasSubscribed`). Dual sync: Broadcast from Database (primární, ~1-2s) + polling 30s (fallback). Immediate outbox flush přes `SyncQueueRepository.onEnqueue` → `OutboxProcessor.nudge()`.
 - **Task3.41** ✅ KDS (Kitchen Display System) — route `/kds`, volba režimu na login obrazovce (POS/KDS radio). Touch-optimized seznam karet s objednávkami, live clock v AppBar, Drawer s logout. Status filter chips (4 filtry vč. storno), per-item a full-order bump (created→ready→delivered), prev-status undo, item void (long press). `_isBumping` guard proti double-tap. Session scope popup menu. Funkčně téměř identický s ScreenOrders — sdílí ceny, modifikátory, poznámky, storno zobrazení, urgency timer.
 - **Task3.42** ✅ Customer Display — route `/customer-display` (idle/active via `?code=` query param). Read-only zákaznická obrazovka pro sekundární monitor. Register-centric architektura: displej sleduje `activeBillId` a `displayCartJson` na registru (sync přes outbox). Idle mód (jméno firmy + konfigurovatelný uvítací text z `welcomeText`), cart preview mód (položky z `displayCartJson` před submitnutím objednávky), active mód (reálné objednávky + totaly), ThankYou mód (5s po zaplacení, pak návrat na idle). Discount výpočet z `subtotalGross - totalGross + roundingAmount`. Storno ordery a voided/cancelled položky filtrovány. Tlačítko „Zák. displej" v DialogBillDetail pro manuální odeslání účtu na displej (toggle s eye ikonou). Triple-tap na idle obrazovce pro odpárování displeje (skrytá akce).
 - **Task3.43** ✅ Display Devices + Pairing — nová tabulka `display_devices` (id, company_id, parent_register_id, code, name, welcome_text, type, is_active) s `DisplayDeviceType` enum (customerDisplay, kds). `DisplayDeviceModel` (Freezed), `DisplayDeviceRepository` (manual sync pattern), entity/supabase/pull mappers, sync registrace. `ScreenDisplayCode` — 6-digit kód pro spárování displeje s pokladnou. `PairingConfirmationListener` — modální overlay na hlavní pokladně pro potvrzení/zamítnutí párovací žádosti. `BroadcastChannel` wrapper pro Supabase Realtime broadcast (join/send/leave). Párovací protokol: displej odešle `pairing_request` přes broadcast kanál `pairing:{companyId}`, hlavní pokladna zobrazí potvrzovací dialog, odpověď `pairing_confirmed`/`pairing_rejected` zpět přes broadcast. Retry každých 5s, timeout 60s. Vstup přes ScreenOnboarding → "Customer Display" → `/display-code?type=customer_display`.
-- **Výsledek:** Plně multi-register POS: zařízení se bindují na pokladny, každá pokladna má konfiguraci platebních metod, Z-reporty per register i venue-wide, realtime sync mezi zařízeními <2s, kuchyňský displej, zákaznický displej a bezpečné párování displejů přes broadcast protokol.
+- **Výsledek:** Plně multi-register POS: zařízení se bindují na pokladny, každá pokladna má konfiguraci platebních metod, Z-reporty per register i venue-wide, Broadcast from Database sync mezi zařízeními <2s, kuchyňský displej, zákaznický displej a bezpečné párování displejů přes broadcast protokol.
 
 ---
 
@@ -779,10 +779,10 @@ lib/
 │   ├── routing/                       # GoRouter + auth guard (app_router.dart)
 │   ├── network/                       # Supabase konfigurace (URL, anon key)
 │   ├── sync/                          # Sync engine
-│   │   ├── sync_service.dart          # Pull (5min interval, 40 tabulek) + mergeRow (LWW) + tableDependencyOrder
-│   │   ├── outbox_processor.dart      # Push přes Ingest Edge Function (5s interval, FK ordering, retry)
-│   │   ├── realtime_service.dart      # Supabase Realtime PostgresChanges (27 tabulek, <2s)
-│   │   ├── broadcast_channel.dart     # Supabase Realtime Broadcast wrapper (pairing, KDS, display)
+│   │   ├── sync_service.dart          # Pull (30s interval, 40 tabulek) + mergeRow (LWW) + tableDependencyOrder
+│   │   ├── outbox_processor.dart      # Push přes Ingest Edge Function (5s interval + immediate nudge, FK ordering, retry)
+│   │   ├── realtime_service.dart      # Supabase Broadcast from Database (36 tabulek, <2s)
+│   │   ├── broadcast_channel.dart     # Supabase Realtime Broadcast wrapper (pairing, display)
 │   │   └── sync_lifecycle_manager.dart # Orchestrace start/stop/initial push/drain + realtime
 │   ├── logging/                       # AppLogger (dart:developer + debugPrint), LogFileWriter
 │   └── l10n/                          # Extension context.l10n
@@ -1212,7 +1212,7 @@ Hodnoty ENUM jsou uloženy jako `TEXT` v lokální SQLite databázi. Drift `text
 
 > **Stav implementace:** Sync infrastruktura je funkční pro všech 40 doménových tabulek. Konfigurační entity (company_settings, sections, categories, items, tables, map_elements, payment_methods, tax_rates, users, suppliers, manufacturers, product_recipes, warehouses, reservations, vouchers, customers, customer_transactions, modifier_groups, modifier_group_items, item_modifier_groups, order_item_modifiers) dědí z `BaseCompanyScopedRepository` s automatickým outbox zápisem v transakci. Prodejní a provozní entity (bills, orders, order_items, payments, register_sessions, cash_movements, layout_items, user_permissions, shifts, stock_levels, stock_documents, stock_movements, registers, display_devices) používají ruční enqueue — vlastní repozitáře s injektovaným `SyncQueueRepository` a explicitním `_enqueue*` voláním po každé mutaci. Globální tabulky (currencies, roles, permissions, role_permissions) se pullují bez company_id filtru a pushují při initial sync. SyncService pulluje všech 40 tabulek v FK-respektujícím pořadí (veřejná konstanta `tableDependencyOrder`). ConnectCompanyScreen umožňuje připojení nového zařízení k existující firmě stažením dat přes InitialSync (pullAll). SyncLifecycleManager.companyRepos pro initial push (FK pořadí): company_settings, sections, tax_rates, payment_methods, categories, users, tables, map_elements, suppliers, manufacturers, items, modifier_groups, modifier_group_items, item_modifier_groups, product_recipes, customers, reservations, warehouses, customer_transactions, vouchers.
 >
-> **Realtime sync (od Milníku 3.9):** `RealtimeService` subscribuje Supabase PostgresChanges na 27 tabulek (vč. `companies`, `display_devices` a 4 modifier tabulek) pro <2s cross-device sync. Dual sync strategie: polling 5min (fallback) + Realtime (instant). Reconnect po výpadku triggerne okamžitý `pullAll`.
+> **Realtime sync (od Milníku 3.9, přepsáno na Broadcast from Database):** `RealtimeService` subscribuje Supabase Broadcast from Database na kanálu `sync:{companyId}`. Server-side AFTER INSERT OR UPDATE triggers (`trg_{table}_broadcast`) na 36 company-scoped tabulkách volají `realtime.send()` s kompletním řádkem jako JSON. Klient přijímá broadcasty přes `onBroadcast(event: 'change')` a deleguje na `SyncService.mergeRow` (LWW). Dual sync strategie: Broadcast from Database (primární, ~1-2s) + polling 30s (fallback). Immediate outbox flush: `SyncQueueRepository.onEnqueue` → `OutboxProcessor.nudge()` pro okamžitý push nových entries. Reconnect po výpadku triggerne okamžitý `pullAll`. 4 globální tabulky (currencies, roles, permissions, role_permissions) nemají triggery — synchronizují se pouze 30s pollingem.
 
 ### Outbox Pattern
 
@@ -1281,7 +1281,7 @@ graph TD
     SYNC --> PUSH[Initial Push - enqueue all]
     PUSH --> DRAIN[Drain Loop - flush pending]
     DRAIN --> OUT[OutboxProcessor.start - 5s interval]
-    DRAIN --> AUTO[SyncService.startAutoSync - 5min interval]
+    DRAIN --> AUTO[SyncService.startAutoSync - 30s interval]
     LOGOUT[Logout] --> |stop| SYNC
     ONLINE[Connectivity restored] --> |restart + forceSyncNow| SYNC
 ```
@@ -1293,37 +1293,41 @@ graph TD
 - **Drain loop:** Po `_initialPush` se v cyklu (max 50 iterací × 500 entries) volá `processQueue(limit: 500)` a `countPending()`, dokud se fronta nevyprázdní — teprve poté se spustí periodické timery
 - Při selhání startu se zavolá `_stopServices()` pro cleanup částečně spuštěných služeb
 
-### Realtime Sync (od Milníku 3.9)
+### Realtime Sync — Broadcast from Database
 
-`RealtimeService` poskytuje near-instant (<2s) cross-device sync přes Supabase Realtime:
+`RealtimeService` poskytuje near-instant (<2s) cross-device sync přes Supabase Broadcast from Database:
 
 **Architektura:**
-- Jeden `RealtimeChannel` (`sync-{companyId}`) s PostgresChanges listeners na 27 tabulek
-- Filtr: `company_id = companyId` (pro `companies` filtr na `id`)
-- Callback: `_handleChange` → `SyncService.mergeRow` (LWW merge přes `insertOnConflictUpdate`)
+- Server-side AFTER INSERT OR UPDATE triggers (`trg_{table}_broadcast`) na 36 company-scoped tabulkách
+- Trigger funkce `broadcast_sync_change()` (35 tabulek s `company_id`) a `broadcast_company_sync_change()` (tabulka `companies` s `id`) volají `realtime.send()` s `to_jsonb(NEW)` do kanálu `sync:{company_id}`
+- Triggers jsou `SECURITY DEFINER` (přístup k `realtime` schématu) s `EXCEPTION WHEN OTHERS` (best-effort, nezablokují DML)
+- Klient: jeden `RealtimeChannel` (`sync:{companyId}`) s `onBroadcast(event: 'change')`
+- Callback: `_handleBroadcast` → `SyncService.mergeRow` (LWW merge přes `insertOnConflictUpdate`)
+- Pouze INSERT a UPDATE — systém používá soft deletes (UPDATE na `deleted_at`), hard DELETE se nevyskytuje
 
-**27 subscribovaných tabulek:** companies, company_settings, sections, tax_rates, payment_methods, categories, users, user_permissions, tables, map_elements, items, modifier_groups, modifier_group_items, item_modifier_groups, registers, display_devices, layout_items, customers, reservations, bills, orders, order_items, order_item_modifiers, payments, register_sessions, cash_movements, shifts.
+**36 company-scoped tabulek s triggery:** companies, company_settings, sections, tax_rates, payment_methods, categories, users, user_permissions, tables, map_elements, suppliers, manufacturers, items, modifier_groups, modifier_group_items, item_modifier_groups, product_recipes, registers, display_devices, layout_items, customers, reservations, warehouses, bills, orders, order_items, order_item_modifiers, payments, register_sessions, cash_movements, shifts, customer_transactions, vouchers, stock_levels, stock_documents, stock_movements.
 
-**Vyloučené tabulky** (nízká frekvence změn, stačí 5min polling): suppliers, manufacturers, product_recipes, warehouses, stock_levels, stock_documents, stock_movements, vouchers, customer_transactions. Celkem 9 tabulek (z 40 doménových − 4 globální = 36 company-scoped − 27 realtime = 9 excluded).
+**Tabulky BEZ triggerů** (4 globální, nemají `company_id`): currencies, roles, permissions, role_permissions — mění se extrémně vzácně, synchronizují se 30s pollingem.
+
+**Immediate outbox flush:**
+- `SyncQueueRepository.onEnqueue` callback → `OutboxProcessor.nudge()` pro okamžitý push nových entries
+- `nudge()` má guard `_timer != null` — je no-op dokud se nezavolá `OutboxProcessor.start()` (bezpečné během initial push)
+- Výsledek: nové entity se pushnou do Supabase v řádu sekund místo čekání na 5s interval
 
 **Reconnect handling:**
 - Flag `_wasSubscribed` — po prvním úspěšném subscribe se nastaví na `true`
 - Při opětovném subscribe (reconnect) se triggerne `syncService.pullAll(companyId)` pro doplnění změn ztracených během výpadku
-- Polling 5min zůstává jako fallback pro případy, kdy Realtime selže
+- Polling 30s zůstává jako fallback pro případy, kdy Broadcast selže
 
 **Lifecycle:**
-- `start(companyId)` — vytvoří channel, subscribe na všechny tabulky
+- `start(companyId)` — vytvoří channel, subscribe na broadcast event `change`
 - `stop()` — odstraní channel, zastaví listening
 - Spravováno přes `SyncLifecycleManager` (start při přihlášení, stop při odhlášení)
 
 **Supabase prerekvizita:**
-```sql
-ALTER PUBLICATION supabase_realtime ADD TABLE companies, company_settings, sections,
-  tax_rates, payment_methods, categories, users, user_permissions, tables, map_elements,
-  items, modifier_groups, modifier_group_items, item_modifier_groups, registers,
-  display_devices, layout_items, customers, reservations, bills, orders, order_items,
-  order_item_modifiers, payments, register_sessions, cash_movements, shifts;
-```
+- Funkce `realtime.send()` musí být dostupná (Supabase late 2024+)
+- Migrace `20260222_001_add_broadcast_triggers.sql` vytvoří trigger funkce a triggery na 36 tabulkách
+- Stávající `supabase_realtime` publication není nadále využívána (žádný subscriber), lze v budoucnu odstranit
 
 ### Data Flow
 
@@ -1340,7 +1344,7 @@ ALTER PUBLICATION supabase_realtime ADD TABLE companies, company_settings, secti
 **Read:**
 1. UI volá `repository.watchAll(companyId)` nebo `getById(id)`
 2. Repository čte z lokální DB (Drift)
-3. **Pozadí**: SyncService pravidelně pulluje změny ze Supabase (5min interval)
+3. **Pozadí**: SyncService pravidelně pulluje změny ze Supabase (30s interval)
 
 ### Conflict Resolution — Last Write Wins (LWW)
 
@@ -1390,7 +1394,7 @@ Flow pro nové zařízení (6 kroků — enum `_Step`):
 
 - **Company switching**: Nepodporováno. Jedno zařízení = jedna firma. Přepnutí na jinou firmu vyžaduje smazání lokální DB.
 - **Globální tabulky vs multi-company**: roles/permissions/role_permissions/currencies jsou globální (bez company_id). Při více firmách na jednom Supabase projektu by došlo ke kolizím. Aktuální design předpokládá 1 firma = 1 Supabase projekt.
-- **InitialSync recovery**: Pokud InitialSync selže uprostřed, data jsou neúplná. Další auto-pull (5min) doplní chybějící data.
+- **InitialSync recovery**: Pokud InitialSync selže uprostřed, data jsou neúplná. Další auto-pull (30s) doplní chybějící data.
 - **Z-report per-register filtering**: Venue Z-report agreguje všechny sessions dle data — pro přesné per-register výsledky by měl filtrovat dle `registerSessionId` (design issue, ne bug).
 - **Mobile session Z-report po handover**: Po cash handover (mobile→local) se `expectedCash` v Z-reportu mobile session zobrazí nekonzistentně — handover snižuje cash, ale session Z-report to nereflektuje v řádku expected cash (design issue vyžadující redesign close/handover flow).
 
@@ -2810,7 +2814,7 @@ Projekt využívá **Riverpod** jako Service Locator a DI kontejner.
 | `auth_providers.dart` | `sessionManagerProvider`, `authServiceProvider`, `seedServiceProvider`, `deviceIdProvider` (persistent UUID zařízení), `activeUserProvider`, `loggedInUsersProvider`, `companyStreamProvider`, `currentCompanyProvider`, `appInitProvider`, `deviceRegistrationProvider`, `activeRegisterProvider` (null bez device binding), `activeRegisterSessionProvider`, `manualLockProvider` |
 | `permission_providers.dart` | `userPermissionCodesProvider` (reaktivní Set\<String\>), `hasPermissionProvider` (O(1) family check) |
 | `repository_providers.dart` | 40 repozitářů — `syncQueueRepositoryProvider`, `syncMetadataRepositoryProvider`, `deviceRegistrationRepositoryProvider`, `companyRepositoryProvider`, `companySettingsRepositoryProvider`, `userRepositoryProvider`, `roleRepositoryProvider`, `permissionRepositoryProvider`, `sectionRepositoryProvider`, `tableRepositoryProvider`, `mapElementRepositoryProvider`, `categoryRepositoryProvider`, `itemRepositoryProvider`, `modifierGroupRepositoryProvider`, `modifierGroupItemRepositoryProvider`, `itemModifierGroupRepositoryProvider`, `orderItemModifierRepositoryProvider`, `taxRateRepositoryProvider`, `paymentMethodRepositoryProvider`, `billRepositoryProvider`, `orderRepositoryProvider`, `registerRepositoryProvider`, `registerSessionRepositoryProvider`, `shiftRepositoryProvider`, `cashMovementRepositoryProvider`, `paymentRepositoryProvider`, `layoutItemRepositoryProvider`, `customerRepositoryProvider`, `reservationRepositoryProvider`, `customerTransactionRepositoryProvider`, `supplierRepositoryProvider`, `manufacturerRepositoryProvider`, `productRecipeRepositoryProvider`, `warehouseRepositoryProvider`, `stockLevelRepositoryProvider`, `stockMovementRepositoryProvider`, `voucherRepositoryProvider`, `stockDocumentRepositoryProvider`, `displayDeviceRepositoryProvider`, `currencyRepositoryProvider` |
-| `sync_providers.dart` | `supabaseAuthServiceProvider`, `supabaseAuthStateProvider`, `isSupabaseAuthenticatedProvider`, `outboxProcessorProvider`, `syncServiceProvider`, `realtimeServiceProvider`, `syncLifecycleManagerProvider`, `customerDisplayChannelProvider`, `kdsBroadcastChannelProvider`, `pairingChannelProvider`, `pendingPairingRequestProvider`, `pairingListenerProvider`, `syncLifecycleWatcherProvider` |
+| `sync_providers.dart` | `supabaseAuthServiceProvider`, `supabaseAuthStateProvider`, `isSupabaseAuthenticatedProvider`, `outboxProcessorProvider`, `syncServiceProvider`, `realtimeServiceProvider`, `syncLifecycleManagerProvider`, `customerDisplayChannelProvider`, `pairingChannelProvider`, `pendingPairingRequestProvider`, `pairingListenerProvider`, `syncLifecycleWatcherProvider` |
 | `printing_providers.dart` | `printingServiceProvider` |
 
 ### Git Workflow

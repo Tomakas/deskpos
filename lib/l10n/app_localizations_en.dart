@@ -1491,6 +1491,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get inventoryTabDocuments => 'Documents';
 
   @override
+  String get inventoryTabMovements => 'Movements';
+
+  @override
   String get documentColumnNumber => 'Number';
 
   @override
@@ -1522,6 +1525,33 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get documentTypeCorrection => 'Correction';
+
+  @override
+  String get movementColumnDate => 'Date';
+
+  @override
+  String get movementColumnItem => 'Item';
+
+  @override
+  String get movementColumnQuantity => 'Quantity';
+
+  @override
+  String get movementColumnType => 'Type';
+
+  @override
+  String get movementColumnDocument => 'Document';
+
+  @override
+  String get movementNoMovements => 'No stock movements';
+
+  @override
+  String get movementFilterItem => 'Filter by item';
+
+  @override
+  String get movementTypeSale => 'Sale';
+
+  @override
+  String get movementTypeReversal => 'Reversal';
 
   @override
   String get recipeComponents => 'Components';
@@ -2540,4 +2570,44 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get removeModifierGroup => 'Remove Group';
+
+  @override
+  String get inventoryTypeTitle => 'Inventory Type';
+
+  @override
+  String get inventoryTypeComplete => 'Complete';
+
+  @override
+  String get inventoryTypeCompleteDesc => 'All stock-tracked items';
+
+  @override
+  String get inventoryTypeByCategory => 'By Category';
+
+  @override
+  String get inventoryTypeByCategoryDesc => 'Items from selected categories';
+
+  @override
+  String get inventoryTypeBySupplier => 'By Supplier';
+
+  @override
+  String get inventoryTypeBySupplierDesc => 'Items from selected suppliers';
+
+  @override
+  String get inventoryTypeByManufacturer => 'By Manufacturer';
+
+  @override
+  String get inventoryTypeByManufacturerDesc =>
+      'Items from selected manufacturers';
+
+  @override
+  String get inventoryTypeSelective => 'Selective';
+
+  @override
+  String get inventoryTypeSelectiveDesc => 'Manual item selection';
+
+  @override
+  String get inventoryTypeContinue => 'Continue';
+
+  @override
+  String get inventoryTypeNoItems => 'No items to select';
 }

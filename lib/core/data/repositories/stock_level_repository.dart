@@ -173,25 +173,34 @@ class StockLevelRepository {
     }
   }
 
-  /// Watches all stock levels for a warehouse with item info via JOIN.
+  /// Watches all stock-tracked items for a warehouse, with stock levels via LEFT JOIN.
   Stream<List<StockLevelWithItem>> watchByWarehouse(String companyId, String warehouseId) {
-    final query = _db.select(_db.stockLevels).join([
-      innerJoin(_db.items, _db.items.id.equalsExp(_db.stockLevels.itemId)),
+    final query = _db.select(_db.items).join([
+      leftOuterJoin(
+        _db.stockLevels,
+        _db.stockLevels.itemId.equalsExp(_db.items.id) &
+            _db.stockLevels.warehouseId.equals(warehouseId) &
+            _db.stockLevels.deletedAt.isNull(),
+      ),
     ])
-      ..where(_db.stockLevels.companyId.equals(companyId) &
-          _db.stockLevels.warehouseId.equals(warehouseId) &
-          _db.stockLevels.deletedAt.isNull() &
-          _db.items.deletedAt.isNull() &
-          _db.items.isStockTracked.equals(true));
+      ..where(
+        _db.items.companyId.equals(companyId) &
+        _db.items.isStockTracked.equals(true) &
+        _db.items.deletedAt.isNull(),
+      )
+      ..orderBy([OrderingTerm.asc(_db.items.name)]);
 
     return query.watch().map((rows) => rows.map((row) {
-          final level = stockLevelFromEntity(row.readTable(_db.stockLevels));
           final item = row.readTable(_db.items);
+          final level = row.readTableOrNull(_db.stockLevels);
           return StockLevelWithItem(
-            stockLevel: level,
+            stockLevel: level != null ? stockLevelFromEntity(level) : null,
+            itemId: item.id,
             itemName: item.name,
             unit: item.unit,
             purchasePrice: item.purchasePrice,
+            quantity: level?.quantity ?? 0.0,
+            minQuantity: level?.minQuantity,
           );
         }).toList());
   }
@@ -212,14 +221,20 @@ class StockLevelRepository {
 /// A stock level combined with item information for display.
 class StockLevelWithItem {
   StockLevelWithItem({
-    required this.stockLevel,
+    this.stockLevel,
+    required this.itemId,
     required this.itemName,
     required this.unit,
     this.purchasePrice,
+    required this.quantity,
+    this.minQuantity,
   });
 
-  final StockLevelModel stockLevel;
+  final StockLevelModel? stockLevel;
+  final String itemId;
   final String itemName;
   final UnitType unit;
   final int? purchasePrice;
+  final double quantity;
+  final double? minQuantity;
 }

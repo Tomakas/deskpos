@@ -31,10 +31,13 @@ final isSupabaseAuthenticatedProvider = Provider<bool>((ref) {
 // --- Sync engine ---
 
 final outboxProcessorProvider = Provider<OutboxProcessor>((ref) {
-  return OutboxProcessor(
-    syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
+  final syncQueueRepo = ref.watch(syncQueueRepositoryProvider);
+  final processor = OutboxProcessor(
+    syncQueueRepo: syncQueueRepo,
     supabaseClient: Supabase.instance.client,
   );
+  syncQueueRepo.onEnqueue = processor.nudge;
+  return processor;
 });
 
 final syncServiceProvider = Provider<SyncService>((ref) {
@@ -60,7 +63,6 @@ final syncLifecycleManagerProvider = Provider<SyncLifecycleManager>((ref) {
     realtimeService: ref.watch(realtimeServiceProvider),
     syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
     companyRepo: ref.watch(companyRepositoryProvider),
-    kdsBroadcastChannel: ref.watch(kdsBroadcastChannelProvider),
     // Order matches tableDependencyOrder (FK parents before children).
     companyRepos: [
       ref.watch(companySettingsRepositoryProvider),    // company_settings (2)
@@ -93,12 +95,6 @@ final syncLifecycleManagerProvider = Provider<SyncLifecycleManager>((ref) {
 // --- Broadcast channels ---
 
 final customerDisplayChannelProvider = Provider<BroadcastChannel>((ref) {
-  final channel = BroadcastChannel(Supabase.instance.client);
-  ref.onDispose(() => channel.dispose());
-  return channel;
-});
-
-final kdsBroadcastChannelProvider = Provider<BroadcastChannel>((ref) {
   final channel = BroadcastChannel(Supabase.instance.client);
   ref.onDispose(() => channel.dispose());
   return channel;

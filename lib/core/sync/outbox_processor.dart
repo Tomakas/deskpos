@@ -40,6 +40,13 @@ class OutboxProcessor {
     AppLogger.info('OutboxProcessor stopped', tag: 'SYNC');
   }
 
+  /// Trigger immediate queue processing (called when new entry is enqueued).
+  void nudge() {
+    if (_timer != null && !_isProcessing) {
+      processQueue();
+    }
+  }
+
   Future<void> processQueue({int limit = 50}) async {
     if (_isProcessing) return;
     _isProcessing = true;

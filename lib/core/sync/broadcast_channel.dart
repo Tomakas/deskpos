@@ -5,7 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../logging/app_logger.dart';
 
 /// Generic Supabase Broadcast channel wrapper.
-/// Used for customer display and KDS real-time communication.
+/// Used for customer display and pairing real-time communication.
 class BroadcastChannel {
   BroadcastChannel(this._supabase);
 

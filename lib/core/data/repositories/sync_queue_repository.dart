@@ -9,6 +9,7 @@ class SyncQueueRepository {
   final AppDatabase _db;
 
   static const _uuid = Uuid();
+  void Function()? onEnqueue;
 
   Future<void> enqueue({
     required String companyId,
@@ -32,6 +33,7 @@ class SyncQueueRepository {
       'Enqueued sync: $operation $entityType/$entityId',
       tag: 'SYNC',
     );
+    onEnqueue?.call();
   }
 
   Future<List<SyncQueueData>> getPending({int limit = 50}) async {

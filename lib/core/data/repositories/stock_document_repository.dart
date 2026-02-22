@@ -281,7 +281,7 @@ class StockDocumentRepository {
         .map((row) => row.read(_db.stockDocuments.id.count()) ?? 0)
         .getSingle();
 
-    final number = (count + 1).toString().padLeft(3, '0');
+    final number = (count + 1).toString().padLeft(4, '0');
     return '$prefix-$number';
   }
 

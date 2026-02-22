@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-02-22 (night)
+
+### Sync
+- **Broadcast from Database**: Nahrazení Postgres Changes (CDC) za Supabase Broadcast from Database. Server-side AFTER INSERT OR UPDATE triggers (`trg_{table}_broadcast`) na 36 company-scoped tabulkách volají `realtime.send()`. Klient subscribuje jeden broadcast kanál `sync:{companyId}` místo 27 PostgresChanges listenerů.
+- **Immediate outbox flush**: `SyncQueueRepository.onEnqueue` callback → `OutboxProcessor.nudge()` pro okamžitý push nových entries (místo čekání na 5s timer).
+- **Polling interval 5 min → 30s**: Zkrácení fallback polling intervalu z 5 minut na 30 sekund.
+- **Odstranění KDS Broadcast**: Odebrán `kdsBroadcastChannelProvider`, `_broadcastKdsOrder()` v ScreenSell, a KDS subscription v `SyncLifecycleManager`. KDS nyní přijímá objednávky přes Broadcast from Database (jednotný kanál pro všechny tabulky).
+
+### SQL
+- **Migrace `20260222_001_add_broadcast_triggers.sql`**: Dvě trigger funkce (`broadcast_sync_change`, `broadcast_company_sync_change`) a 36 triggerů. SECURITY DEFINER, best-effort (EXCEPTION WHEN OTHERS).
+
 ## 2026-02-22 (evening)
 
 ### Build & Distribution

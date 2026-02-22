@@ -192,6 +192,7 @@ class _DialogStockDocumentState extends ConsumerState<DialogStockDocument> {
                                             l.stockDocumentItemOverrideStrategy,
                                         isDense: true,
                                       ),
+                                      isExpanded: true,
                                       initialValue: line.strategyOverride,
                                       items: [
                                         DropdownMenuItem<

@@ -596,6 +596,7 @@
 
   "inventoryTabLevels": "Zásoby",
   "inventoryTabDocuments": "Doklady",
+  "inventoryTabMovements": "Pohyby",
 
   "documentColumnNumber": "Číslo",
   "documentColumnType": "Typ",
@@ -609,6 +610,16 @@
   "documentTypeWaste": "Výdejka",
   "documentTypeInventory": "Inventura",
   "documentTypeCorrection": "Oprava",
+
+  "movementColumnDate": "Datum",
+  "movementColumnItem": "Položka",
+  "movementColumnQuantity": "Množství",
+  "movementColumnType": "Typ",
+  "movementColumnDocument": "Doklad",
+  "movementNoMovements": "Žádné skladové pohyby",
+  "movementFilterItem": "Filtrovat dle položky",
+  "movementTypeSale": "Prodej",
+  "movementTypeReversal": "Storno",
 
   "recipeComponents": "Složky",
   "recipeComponentCount": "{count} složek",
@@ -1050,5 +1061,19 @@
   "modifierTotal": "Celkem s modifikátory",
   "modifierGroupRequired": "Povinná skupina",
   "assignModifierGroup": "Přiřadit skupinu",
-  "removeModifierGroup": "Odebrat skupinu"
+  "removeModifierGroup": "Odebrat skupinu",
+
+  "inventoryTypeTitle": "Typ inventury",
+  "inventoryTypeComplete": "Kompletní",
+  "inventoryTypeCompleteDesc": "Všechny sledované položky",
+  "inventoryTypeByCategory": "Dle kategorií",
+  "inventoryTypeByCategoryDesc": "Položky vybraných kategorií",
+  "inventoryTypeBySupplier": "Dle dodavatele",
+  "inventoryTypeBySupplierDesc": "Položky vybraných dodavatelů",
+  "inventoryTypeByManufacturer": "Dle výrobce",
+  "inventoryTypeByManufacturerDesc": "Položky vybraných výrobců",
+  "inventoryTypeSelective": "Selektivní",
+  "inventoryTypeSelectiveDesc": "Ruční výběr položek",
+  "inventoryTypeContinue": "Pokračovat",
+  "inventoryTypeNoItems": "Žádné položky k výběru"
 }
