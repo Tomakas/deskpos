@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'core/data/providers/app_version_provider.dart';
 import 'core/data/providers/auth_providers.dart';
 import 'core/data/providers/sync_providers.dart';
 import 'core/routing/app_router.dart';
@@ -20,8 +21,10 @@ class EposApp extends ConsumerWidget {
     // Activate pairing listener: shows confirmation dialog on main register
     ref.watch(pairingListenerProvider);
 
+    final version = ref.watch(appVersionProvider).valueOrNull;
+
     return MaterialApp.router(
-      title: 'EPOS',
+      title: version != null ? 'EPOS v$version' : 'EPOS',
       debugShowCheckedModeBanner: false,
       theme: _buildTheme(),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
