@@ -12,6 +12,7 @@ import '../../../core/data/models/order_model.dart';
 import '../../../core/data/models/table_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
+import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/utils/formatting_ext.dart';
@@ -22,7 +23,7 @@ import 'package:go_router/go_router.dart';
 /// Shows active orders (created → ready) as full-width cards with
 /// elapsed time since creation. Kitchen staff taps the order-level button to
 /// advance items with the lowest status. Individual items can also be advanced
-/// independently. Storno orders are excluded from the KDS view.
+/// independently.
 class ScreenKds extends ConsumerStatefulWidget {
   const ScreenKds({super.key});
 
@@ -31,6 +32,7 @@ class ScreenKds extends ConsumerStatefulWidget {
 }
 
 class _ScreenKdsState extends ConsumerState<ScreenKds> {
+  bool _sessionScope = true;
   Set<PrepStatus> _statusFilter = {
     PrepStatus.created,
     PrepStatus.ready,
@@ -59,6 +61,9 @@ class _ScreenKdsState extends ConsumerState<ScreenKds> {
     final company = ref.watch(currentCompanyProvider);
     if (company == null) return const SizedBox.shrink();
 
+    final session = ref.watch(activeRegisterSessionProvider).valueOrNull;
+    final since = (_sessionScope && session != null) ? session.openedAt : null;
+
     return Scaffold(
       appBar: AppBar(
         leading: Builder(
@@ -67,7 +72,28 @@ class _ScreenKdsState extends ConsumerState<ScreenKds> {
             onPressed: () => Scaffold.of(ctx).openDrawer(),
           ),
         ),
-        title: Text(l.kdsTitle),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(l.ordersTitle),
+            PopupMenuButton<bool>(
+              icon: const Icon(Icons.schedule),
+              onSelected: (v) => setState(() => _sessionScope = v),
+              itemBuilder: (_) => [
+                CheckedPopupMenuItem(
+                  value: true,
+                  checked: _sessionScope,
+                  child: Text(l.ordersScopeSession),
+                ),
+                CheckedPopupMenuItem(
+                  value: false,
+                  checked: !_sessionScope,
+                  child: Text(l.ordersScopeAll),
+                ),
+              ],
+            ),
+          ],
+        ),
         actions: [
           _KdsClockWidget(),
           const SizedBox(width: 16),
@@ -98,15 +124,13 @@ class _ScreenKdsState extends ConsumerState<ScreenKds> {
           // Order cards list
           Expanded(
             child: StreamBuilder<List<OrderModel>>(
-              stream: ref
-                  .watch(orderRepositoryProvider)
-                  .watchByCompany(company.id),
+              stream: ref.watch(orderRepositoryProvider).watchByCompany(
+                    company.id,
+                    since: since,
+                  ),
               builder: (context, snap) {
                 final allOrders = snap.data ?? [];
-                // Exclude storno orders from KDS view
-                final nonStorno =
-                    allOrders.where((o) => !o.isStorno).toList();
-                final orders = _applyStatusFilter(nonStorno);
+                final orders = _applyStatusFilter(allOrders);
 
                 if (orders.isEmpty) {
                   return Center(
@@ -133,6 +157,9 @@ class _ScreenKdsState extends ConsumerState<ScreenKds> {
                     order: orders[i],
                     onBump: () => _bumpOrder(orders[i]),
                     onItemBump: (item) => _bumpItem(orders[i], item),
+                    onItemStatusChange: (item, status) =>
+                        _changeItemStatus(orders[i], item, status),
+                    onVoidItem: (item) => _voidItem(orders[i], item),
                   ),
                 );
               },
@@ -179,6 +206,54 @@ class _ScreenKdsState extends ConsumerState<ScreenKds> {
     }
   }
 
+  Future<void> _voidItem(OrderModel order, OrderItemModel item) async {
+    final l = context.l10n;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        content: Text(l.orderItemStornoConfirm),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+
+    final user = ref.read(activeUserProvider);
+    if (user == null) return;
+
+    final session = ref.read(activeRegisterSessionProvider).valueOrNull;
+    final registerModel = ref.read(activeRegisterProvider).value;
+    final orderRepo = ref.read(orderRepositoryProvider);
+    final billRepo = ref.read(billRepositoryProvider);
+    final regNum = registerModel?.registerNumber ?? 0;
+    String stornoNumber = 'X$regNum-0000';
+    if (session != null) {
+      final sessionRepo = ref.read(registerSessionRepositoryProvider);
+      final counter = await sessionRepo.incrementOrderCounter(session.id);
+      if (counter is Success<int>) {
+        stornoNumber = 'X$regNum-${counter.value.toString().padLeft(4, '0')}';
+      }
+    }
+
+    await orderRepo.voidItem(
+      orderId: order.id,
+      orderItemId: item.id,
+      companyId: order.companyId,
+      userId: user.id,
+      stornoOrderNumber: stornoNumber,
+      registerId: registerModel?.id,
+    );
+    await billRepo.updateTotals(order.billId);
+  }
+
+  Future<void> _changeItemStatus(
+      OrderModel order, OrderItemModel item, PrepStatus status) async {
+    final orderRepo = ref.read(orderRepositoryProvider);
+    await orderRepo.updateItemStatus(item.id, order.id, status);
+  }
+
   /// Bump a single item to the next status.
   Future<void> _bumpItem(OrderModel order, OrderItemModel item) async {
     if (_isBumping) return;
@@ -205,15 +280,20 @@ class _KdsOrderCard extends ConsumerWidget {
     required this.order,
     required this.onBump,
     required this.onItemBump,
+    required this.onItemStatusChange,
+    required this.onVoidItem,
   });
   final OrderModel order;
   final VoidCallback onBump;
   final void Function(OrderItemModel) onItemBump;
+  final void Function(OrderItemModel, PrepStatus) onItemStatusChange;
+  final void Function(OrderItemModel) onVoidItem;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
     final theme = Theme.of(context);
+    final isStorno = order.isStorno;
     final statusColor = order.status.color(context);
     final elapsed = DateTime.now().difference(order.createdAt);
     final elapsedMin = elapsed.inMinutes;
@@ -222,6 +302,9 @@ class _KdsOrderCard extends ConsumerWidget {
     return Card(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
+        side: isStorno
+            ? BorderSide(color: context.appColors.danger, width: 1.5)
+            : BorderSide.none,
       ),
       child: Padding(
         padding: const EdgeInsets.all(12),
@@ -235,7 +318,7 @@ class _KdsOrderCard extends ConsumerWidget {
             final activeItems = items.where((i) =>
                 i.status != PrepStatus.voided &&
                 i.status != PrepStatus.cancelled);
-            final lowestStatus = activeItems.isNotEmpty
+            final lowestStatus = !isStorno && activeItems.isNotEmpty
                 ? activeItems
                     .map((i) => i.status)
                     .reduce((a, b) => a.index < b.index ? a : b)
@@ -265,6 +348,14 @@ class _KdsOrderCard extends ConsumerWidget {
                               color: statusColor,
                             ),
                           ),
+                          if (isStorno)
+                            Text(
+                              '${l.ordersStornoPrefix} ',
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                color: context.appColors.danger,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           Flexible(
                             child: Text(
                               order.orderNumber,
@@ -274,11 +365,18 @@ class _KdsOrderCard extends ConsumerWidget {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
+                          if (isStorno && order.stornoSourceOrderId != null) ...[
+                            const SizedBox(width: 8),
+                            _StornoRef(
+                              billId: order.billId,
+                              sourceOrderId: order.stornoSourceOrderId!,
+                            ),
+                          ],
                           const SizedBox(width: 8),
                           if (lowestNext != null)
                             Flexible(
                               child: SizedBox(
-                              height: 36,
+                              height: 40,
                               child: FilledButton.tonal(
                                 style: FilledButton.styleFrom(
                                   padding: const EdgeInsets.symmetric(
@@ -301,13 +399,13 @@ class _KdsOrderCard extends ConsumerWidget {
                           else
                             Flexible(
                               child: Container(
-                              height: 36,
+                              height: 40,
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 12),
                               alignment: Alignment.center,
                               decoration: BoxDecoration(
                                 color: statusColor.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(18),
+                                borderRadius: BorderRadius.circular(20),
                               ),
                               child: Text(
                                 _statusLabel(order.status, l),
@@ -346,13 +444,18 @@ class _KdsOrderCard extends ConsumerWidget {
                       if (i > 0) const SizedBox(height: 4),
                       _KdsItemCard(
                         item: items[i],
+                        isStorno: isStorno,
+                        canVoid: !isStorno && _isItemActive(items[i].status),
                         onBump: () => onItemBump(items[i]),
+                        onStatusChange: (status) =>
+                            onItemStatusChange(items[i], status),
+                        onVoid: () => onVoidItem(items[i]),
                       ),
                     ],
                   ],
                 ),
                 // Notes
-                if (order.notes != null && order.notes!.isNotEmpty) ...[
+                if (order.notes != null && order.notes!.isNotEmpty && !isStorno) ...[
                   const SizedBox(height: 4),
                   Text(
                     order.notes!,
@@ -372,15 +475,52 @@ class _KdsOrderCard extends ConsumerWidget {
 }
 
 // ---------------------------------------------------------------------------
+// Storno reference (source order number)
+// ---------------------------------------------------------------------------
+class _StornoRef extends ConsumerWidget {
+  const _StornoRef({required this.billId, required this.sourceOrderId});
+  final String billId;
+  final String sourceOrderId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = context.l10n;
+    return StreamBuilder<List<OrderModel>>(
+      stream: ref.watch(orderRepositoryProvider).watchByBill(billId),
+      builder: (context, snap) {
+        final orders = snap.data ?? [];
+        final source = orders.where((o) => o.id == sourceOrderId).firstOrNull;
+        final orderNumber = source?.orderNumber ?? '...';
+        return Text(
+          l.ordersStornoRef(orderNumber),
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: context.appColors.danger,
+                fontStyle: FontStyle.italic,
+            ),
+        );
+      },
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
 // KDS Item sub-card
 // ---------------------------------------------------------------------------
 class _KdsItemCard extends ConsumerWidget {
   const _KdsItemCard({
     required this.item,
+    required this.isStorno,
+    required this.canVoid,
     required this.onBump,
+    required this.onStatusChange,
+    required this.onVoid,
   });
   final OrderItemModel item;
+  final bool isStorno;
+  final bool canVoid;
   final VoidCallback onBump;
+  final void Function(PrepStatus) onStatusChange;
+  final VoidCallback onVoid;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -388,11 +528,15 @@ class _KdsItemCard extends ConsumerWidget {
     final theme = Theme.of(context);
     final isVoided =
         item.status == PrepStatus.voided || item.status == PrepStatus.cancelled;
-    final next = !isVoided ? _nextStatus(item.status) : null;
+    final prev = !isStorno ? _prevStatus(item.status) : null;
+    final next = !isStorno && !isVoided ? _nextStatus(item.status) : null;
 
-    final stripColor = isVoided ? context.appColors.inactiveIndicator : item.status.color(context);
-    final bgColor =
-        isVoided ? Colors.transparent : stripColor.withValues(alpha: 0.05);
+    final stripColor = isStorno || isVoided
+        ? context.appColors.inactiveIndicator
+        : item.status.color(context);
+    final bgColor = isStorno || isVoided
+        ? Colors.transparent
+        : stripColor.withValues(alpha: 0.05);
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(6),
@@ -403,7 +547,7 @@ class _KdsItemCard extends ConsumerWidget {
         ),
         child: InkWell(
           borderRadius: BorderRadius.circular(6),
-          onTap: next != null ? onBump : null,
+          onLongPress: canVoid && !isVoided ? onVoid : null,
           child: IntrinsicHeight(
             child: Row(
               children: [
@@ -423,126 +567,157 @@ class _KdsItemCard extends ConsumerWidget {
                   child: Padding(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Row(
+                    child: StreamBuilder(
+                      stream: ref.watch(orderItemModifierRepositoryProvider).watchByOrderItem(item.id),
+                      builder: (context, modSnap) {
+                        final mods = modSnap.data ?? [];
+                        final modTotal = mods.fold<int>(0, (sum, m) => sum + (m.unitPrice * m.quantity * item.quantity).round());
+                        final price = (item.salePriceAtt * item.quantity).round() + modTotal;
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            // Status dot
-                            Container(
-                              width: 10,
-                              height: 10,
-                              margin: const EdgeInsets.only(right: 6),
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: item.status.color(context),
-                              ),
-                            ),
-                            // Quantity
-                            SizedBox(
-                              width: 32,
-                              child: Text(
-                                '${item.quantity.toStringAsFixed(item.quantity == item.quantity.roundToDouble() ? 0 : 1)}x',
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  decoration:
-                                      isVoided ? TextDecoration.lineThrough : null,
-                                  color: isVoided
-                                      ? theme.colorScheme.onSurfaceVariant
-                                      : null,
+                            Row(
+                              children: [
+                                // Status dot
+                                Container(
+                                  width: 10,
+                                  height: 10,
+                                  margin: const EdgeInsets.only(right: 6),
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: item.status.color(context),
+                                  ),
                                 ),
-                              ),
-                            ),
-                            // Item name
-                            Expanded(
-                              child: Text(
-                                item.itemName,
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  decoration:
-                                      isVoided ? TextDecoration.lineThrough : null,
-                                  color: isVoided
-                                      ? theme.colorScheme.onSurfaceVariant
-                                      : null,
+                                // Quantity
+                                SizedBox(
+                                  width: 32,
+                                  child: Text(
+                                    '${item.quantity.toStringAsFixed(item.quantity == item.quantity.roundToDouble() ? 0 : 1)}x',
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      decoration:
+                                          isVoided ? TextDecoration.lineThrough : null,
+                                      color: isVoided
+                                          ? theme.colorScheme.onSurfaceVariant
+                                          : null,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ),
-                            // Notes icon
-                            if (item.notes != null && item.notes!.isNotEmpty)
-                              Padding(
-                                padding: const EdgeInsets.only(right: 4),
-                                child: Icon(
-                                  Icons.note,
-                                  size: 14,
-                                  color: theme.colorScheme.onSurfaceVariant,
+                                // Item name
+                                Expanded(
+                                  child: Text(
+                                    item.itemName,
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      decoration:
+                                          isVoided ? TextDecoration.lineThrough : null,
+                                      color: isVoided
+                                          ? theme.colorScheme.onSurfaceVariant
+                                          : null,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            // Next-status button (flex to fit narrow screens)
-                            Flexible(
-                              child: Align(
-                              alignment: Alignment.centerRight,
-                              child: SizedBox(
-                                height: 40,
-                                child: next != null
-                                    ? FilledButton.tonal(
-                                        style: FilledButton.styleFrom(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 10),
-                                          backgroundColor: next.color(context)
-                                              .withValues(alpha: 0.15),
-                                          foregroundColor: next.color(context),
-                                          textStyle: theme.textTheme.labelSmall
-                                              ?.copyWith(fontWeight: FontWeight.w600),
-                                        ),
-                                        clipBehavior: Clip.hardEdge,
-                                        onPressed: onBump,
-                                        child: Text(
-                                          _nextStatusLabel(next, l),
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      )
-                                    : isVoided
-                                        ? Center(
+                                // Price
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 8),
+                                  child: Text(
+                                    ref.money(price),
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      decoration: isVoided ? TextDecoration.lineThrough : null,
+                                      color: isVoided ? theme.colorScheme.onSurfaceVariant : null,
+                                    ),
+                                  ),
+                                ),
+                                // Prev-status button
+                                if (prev != null)
+                                  SizedBox(
+                                    height: 40,
+                                    width: 40,
+                                    child: IconButton.filled(
+                                      style: IconButton.styleFrom(
+                                        backgroundColor:
+                                            prev.color(context).withValues(alpha: 0.15),
+                                        foregroundColor: prev.color(context),
+                                      ),
+                                      onPressed: () => onStatusChange(prev),
+                                      icon: const Icon(Icons.undo, size: 18),
+                                    ),
+                                  ),
+                                if (prev != null) const SizedBox(width: 4),
+                                // Next-status button (flex to fit narrow screens)
+                                Flexible(
+                                  child: Align(
+                                  alignment: Alignment.centerRight,
+                                  child: SizedBox(
+                                    height: 40,
+                                    child: next != null
+                                        ? FilledButton.tonal(
+                                            style: FilledButton.styleFrom(
+                                              padding: const EdgeInsets.symmetric(
+                                                  horizontal: 10),
+                                              backgroundColor: next.color(context)
+                                                  .withValues(alpha: 0.15),
+                                              foregroundColor: next.color(context),
+                                              textStyle: theme.textTheme.labelSmall
+                                                  ?.copyWith(fontWeight: FontWeight.w600),
+                                            ),
+                                            clipBehavior: Clip.hardEdge,
+                                            onPressed: onBump,
                                             child: Text(
-                                              l.ordersFilterStorno,
-                                              style: theme.textTheme.labelSmall
-                                                  ?.copyWith(
-                                                color: context.appColors.danger,
-                                                fontWeight: FontWeight.w600,
-                                              ),
+                                              _nextStatusLabel(next, l),
                                               overflow: TextOverflow.ellipsis,
                                             ),
                                           )
-                                        : null,
-                              ),
+                                        : isVoided
+                                            ? Center(
+                                                child: Text(
+                                                  l.ordersFilterStorno,
+                                                  style: theme.textTheme.labelSmall
+                                                      ?.copyWith(
+                                                    color: context.appColors.danger,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                              )
+                                            : null,
+                                  ),
+                                ),
+                                ),
+                              ],
                             ),
-                            ),
-                          ],
-                        ),
-                        // Modifiers
-                        StreamBuilder(
-                          stream: ref.watch(orderItemModifierRepositoryProvider).watchByOrderItem(item.id),
-                          builder: (context, modSnap) {
-                            final mods = modSnap.data ?? [];
-                            if (mods.isEmpty) return const SizedBox.shrink();
-                            return Padding(
-                              padding: const EdgeInsets.only(left: 48, top: 2),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  for (final mod in mods)
-                                    Text(
-                                      '+ ${mod.modifierItemName}',
-                                      style: theme.textTheme.bodySmall?.copyWith(
-                                        color: theme.colorScheme.onSurfaceVariant,
+                            // Modifiers
+                            if (mods.isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.only(left: 48, top: 2),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    for (final mod in mods)
+                                      Text(
+                                        '+ ${mod.modifierItemName}',
+                                        style: theme.textTheme.bodySmall?.copyWith(
+                                          color: theme.colorScheme.onSurfaceVariant,
+                                        ),
                                       ),
-                                    ),
-                                ],
+                                  ],
+                                ),
                               ),
-                            );
-                          },
-                        ),
-                      ],
+                            // Notes
+                            if (item.notes != null && item.notes!.isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.only(left: 48, top: 2),
+                                child: Text(
+                                  item.notes!,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        );
+                      },
                     ),
                   ),
                 ),
@@ -745,9 +920,19 @@ String _statusLabel(PrepStatus status, AppLocalizations l) => switch (status) {
       PrepStatus.voided => l.ordersFilterStorno,
     };
 
+bool _isItemActive(PrepStatus status) =>
+    status == PrepStatus.created ||
+    status == PrepStatus.ready;
+
 PrepStatus? _nextStatus(PrepStatus current) => switch (current) {
       PrepStatus.created => PrepStatus.ready,
       PrepStatus.ready => PrepStatus.delivered,
+      _ => null,
+    };
+
+PrepStatus? _prevStatus(PrepStatus current) => switch (current) {
+      PrepStatus.ready => PrepStatus.created,
+      PrepStatus.delivered => PrepStatus.ready,
       _ => null,
     };
 
@@ -781,6 +966,7 @@ class _KdsStatusFilterBar extends StatelessWidget {
       ({PrepStatus.created}, l.ordersFilterCreated, PrepStatus.created.color(context)),
       ({PrepStatus.ready}, l.ordersFilterReady, PrepStatus.ready.color(context)),
       ({PrepStatus.delivered}, l.ordersFilterDelivered, PrepStatus.delivered.color(context)),
+      ({PrepStatus.cancelled, PrepStatus.voided}, l.ordersFilterStorno, PrepStatus.cancelled.color(context)),
     ];
 
     return Container(

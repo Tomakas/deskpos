@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -25,6 +27,23 @@ class ScreenOrders extends ConsumerStatefulWidget {
 class _ScreenOrdersState extends ConsumerState<ScreenOrders> {
   bool _sessionScope = true;
   Set<PrepStatus> _statusFilter = {PrepStatus.created, PrepStatus.ready};
+  Timer? _ticker;
+  bool _isBumping = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Tick every 15 seconds to update elapsed time badges
+    _ticker = Timer.periodic(const Duration(seconds: 15), (_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _ticker?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,36 +55,36 @@ class _ScreenOrdersState extends ConsumerState<ScreenOrders> {
     final since = (_sessionScope && session != null) ? session.openedAt : null;
 
     return Scaffold(
-      appBar: AppBar(title: Text(l.ordersTitle)),
-      body: Column(
-        children: [
-          // Scope toggle
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              children: [
-                for (final entry in [
-                  (true, l.ordersScopeSession),
-                  (false, l.ordersScopeAll),
-                ]) ...[
-                  if (entry.$1 != true) const SizedBox(width: 8),
-                  Expanded(
-                    child: SizedBox(
-                      height: 40,
-                      child: FilterChip(
-                        label: SizedBox(
-                          width: double.infinity,
-                          child: Text(entry.$2, textAlign: TextAlign.center),
-                        ),
-                        selected: _sessionScope == entry.$1,
-                        onSelected: (_) => setState(() => _sessionScope = entry.$1),
-                      ),
-                    ),
-                  ),
-                ],
+      appBar: AppBar(
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(l.ordersTitle),
+            PopupMenuButton<bool>(
+              icon: const Icon(Icons.schedule),
+              onSelected: (v) => setState(() => _sessionScope = v),
+              itemBuilder: (_) => [
+                CheckedPopupMenuItem(
+                  value: true,
+                  checked: _sessionScope,
+                  child: Text(l.ordersScopeSession),
+                ),
+                CheckedPopupMenuItem(
+                  value: false,
+                  checked: !_sessionScope,
+                  child: Text(l.ordersScopeAll),
+                ),
               ],
             ),
-          ),
+          ],
+        ),
+        actions: [
+          _OrdersClockWidget(),
+          const SizedBox(width: 16),
+        ],
+      ),
+      body: Column(
+        children: [
           // Order cards list
           Expanded(
             child: StreamBuilder<List<OrderModel>>(
@@ -119,8 +138,14 @@ class _ScreenOrdersState extends ConsumerState<ScreenOrders> {
 
   Future<void> _changeItemStatus(
       OrderModel order, OrderItemModel item, PrepStatus status) async {
-    final orderRepo = ref.read(orderRepositoryProvider);
-    await orderRepo.updateItemStatus(item.id, order.id, status);
+    if (_isBumping) return;
+    _isBumping = true;
+    try {
+      final orderRepo = ref.read(orderRepositoryProvider);
+      await orderRepo.updateItemStatus(item.id, order.id, status);
+    } finally {
+      _isBumping = false;
+    }
   }
 
   Future<void> _voidItem(OrderModel order, OrderItemModel item) async {
@@ -229,7 +254,6 @@ class _OrderCard extends ConsumerWidget {
                     // Col 1: order identity + status button (horizontal)
                     Expanded(
                       child: Row(
-                        mainAxisSize: MainAxisSize.min,
                         children: [
                           Container(
                             width: 10,
@@ -457,16 +481,16 @@ class _BillInfoTable extends ConsumerWidget {
                     ? tableName
                     : '–';
 
-                return Table(
-                  defaultColumnWidth: const IntrinsicColumnWidth(),
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    TableRow(children: [
-                      Text('${l.ordersTableLabel}: ', style: labelStyle),
-                      Text(tableDisplay, style: valueStyle),
+                    Row(children: [
+                      Flexible(child: Text('${l.ordersTableLabel}: ', style: labelStyle, overflow: TextOverflow.ellipsis)),
+                      Flexible(flex: 2, child: Text(tableDisplay, style: valueStyle, overflow: TextOverflow.ellipsis)),
                     ]),
-                    TableRow(children: [
-                      Text('${l.ordersCustomerLabel}: ', style: labelStyle),
-                      Text(customerDisplay, style: valueStyle),
+                    Row(children: [
+                      Flexible(child: Text('${l.ordersCustomerLabel}: ', style: labelStyle, overflow: TextOverflow.ellipsis)),
+                      Flexible(flex: 2, child: Text(customerDisplay, style: valueStyle, overflow: TextOverflow.ellipsis)),
                     ]),
                   ],
                 );
@@ -567,7 +591,7 @@ class _OrderItemCard extends ConsumerWidget {
 
     // Left strip color: grey for storno orders and voided items, status color otherwise
     final stripColor = isStorno || isVoided
-        ? context.appColors.statusDelivered
+        ? context.appColors.inactiveIndicator
         : item.status.color(context);
 
     // Background tint: none for storno/voided, subtle status color otherwise
@@ -584,7 +608,7 @@ class _OrderItemCard extends ConsumerWidget {
         ),
         child: InkWell(
           borderRadius: BorderRadius.circular(6),
-          onTap: canVoid && !isVoided ? onVoid : null,
+          onLongPress: canVoid && !isVoided ? onVoid : null,
           child: IntrinsicHeight(
             child: Row(
               children: [
@@ -647,16 +671,6 @@ class _OrderItemCard extends ConsumerWidget {
                                     ),
                                   ),
                                 ),
-                                // Notes icon
-                                if (item.notes != null && item.notes!.isNotEmpty)
-                                  Padding(
-                                    padding: const EdgeInsets.only(right: 4),
-                                    child: Icon(
-                                      Icons.note,
-                                      size: 14,
-                                      color: theme.colorScheme.onSurfaceVariant,
-                                    ),
-                                  ),
                                 // Price
                                 Padding(
                                   padding: const EdgeInsets.only(right: 8),
@@ -741,6 +755,18 @@ class _OrderItemCard extends ConsumerWidget {
                                   ],
                                 ),
                               ),
+                            // Notes
+                            if (item.notes != null && item.notes!.isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.only(left: 48, top: 2),
+                                child: Text(
+                                  item.notes!,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                                ),
+                              ),
                           ],
                         );
                       },
@@ -752,6 +778,41 @@ class _OrderItemCard extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Live clock for AppBar
+// ---------------------------------------------------------------------------
+class _OrdersClockWidget extends ConsumerStatefulWidget {
+  @override
+  ConsumerState<_OrdersClockWidget> createState() => _OrdersClockWidgetState();
+}
+
+class _OrdersClockWidgetState extends ConsumerState<_OrdersClockWidget> {
+  late Timer _timer;
+  DateTime _now = DateTime.now();
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() => _now = DateTime.now());
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      '${ref.fmtDate(_now)}  ${ref.fmtTimeSeconds(_now)}',
+      style: Theme.of(context).textTheme.titleMedium,
     );
   }
 }

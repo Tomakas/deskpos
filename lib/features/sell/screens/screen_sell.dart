@@ -451,35 +451,11 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
                         );
                       }
                       final item = entry as _CartItem;
-                      return ListTile(
-                        dense: true,
-                        title: Text(item.name),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              l.sellQuantity(item.quantity.toStringAsFixed(
-                                item.quantity == item.quantity.roundToDouble() ? 0 : 1,
-                              )),
-                            ),
-                            for (final mod in item.modifiers)
-                              Text(
-                                '+ ${mod.name}${mod.unitPrice > 0 ? '  +${ref.money(mod.unitPrice)}' : ''}',
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                            if (item.notes != null && item.notes!.isNotEmpty)
-                              Text(
-                                item.notes!,
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                  fontStyle: FontStyle.italic,
-                                ),
-                              ),
-                          ],
-                        ),
-                        trailing: Text(ref.money((item.effectiveUnitPrice * item.quantity).round())),
+                      final qty = item.quantity.toStringAsFixed(
+                        item.quantity == item.quantity.roundToDouble() ? 0 : 1,
+                      );
+                      return InkWell(
+                        borderRadius: BorderRadius.circular(8),
                         onTap: () => _showItemNoteDialog(context, item),
                         onLongPress: () {
                           setState(() {
@@ -488,6 +464,68 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
                           });
                           _pushToDisplay();
                         },
+                        child: Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.surfaceContainerHigh,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.baseline,
+                                textBaseline: TextBaseline.alphabetic,
+                                children: [
+                                  Text(
+                                    '${qty}x',
+                                    style: theme.textTheme.titleMedium?.copyWith(
+                                      color: theme.colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      item.name,
+                                      style: theme.textTheme.titleMedium,
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 1,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    ref.money((item.effectiveUnitPrice * item.quantity).round()),
+                                    style: theme.textTheme.titleMedium?.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              for (final mod in item.modifiers)
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 30),
+                                  child: Text(
+                                    '+ ${mod.name}${mod.unitPrice > 0 ? '  +${ref.money(mod.unitPrice)}' : ''}',
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: theme.colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ),
+                              if (item.notes != null && item.notes!.isNotEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 30),
+                                  child: Text(
+                                    item.notes!,
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: theme.colorScheme.onSurfaceVariant,
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
                       );
                     },
                   ),
