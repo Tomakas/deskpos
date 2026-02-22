@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -36,6 +37,9 @@ class _LogTabState extends State<LogTab> {
     super.dispose();
   }
 
+  static const _maxReadBytes = 200 * 1024; // 200 KB tail
+  static const _maxLines = 500;
+
   Future<void> _loadLog() async {
     final path = AppLogger.logFilePath;
     if (path == null) {
@@ -48,7 +52,30 @@ class _LogTabState extends State<LogTab> {
         if (mounted) setState(() { _logContent = ''; _loading = false; });
         return;
       }
-      final content = await file.readAsString();
+
+      final bytes = await file.readAsBytes();
+
+      // Take last 200 KB to skip null-byte corruption at the beginning
+      var startOffset = 0;
+      if (bytes.length > _maxReadBytes) {
+        startOffset = bytes.length - _maxReadBytes;
+        // Align to next newline for a clean line boundary
+        while (startOffset < bytes.length && bytes[startOffset] != 10) {
+          startOffset++;
+        }
+        if (startOffset < bytes.length) startOffset++;
+      }
+
+      // Filter out null bytes and decode
+      final filtered = bytes.sublist(startOffset).where((b) => b != 0).toList();
+      var content = utf8.decode(filtered, allowMalformed: true);
+
+      // Limit to last N lines
+      final lines = content.split('\n');
+      if (lines.length > _maxLines) {
+        content = lines.sublist(lines.length - _maxLines).join('\n');
+      }
+
       if (!mounted) return;
       final changed = content != _logContent;
       setState(() {

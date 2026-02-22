@@ -22,6 +22,7 @@ class LogFileWriter {
   String? _filePath;
   String? _dirPath;
   bool _initializing = false;
+  bool _rotating = false;
 
   /// Path to the current log file, or null if not yet initialized.
   String? get filePath => _filePath;
@@ -64,7 +65,7 @@ class LogFileWriter {
   }
 
   void _flush() {
-    if (_buffer.isEmpty || _sink == null) return;
+    if (_buffer.isEmpty || _sink == null || _rotating) return;
 
     try {
       final data = _buffer.toString();
@@ -79,8 +80,9 @@ class LogFileWriter {
   }
 
   Future<void> _checkRotation() async {
-    if (_filePath == null) return;
+    if (_filePath == null || _rotating) return;
 
+    _rotating = true;
     try {
       final file = File(_filePath!);
       final stat = await file.stat();
@@ -106,6 +108,8 @@ class LogFileWriter {
       } catch (_) {
         // Give up on file logging
       }
+    } finally {
+      _rotating = false;
     }
   }
 }
