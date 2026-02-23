@@ -21,13 +21,17 @@ class OutboxProcessor {
   Timer? _timer;
   bool _isProcessing = false;
   DateTime? _lastCleanup;
+  DateTime? _processingStartedAt;
 
   static const _interval = Duration(seconds: 5);
   static const _cleanupInterval = Duration(hours: 1);
   static const _maxRetries = 10;
+  static const _stuckTimeout = Duration(seconds: 60);
 
   void start() {
     stop();
+    _isProcessing = false;
+    _processingStartedAt = null;
     // Reset previously failed entries so they get retried with correct ordering.
     _syncQueueRepo.resetFailed();
     _timer = Timer.periodic(_interval, (_) => processQueue());
@@ -41,15 +45,32 @@ class OutboxProcessor {
   }
 
   /// Trigger immediate queue processing (called when new entry is enqueued).
+  /// Runs processQueue in the root Zone to avoid inheriting Drift transaction
+  /// context when enqueue() is called inside _db.transaction().
   void nudge() {
     if (_timer != null && !_isProcessing) {
-      processQueue();
+      AppLogger.info('OutboxProcessor: nudge → processQueue', tag: 'SYNC');
+      Zone.root.run(() => Timer.run(() => processQueue()));
     }
   }
 
   Future<void> processQueue({int limit = 50}) async {
+    // Watchdog: reset stuck _isProcessing flag
+    if (_isProcessing && _processingStartedAt != null) {
+      final elapsed = DateTime.now().difference(_processingStartedAt!);
+      if (elapsed > _stuckTimeout) {
+        AppLogger.warn(
+          'OutboxProcessor: _isProcessing stuck for ${elapsed.inSeconds}s, resetting',
+          tag: 'SYNC',
+        );
+        _isProcessing = false;
+        _processingStartedAt = null;
+      }
+    }
+
     if (_isProcessing) return;
     _isProcessing = true;
+    _processingStartedAt = DateTime.now();
 
     try {
       // Periodic cleanup of completed entries
@@ -71,7 +92,7 @@ class OutboxProcessor {
         return (ia == -1 ? 999 : ia).compareTo(ib == -1 ? 999 : ib);
       });
 
-      AppLogger.debug('Processing ${entries.length} outbox entries', tag: 'SYNC');
+      AppLogger.info('Processing ${entries.length} outbox entries', tag: 'SYNC');
 
       for (final entry in entries) {
         await _processEntry(entry);
@@ -80,6 +101,7 @@ class OutboxProcessor {
       AppLogger.error('OutboxProcessor error', tag: 'SYNC', error: e, stackTrace: s);
     } finally {
       _isProcessing = false;
+      _processingStartedAt = null;
     }
   }
 
@@ -108,7 +130,7 @@ class OutboxProcessor {
       if (data is Map<String, dynamic>) {
         if (data['ok'] == true) {
           await _syncQueueRepo.markCompleted(entry.id);
-          AppLogger.debug('Pushed $operation $entityType/${entry.entityId}', tag: 'SYNC');
+          AppLogger.info('Pushed $operation $entityType/${entry.entityId}', tag: 'SYNC');
         } else {
           final errorType = data['error_type'] as String? ?? 'unknown';
           final message = data['message'] as String? ?? errorType;

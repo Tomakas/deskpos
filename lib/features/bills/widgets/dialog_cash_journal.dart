@@ -6,6 +6,7 @@ import '../../../core/data/models/cash_movement_model.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatting_ext.dart';
+import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_table.dart';
 import 'dialog_cash_movement.dart';
@@ -291,19 +292,13 @@ class _DialogCashJournalState extends ConsumerState<DialogCashJournal> {
         const SizedBox(height: 12),
 
         // Close button
-        Align(
-          alignment: Alignment.centerRight,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 120),
-            child: SizedBox(
-              height: 40,
-              width: double.infinity,
-              child: OutlinedButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(l.actionClose),
-              ),
+        PosDialogActions(
+          actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(l.actionClose),
             ),
-          ),
+          ],
         ),
       ],
     );

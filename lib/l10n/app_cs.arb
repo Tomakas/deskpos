@@ -126,6 +126,7 @@
   "taxTypeMixed": "Smíšená",
 
   "confirmDelete": "Opravdu chcete smazat tuto položku?",
+  "sellRemoveFromCart": "Odebrat tuto položku z košíku?",
   "yes": "Ano",
   "no": "Ne",
 
@@ -538,9 +539,12 @@
   "mergeBillDescription": "Objednávky z tohoto účtu budou přesunuty na vybraný účet. Aktuální účet bude zrušen.",
   "mergeBillNoBills": "Žádné otevřené účty k sloučení",
   "splitBillTitle": "Rozdělit účet",
-  "splitBillSelectItems": "Vyberte položky k rozdělení",
   "splitBillPayButton": "Rozdělit a zaplatit",
   "splitBillNewBillButton": "Rozdělit na nový účet",
+  "splitBillSourceLabel": "Účet #{billNumber}",
+  "@splitBillSourceLabel": { "placeholders": { "billNumber": { "type": "String" } } },
+  "splitBillTargetLabel": "Nový účet",
+  "splitBillTotal": "Celkem",
 
   "catalogTabCustomers": "Zákazníci",
   "customerFirstName": "Jméno",
@@ -1075,5 +1079,27 @@
   "inventoryTypeSelective": "Selektivní",
   "inventoryTypeSelectiveDesc": "Ruční výběr položek",
   "inventoryTypeContinue": "Pokračovat",
-  "inventoryTypeNoItems": "Žádné položky k výběru"
+  "inventoryTypeNoItems": "Žádné položky k výběru",
+
+  "inventoryBlindMode": "Slepá inventura",
+  "inventoryBlindModeDesc": "Bez zobrazení předpokládaných stavů",
+  "inventoryPrintTemplate": "Tisk předlohy",
+  "inventoryResultTitle": "Výsledky inventury",
+  "inventoryResultSurplus": "Přebytek",
+  "inventoryResultShortage": "Manko",
+  "inventoryResultItemCount": "{count} položek",
+  "@inventoryResultItemCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "inventoryResultApply": "Opravit sklad",
+  "inventoryResultApplied": "Opraveno",
+  "inventoryResultPrint": "Tisknout výsledky",
+  "inventoryResultExpected": "Předpoklad",
+  "inventoryResultActual": "Zjištěný",
+  "inventoryPdfTemplateTitle": "INVENTURA — PŘEDLOHA",
+  "inventoryPdfResultsTitle": "INVENTURA — VÝSLEDKY",
+  "inventoryResultClose": "Zavřít",
+  "inventoryResultNcValue": "NC"
 }

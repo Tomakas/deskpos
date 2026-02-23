@@ -8,6 +8,7 @@ import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/utils/formatting_ext.dart';
+import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 
 class DialogMergeBill extends ConsumerWidget {
@@ -94,12 +95,13 @@ class DialogMergeBill extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: 16),
-        SizedBox(
-          height: 44,
-          child: OutlinedButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l.actionCancel),
-          ),
+        PosDialogActions(
+          actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(l.actionCancel),
+            ),
+          ],
         ),
       ],
     );

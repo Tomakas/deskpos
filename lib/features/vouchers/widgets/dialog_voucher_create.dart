@@ -237,8 +237,7 @@ class _DialogVoucherCreateState extends ConsumerState<DialogVoucherCreate> {
         const SizedBox(height: 16),
         // Actions
         PosDialogActions(
-          height: 48,
-          spacing: 12,
+          expanded: true,
           actions: [
             OutlinedButton(
               onPressed: () => Navigator.pop(context),
@@ -448,52 +447,48 @@ class _ItemSearchDialogState extends ConsumerState<_ItemSearchDialog> {
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
-    return AlertDialog(
-      title: Text(l.gridEditorSelectItem),
-      content: SizedBox(
-        width: 350,
-        height: 400,
-        child: Column(
-          children: [
-            TextField(
-              autofocus: true,
-              decoration: InputDecoration(
-                hintText: l.searchHint,
-                prefixIcon: const Icon(Icons.search),
-                border: const OutlineInputBorder(),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              ),
-              onChanged: (v) => setState(() => _query = normalizeSearch(v)),
-            ),
-            const SizedBox(height: 8),
-            Expanded(
-              child: StreamBuilder<List<ItemModel>>(
-                stream: ref.watch(itemRepositoryProvider).watchAll(widget.companyId),
-                builder: (context, snap) {
-                  final items = (snap.data ?? []).where((item) {
-                    if (!item.isSellable || !item.isActive) return false;
-                    if (_query.isEmpty) return true;
-                    return normalizeSearch(item.name).contains(_query) ||
-                        normalizeSearch(item.sku ?? '').contains(_query);
-                  }).toList();
-                  return ListView.builder(
-                    itemCount: items.length,
-                    itemBuilder: (context, i) {
-                      final item = items[i];
-                      return ListTile(
-                        title: Text(item.name),
-                        subtitle: item.sku != null ? Text(item.sku!) : null,
-                        trailing: Text(ref.money(item.unitPrice)),
-                        onTap: () => Navigator.pop(context, item),
-                      );
-                    },
+    return PosDialogShell(
+      title: l.gridEditorSelectItem,
+      maxWidth: 420,
+      maxHeight: 500,
+      children: [
+        TextField(
+          autofocus: true,
+          decoration: InputDecoration(
+            hintText: l.searchHint,
+            prefixIcon: const Icon(Icons.search),
+            border: const OutlineInputBorder(),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          ),
+          onChanged: (v) => setState(() => _query = normalizeSearch(v)),
+        ),
+        const SizedBox(height: 8),
+        Expanded(
+          child: StreamBuilder<List<ItemModel>>(
+            stream: ref.watch(itemRepositoryProvider).watchAll(widget.companyId),
+            builder: (context, snap) {
+              final items = (snap.data ?? []).where((item) {
+                if (!item.isSellable || !item.isActive) return false;
+                if (_query.isEmpty) return true;
+                return normalizeSearch(item.name).contains(_query) ||
+                    normalizeSearch(item.sku ?? '').contains(_query);
+              }).toList();
+              return ListView.builder(
+                itemCount: items.length,
+                itemBuilder: (context, i) {
+                  final item = items[i];
+                  return ListTile(
+                    title: Text(item.name),
+                    subtitle: item.sku != null ? Text(item.sku!) : null,
+                    trailing: Text(ref.money(item.unitPrice)),
+                    onTap: () => Navigator.pop(context, item),
                   );
                 },
-              ),
-            ),
-          ],
+              );
+            },
+          ),
         ),
-      ),
+      ],
     );
   }
 }
@@ -512,49 +507,45 @@ class _CategorySearchDialogState extends ConsumerState<_CategorySearchDialog> {
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
-    return AlertDialog(
-      title: Text(l.gridEditorSelectCategory),
-      content: SizedBox(
-        width: 350,
-        height: 400,
-        child: Column(
-          children: [
-            TextField(
-              autofocus: true,
-              decoration: InputDecoration(
-                hintText: l.searchHint,
-                prefixIcon: const Icon(Icons.search),
-                border: const OutlineInputBorder(),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              ),
-              onChanged: (v) => setState(() => _query = normalizeSearch(v)),
-            ),
-            const SizedBox(height: 8),
-            Expanded(
-              child: StreamBuilder<List<CategoryModel>>(
-                stream: ref.watch(categoryRepositoryProvider).watchAll(widget.companyId),
-                builder: (context, snap) {
-                  final categories = (snap.data ?? []).where((c) {
-                    if (!c.isActive) return false;
-                    if (_query.isEmpty) return true;
-                    return normalizeSearch(c.name).contains(_query);
-                  }).toList();
-                  return ListView.builder(
-                    itemCount: categories.length,
-                    itemBuilder: (context, i) {
-                      final cat = categories[i];
-                      return ListTile(
-                        title: Text(cat.name),
-                        onTap: () => Navigator.pop(context, cat),
-                      );
-                    },
+    return PosDialogShell(
+      title: l.gridEditorSelectCategory,
+      maxWidth: 420,
+      maxHeight: 500,
+      children: [
+        TextField(
+          autofocus: true,
+          decoration: InputDecoration(
+            hintText: l.searchHint,
+            prefixIcon: const Icon(Icons.search),
+            border: const OutlineInputBorder(),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          ),
+          onChanged: (v) => setState(() => _query = normalizeSearch(v)),
+        ),
+        const SizedBox(height: 8),
+        Expanded(
+          child: StreamBuilder<List<CategoryModel>>(
+            stream: ref.watch(categoryRepositoryProvider).watchAll(widget.companyId),
+            builder: (context, snap) {
+              final categories = (snap.data ?? []).where((c) {
+                if (!c.isActive) return false;
+                if (_query.isEmpty) return true;
+                return normalizeSearch(c.name).contains(_query);
+              }).toList();
+              return ListView.builder(
+                itemCount: categories.length,
+                itemBuilder: (context, i) {
+                  final cat = categories[i];
+                  return ListTile(
+                    title: Text(cat.name),
+                    onTap: () => Navigator.pop(context, cat),
                   );
                 },
-              ),
-            ),
-          ],
+              );
+            },
+          ),
         ),
-      ),
+      ],
     );
   }
 }

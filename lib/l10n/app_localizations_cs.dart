@@ -310,6 +310,9 @@ class AppLocalizationsCs extends AppLocalizations {
   String get confirmDelete => 'Opravdu chcete smazat tuto položku?';
 
   @override
+  String get sellRemoveFromCart => 'Odebrat tuto položku z košíku?';
+
+  @override
   String get yes => 'Ano';
 
   @override
@@ -1333,13 +1336,21 @@ class AppLocalizationsCs extends AppLocalizations {
   String get splitBillTitle => 'Rozdělit účet';
 
   @override
-  String get splitBillSelectItems => 'Vyberte položky k rozdělení';
-
-  @override
   String get splitBillPayButton => 'Rozdělit a zaplatit';
 
   @override
   String get splitBillNewBillButton => 'Rozdělit na nový účet';
+
+  @override
+  String splitBillSourceLabel(String billNumber) {
+    return 'Účet #$billNumber';
+  }
+
+  @override
+  String get splitBillTargetLabel => 'Nový účet';
+
+  @override
+  String get splitBillTotal => 'Celkem';
 
   @override
   String get catalogTabCustomers => 'Zákazníci';
@@ -2606,4 +2617,54 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get inventoryTypeNoItems => 'Žádné položky k výběru';
+
+  @override
+  String get inventoryBlindMode => 'Slepá inventura';
+
+  @override
+  String get inventoryBlindModeDesc => 'Bez zobrazení předpokládaných stavů';
+
+  @override
+  String get inventoryPrintTemplate => 'Tisk předlohy';
+
+  @override
+  String get inventoryResultTitle => 'Výsledky inventury';
+
+  @override
+  String get inventoryResultSurplus => 'Přebytek';
+
+  @override
+  String get inventoryResultShortage => 'Manko';
+
+  @override
+  String inventoryResultItemCount(int count) {
+    return '$count položek';
+  }
+
+  @override
+  String get inventoryResultApply => 'Opravit sklad';
+
+  @override
+  String get inventoryResultApplied => 'Opraveno';
+
+  @override
+  String get inventoryResultPrint => 'Tisknout výsledky';
+
+  @override
+  String get inventoryResultExpected => 'Předpoklad';
+
+  @override
+  String get inventoryResultActual => 'Zjištěný';
+
+  @override
+  String get inventoryPdfTemplateTitle => 'INVENTURA — PŘEDLOHA';
+
+  @override
+  String get inventoryPdfResultsTitle => 'INVENTURA — VÝSLEDKY';
+
+  @override
+  String get inventoryResultClose => 'Zavřít';
+
+  @override
+  String get inventoryResultNcValue => 'NC';
 }

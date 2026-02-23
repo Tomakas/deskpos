@@ -5,6 +5,7 @@ import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/utils/formatting_ext.dart';
+import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_numpad.dart';
 
@@ -139,29 +140,18 @@ class _DialogChangeTotalToPayState extends ConsumerState<DialogChangeTotalToPay>
         ),
         const SizedBox(height: 16),
         // Bottom actions
-        Row(
-          children: [
-            Expanded(
-              child: SizedBox(
-                height: 44,
-                child: OutlinedButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text(l.actionCancel),
-                ),
-              ),
+        PosDialogActions(
+          expanded: true,
+          actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(l.actionCancel),
             ),
-            const SizedBox(width: 8),
-            Expanded(
-              flex: 2,
-              child: SizedBox(
-                height: 44,
-                child: FilledButton(
-                  onPressed: _amountInMinor > 0
-                      ? () => Navigator.pop(context, _amountInMinor)
-                      : null,
-                  child: Text(l.actionConfirm),
-                ),
-              ),
+            FilledButton(
+              onPressed: _amountInMinor > 0
+                  ? () => Navigator.pop(context, _amountInMinor)
+                  : null,
+              child: Text(l.actionConfirm),
             ),
           ],
         ),

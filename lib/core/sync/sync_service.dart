@@ -136,25 +136,27 @@ class SyncService {
     }
 
     if (lastPulledAt != null) {
-      query = query.gt('updated_at', lastPulledAt.toUtc().toIso8601String());
+      query = query.gt('updated_at', lastPulledAt);
     }
 
     final rows = await query.order('updated_at', ascending: true) as List<dynamic>;
 
     if (rows.isEmpty) return;
 
-    AppLogger.debug('SyncService: pulled ${rows.length} rows from $tableName', tag: 'SYNC');
+    AppLogger.info(
+      'SyncService: pulled ${rows.length} rows from $tableName (cursor=$lastPulledAt)',
+      tag: 'SYNC',
+    );
 
-    DateTime? maxUpdatedAt;
+    // Rows are ordered by updated_at ASC — the last row has the max value.
+    // Store the raw ISO 8601 string to preserve full microsecond precision
+    // (Drift's DateTimeColumn truncates to seconds, causing re-pulls).
+    String? maxUpdatedAt;
 
     for (final row in rows) {
       final json = row as Map<String, dynamic>;
       final entityId = extractId(json);
-      final serverUpdatedAt = extractServerUpdatedAt(json);
-
-      if (maxUpdatedAt == null || serverUpdatedAt.isAfter(maxUpdatedAt)) {
-        maxUpdatedAt = serverUpdatedAt;
-      }
+      maxUpdatedAt = json['updated_at'] as String;
 
       await mergeRow(companyId, tableName, entityId, json);
     }

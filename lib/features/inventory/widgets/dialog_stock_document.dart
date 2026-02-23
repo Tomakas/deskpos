@@ -13,6 +13,7 @@ import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/utils/formatters.dart';
+import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 
 class DialogStockDocument extends ConsumerStatefulWidget {
@@ -229,19 +230,17 @@ class _DialogStockDocumentState extends ConsumerState<DialogStockDocument> {
         const SizedBox(height: 12),
 
         // Add item button + save
-        Row(
-          children: [
-            OutlinedButton.icon(
-              onPressed: () => _addItem(context),
-              icon: const Icon(Icons.add),
-              label: Text(l.stockDocumentAddItem),
-            ),
-            const Spacer(),
-            TextButton(
+        PosDialogActions(
+          leading: OutlinedButton.icon(
+            onPressed: () => _addItem(context),
+            icon: const Icon(Icons.add),
+            label: Text(l.stockDocumentAddItem),
+          ),
+          actions: [
+            OutlinedButton(
               onPressed: () => Navigator.pop(context),
               child: Text(l.actionCancel),
             ),
-            const SizedBox(width: 8),
             FilledButton(
               onPressed: _lines.isEmpty || _saving
                   ? null
@@ -388,58 +387,51 @@ class _ItemSearchDialogState extends ConsumerState<_ItemSearchDialog> {
   Widget build(BuildContext context) {
     final l = context.l10n;
 
-    return Dialog(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 500, maxHeight: 500),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  labelText: l.stockDocumentSearchItem,
-                  prefixIcon: const Icon(Icons.search),
-                ),
-                onChanged: (v) => setState(() => _query = v.toLowerCase()),
-                autofocus: true,
-              ),
-              const SizedBox(height: 8),
-              Expanded(
-                child: StreamBuilder<List<ItemModel>>(
-                  stream: ref
-                      .watch(itemRepositoryProvider)
-                      .watchAll(widget.companyId),
-                  builder: (context, snap) {
-                    final allItems = snap.data ?? [];
-                    // Filter to stock-tracked items matching query
-                    final items = allItems.where((item) {
-                      if (!item.isStockTracked) return false;
-                      if (_query.isEmpty) return true;
-                      return item.name.toLowerCase().contains(_query) ||
-                          (item.sku?.toLowerCase().contains(_query) ?? false);
-                    }).toList();
+    return PosDialogShell(
+      title: l.stockDocumentSearchItem,
+      maxWidth: 500,
+      maxHeight: 500,
+      children: [
+        TextField(
+          controller: _searchController,
+          decoration: InputDecoration(
+            labelText: l.stockDocumentSearchItem,
+            prefixIcon: const Icon(Icons.search),
+          ),
+          onChanged: (v) => setState(() => _query = v.toLowerCase()),
+          autofocus: true,
+        ),
+        const SizedBox(height: 8),
+        Expanded(
+          child: StreamBuilder<List<ItemModel>>(
+            stream: ref
+                .watch(itemRepositoryProvider)
+                .watchAll(widget.companyId),
+            builder: (context, snap) {
+              final allItems = snap.data ?? [];
+              final items = allItems.where((item) {
+                if (!item.isStockTracked) return false;
+                if (_query.isEmpty) return true;
+                return item.name.toLowerCase().contains(_query) ||
+                    (item.sku?.toLowerCase().contains(_query) ?? false);
+              }).toList();
 
-                    return ListView.builder(
-                      itemCount: items.length,
-                      itemBuilder: (context, i) {
-                        final item = items[i];
-                        return ListTile(
-                          title: Text(item.name),
-                          subtitle: item.sku != null ? Text(item.sku!) : null,
-                          trailing: Text(item.unit.name),
-                          onTap: () => Navigator.pop(context, [item]),
-                        );
-                      },
-                    );
-                  },
-                ),
-              ),
-            ],
+              return ListView.builder(
+                itemCount: items.length,
+                itemBuilder: (context, i) {
+                  final item = items[i];
+                  return ListTile(
+                    title: Text(item.name),
+                    subtitle: item.sku != null ? Text(item.sku!) : null,
+                    trailing: Text(item.unit.name),
+                    onTap: () => Navigator.pop(context, [item]),
+                  );
+                },
+              );
+            },
           ),
         ),
-      ),
+      ],
     );
   }
 }

@@ -10,6 +10,8 @@ import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/repositories/layout_item_repository.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/widgets/pos_dialog_actions.dart';
+import '../../../core/widgets/pos_dialog_shell.dart';
 
 enum _ArrangeVariant { horizontal, vertical }
 
@@ -32,11 +34,11 @@ class _DialogAutoArrangeState extends ConsumerState<DialogAutoArrange> {
 
     if (company == null) return const SizedBox.shrink();
 
-    return AlertDialog(
-      title: Text(l.autoArrangeTitle),
-      content: SizedBox(
-        width: 400,
-        child: StreamBuilder<List<CategoryModel>>(
+    return PosDialogShell(
+      title: l.autoArrangeTitle,
+      maxWidth: 480,
+      children: [
+        StreamBuilder<List<CategoryModel>>(
           stream: ref.watch(categoryRepositoryProvider).watchAll(company.id),
           builder: (context, catSnap) {
             return StreamBuilder<List<ItemModel>>(
@@ -108,23 +110,26 @@ class _DialogAutoArrangeState extends ConsumerState<DialogAutoArrange> {
             );
           },
         ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: _isProcessing ? null : () => Navigator.pop(context),
-          child: Text(l.actionCancel),
-        ),
-        FilledButton(
-          onPressed: _isProcessing
-              ? null
-              : () => _execute(context, ref, registerAsync.value),
-          child: _isProcessing
-              ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : Text(l.autoArrangeConfirm),
+        const SizedBox(height: 16),
+        PosDialogActions(
+          actions: [
+            OutlinedButton(
+              onPressed: _isProcessing ? null : () => Navigator.pop(context),
+              child: Text(l.actionCancel),
+            ),
+            FilledButton(
+              onPressed: _isProcessing
+                  ? null
+                  : () => _execute(context, ref, registerAsync.value),
+              child: _isProcessing
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Text(l.autoArrangeConfirm),
+            ),
+          ],
         ),
       ],
     );
@@ -156,19 +161,23 @@ class _DialogAutoArrangeState extends ConsumerState<DialogAutoArrange> {
     if (activeCategories.length > maxOnRoot) {
       final confirmed = await showDialog<bool>(
         context: context,
-        builder: (_) => AlertDialog(
-          title: Text(l.autoArrangeTitle),
-          content: Text(
-            l.autoArrangeOverflow(maxOnRoot, activeCategories.length),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: Text(l.actionCancel),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: Text(l.autoArrangeConfirm),
+        builder: (_) => PosDialogShell(
+          title: l.autoArrangeTitle,
+          maxWidth: 400,
+          children: [
+            Text(l.autoArrangeOverflow(maxOnRoot, activeCategories.length)),
+            const SizedBox(height: 16),
+            PosDialogActions(
+              actions: [
+                OutlinedButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: Text(l.actionCancel),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.pop(context, true),
+                  child: Text(l.autoArrangeConfirm),
+                ),
+              ],
             ),
           ],
         ),

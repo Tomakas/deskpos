@@ -310,6 +310,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get confirmDelete => 'Are you sure you want to delete this item?';
 
   @override
+  String get sellRemoveFromCart => 'Remove this item from the cart?';
+
+  @override
   String get yes => 'Yes';
 
   @override
@@ -1335,13 +1338,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get splitBillTitle => 'Split Bill';
 
   @override
-  String get splitBillSelectItems => 'Select items to split';
-
-  @override
   String get splitBillPayButton => 'Split and Pay';
 
   @override
   String get splitBillNewBillButton => 'Split to New Bill';
+
+  @override
+  String splitBillSourceLabel(String billNumber) {
+    return 'Bill #$billNumber';
+  }
+
+  @override
+  String get splitBillTargetLabel => 'New bill';
+
+  @override
+  String get splitBillTotal => 'Total';
 
   @override
   String get catalogTabCustomers => 'Customers';
@@ -2610,4 +2621,54 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get inventoryTypeNoItems => 'No items to select';
+
+  @override
+  String get inventoryBlindMode => 'Blind inventory';
+
+  @override
+  String get inventoryBlindModeDesc => 'Without showing expected quantities';
+
+  @override
+  String get inventoryPrintTemplate => 'Print template';
+
+  @override
+  String get inventoryResultTitle => 'Inventory Results';
+
+  @override
+  String get inventoryResultSurplus => 'Surplus';
+
+  @override
+  String get inventoryResultShortage => 'Shortage';
+
+  @override
+  String inventoryResultItemCount(int count) {
+    return '$count items';
+  }
+
+  @override
+  String get inventoryResultApply => 'Apply to stock';
+
+  @override
+  String get inventoryResultApplied => 'Applied';
+
+  @override
+  String get inventoryResultPrint => 'Print results';
+
+  @override
+  String get inventoryResultExpected => 'Expected';
+
+  @override
+  String get inventoryResultActual => 'Actual';
+
+  @override
+  String get inventoryPdfTemplateTitle => 'INVENTORY — TEMPLATE';
+
+  @override
+  String get inventoryPdfResultsTitle => 'INVENTORY — RESULTS';
+
+  @override
+  String get inventoryResultClose => 'Close';
+
+  @override
+  String get inventoryResultNcValue => 'PC';
 }

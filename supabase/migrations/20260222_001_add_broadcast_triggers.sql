@@ -18,7 +18,8 @@ BEGIN
       'record', to_jsonb(NEW)
     ),
     'change',
-    'sync:' || NEW.company_id
+    'sync:' || NEW.company_id,
+    false
   );
   RETURN NULL;
 EXCEPTION WHEN OTHERS THEN
@@ -41,7 +42,8 @@ BEGIN
       'record', to_jsonb(NEW)
     ),
     'change',
-    'sync:' || NEW.id
+    'sync:' || NEW.id,
+    false
   );
   RETURN NULL;
 EXCEPTION WHEN OTHERS THEN

@@ -20,6 +20,8 @@ import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/pos_dialog_actions.dart';
+import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/utils/formatting_ext.dart';
 import 'dialog_customer_search.dart';
 import 'dialog_discount.dart';
@@ -769,11 +771,18 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
     try {
       final confirmed = await showDialog<bool>(
         context: context,
-        builder: (_) => AlertDialog(
-          content: Text(l.billDetailConfirmCancel),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
-            TextButton(onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
+        builder: (_) => PosDialogShell(
+          title: '',
+          maxWidth: 400,
+          children: [
+            Text(l.billDetailConfirmCancel),
+            const SizedBox(height: 16),
+            PosDialogActions(
+              actions: [
+                OutlinedButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
+                FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
+              ],
+            ),
           ],
         ),
       );
@@ -876,10 +885,17 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
         };
         showDialog(
           context: context,
-          builder: (_) => AlertDialog(
-            content: Text(errorMsg),
-            actions: [
-              TextButton(onPressed: () => Navigator.pop(context), child: Text(context.l10n.actionOk)),
+          builder: (_) => PosDialogShell(
+            title: '',
+            maxWidth: 400,
+            children: [
+              Text(errorMsg),
+              const SizedBox(height: 16),
+              PosDialogActions(
+                actions: [
+                  OutlinedButton(onPressed: () => Navigator.pop(context), child: Text(context.l10n.actionOk)),
+                ],
+              ),
             ],
           ),
         );
@@ -919,6 +935,8 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
       context,
       ref,
       showRemoveButton: bill.customerId != null || bill.customerName != null,
+      currentCustomerName: bill.customerName,
+      currentCustomerId: bill.customerId,
     );
     if (result == null) return;
     if (!mounted) return;
@@ -985,9 +1003,13 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
       final tableRepo = ref.read(tableRepositoryProvider);
       final splitResult = await showDialog<SplitBillResult>(
         context: context,
-        builder: (_) => DialogSplitBill(billId: bill.id),
+        builder: (_) => DialogSplitBill(billId: bill.id, billNumber: bill.billNumber),
       );
       if (splitResult == null || !context.mounted) return;
+
+      final splitItems = splitResult.items
+          .map((e) => (orderItemId: e.orderItemId, moveQuantity: e.moveQuantity))
+          .toList();
 
       final company = ref.read(currentCompanyProvider);
       final user = ref.read(activeUserProvider);
@@ -1012,7 +1034,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
         await billRepo.splitBill(
           sourceBillId: bill.id,
           targetBillId: newBill.id,
-          orderItemIds: splitResult.orderItemIds,
+          splitItems: splitItems,
           userId: user.id,
           registerId: register?.id,
         );
@@ -1070,7 +1092,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
         await billRepo.splitBill(
           sourceBillId: bill.id,
           targetBillId: newBillResult.value.id,
-          orderItemIds: splitResult.orderItemIds,
+          splitItems: splitItems,
           userId: user.id,
           registerId: register2?.id,
         );
@@ -1087,12 +1109,18 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
     try {
       final confirmed = await showDialog<bool>(
         context: context,
-        builder: (_) => AlertDialog(
-          title: Text(l.refundTitle),
-          content: Text(l.refundConfirmFull),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
-            TextButton(onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
+        builder: (_) => PosDialogShell(
+          title: l.refundTitle,
+          maxWidth: 400,
+          children: [
+            Text(l.refundConfirmFull),
+            const SizedBox(height: 16),
+            PosDialogActions(
+              actions: [
+                OutlinedButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
+                FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
+              ],
+            ),
           ],
         ),
       );
@@ -1384,11 +1412,11 @@ class _OrderSection extends ConsumerWidget {
     final controller = TextEditingController(text: order.notes);
     final result = await showDialog<String?>(
       context: context,
-      builder: (_) => AlertDialog(
-        title: Text(context.l10n.sellNote),
-        content: SizedBox(
-          width: 300,
-          child: TextField(
+      builder: (_) => PosDialogShell(
+        title: context.l10n.sellNote,
+        maxWidth: 380,
+        children: [
+          TextField(
             controller: controller,
             autofocus: true,
             maxLines: 3,
@@ -1397,15 +1425,18 @@ class _OrderSection extends ConsumerWidget {
               border: const OutlineInputBorder(),
             ),
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(context.l10n.actionCancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, controller.text),
-            child: Text(context.l10n.actionSave),
+          const SizedBox(height: 16),
+          PosDialogActions(
+            actions: [
+              OutlinedButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(context.l10n.actionCancel),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(context, controller.text),
+                child: Text(context.l10n.actionSave),
+              ),
+            ],
           ),
         ],
       ),
@@ -1422,58 +1453,56 @@ class _OrderSection extends ConsumerWidget {
     final controller = TextEditingController(text: item.notes);
     final result = await showDialog<String?>(
       context: context,
-      builder: (_) => AlertDialog(
-        title: Text(item.itemName),
-        content: SizedBox(
-          width: 300,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: controller,
-                autofocus: true,
-                maxLines: 3,
-                decoration: InputDecoration(
-                  hintText: context.l10n.sellNote,
-                  border: const OutlineInputBorder(),
-                ),
+      builder: (_) => PosDialogShell(
+        title: item.itemName,
+        maxWidth: 380,
+        children: [
+          TextField(
+            controller: controller,
+            autofocus: true,
+            maxLines: 3,
+            decoration: InputDecoration(
+              hintText: context.l10n.sellNote,
+              border: const OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            height: 40,
+            child: OutlinedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _editItemDiscount(context, ref, item);
+              },
+              child: Text(context.l10n.billDetailDiscount),
+            ),
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            width: double.infinity,
+            height: 40,
+            child: OutlinedButton(
+              style: PosButtonStyles.destructiveOutlined(context),
+              onPressed: () {
+                Navigator.pop(context);
+                _voidSingleItem(context, ref, item);
+              },
+              child: Text(context.l10n.orderItemStorno),
+            ),
+          ),
+          const SizedBox(height: 16),
+          PosDialogActions(
+            actions: [
+              OutlinedButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(context.l10n.actionCancel),
               ),
-              const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                height: 40,
-                child: OutlinedButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    _editItemDiscount(context, ref, item);
-                  },
-                  child: Text(context.l10n.billDetailDiscount),
-                ),
-              ),
-              const SizedBox(height: 8),
-              SizedBox(
-                width: double.infinity,
-                height: 40,
-                child: OutlinedButton(
-                  style: PosButtonStyles.destructiveOutlined(context),
-                  onPressed: () {
-                    Navigator.pop(context);
-                    _voidSingleItem(context, ref, item);
-                  },
-                  child: Text(context.l10n.orderItemStorno),
-                ),
+              FilledButton(
+                onPressed: () => Navigator.pop(context, controller.text),
+                child: Text(context.l10n.actionSave),
               ),
             ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(context.l10n.actionCancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, controller.text),
-            child: Text(context.l10n.actionSave),
           ),
         ],
       ),
@@ -1490,11 +1519,18 @@ class _OrderSection extends ConsumerWidget {
     final l = context.l10n;
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
-        content: Text(l.orderItemStornoConfirm),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
+      builder: (_) => PosDialogShell(
+        title: '',
+        maxWidth: 400,
+        children: [
+          Text(l.orderItemStornoConfirm),
+          const SizedBox(height: 16),
+          PosDialogActions(
+            actions: [
+              OutlinedButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
+              FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
+            ],
+          ),
         ],
       ),
     );
@@ -1553,12 +1589,18 @@ class _OrderSection extends ConsumerWidget {
     final l = context.l10n;
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
-        title: Text(l.refundTitle),
-        content: Text(l.refundConfirmItem),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
+      builder: (_) => PosDialogShell(
+        title: l.refundTitle,
+        maxWidth: 400,
+        children: [
+          Text(l.refundConfirmItem),
+          const SizedBox(height: 16),
+          PosDialogActions(
+            actions: [
+              OutlinedButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
+              FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
+            ],
+          ),
         ],
       ),
     );

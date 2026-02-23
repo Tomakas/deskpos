@@ -14,6 +14,7 @@ import '../data/repositories/user_repository.dart';
 import '../data/result.dart';
 import '../logging/app_logger.dart';
 import '../../features/bills/models/z_report_data.dart';
+import 'inventory_pdf_builder.dart';
 import 'pdf_font_loader.dart';
 import 'receipt_data.dart';
 import 'receipt_pdf_builder.dart';
@@ -234,5 +235,21 @@ class PrintingService {
     );
 
     return builder.build();
+  }
+
+  Future<Uint8List> generateInventoryPdf(
+    InventoryPdfData data,
+    InventoryPdfLabels labels,
+  ) async {
+    final fontLoader = PdfFontLoader.instance;
+    final regular = await fontLoader.regular;
+    final bold = await fontLoader.bold;
+
+    return InventoryPdfBuilder(
+      data: data,
+      labels: labels,
+      regular: regular,
+      bold: bold,
+    ).build();
   }
 }

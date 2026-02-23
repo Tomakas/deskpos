@@ -353,7 +353,8 @@ class SyncLifecycleManager {
   Future<void> _enqueueRegisters(String companyId) async {
     try {
       final entities = await (_db.select(_db.registers)
-            ..where((t) => t.companyId.equals(companyId)))
+            ..where(
+                (t) => t.companyId.equals(companyId) & t.deletedAt.isNull()))
           .get();
       for (final entity in entities) {
         final model = registerFromEntity(entity);
@@ -383,7 +384,8 @@ class SyncLifecycleManager {
   Future<void> _enqueueUserPermissions(String companyId) async {
     try {
       final entities = await (_db.select(_db.userPermissions)
-            ..where((t) => t.companyId.equals(companyId)))
+            ..where(
+                (t) => t.companyId.equals(companyId) & t.deletedAt.isNull()))
           .get();
       for (final entity in entities) {
         final model = userPermissionFromEntity(entity);

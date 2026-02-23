@@ -85,5 +85,3 @@ CREATE POLICY modifier_groups_select_own ON modifier_groups FOR SELECT USING (co
 CREATE POLICY modifier_group_items_select_own ON modifier_group_items FOR SELECT USING (company_id IN (SELECT get_my_company_ids()));
 CREATE POLICY item_modifier_groups_select_own ON item_modifier_groups FOR SELECT USING (company_id IN (SELECT get_my_company_ids()));
 CREATE POLICY order_item_modifiers_select_own ON order_item_modifiers FOR SELECT USING (company_id IN (SELECT get_my_company_ids()));
-
-ALTER PUBLICATION supabase_realtime ADD TABLE modifier_groups, modifier_group_items, item_modifier_groups, order_item_modifiers;

@@ -692,6 +692,12 @@ abstract class AppLocalizations {
   /// **'Opravdu chcete smazat tuto položku?'**
   String get confirmDelete;
 
+  /// No description provided for @sellRemoveFromCart.
+  ///
+  /// In cs, this message translates to:
+  /// **'Odebrat tuto položku z košíku?'**
+  String get sellRemoveFromCart;
+
   /// No description provided for @yes.
   ///
   /// In cs, this message translates to:
@@ -2660,12 +2666,6 @@ abstract class AppLocalizations {
   /// **'Rozdělit účet'**
   String get splitBillTitle;
 
-  /// No description provided for @splitBillSelectItems.
-  ///
-  /// In cs, this message translates to:
-  /// **'Vyberte položky k rozdělení'**
-  String get splitBillSelectItems;
-
   /// No description provided for @splitBillPayButton.
   ///
   /// In cs, this message translates to:
@@ -2677,6 +2677,24 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Rozdělit na nový účet'**
   String get splitBillNewBillButton;
+
+  /// No description provided for @splitBillSourceLabel.
+  ///
+  /// In cs, this message translates to:
+  /// **'Účet #{billNumber}'**
+  String splitBillSourceLabel(String billNumber);
+
+  /// No description provided for @splitBillTargetLabel.
+  ///
+  /// In cs, this message translates to:
+  /// **'Nový účet'**
+  String get splitBillTargetLabel;
+
+  /// No description provided for @splitBillTotal.
+  ///
+  /// In cs, this message translates to:
+  /// **'Celkem'**
+  String get splitBillTotal;
 
   /// No description provided for @catalogTabCustomers.
   ///
@@ -5107,6 +5125,102 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Žádné položky k výběru'**
   String get inventoryTypeNoItems;
+
+  /// No description provided for @inventoryBlindMode.
+  ///
+  /// In cs, this message translates to:
+  /// **'Slepá inventura'**
+  String get inventoryBlindMode;
+
+  /// No description provided for @inventoryBlindModeDesc.
+  ///
+  /// In cs, this message translates to:
+  /// **'Bez zobrazení předpokládaných stavů'**
+  String get inventoryBlindModeDesc;
+
+  /// No description provided for @inventoryPrintTemplate.
+  ///
+  /// In cs, this message translates to:
+  /// **'Tisk předlohy'**
+  String get inventoryPrintTemplate;
+
+  /// No description provided for @inventoryResultTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Výsledky inventury'**
+  String get inventoryResultTitle;
+
+  /// No description provided for @inventoryResultSurplus.
+  ///
+  /// In cs, this message translates to:
+  /// **'Přebytek'**
+  String get inventoryResultSurplus;
+
+  /// No description provided for @inventoryResultShortage.
+  ///
+  /// In cs, this message translates to:
+  /// **'Manko'**
+  String get inventoryResultShortage;
+
+  /// No description provided for @inventoryResultItemCount.
+  ///
+  /// In cs, this message translates to:
+  /// **'{count} položek'**
+  String inventoryResultItemCount(int count);
+
+  /// No description provided for @inventoryResultApply.
+  ///
+  /// In cs, this message translates to:
+  /// **'Opravit sklad'**
+  String get inventoryResultApply;
+
+  /// No description provided for @inventoryResultApplied.
+  ///
+  /// In cs, this message translates to:
+  /// **'Opraveno'**
+  String get inventoryResultApplied;
+
+  /// No description provided for @inventoryResultPrint.
+  ///
+  /// In cs, this message translates to:
+  /// **'Tisknout výsledky'**
+  String get inventoryResultPrint;
+
+  /// No description provided for @inventoryResultExpected.
+  ///
+  /// In cs, this message translates to:
+  /// **'Předpoklad'**
+  String get inventoryResultExpected;
+
+  /// No description provided for @inventoryResultActual.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zjištěný'**
+  String get inventoryResultActual;
+
+  /// No description provided for @inventoryPdfTemplateTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'INVENTURA — PŘEDLOHA'**
+  String get inventoryPdfTemplateTitle;
+
+  /// No description provided for @inventoryPdfResultsTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'INVENTURA — VÝSLEDKY'**
+  String get inventoryPdfResultsTitle;
+
+  /// No description provided for @inventoryResultClose.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zavřít'**
+  String get inventoryResultClose;
+
+  /// No description provided for @inventoryResultNcValue.
+  ///
+  /// In cs, this message translates to:
+  /// **'NC'**
+  String get inventoryResultNcValue;
 }
 
 class _AppLocalizationsDelegate

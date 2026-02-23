@@ -93,8 +93,14 @@ class RealtimeService {
     Map<String, dynamic> payload,
   ) async {
     try {
-      final tableName = payload['table'] as String?;
-      final record = payload['record'] as Map<String, dynamic>?;
+      // Broadcast from Database wraps the trigger payload inside payload['payload'].
+      // Client-to-client broadcasts are flat. Handle both.
+      final data = payload['payload'] is Map<String, dynamic>
+          ? payload['payload'] as Map<String, dynamic>
+          : payload;
+
+      final tableName = data['table'] as String?;
+      final record = data['record'] as Map<String, dynamic>?;
       if (tableName == null || record == null || record.isEmpty) return;
 
       final entityId = extractId(record);

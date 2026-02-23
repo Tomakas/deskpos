@@ -160,25 +160,31 @@ class _DialogClosingSessionState extends ConsumerState<DialogClosingSession> {
     final ctrl = TextEditingController(text: _note ?? '');
     final result = await showDialog<String>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(l.closingNoteTitle),
-        content: TextField(
-          controller: ctrl,
-          decoration: InputDecoration(
-            border: const OutlineInputBorder(),
-            hintText: l.closingNoteHint,
+      builder: (dialogContext) => PosDialogShell(
+        title: l.closingNoteTitle,
+        maxWidth: 400,
+        children: [
+          TextField(
+            controller: ctrl,
+            decoration: InputDecoration(
+              border: const OutlineInputBorder(),
+              hintText: l.closingNoteHint,
+            ),
+            maxLines: 3,
+            autofocus: true,
           ),
-          maxLines: 3,
-          autofocus: true,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: Text(l.actionCancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(dialogContext, ctrl.text),
-            child: Text(l.actionSave),
+          const SizedBox(height: 16),
+          PosDialogActions(
+            actions: [
+              OutlinedButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: Text(l.actionCancel),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(dialogContext, ctrl.text),
+                child: Text(l.actionSave),
+              ),
+            ],
           ),
         ],
       ),
@@ -387,16 +393,14 @@ class _DialogClosingSessionState extends ConsumerState<DialogClosingSession> {
 
   Widget _buildActions(AppLocalizations l, ThemeData theme) {
     return PosDialogActions(
-      height: 40,
-      spacing: 6,
+      expanded: true,
       actions: [
         FilledButton.tonal(
           onPressed: _showNoteDialog,
-          style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 8)),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(l.cashMovementNote, style: const TextStyle(fontSize: 12)),
+              Text(l.cashMovementNote),
               if (_note != null) ...[
                 const SizedBox(width: 4),
                 Icon(Icons.check, size: 14, color: theme.colorScheme.primary),
@@ -406,18 +410,16 @@ class _DialogClosingSessionState extends ConsumerState<DialogClosingSession> {
         ),
         OutlinedButton(
           onPressed: null,
-          style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 8)),
-          child: Text(l.closingPrint, style: const TextStyle(fontSize: 12)),
+          child: Text(l.closingPrint),
         ),
         OutlinedButton(
           onPressed: () => Navigator.pop(context),
-          style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 8)),
-          child: Text(l.actionCancel, style: const TextStyle(fontSize: 12)),
+          child: Text(l.actionCancel),
         ),
         FilledButton(
-          style: PosButtonStyles.confirmWith(context, padding: const EdgeInsets.symmetric(horizontal: 8)),
+          style: PosButtonStyles.confirm(context),
           onPressed: _closingCashMinor != null ? _confirm : null,
-          child: Text(l.closingConfirm, style: const TextStyle(fontSize: 12)),
+          child: Text(l.closingConfirm),
         ),
       ],
     );

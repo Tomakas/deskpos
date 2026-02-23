@@ -108,7 +108,7 @@ class _DialogOpeningCashState extends ConsumerState<DialogOpeningCash> {
         SizedBox(
           width: 250,
           child: PosDialogActions(
-            height: 48,
+            expanded: true,
             actions: [
               OutlinedButton(
                 onPressed: () => Navigator.pop(context),

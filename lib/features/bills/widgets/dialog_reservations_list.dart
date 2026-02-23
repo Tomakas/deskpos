@@ -8,6 +8,7 @@ import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/utils/formatting_ext.dart';
+import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_table.dart';
 import 'dialog_reservation_edit.dart';
@@ -175,12 +176,13 @@ class _DialogReservationsListState extends ConsumerState<DialogReservationsList>
         ),
 
         const SizedBox(height: 16),
-        Align(
-          alignment: Alignment.centerRight,
-          child: TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l.actionClose),
-          ),
+        PosDialogActions(
+          actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(l.actionClose),
+            ),
+          ],
         ),
       ],
     );

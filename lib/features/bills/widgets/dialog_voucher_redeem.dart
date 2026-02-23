@@ -45,7 +45,6 @@ class _DialogVoucherRedeemState extends State<DialogVoucherRedeem> {
         ),
         const SizedBox(height: 16),
         PosDialogActions(
-          spacing: 12,
           actions: [
             OutlinedButton(
               onPressed: () => Navigator.pop(context),

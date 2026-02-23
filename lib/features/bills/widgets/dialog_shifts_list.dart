@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/utils/formatting_ext.dart';
+import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_table.dart';
 
@@ -130,12 +131,13 @@ class _DialogShiftsListState extends ConsumerState<DialogShiftsList> {
           ),
         ),
         const SizedBox(height: 16),
-        Align(
-          alignment: Alignment.centerRight,
-          child: TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l.actionClose),
-          ),
+        PosDialogActions(
+          actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(l.actionClose),
+            ),
+          ],
         ),
       ],
     );

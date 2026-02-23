@@ -113,6 +113,7 @@ class _DialogDiscountState extends ConsumerState<DialogDiscount> {
         // Actions: [currency] [back] [%]
         PosDialogActions(
           height: 52,
+          expanded: true,
           actions: [
             FilledButton(
               onPressed: () => Navigator.pop(

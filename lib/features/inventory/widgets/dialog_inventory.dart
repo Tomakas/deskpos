@@ -1,16 +1,41 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../../../core/data/providers/auth_providers.dart';
+import '../../../core/data/providers/printing_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
-import '../../../core/data/repositories/stock_document_repository.dart';
 import '../../../core/data/repositories/stock_level_repository.dart';
-import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/logging/app_logger.dart';
+import '../../../core/printing/inventory_pdf_builder.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/file_opener.dart';
+import '../../../core/utils/formatters.dart';
+import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_table.dart';
+
+class InventoryLineWithName {
+  InventoryLineWithName({
+    required this.itemId,
+    required this.itemName,
+    required this.unitName,
+    required this.currentQuantity,
+    required this.actualQuantity,
+    this.purchasePrice,
+  });
+
+  final String itemId;
+  final String itemName;
+  final String unitName;
+  final double currentQuantity;
+  final double actualQuantity;
+  final int? purchasePrice;
+}
 
 class DialogInventory extends ConsumerStatefulWidget {
   const DialogInventory({
@@ -18,11 +43,13 @@ class DialogInventory extends ConsumerStatefulWidget {
     required this.companyId,
     required this.warehouseId,
     this.itemIds,
+    this.blindMode = false,
   });
 
   final String companyId;
   final String warehouseId;
   final Set<String>? itemIds;
+  final bool blindMode;
 
   @override
   ConsumerState<DialogInventory> createState() => _DialogInventoryState();
@@ -30,7 +57,7 @@ class DialogInventory extends ConsumerStatefulWidget {
 
 class _DialogInventoryState extends ConsumerState<DialogInventory> {
   final _controllers = <String, TextEditingController>{};
-  bool _saving = false;
+  bool _printing = false;
 
   @override
   void dispose() {
@@ -67,7 +94,7 @@ class _DialogInventoryState extends ConsumerState<DialogInventory> {
                 _controllers.putIfAbsent(
                   itemId,
                   () => TextEditingController(
-                    text: _formatQuantity(item.quantity),
+                    text: widget.blindMode ? '' : _formatQuantity(item.quantity),
                   ),
                 );
               }
@@ -85,15 +112,16 @@ class _DialogInventoryState extends ConsumerState<DialogInventory> {
                     headerAlign: TextAlign.center,
                     cellBuilder: (item) => Text(item.unit.name, textAlign: TextAlign.center),
                   ),
-                  PosColumn(
-                    label: l.inventoryColumnQuantity,
-                    width: 80,
-                    headerAlign: TextAlign.center,
-                    cellBuilder: (item) => Text(
-                      _formatQuantity(item.quantity),
-                      textAlign: TextAlign.center,
+                  if (!widget.blindMode)
+                    PosColumn(
+                      label: l.inventoryColumnQuantity,
+                      width: 80,
+                      headerAlign: TextAlign.center,
+                      cellBuilder: (item) => Text(
+                        _formatQuantity(item.quantity),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
-                  ),
                   PosColumn(
                     label: l.inventoryDialogActualQuantity,
                     width: 100,
@@ -119,35 +147,36 @@ class _DialogInventoryState extends ConsumerState<DialogInventory> {
                       );
                     },
                   ),
-                  PosColumn(
-                    label: l.inventoryDialogDifference,
-                    width: 80,
-                    headerAlign: TextAlign.center,
-                    cellBuilder: (item) {
-                      final controller = _controllers[item.itemId]!;
-                      final actual =
-                          double.tryParse(
-                            controller.text.replaceAll(',', '.'),
-                          ) ??
-                          item.quantity;
-                      final diff = actual - item.quantity;
-                      final diffText = diff == 0
-                          ? '-'
-                          : (diff > 0 ? '+' : '') + _formatQuantity(diff);
-                      return Text(
-                        diffText,
-                        textAlign: TextAlign.center,
-                        style: diff != 0
-                            ? TextStyle(
-                                color: diff > 0
-                                    ? context.appColors.positive
-                                    : theme.colorScheme.error,
-                                fontWeight: FontWeight.bold,
-                              )
-                            : null,
-                      );
-                    },
-                  ),
+                  if (!widget.blindMode)
+                    PosColumn(
+                      label: l.inventoryDialogDifference,
+                      width: 80,
+                      headerAlign: TextAlign.center,
+                      cellBuilder: (item) {
+                        final controller = _controllers[item.itemId]!;
+                        final actual =
+                            double.tryParse(
+                              controller.text.replaceAll(',', '.'),
+                            ) ??
+                            item.quantity;
+                        final diff = actual - item.quantity;
+                        final diffText = diff == 0
+                            ? '-'
+                            : (diff > 0 ? '+' : '') + _formatQuantity(diff);
+                        return Text(
+                          diffText,
+                          textAlign: TextAlign.center,
+                          style: diff != 0
+                              ? TextStyle(
+                                  color: diff > 0
+                                      ? context.appColors.positive
+                                      : theme.colorScheme.error,
+                                  fontWeight: FontWeight.bold,
+                                )
+                              : null,
+                        );
+                      },
+                    ),
                 ],
                 items: levels,
                 emptyMessage: l.inventoryNoItems,
@@ -156,16 +185,19 @@ class _DialogInventoryState extends ConsumerState<DialogInventory> {
           ),
         ),
         const SizedBox(height: 16),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            TextButton(
+        PosDialogActions(
+          leading: TextButton.icon(
+            onPressed: _printing ? null : () => _printTemplate(context),
+            icon: const Icon(Icons.print_outlined),
+            label: Text(l.inventoryPrintTemplate),
+          ),
+          actions: [
+            OutlinedButton(
               onPressed: () => Navigator.pop(context),
               child: Text(l.actionCancel),
             ),
-            const SizedBox(width: 8),
             FilledButton(
-              onPressed: _saving ? null : () => _save(context),
+              onPressed: () => _save(context),
               child: Text(l.inventoryDialogSave),
             ),
           ],
@@ -174,14 +206,67 @@ class _DialogInventoryState extends ConsumerState<DialogInventory> {
     );
   }
 
+  Future<void> _printTemplate(BuildContext context) async {
+    setState(() => _printing = true);
+    try {
+      final l = context.l10n;
+      final locale = ref.read(appLocaleProvider).value ?? 'cs';
+      final currency = ref.read(currentCurrencyProvider).value;
+
+      final levels = await ref
+          .read(stockLevelRepositoryProvider)
+          .watchByWarehouse(widget.companyId, widget.warehouseId)
+          .first;
+      final filtered = widget.itemIds != null
+          ? levels.where((l) => widget.itemIds!.contains(l.itemId)).toList()
+          : levels;
+
+      final pdfLines = filtered.map((item) => InventoryPdfLine(
+        itemName: item.itemName,
+        unitName: item.unit.name,
+        currentQuantity: item.quantity,
+        actualQuantity: null,
+        purchasePrice: item.purchasePrice,
+      )).toList();
+
+      final data = InventoryPdfData(
+        title: l.inventoryPdfTemplateTitle,
+        date: formatDateForPrint(DateTime.now(), locale),
+        isTemplate: true,
+        blindMode: widget.blindMode,
+        lines: pdfLines,
+        currency: currency,
+      );
+
+      final labels = InventoryPdfLabels(
+        columnItem: l.inventoryColumnItem,
+        columnUnit: l.inventoryColumnUnit,
+        columnExpected: l.inventoryResultExpected,
+        columnActual: l.inventoryResultActual,
+        columnDifference: l.inventoryDialogDifference,
+        surplus: l.inventoryResultSurplus,
+        shortage: l.inventoryResultShortage,
+        locale: locale,
+      );
+
+      final bytes = await ref.read(printingServiceProvider)
+          .generateInventoryPdf(data, labels);
+
+      final dir = await getTemporaryDirectory();
+      if (!dir.existsSync()) dir.createSync(recursive: true);
+      final file = File('${dir.path}/inventory_template_${DateTime.now().millisecondsSinceEpoch}.pdf');
+      await file.writeAsBytes(bytes);
+      await FileOpener.share(file.path);
+    } catch (e, s) {
+      AppLogger.error('Failed to print inventory template', error: e, stackTrace: s);
+    } finally {
+      if (mounted) setState(() => _printing = false);
+    }
+  }
+
   Future<void> _save(BuildContext context) async {
-    final user = ref.read(activeUserProvider);
-    if (user == null) return;
-
     final stockLevelRepo = ref.read(stockLevelRepositoryProvider);
-    final stockDocRepo = ref.read(stockDocumentRepositoryProvider);
 
-    // Build inventory lines from current stock levels
     var levels = await stockLevelRepo
         .watchByWarehouse(widget.companyId, widget.warehouseId)
         .first;
@@ -189,7 +274,7 @@ class _DialogInventoryState extends ConsumerState<DialogInventory> {
       levels = levels.where((l) => widget.itemIds!.contains(l.itemId)).toList();
     }
 
-    final inventoryLines = <InventoryLine>[];
+    final lines = <InventoryLineWithName>[];
     for (final item in levels) {
       final itemId = item.itemId;
       final controller = _controllers[itemId];
@@ -198,9 +283,11 @@ class _DialogInventoryState extends ConsumerState<DialogInventory> {
       final actualQty =
           double.tryParse(controller.text.replaceAll(',', '.')) ??
           item.quantity;
-      inventoryLines.add(
-        InventoryLine(
+      lines.add(
+        InventoryLineWithName(
           itemId: itemId,
+          itemName: item.itemName,
+          unitName: item.unit.name,
           currentQuantity: item.quantity,
           actualQuantity: actualQty,
           purchasePrice: item.purchasePrice,
@@ -208,31 +295,8 @@ class _DialogInventoryState extends ConsumerState<DialogInventory> {
       );
     }
 
-    // Check if there are any differences
-    final hasDifferences = inventoryLines.any(
-      (l) => l.actualQuantity != l.currentQuantity,
-    );
-    if (!hasDifferences) {
-      if (context.mounted) Navigator.pop(context);
-      return;
-    }
-
-    setState(() => _saving = true);
-
-    final result = await stockDocRepo
-        .createInventoryDocument(
-          companyId: widget.companyId,
-          warehouseId: widget.warehouseId,
-          userId: user.id,
-          inventoryLines: inventoryLines,
-        );
-
     if (!context.mounted) return;
-    setState(() => _saving = false);
-
-    if (result is Success) {
-      Navigator.pop(context);
-    }
+    Navigator.pop(context, lines);
   }
 
   String _formatQuantity(double value) {

@@ -689,7 +689,7 @@ class OrderRepository {
     required String targetBillId,
     required String companyId,
     required String userId,
-    required List<String> orderItemIds,
+    required List<({String orderItemId, double moveQuantity})> splitItems,
     String? registerId,
   }) async {
     try {
@@ -697,8 +697,9 @@ class OrderRepository {
       final newOrderId = const Uuid().v7();
 
       // Collect source order IDs before moving items (single batch query)
+      final splitItemIds = splitItems.map((e) => e.orderItemId).toList();
       final itemEntities = await (_db.select(_db.orderItems)
-            ..where((t) => t.id.isIn(orderItemIds)))
+            ..where((t) => t.id.isIn(splitItemIds)))
           .get();
       final sourceOrderIds = itemEntities.map((e) => e.orderId).toSet();
 
@@ -714,31 +715,135 @@ class OrderRepository {
           registerId: Value(registerId),
         ));
 
-        // Move items to new order
         int subtotalGross = 0;
         int taxTotal = 0;
+        int newItemCount = 0;
         final itemMap = {for (final e in itemEntities) e.id: e};
-        for (final itemId in orderItemIds) {
-          await (_db.update(_db.orderItems)..where((t) => t.id.equals(itemId))).write(
-            OrderItemsCompanion(orderId: Value(newOrderId), updatedAt: Value(now)),
-          );
-          final original = itemMap[itemId]!;
-          final itemSubtotal = (original.salePriceAtt * original.quantity).round();
-          final itemTax = (original.saleTaxAmount * original.quantity).round();
-          subtotalGross += itemSubtotal;
-          taxTotal += itemTax;
-          final movedModel = orderItemFromEntity(original).copyWith(
-            orderId: newOrderId,
-            updatedAt: now,
-          );
-          await _enqueueOrderItem('update', movedModel);
+
+        for (final split in splitItems) {
+          final original = itemMap[split.orderItemId]!;
+
+          if (split.moveQuantity >= original.quantity) {
+            // === FULL MOVE === (existing logic)
+            await (_db.update(_db.orderItems)..where((t) => t.id.equals(split.orderItemId))).write(
+              OrderItemsCompanion(orderId: Value(newOrderId), updatedAt: Value(now)),
+            );
+            final movedModel = orderItemFromEntity(original).copyWith(
+              orderId: newOrderId,
+              updatedAt: now,
+            );
+            await _enqueueOrderItem('update', movedModel);
+
+            final itemSubtotal = (original.salePriceAtt * original.quantity).round();
+            final itemTax = (original.saleTaxAmount * original.quantity).round();
+            subtotalGross += itemSubtotal;
+            taxTotal += itemTax;
+          } else {
+            // === PARTIAL SPLIT === (new)
+
+            // 1. Reduce original quantity
+            final newOrigQty = original.quantity - split.moveQuantity;
+            await (_db.update(_db.orderItems)
+              ..where((t) => t.id.equals(split.orderItemId))
+            ).write(OrderItemsCompanion(
+              quantity: Value(newOrigQty),
+              updatedAt: Value(now),
+            ));
+            final updatedOriginal = orderItemFromEntity(
+              await (_db.select(_db.orderItems)
+                ..where((t) => t.id.equals(split.orderItemId))
+              ).getSingle()
+            );
+            await _enqueueOrderItem('update', updatedOriginal);
+
+            // 2. Create clone on new order
+            final cloneId = const Uuid().v7();
+            // Discount rule: % -> copy, absolute -> stays on original
+            final cloneDiscount = original.discountType == DiscountType.percent
+                ? original.discount : 0;
+            final cloneDiscountType = original.discountType == DiscountType.percent
+                ? Value(original.discountType) : const Value<DiscountType?>(null);
+
+            await _db.into(_db.orderItems).insert(OrderItemsCompanion.insert(
+              id: cloneId,
+              companyId: companyId,
+              orderId: newOrderId,
+              itemId: original.itemId,
+              itemName: original.itemName,
+              quantity: split.moveQuantity,
+              salePriceAtt: original.salePriceAtt,
+              saleTaxRateAtt: original.saleTaxRateAtt,
+              saleTaxAmount: original.saleTaxAmount,
+              discount: Value(cloneDiscount),
+              discountType: cloneDiscountType,
+              notes: Value(original.notes),
+              status: PrepStatus.delivered,
+            ));
+            final cloneModel = orderItemFromEntity(
+              await (_db.select(_db.orderItems)
+                ..where((t) => t.id.equals(cloneId))
+              ).getSingle()
+            );
+            await _enqueueOrderItem('insert', cloneModel);
+
+            // 3. Clone modifiers (follow storno pattern)
+            final mods = await (_db.select(_db.orderItemModifiers)
+              ..where((t) => t.orderItemId.equals(split.orderItemId) & t.deletedAt.isNull())
+            ).get();
+            for (final mod in mods) {
+              final modCloneId = const Uuid().v7();
+              await _db.into(_db.orderItemModifiers).insert(
+                OrderItemModifiersCompanion.insert(
+                  id: modCloneId,
+                  companyId: companyId,
+                  orderItemId: cloneId,
+                  modifierItemId: mod.modifierItemId,
+                  modifierGroupId: mod.modifierGroupId,
+                  modifierItemName: Value(mod.modifierItemName),
+                  quantity: Value(mod.quantity),
+                  unitPrice: mod.unitPrice,
+                  taxRate: mod.taxRate,
+                  taxAmount: mod.taxAmount,
+                ),
+              );
+              await syncQueueRepo?.enqueue(
+                companyId: companyId,
+                entityType: 'order_item_modifiers',
+                entityId: modCloneId,
+                operation: 'insert',
+                payload: jsonEncode(orderItemModifierToSupabaseJson(
+                  OrderItemModifierModel(
+                    id: modCloneId,
+                    companyId: companyId,
+                    orderItemId: cloneId,
+                    modifierItemId: mod.modifierItemId,
+                    modifierGroupId: mod.modifierGroupId,
+                    modifierItemName: mod.modifierItemName,
+                    quantity: mod.quantity,
+                    unitPrice: mod.unitPrice,
+                    taxRate: mod.taxRate,
+                    taxAmount: mod.taxAmount,
+                    createdAt: now,
+                    updatedAt: now,
+                  ),
+                )),
+              );
+            }
+
+            final moveQty = split.moveQuantity.clamp(0.0, original.quantity);
+            final itemSubtotal = (original.salePriceAtt * moveQty).round();
+            final itemTax = (original.saleTaxAmount * moveQty).round();
+            subtotalGross += itemSubtotal;
+            taxTotal += itemTax;
+          }
+          newItemCount++;
         }
 
         // Update new order totals
         final subtotalNet = subtotalGross - taxTotal;
         await (_db.update(_db.orders)..where((t) => t.id.equals(newOrderId))).write(
           OrdersCompanion(
-            itemCount: Value(orderItemIds.length),
+            itemCount: Value(newItemCount),
             subtotalGross: Value(subtotalGross),
             subtotalNet: Value(subtotalNet),
             taxTotal: Value(taxTotal),
@@ -760,7 +865,9 @@ class OrderRepository {
                     t.deletedAt.isNull() &
                     t.status.isNotIn([PrepStatus.cancelled.name, PrepStatus.voided.name])))
               .get();
-          if (remainingItems.isEmpty) {
+          // Also exclude items with 0 quantity (shouldn't happen, but defensive)
+          final activeRemaining = remainingItems.where((i) => i.quantity > 0).toList();
+          if (activeRemaining.isEmpty) {
             await (_db.update(_db.orders)..where((t) => t.id.equals(sourceOrderId))).write(
               OrdersCompanion(
                 status: const Value(PrepStatus.cancelled),
@@ -779,13 +886,13 @@ class OrderRepository {
             // Recalculate source order totals
             int srcGross = 0;
             int srcTax = 0;
-            for (final item in remainingItems) {
+            for (final item in activeRemaining) {
               srcGross += (item.salePriceAtt * item.quantity).round();
               srcTax += (item.saleTaxAmount * item.quantity).round();
             }
             await (_db.update(_db.orders)..where((t) => t.id.equals(sourceOrderId))).write(
               OrdersCompanion(
-                itemCount: Value(remainingItems.length),
+                itemCount: Value(activeRemaining.length),
                 subtotalGross: Value(srcGross),
                 subtotalNet: Value(srcGross - srcTax),
                 taxTotal: Value(srcTax),

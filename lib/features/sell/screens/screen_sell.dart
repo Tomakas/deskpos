@@ -30,6 +30,8 @@ import '../../../core/logging/app_logger.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatting_ext.dart';
 import '../../../core/widgets/pos_color_palette.dart';
+import '../../../core/widgets/pos_dialog_actions.dart';
+import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/data/providers/permission_providers.dart';
 import '../../bills/widgets/dialog_customer_search.dart';
 import '../../bills/widgets/dialog_payment.dart';
@@ -760,45 +762,19 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
   }
 
   Future<void> _showItemNoteDialog(BuildContext context, _CartItem item) async {
-    final controller = TextEditingController(text: item.notes);
-    final result = await showDialog<String?>(
+    final result = await showDialog<_ItemNoteResult>(
       context: context,
-      builder: (_) => AlertDialog(
-        title: Text(item.name),
-        content: SizedBox(
-          width: 300,
-          child: TextField(
-            controller: controller,
-            autofocus: true,
-            maxLines: 3,
-            decoration: InputDecoration(
-              hintText: context.l10n.sellNote,
-              border: const OutlineInputBorder(),
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(context.l10n.actionCancel),
-          ),
-          TextButton(
-            onPressed: () {
-              setState(() => item.quantity++);
-              _pushToDisplay();
-              Navigator.pop(context);
-            },
-            child: const Text('+1'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, controller.text),
-            child: Text(context.l10n.actionSave),
-          ),
-        ],
-      ),
+      builder: (_) => _ItemNoteDialog(item: item),
     );
     if (result != null && mounted) {
-      setState(() => item.notes = result.isEmpty ? null : result);
+      setState(() {
+        if (result.deleted) {
+          _cart.remove(item);
+        } else {
+          item.notes = result.notes.isEmpty ? null : result.notes;
+          item.quantity = result.quantity;
+        }
+      });
       _pushToDisplay();
     }
   }
@@ -808,6 +784,8 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
       context,
       ref,
       showRemoveButton: _customerName != null,
+      currentCustomerName: _customerName,
+      currentCustomerId: _customerId,
     );
     if (!mounted) return;
     if (result == null) return;
@@ -852,11 +830,11 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     final controller = TextEditingController(text: _orderNotes);
     final result = await showDialog<String?>(
       context: context,
-      builder: (_) => AlertDialog(
-        title: Text(context.l10n.sellNote),
-        content: SizedBox(
-          width: 300,
-          child: TextField(
+      builder: (_) => PosDialogShell(
+        title: context.l10n.sellNote,
+        maxWidth: 380,
+        children: [
+          TextField(
             controller: controller,
             autofocus: true,
             maxLines: 3,
@@ -865,15 +843,18 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
               border: const OutlineInputBorder(),
             ),
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(context.l10n.actionCancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, controller.text),
-            child: Text(context.l10n.actionSave),
+          const SizedBox(height: 16),
+          PosDialogActions(
+            actions: [
+              OutlinedButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(context.l10n.actionCancel),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(context, controller.text),
+                child: Text(context.l10n.actionSave),
+              ),
+            ],
           ),
         ],
       ),
@@ -986,21 +967,17 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
   Future<ItemModel?> _showVariantPickerDialog(ItemModel parent, List<ItemModel> variants) async {
     return showDialog<ItemModel>(
       context: context,
-      builder: (ctx) => SimpleDialog(
-        title: Text(parent.name),
+      builder: (ctx) => PosDialogShell(
+        title: parent.name,
+        maxWidth: 400,
+        maxHeight: 500,
+        scrollable: true,
         children: [
           for (final v in variants)
-            SimpleDialogOption(
-              onPressed: () => Navigator.pop(ctx, v),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Row(
-                  children: [
-                    Expanded(child: Text(v.name)),
-                    Text(ref.money(v.unitPrice)),
-                  ],
-                ),
-              ),
+            ListTile(
+              title: Text(v.name),
+              trailing: Text(ref.money(v.unitPrice)),
+              onTap: () => Navigator.pop(ctx, v),
             ),
         ],
       ),
@@ -1385,6 +1362,186 @@ class _CartModifier {
   final String modifierGroupId;
 }
 
+class _ItemNoteResult {
+  const _ItemNoteResult({required this.notes, required this.quantity, this.deleted = false});
+  final String notes;
+  final double quantity;
+  final bool deleted;
+}
+
+class _ItemNoteDialog extends ConsumerStatefulWidget {
+  const _ItemNoteDialog({required this.item});
+  final _CartItem item;
+
+  @override
+  ConsumerState<_ItemNoteDialog> createState() => _ItemNoteDialogState();
+}
+
+class _ItemNoteDialogState extends ConsumerState<_ItemNoteDialog> {
+  late final TextEditingController _noteController;
+  late double _quantity;
+
+  @override
+  void initState() {
+    super.initState();
+    _noteController = TextEditingController(text: widget.item.notes);
+    _quantity = widget.item.quantity;
+  }
+
+  @override
+  void dispose() {
+    _noteController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    final theme = Theme.of(context);
+    final item = widget.item;
+    final qtyStr = _quantity == _quantity.roundToDouble()
+        ? '${_quantity.toInt()}'
+        : _quantity.toStringAsFixed(1);
+    final totalPrice = (item.effectiveUnitPrice * _quantity).round();
+
+    return PosDialogShell(
+      title: item.name,
+      titleWidget: SizedBox(
+        width: double.infinity,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Text(
+                  '${qtyStr}x',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    item.name,
+                    style: theme.textTheme.titleMedium,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  ref.money(totalPrice),
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+            for (final mod in item.modifiers)
+              Padding(
+                padding: const EdgeInsets.only(left: 30),
+                child: Text(
+                  '+ ${mod.name}${mod.unitPrice > 0 ? '  +${ref.money(mod.unitPrice)}' : ''}',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+      maxWidth: 380,
+      children: [
+        TextField(
+          controller: _noteController,
+          autofocus: true,
+          maxLines: 3,
+          decoration: InputDecoration(
+            hintText: l.sellNote,
+            border: const OutlineInputBorder(),
+          ),
+        ),
+        const SizedBox(height: 16),
+        PosDialogActions(
+          leading: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              OutlinedButton(
+                onPressed: _quantity > 1
+                    ? () => setState(() => _quantity--)
+                    : null,
+                child: const Text('-1'),
+              ),
+              const SizedBox(width: 8),
+              OutlinedButton(
+                onPressed: () => setState(() => _quantity++),
+                child: const Text('+1'),
+              ),
+            ],
+          ),
+          actions: [
+            OutlinedButton(
+              style: PosButtonStyles.destructiveOutlined(context),
+              onPressed: () => _confirmDelete(context),
+              child: const Icon(Icons.delete_outline),
+            ),
+            OutlinedButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(l.actionCancel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(
+                context,
+                _ItemNoteResult(
+                  notes: _noteController.text,
+                  quantity: _quantity,
+                ),
+              ),
+              child: Text(l.actionSave),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Future<void> _confirmDelete(BuildContext context) async {
+    final l = context.l10n;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => PosDialogShell(
+        title: l.actionDelete,
+        maxWidth: 340,
+        children: [
+          Text(l.sellRemoveFromCart),
+          const SizedBox(height: 16),
+          PosDialogActions(
+            actions: [
+              OutlinedButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text(l.actionCancel),
+              ),
+              FilledButton(
+                style: PosButtonStyles.destructiveFilled(context),
+                onPressed: () => Navigator.pop(context, true),
+                child: Text(l.actionDelete),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && context.mounted) {
+      Navigator.pop(
+        context,
+        const _ItemNoteResult(notes: '', quantity: 0, deleted: true),
+      );
+    }
+  }
+}
+
 class _ModifierGroupWithItems {
   const _ModifierGroupWithItems({required this.group, required this.items});
   final ModifierGroupModel group;
@@ -1588,80 +1745,78 @@ class _ModifierSelectionDialogState extends State<_ModifierSelectionDialog> {
     final theme = Theme.of(context);
     final total = widget.item.unitPrice + _modifierTotal;
 
-    return AlertDialog(
-      title: Row(
+    return PosDialogShell(
+      title: widget.item.name,
+      titleWidget: Row(
         children: [
-          Expanded(child: Text(widget.item.name)),
+          Expanded(child: Text(widget.item.name, style: theme.textTheme.titleLarge)),
           Text(widget.moneyFormatter(widget.item.unitPrice),
               style: theme.textTheme.titleMedium),
         ],
       ),
-      content: SizedBox(
-        width: 400,
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
+      maxWidth: 480,
+      maxHeight: 600,
+      scrollable: true,
+      children: [
+        for (final g in widget.groups) ...[
+          const SizedBox(height: 8),
+          Row(
             children: [
-              for (final g in widget.groups) ...[
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(g.group.name,
-                          style: theme.textTheme.titleSmall),
-                    ),
-                    Text(
-                      _groupRuleLabel(l, g.group),
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
+              Expanded(
+                child: Text(g.group.name,
+                    style: theme.textTheme.titleSmall),
+              ),
+              Text(
+                _groupRuleLabel(l, g.group),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
                 ),
-                const SizedBox(height: 4),
-                _buildGroupItems(g),
-              ],
-              const SizedBox(height: 16),
-              const Divider(),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(l.sellTotal, style: theme.textTheme.titleMedium),
-                  Text(widget.moneyFormatter(total), style: theme.textTheme.titleLarge),
-                ],
               ),
             ],
           ),
+          const SizedBox(height: 4),
+          _buildGroupItems(g),
+        ],
+        const SizedBox(height: 16),
+        const Divider(),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(l.sellTotal, style: theme.textTheme.titleMedium),
+            Text(widget.moneyFormatter(total), style: theme.textTheme.titleLarge),
+          ],
         ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text(l.actionCancel),
-        ),
-        FilledButton(
-          onPressed: _isValid
-              ? () {
-                  final result = <_CartModifier>[];
-                  for (final g in widget.groups) {
-                    final sel = _selections[g.group.id] ?? {};
-                    for (final gi in g.items) {
-                      if (sel.contains(gi.item.id)) {
-                        result.add(_CartModifier(
-                          itemId: gi.item.id,
-                          name: gi.item.name,
-                          unitPrice: gi.item.unitPrice,
-                          saleTaxRateId: gi.item.saleTaxRateId,
-                          modifierGroupId: g.group.id,
-                        ));
+        const SizedBox(height: 16),
+        PosDialogActions(
+          actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(l.actionCancel),
+            ),
+            FilledButton(
+              onPressed: _isValid
+                  ? () {
+                      final result = <_CartModifier>[];
+                      for (final g in widget.groups) {
+                        final sel = _selections[g.group.id] ?? {};
+                        for (final gi in g.items) {
+                          if (sel.contains(gi.item.id)) {
+                            result.add(_CartModifier(
+                              itemId: gi.item.id,
+                              name: gi.item.name,
+                              unitPrice: gi.item.unitPrice,
+                              saleTaxRateId: gi.item.saleTaxRateId,
+                              modifierGroupId: g.group.id,
+                            ));
+                          }
+                        }
                       }
+                      Navigator.pop(context, result);
                     }
-                  }
-                  Navigator.pop(context, result);
-                }
-              : null,
-          child: Text(l.actionAdd),
+                  : null,
+              child: Text(l.actionAdd),
+            ),
+          ],
         ),
       ],
     );

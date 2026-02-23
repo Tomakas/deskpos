@@ -9,6 +9,8 @@ import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/utils/formatting_ext.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import 'dialog_customer_search.dart';
 
@@ -314,21 +316,18 @@ class _DialogReservationEditState extends ConsumerState<DialogReservationEdit> {
                 ],
 
                 // Actions
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
+                PosDialogActions(
+                  actions: [
                     if (_isEdit)
-                      TextButton(
+                      OutlinedButton(
                         onPressed: !_isProcessing ? _delete : null,
-                        style: TextButton.styleFrom(foregroundColor: theme.colorScheme.error),
+                        style: PosButtonStyles.destructiveOutlined(context),
                         child: Text(l.reservationDelete),
                       ),
-                    const Spacer(),
-                    TextButton(
+                    OutlinedButton(
                       onPressed: () => Navigator.pop(context),
                       child: Text(l.actionCancel),
                     ),
-                    const SizedBox(width: 8),
                     FilledButton(
                       onPressed: !_isProcessing ? _save : null,
                       child: Text(l.reservationSave),

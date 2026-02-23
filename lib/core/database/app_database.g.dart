@@ -33511,11 +33511,11 @@ class $SyncMetadataTable extends SyncMetadata
     'lastPulledAt',
   );
   @override
-  late final GeneratedColumn<DateTime> lastPulledAt = GeneratedColumn<DateTime>(
+  late final GeneratedColumn<String> lastPulledAt = GeneratedColumn<String>(
     'last_pulled_at',
     aliasedName,
     true,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
@@ -33611,7 +33611,7 @@ class $SyncMetadataTable extends SyncMetadata
         data['${effectivePrefix}table_name'],
       )!,
       lastPulledAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.string,
         data['${effectivePrefix}last_pulled_at'],
       ),
       updatedAt: attachedDatabase.typeMapping.read(
@@ -33632,7 +33632,7 @@ class SyncMetadataData extends DataClass
   final String id;
   final String companyId;
   final String entityTableName;
-  final DateTime? lastPulledAt;
+  final String? lastPulledAt;
   final DateTime updatedAt;
   const SyncMetadataData({
     required this.id,
@@ -33648,7 +33648,7 @@ class SyncMetadataData extends DataClass
     map['company_id'] = Variable<String>(companyId);
     map['table_name'] = Variable<String>(entityTableName);
     if (!nullToAbsent || lastPulledAt != null) {
-      map['last_pulled_at'] = Variable<DateTime>(lastPulledAt);
+      map['last_pulled_at'] = Variable<String>(lastPulledAt);
     }
     map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
@@ -33675,7 +33675,7 @@ class SyncMetadataData extends DataClass
       id: serializer.fromJson<String>(json['id']),
       companyId: serializer.fromJson<String>(json['companyId']),
       entityTableName: serializer.fromJson<String>(json['entityTableName']),
-      lastPulledAt: serializer.fromJson<DateTime?>(json['lastPulledAt']),
+      lastPulledAt: serializer.fromJson<String?>(json['lastPulledAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
   }
@@ -33686,7 +33686,7 @@ class SyncMetadataData extends DataClass
       'id': serializer.toJson<String>(id),
       'companyId': serializer.toJson<String>(companyId),
       'entityTableName': serializer.toJson<String>(entityTableName),
-      'lastPulledAt': serializer.toJson<DateTime?>(lastPulledAt),
+      'lastPulledAt': serializer.toJson<String?>(lastPulledAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
   }
@@ -33695,7 +33695,7 @@ class SyncMetadataData extends DataClass
     String? id,
     String? companyId,
     String? entityTableName,
-    Value<DateTime?> lastPulledAt = const Value.absent(),
+    Value<String?> lastPulledAt = const Value.absent(),
     DateTime? updatedAt,
   }) => SyncMetadataData(
     id: id ?? this.id,
@@ -33748,7 +33748,7 @@ class SyncMetadataCompanion extends UpdateCompanion<SyncMetadataData> {
   final Value<String> id;
   final Value<String> companyId;
   final Value<String> entityTableName;
-  final Value<DateTime?> lastPulledAt;
+  final Value<String?> lastPulledAt;
   final Value<DateTime> updatedAt;
   final Value<int> rowid;
   const SyncMetadataCompanion({
@@ -33773,7 +33773,7 @@ class SyncMetadataCompanion extends UpdateCompanion<SyncMetadataData> {
     Expression<String>? id,
     Expression<String>? companyId,
     Expression<String>? entityTableName,
-    Expression<DateTime>? lastPulledAt,
+    Expression<String>? lastPulledAt,
     Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
   }) {
@@ -33791,7 +33791,7 @@ class SyncMetadataCompanion extends UpdateCompanion<SyncMetadataData> {
     Value<String>? id,
     Value<String>? companyId,
     Value<String>? entityTableName,
-    Value<DateTime?>? lastPulledAt,
+    Value<String?>? lastPulledAt,
     Value<DateTime>? updatedAt,
     Value<int>? rowid,
   }) {
@@ -33818,7 +33818,7 @@ class SyncMetadataCompanion extends UpdateCompanion<SyncMetadataData> {
       map['table_name'] = Variable<String>(entityTableName.value);
     }
     if (lastPulledAt.present) {
-      map['last_pulled_at'] = Variable<DateTime>(lastPulledAt.value);
+      map['last_pulled_at'] = Variable<String>(lastPulledAt.value);
     }
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
@@ -55959,7 +55959,7 @@ typedef $$SyncMetadataTableCreateCompanionBuilder =
       required String id,
       required String companyId,
       required String entityTableName,
-      Value<DateTime?> lastPulledAt,
+      Value<String?> lastPulledAt,
       Value<DateTime> updatedAt,
       Value<int> rowid,
     });
@@ -55968,7 +55968,7 @@ typedef $$SyncMetadataTableUpdateCompanionBuilder =
       Value<String> id,
       Value<String> companyId,
       Value<String> entityTableName,
-      Value<DateTime?> lastPulledAt,
+      Value<String?> lastPulledAt,
       Value<DateTime> updatedAt,
       Value<int> rowid,
     });
@@ -55997,7 +55997,7 @@ class $$SyncMetadataTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get lastPulledAt => $composableBuilder(
+  ColumnFilters<String> get lastPulledAt => $composableBuilder(
     column: $table.lastPulledAt,
     builder: (column) => ColumnFilters(column),
   );
@@ -56032,7 +56032,7 @@ class $$SyncMetadataTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get lastPulledAt => $composableBuilder(
+  ColumnOrderings<String> get lastPulledAt => $composableBuilder(
     column: $table.lastPulledAt,
     builder: (column) => ColumnOrderings(column),
   );
@@ -56063,7 +56063,7 @@ class $$SyncMetadataTableAnnotationComposer
     builder: (column) => column,
   );
 
-  GeneratedColumn<DateTime> get lastPulledAt => $composableBuilder(
+  GeneratedColumn<String> get lastPulledAt => $composableBuilder(
     column: $table.lastPulledAt,
     builder: (column) => column,
   );
@@ -56106,7 +56106,7 @@ class $$SyncMetadataTableTableManager
                 Value<String> id = const Value.absent(),
                 Value<String> companyId = const Value.absent(),
                 Value<String> entityTableName = const Value.absent(),
-                Value<DateTime?> lastPulledAt = const Value.absent(),
+                Value<String?> lastPulledAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => SyncMetadataCompanion(
@@ -56122,7 +56122,7 @@ class $$SyncMetadataTableTableManager
                 required String id,
                 required String companyId,
                 required String entityTableName,
-                Value<DateTime?> lastPulledAt = const Value.absent(),
+                Value<String?> lastPulledAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => SyncMetadataCompanion.insert(

@@ -296,6 +296,19 @@ Row(
 - PIN entry uses numpad (not TextField).
 - Buttons must be large enough for touch interaction (minimum 40px height).
 
+### Dialog Action Bars
+
+- Use `PosDialogActions` for button rows in dialogs (height, spacing, padding handled centrally).
+- `leading:` for left-aligned tool buttons (print, add item), `actions:` for right-aligned actions (Cancel, Save).
+- `expanded: true` for compact/numpad dialogs where buttons should fill full width.
+- Cancel/Close = `OutlinedButton`, Confirm = `FilledButton`, Destructive = `PosButtonStyles.destructiveOutlined`.
+
+### Global Button Theme
+
+- Button styles (`minimumSize`, `padding`, `shape`, `textStyle`) are defined once in `app.dart` → `_buildTheme`.
+- Applies to `FilledButton`, `OutlinedButton`, and `FilterChip` (`chipTheme`).
+- Do NOT override padding/shape/minimumSize on individual buttons unless justified.
+
 ---
 
 ## 17. Database Guidelines (Drift)

@@ -13,6 +13,8 @@ import '../../../l10n/app_localizations.dart';
 import '../../../core/utils/formatting_ext.dart';
 import '../../../core/utils/search_utils.dart';
 import '../../../core/widgets/pos_color_palette.dart';
+import '../../../core/widgets/pos_dialog_actions.dart';
+import '../../../core/widgets/pos_dialog_shell.dart';
 
 class DialogGridEditor extends ConsumerStatefulWidget {
   const DialogGridEditor({super.key});
@@ -294,49 +296,46 @@ class _DialogGridEditorState extends ConsumerState<DialogGridEditor> {
     final l = context.l10n;
     final result = await showDialog<_GridEditResult>(
       context: context,
-      builder: (_) => AlertDialog(
-        title: Text(l.gridEditorTitle),
-        content: SizedBox(
-          width: 350,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              SizedBox(
-                height: 44,
-                child: OutlinedButton(
-                  onPressed: () => _selectItem(context, allItems, l),
-                  child: Text(l.gridEditorItem),
-                ),
+      builder: (_) => PosDialogShell(
+        title: l.gridEditorTitle,
+        maxWidth: 400,
+        children: [
+          SizedBox(
+            height: 44,
+            child: OutlinedButton(
+              onPressed: () => _selectItem(context, allItems, l),
+              child: Text(l.gridEditorItem),
+            ),
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            height: 44,
+            child: OutlinedButton(
+              onPressed: () =>
+                  _selectCategory(context, allCategories, l),
+              child: Text(l.gridEditorCategory),
+            ),
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            height: 44,
+            child: OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Theme.of(context).colorScheme.error,
               ),
-              const SizedBox(height: 8),
-              SizedBox(
-                height: 44,
-                child: OutlinedButton(
-                  onPressed: () =>
-                      _selectCategory(context, allCategories, l),
-                  child: Text(l.gridEditorCategory),
-                ),
-              ),
-              const SizedBox(height: 8),
-              SizedBox(
-                height: 44,
-                child: OutlinedButton(
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Theme.of(context).colorScheme.error,
-                  ),
-                  onPressed: () =>
-                      Navigator.pop(context, _GridEditResult(clear: true)),
-                  child: Text(l.gridEditorClear),
-                ),
+              onPressed: () =>
+                  Navigator.pop(context, _GridEditResult(clear: true)),
+              child: Text(l.gridEditorClear),
+            ),
+          ),
+          const SizedBox(height: 16),
+          PosDialogActions(
+            actions: [
+              OutlinedButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(l.actionCancel),
               ),
             ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l.actionCancel),
           ),
         ],
       ),
@@ -397,19 +396,22 @@ class _DialogGridEditorState extends ConsumerState<DialogGridEditor> {
     final l = context.l10n;
     return showDialog<String?>(
       context: context,
-      builder: (_) => AlertDialog(
-        title: Text(l.gridEditorColor),
-        content: SizedBox(
-          width: 350,
-          child: PosColorPalette(
+      builder: (_) => PosDialogShell(
+        title: l.gridEditorColor,
+        maxWidth: 400,
+        children: [
+          PosColorPalette(
             selectedColor: null,
             onColorSelected: (color) => Navigator.pop(context, color),
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l.actionCancel),
+          const SizedBox(height: 16),
+          PosDialogActions(
+            actions: [
+              OutlinedButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(l.actionCancel),
+              ),
+            ],
           ),
         ],
       ),
@@ -431,42 +433,38 @@ class _DialogGridEditorState extends ConsumerState<DialogGridEditor> {
                 : sellableItems
                     .where((i) => normalizeSearch(i.name).contains(query))
                     .toList();
-            return AlertDialog(
-              title: Text(l.gridEditorSelectItem),
-              content: SizedBox(
-                width: 350,
-                height: 400,
-                child: Column(
-                  children: [
-                    TextField(
-                      autofocus: true,
-                      decoration: InputDecoration(
-                        hintText: l.searchHint,
-                        prefixIcon: const Icon(Icons.search),
-                        border: const OutlineInputBorder(),
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 8),
-                      ),
-                      onChanged: (v) =>
-                          setDialogState(() => query = normalizeSearch(v)),
-                    ),
-                    const SizedBox(height: 8),
-                    Expanded(
-                      child: ListView.builder(
-                        itemCount: filtered.length,
-                        itemBuilder: (context, index) {
-                          final item = filtered[index];
-                          return ListTile(
-                            title: Text(item.name),
-                            subtitle: Text(ref.money(item.unitPrice)),
-                            onTap: () => Navigator.pop(context, item),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
+            return PosDialogShell(
+              title: l.gridEditorSelectItem,
+              maxWidth: 420,
+              maxHeight: 500,
+              children: [
+                TextField(
+                  autofocus: true,
+                  decoration: InputDecoration(
+                    hintText: l.searchHint,
+                    prefixIcon: const Icon(Icons.search),
+                    border: const OutlineInputBorder(),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 8),
+                  ),
+                  onChanged: (v) =>
+                      setDialogState(() => query = normalizeSearch(v)),
                 ),
-              ),
+                const SizedBox(height: 8),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: filtered.length,
+                    itemBuilder: (context, index) {
+                      final item = filtered[index];
+                      return ListTile(
+                        title: Text(item.name),
+                        subtitle: Text(ref.money(item.unitPrice)),
+                        onTap: () => Navigator.pop(context, item),
+                      );
+                    },
+                  ),
+                ),
+              ],
             );
           },
         );
@@ -499,41 +497,37 @@ class _DialogGridEditorState extends ConsumerState<DialogGridEditor> {
                 : activeCategories
                     .where((c) => normalizeSearch(c.name).contains(query))
                     .toList();
-            return AlertDialog(
-              title: Text(l.gridEditorSelectCategory),
-              content: SizedBox(
-                width: 350,
-                height: 400,
-                child: Column(
-                  children: [
-                    TextField(
-                      autofocus: true,
-                      decoration: InputDecoration(
-                        hintText: l.searchHint,
-                        prefixIcon: const Icon(Icons.search),
-                        border: const OutlineInputBorder(),
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 8),
-                      ),
-                      onChanged: (v) =>
-                          setDialogState(() => query = normalizeSearch(v)),
-                    ),
-                    const SizedBox(height: 8),
-                    Expanded(
-                      child: ListView.builder(
-                        itemCount: filtered.length,
-                        itemBuilder: (context, index) {
-                          final cat = filtered[index];
-                          return ListTile(
-                            title: Text(cat.name),
-                            onTap: () => Navigator.pop(context, cat),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
+            return PosDialogShell(
+              title: l.gridEditorSelectCategory,
+              maxWidth: 420,
+              maxHeight: 500,
+              children: [
+                TextField(
+                  autofocus: true,
+                  decoration: InputDecoration(
+                    hintText: l.searchHint,
+                    prefixIcon: const Icon(Icons.search),
+                    border: const OutlineInputBorder(),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 8),
+                  ),
+                  onChanged: (v) =>
+                      setDialogState(() => query = normalizeSearch(v)),
                 ),
-              ),
+                const SizedBox(height: 8),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: filtered.length,
+                    itemBuilder: (context, index) {
+                      final cat = filtered[index];
+                      return ListTile(
+                        title: Text(cat.name),
+                        onTap: () => Navigator.pop(context, cat),
+                      );
+                    },
+                  ),
+                ),
+              ],
             );
           },
         );

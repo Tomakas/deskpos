@@ -855,6 +855,3 @@ String extractId(Map<String, dynamic> json) => json['id'] as String;
 DateTime? extractClientUpdatedAt(Map<String, dynamic> json) =>
     _parseDateTime(json['client_updated_at']);
 
-/// Extract the server updated_at timestamp from a Supabase JSON row.
-DateTime extractServerUpdatedAt(Map<String, dynamic> json) =>
-    _requireDateTime(json['updated_at']);

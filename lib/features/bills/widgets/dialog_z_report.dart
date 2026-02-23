@@ -13,6 +13,7 @@ import '../../../core/utils/formatters.dart';
 import '../../../core/utils/formatting_ext.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/printing/receipt_data.dart';
+import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../models/z_report_data.dart';
 
@@ -245,9 +246,8 @@ class DialogZReport extends ConsumerWidget {
                 ],
 
                 // --- Actions ---
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
+                PosDialogActions(
+                  actions: [
                     OutlinedButton(
                       onPressed: () async {
                         try {
@@ -265,7 +265,6 @@ class DialogZReport extends ConsumerWidget {
                       },
                       child: Text(l.zReportPrint),
                     ),
-                    const SizedBox(width: 8),
                     FilledButton.tonal(
                       onPressed: () => Navigator.pop(context),
                       child: Text(l.zReportClose),

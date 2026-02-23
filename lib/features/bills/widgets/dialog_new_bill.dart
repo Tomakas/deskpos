@@ -34,11 +34,18 @@ class _DialogNewBillState extends ConsumerState<DialogNewBill> {
   int _guestCount = 0;
   CustomerModel? _selectedCustomer;
   String? _customerName;
+  final _customerNameCtrl = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _guestCount = widget.initialNumberOfGuests;
+  }
+
+  @override
+  void dispose() {
+    _customerNameCtrl.dispose();
+    super.dispose();
   }
 
   @override
@@ -200,65 +207,43 @@ class _DialogNewBillState extends ConsumerState<DialogNewBill> {
                       // Customer
                       _FormRow(
                         label: '${l.newBillCustomer}:',
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: TextField(
-                                enabled: false,
-                                controller: TextEditingController(
-                                  text: _selectedCustomer != null
-                                      ? '${_selectedCustomer!.firstName} ${_selectedCustomer!.lastName}'
-                                      : _customerName ?? '',
-                                ),
-                                decoration: const InputDecoration(
-                                  isDense: true,
-                                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                ),
-                              ),
+                        child: TextField(
+                          controller: _customerNameCtrl,
+                          decoration: InputDecoration(
+                            isDense: true,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            suffixIcon: IconButton(
+                              icon: const Icon(Icons.search, size: 20),
+                              tooltip: l.customerSearch,
+                              onPressed: () async {
+                                final result = await showCustomerDbSearchDialog(context, ref);
+                                if (result != null && mounted) {
+                                  setState(() {
+                                    _selectedCustomer = result;
+                                    _customerName = null;
+                                    _customerNameCtrl.text =
+                                        '${result.firstName} ${result.lastName}';
+                                  });
+                                }
+                              },
                             ),
-                            const SizedBox(width: 8),
-                            SizedBox(
-                              width: 40,
-                              height: 40,
-                              child: IconButton(
-                                onPressed: () async {
-                                  final result = await showCustomerSearchDialogRaw(
-                                    context,
-                                    ref,
-                                    showRemoveButton: _selectedCustomer != null || _customerName != null,
-                                  );
-                                  if (result is CustomerModel) {
-                                    setState(() {
-                                      _selectedCustomer = result;
-                                      _customerName = null;
-                                    });
-                                  } else if (result is String) {
-                                    setState(() {
-                                      _customerName = result;
-                                      _selectedCustomer = null;
-                                    });
-                                  } else if (result != null && result is! CustomerModel) {
-                                    // _RemoveCustomer sentinel
-                                    setState(() {
-                                      _selectedCustomer = null;
-                                      _customerName = null;
-                                    });
-                                  }
-                                },
-                                icon: const Icon(Icons.search, size: 20),
-                              ),
-                            ),
-                          ],
+                          ),
+                          onChanged: (value) {
+                            setState(() {
+                              _customerName = value.trim().isEmpty ? null : value.trim();
+                              _selectedCustomer = null;
+                            });
+                          },
                         ),
                       ),
                       const SizedBox(height: 24),
                       // Bottom buttons
                       PosDialogActions(
+                        expanded: true,
                         actions: [
                           OutlinedButton(
-                            style: PosButtonStyles.destructiveOutlined(context),
                             onPressed: () => Navigator.pop(context),
-                            child: Text(l.actionCancel.toUpperCase()),
+                            child: Text(l.actionCancel),
                           ),
                           FilledButton(
                             onPressed: () {
@@ -271,7 +256,7 @@ class _DialogNewBillState extends ConsumerState<DialogNewBill> {
                                 navigateToSell: false,
                               ));
                             },
-                            child: Text(l.newBillSave.toUpperCase()),
+                            child: Text(l.newBillSave),
                           ),
                           if (widget.title == null)
                             FilledButton(
@@ -286,7 +271,7 @@ class _DialogNewBillState extends ConsumerState<DialogNewBill> {
                                   navigateToSell: true,
                                 ));
                               },
-                              child: Text(l.newBillOrder.toUpperCase()),
+                              child: Text(l.newBillOrder),
                             ),
                         ],
                       ),

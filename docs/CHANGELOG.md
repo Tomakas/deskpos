@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-02-23
+
+### UI — Sjednocení stylů tlačítek v dialogech
+- **Globální button theme** (`app.dart`): `minimumSize` width 160→0 (tlačítka se přizpůsobí obsahu), `padding` horizontal 16→6, přidán `chipTheme` s padding 6 a `labelPadding: zero` pro FilterChipy
+- **PosDialogActions**: Nový parametr `leading` pro levé nástrojové tlačítko (tisk, přidat položku) oddělené od pravých akcí. Nový parametr `expanded` (default `false`) — `false` = natural-width vpravo, `true` = roztažení na celou šířku (numpad dialogy)
+- **Migrace 22 dialogů** na `PosDialogActions` s konzistentními typy tlačítek: Cancel/Close = `OutlinedButton`, Confirm = `FilledButton`, Destructive = `PosButtonStyles.destructiveOutlined`
+- **Odstranění ad-hoc overridů**: Sjednocení výšky (44px default), spacingu (8px), odstranění explicitních fontSize/padding/height z jednotlivých dialogů
+
 ## 2026-02-22 (night)
 
 ### Sync

@@ -126,6 +126,7 @@
   "taxTypeMixed": "Mixed",
 
   "confirmDelete": "Are you sure you want to delete this item?",
+  "sellRemoveFromCart": "Remove this item from the cart?",
   "yes": "Yes",
   "no": "No",
 
@@ -538,9 +539,12 @@
   "mergeBillDescription": "Orders from this bill will be moved to the selected bill. Current bill will be cancelled.",
   "mergeBillNoBills": "No open bills to merge",
   "splitBillTitle": "Split Bill",
-  "splitBillSelectItems": "Select items to split",
   "splitBillPayButton": "Split and Pay",
   "splitBillNewBillButton": "Split to New Bill",
+  "splitBillSourceLabel": "Bill #{billNumber}",
+  "@splitBillSourceLabel": { "placeholders": { "billNumber": { "type": "String" } } },
+  "splitBillTargetLabel": "New bill",
+  "splitBillTotal": "Total",
 
   "catalogTabCustomers": "Customers",
   "customerFirstName": "First Name",
@@ -1075,5 +1079,27 @@
   "inventoryTypeSelective": "Selective",
   "inventoryTypeSelectiveDesc": "Manual item selection",
   "inventoryTypeContinue": "Continue",
-  "inventoryTypeNoItems": "No items to select"
+  "inventoryTypeNoItems": "No items to select",
+
+  "inventoryBlindMode": "Blind inventory",
+  "inventoryBlindModeDesc": "Without showing expected quantities",
+  "inventoryPrintTemplate": "Print template",
+  "inventoryResultTitle": "Inventory Results",
+  "inventoryResultSurplus": "Surplus",
+  "inventoryResultShortage": "Shortage",
+  "inventoryResultItemCount": "{count} items",
+  "@inventoryResultItemCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "inventoryResultApply": "Apply to stock",
+  "inventoryResultApplied": "Applied",
+  "inventoryResultPrint": "Print results",
+  "inventoryResultExpected": "Expected",
+  "inventoryResultActual": "Actual",
+  "inventoryPdfTemplateTitle": "INVENTORY — TEMPLATE",
+  "inventoryPdfResultsTitle": "INVENTORY — RESULTS",
+  "inventoryResultClose": "Close",
+  "inventoryResultNcValue": "PC"
 }

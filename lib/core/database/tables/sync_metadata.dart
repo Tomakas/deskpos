@@ -4,7 +4,7 @@ class SyncMetadata extends Table {
   TextColumn get id => text()();
   TextColumn get companyId => text()();
   TextColumn get entityTableName => text().named('table_name')();
-  DateTimeColumn get lastPulledAt => dateTime().nullable()();
+  TextColumn get lastPulledAt => text().nullable()();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 
   @override

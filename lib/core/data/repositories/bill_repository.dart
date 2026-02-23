@@ -1007,7 +1007,7 @@ class BillRepository {
   Future<Result<BillModel>> splitBill({
     required String sourceBillId,
     required String targetBillId,
-    required List<String> orderItemIds,
+    required List<({String orderItemId, double moveQuantity})> splitItems,
     required String userId,
     String? registerId,
   }) async {
@@ -1024,7 +1024,7 @@ class BillRepository {
         targetBillId: targetBillId,
         companyId: sourceBill.companyId,
         userId: userId,
-        orderItemIds: orderItemIds,
+        splitItems: splitItems,
         registerId: registerId,
       );
       if (splitResult case Failure(:final message)) {

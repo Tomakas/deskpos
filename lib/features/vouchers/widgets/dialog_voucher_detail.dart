@@ -50,7 +50,6 @@ class DialogVoucherDetail extends ConsumerWidget {
         _row(l.voucherIdLabel, voucher.id),
         const SizedBox(height: 16),
         PosDialogActions(
-          spacing: 12,
           actions: [
             OutlinedButton(
               onPressed: () => Navigator.pop(context),

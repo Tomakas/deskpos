@@ -1210,9 +1210,55 @@ Hodnoty ENUM jsou uloženy jako `TEXT` v lokální SQLite databázi. Drift `text
 
 ## Synchronizace (Etapa 3 — implementováno)
 
-> **Stav implementace:** Sync infrastruktura je funkční pro všech 40 doménových tabulek. Konfigurační entity (company_settings, sections, categories, items, tables, map_elements, payment_methods, tax_rates, users, suppliers, manufacturers, product_recipes, warehouses, reservations, vouchers, customers, customer_transactions, modifier_groups, modifier_group_items, item_modifier_groups, order_item_modifiers) dědí z `BaseCompanyScopedRepository` s automatickým outbox zápisem v transakci. Prodejní a provozní entity (bills, orders, order_items, payments, register_sessions, cash_movements, layout_items, user_permissions, shifts, stock_levels, stock_documents, stock_movements, registers, display_devices) používají ruční enqueue — vlastní repozitáře s injektovaným `SyncQueueRepository` a explicitním `_enqueue*` voláním po každé mutaci. Globální tabulky (currencies, roles, permissions, role_permissions) se pullují bez company_id filtru a pushují při initial sync. SyncService pulluje všech 40 tabulek v FK-respektujícím pořadí (veřejná konstanta `tableDependencyOrder`). ConnectCompanyScreen umožňuje připojení nového zařízení k existující firmě stažením dat přes InitialSync (pullAll). SyncLifecycleManager.companyRepos pro initial push (FK pořadí): company_settings, sections, tax_rates, payment_methods, categories, users, tables, map_elements, suppliers, manufacturers, items, modifier_groups, modifier_group_items, item_modifier_groups, product_recipes, customers, reservations, warehouses, customer_transactions, vouchers.
->
-> **Realtime sync (od Milníku 3.9, přepsáno na Broadcast from Database):** `RealtimeService` subscribuje Supabase Broadcast from Database na kanálu `sync:{companyId}`. Server-side AFTER INSERT OR UPDATE triggers (`trg_{table}_broadcast`) na 36 company-scoped tabulkách volají `realtime.send()` s kompletním řádkem jako JSON. Klient přijímá broadcasty přes `onBroadcast(event: 'change')` a deleguje na `SyncService.mergeRow` (LWW). Dual sync strategie: Broadcast from Database (primární, ~1-2s) + polling 30s (fallback). Immediate outbox flush: `SyncQueueRepository.onEnqueue` → `OutboxProcessor.nudge()` pro okamžitý push nových entries. Reconnect po výpadku triggerne okamžitý `pullAll`. 4 globální tabulky (currencies, roles, permissions, role_permissions) nemají triggery — synchronizují se pouze 30s pollingem.
+Offline-first architektura: lokální SQLite (Drift) je zdroj pravdy pro klienta. Změny se ukládají lokálně okamžitě a synchronizují se se Supabase asynchronně. Systém používá **tři mechanismy** pro sync dat mezi pokladnami a jeden **broadcast kanál** pro zákaznický displej:
+
+```mermaid
+flowchart TB
+    subgraph posA ["Pokladna A"]
+        A_REPO["Repository"]
+        A_DB[("SQLite")]
+        A_Q[("SyncQueue")]
+        A_REPO --> A_DB
+        A_REPO --> A_Q
+    end
+
+    subgraph supa ["Supabase Cloud"]
+        EF["Ingest Edge Function"]
+        PG[("PostgreSQL\n+ set_server_timestamps\n+ enforce_lww")]
+        BT["Broadcast Triggers\nrealtime.send()"]
+        BC["Broadcast Channel\ndisplay:{code}"]
+        EF -- "upsert\n(service_role)" --> PG
+        PG -- "AFTER trigger" --> BT
+    end
+
+    subgraph posB ["Pokladna B, C, ..."]
+        B_RT["RealtimeService"]
+        B_PULL["SyncService.pullTable()"]
+        B_MERGE["mergeRow() — LWW"]
+        B_DB[("SQLite")]
+        B_RT --> B_MERGE
+        B_PULL --> B_MERGE
+        B_MERGE --> B_DB
+    end
+
+    subgraph disp ["Zákaznický displej"]
+        D_UI["ScreenCustomerDisplay"]
+    end
+
+    A_Q == "① PUSH\noutbox ~sekundy" ==> EF
+    BT -- "② REALTIME\nsync:{companyId} <2s" --> B_RT
+    PG -. "③ PULL\npolling 30s" .-> B_PULL
+    A_REPO -. "④ DISPLAY\n~100ms" .-> BC -. "košík/idle" .-> D_UI
+```
+
+| # | Mechanismus | Směr | Latence | Kanál / Protokol |
+|---|------------|------|---------|------------------|
+| ① | **Push** (Outbox → Ingest EF) | klient → server | ~sekundy | Edge Function `ingest` |
+| ② | **Realtime** (Broadcast from Database) | server → klienti | <2s | Supabase Broadcast `sync:{companyId}` |
+| ③ | **Pull** (Watermark polling) | server → klient | 30s interval | Supabase REST `.gt('updated_at', cursor)` |
+| ④ | **Display** (Broadcast Channel) | pokladna → displej | ~100ms | Supabase Broadcast `display:{code}` |
+
+**36 company-scoped tabulek** se synchronizuje přes Push/Realtime/Pull. **4 globální tabulky** (currencies, roles, permissions, role_permissions) se pouze pullují (30s polling, bez broadcast triggerů).
 
 ### Outbox Pattern
 
@@ -1241,7 +1287,7 @@ Všechny outbox zápisy procházejí přes Supabase Edge Function `ingest` (`sup
 - Ověřuje company ownership (auth_user_id = JWT user)
 - Zapisuje do Supabase tabulek přes `service_role` (obchází RLS)
 - Loguje operace do `audit_log`
-- Podporuje operace: `insert`, `update`, `delete`
+- Vše prochází přes `upsert(payload, { onConflict: "id" })` — pole `operation` slouží pouze pro audit log, ne pro routing
 - **FK violation handling:** Při Postgres error `23503` (foreign key violation) vrací `error_type: "transient"` — klient retry po synchronizaci rodičovského řádku. Loguje jako `fk_pending` do audit_log.
 
 **Payload formát:**
@@ -1327,30 +1373,77 @@ graph TD
 **Supabase prerekvizita:**
 - Funkce `realtime.send()` musí být dostupná (Supabase late 2024+)
 - Migrace `20260222_001_add_broadcast_triggers.sql` vytvoří trigger funkce a triggery na 36 tabulkách
-- Stávající `supabase_realtime` publication není nadále využívána (žádný subscriber), lze v budoucnu odstranit
+- `supabase_realtime` publication není nadále využívána (žádný subscriber), nebude součástí budoucích nasazení
 
 ### Data Flow
 
-**Write (Create/Update/Delete):**
+**Write — kompletní cesta od UI po ostatní zařízení:**
 1. UI volá `repository.create(item)` / `repository.recordPayment(...)` apod.
 2. Repository uloží do lokální DB (Drift)
 3. Vytvoří se záznam v `sync_queue`:
-   - **Konfigurační entity:** Atomicky ve stejné transakci (BaseCompanyScopedRepository)
-   - **Prodejní entity:** Explicitní `_enqueue*` volání po mutaci (BillRepository, OrderRepository)
-   - **Custom metody** (clearDefault, setCell, incrementOrderCounter): Enqueue mimo base CRUD — volá `syncQueueRepo!.enqueue(...)` přímo
+   - **Konfigurační entity:** Atomicky ve stejné transakci (`BaseCompanyScopedRepository`)
+   - **Prodejní entity:** Explicitní `_enqueue*` volání po mutaci (`BillRepository`, `OrderRepository`)
+   - **Custom metody** (`clearDefault`, `setCell`, `incrementOrderCounter`): Enqueue mimo base CRUD — volá `syncQueueRepo!.enqueue(...)` přímo
 4. Repository vrátí úspěch UI (okamžitě)
-5. **Asynchronně** OutboxProcessor zpracuje frontu — odešle payload do Ingest Edge Function
+5. **Asynchronně** `OutboxProcessor` zpracuje frontu — odešle payload do Ingest Edge Function
+6. Ingest EF provede `upsert` do PostgreSQL přes `service_role`
+7. PostgreSQL trigger `set_server_timestamps()` nastaví `updated_at = now()` (watermark pro pull)
+8. PostgreSQL trigger `broadcast_sync_change()` odešle řádek přes `realtime.send()` do kanálu `sync:{companyId}`
+9. Ostatní zařízení přijmou broadcast → `RealtimeService._handleBroadcast` → `SyncService.mergeRow` (LWW)
 
 **Read:**
 1. UI volá `repository.watchAll(companyId)` nebo `getById(id)`
-2. Repository čte z lokální DB (Drift)
-3. **Pozadí**: SyncService pravidelně pulluje změny ze Supabase (30s interval)
+2. Repository čte z lokální DB (Drift) — data jsou vždy aktuální díky sync na pozadí
+3. **Pozadí:** Dvě cesty aktualizace lokální DB:
+   - **Realtime** (<2s): broadcast přijatý v kroku 9 výše
+   - **Pull** (30s): `SyncService.pullTable()` — watermark-based polling (viz Pull Sync níže)
+
+### Pull Sync — Watermark
+
+Pull je fallback mechanismus zajišťující konzistenci i při výpadku Broadcast kanálu.
+
+**Jak `pullTable()` funguje:**
+1. Načte watermark: `syncMetadataRepo.getLastPulledAt(companyId, tableName)` — ISO 8601 string uložený v `sync_metadata`
+2. Query na Supabase: `.from(tableName).select().eq('company_id', companyId).gt('updated_at', lastPulledAt).order('updated_at', ascending: true)`
+3. Pro každý řádek: `mergeRow()` (LWW merge do lokální DB)
+4. Uloží nový watermark: `max(updated_at)` z odpovědi → `syncMetadataRepo.setLastPulledAt(...)`
+
+**Klíčové detaily:**
+- Watermark je server-side `updated_at` (nastavený triggerem `set_server_timestamps`), ne klientský `client_updated_at`
+- Globální tabulky se pullují bez `company_id` filtru; tabulka `companies` se filtruje přes `.eq('id', companyId)`
+- `pullAll()` iteruje všech 40 tabulek v FK-respektujícím pořadí (`tableDependencyOrder`) — rodiče před dětmi
+- Guard `_isPulling` zabraňuje souběžným pullům
+- Chyba v jedné tabulce neblokuje pull ostatních
+
+### Zákaznický displej — Broadcast Channel
+
+Zákaznický displej **nepoužívá sync** (nemá lokální DB). Komunikuje přes samostatný Supabase Broadcast kanál `display:{deviceCode}`:
+
+```mermaid
+flowchart LR
+    SELL["ScreenSell\n(pokladna)"] -- "send(DisplayItems)" --> BC["Supabase Broadcast\ndisplay:{code}"]
+    BC -- "stream.listen()" --> DISP["ScreenCustomerDisplay\n(displej)"]
+```
+
+**Pokladna (ScreenSell):**
+- Při otevření prodeje najde zákaznický displej přiřazený k registru (`displayDeviceRepo.getByParentRegister`)
+- Připojí se na `display:{deviceCode}` přes `BroadcastChannel.join()`
+- Při změně košíku posílá `DisplayItems` (položky, ceny, modifikátory, celkem)
+- Při dokončení prodeje posílá `DisplayIdle`
+
+**Displej (ScreenCustomerDisplay):**
+- Připojí se na `display:{code}` (kód z URL parametru nebo SharedPreferences)
+- Přijímá tři typy zpráv: `DisplayItems` (košík), `DisplayMessage` (text s auto-clear), `DisplayIdle` (uvítací obrazovka)
+
+**Párování:** Displej se páruje přes 6-místný kód → RPC `lookup_display_device_by_code()` (SECURITY DEFINER, anon access) → vrátí `company_id` pro autentizaci.
 
 ### Conflict Resolution — Last Write Wins (LWW)
 
 #### 1. Server-side trigger (`enforce_lww`)
 
-PostgreSQL BEFORE UPDATE trigger `trg_{table}_lww` s funkcí `enforce_lww` je aktivní na všech 40 doménových tabulkách. Porovnává `client_updated_at` — pokud je příchozí timestamp starší než existující záznam, vyhodí výjimku `LWW_CONFLICT` (P0001). Ingest Edge Function tento error zachytí a vrátí klientovi `error_type: "lww_conflict"`.
+PostgreSQL BEFORE UPDATE trigger `trg_{table}_lww` s funkcí `enforce_lww` je aktivní na company-scoped tabulkách. Porovnává `client_updated_at` — pokud je příchozí timestamp starší než existující záznam, vyhodí výjimku `LWW_CONFLICT` (P0001). Ingest Edge Function tento error zachytí a vrátí klientovi `error_type: "lww_conflict"`.
+
+> **Poznámka:** Definice funkce `enforce_lww()` (i `set_server_timestamps()`) je součástí počátečního Supabase schématu, které předchází inkrementální migrace v tomto repozitáři. Triggery pro tabulky přidané později se vytváří v příslušných migracích (např. `20260221_001_add_modifier_tables.sql`).
 
 #### 2. Pull-side LWW
 
@@ -1375,7 +1468,7 @@ Když server odmítne push (`LWW_CONFLICT`), outbox processor označí entry jak
 
 `roles` (3), `permissions` (16), `role_permissions`, `currencies` jsou **globální** (bez `company_id`):
 - V Etapě 1–2: seedovány lokálně při onboardingu
-- Od Etapy 3: pull ze Supabase (bez company_id filtru), push při initial sync
+- Od Etapy 3: pull ze Supabase (bez company_id filtru); nejsou v ALLOWED_TABLES Ingest EF — klient je nepushuje
 - Aktuální design předpokládá 1 firma = 1 Supabase projekt
 
 > **Pozn.:** `payment_methods` nejsou read-only — mají plný CRUD od Etapy 1 (viz [Platební metody](#platební-metody)).
@@ -1423,12 +1516,8 @@ ALTER TABLE bills ADD COLUMN last_register_id text REFERENCES registers(id);
 ALTER TABLE bills ADD COLUMN register_session_id text REFERENCES register_sessions(id);
 ALTER TABLE bills ADD COLUMN customer_name text;
 
--- 3. Realtime publication
-ALTER PUBLICATION supabase_realtime ADD TABLE companies, company_settings, sections,
-  tax_rates, payment_methods, categories, users, user_permissions, tables, map_elements,
-  items, modifier_groups, modifier_group_items, item_modifier_groups, registers,
-  display_devices, layout_items, customers, reservations, bills, orders, order_items,
-  order_item_modifiers, payments, register_sessions, cash_movements, shifts;
+-- 3. Broadcast from Database triggers (see 20260222_001_add_broadcast_triggers.sql)
+-- Triggers on 36 tables call realtime.send() to push changes to sync:{company_id} channel.
 
 -- 4. Verify RLS SELECT policies allow company-scoped reads for all users
 ```
@@ -2176,14 +2265,37 @@ POS aplikace je **pracovní nástroj**, ne marketingový produkt. Design optimal
 
 ### Specifikace tlačítek
 
+Globální theme (`app.dart` → `_buildTheme`) definuje styl pro `FilledButton`, `OutlinedButton` a `FilterChip` na jednom místě.
+
 | Vlastnost | Hodnota |
 |-----------|---------|
 | Výška | 40–54 px (dle kontextu: FilterChips 40, dialog akce 44, payment 48, panelové 54) |
-| Min. šířka | 160 px |
-| Padding | 16 px horizontálně |
+| Min. šířka | žádná (tlačítka se přizpůsobí obsahu) |
+| Padding | 6 px horizontálně (tlačítka i chipy) |
 | Border radius | 8 px |
-| Font | Inter / Roboto, 15 px, weight 600 |
+| Font | Roboto, 15 px, weight 600 |
 | Pressed stav | Ztmavení + posun 1px / scale 0.98, 80-120ms |
+
+### PosDialogActions
+
+Centrální widget pro akční lištu dialogů (`lib/core/widgets/pos_dialog_actions.dart`). Zajišťuje konzistentní výšku, spacing a rozložení tlačítek.
+
+| Parametr | Default | Popis |
+|----------|---------|-------|
+| `actions` | povinný | Seznam akčních tlačítek (Cancel, Save, …) — zarovnány vpravo |
+| `leading` | `null` | Volitelné tlačítko vlevo (tisk, přidat položku, …) oddělené Spacerem |
+| `expanded` | `false` | `true` = tlačítka se roztáhnou na celou šířku (numpad/kompaktní dialogy) |
+| `height` | 44 px | Výška tlačítek |
+| `spacing` | 8 px | Mezera mezi tlačítky |
+
+**Konvence typů tlačítek v dialogech:**
+
+| Role | Widget | Styl |
+|------|--------|------|
+| Potvrzení / pozitivní | `FilledButton` | `PosButtonStyles.confirm(context)` (zelená) |
+| Neutrální akce | `FilledButton` / `FilledButton.tonal` | výchozí theme |
+| Zrušit / Zavřít / Zpět | `OutlinedButton` | výchozí (žádný barevný override) |
+| Destruktivní | `FilledButton` / `OutlinedButton` | `destructiveFilled` / `destructiveOutlined` |
 
 ### Příklady podle obrazovek
 

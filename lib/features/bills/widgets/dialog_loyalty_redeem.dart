@@ -139,7 +139,7 @@ class _DialogLoyaltyRedeemState extends ConsumerState<DialogLoyaltyRedeem> {
         const SizedBox(height: 16),
         // Bottom
         PosDialogActions(
-          height: 48,
+          expanded: true,
           actions: [
             OutlinedButton(
               onPressed: () => Navigator.pop(context),

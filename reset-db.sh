@@ -3,7 +3,10 @@ set -euo pipefail
 
 URL="https://rrnvlsguhkelracusofe.supabase.co/functions/v1/reset-db"
 
-echo "This will DELETE all company data and auth users from Supabase."
+LOCAL_DB="$HOME/Documents/epos_database.sqlite"
+
+echo "This will DELETE all company data and auth users from Supabase"
+echo "and remove the local SQLite database ($LOCAL_DB)."
 echo "Global data (currencies, roles, permissions) will be preserved."
 echo ""
 printf "Password: "
@@ -47,4 +50,12 @@ else
   echo "Failed (HTTP $http_code):"
   echo "$body"
   exit 1
+fi
+
+# Remove local SQLite database
+if [ -f "$LOCAL_DB" ]; then
+  rm -f "$LOCAL_DB"
+  echo "Local database deleted: $LOCAL_DB"
+else
+  echo "Local database not found (already clean)."
 fi

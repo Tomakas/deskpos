@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatting_ext.dart';
+import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_table.dart';
 import '../models/z_report_data.dart';
@@ -138,16 +139,14 @@ class _DialogZReportListState extends ConsumerState<DialogZReportList> {
           ),
         ),
         const SizedBox(height: 16),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
+        PosDialogActions(
+          actions: [
             if (widget.onVenueReport != null)
               OutlinedButton(
                 onPressed: () => widget.onVenueReport!(_dateFrom, _dateTo),
                 child: Text(l.zReportVenueReport),
               ),
-            if (widget.onVenueReport != null) const SizedBox(width: 8),
-            TextButton(
+            OutlinedButton(
               onPressed: () => Navigator.pop(context),
               child: Text(l.actionClose),
             ),

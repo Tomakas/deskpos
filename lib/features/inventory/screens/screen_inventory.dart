@@ -14,6 +14,7 @@ import '../../../core/utils/formatting_ext.dart';
 import '../../../core/widgets/pos_table.dart';
 import '../../../l10n/app_localizations.dart';
 import '../widgets/dialog_inventory.dart';
+import '../widgets/dialog_inventory_result.dart';
 import '../widgets/dialog_inventory_type.dart';
 import '../widgets/dialog_stock_document.dart';
 
@@ -77,33 +78,55 @@ class _ScreenInventoryState extends ConsumerState<ScreenInventory>
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l.inventoryTitle),
-        actions: [
-          FilledButton.icon(
-            onPressed: () => _openStockDocument(context, StockDocumentType.receipt),
-            icon: const Icon(Icons.add_box_outlined),
-            label: Text(l.inventoryReceipt),
-          ),
-          const SizedBox(width: 8),
-          FilledButton.tonalIcon(
-            onPressed: () => _openStockDocument(context, StockDocumentType.waste),
-            icon: const Icon(Icons.remove_circle_outline),
-            label: Text(l.inventoryWaste),
-          ),
-          const SizedBox(width: 8),
-          FilledButton.tonalIcon(
-            onPressed: () => _openStockDocument(context, StockDocumentType.correction),
-            icon: const Icon(Icons.edit_outlined),
-            label: Text(l.inventoryCorrection),
-          ),
-          const SizedBox(width: 8),
-          FilledButton.tonalIcon(
-            onPressed: () => _openInventoryDialog(context),
-            icon: const Icon(Icons.fact_check_outlined),
-            label: Text(l.inventoryInventory),
-          ),
-          const SizedBox(width: 16),
-        ],
+        title: Row(
+          children: [
+            Text(l.inventoryTitle),
+            const SizedBox(width: 16),
+            Expanded(
+              child: SizedBox(
+                height: 40,
+                child: FilledButton.icon(
+                  onPressed: () => _openStockDocument(context, StockDocumentType.receipt),
+                  icon: const Icon(Icons.add_box_outlined),
+                  label: Text(l.inventoryReceipt),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: SizedBox(
+                height: 40,
+                child: FilledButton.tonalIcon(
+                  onPressed: () => _openStockDocument(context, StockDocumentType.waste),
+                  icon: const Icon(Icons.remove_circle_outline),
+                  label: Text(l.inventoryWaste),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: SizedBox(
+                height: 40,
+                child: FilledButton.tonalIcon(
+                  onPressed: () => _openStockDocument(context, StockDocumentType.correction),
+                  icon: const Icon(Icons.edit_outlined),
+                  label: Text(l.inventoryCorrection),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: SizedBox(
+                height: 40,
+                child: FilledButton.tonalIcon(
+                  onPressed: () => _openInventoryDialog(context),
+                  icon: const Icon(Icons.fact_check_outlined),
+                  label: Text(l.inventoryInventory),
+                ),
+              ),
+            ),
+          ],
+        ),
         bottom: TabBar(
           controller: _tabController,
           tabs: [
@@ -157,18 +180,34 @@ class _ScreenInventoryState extends ConsumerState<ScreenInventory>
     final company = ref.read(currentCompanyProvider);
     if (company == null || _warehouseId == null) return;
 
-    final itemIds = await showDialog<Set<String>>(
+    // Step 1: Type selection
+    final typeResult = await showDialog<InventoryTypeResult>(
       context: context,
       builder: (_) => DialogInventoryType(companyId: company.id),
     );
-    if (itemIds == null || !context.mounted) return;
+    if (typeResult == null || !context.mounted) return;
 
-    await showDialog(
+    // Step 2: Inventory counting
+    final lines = await showDialog<List<InventoryLineWithName>>(
       context: context,
       builder: (_) => DialogInventory(
         companyId: company.id,
         warehouseId: _warehouseId!,
-        itemIds: itemIds.isEmpty ? null : itemIds,
+        itemIds: typeResult.itemIds.isEmpty ? null : typeResult.itemIds,
+        blindMode: typeResult.blindMode,
+      ),
+    );
+    if (lines == null || !context.mounted) return;
+
+    // Step 3: Results (only if there are differences)
+    if (!lines.any((l) => l.actualQuantity != l.currentQuantity)) return;
+
+    await showDialog(
+      context: context,
+      builder: (_) => DialogInventoryResult(
+        companyId: company.id,
+        warehouseId: _warehouseId!,
+        lines: lines,
       ),
     );
   }

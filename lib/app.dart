@@ -46,16 +46,20 @@ class EposApp extends ConsumerWidget {
       extensions: const [lightAppColors],
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          minimumSize: const Size(160, 52),
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          minimumSize: const Size(60, 52),
+          padding: const EdgeInsets.symmetric(horizontal: 6),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
         ),
       ),
+      chipTheme: const ChipThemeData(
+        padding: EdgeInsets.symmetric(horizontal: 6),
+        labelPadding: EdgeInsets.zero,
+      ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          minimumSize: const Size(160, 52),
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          minimumSize: const Size(60, 52),
+          padding: const EdgeInsets.symmetric(horizontal: 6),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
         ),

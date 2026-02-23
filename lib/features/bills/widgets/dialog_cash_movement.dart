@@ -86,25 +86,31 @@ class _DialogCashMovementState extends ConsumerState<DialogCashMovement> {
     final ctrl = TextEditingController(text: _note ?? '');
     final result = await showDialog<String>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(l.cashMovementNoteTitle),
-        content: TextField(
-          controller: ctrl,
-          decoration: InputDecoration(
-            border: const OutlineInputBorder(),
-            hintText: l.cashMovementNoteHint,
+      builder: (dialogContext) => PosDialogShell(
+        title: l.cashMovementNoteTitle,
+        maxWidth: 400,
+        children: [
+          TextField(
+            controller: ctrl,
+            decoration: InputDecoration(
+              border: const OutlineInputBorder(),
+              hintText: l.cashMovementNoteHint,
+            ),
+            maxLines: 2,
+            autofocus: true,
           ),
-          maxLines: 2,
-          autofocus: true,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: Text(l.actionCancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(dialogContext, ctrl.text),
-            child: Text(l.actionSave),
+          const SizedBox(height: 16),
+          PosDialogActions(
+            actions: [
+              OutlinedButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: Text(l.actionCancel),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(dialogContext, ctrl.text),
+                child: Text(l.actionSave),
+              ),
+            ],
           ),
         ],
       ),
@@ -138,7 +144,7 @@ class _DialogCashMovementState extends ConsumerState<DialogCashMovement> {
         const SizedBox(height: 16),
         // Bottom: Cancel + Note
         PosDialogActions(
-          height: 48,
+          expanded: true,
           actions: [
             OutlinedButton(
               onPressed: () => Navigator.pop(context),

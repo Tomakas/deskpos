@@ -7,7 +7,10 @@ import '../../../core/data/models/manufacturer_model.dart';
 import '../../../core/data/models/supplier_model.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
+
+typedef InventoryTypeResult = ({Set<String> itemIds, bool blindMode});
 
 enum _InventoryType { complete, byCategory, bySupplier, byManufacturer, selective }
 
@@ -23,6 +26,7 @@ class DialogInventoryType extends ConsumerStatefulWidget {
 class _DialogInventoryTypeState extends ConsumerState<DialogInventoryType> {
   _InventoryType? _selectedType;
   final _selectedIds = <String>{};
+  bool _blindMode = false;
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +47,7 @@ class _DialogInventoryTypeState extends ConsumerState<DialogInventoryType> {
           leading: const Icon(Icons.select_all),
           title: Text(l.inventoryTypeComplete),
           subtitle: Text(l.inventoryTypeCompleteDesc),
-          onTap: () => Navigator.pop(context, <String>{}),
+          onTap: () => Navigator.pop(context, (itemIds: <String>{}, blindMode: _blindMode)),
         ),
         ListTile(
           leading: const Icon(Icons.category),
@@ -69,6 +73,13 @@ class _DialogInventoryTypeState extends ConsumerState<DialogInventoryType> {
           subtitle: Text(l.inventoryTypeSelectiveDesc),
           onTap: () => setState(() => _selectedType = _InventoryType.selective),
         ),
+        const Divider(),
+        CheckboxListTile(
+          value: _blindMode,
+          title: Text(l.inventoryBlindMode),
+          subtitle: Text(l.inventoryBlindModeDesc),
+          onChanged: (v) => setState(() => _blindMode = v ?? false),
+        ),
       ],
     );
   }
@@ -83,17 +94,15 @@ class _DialogInventoryTypeState extends ConsumerState<DialogInventoryType> {
           child: _buildEntityList(),
         ),
         const SizedBox(height: 16),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            TextButton(
+        PosDialogActions(
+          actions: [
+            OutlinedButton(
               onPressed: () => setState(() {
                 _selectedType = null;
                 _selectedIds.clear();
               }),
               child: Text(l.actionCancel),
             ),
-            const SizedBox(width: 8),
             FilledButton(
               onPressed: _selectedIds.isEmpty ? null : _onContinue,
               child: Text(l.inventoryTypeContinue),
@@ -221,7 +230,7 @@ class _DialogInventoryTypeState extends ConsumerState<DialogInventoryType> {
 
   Future<void> _onContinue() async {
     if (_selectedType == _InventoryType.selective) {
-      Navigator.pop(context, _selectedIds);
+      Navigator.pop(context, (itemIds: _selectedIds, blindMode: _blindMode));
       return;
     }
 
@@ -256,6 +265,6 @@ class _DialogInventoryTypeState extends ConsumerState<DialogInventoryType> {
     }
 
     if (!mounted) return;
-    Navigator.pop(context, itemIds);
+    Navigator.pop(context, (itemIds: itemIds, blindMode: _blindMode));
   }
 }

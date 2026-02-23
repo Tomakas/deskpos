@@ -9,7 +9,7 @@ class SyncMetadataRepository {
 
   static const _uuid = Uuid();
 
-  Future<DateTime?> getLastPulledAt(String companyId, String tableName) async {
+  Future<String?> getLastPulledAt(String companyId, String tableName) async {
     final entry = await (_db.select(_db.syncMetadata)
           ..where((t) =>
               t.companyId.equals(companyId) & t.entityTableName.equals(tableName)))
@@ -20,7 +20,7 @@ class SyncMetadataRepository {
   Future<void> setLastPulledAt(
     String companyId,
     String tableName,
-    DateTime pulledAt,
+    String pulledAt,
   ) async {
     await _db.transaction(() async {
       final existing = await (_db.select(_db.syncMetadata)
