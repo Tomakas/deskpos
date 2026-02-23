@@ -402,8 +402,12 @@
   "paymentPrintReceipt": "Print Receipt",
   "paymentPrintYes": "YES",
   "paymentPrintNo": "NO",
-  "paymentTip": "Tip: {amount}",
+  "paymentTip": "+{amount} tip",
   "@paymentTip": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
+  "paymentRemaining": "Remaining {amount}",
+  "@paymentRemaining": {
     "placeholders": { "amount": { "type": "String" } }
   },
   "paymentBillSubtitle": "Bill {billNumber} - {tableName}",

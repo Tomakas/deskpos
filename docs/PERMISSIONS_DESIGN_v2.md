@@ -3,7 +3,7 @@
 > Konsolidovaný návrh práv pro EPOS Desktop POS.
 > Vychází z analýzy kódu, PROJECT.md, konkurence (Square, Toast, Lightspeed,
 > Clover, Revel, TouchBistro, Shopify, Loyverse, Dotykačka, Poster, Storyous)
-> a zpětné vazby z revize v1.
+> a zpětné vazby z revize v1 + gap analýzy.
 
 ---
 
@@ -23,11 +23,12 @@
    - [3.9 Vouchery](#39-vouchery-vouchers)
    - [3.10 Provoz — stoly a rezervace](#310-provoz--stoly-a-rezervace-venue)
    - [3.11 Reporty a analýzy](#311-reporty-a-analýzy-reports)
-   - [3.12 Data](#312-data-data)
-   - [3.13 Uživatelé a role](#313-uživatelé-a-role-users)
-   - [3.14 Nastavení — firma](#314-nastavení--firma-settings_company)
-   - [3.15 Nastavení — provozovna](#315-nastavení--provozovna-settings_venue)
-   - [3.16 Nastavení — pokladna](#316-nastavení--pokladna-settings_register)
+   - [3.12 Tisk](#312-tisk-printing)
+   - [3.13 Data](#313-data-data)
+   - [3.14 Uživatelé a role](#314-uživatelé-a-role-users)
+   - [3.15 Nastavení — firma](#315-nastavení--firma-settings_company)
+   - [3.16 Nastavení — provozovna](#316-nastavení--provozovna-settings_venue)
+   - [3.17 Nastavení — pokladna](#317-nastavení--pokladna-settings_register)
 4. [Přiřazení rolím](#4-přiřazení-rolím)
 5. [Budoucí rozšíření](#5-budoucí-rozšíření)
 6. [Architektonické poznámky](#6-architektonické-poznámky)
@@ -52,32 +53,42 @@ Většina operací (storno, refundace, slevy, pokladní operace, sklad) nemá
 
 | Metrika | Dnes | Nový návrh |
 |---------|------|------------|
-| Skupin | 7 | **16** |
-| Oprávnění | 16 | **92** |
-| Role | 3 | 3 (zachovány, rozšířeny) |
-| Kontrolováno | 2 | **92** |
+| Skupin | 7 | **17** |
+| Oprávnění | 16 | **106** |
+| Role | 3 | **4** (helper, operator, manager, admin) |
+| Kontrolováno | 2 | **106** |
+
+### Role
+
+| Role | Český název | Popis |
+|------|-------------|-------|
+| `helper` | Pomocník / Číšník | Základní obsluha — přijímá objednávky, inkasuje, vidí jen své věci |
+| `operator` | Směnový vedoucí | Řídí směnu — storna, refundace, slevy, pokladní operace, přehled směny |
+| `manager` | Manažer | Řídí provoz — katalog, sklad, reporty, zaměstnanci, nastavení provozovny |
+| `admin` | Administrátor / Majitel | Plný přístup — systémová nastavení, daně, data, role, destruktivní akce |
 
 ### Přehled skupin
 
 | # | Skupina | Prefix | Počet |
 |---|---------|--------|:-----:|
-| 1 | Objednávky | `orders.*` | 16 |
-| 2 | Platby | `payments.*` | 9 |
+| 1 | Objednávky | `orders.*` | 17 |
+| 2 | Platby | `payments.*` | 11 |
 | 3 | Slevy a ceny | `discounts.*` | 5 |
 | 4 | Pokladna | `register.*` | 7 |
 | 5 | Směny zaměstnanců | `shifts.*` | 4 |
-| 6 | Produkty a katalog | `products.*` | 9 |
-| 7 | Sklad | `stock.*` | 7 |
+| 6 | Produkty a katalog | `products.*` | 11 |
+| 7 | Sklad | `stock.*` | 8 |
 | 8 | Zákazníci a věrnost | `customers.*` | 4 |
 | 9 | Vouchery | `vouchers.*` | 3 |
 | 10 | Provoz — stoly a rezervace | `venue.*` | 3 |
-| 11 | Reporty a analýzy | `reports.*` | 4 |
-| 12 | Data | `data.*` | 3 |
-| 13 | Uživatelé a role | `users.*` | 4 |
-| 14 | Nastavení — firma | `settings_company.*` | 5 |
-| 15 | Nastavení — provozovna | `settings_venue.*` | 3 |
-| 16 | Nastavení — pokladna | `settings_register.*` | 6 |
-| | | **Celkem** | **92** |
+| 11 | Reporty a analýzy | `reports.*` | 5 |
+| 12 | Tisk | `printing.*` | 4 |
+| 13 | Data | `data.*` | 3 |
+| 14 | Uživatelé a role | `users.*` | 4 |
+| 15 | Nastavení — firma | `settings_company.*` | 7 |
+| 16 | Nastavení — provozovna | `settings_venue.*` | 3 |
+| 17 | Nastavení — pokladna | `settings_register.*` | 7 |
+| | | **Celkem** | **106** |
 
 ---
 
@@ -104,6 +115,7 @@ propojené workflow se sdílenými akcemi.
 | `orders.transfer` | Přesunout účet | Přesunout účet na jiný stůl nebo sekci |
 | `orders.split` | Rozdělit účet | Rozdělit účet na více účtů |
 | `orders.merge` | Sloučit účty | Spojit více účtů do jednoho |
+| `orders.assign_customer` | Přiřadit zákazníka | Přiřadit zákazníka k účtu/objednávce |
 | `orders.bump` | Posunout stav | Potvrdit přípravu nebo expedici položky |
 | `orders.bump_back` | Vrátit stav | Vrátit položku do předchozího stavu přípravy |
 
@@ -122,6 +134,8 @@ propojené workflow se sdílenými akcemi.
 | `payments.method_meal_ticket` | Platba stravenkami | Platba stravenkami (Sodexo, Up, Edenred apod.) |
 | `payments.method_credit` | Platba na kredit | Platba z kreditu zákazníka |
 | `payments.skip_cash_dialog` | Přeskočit dialog hotovosti | Dokončit hotovostní platbu bez zadání přijaté částky; bez tohoto oprávnění musí obsluha zadat kolik zákazník dal a systém zobrazí kolik vrátit |
+| `payments.accept_tip` | Přijmout spropitné | Přijmout spropitné při platbě |
+| `payments.adjust_tip` | Upravit spropitné | Upravit spropitné po zaplacení |
 
 ---
 
@@ -181,6 +195,8 @@ Evidence pracovních směn — příchod, odchod, docházka.
 | `products.manage_recipes` | Spravovat receptury | Vytvářet, upravovat a mazat receptury (BOM) |
 | `products.manage_purchase_price` | Měnit nákupní ceny | Upravit nákupní cenu produktu (i při naskladnění) |
 | `products.manage_tax` | Měnit daňové sazby | Přiřazovat a měnit daňové sazby na položkách |
+| `products.manage_suppliers` | Spravovat dodavatele | Vytvářet, upravovat a mazat dodavatele |
+| `products.manage_manufacturers` | Spravovat výrobce | Vytvářet, upravovat a mazat výrobce |
 | `products.set_availability` | Označit nedostupnost | Dočasně vyřadit položku z prodeje |
 
 ---
@@ -196,6 +212,7 @@ Evidence pracovních směn — příchod, odchod, docházka.
 | `stock.count` | Inventura | Provést inventurní sčítání |
 | `stock.transfer` | Přesun mezi sklady | Přesunout zboží mezi sklady |
 | `stock.set_price_strategy` | Změnit strategii NC | Měnit strategii změny nákupní ceny při příjmu (přepsat / zachovat / průměr / vážený průměr) |
+| `stock.manage_warehouses` | Spravovat sklady | Vytvořit, upravit a smazat sklady |
 
 ---
 
@@ -226,7 +243,7 @@ Provozní pohled na stoly a rezervace během směny. Zobrazení formou mapy
 nebo seznamu je uživatelská preference, ne oprávnění.
 
 > **Pozn.:** Konfigurace stolů, sekcí a půdorysu je v
-> [3.15 Nastavení — provozovna](#315-nastavení--provozovna-settings_venue).
+> [3.16 Nastavení — provozovna](#316-nastavení--provozovna-settings_venue).
 
 | Kód | Název | Popis |
 |-----|-------|-------|
@@ -244,10 +261,22 @@ nebo seznamu je uživatelská preference, ne oprávnění.
 | `reports.view_sales` | Přehled prodejů | Přístup k souhrnným prodejním datům |
 | `reports.view_financial` | Finanční reporty | Přístup k maržím, nákladům a daním |
 | `reports.view_staff` | Reporty zaměstnanců | Přehledy výkonu zaměstnanců |
+| `reports.view_tips` | Přehledy spropitného | Zobrazit přehledy spropitného |
 
 ---
 
-### 3.12 Data (`data`)
+### 3.12 Tisk (`printing`)
+
+| Kód | Název | Popis |
+|-----|-------|-------|
+| `printing.receipt` | Tisk účtenky | Vytisknout účtenku pro zákazníka |
+| `printing.reprint` | Opakovaný tisk | Znovu vytisknout již vytištěnou účtenku |
+| `printing.z_report` | Tisk Z-reportu | Vytisknout uzávěrkový report |
+| `printing.inventory_report` | Tisk inventurního reportu | Vytisknout skladový nebo inventurní report |
+
+---
+
+### 3.13 Data (`data`)
 
 Operace s daty — export, import, zálohy.
 
@@ -259,7 +288,7 @@ Operace s daty — export, import, zálohy.
 
 ---
 
-### 3.13 Uživatelé a role (`users`)
+### 3.14 Uživatelé a role (`users`)
 
 | Kód | Název | Popis |
 |-----|-------|-------|
@@ -270,7 +299,7 @@ Operace s daty — export, import, zálohy.
 
 ---
 
-### 3.14 Nastavení — firma (`settings_company`)
+### 3.15 Nastavení — firma (`settings_company`)
 
 Odpovídá obrazovce **Nastavení firmy** (info, zabezpečení, cloud, fiskální).
 
@@ -281,10 +310,12 @@ Odpovídá obrazovce **Nastavení firmy** (info, zabezpečení, cloud, fiskáln�
 | `settings_company.fiscal` | Fiskální nastavení | Nastavit EET, fiskalizaci a tiskové povinnosti |
 | `settings_company.cloud` | Cloud a synchronizace | Spravovat synchronizaci, přihlášení a migraci dat |
 | `settings_company.data_wipe` | Smazat data | Provést factory reset nebo smazání všech dat |
+| `settings_company.view_log` | Zobrazit systémový log | Zobrazit diagnostický a systémový log |
+| `settings_company.clear_log` | Smazat log | Smazat / vyčistit systémový log |
 
 ---
 
-### 3.15 Nastavení — provozovna (`settings_venue`)
+### 3.16 Nastavení — provozovna (`settings_venue`)
 
 Odpovídá obrazovce **Nastavení provozovny** (sekce, stoly, půdorys).
 
@@ -296,7 +327,7 @@ Odpovídá obrazovce **Nastavení provozovny** (sekce, stoly, půdorys).
 
 ---
 
-### 3.16 Nastavení — pokladna (`settings_register`)
+### 3.17 Nastavení — pokladna (`settings_register`)
 
 Odpovídá obrazovce **Nastavení pokladny** (terminály, hardware, grid, displeje).
 
@@ -308,6 +339,7 @@ Odpovídá obrazovce **Nastavení pokladny** (terminály, hardware, grid, disple
 | `settings_register.displays` | Spravovat displeje | Konfigurovat zákaznické a kuchyňské displeje |
 | `settings_register.payment_methods` | Platební metody | Vytvářet, upravovat a mazat platební metody |
 | `settings_register.tax_rates` | Daňové sazby | Vytvářet, upravovat a mazat daňové sazby |
+| `settings_register.manage_devices` | Správa zobrazovacích zařízení | Spravovat KDS a zákaznické displeje jako zařízení |
 
 ---
 
@@ -315,14 +347,15 @@ Odpovídá obrazovce **Nastavení pokladny** (terminály, hardware, grid, disple
 
 ### 4.1 Helper (Pomocník / Číšník)
 
-> **17 oprávnění.** Základní provoz — vidí jen své věci, nemůže stornovat,
-> refundovat, dávat slevy ani měnit nastavení. V info panelu objednávek vidí
-> pouze čas, stav a název (bez cen a modifikátorů).
+> **20 oprávnění.** Základní provoz — přijímá objednávky, inkasuje platby,
+> vidí jen své věci, nemůže stornovat, refundovat, dávat slevy ani měnit
+> nastavení. V info panelu objednávek vidí pouze čas, stav a název
+> (bez cen a modifikátorů).
 
 | Skupina | Oprávnění | Počet |
 |---------|-----------|:-----:|
-| orders | `create`, `view`, `edit`, `bump` | 4 |
-| payments | `accept`, `method_cash`, `method_card` | 3 |
+| orders | `create`, `view`, `edit`, `assign_customer`, `bump` | 5 |
+| payments | `accept`, `method_cash`, `method_card`, `accept_tip` | 4 |
 | discounts | — | 0 |
 | register | `view_session` | 1 |
 | shifts | `clock_in_out`, `view_own` | 2 |
@@ -332,24 +365,26 @@ Odpovídá obrazovce **Nastavení pokladny** (terminály, hardware, grid, disple
 | vouchers | `view`, `redeem` | 2 |
 | venue | `view`, `reservations_view` | 2 |
 | reports | `view_own` | 1 |
+| printing | `receipt` | 1 |
 | data | — | 0 |
 | users | — | 0 |
 | settings_company | — | 0 |
 | settings_venue | — | 0 |
 | settings_register | — | 0 |
-| | **Celkem** | **17** |
+| | **Celkem** | **20** |
 
 ---
 
 ### 4.2 Operator (Směnový vedoucí)
 
-> **55 oprávnění.** Vše od helpera + storna, refundace, slevy, pokladní
+> **62 oprávnění.** Vše od helpera + storna, refundace, slevy, pokladní
 > operace, odpisy, správa zákazníků a rezervací. Plný detail v objednávkách.
+> Řídí provoz během směny.
 
 | Skupina | Navíc oproti helper | Celkem |
 |---------|---------------------|:------:|
-| orders | + `view_all`, `view_paid`, `view_cancelled`, `view_detail`, `edit_others`, `void_item`, `void_bill`, `transfer`, `split`, `merge`, `bump_back` | 15 |
-| payments | + `refund`, `refund_item`, `method_voucher`, `method_meal_ticket`, `method_credit`, `skip_cash_dialog` | 9 |
+| orders | + `view_all`, `view_paid`, `view_cancelled`, `view_detail`, `edit_others`, `void_item`, `void_bill`, `transfer`, `split`, `merge`, `bump_back` | 16 |
+| payments | + `refund`, `refund_item`, `method_voucher`, `method_meal_ticket`, `method_credit`, `skip_cash_dialog`, `adjust_tip` | 11 |
 | discounts | + `apply_item`, `apply_bill`, `custom`, `loyalty` | 4 |
 | register | + `open_session`, `close_session`, `view_all_sessions`, `cash_in`, `cash_out`, `open_drawer` | 7 |
 | shifts | + `view_all` | 3 |
@@ -358,64 +393,106 @@ Odpovídá obrazovce **Nastavení pokladny** (terminály, hardware, grid, disple
 | customers | + `manage`, `manage_credit` | 3 |
 | vouchers | + `manage` | 3 |
 | venue | + `reservations_manage` | 3 |
-| reports | + `view_sales`, `view_staff` | 3 |
+| reports | + `view_sales`, `view_staff`, `view_tips` | 4 |
+| printing | + `reprint`, `z_report` | 3 |
 | data | — | 0 |
 | users | + `view` | 1 |
 | settings_company | — | 0 |
 | settings_venue | — | 0 |
 | settings_register | — | 0 |
-| | **Celkem** | **55** |
+| | **Celkem** | **62** |
 
 ---
 
-### 4.3 Admin (Administrátor / Majitel)
+### 4.3 Manager (Manažer)
 
-> **92 oprávnění (vše).** Vše od operátora + správa produktů, skladu,
-> uživatelů, všech nastavení, export, import, zálohy a destruktivní akce.
+> **85 oprávnění.** Vše od operátora + správa katalogu (produkty, kategorie,
+> modifikátory, receptury, dodavatelé, výrobci), skladu (příjem, korekce,
+> inventura, přesun), zaměstnanců, finanční reporty, nastavení provozovny
+> a export dat. Řídí celý provoz na denní bázi.
 
 | Skupina | Navíc oproti operator | Celkem |
 |---------|----------------------|:------:|
-| orders | + `reopen` | 16 |
-| payments | — | 9 |
-| discounts | + `price_override` | 5 |
+| orders | + `reopen` | 17 |
+| payments | — | 11 |
+| discounts | — | 4 |
 | register | — | 7 |
 | shifts | + `manage` | 4 |
-| products | + `view_cost`, `manage`, `manage_categories`, `manage_modifiers`, `manage_recipes`, `manage_purchase_price`, `manage_tax` | 9 |
-| stock | + `receive`, `adjust`, `count`, `transfer`, `set_price_strategy` | 7 |
+| products | + `view_cost`, `manage`, `manage_categories`, `manage_modifiers`, `manage_recipes`, `manage_suppliers`, `manage_manufacturers` | 9 |
+| stock | + `receive`, `adjust`, `count`, `transfer` | 6 |
 | customers | + `manage_loyalty` | 4 |
 | vouchers | — | 3 |
 | venue | — | 3 |
-| reports | + `view_financial` | 4 |
-| data | + `export`, `import`, `backup` | 3 |
-| users | + `manage`, `assign_roles`, `manage_permissions` | 4 |
-| settings_company | + `info`, `security`, `fiscal`, `cloud`, `data_wipe` | 5 |
+| reports | + `view_financial` | 5 |
+| printing | + `inventory_report` | 4 |
+| data | + `export` | 1 |
+| users | + `manage` | 2 |
+| settings_company | — | 0 |
 | settings_venue | + `sections`, `tables`, `floor_plan` | 3 |
-| settings_register | + `manage`, `hardware`, `grid`, `displays`, `payment_methods`, `tax_rates` | 6 |
-| | **Celkem** | **92** |
+| settings_register | + `grid`, `displays` | 2 |
+| | **Celkem** | **85** |
 
 ---
 
-### 4.4 Souhrnná matice
+### 4.4 Admin (Administrátor / Majitel)
 
-| Skupina | Počet | helper | operator | admin |
-|---------|:-----:|:------:|:--------:|:-----:|
-| orders | 16 | 4 | 15 | 16 |
-| payments | 9 | 3 | 9 | 9 |
-| discounts | 5 | 0 | 4 | 5 |
-| register | 7 | 1 | 7 | 7 |
-| shifts | 4 | 2 | 3 | 4 |
-| products | 9 | 1 | 2 | 9 |
-| stock | 7 | 0 | 2 | 7 |
-| customers | 4 | 1 | 3 | 4 |
-| vouchers | 3 | 2 | 3 | 3 |
-| venue | 3 | 2 | 3 | 3 |
-| reports | 4 | 1 | 3 | 4 |
-| data | 3 | 0 | 0 | 3 |
-| users | 4 | 0 | 1 | 4 |
-| settings_company | 5 | 0 | 0 | 5 |
-| settings_venue | 3 | 0 | 0 | 3 |
-| settings_register | 6 | 0 | 0 | 6 |
-| **Celkem** | **92** | **17** | **55** | **92** |
+> **106 oprávnění (vše).** Vše od manažera + systémová nastavení firmy,
+> správa daní a nákupních cen, cenová strategie, sklady, role a oprávnění
+> uživatelů, import/záloha dat, registr a hardware, destruktivní akce.
+
+| Skupina | Navíc oproti manager | Celkem |
+|---------|---------------------|:------:|
+| orders | — | 17 |
+| payments | — | 11 |
+| discounts | + `price_override` | 5 |
+| register | — | 7 |
+| shifts | — | 4 |
+| products | + `manage_purchase_price`, `manage_tax` | 11 |
+| stock | + `set_price_strategy`, `manage_warehouses` | 8 |
+| customers | — | 4 |
+| vouchers | — | 3 |
+| venue | — | 3 |
+| reports | — | 5 |
+| printing | — | 4 |
+| data | + `import`, `backup` | 3 |
+| users | + `assign_roles`, `manage_permissions` | 4 |
+| settings_company | + `info`, `security`, `fiscal`, `cloud`, `data_wipe`, `view_log`, `clear_log` | 7 |
+| settings_venue | — | 3 |
+| settings_register | + `manage`, `hardware`, `payment_methods`, `tax_rates`, `manage_devices` | 7 |
+| | **Celkem** | **106** |
+
+---
+
+### 4.5 Souhrnná matice
+
+| Skupina | Počet | helper | operator | manager | admin |
+|---------|:-----:|:------:|:--------:|:-------:|:-----:|
+| orders | 17 | 5 | 16 | 17 | 17 |
+| payments | 11 | 4 | 11 | 11 | 11 |
+| discounts | 5 | 0 | 4 | 4 | 5 |
+| register | 7 | 1 | 7 | 7 | 7 |
+| shifts | 4 | 2 | 3 | 4 | 4 |
+| products | 11 | 1 | 2 | 9 | 11 |
+| stock | 8 | 0 | 2 | 6 | 8 |
+| customers | 4 | 1 | 3 | 4 | 4 |
+| vouchers | 3 | 2 | 3 | 3 | 3 |
+| venue | 3 | 2 | 3 | 3 | 3 |
+| reports | 5 | 1 | 4 | 5 | 5 |
+| printing | 4 | 1 | 3 | 4 | 4 |
+| data | 3 | 0 | 0 | 1 | 3 |
+| users | 4 | 0 | 1 | 2 | 4 |
+| settings_company | 7 | 0 | 0 | 0 | 7 |
+| settings_venue | 3 | 0 | 0 | 3 | 3 |
+| settings_register | 7 | 0 | 0 | 2 | 7 |
+| **Celkem** | **106** | **20** | **62** | **85** | **106** |
+
+### 4.6 Progrese mezi rolemi
+
+| Přechod | Nových oprávnění | Hlavní oblasti |
+|---------|:----------------:|----------------|
+| helper → operator | +42 | Storna, refundace, slevy, pokladní operace, přehled směny |
+| operator → manager | +23 | Katalog, sklad, zaměstnanci, finanční reporty, nastavení provozovny |
+| manager → admin | +21 | Systém, daně, ceny, data, role, hardware, destruktivní akce |
 
 ---
 
@@ -449,7 +526,8 @@ Oprávnění připravená v architektuře, ale ne v prvním releasu.
 
 ### 6.2 Co se mění
 
-- **Seed data:** 16 → 92 řádků v `permissions`, proporcionálně v `role_permissions`
+- **Seed data:** 16 → 106 řádků v `permissions`, proporcionálně v `role_permissions`
+- **Role:** Přidání nové role `manager` do tabulky `roles`
 - **Enforcement:** Přidání `hasPermissionProvider` kontrol do obrazovek, dialogů
   a repozitářů
 
@@ -482,7 +560,7 @@ Není nutné pro MVP, ale architektura by s tím měla počítat.
 Dočasné povýšení oprávnění:
 
 1. Číšník (helper) chce provést storno
-2. Systém požádá o PIN nadřízeného (operator / admin)
+2. Systém požádá o PIN nadřízeného (operator / manager / admin)
 3. Nadřízený zadá svůj PIN
 4. Akce se provede a zaloguje pod oba uživatele
 5. Oprávnění se nezmění trvale
@@ -495,12 +573,12 @@ Vhodné pro: storna, refundace, ruční slevy, otevření zásuvky.
 
 | Metrika | EPOS (dnes) | EPOS (v2) | Square | Toast | Lightspeed | Dotykačka | Shopify |
 |---------|:-----------:|:---------:|:------:|:-----:|:----------:|:---------:|:-------:|
-| Skupin | 7 | **16** | ~6 | 5 | 7 | 3 | ~8 |
-| Oprávnění | 16 | **92** | ~19 | ~30 | ~25 | ~20+ | ~15 |
-| Role | 3 | 3 | 3+C | job | 3+C | per-dom | 1+C |
+| Skupin | 7 | **17** | ~6 | 5 | 7 | 3 | ~8 |
+| Oprávnění | 16 | **106** | ~19 | ~30 | ~25 | ~20+ | ~15 |
+| Role | 3 | **4** | 3+C | job | 3+C | per-dom | 1+C |
 | Tří-stav | — | Prepared | Yes | — | Yes | — | Yes |
 | Elevated PIN | — | Prepared | Yes | Yes | Yes | — | Yes |
-| Enforced | 2 | **92** | All | All | All | All | All |
+| Enforced | 2 | **106** | All | All | All | All | All |
 
 > **Legenda:** C = custom roles, job = job-based, per-dom = per-domain accounts
 

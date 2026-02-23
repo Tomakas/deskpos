@@ -1002,7 +1002,12 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String paymentTip(String amount) {
-    return 'Spropitné: $amount';
+    return '+$amount spropitné';
+  }
+
+  @override
+  String paymentRemaining(String amount) {
+    return 'Zbývá $amount';
   }
 
   @override

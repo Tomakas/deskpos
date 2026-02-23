@@ -2,7 +2,7 @@
 
 > Konsolidovaná dokumentace projektu EPOS Desktop App.
 >
-> **Poslední aktualizace:** 2026-02-13
+> **Poslední aktualizace:** 2026-02-23
 
 ---
 
@@ -72,9 +72,9 @@ Admin vytvoří firmu, nastaví uživatele, stoly a produkty. Více uživatelů 
 
 #### Milník 1.4 — Oprávnění (engine)
 
-- **Task1.10** Permission engine — 16 permissions, O(1) check přes in-memory Set
-- **Task1.11** Role šablony — helper (6), operator (11), admin (16)
-- **Výsledek:** Permission engine a role šablony jsou připraveny. Admin má všech 16 oprávnění.
+- **Task1.10** Permission engine — 106 permissions v 17 skupinách, O(1) check přes in-memory Set
+- **Task1.11** Role šablony — helper (20), operator (62), manager (85), admin (106)
+- **Výsledek:** Permission engine a role šablony jsou připraveny. Admin má všech 106 oprávnění.
 
 #### Milník 1.5 — Hlavní obrazovka
 
@@ -208,9 +208,9 @@ Funkce, které nejsou nezbytné pro základní prodej, ale rozšiřují možnost
 - **Task3.23** ✅ StockLevelRepository — getOrCreate (lazy init), watchByWarehouse (JOIN s items pro název/unit/purchasePrice), adjustQuantity (delta), setQuantity (absolutní), setMinQuantity. Injektovaný SyncQueueRepository.
 - **Task3.24** ✅ StockDocumentRepository — createDocument (transakce: insert document + movements + adjust stock_levels + update purchase_price dle strategie per položka, enqueue všech dotčených entit). createInventoryDocument (difference-based movements). Logika nákupní ceny: per položka zjistí strategii (item override ?? document strategy), aplikuje dle typu (overwrite/keep/average/weightedAverage). watchByWarehouse, generateDocumentNumber (R-001/W-001/I-001/C-001).
 - **Task3.25** ✅ Automatický odpis v OrderRepository — modifikace `createOrderWithItems`: po insertu pro každý isStockTracked item vytvořit stock_movement (bez stock_document_id). Receptury: rozpad přes product_recipes, odečtení ingrediencí. Modifikace `updateStatus`: při cancelled/voided reverzní stock_movements. Nové závislosti: StockLevelRepository, StockMovementRepository.
-- **Task3.26** ✅ ScreenInventory — fullscreen route `/inventory`, 2 taby (Zásoby + Doklady). Tab Zásoby: DataTable se stock-tracked položkami (Položka, Jednotka, Množství, Min.množství, Nákupní cena, Celková hodnota) + footer s celkovou hodnotou skladu. Tab Doklady: DataTable se skladovými doklady (Číslo, Typ, Datum, Dodavatel, Poznámka, Celkem). Tlačítka: Příjemka, Výdejka, Inventura, Oprava. Přístup: tlačítko SKLAD na ScreenBills.
+- **Task3.26** ✅ ScreenInventory — fullscreen route `/inventory`, 3 taby (Zásoby, Doklady, Pohyby). Tab Zásoby: DataTable se stock-tracked položkami (Položka, Jednotka, Množství, Min.množství, Nákupní cena, Celková hodnota) + footer s celkovou hodnotou skladu. Tab Doklady: DataTable se skladovými doklady (Číslo, Typ, Datum, Dodavatel, Poznámka, Celkem). Tab Pohyby: DataTable s historií skladových pohybů s vyhledáváním. Tlačítka: Příjemka, Výdejka, Inventura, Oprava. Přístup: tlačítko SKLAD na ScreenBills.
 - **Task3.27** ✅ DialogStockDocument — znovupoužitelný dialog pro příjemku/výdejku/opravu. Pole: dodavatel (dropdown, jen receipt), strategie ceny (dropdown + per-item override, jen receipt), seznam položek (search + quantity + price). Validace: ≥1 položka.
-- **Task3.28** ✅ DialogInventory — seznam stock-tracked položek s aktuálním stavem + pole pro skutečný stav. Systém vypočítá diff, vytvoří stock_movements a jeden stock_document typu `inventory`.
+- **Task3.28** ✅ Inventura — 3-krokový flow: (1) `DialogInventoryType` — výběr scope inventury (blind mode, filtr položek), (2) `DialogInventory` — zadání skutečných stavů, (3) `DialogInventoryResult` — zobrazení rozdílů a potvrzení. Výsledek vytvoří stock_movements a jeden stock_document typu `inventory`.
 - **Výsledek:** Plné skladové hospodářství s evidencí zásob, příjemkami, výdejkami, automatickým odpisem při prodeji (s rozpadem receptur), inventurami a plnou synchronizací přes outbox.
 
 #### Milník 3.6 — Tisk
@@ -218,7 +218,7 @@ Funkce, které nejsou nezbytné pro základní prodej, ale rozšiřují možnost
 - ✅ Účtenka — PDF 80mm šířka (thermal receipt styl), generováno lokálně přes `pdf` package, otevřeno v systémovém prohlížeči. Obsahuje: hlavička firmy (název, adresa, IČO, DIČ), info účtu, položky se slevami, DPH rekapitulace, platby se spropitným, patička.
 - ✅ Z-report — PDF A4, kopíruje strukturu `DialogZReport` (session info, tržby, DPH, spropitné, slevy, počty účtů, cash reconciliation, směny).
 - ✅ Fonty — bundled Roboto TTF (české diakritické znaky) v `assets/fonts/`.
-- ✅ Infrastruktura — `lib/core/printing/` (PdfFontLoader, ReceiptData, ReceiptPdfBuilder, ZReportPdfBuilder, PrintingService), provider v `lib/core/data/providers/printing_providers.dart`.
+- ✅ Infrastruktura — `lib/core/printing/` (PdfFontLoader, ReceiptData, ReceiptPdfBuilder, ZReportPdfBuilder, InventoryPdfBuilder, PrintingService), provider v `lib/core/data/providers/printing_providers.dart`.
 - **Task3.30** Tisk reportů — tržby, prodeje dle kategorií/zaměstnanců (backlog)
 - **Výsledek:** Lze tisknout účtenky a denní uzávěrky do PDF. Kuchyňské tisky a tisk reportů mimo scope v1.
 
@@ -737,7 +737,7 @@ Deklarativní routing s auth guardem:
 /settings/venue      → ScreenVenueSettings (Sekce, Stoly, Mapa podlaží) — vyžaduje settings.manage
 /settings/register   → ScreenRegisterSettings (Režim, Prodej) — vyžaduje settings.manage
 /catalog             → ScreenCatalog (7 tabů: Produkty, Kategorie, Skupiny modifikátorů, Dodavatelé, Výrobci, Receptury, Zákazníci) — vyžaduje settings.manage
-/inventory           → ScreenInventory (2 taby: Zásoby, Doklady) + akční tlačítka (Příjemka, Výdejka, Oprava, Inventura) — vyžaduje settings.manage
+/inventory           → ScreenInventory (3 taby: Zásoby, Doklady, Pohyby) + akční tlačítka (Příjemka, Výdejka, Oprava, Inventura) — vyžaduje settings.manage
 /orders              → ScreenOrders (přehled objednávek, kartový seznam, filtry, akce) — vyžaduje orders.view
 /kds                 → ScreenKds (kuchyňský displej, touch-optimized grid, status bumping) — volba na login obrazovce
 /vouchers            → ScreenVouchers (správa voucherů) — vyžaduje settings.manage
@@ -747,7 +747,7 @@ Deklarativní routing s auth guardem:
 
 **Auth guard:** Router čeká na `appInitProvider`. Nepřihlášený uživatel je přesměrován na `/login`. Pokud neexistuje firma, přesměrování na `/onboarding`. Po přihlášení se z auth/onboarding stránek přesměruje na `/bills` (POS režim) nebo `/kds` (KDS režim — dle volby na login obrazovce).
 
-**Permission guard:** Routy `/settings/*`, `/catalog`, `/vouchers` a `/inventory` vyžadují oprávnění `settings.manage`. Routa `/orders` vyžaduje `orders.view`. Route `/kds` nemá permission guard (režim se volí při přihlášení). Route `/customer-display` a `/display-code` nemají permission guard (veřejný displej). Bez oprávnění se uživatel přesměruje na `/bills`.
+**Permission guard:** Routy `/settings/*` vyžadují odpovídající `settings_company.*` / `settings_venue.*` / `settings_register.*` oprávnění. `/catalog` vyžaduje `products.view`, `/vouchers` vyžaduje `vouchers.view`, `/inventory` vyžaduje `stock.view`. Routa `/orders` vyžaduje `orders.view`. Route `/kds` nemá permission guard (režim se volí při přihlášení). Route `/customer-display` a `/display-code` nemají permission guard (veřejný displej). Bez oprávnění se uživatel přesměruje na `/bills`.
 
 ---
 
@@ -767,7 +767,7 @@ lib/
 │   │   ├── enums/                     # Dart enum definice (22 enumů + barrel)
 │   │   ├── mappers/                   # Entity ↔ Model mapování (3 soubory)
 │   │   ├── models/                    # Doménové modely (43 souborů: 41 Freezed + interface + sealed class)
-│   │   ├── providers/                 # DI registrace (Riverpod, 6 souborů)
+│   │   ├── providers/                 # DI registrace (Riverpod, 7 souborů)
 │   │   ├── repositories/              # Repozitáře (41 souborů: 40 repozitářů + 1 base abstrakce)
 │   │   └── services/                  # SeedService (onboarding seed)
 │   ├── database/                      # Drift databáze
@@ -775,7 +775,7 @@ lib/
 │   │   └── tables/                    # Definice tabulek (44 souborů: 43 tabulek + mixin)
 │   ├── widgets/                       # PosTable<T>, PosTableToolbar, PosDialogShell, PosDialogActions, PosDialogTheme, PosNumpad, LockOverlay, InactivityDetector, PosColorPalette, PairingConfirmationListener
 │   ├── utils/                         # search_utils.dart, formatters.dart, formatting_ext.dart, file_opener.dart
-│   ├── printing/                      # PdfFontLoader, ReceiptData, ReceiptPdfBuilder, ZReportPdfBuilder, PrintingService
+│   ├── printing/                      # PdfFontLoader, ReceiptData, ReceiptPdfBuilder, ZReportPdfBuilder, InventoryPdfBuilder, PrintingService
 │   ├── routing/                       # GoRouter + auth guard (app_router.dart)
 │   ├── network/                       # Supabase konfigurace (URL, anon key)
 │   ├── sync/                          # Sync engine
@@ -803,8 +803,8 @@ lib/
 │   │   ├── services/                  # ZReportService (výpočet Z-reportu)
 │   │   └── models/                    # ZReportData (model pro Z-report)
 │   ├── catalog/                       # ScreenCatalog (7 tabů: Produkty, Kategorie, Skupiny modifikátorů, Dodavatelé, Výrobci, Receptury, Zákazníci)
-│   ├── inventory/                     # ScreenInventory (2 taby: Zásoby, Doklady),
-│   │                                  # DialogStockDocument, DialogInventory
+│   ├── inventory/                     # ScreenInventory (3 taby: Zásoby, Doklady, Pohyby),
+│   │                                  # DialogStockDocument, DialogInventoryType, DialogInventory, DialogInventoryResult
 │   ├── onboarding/                    # ScreenOnboarding, ScreenConnectCompany, ScreenDisplayCode
 │   ├── sell/                          # ScreenSell (grid + košík), ScreenCustomerDisplay (zákaznický displej)
 │   ├── settings/                      # ScreenCompanySettings (7 tabů), ScreenVenueSettings (4 taby),
@@ -850,7 +850,7 @@ Sjednocený dialogový systém s 4 sdílenými building blocks:
 - **`PosDialogActions`** — řada akčních tlačítek v `Row > [Expanded > SizedBox(height) > action]`. Parametry: actions, height (44), spacing (8)
 - **`PosNumpad`** — sdílený numpad se dvěma velikostmi (large/compact), konfigurovatelnými tlačítky (clear, dot, bottomLeftChild). Použito v 10 obrazovkách (login, lock, switch user, opening cash, cash movement, loyalty, credit, discount, change total, voucher create)
 
-Migrace: 26 dialogů celkem, z toho 22 migrovaných na sdílené widgety, 4 ponechané s vlastním layoutem (bill_detail, payment, grid_editor, cash_journal).
+Migrace: 29 dialogů celkem, z toho 25 migrovaných na sdílené widgety, 4 ponechané s vlastním layoutem (bill_detail, payment, grid_editor, cash_journal).
 
 #### Další core widgety
 - `LockOverlay` — overlay pro auto-lock po neaktivitě
@@ -978,7 +978,7 @@ Navíc každá tabulka definuje: `createdAt`, `updatedAt`, `deletedAt` (soft del
 | SQL tabulka | Drift Table | Popis |
 |-------------|-------------|-------|
 | `sync_queue` | `SyncQueue` | Outbox fronta (pending → processing → completed/failed). Sloupce: id, company_id, entity_type, entity_id, operation (sync_operation enum na Supabase), payload (jsonb), status (sync_status enum na Supabase), idempotency_key, retry_count, error_message, last_error_at, processed_at, created_at. Supabase má navíc: client_created_at, updated_at. |
-| `sync_metadata` | `SyncMetadata` | Last pull timestamp per tabulka per firma |
+| `sync_metadata` | `SyncMetadata` | Last pull timestamp per tabulka per firma. Sloupce: id (T, PK), company_id (T), table_name (T), last_pulled_at (T? — ISO 8601 string pro zachování mikrosekund přesnosti), updated_at (D, default now) |
 
 > **Poznámky:**
 > - `TableEntity` používá `@DataClassName('TableEntity')` anotaci (konflikt s Drift `Table`)
@@ -996,10 +996,10 @@ Všechny aktivní tabulky obsahují společné sync sloupce (viz [SyncColumnsMix
 
 | Tabulka | Sloupce |
 |---------|---------|
-| **bills** | id (T), company_id →companies, section_id →sections?, table_id →tables?, opened_by_user_id →users, register_id →registers?, last_register_id →registers?, register_session_id →register_sessions?, bill_number (T), number_of_guests (I, default 0), is_takeaway (B, default false), status (T — BillStatus), currency_id →currencies, customer_id →customers?, customer_name (T?), subtotal_gross (I), subtotal_net (I), discount_amount (I), discount_type (T? — DiscountType), tax_total (I), total_gross (I), rounding_amount (I), paid_amount (I), loyalty_points_used (I, default 0), loyalty_discount_amount (I, default 0), loyalty_points_earned (I, default 0), voucher_discount_amount (I, default 0), voucher_id →vouchers?, opened_at (D), closed_at (D?), map_pos_x (I?), map_pos_y (I?) |
-| **orders** | id (T), company_id →companies, bill_id →bills, created_by_user_id →users, register_id →registers?, order_number (T), notes (T?), status (T — PrepStatus), item_count (I), subtotal_gross (I), subtotal_net (I), tax_total (I), is_storno (B, default false), storno_source_order_id →orders?, prep_started_at (D?), ready_at (D?), delivered_at (D?) |
-| **order_items** | id (T), company_id →companies, order_id →orders, item_id →items, item_name (T), quantity (R), sale_price_att (I), sale_tax_rate_att (I), sale_tax_amount (I), discount (I), discount_type (T? — DiscountType), notes (T?), status (T — PrepStatus), prep_started_at (D?), ready_at (D?), delivered_at (D?) |
-| **payments** | id (T), company_id →companies, bill_id →bills, register_id →registers?, register_session_id →register_sessions?, payment_method_id →payment_methods, user_id →users?, amount (I), paid_at (D), currency_id →currencies, tip_included_amount (I), notes (T?), transaction_id (T?), payment_provider (T?), card_last4 (T?), authorization_code (T?) |
+| **bills** | id (T), company_id →companies, section_id →sections?, table_id →tables?, opened_by_user_id →users, register_id →registers?, last_register_id →registers?, register_session_id →register_sessions?, bill_number (T), number_of_guests (I, default 0), is_takeaway (B, default false), status (T — BillStatus), currency_id →currencies, customer_id →customers?, customer_name (T?), subtotal_gross (I, default 0), subtotal_net (I, default 0), discount_amount (I, default 0), discount_type (T? — DiscountType), tax_total (I, default 0), total_gross (I, default 0), rounding_amount (I, default 0), paid_amount (I, default 0), loyalty_points_used (I, default 0), loyalty_discount_amount (I, default 0), loyalty_points_earned (I, default 0), voucher_discount_amount (I, default 0), voucher_id →vouchers?, opened_at (D), closed_at (D?), map_pos_x (I?), map_pos_y (I?) |
+| **orders** | id (T), company_id →companies, bill_id →bills, created_by_user_id →users, register_id →registers?, order_number (T), notes (T?), status (T — PrepStatus), item_count (I, default 0), subtotal_gross (I, default 0), subtotal_net (I, default 0), tax_total (I, default 0), is_storno (B, default false), storno_source_order_id →orders?, prep_started_at (D?), ready_at (D?), delivered_at (D?) |
+| **order_items** | id (T), company_id →companies, order_id →orders, item_id →items, item_name (T), quantity (R), sale_price_att (I), sale_tax_rate_att (I), sale_tax_amount (I), discount (I, default 0), discount_type (T? — DiscountType), notes (T?), status (T — PrepStatus), prep_started_at (D?), ready_at (D?), delivered_at (D?) |
+| **payments** | id (T), company_id →companies, bill_id →bills, register_id →registers?, register_session_id →register_sessions?, payment_method_id →payment_methods, user_id →users?, amount (I), paid_at (D), currency_id →currencies, tip_included_amount (I, default 0), notes (T?), transaction_id (T?), payment_provider (T?), card_last4 (T?), authorization_code (T?) |
 | **payment_methods** | id (T), company_id →companies, name (T), type (T — PaymentType), is_active (B, default true) |
 
 ##### Katalog (items, categories, tax)
@@ -1013,7 +1013,7 @@ Všechny aktivní tabulky obsahují společné sync sloupce (viz [SyncColumnsMix
 | **modifier_groups** | id (T), company_id →companies, name (T), min_selections (I, default 0), max_selections (I?), sort_order (I, default 0) |
 | **modifier_group_items** | id (T), company_id →companies, modifier_group_id →modifier_groups, item_id →items, sort_order (I, default 0), is_default (B, default false) |
 | **item_modifier_groups** | id (T), company_id →companies, item_id →items, modifier_group_id →modifier_groups, sort_order (I, default 0) |
-| **order_item_modifiers** | id (T), company_id →companies, order_item_id →order_items, modifier_item_id →items, modifier_group_id →modifier_groups, modifier_item_name (T), quantity (R, default 1.0), unit_price (I), tax_rate (I), tax_amount (I) |
+| **order_item_modifiers** | id (T), company_id →companies, order_item_id →order_items, modifier_item_id →items, modifier_group_id →modifier_groups, modifier_item_name (T, default ''), quantity (R, default 1.0), unit_price (I), tax_rate (I), tax_amount (I) |
 | **product_recipes** | id (T), company_id →companies, parent_product_id →items, component_product_id →items, quantity_required (R) |
 | **tax_rates** | id (T), company_id →companies, label (T), type (T — TaxCalcType), rate (I), is_default (B, default false — max 1 per company) |
 | **currencies** | id (T), code (T), symbol (T), name (T), decimal_places (I) |
@@ -1043,7 +1043,7 @@ Všechny aktivní tabulky obsahují společné sync sloupce (viz [SyncColumnsMix
 
 | Tabulka | Sloupce |
 |---------|---------|
-| **tables** | id (T), company_id →companies, section_id →sections?, table_name (T), capacity (I), is_active (B, default true), grid_row (I), grid_col (I), grid_width (I, default 3), grid_height (I, default 3), shape (T — TableShape, default rectangle), color (T?), font_size (I?), fill_style (I, default 1), border_style (I, default 1) |
+| **tables** | id (T), company_id →companies, section_id →sections?, table_name (T), capacity (I, default 0), is_active (B, default true), grid_row (I), grid_col (I), grid_width (I, default 3), grid_height (I, default 3), shape (T — TableShape, default rectangle), color (T?), font_size (I?), fill_style (I, default 1), border_style (I, default 1) |
 | **map_elements** | id (T), company_id →companies, section_id →sections (nullable), grid_row (I), grid_col (I), grid_width (I, default 2), grid_height (I, default 2), label (T, nullable), color (T, nullable — hex #RRGGBB), shape (T — TableShape, default rectangle), font_size (I?), fill_style (I, default 1), border_style (I, default 1) |
 
 ##### Sekce
@@ -1056,7 +1056,7 @@ Všechny aktivní tabulky obsahují společné sync sloupce (viz [SyncColumnsMix
 
 | Tabulka | Sloupce |
 |---------|---------|
-| **reservations** | id (T), company_id →companies, customer_id →customers?, table_id →tables?, customer_name (T), customer_phone (T?), reservation_date (D), party_size (I), status (T — ReservationStatus), notes (T?) |
+| **reservations** | id (T), company_id →companies, customer_id →customers?, table_id →tables?, customer_name (T), customer_phone (T?), reservation_date (D), party_size (I, default 2), status (T — ReservationStatus), notes (T?) |
 
 ##### Zákazníci
 
@@ -1077,7 +1077,7 @@ Všechny aktivní tabulky obsahují společné sync sloupce (viz [SyncColumnsMix
 |---------|---------|
 | **warehouses** | id (T), company_id →companies, name (T), is_default (B, default false), is_active (B, default true) |
 | **stock_levels** | id (T), company_id →companies, warehouse_id →warehouses, item_id →items, quantity (R), min_quantity (R?) |
-| **stock_documents** | id (T), company_id →companies, warehouse_id →warehouses, supplier_id →suppliers?, user_id →users, document_number (T), type (T — StockDocumentType), purchase_price_strategy (T? — PurchasePriceStrategy), note (T?), total_amount (I), document_date (D) |
+| **stock_documents** | id (T), company_id →companies, warehouse_id →warehouses, supplier_id →suppliers?, user_id →users, document_number (T), type (T — StockDocumentType), purchase_price_strategy (T? — PurchasePriceStrategy), note (T?), total_amount (I, default 0), document_date (D) |
 | **stock_movements** | id (T), company_id →companies, stock_document_id →stock_documents?, item_id →items, quantity (R), purchase_price (I?), direction (T — StockMovementDirection), purchase_price_strategy (T? — PurchasePriceStrategy per-item override) |
 
 **Pravidla:**
@@ -1179,7 +1179,7 @@ Klientské timestampy se ukládají v **UTC**.
 | `BillStatus` | `BillModel` | opened, paid, cancelled, refunded |
 | `PrepStatus` | `OrderModel`, `OrderItemModel` | created, ready, delivered, cancelled, voided |
 | `PaymentType` | `PaymentMethodModel` | cash, card, bank, credit, voucher, other |
-| `RoleName` | `RoleModel` | helper, operator, admin |
+| `RoleName` | `RoleModel` | helper, operator, manager, admin |
 | `TaxCalcType` | `TaxRateModel` | regular, noTax, constant, mixed |
 | `HardwareType` | `RegisterModel` | local, mobile, virtual |
 | `LayoutItemType` | `LayoutItemModel` | item, category |
@@ -1276,7 +1276,7 @@ graph LR
 - Retry každých 5s (fixní interval, max 10 pokusů)
 - FK dependency ordering — pending entries se před zpracováním seřadí podle `SyncService.tableDependencyOrder`, takže rodičovské řádky se pushnou před dětmi
 - Reset failed — při startu `OutboxProcessor.start()` se resetují dříve selhané entries pro opětovný pokus
-- `processQueue({int limit = 50})` — parametr `limit` omezuje počet zpracovaných entries v jednom cyklu (drain loop používá `limit: 500`)
+- `processQueue({int limit = 50})` — parametr `limit` omezuje počet zpracovaných entries v jednom cyklu. Periodický timer (5s) volá s výchozím limitem 50; drain loop po initial push přepisuje na `limit: 500`
 
 ### Ingest Edge Function
 
@@ -1314,6 +1314,20 @@ Edge Function `wipe` (`supabase/functions/wipe/index.ts`) slouží k úplnému s
 
 **Volání z klienta (CloudTab):**
 - `Supabase.instance.client.functions.invoke('wipe')` → sign out → smazání lokální DB → navigace na `/onboarding`
+
+### Reset-DB Edge Function (dev-only)
+
+Edge Function `reset-db` je dev-only utilita pro úplný reset všech dat na Supabase. Zdrojový kód **není v repozitáři** (`supabase/functions/reset-db/` neexistuje) — funkce je nasazena přímo na Supabase.
+
+**Autentizace:** Sdílené tajemství přes hlavičku `X-Reset-Secret` (ne JWT).
+
+**Postup:**
+1. Smaže všechna data ze všech company-scoped tabulek
+2. Vyčistí `sync_queue` a `audit_log`
+3. Smaže všechny auth users
+4. Globální data (currencies, roles, permissions, role_permissions) zachová
+
+**Volání:** Bash skript `reset-db.sh` v kořenu repozitáře — interaktivní (heslo + potvrzení), po úspěchu smaže i lokální SQLite databázi.
 
 ### Sync Lifecycle
 
@@ -1461,12 +1475,13 @@ Když server odmítne push (`LWW_CONFLICT`), outbox processor označí entry jak
 - **Transient chyby** (síť, timeout, auth): retry každých 5s (fixní interval, max 10 pokusů)
 - **Permanent chyby** (data/constraint/permission): označí se jako `failed` hned
 - FIFO je zachováno
-- Stuck záznamy (processing > 5 min dle `processedAt` timestampu): automatický reset na `pending`
+- **DB stuck reset** (processing > 5 min dle `processedAt` timestampu): `resetStuck()` jednorázově při startu `SyncLifecycleManager` resetuje stuck záznamy na `pending`
+- **In-memory watchdog** (60s timeout v `OutboxProcessor`): pokud `processQueue()` běží déle než 60s, watchdog resetuje `_isProcessing` flag, aby další cyklus nebyl blokován
 - `markProcessing()` nastavuje `processedAt` jako processing-started timestamp → `resetStuck()` měří skutečnou dobu zpracování
 
 ### Globální reference data
 
-`roles` (3), `permissions` (16), `role_permissions`, `currencies` jsou **globální** (bez `company_id`):
+`roles` (4), `permissions` (106), `role_permissions`, `currencies` jsou **globální** (bez `company_id`):
 - V Etapě 1–2: seedovány lokálně při onboardingu
 - Od Etapy 3: pull ze Supabase (bez company_id filtru); nejsou v ALLOWED_TABLES Ingest EF — klient je nepushuje
 - Aktuální design předpokládá 1 firma = 1 Supabase projekt
@@ -1665,7 +1680,7 @@ Order-level timestamps (`prepStartedAt`, `readyAt`, `deliveredAt`) se nastaví p
 | **Přepočet totalů** | Po každé změně (createOrder, cancelOrder, voidOrder) |
 | **Zaokrouhlení** | Pouze na bill level |
 | **Payment** | Pouze na bill |
-| **Permissions** | Oddělené `bills.*` |
+| **Permissions** | `orders.*`, `payments.*`, `discounts.*` (viz [Oprávnění](#oprávnění)) |
 
 ### Workflow — Quick Sale (rychlý prodej)
 
@@ -2085,9 +2100,9 @@ Po odeslání formuláře se v jedné transakci vytvoří:
 | Company | 1 | Dle formuláře, status: `trial`, `auth_user_id` z Kroku 1 |
 | Currency | 1 | CZK (Kč, 2 des. místa). Formátování řídí `intl` package dle locale. |
 | TaxRate | 3 | Základní 21% (`regular`), Snížená 12% (`regular`), Nulová 0% (`noTax`), is_default: Základní=true |
-| Permission | 16 | Viz [Katalog oprávnění](#katalog-oprávnění-16), vč. customers.view, customers.manage |
-| Role | 3 | helper, operator, admin |
-| RolePermission | 33 | helper: 6, operator: 11, admin: 16 |
+| Permission | 106 | Viz [Katalog oprávnění](#katalog-oprávnění-106) — 17 skupin |
+| Role | 4 | helper, operator, manager, admin |
+| RolePermission | 273 | helper: 20, operator: 62, manager: 85, admin: 106 |
 | PaymentMethod | 5 | Viz [Platební metody](#platební-metody), vč. Zákaznický kredit (credit) a Stravenky (voucher) |
 | Section | 1 (3 s demo) | Hlavní (zelená). S `withTestData`: + Zahrádka (oranžová), Interní (šedá) |
 | Table | 0 (18 s demo) | S `withTestData`: Hlavní: Stůl 1–7 + Bar 1–3 (kap. 4, 4×4 / 2×2), Zahrádka: Stolek 1–5 (kap. 2, 2×2), Interní: Majitel, Repre, Odpisy (kap. 0, off-map) |
@@ -2101,7 +2116,7 @@ Po odeslání formuláře se v jedné transakci vytvoří:
 | Customer | 0 (5 s demo) | S `withTestData`: Martin Svoboda, Lucie Černá, Tomáš Krejčí, Eva Nováková, Petr Veselý |
 | Register | 1 | code: `REG-1`, type: `local`, is_active: true, allow_cash/card/transfer/credit/voucher/other: true, allow_refunds: false, grid: 5×8, sell_mode: gastro |
 | User | 1 | Admin s PIN hashem, role_id: admin |
-| UserPermission | 16 | Všech 16 oprávnění, granted_by: admin user ID (self-grant při onboardingu) |
+| UserPermission | 106 | Všech 106 oprávnění, granted_by: admin user ID (self-grant při onboardingu) |
 
 **Pořadí seedu (respektuje FK závislosti):**
 1. Currency → Company (`default_currency_id`)
@@ -2137,6 +2152,8 @@ Implementováno — navigace z ScreenOnboarding na `/connect-company`:
 
 Systém oprávnění funguje **offline-first**. Veškerá data jsou uložena lokálně v Drift (SQLite). V Etapě 1–2 jsou `roles`, `permissions` a `role_permissions` seedovány lokálně. Od Etapy 3 se synchronizují se Supabase (read-only pull).
 
+> **Detailní design:** Kompletní rozpis všech oprávnění včetně popisu, skupin a matice rolí viz `docs/PERMISSIONS_DESIGN_v2.md`.
+
 ### Klíčové principy
 
 - `user_permissions` = **zdroj pravdy** pro autorizaci (ne role)
@@ -2147,80 +2164,89 @@ Systém oprávnění funguje **offline-first**. Veškerá data jsou uložena lok
 ### Architektura oprávnění
 
 ```
-┌─────────────────────────────────────────────────┐
-│  permissions (katalog)                          │
-│  16 položek, read-only, seed lokálně (sync od E3)│
-└─────────────────────┬───────────────────────────┘
+┌─────────────────────────────────────────────────────┐
+│  permissions (katalog)                              │
+│  106 položek v 17 skupinách, read-only, seed lokálně│
+└─────────────────────┬───────────────────────────────┘
                       │
-┌─────────────────────▼───────────────────────────┐
-│  role_permissions (šablony)                     │
-│  Vazba role → permission, read-only             │
-│  admin: 16, operator: 11, helper: 6             │
-└─────────────────────┬───────────────────────────┘
+┌─────────────────────▼───────────────────────────────┐
+│  role_permissions (šablony)                         │
+│  Vazba role → permission, read-only                 │
+│  admin: 106, manager: 85, operator: 62, helper: 20  │
+└─────────────────────┬───────────────────────────────┘
                       │  "Přiřadit roli" = zkopírovat permission_ids
                       ▼
-┌─────────────────────────────────────────────────┐
-│  user_permissions (zdroj pravdy)                │
-│  Vazba user → permission, full CRUD + outbox    │
-└─────────────────────┬───────────────────────────┘
+┌─────────────────────────────────────────────────────┐
+│  user_permissions (zdroj pravdy)                    │
+│  Vazba user → permission, full CRUD + outbox        │
+└─────────────────────┬───────────────────────────────┘
                       │
-┌─────────────────────▼───────────────────────────┐
-│  userPermissionCodesProvider                    │
-│  Reaktivní Set<String> kódů přihlášeného user   │
-└─────────────────────┬───────────────────────────┘
+┌─────────────────────▼───────────────────────────────┐
+│  userPermissionCodesProvider                        │
+│  Reaktivní Set<String> kódů přihlášeného user       │
+└─────────────────────┬───────────────────────────────┘
                       │
-┌─────────────────────▼───────────────────────────┐
-│  hasPermissionProvider('orders.void')           │
-│  → true / false (O(1) contains)                 │
-└─────────────────────────────────────────────────┘
+┌─────────────────────▼───────────────────────────────┐
+│  hasPermissionProvider('orders.void_item')           │
+│  → true / false (O(1) contains)                     │
+└─────────────────────────────────────────────────────┘
 ```
 
-### Katalog oprávnění (16)
+### Role (4)
 
-| Kategorie | Kód | Popis |
-|-----------|-----|-------|
-| **bills** | `bills.create` | Vytvořit účet |
-| | `bills.view` | Zobrazit účty |
-| | `bills.void` | Stornovat účet |
-| | `bills.discount` | Aplikovat slevu na účet |
-| **orders** | `orders.create` | Vytvořit objednávku |
-| | `orders.view` | Zobrazit objednávky |
-| | `orders.void` | Stornovat objednávku |
-| | `orders.discount` | Aplikovat slevu na položku |
-| **products** | `products.view` | Zobrazit produkty |
-| | `products.manage` | Spravovat produkty |
-| **tables** | `tables.manage` | Spravovat stoly |
-| **users** | `users.view` | Zobrazit uživatele |
-| | `users.manage` | Spravovat uživatele |
-| **customers** | `customers.view` | Zobrazit zákazníky |
-| | `customers.manage` | Spravovat zákazníky |
-| **settings** | `settings.manage` | Upravovat nastavení |
+| Role | Český název | Oprávnění | Popis |
+|------|-------------|:---------:|-------|
+| `helper` | Pomocník / Číšník | 20 | Základní obsluha — objednávky, platby, vidí jen své věci |
+| `operator` | Směnový vedoucí | 62 | Řídí směnu — storna, refundace, slevy, pokladní operace |
+| `manager` | Manažer | 85 | Řídí provoz — katalog, sklad, reporty, zaměstnanci, nastavení provozovny |
+| `admin` | Administrátor / Majitel | 106 | Plný přístup — systém, daně, data, role, destruktivní akce |
 
-> **Pozn.:** `bills.discount` a `orders.discount` jsou seedované od E1, ale UI pro slevy se implementuje až v Etapě 3.2.
+### Katalog oprávnění (106)
 
-> **Rozšíření:** Nové permissions se přidají s příslušnými funkcemi: `bills.split` (gastro), `register.open_close`, `register.cash_movement` (provoz), `inventory.view`, `inventory.manage` (sklad), `reports.view` (reporty).
+17 skupin s konvencí `skupina.akce`:
 
-### Role (šablony)
+| # | Skupina | Prefix | Počet | Příklady |
+|---|---------|--------|:-----:|----------|
+| 1 | Objednávky | `orders.*` | 17 | `create`, `view`, `void_item`, `void_bill`, `split`, `merge`, `reopen`, `bump` |
+| 2 | Platby | `payments.*` | 11 | `accept`, `refund`, `method_cash`, `method_card`, `method_voucher`, `accept_tip` |
+| 3 | Slevy a ceny | `discounts.*` | 5 | `apply_item`, `apply_bill`, `custom`, `price_override`, `loyalty` |
+| 4 | Pokladna | `register.*` | 7 | `open_session`, `close_session`, `cash_in`, `cash_out`, `open_drawer` |
+| 5 | Směny | `shifts.*` | 4 | `clock_in_out`, `view_own`, `view_all`, `manage` |
+| 6 | Produkty | `products.*` | 11 | `manage`, `manage_categories`, `manage_modifiers`, `manage_suppliers` |
+| 7 | Sklad | `stock.*` | 8 | `receive`, `wastage`, `adjust`, `count`, `transfer`, `manage_warehouses` |
+| 8 | Zákazníci | `customers.*` | 4 | `view`, `manage`, `manage_credit`, `manage_loyalty` |
+| 9 | Vouchery | `vouchers.*` | 3 | `view`, `manage`, `redeem` |
+| 10 | Provoz | `venue.*` | 3 | `view`, `reservations_view`, `reservations_manage` |
+| 11 | Reporty | `reports.*` | 5 | `view_own`, `view_sales`, `view_financial`, `view_staff`, `view_tips` |
+| 12 | Tisk | `printing.*` | 4 | `receipt`, `reprint`, `z_report`, `inventory_report` |
+| 13 | Data | `data.*` | 3 | `export`, `import`, `backup` |
+| 14 | Uživatelé | `users.*` | 4 | `view`, `manage`, `assign_roles`, `manage_permissions` |
+| 15 | Nastavení firma | `settings_company.*` | 7 | `info`, `security`, `fiscal`, `cloud`, `data_wipe`, `view_log`, `clear_log` |
+| 16 | Nastavení provozovna | `settings_venue.*` | 3 | `sections`, `tables`, `floor_plan` |
+| 17 | Nastavení pokladna | `settings_register.*` | 7 | `manage`, `hardware`, `grid`, `displays`, `payment_methods`, `tax_rates`, `manage_devices` |
 
-| Oprávnění | helper | operator | admin |
-|-----------|:------:|:--------:|:-----:|
-| `bills.create` | ✓ | ✓ | ✓ |
-| `bills.view` | ✓ | ✓ | ✓ |
-| `bills.void` | | ✓ | ✓ |
-| `bills.discount` | | ✓ | ✓ |
-| `orders.create` | ✓ | ✓ | ✓ |
-| `orders.view` | ✓ | ✓ | ✓ |
-| `orders.void` | | ✓ | ✓ |
-| `orders.discount` | | ✓ | ✓ |
-| `products.view` | ✓ | ✓ | ✓ |
-| `products.manage` | | | ✓ |
-| `tables.manage` | | ✓ | ✓ |
-| `users.view` | | | ✓ |
-| `users.manage` | | | ✓ |
-| `customers.view` | ✓ | ✓ | ✓ |
-| `customers.manage` | | | ✓ |
-| `settings.manage` | | | ✓ |
-| **Celkem** | **6** | **11** | **16** |
+### Souhrnná matice rolí
+
+| Skupina | Počet | helper | operator | manager | admin |
+|---------|:-----:|:------:|:--------:|:-------:|:-----:|
+| orders | 17 | 5 | 16 | 17 | 17 |
+| payments | 11 | 4 | 11 | 11 | 11 |
+| discounts | 5 | 0 | 4 | 4 | 5 |
+| register | 7 | 1 | 7 | 7 | 7 |
+| shifts | 4 | 2 | 3 | 4 | 4 |
+| products | 11 | 1 | 2 | 9 | 11 |
+| stock | 8 | 0 | 2 | 6 | 8 |
+| customers | 4 | 1 | 3 | 4 | 4 |
+| vouchers | 3 | 2 | 3 | 3 | 3 |
+| venue | 3 | 2 | 3 | 3 | 3 |
+| reports | 5 | 1 | 4 | 5 | 5 |
+| printing | 4 | 1 | 3 | 4 | 4 |
+| data | 3 | 0 | 0 | 1 | 3 |
+| users | 4 | 0 | 1 | 2 | 4 |
+| settings_company | 7 | 0 | 0 | 0 | 7 |
+| settings_venue | 3 | 0 | 0 | 3 | 3 |
+| settings_register | 7 | 0 | 0 | 2 | 7 |
+| **Celkem** | **106** | **20** | **62** | **85** | **106** |
 
 ### Přiřazení role uživateli
 
@@ -2228,6 +2254,16 @@ Metoda `applyRoleToUser`:
 1. Soft-delete všech stávajících `user_permissions` pro daného uživatele a firmu
 2. Vytvoření nových `user_permissions` pro každé oprávnění z role
 3. Od Etapy 3: každá operace se zařadí do `sync_queue` (Outbox Pattern)
+
+### Kde kontrolovat oprávnění
+
+| Vrstva | Kdy | Příklad |
+|--------|-----|---------|
+| **Router** | Přístup na celou obrazovku | `settings/*` → `settings_company.*` |
+| **UI (widget)** | Skrytí nebo zašednutí tlačítka | Storno button → `orders.void_item` |
+| **Repository** | Vynucení při operaci | `billRepo.cancelBill()` → `orders.void_bill` |
+
+Kontrolovat **vždy v UI** (tlačítko se nezobrazí) **i v repozitáři** (nelze obejít přímým voláním).
 
 ---
 
@@ -2580,13 +2616,13 @@ Layout: **7 tabů + inline editace**
 
 #### ScreenInventory (`/inventory`) — Sklad
 
-Layout: **2 taby + akční tlačítka**
+Layout: **3 taby + akční tlačítka**
 
 ```
 ┌──────────────────────────────────────────────────────────┐
 │ [Příjemka] [Výdejka] [Oprava] [Inventura]                │
 │──────────────────────────────────────────────────────────│
-│ [Zásoby] [Doklady]                                       │
+│ [Zásoby] [Doklady] [Pohyby]                              │
 │──────────────────────────────────────────────────────────│
 │                                                          │
 │ Tab Zásoby:                                              │
@@ -2609,11 +2645,13 @@ Layout: **2 taby + akční tlačítka**
 - Příjemka (FilledButton.icon) → DialogStockDocument(type: receipt)
 - Výdejka (FilledButton.tonal) → DialogStockDocument(type: waste)
 - Oprava (FilledButton.tonal) → DialogStockDocument(type: correction)
-- Inventura (FilledButton.tonal) → DialogInventory
+- Inventura (FilledButton.tonal) → DialogInventoryType → DialogInventory → DialogInventoryResult
 
 **Tab Zásoby:** DataTable s JOIN na items (StockLevelWithItem). Sloupce: Položka, Jednotka, Množství (červeně pod min), Min.množství, Nákupní cena, Celková hodnota. Footer: celková hodnota skladu.
 
 **Tab Doklady:** DataTable se stock_documents. Sloupce: Číslo dokladu, Typ, Datum, Dodavatel (resolved přes supplier stream), Poznámka, Celkem.
+
+**Tab Pohyby:** DataTable s historií skladových pohybů (stock_movements) s vyhledáváním.
 
 **Přístup:** Tlačítko SKLAD na ScreenBills pravém panelu.
 
@@ -2918,7 +2956,7 @@ Pravidla:
 
 Projekt využívá **Riverpod** jako Service Locator a DI kontejner.
 
-**Klíčové Globální Providery (6 souborů v `core/data/providers/`):**
+**Klíčové Globální Providery (7 souborů v `core/data/providers/`):**
 
 | Soubor | Klíčové providery |
 |--------|-------------------|
@@ -2928,6 +2966,7 @@ Projekt využívá **Riverpod** jako Service Locator a DI kontejner.
 | `repository_providers.dart` | 40 repozitářů — `syncQueueRepositoryProvider`, `syncMetadataRepositoryProvider`, `deviceRegistrationRepositoryProvider`, `companyRepositoryProvider`, `companySettingsRepositoryProvider`, `userRepositoryProvider`, `roleRepositoryProvider`, `permissionRepositoryProvider`, `sectionRepositoryProvider`, `tableRepositoryProvider`, `mapElementRepositoryProvider`, `categoryRepositoryProvider`, `itemRepositoryProvider`, `modifierGroupRepositoryProvider`, `modifierGroupItemRepositoryProvider`, `itemModifierGroupRepositoryProvider`, `orderItemModifierRepositoryProvider`, `taxRateRepositoryProvider`, `paymentMethodRepositoryProvider`, `billRepositoryProvider`, `orderRepositoryProvider`, `registerRepositoryProvider`, `registerSessionRepositoryProvider`, `shiftRepositoryProvider`, `cashMovementRepositoryProvider`, `paymentRepositoryProvider`, `layoutItemRepositoryProvider`, `customerRepositoryProvider`, `reservationRepositoryProvider`, `customerTransactionRepositoryProvider`, `supplierRepositoryProvider`, `manufacturerRepositoryProvider`, `productRecipeRepositoryProvider`, `warehouseRepositoryProvider`, `stockLevelRepositoryProvider`, `stockMovementRepositoryProvider`, `voucherRepositoryProvider`, `stockDocumentRepositoryProvider`, `displayDeviceRepositoryProvider`, `currencyRepositoryProvider` |
 | `sync_providers.dart` | `supabaseAuthServiceProvider`, `supabaseAuthStateProvider`, `isSupabaseAuthenticatedProvider`, `outboxProcessorProvider`, `syncServiceProvider`, `realtimeServiceProvider`, `syncLifecycleManagerProvider`, `customerDisplayChannelProvider`, `pairingChannelProvider`, `pendingPairingRequestProvider`, `pairingListenerProvider`, `syncLifecycleWatcherProvider` |
 | `printing_providers.dart` | `printingServiceProvider` |
+| `app_version_provider.dart` | `appVersionProvider` — verze aplikace z package_info_plus |
 
 ### Git Workflow
 

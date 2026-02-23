@@ -402,8 +402,12 @@
   "paymentPrintReceipt": "Tisk dokladu",
   "paymentPrintYes": "ANO",
   "paymentPrintNo": "NE",
-  "paymentTip": "Spropitné: {amount}",
+  "paymentTip": "+{amount} spropitné",
   "@paymentTip": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
+  "paymentRemaining": "Zbývá {amount}",
+  "@paymentRemaining": {
     "placeholders": { "amount": { "type": "String" } }
   },
   "paymentBillSubtitle": "Účet {billNumber} - {tableName}",

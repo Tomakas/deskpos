@@ -2021,8 +2021,14 @@ abstract class AppLocalizations {
   /// No description provided for @paymentTip.
   ///
   /// In cs, this message translates to:
-  /// **'Spropitné: {amount}'**
+  /// **'+{amount} spropitné'**
   String paymentTip(String amount);
+
+  /// No description provided for @paymentRemaining.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zbývá {amount}'**
+  String paymentRemaining(String amount);
 
   /// No description provided for @paymentBillSubtitle.
   ///

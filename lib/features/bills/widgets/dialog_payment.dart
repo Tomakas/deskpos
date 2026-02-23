@@ -167,6 +167,18 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
                             color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                           ),
                         ),
+                        if (_customAmount! != _remaining)
+                          Text(
+                            _customAmount! > _remaining
+                                ? '(${l.paymentTip(ref.money(_customAmount! - _remaining))})'
+                                : '(${l.paymentRemaining(ref.money(_customAmount! - _remaining))})',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontStyle: FontStyle.italic,
+                              color: _customAmount! > _remaining
+                                  ? Colors.green
+                                  : Colors.red,
+                            ),
+                          ),
                         const SizedBox(height: 4),
                         _amountBlock(
                           context,
@@ -181,23 +193,15 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
                         ),
                       ],
                       const SizedBox(height: 12),
-                      if (_customAmount != null && _customAmount! > _remaining)
-                        Text(
-                          '(${l.paymentTip(ref.money(_customAmount! - _remaining))})',
+                      GestureDetector(
+                        onTap: () => setState(() => _printReceipt = !_printReceipt),
+                        child: Text(
+                          '${l.paymentPrintReceipt}: ${_printReceipt ? l.paymentPrintYes : l.paymentPrintNo}',
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            fontStyle: FontStyle.italic,
-                          ),
-                        )
-                      else
-                        GestureDetector(
-                          onTap: () => setState(() => _printReceipt = !_printReceipt),
-                          child: Text(
-                            '${l.paymentPrintReceipt}: ${_printReceipt ? l.paymentPrintYes : l.paymentPrintNo}',
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
+                      ),
                       const Spacer(),
                     ],
                   ),

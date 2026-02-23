@@ -1004,7 +1004,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String paymentTip(String amount) {
-    return 'Tip: $amount';
+    return '+$amount tip';
+  }
+
+  @override
+  String paymentRemaining(String amount) {
+    return 'Remaining $amount';
   }
 
   @override
