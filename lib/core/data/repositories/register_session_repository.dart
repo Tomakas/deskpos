@@ -188,6 +188,20 @@ class RegisterSessionRepository {
     }
   }
 
+  Future<List<RegisterSessionModel>> getClosedSessionsInRange(
+      String companyId, DateTime from, DateTime to) async {
+    final entities = await (_db.select(_db.registerSessions)
+          ..where((t) =>
+              t.companyId.equals(companyId) &
+              t.closedAt.isNotNull() &
+              t.closedAt.isBiggerOrEqualValue(from) &
+              t.closedAt.isSmallerOrEqualValue(to) &
+              t.deletedAt.isNull())
+          ..orderBy([(t) => OrderingTerm.desc(t.closedAt)]))
+        .get();
+    return entities.map(registerSessionFromEntity).toList();
+  }
+
   Future<List<RegisterSessionModel>> getClosedSessions(String companyId) async {
     final entities = await (_db.select(_db.registerSessions)
           ..where((t) =>

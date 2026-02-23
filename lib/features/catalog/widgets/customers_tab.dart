@@ -8,7 +8,10 @@ import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/utils/formatting_ext.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/search_utils.dart';
+import '../../../core/widgets/pos_dialog_actions.dart';
+import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_table.dart';
 import 'dialog_customer_credit.dart';
 
@@ -100,110 +103,107 @@ class _CustomersTabState extends ConsumerState<CustomersTab> {
     final creditCtrl = TextEditingController(text: minorUnitsToInputString(existing?.credit ?? 0, currency));
     final totalSpentCtrl = TextEditingController(text: minorUnitsToInputString(existing?.totalSpent ?? 0, currency));
 
-    final theme = Theme.of(context);
     final result = await showDialog<Object>(
       context: context,
       builder: (_) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
-          title: Text(existing == null ? l.actionAdd : l.actionEdit),
-          content: SizedBox(
-            width: 400,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: firstNameCtrl,
-                    decoration: InputDecoration(labelText: l.customerFirstName),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: lastNameCtrl,
-                    decoration: InputDecoration(labelText: l.customerLastName),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: emailCtrl,
-                    decoration: InputDecoration(labelText: l.customerEmail),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: phoneCtrl,
-                    decoration: InputDecoration(labelText: l.customerPhone),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: addressCtrl,
-                    decoration: InputDecoration(labelText: l.customerAddress),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: pointsCtrl,
-                    decoration: InputDecoration(labelText: l.customerPoints),
-                    keyboardType: TextInputType.number,
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: creditCtrl,
-                          decoration: InputDecoration(labelText: l.customerCredit),
-                          keyboardType: TextInputType.number,
-                        ),
-                      ),
-                      if (existing != null) ...[
-                        const SizedBox(width: 8),
-                        IconButton(
-                          icon: const Icon(Icons.account_balance_wallet_outlined),
-                          tooltip: l.loyaltyCredit,
-                          onPressed: () {
-                            Navigator.pop(ctx);
-                            _showCreditDialog(context, existing);
-                          },
-                        ),
-                      ],
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: totalSpentCtrl,
-                    decoration: InputDecoration(labelText: l.customerTotalSpent),
-                    keyboardType: TextInputType.number,
-                  ),
-                  if (existing != null) ...[
-                    const SizedBox(height: 12),
-                    InputDecorator(
-                      decoration: InputDecoration(labelText: l.customerLastVisit),
-                      child: Text(
-                        existing.lastVisitDate != null
-                            ? ref.fmtDateTime(existing.lastVisitDate!)
-                            : '-',
-                      ),
-                    ),
-                  ],
-                ],
-              ),
+        builder: (ctx, setDialogState) => PosDialogShell(
+          title: existing == null ? l.actionAdd : l.actionEdit,
+          maxWidth: 400,
+          scrollable: true,
+          children: [
+            TextField(
+              controller: firstNameCtrl,
+              decoration: InputDecoration(labelText: l.customerFirstName),
             ),
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.actionCancel)),
-            if (existing != null)
-              TextButton(
-                onPressed: () => Navigator.pop(ctx, 'delete'),
-                child: Text(l.actionDelete, style: TextStyle(color: theme.colorScheme.error)),
+            const SizedBox(height: 12),
+            TextField(
+              controller: lastNameCtrl,
+              decoration: InputDecoration(labelText: l.customerLastName),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: emailCtrl,
+              decoration: InputDecoration(labelText: l.customerEmail),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: phoneCtrl,
+              decoration: InputDecoration(labelText: l.customerPhone),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: addressCtrl,
+              decoration: InputDecoration(labelText: l.customerAddress),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: pointsCtrl,
+              decoration: InputDecoration(labelText: l.customerPoints),
+              keyboardType: TextInputType.number,
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: creditCtrl,
+                    decoration: InputDecoration(labelText: l.customerCredit),
+                    keyboardType: TextInputType.number,
+                  ),
+                ),
+                if (existing != null) ...[
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: const Icon(Icons.account_balance_wallet_outlined),
+                    tooltip: l.loyaltyCredit,
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      _showCreditDialog(context, existing);
+                    },
+                  ),
+                ],
+              ],
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: totalSpentCtrl,
+              decoration: InputDecoration(labelText: l.customerTotalSpent),
+              keyboardType: TextInputType.number,
+            ),
+            if (existing != null) ...[
+              const SizedBox(height: 12),
+              InputDecorator(
+                decoration: InputDecoration(labelText: l.customerLastVisit),
+                child: Text(
+                  existing.lastVisitDate != null
+                      ? ref.fmtDateTime(existing.lastVisitDate!)
+                      : '-',
+                ),
               ),
-            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.actionSave)),
+            ],
+            const SizedBox(height: 24),
+            PosDialogActions(
+              leading: existing != null
+                  ? OutlinedButton(
+                      style: PosButtonStyles.destructiveOutlined(ctx),
+                      onPressed: () async {
+                        if (!await confirmDelete(ctx, l) || !ctx.mounted) return;
+                        await ref.read(customerRepositoryProvider).delete(existing.id);
+                        if (ctx.mounted) Navigator.pop(ctx);
+                      },
+                      child: Text(l.actionDelete),
+                    )
+                  : null,
+              actions: [
+                OutlinedButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.actionCancel)),
+                FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.actionSave)),
+              ],
+            ),
           ],
         ),
       ),
     );
 
-    if (result == 'delete') {
-      if (!context.mounted) return;
-      await _delete(context, ref, existing!);
-      return;
-    }
     if (result != true || firstNameCtrl.text.trim().isEmpty || lastNameCtrl.text.trim().isEmpty || !mounted) {
       return;
     }
@@ -248,20 +248,4 @@ class _CustomersTabState extends ConsumerState<CustomersTab> {
     );
   }
 
-  Future<void> _delete(BuildContext context, WidgetRef ref, CustomerModel customer) async {
-    final l = context.l10n;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        content: Text(l.confirmDelete),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
-        ],
-      ),
-    );
-    if (confirmed == true) {
-      await ref.read(customerRepositoryProvider).delete(customer.id);
-    }
-  }
 }

@@ -6,6 +6,7 @@ import '../../../core/data/enums/bill_status.dart';
 import '../../../core/data/enums/discount_type.dart';
 import '../../../core/data/enums/display_device_type.dart';
 import '../../../core/data/enums/prep_status.dart';
+import '../../../core/data/enums/unit_type.dart';
 import '../../../core/data/enums/voucher_type.dart';
 import '../../../core/data/models/bill_model.dart';
 import '../../../core/data/models/customer_display_content.dart';
@@ -23,6 +24,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/utils/formatting_ext.dart';
+import '../../../core/utils/unit_type_l10n.dart';
 import 'dialog_customer_search.dart';
 import 'dialog_discount.dart';
 import 'dialog_loyalty_redeem.dart';
@@ -477,6 +479,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
               unitPrice: item.salePriceAtt,
               quantity: existing.quantity + item.quantity,
               totalGross: existing.totalGross + itemTotal,
+              unit: item.unit,
             );
           } else {
             grouped[key] = _SummaryItem(
@@ -484,6 +487,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
               unitPrice: item.salePriceAtt,
               quantity: item.quantity,
               totalGross: itemTotal,
+              unit: item.unit,
             );
           }
         }
@@ -508,7 +512,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
                   SizedBox(
                     width: 44,
                     child: Text(
-                      '${item.quantity.toStringAsFixed(item.quantity == item.quantity.roundToDouble() ? 0 : 1)} ${context.l10n.unitPcs}',
+                      '${item.quantity.toStringAsFixed(item.quantity == item.quantity.roundToDouble() ? 0 : 1)} ${localizedUnitType(context.l10n, item.unit)}',
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ),
@@ -1305,7 +1309,7 @@ class _OrderSection extends ConsumerWidget {
                               SizedBox(
                                 width: 36,
                                 child: Text(
-                                  '${item.quantity.toStringAsFixed(item.quantity == item.quantity.roundToDouble() ? 0 : 1)} ${context.l10n.unitPcs}',
+                                  '${item.quantity.toStringAsFixed(item.quantity == item.quantity.roundToDouble() ? 0 : 1)} ${localizedUnitType(context.l10n, item.unit)}',
                                   style: Theme.of(context).textTheme.bodySmall,
                                 ),
                               ),
@@ -1650,9 +1654,11 @@ class _SummaryItem {
     required this.unitPrice,
     required this.quantity,
     required this.totalGross,
+    required this.unit,
   });
   final String name;
   final int unitPrice;
   final double quantity;
   final int totalGross;
+  final UnitType unit;
 }

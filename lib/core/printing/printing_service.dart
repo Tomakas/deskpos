@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import '../data/enums/discount_type.dart';
 import '../data/enums/prep_status.dart';
+import '../data/enums/unit_type.dart';
 import '../data/models/currency_model.dart';
 import '../data/repositories/bill_repository.dart';
 import '../data/repositories/company_repository.dart';
@@ -41,7 +42,7 @@ class PrintingService {
   final UserRepository userRepo;
   final OrderItemModifierRepository orderItemModifierRepo;
 
-  Future<ReceiptData?> buildReceiptData(String billId, {CurrencyModel? currency}) async {
+  Future<ReceiptData?> buildReceiptData(String billId, {CurrencyModel? currency, String Function(UnitType)? unitLocalizer}) async {
     // 1. Get bill (includeDeleted: receipt may be reprinted after cancellation)
     final billResult = await billRepo.getById(billId, includeDeleted: true);
     if (billResult is! Success) {
@@ -121,6 +122,7 @@ class PrintingService {
         unitPrice: item.salePriceAtt,
         total: itemTotal - itemDiscount,
         taxRateBasisPoints: item.saleTaxRateAtt,
+        unitLabel: unitLocalizer != null ? unitLocalizer(item.unit) : item.unit.name,
         discount: itemDiscount,
         notes: item.notes,
         modifiers: receiptMods,

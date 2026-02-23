@@ -71,6 +71,7 @@ class DisplayItem {
     required this.quantity,
     required this.unitPrice,
     required this.totalPrice,
+    this.unitLabel = 'ks',
     this.notes,
     this.modifiers = const [],
   });
@@ -79,6 +80,7 @@ class DisplayItem {
   final double quantity;
   final int unitPrice;
   final int totalPrice;
+  final String unitLabel;
   final String? notes;
   final List<DisplayModifier> modifiers;
 
@@ -87,6 +89,7 @@ class DisplayItem {
         'quantity': quantity,
         'unitPrice': unitPrice,
         'totalPrice': totalPrice,
+        'unitLabel': unitLabel,
         if (notes != null) 'notes': notes,
         if (modifiers.isNotEmpty)
           'modifiers': modifiers.map((m) => m.toJson()).toList(),
@@ -98,6 +101,7 @@ class DisplayItem {
       quantity: (json['quantity'] as num?)?.toDouble() ?? 1.0,
       unitPrice: json['unitPrice'] as int? ?? 0,
       totalPrice: json['totalPrice'] as int? ?? 0,
+      unitLabel: json['unitLabel'] as String? ?? 'ks',
       notes: json['notes'] as String?,
       modifiers: (json['modifiers'] as List?)
               ?.map((m) => DisplayModifier.fromJson(m as Map<String, dynamic>))

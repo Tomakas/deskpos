@@ -116,7 +116,7 @@ class ReceiptPdfBuilder {
                 children: [
                   pw.Expanded(
                     child: pw.Text(
-                      '${_fmtQty(item.quantity)} ${item.name}',
+                      '${_fmtQty(item.quantity, item.unitLabel)} ${item.name}',
                       style: baseStyle,
                     ),
                   ),
@@ -283,9 +283,9 @@ class ReceiptPdfBuilder {
     return doc.save();
   }
 
-  String _fmtQty(double qty) {
-    if (qty == qty.roundToDouble()) return '${qty.round()}x';
-    return '${qty.toStringAsFixed(2)}x';
+  String _fmtQty(double qty, String unitLabel) {
+    if (qty == qty.roundToDouble()) return '${qty.round()} $unitLabel';
+    return '${qty.toStringAsFixed(2)} $unitLabel';
   }
 
   pw.Widget _divider() {

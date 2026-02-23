@@ -106,6 +106,18 @@ class ShiftRepository {
     return entities.map(shiftFromEntity).toList();
   }
 
+  Future<List<ShiftModel>> getByCompanyInRange(String companyId, DateTime from, DateTime to) async {
+    final entities = await (_db.select(_db.shifts)
+          ..where((t) =>
+              t.companyId.equals(companyId) &
+              t.loginAt.isBiggerOrEqualValue(from) &
+              t.loginAt.isSmallerOrEqualValue(to) &
+              t.deletedAt.isNull())
+          ..orderBy([(t) => OrderingTerm.desc(t.loginAt)]))
+        .get();
+    return entities.map(shiftFromEntity).toList();
+  }
+
   Future<List<ShiftModel>> getBySession(String registerSessionId) async {
     final entities = await (_db.select(_db.shifts)
           ..where((t) =>

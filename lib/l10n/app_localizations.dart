@@ -524,12 +524,6 @@ abstract class AppLocalizations {
   /// **'OK'**
   String get actionConfirm;
 
-  /// No description provided for @unitPcs.
-  ///
-  /// In cs, this message translates to:
-  /// **'ks'**
-  String get unitPcs;
-
   /// No description provided for @fieldName.
   ///
   /// In cs, this message translates to:
@@ -593,13 +587,13 @@ abstract class AppLocalizations {
   /// No description provided for @fieldPrice.
   ///
   /// In cs, this message translates to:
-  /// **'Cena'**
+  /// **'Prodejní cena'**
   String get fieldPrice;
 
   /// No description provided for @fieldTaxRate.
   ///
   /// In cs, this message translates to:
-  /// **'Daň. sazba'**
+  /// **'Prodejní daň'**
   String get fieldTaxRate;
 
   /// No description provided for @fieldType.
@@ -2623,6 +2617,90 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Sledování skladu'**
   String get fieldStockTracked;
+
+  /// No description provided for @fieldDescription.
+  ///
+  /// In cs, this message translates to:
+  /// **'Popis'**
+  String get fieldDescription;
+
+  /// No description provided for @fieldSku.
+  ///
+  /// In cs, this message translates to:
+  /// **'SKU'**
+  String get fieldSku;
+
+  /// No description provided for @fieldUnit.
+  ///
+  /// In cs, this message translates to:
+  /// **'Jednotka'**
+  String get fieldUnit;
+
+  /// No description provided for @unitTypeKs.
+  ///
+  /// In cs, this message translates to:
+  /// **'ks'**
+  String get unitTypeKs;
+
+  /// No description provided for @unitTypeG.
+  ///
+  /// In cs, this message translates to:
+  /// **'g'**
+  String get unitTypeG;
+
+  /// No description provided for @unitTypeKg.
+  ///
+  /// In cs, this message translates to:
+  /// **'kg'**
+  String get unitTypeKg;
+
+  /// No description provided for @unitTypeMl.
+  ///
+  /// In cs, this message translates to:
+  /// **'ml'**
+  String get unitTypeMl;
+
+  /// No description provided for @unitTypeCl.
+  ///
+  /// In cs, this message translates to:
+  /// **'cl'**
+  String get unitTypeCl;
+
+  /// No description provided for @unitTypeL.
+  ///
+  /// In cs, this message translates to:
+  /// **'l'**
+  String get unitTypeL;
+
+  /// No description provided for @unitTypeMm.
+  ///
+  /// In cs, this message translates to:
+  /// **'mm'**
+  String get unitTypeMm;
+
+  /// No description provided for @unitTypeCm.
+  ///
+  /// In cs, this message translates to:
+  /// **'cm'**
+  String get unitTypeCm;
+
+  /// No description provided for @unitTypeM.
+  ///
+  /// In cs, this message translates to:
+  /// **'m'**
+  String get unitTypeM;
+
+  /// No description provided for @unitTypeMin.
+  ///
+  /// In cs, this message translates to:
+  /// **'min'**
+  String get unitTypeMin;
+
+  /// No description provided for @unitTypeH.
+  ///
+  /// In cs, this message translates to:
+  /// **'h'**
+  String get unitTypeH;
 
   /// No description provided for @fieldParentProduct.
   ///
@@ -5227,6 +5305,468 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'NC'**
   String get inventoryResultNcValue;
+
+  /// No description provided for @tipStatsTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Spropitné'**
+  String get tipStatsTitle;
+
+  /// No description provided for @tipStatsTotal.
+  ///
+  /// In cs, this message translates to:
+  /// **'Celkem'**
+  String get tipStatsTotal;
+
+  /// No description provided for @tipStatsColumnUser.
+  ///
+  /// In cs, this message translates to:
+  /// **'Obsluha'**
+  String get tipStatsColumnUser;
+
+  /// No description provided for @tipStatsColumnCount.
+  ///
+  /// In cs, this message translates to:
+  /// **'Počet'**
+  String get tipStatsColumnCount;
+
+  /// No description provided for @tipStatsColumnAmount.
+  ///
+  /// In cs, this message translates to:
+  /// **'Částka'**
+  String get tipStatsColumnAmount;
+
+  /// No description provided for @tipStatsEmpty.
+  ///
+  /// In cs, this message translates to:
+  /// **'Žádné spropitné v tomto období'**
+  String get tipStatsEmpty;
+
+  /// No description provided for @moreTipStatistics.
+  ///
+  /// In cs, this message translates to:
+  /// **'Spropitné'**
+  String get moreTipStatistics;
+
+  /// No description provided for @periodDay.
+  ///
+  /// In cs, this message translates to:
+  /// **'Den'**
+  String get periodDay;
+
+  /// No description provided for @periodWeek.
+  ///
+  /// In cs, this message translates to:
+  /// **'Týden'**
+  String get periodWeek;
+
+  /// No description provided for @periodMonth.
+  ///
+  /// In cs, this message translates to:
+  /// **'Měsíc'**
+  String get periodMonth;
+
+  /// No description provided for @periodYear.
+  ///
+  /// In cs, this message translates to:
+  /// **'Rok'**
+  String get periodYear;
+
+  /// No description provided for @periodCustom.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vlastní'**
+  String get periodCustom;
+
+  /// No description provided for @periodToday.
+  ///
+  /// In cs, this message translates to:
+  /// **'Dnes'**
+  String get periodToday;
+
+  /// No description provided for @periodYesterday.
+  ///
+  /// In cs, this message translates to:
+  /// **'Včera'**
+  String get periodYesterday;
+
+  /// No description provided for @periodThisWeek.
+  ///
+  /// In cs, this message translates to:
+  /// **'Tento týden'**
+  String get periodThisWeek;
+
+  /// No description provided for @periodLastWeek.
+  ///
+  /// In cs, this message translates to:
+  /// **'Minulý týden'**
+  String get periodLastWeek;
+
+  /// No description provided for @periodThisMonth.
+  ///
+  /// In cs, this message translates to:
+  /// **'Tento měsíc'**
+  String get periodThisMonth;
+
+  /// No description provided for @periodLastMonth.
+  ///
+  /// In cs, this message translates to:
+  /// **'Minulý měsíc'**
+  String get periodLastMonth;
+
+  /// No description provided for @periodThisYear.
+  ///
+  /// In cs, this message translates to:
+  /// **'Letošní rok'**
+  String get periodThisYear;
+
+  /// No description provided for @periodLastYear.
+  ///
+  /// In cs, this message translates to:
+  /// **'Loňský rok'**
+  String get periodLastYear;
+
+  /// No description provided for @statsTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Statistiky'**
+  String get statsTitle;
+
+  /// No description provided for @statsTabReceipts.
+  ///
+  /// In cs, this message translates to:
+  /// **'Účtenky'**
+  String get statsTabReceipts;
+
+  /// No description provided for @statsTabSales.
+  ///
+  /// In cs, this message translates to:
+  /// **'Prodeje'**
+  String get statsTabSales;
+
+  /// No description provided for @statsTabShifts.
+  ///
+  /// In cs, this message translates to:
+  /// **'Směny'**
+  String get statsTabShifts;
+
+  /// No description provided for @statsTabZReports.
+  ///
+  /// In cs, this message translates to:
+  /// **'Z-reporty'**
+  String get statsTabZReports;
+
+  /// No description provided for @statsTabTips.
+  ///
+  /// In cs, this message translates to:
+  /// **'Spropitné'**
+  String get statsTabTips;
+
+  /// No description provided for @statsSummary.
+  ///
+  /// In cs, this message translates to:
+  /// **'Souhrn'**
+  String get statsSummary;
+
+  /// No description provided for @statsReceiptCount.
+  ///
+  /// In cs, this message translates to:
+  /// **'Počet účtenek'**
+  String get statsReceiptCount;
+
+  /// No description provided for @statsReceiptTotal.
+  ///
+  /// In cs, this message translates to:
+  /// **'Celková tržba'**
+  String get statsReceiptTotal;
+
+  /// No description provided for @statsReceiptAvg.
+  ///
+  /// In cs, this message translates to:
+  /// **'Průměrná účtenka'**
+  String get statsReceiptAvg;
+
+  /// No description provided for @statsSalesItemCount.
+  ///
+  /// In cs, this message translates to:
+  /// **'Prodaných položek'**
+  String get statsSalesItemCount;
+
+  /// No description provided for @statsSalesTotal.
+  ///
+  /// In cs, this message translates to:
+  /// **'Celková tržba'**
+  String get statsSalesTotal;
+
+  /// No description provided for @statsSalesUniqueItems.
+  ///
+  /// In cs, this message translates to:
+  /// **'Unikátních položek'**
+  String get statsSalesUniqueItems;
+
+  /// No description provided for @statsShiftCount.
+  ///
+  /// In cs, this message translates to:
+  /// **'Počet směn'**
+  String get statsShiftCount;
+
+  /// No description provided for @statsShiftTotalHours.
+  ///
+  /// In cs, this message translates to:
+  /// **'Celkem hodin'**
+  String get statsShiftTotalHours;
+
+  /// No description provided for @statsShiftAvgDuration.
+  ///
+  /// In cs, this message translates to:
+  /// **'Průměrná směna'**
+  String get statsShiftAvgDuration;
+
+  /// No description provided for @statsZReportCount.
+  ///
+  /// In cs, this message translates to:
+  /// **'Počet uzávěrek'**
+  String get statsZReportCount;
+
+  /// No description provided for @statsZReportTotalRevenue.
+  ///
+  /// In cs, this message translates to:
+  /// **'Celková tržba'**
+  String get statsZReportTotalRevenue;
+
+  /// No description provided for @statsZReportTotalDiff.
+  ///
+  /// In cs, this message translates to:
+  /// **'Celkový rozdíl'**
+  String get statsZReportTotalDiff;
+
+  /// No description provided for @statsTipCount.
+  ///
+  /// In cs, this message translates to:
+  /// **'Počet spropitných'**
+  String get statsTipCount;
+
+  /// No description provided for @statsTipTotal.
+  ///
+  /// In cs, this message translates to:
+  /// **'Celkem spropitné'**
+  String get statsTipTotal;
+
+  /// No description provided for @statsTipAvg.
+  ///
+  /// In cs, this message translates to:
+  /// **'Průměrné spropitné'**
+  String get statsTipAvg;
+
+  /// No description provided for @statsEmpty.
+  ///
+  /// In cs, this message translates to:
+  /// **'Žádná data v tomto období'**
+  String get statsEmpty;
+
+  /// No description provided for @statsSortDate.
+  ///
+  /// In cs, this message translates to:
+  /// **'Datum'**
+  String get statsSortDate;
+
+  /// No description provided for @statsSortDateAsc.
+  ///
+  /// In cs, this message translates to:
+  /// **'Datum (nejstarší)'**
+  String get statsSortDateAsc;
+
+  /// No description provided for @statsSortAmount.
+  ///
+  /// In cs, this message translates to:
+  /// **'Částka'**
+  String get statsSortAmount;
+
+  /// No description provided for @statsSortAmountAsc.
+  ///
+  /// In cs, this message translates to:
+  /// **'Částka (nejmenší)'**
+  String get statsSortAmountAsc;
+
+  /// No description provided for @statsSortName.
+  ///
+  /// In cs, this message translates to:
+  /// **'Název'**
+  String get statsSortName;
+
+  /// No description provided for @statsSortNameDesc.
+  ///
+  /// In cs, this message translates to:
+  /// **'Název (Z→A)'**
+  String get statsSortNameDesc;
+
+  /// No description provided for @statsSortQty.
+  ///
+  /// In cs, this message translates to:
+  /// **'Množství'**
+  String get statsSortQty;
+
+  /// No description provided for @statsSortDuration.
+  ///
+  /// In cs, this message translates to:
+  /// **'Délka'**
+  String get statsSortDuration;
+
+  /// No description provided for @statsSortRevenue.
+  ///
+  /// In cs, this message translates to:
+  /// **'Tržba'**
+  String get statsSortRevenue;
+
+  /// No description provided for @statsColumnBillNumber.
+  ///
+  /// In cs, this message translates to:
+  /// **'Číslo'**
+  String get statsColumnBillNumber;
+
+  /// No description provided for @statsColumnCustomer.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zákazník'**
+  String get statsColumnCustomer;
+
+  /// No description provided for @statsColumnPaymentMethod.
+  ///
+  /// In cs, this message translates to:
+  /// **'Platba'**
+  String get statsColumnPaymentMethod;
+
+  /// No description provided for @statsColumnTotal.
+  ///
+  /// In cs, this message translates to:
+  /// **'Celkem'**
+  String get statsColumnTotal;
+
+  /// No description provided for @statsColumnItemName.
+  ///
+  /// In cs, this message translates to:
+  /// **'Položka'**
+  String get statsColumnItemName;
+
+  /// No description provided for @statsColumnQty.
+  ///
+  /// In cs, this message translates to:
+  /// **'Mn.'**
+  String get statsColumnQty;
+
+  /// No description provided for @statsColumnUnitPrice.
+  ///
+  /// In cs, this message translates to:
+  /// **'Cena/ks'**
+  String get statsColumnUnitPrice;
+
+  /// No description provided for @statsColumnBill.
+  ///
+  /// In cs, this message translates to:
+  /// **'Účtenka'**
+  String get statsColumnBill;
+
+  /// No description provided for @statsColumnDateTime.
+  ///
+  /// In cs, this message translates to:
+  /// **'Datum a čas'**
+  String get statsColumnDateTime;
+
+  /// No description provided for @statsColumnCategory.
+  ///
+  /// In cs, this message translates to:
+  /// **'Kategorie'**
+  String get statsColumnCategory;
+
+  /// No description provided for @statsColumnTax.
+  ///
+  /// In cs, this message translates to:
+  /// **'DPH'**
+  String get statsColumnTax;
+
+  /// No description provided for @statsColumnOrderNumber.
+  ///
+  /// In cs, this message translates to:
+  /// **'Obj. č.'**
+  String get statsColumnOrderNumber;
+
+  /// No description provided for @statsColumnStatus.
+  ///
+  /// In cs, this message translates to:
+  /// **'Stav'**
+  String get statsColumnStatus;
+
+  /// No description provided for @statsTabOrders.
+  ///
+  /// In cs, this message translates to:
+  /// **'Objednávky'**
+  String get statsTabOrders;
+
+  /// No description provided for @statsOrderCount.
+  ///
+  /// In cs, this message translates to:
+  /// **'Počet objednávek'**
+  String get statsOrderCount;
+
+  /// No description provided for @statsOrderTotalItems.
+  ///
+  /// In cs, this message translates to:
+  /// **'Celkem položek'**
+  String get statsOrderTotalItems;
+
+  /// No description provided for @statsOrderTotal.
+  ///
+  /// In cs, this message translates to:
+  /// **'Celková částka'**
+  String get statsOrderTotal;
+
+  /// No description provided for @orderStorno.
+  ///
+  /// In cs, this message translates to:
+  /// **'Storno'**
+  String get orderStorno;
+
+  /// No description provided for @statsSalesGrossRevenue.
+  ///
+  /// In cs, this message translates to:
+  /// **'Hrubá tržba (položky)'**
+  String get statsSalesGrossRevenue;
+
+  /// No description provided for @statsSalesItemDiscounts.
+  ///
+  /// In cs, this message translates to:
+  /// **'Slevy na položky'**
+  String get statsSalesItemDiscounts;
+
+  /// No description provided for @statsSalesBillDiscount.
+  ///
+  /// In cs, this message translates to:
+  /// **'Sleva na účtenku'**
+  String get statsSalesBillDiscount;
+
+  /// No description provided for @statsSalesLoyaltyDiscount.
+  ///
+  /// In cs, this message translates to:
+  /// **'Věrnostní sleva'**
+  String get statsSalesLoyaltyDiscount;
+
+  /// No description provided for @statsSalesVoucherDiscount.
+  ///
+  /// In cs, this message translates to:
+  /// **'Voucherová sleva'**
+  String get statsSalesVoucherDiscount;
+
+  /// No description provided for @statsSalesRounding.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zaokrouhlení'**
+  String get statsSalesRounding;
+
+  /// No description provided for @statsSalesFinalTotal.
+  ///
+  /// In cs, this message translates to:
+  /// **'Celkem (účtenky)'**
+  String get statsSalesFinalTotal;
 }
 
 class _AppLocalizationsDelegate

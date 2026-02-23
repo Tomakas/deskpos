@@ -9,6 +9,7 @@ import '../enums/discount_type.dart';
 import '../enums/item_type.dart';
 import '../enums/prep_status.dart';
 import '../enums/stock_movement_direction.dart';
+import '../enums/unit_type.dart';
 import '../mappers/entity_mappers.dart';
 import '../mappers/supabase_mappers.dart';
 import '../models/order_item_model.dart';
@@ -88,6 +89,7 @@ class OrderRepository {
             salePriceAtt: item.salePriceAtt,
             saleTaxRateAtt: item.saleTaxRateAtt,
             saleTaxAmount: item.saleTaxAmount,
+            unit: Value(item.unit),
             notes: Value(item.notes),
             status: PrepStatus.created,
           ));
@@ -171,6 +173,27 @@ class OrderRepository {
   Future<List<OrderItemModel>> getOrderItemsByBill(String billId) async {
     final orders = await (_db.select(_db.orders)
           ..where((t) => t.billId.equals(billId) & t.deletedAt.isNull()))
+        .get();
+    if (orders.isEmpty) return [];
+    final orderIds = orders.map((o) => o.id).toList();
+    final entities = await (_db.select(_db.orderItems)
+          ..where((t) => t.orderId.isIn(orderIds) & t.deletedAt.isNull()))
+        .get();
+    return entities.map(orderItemFromEntity).toList();
+  }
+
+  Future<List<OrderModel>> getOrdersByBillIds(List<String> billIds) async {
+    if (billIds.isEmpty) return [];
+    final entities = await (_db.select(_db.orders)
+          ..where((t) => t.billId.isIn(billIds) & t.deletedAt.isNull()))
+        .get();
+    return entities.map(orderFromEntity).toList();
+  }
+
+  Future<List<OrderItemModel>> getOrderItemsByBillIds(List<String> billIds) async {
+    if (billIds.isEmpty) return [];
+    final orders = await (_db.select(_db.orders)
+          ..where((t) => t.billId.isIn(billIds) & t.deletedAt.isNull()))
         .get();
     if (orders.isEmpty) return [];
     final orderIds = orders.map((o) => o.id).toList();
@@ -486,6 +509,7 @@ class OrderRepository {
           salePriceAtt: itemEntity.salePriceAtt,
           saleTaxRateAtt: itemEntity.saleTaxRateAtt,
           saleTaxAmount: itemEntity.saleTaxAmount,
+          unit: Value(itemEntity.unit),
           status: PrepStatus.delivered,
         ));
 
@@ -588,6 +612,18 @@ class OrderRepository {
     }
     query = query..orderBy([(t) => OrderingTerm.desc(t.createdAt)]);
     return query.watch().map((rows) => rows.map(orderFromEntity).toList());
+  }
+
+  Future<List<OrderModel>> getByCompanyInRange(String companyId, DateTime from, DateTime to) async {
+    final entities = await (_db.select(_db.orders)
+          ..where((t) =>
+              t.companyId.equals(companyId) &
+              t.createdAt.isBiggerOrEqualValue(from) &
+              t.createdAt.isSmallerOrEqualValue(to) &
+              t.deletedAt.isNull())
+          ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
+        .get();
+    return entities.map(orderFromEntity).toList();
   }
 
   Future<Result<void>> updateOrderNotes(String orderId, String? notes) async {
@@ -774,6 +810,7 @@ class OrderRepository {
               salePriceAtt: original.salePriceAtt,
               saleTaxRateAtt: original.saleTaxRateAtt,
               saleTaxAmount: original.saleTaxAmount,
+              unit: Value(original.unit),
               discount: Value(cloneDiscount),
               discountType: cloneDiscountType,
               notes: Value(original.notes),
@@ -1168,6 +1205,7 @@ class OrderItemInput {
     required this.salePriceAtt,
     required this.saleTaxRateAtt,
     required this.saleTaxAmount,
+    this.unit = UnitType.ks,
     this.notes,
     this.modifiers = const [],
   });
@@ -1178,6 +1216,7 @@ class OrderItemInput {
   final int salePriceAtt;
   final int saleTaxRateAtt;
   final int saleTaxAmount;
+  final UnitType unit;
   final String? notes;
   final List<OrderItemModifierInput> modifiers;
 }

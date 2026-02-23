@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
+import 'pos_dialog_actions.dart';
 import 'pos_dialog_theme.dart';
 
 class PosDialogShell extends StatelessWidget {
@@ -61,4 +63,24 @@ class PosDialogShell extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Shows a simple Yes / No confirmation dialog.
+/// Returns `true` when the user confirms, `false` otherwise.
+Future<bool> confirmDelete(BuildContext context, AppLocalizations l) async {
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (ctx) => PosDialogShell(
+      title: l.confirmDelete,
+      children: [
+        PosDialogActions(
+          actions: [
+            OutlinedButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.no)),
+            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.yes)),
+          ],
+        ),
+      ],
+    ),
+  );
+  return confirmed == true;
 }

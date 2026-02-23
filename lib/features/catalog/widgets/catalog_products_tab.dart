@@ -18,6 +18,9 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/utils/formatting_ext.dart';
 import '../../../core/utils/search_utils.dart';
+import '../../../core/utils/unit_type_l10n.dart';
+import '../../../core/widgets/pos_dialog_actions.dart';
+import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_table.dart';
 import '../../../l10n/app_localizations.dart';
 
@@ -32,6 +35,7 @@ String _localizedItemType(AppLocalizations l, ItemType type) {
     ItemType.modifier => l.itemTypeModifier,
   };
 }
+
 
 class CatalogProductsTab extends ConsumerStatefulWidget {
   const CatalogProductsTab({super.key});
@@ -253,106 +257,108 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
     await showDialog<void>(
       context: context,
       builder: (_) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
-          title: Text(l.filterTitle),
-          content: SizedBox(
-            width: 400,
-            child: SingleChildScrollView(
-              child: Column(
-                key: ValueKey(resetCount),
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  DropdownButtonFormField<ItemType?>(
-                    initialValue: itemType,
-                    decoration: InputDecoration(labelText: l.fieldType),
-                    items: [
-                      DropdownMenuItem<ItemType?>(value: null, child: Text(l.filterAll)),
-                      ...ItemType.values.map(
-                        (t) => DropdownMenuItem(value: t, child: Text(_localizedItemType(l, t))),
-                      ),
-                    ],
-                    onChanged: (v) => setDialogState(() => itemType = v),
-                  ),
-                  const SizedBox(height: 12),
-                  DropdownButtonFormField<String?>(
-                    initialValue: categoryId,
-                    decoration: InputDecoration(labelText: l.fieldCategory),
-                    items: [
-                      DropdownMenuItem<String?>(value: null, child: Text(l.filterAll)),
-                      ...categories.map(
-                        (c) => DropdownMenuItem(value: c.id, child: Text(c.name)),
-                      ),
-                    ],
-                    onChanged: (v) => setDialogState(() => categoryId = v),
-                  ),
-                  const SizedBox(height: 12),
-                  DropdownButtonFormField<bool?>(
-                    initialValue: isActive,
-                    decoration: InputDecoration(labelText: l.fieldActive),
-                    items: boolItems,
-                    onChanged: (v) => setDialogState(() => isActive = v),
-                  ),
-                  const SizedBox(height: 12),
-                  DropdownButtonFormField<bool?>(
-                    initialValue: isOnSale,
-                    decoration: InputDecoration(labelText: l.fieldOnSale),
-                    items: boolItems,
-                    onChanged: (v) => setDialogState(() => isOnSale = v),
-                  ),
-                  const SizedBox(height: 12),
-                  DropdownButtonFormField<bool?>(
-                    initialValue: isStockTracked,
-                    decoration: InputDecoration(labelText: l.fieldStockTracked),
-                    items: boolItems,
-                    onChanged: (v) => setDialogState(() => isStockTracked = v),
-                  ),
-                  const SizedBox(height: 12),
-                  DropdownButtonFormField<String?>(
-                    initialValue: supplierId,
-                    decoration: InputDecoration(labelText: l.fieldSupplier),
-                    items: [
-                      DropdownMenuItem<String?>(value: null, child: Text(l.filterAll)),
-                      ...suppliers.map(
-                        (s) => DropdownMenuItem(value: s.id, child: Text(s.supplierName)),
-                      ),
-                    ],
-                    onChanged: (v) => setDialogState(() => supplierId = v),
-                  ),
-                  const SizedBox(height: 12),
-                  DropdownButtonFormField<String?>(
-                    initialValue: manufacturerId,
-                    decoration: InputDecoration(labelText: l.fieldManufacturer),
-                    items: [
-                      DropdownMenuItem<String?>(value: null, child: Text(l.filterAll)),
-                      ...manufacturers.map(
-                        (m) => DropdownMenuItem(value: m.id, child: Text(m.name)),
-                      ),
-                    ],
-                    onChanged: (v) => setDialogState(() => manufacturerId = v),
-                  ),
-                ],
-              ),
+        builder: (ctx, setDialogState) => PosDialogShell(
+          title: l.filterTitle,
+          maxWidth: 400,
+          scrollable: true,
+          children: [
+            Column(
+              key: ValueKey(resetCount),
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                DropdownButtonFormField<ItemType?>(
+                  initialValue: itemType,
+                  decoration: InputDecoration(labelText: l.fieldType),
+                  items: [
+                    DropdownMenuItem<ItemType?>(value: null, child: Text(l.filterAll)),
+                    ...ItemType.values.map(
+                      (t) => DropdownMenuItem(value: t, child: Text(_localizedItemType(l, t))),
+                    ),
+                  ],
+                  onChanged: (v) => setDialogState(() => itemType = v),
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String?>(
+                  initialValue: categoryId,
+                  decoration: InputDecoration(labelText: l.fieldCategory),
+                  items: [
+                    DropdownMenuItem<String?>(value: null, child: Text(l.filterAll)),
+                    ...categories.map(
+                      (c) => DropdownMenuItem(value: c.id, child: Text(c.name)),
+                    ),
+                  ],
+                  onChanged: (v) => setDialogState(() => categoryId = v),
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<bool?>(
+                  initialValue: isActive,
+                  decoration: InputDecoration(labelText: l.fieldActive),
+                  items: boolItems,
+                  onChanged: (v) => setDialogState(() => isActive = v),
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<bool?>(
+                  initialValue: isOnSale,
+                  decoration: InputDecoration(labelText: l.fieldOnSale),
+                  items: boolItems,
+                  onChanged: (v) => setDialogState(() => isOnSale = v),
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<bool?>(
+                  initialValue: isStockTracked,
+                  decoration: InputDecoration(labelText: l.fieldStockTracked),
+                  items: boolItems,
+                  onChanged: (v) => setDialogState(() => isStockTracked = v),
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String?>(
+                  initialValue: supplierId,
+                  decoration: InputDecoration(labelText: l.fieldSupplier),
+                  items: [
+                    DropdownMenuItem<String?>(value: null, child: Text(l.filterAll)),
+                    ...suppliers.map(
+                      (s) => DropdownMenuItem(value: s.id, child: Text(s.supplierName)),
+                    ),
+                  ],
+                  onChanged: (v) => setDialogState(() => supplierId = v),
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String?>(
+                  initialValue: manufacturerId,
+                  decoration: InputDecoration(labelText: l.fieldManufacturer),
+                  items: [
+                    DropdownMenuItem<String?>(value: null, child: Text(l.filterAll)),
+                    ...manufacturers.map(
+                      (m) => DropdownMenuItem(value: m.id, child: Text(m.name)),
+                    ),
+                  ],
+                  onChanged: (v) => setDialogState(() => manufacturerId = v),
+                ),
+              ],
             ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                setDialogState(() {
-                  itemType = null;
-                  categoryId = null;
-                  isActive = null;
-                  isOnSale = null;
-                  isStockTracked = null;
-                  supplierId = null;
-                  manufacturerId = null;
-                  resetCount++;
-                });
-              },
-              child: Text(l.filterReset),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: Text(l.actionClose),
+            const SizedBox(height: 24),
+            PosDialogActions(
+              actions: [
+                OutlinedButton(
+                  onPressed: () {
+                    setDialogState(() {
+                      itemType = null;
+                      categoryId = null;
+                      isActive = null;
+                      isOnSale = null;
+                      isStockTracked = null;
+                      supplierId = null;
+                      manufacturerId = null;
+                      resetCount++;
+                    });
+                  },
+                  child: Text(l.filterReset),
+                ),
+                OutlinedButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: Text(l.actionClose),
+                ),
+              ],
             ),
           ],
         ),
@@ -385,6 +391,8 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
     final currency = ref.read(currentCurrencyProvider).value;
     final priceCtrl = TextEditingController(
         text: existing != null ? minorUnitsToInputString(existing.unitPrice, currency) : '');
+    final descriptionCtrl = TextEditingController(text: existing?.description ?? '');
+    final skuCtrl = TextEditingController(text: existing?.sku ?? '');
     final altSkuCtrl = TextEditingController(text: existing?.altSku ?? '');
     final purchasePriceCtrl = TextEditingController(
         text: existing?.purchasePrice != null
@@ -394,6 +402,7 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
     var taxRateId = existing?.saleTaxRateId ??
         (taxRates.where((t) => t.isDefault).firstOrNull?.id);
     var itemType = existing?.itemType ?? ItemType.product;
+    var unit = existing?.unit ?? UnitType.ks;
     var isActive = existing?.isActive ?? true;
     var isOnSale = existing?.isOnSale ?? true;
     var isStockTracked = existing?.isStockTracked ?? false;
@@ -402,30 +411,29 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
     var purchaseTaxRateId = existing?.purchaseTaxRateId;
     var parentId = existing?.parentId;
 
-    final theme = Theme.of(context);
     final result = await showDialog<Object>(
       context: context,
       builder: (_) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
-          title: Text(existing == null ? l.actionAdd : l.actionEdit),
-          content: SizedBox(
-            width: 500,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
+        builder: (ctx, setDialogState) => PosDialogShell(
+          title: existing == null ? l.actionAdd : l.actionEdit,
+          maxWidth: 600,
+          scrollable: true,
+          children: [
+            // Row 1: Name + Category
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  flex: 3,
+                  child: TextField(
                     controller: nameCtrl,
                     decoration: InputDecoration(labelText: l.fieldName),
                   ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: priceCtrl,
-                    decoration: InputDecoration(labelText: l.fieldPrice),
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  ),
-                  const SizedBox(height: 12),
-                  DropdownButtonFormField<String?>(
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  flex: 2,
+                  child: DropdownButtonFormField<String?>(
                     initialValue: categoryId,
                     decoration: InputDecoration(labelText: l.fieldCategory),
                     items: [
@@ -435,8 +443,38 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
                     ],
                     onChanged: (v) => setDialogState(() => categoryId = v),
                   ),
-                  const SizedBox(height: 12),
-                  DropdownButtonFormField<String?>(
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            // Row 2: Sale Price + Purchase Price
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: priceCtrl,
+                    decoration: InputDecoration(labelText: l.fieldPrice),
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: TextField(
+                    controller: purchasePriceCtrl,
+                    decoration: InputDecoration(labelText: l.fieldPurchasePrice),
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            // Row 3: Sale Tax + Purchase Tax
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: DropdownButtonFormField<String?>(
                     initialValue: taxRateId,
                     decoration: InputDecoration(labelText: l.fieldTaxRate),
                     items: taxRates
@@ -444,28 +482,10 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
                         .toList(),
                     onChanged: (v) => setDialogState(() => taxRateId = v),
                   ),
-                  const SizedBox(height: 12),
-                  DropdownButtonFormField<ItemType>(
-                    initialValue: itemType,
-                    decoration: InputDecoration(labelText: l.fieldType),
-                    items: ItemType.values
-                        .map((t) => DropdownMenuItem(value: t, child: Text(_localizedItemType(l, t))))
-                        .toList(),
-                    onChanged: (v) => setDialogState(() => itemType = v!),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: altSkuCtrl,
-                    decoration: InputDecoration(labelText: l.fieldAltSku),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: purchasePriceCtrl,
-                    decoration: InputDecoration(labelText: l.fieldPurchasePrice),
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  ),
-                  const SizedBox(height: 12),
-                  DropdownButtonFormField<String?>(
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: DropdownButtonFormField<String?>(
                     initialValue: purchaseTaxRateId,
                     decoration: InputDecoration(labelText: l.fieldPurchaseTaxRate),
                     items: [
@@ -475,8 +495,16 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
                     ],
                     onChanged: (v) => setDialogState(() => purchaseTaxRateId = v),
                   ),
-                  const SizedBox(height: 12),
-                  DropdownButtonFormField<String?>(
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            // Row 4: Supplier + Manufacturer
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: DropdownButtonFormField<String?>(
                     initialValue: supplierId,
                     decoration: InputDecoration(labelText: l.fieldSupplier),
                     items: [
@@ -486,8 +514,10 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
                     ],
                     onChanged: (v) => setDialogState(() => supplierId = v),
                   ),
-                  const SizedBox(height: 12),
-                  DropdownButtonFormField<String?>(
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: DropdownButtonFormField<String?>(
                     initialValue: manufacturerId,
                     decoration: InputDecoration(labelText: l.fieldManufacturer),
                     items: [
@@ -497,54 +527,122 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
                     ],
                     onChanged: (v) => setDialogState(() => manufacturerId = v),
                   ),
-                  const SizedBox(height: 12),
-                  SwitchListTile(
-                    title: Text(l.fieldActive),
-                    value: isActive,
-                    onChanged: (v) => setDialogState(() => isActive = v),
-                  ),
-                  SwitchListTile(
-                    title: Text(l.fieldOnSale),
-                    value: isOnSale,
-                    onChanged: (v) => setDialogState(() => isOnSale = v),
-                  ),
-                  SwitchListTile(
-                    title: Text(l.fieldStockTracked),
-                    value: isStockTracked,
-                    onChanged: (v) => setDialogState(() => isStockTracked = v),
-                  ),
-                  // Variants section — only for existing products
-                  if (existing != null && existing.itemType == ItemType.product)
-                    _VariantsExpansionTile(
-                      product: existing,
-                      categories: categories,
-                      taxRates: taxRates,
-                    ),
-                  // Modifier groups section — only for existing products
-                  if (existing != null && existing.itemType == ItemType.product)
-                    _ModifierGroupsExpansionTile(product: existing),
-                ],
-              ),
+                ),
+              ],
             ),
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.actionCancel)),
-            if (existing != null)
-              TextButton(
-                onPressed: () => Navigator.pop(ctx, 'delete'),
-                child: Text(l.actionDelete, style: TextStyle(color: theme.colorScheme.error)),
+            const SizedBox(height: 12),
+            // Row 5: Item Type — toggle buttons
+            Row(
+              children: [
+                for (final t in ItemType.values) ...[
+                  if (t != ItemType.values.first) const SizedBox(width: 8),
+                  Expanded(
+                    child: SizedBox(
+                      height: 40,
+                      child: FilterChip(
+                        label: SizedBox(
+                          width: double.infinity,
+                          child: Text(
+                            _localizedItemType(l, t),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        selected: itemType == t,
+                        onSelected: (_) => setDialogState(() => itemType = t),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            const SizedBox(height: 12),
+            // Row 6: SKU + Alt SKU + Unit
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: skuCtrl,
+                    decoration: InputDecoration(labelText: l.fieldSku),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: TextField(
+                    controller: altSkuCtrl,
+                    decoration: InputDecoration(labelText: l.fieldAltSku),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: DropdownButtonFormField<UnitType>(
+                    initialValue: unit,
+                    decoration: InputDecoration(labelText: l.fieldUnit),
+                    items: UnitType.values
+                        .map((u) => DropdownMenuItem(value: u, child: Text(localizedUnitType(l, u))))
+                        .toList(),
+                    onChanged: (v) => setDialogState(() => unit = v!),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            // Row 8: Description
+            TextField(
+              controller: descriptionCtrl,
+              decoration: InputDecoration(labelText: l.fieldDescription),
+              maxLines: 2,
+            ),
+            const SizedBox(height: 12),
+            // Switches
+            SwitchListTile(
+              title: Text(l.fieldActive),
+              value: isActive,
+              onChanged: (v) => setDialogState(() => isActive = v),
+            ),
+            SwitchListTile(
+              title: Text(l.fieldOnSale),
+              value: isOnSale,
+              onChanged: (v) => setDialogState(() => isOnSale = v),
+            ),
+            SwitchListTile(
+              title: Text(l.fieldStockTracked),
+              value: isStockTracked,
+              onChanged: (v) => setDialogState(() => isStockTracked = v),
+            ),
+            // Variants section — only for existing products
+            if (existing != null && existing.itemType == ItemType.product)
+              _VariantsExpansionTile(
+                product: existing,
+                categories: categories,
+                taxRates: taxRates,
               ),
-            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.actionSave)),
+            // Modifier groups section — only for existing products
+            if (existing != null && existing.itemType == ItemType.product)
+              _ModifierGroupsExpansionTile(product: existing),
+            const SizedBox(height: 24),
+            PosDialogActions(
+              leading: existing != null
+                  ? OutlinedButton(
+                      style: PosButtonStyles.destructiveOutlined(ctx),
+                      onPressed: () async {
+                        if (!await confirmDelete(ctx, l) || !ctx.mounted) return;
+                        await ref.read(itemRepositoryProvider).delete(existing.id);
+                        if (ctx.mounted) Navigator.pop(ctx);
+                      },
+                      child: Text(l.actionDelete),
+                    )
+                  : null,
+              actions: [
+                OutlinedButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.actionCancel)),
+                FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.actionSave)),
+              ],
+            ),
           ],
         ),
       ),
     );
 
-    if (result == 'delete') {
-      if (!context.mounted) return;
-      await _delete(context, ref, existing!);
-      return;
-    }
     if (result != true || nameCtrl.text.trim().isEmpty || !mounted) return;
 
     final company = ref.read(currentCompanyProvider)!;
@@ -555,15 +653,22 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
         ? parseMoney(purchasePriceCtrl.text, currency)
         : null;
 
+    final descriptionValue = descriptionCtrl.text.trim().isNotEmpty ? descriptionCtrl.text.trim() : null;
+    final skuValue = skuCtrl.text.trim().isNotEmpty ? skuCtrl.text.trim() : null;
+    final altSkuValue = altSkuCtrl.text.trim().isNotEmpty ? altSkuCtrl.text.trim() : null;
+
     if (existing != null) {
       await repo.update(existing.copyWith(
         name: nameCtrl.text.trim(),
+        description: descriptionValue,
         categoryId: categoryId,
         unitPrice: priceInCents,
         saleTaxRateId: taxRateId,
         itemType: itemType,
+        unit: unit,
         isActive: isActive,
-        altSku: altSkuCtrl.text.trim().isNotEmpty ? altSkuCtrl.text.trim() : null,
+        sku: skuValue,
+        altSku: altSkuValue,
         purchasePrice: purchasePriceCents,
         purchaseTaxRateId: purchaseTaxRateId,
         isOnSale: isOnSale,
@@ -577,13 +682,15 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
         id: const Uuid().v7(),
         companyId: company.id,
         name: nameCtrl.text.trim(),
+        description: descriptionValue,
         categoryId: categoryId,
         unitPrice: priceInCents,
         saleTaxRateId: taxRateId,
         itemType: itemType,
-        unit: UnitType.ks,
+        unit: unit,
         isActive: isActive,
-        altSku: altSkuCtrl.text.trim().isNotEmpty ? altSkuCtrl.text.trim() : null,
+        sku: skuValue,
+        altSku: altSkuValue,
         purchasePrice: purchasePriceCents,
         purchaseTaxRateId: purchaseTaxRateId,
         isOnSale: isOnSale,
@@ -597,21 +704,6 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
     }
   }
 
-  Future<void> _delete(BuildContext context, WidgetRef ref, ItemModel item) async {
-    final l = context.l10n;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        content: Text(l.confirmDelete),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
-        ],
-      ),
-    );
-    if (confirmed != true || !mounted) return;
-    await ref.read(itemRepositoryProvider).delete(item.id);
-  }
 }
 
 class _VariantsExpansionTile extends ConsumerWidget {
@@ -685,45 +777,43 @@ class _VariantsExpansionTile extends ConsumerWidget {
 
     final result = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
-        title: Text(existing == null ? l.addVariant : l.editVariant),
-        content: SizedBox(
-          width: 400,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameCtrl,
-                decoration: InputDecoration(labelText: l.fieldName),
-                autofocus: true,
+      builder: (_) => PosDialogShell(
+        title: existing == null ? l.addVariant : l.editVariant,
+        maxWidth: 400,
+        children: [
+          TextField(
+            controller: nameCtrl,
+            decoration: InputDecoration(labelText: l.fieldName),
+            autofocus: true,
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: priceCtrl,
+            decoration: InputDecoration(labelText: l.fieldPrice),
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: skuCtrl,
+            decoration: const InputDecoration(labelText: 'SKU'),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: altSkuCtrl,
+            decoration: InputDecoration(labelText: l.fieldAltSku),
+          ),
+          const SizedBox(height: 24),
+          PosDialogActions(
+            actions: [
+              OutlinedButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text(l.actionCancel),
               ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: priceCtrl,
-                decoration: InputDecoration(labelText: l.fieldPrice),
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: skuCtrl,
-                decoration: const InputDecoration(labelText: 'SKU'),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: altSkuCtrl,
-                decoration: InputDecoration(labelText: l.fieldAltSku),
+              FilledButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: Text(l.actionSave),
               ),
             ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(l.actionCancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(l.actionSave),
           ),
         ],
       ),
@@ -763,18 +853,7 @@ class _VariantsExpansionTile extends ConsumerWidget {
   }
 
   Future<void> _confirmDeleteVariant(BuildContext context, WidgetRef ref, ItemModel variant) async {
-    final l = context.l10n;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        content: Text(l.confirmDelete),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
-        ],
-      ),
-    );
-    if (confirmed != true) return;
+    if (!await confirmDelete(context, context.l10n)) return;
     await ref.read(itemRepositoryProvider).delete(variant.id);
   }
 }

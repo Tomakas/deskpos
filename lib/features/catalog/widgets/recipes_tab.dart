@@ -9,7 +9,10 @@ import '../../../core/data/models/product_recipe_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/search_utils.dart';
+import '../../../core/widgets/pos_dialog_actions.dart';
+import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_table.dart';
 
 class RecipesTab extends ConsumerStatefulWidget {
@@ -142,127 +145,134 @@ class _RecipesTabState extends ConsumerState<RecipesTab> {
     final result = await showDialog<Object>(
       context: context,
       builder: (_) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
-          title: Text(isNew ? l.actionAdd : l.actionEdit),
-          content: SizedBox(
-            width: 500,
-            height: 400,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Parent product dropdown (locked when editing)
-                DropdownButtonFormField<String?>(
-                  initialValue: parentProductId,
-                  decoration: InputDecoration(labelText: l.fieldParentProduct),
-                  items: [
-                    const DropdownMenuItem(value: null, child: Text('-')),
-                    ...recipeItems.map(
-                      (i) => DropdownMenuItem(value: i.id, child: Text(i.name)),
-                    ),
-                  ],
-                  onChanged: isNew
-                      ? (v) => setDialogState(() => parentProductId = v)
-                      : null,
-                ),
-                const SizedBox(height: 16),
-
-                // Components list
-                Expanded(
-                  child: components.isEmpty
-                      ? Center(
-                          child: Text(
-                            l.recipeNoComponents,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        )
-                      : ListView.builder(
-                          itemCount: components.length,
-                          itemBuilder: (context, i) {
-                            final comp = components[i];
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 8),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    flex: 3,
-                                    child: DropdownButtonFormField<String?>(
-                                      initialValue: comp.itemId,
-                                      decoration: InputDecoration(
-                                        labelText: l.fieldComponent,
-                                        isDense: true,
-                                      ),
-                                      items: [
-                                        const DropdownMenuItem(value: null, child: Text('-')),
-                                        ...items.map(
-                                          (it) => DropdownMenuItem(value: it.id, child: Text(it.name)),
-                                        ),
-                                      ],
-                                      onChanged: (v) => setDialogState(() => comp.itemId = v),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  SizedBox(
-                                    width: 100,
-                                    child: TextField(
-                                      controller: comp.quantityController,
-                                      decoration: InputDecoration(
-                                        labelText: l.fieldQuantityRequired,
-                                        isDense: true,
-                                      ),
-                                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                      inputFormatters: [
-                                        FilteringTextInputFormatter.allow(RegExp(r'[\d.,]')),
-                                      ],
-                                    ),
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.close),
-                                    onPressed: () => setDialogState(() {
-                                      components[i].quantityController.dispose();
-                                      components.removeAt(i);
-                                    }),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
-                ),
-
-                // Add component button
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: TextButton.icon(
-                    onPressed: () => setDialogState(() {
-                      components.add(_ComponentEntry(
-                        quantityController: TextEditingController(text: '1'),
-                      ));
-                    }),
-                    icon: const Icon(Icons.add),
-                    label: Text(l.recipeAddComponent),
-                  ),
+        builder: (ctx, setDialogState) => PosDialogShell(
+          title: isNew ? l.actionAdd : l.actionEdit,
+          maxWidth: 500,
+          maxHeight: 500,
+          expandHeight: true,
+          children: [
+            // Parent product dropdown (locked when editing)
+            DropdownButtonFormField<String?>(
+              initialValue: parentProductId,
+              decoration: InputDecoration(labelText: l.fieldParentProduct),
+              items: [
+                const DropdownMenuItem(value: null, child: Text('-')),
+                ...recipeItems.map(
+                  (i) => DropdownMenuItem(value: i.id, child: Text(i.name)),
                 ),
               ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: Text(l.actionCancel),
-            ),
-            if (!isNew)
-              TextButton(
-                onPressed: () => Navigator.pop(ctx, 'delete'),
-                child: Text(l.actionDelete, style: TextStyle(color: theme.colorScheme.error)),
-              ),
-            FilledButton(
-              onPressed: parentProductId != null && components.isNotEmpty
-                  ? () => Navigator.pop(ctx, true)
+              onChanged: isNew
+                  ? (v) => setDialogState(() => parentProductId = v)
                   : null,
-              child: Text(l.actionSave),
+            ),
+            const SizedBox(height: 16),
+
+            // Components list
+            Expanded(
+              child: components.isEmpty
+                  ? Center(
+                      child: Text(
+                        l.recipeNoComponents,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    )
+                  : ListView.builder(
+                      itemCount: components.length,
+                      itemBuilder: (context, i) {
+                        final comp = components[i];
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                flex: 3,
+                                child: DropdownButtonFormField<String?>(
+                                  initialValue: comp.itemId,
+                                  decoration: InputDecoration(
+                                    labelText: l.fieldComponent,
+                                    isDense: true,
+                                  ),
+                                  items: [
+                                    const DropdownMenuItem(value: null, child: Text('-')),
+                                    ...items.map(
+                                      (it) => DropdownMenuItem(value: it.id, child: Text(it.name)),
+                                    ),
+                                  ],
+                                  onChanged: (v) => setDialogState(() => comp.itemId = v),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              SizedBox(
+                                width: 100,
+                                child: TextField(
+                                  controller: comp.quantityController,
+                                  decoration: InputDecoration(
+                                    labelText: l.fieldQuantityRequired,
+                                    isDense: true,
+                                  ),
+                                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.allow(RegExp(r'[\d.,]')),
+                                  ],
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.close),
+                                onPressed: () => setDialogState(() {
+                                  components[i].quantityController.dispose();
+                                  components.removeAt(i);
+                                }),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+            ),
+
+            // Add component button
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                onPressed: () => setDialogState(() {
+                  components.add(_ComponentEntry(
+                    quantityController: TextEditingController(text: '1'),
+                  ));
+                }),
+                icon: const Icon(Icons.add),
+                label: Text(l.recipeAddComponent),
+              ),
+            ),
+            const SizedBox(height: 24),
+            PosDialogActions(
+              leading: !isNew
+                  ? OutlinedButton(
+                      style: PosButtonStyles.destructiveOutlined(ctx),
+                      onPressed: () async {
+                        if (!await confirmDelete(ctx, l) || !ctx.mounted) return;
+                        final repo = ref.read(productRecipeRepositoryProvider);
+                        for (final c in existingComponents) {
+                          await repo.delete(c.id);
+                        }
+                        if (ctx.mounted) Navigator.pop(ctx);
+                      },
+                      child: Text(l.actionDelete),
+                    )
+                  : null,
+              actions: [
+                OutlinedButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  child: Text(l.actionCancel),
+                ),
+                FilledButton(
+                  onPressed: parentProductId != null && components.isNotEmpty
+                      ? () => Navigator.pop(ctx, true)
+                      : null,
+                  child: Text(l.actionSave),
+                ),
+              ],
             ),
           ],
         ),
@@ -274,12 +284,6 @@ class _RecipesTabState extends ConsumerState<RecipesTab> {
       final qty = double.tryParse(comp.quantityController.text.replaceAll(',', '.')) ?? 1.0;
       comp.quantity = qty;
       comp.quantityController.dispose();
-    }
-
-    if (result == 'delete' && existingParentId != null) {
-      if (!context.mounted) return;
-      await _deleteRecipe(context, ref, existingComponents);
-      return;
     }
 
     if (result != true || parentProductId == null) return;
@@ -337,28 +341,6 @@ class _RecipesTabState extends ConsumerState<RecipesTab> {
     }
   }
 
-  Future<void> _deleteRecipe(
-    BuildContext context,
-    WidgetRef ref,
-    List<ProductRecipeModel> components,
-  ) async {
-    final l = context.l10n;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        content: Text(l.confirmDelete),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
-        ],
-      ),
-    );
-    if (confirmed != true || !mounted) return;
-    final repo = ref.read(productRecipeRepositoryProvider);
-    for (final c in components) {
-      await repo.delete(c.id);
-    }
-  }
 }
 
 class _ComponentEntry {

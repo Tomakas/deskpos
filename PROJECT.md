@@ -1175,7 +1175,7 @@ Klientské timestampy se ukládají v **UTC**.
 |-----------|-------|---------|
 | `CompanyStatus` | `CompanyModel` | trial, subscribed, deleted |
 | `ItemType` | `ItemModel` | product, service, counter, recipe, ingredient, variant, modifier |
-| `UnitType` | `ItemModel` | ks, g, ml, m |
+| `UnitType` | `ItemModel`, `OrderItemModel` | ks, g, kg, ml, cl, l, mm, cm, m, min, h |
 | `BillStatus` | `BillModel` | opened, paid, cancelled, refunded |
 | `PrepStatus` | `OrderModel`, `OrderItemModel` | created, ready, delivered, cancelled, voided |
 | `PaymentType` | `PaymentMethodModel` | cash, card, bank, credit, voucher, other |

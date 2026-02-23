@@ -10,6 +10,7 @@ import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/printing/receipt_data.dart';
 import '../../../core/utils/file_opener.dart';
+import '../../../core/utils/unit_type_l10n.dart';
 
 /// Generates receipt PDF, saves to temp file, and opens with system viewer.
 /// On macOS, Preview.app opens with built-in print (Cmd+P).
@@ -47,7 +48,7 @@ Future<void> showReceiptPrintDialog(
 
   try {
     final currency = ref.read(currentCurrencyProvider).value;
-    final data = await service.buildReceiptData(billId, currency: currency);
+    final data = await service.buildReceiptData(billId, currency: currency, unitLocalizer: (u) => localizedUnitType(l, u));
     if (data == null) {
       AppLogger.error('showReceiptPrintDialog: no receipt data for bill $billId');
       return;

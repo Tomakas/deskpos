@@ -10,7 +10,10 @@ import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/utils/formatting_ext.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/search_utils.dart';
+import '../../../core/widgets/pos_dialog_actions.dart';
+import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_table.dart';
 
 class CatalogModifiersTab extends ConsumerStatefulWidget {
@@ -91,103 +94,100 @@ class _CatalogModifiersTabState extends ConsumerState<CatalogModifiersTab> {
 
     await showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(existing != null ? l.editModifierGroup : l.addModifierGroup),
-        content: SizedBox(
-          width: 500,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: nameCtrl,
-                  autofocus: existing == null,
+      builder: (ctx) => PosDialogShell(
+        title: existing != null ? l.editModifierGroup : l.addModifierGroup,
+        maxWidth: 500,
+        scrollable: true,
+        children: [
+          TextField(
+            controller: nameCtrl,
+            autofocus: existing == null,
+            decoration: InputDecoration(
+              labelText: l.modifierGroupName,
+              border: const OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: minCtrl,
+                  keyboardType: TextInputType.number,
                   decoration: InputDecoration(
-                    labelText: l.modifierGroupName,
+                    labelText: l.minSelections,
                     border: const OutlineInputBorder(),
                   ),
                 ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: minCtrl,
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                          labelText: l.minSelections,
-                          border: const OutlineInputBorder(),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: TextField(
-                        controller: maxCtrl,
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                          labelText: l.maxSelections,
-                          helperText: l.unlimited,
-                          border: const OutlineInputBorder(),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                if (existing != null) ...[
-                  const SizedBox(height: 16),
-                  const Divider(),
-                  _GroupItemsSection(group: existing),
-                ],
-              ],
-            ),
-          ),
-        ),
-        actions: [
-          if (existing != null)
-            TextButton(
-              style: TextButton.styleFrom(
-                foregroundColor: Theme.of(context).colorScheme.error,
               ),
-              onPressed: () async {
-                await ref.read(modifierGroupRepositoryProvider).delete(existing.id);
-                if (ctx.mounted) Navigator.pop(ctx);
-              },
-              child: Text(l.deleteModifierGroup),
-            ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(l.actionCancel),
+              const SizedBox(width: 12),
+              Expanded(
+                child: TextField(
+                  controller: maxCtrl,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    labelText: l.maxSelections,
+                    helperText: l.unlimited,
+                    border: const OutlineInputBorder(),
+                  ),
+                ),
+              ),
+            ],
           ),
-          FilledButton(
-            onPressed: () async {
-              final name = nameCtrl.text.trim();
-              if (name.isEmpty) return;
-              final min = int.tryParse(minCtrl.text) ?? 0;
-              final max = maxCtrl.text.trim().isEmpty ? null : int.tryParse(maxCtrl.text);
-              final repo = ref.read(modifierGroupRepositoryProvider);
+          if (existing != null) ...[
+            const SizedBox(height: 16),
+            const Divider(),
+            _GroupItemsSection(group: existing),
+          ],
+          const SizedBox(height: 24),
+          PosDialogActions(
+            leading: existing != null
+                ? OutlinedButton(
+                    style: PosButtonStyles.destructiveOutlined(ctx),
+                    onPressed: () async {
+                      if (!await confirmDelete(ctx, l) || !ctx.mounted) return;
+                      await ref.read(modifierGroupRepositoryProvider).delete(existing.id);
+                      if (ctx.mounted) Navigator.pop(ctx);
+                    },
+                    child: Text(l.deleteModifierGroup),
+                  )
+                : null,
+            actions: [
+              OutlinedButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text(l.actionCancel),
+              ),
+              FilledButton(
+                onPressed: () async {
+                  final name = nameCtrl.text.trim();
+                  if (name.isEmpty) return;
+                  final min = int.tryParse(minCtrl.text) ?? 0;
+                  final max = maxCtrl.text.trim().isEmpty ? null : int.tryParse(maxCtrl.text);
+                  final repo = ref.read(modifierGroupRepositoryProvider);
 
-              if (existing != null) {
-                await repo.update(existing.copyWith(
-                  name: name,
-                  minSelections: min,
-                  maxSelections: max,
-                ));
-              } else {
-                final now = DateTime.now();
-                await repo.create(ModifierGroupModel(
-                  id: const Uuid().v7(),
-                  companyId: company.id,
-                  name: name,
-                  minSelections: min,
-                  maxSelections: max,
-                  createdAt: now,
-                  updatedAt: now,
-                ));
-              }
-              if (ctx.mounted) Navigator.pop(ctx);
-            },
-            child: Text(l.actionSave),
+                  if (existing != null) {
+                    await repo.update(existing.copyWith(
+                      name: name,
+                      minSelections: min,
+                      maxSelections: max,
+                    ));
+                  } else {
+                    final now = DateTime.now();
+                    await repo.create(ModifierGroupModel(
+                      id: const Uuid().v7(),
+                      companyId: company.id,
+                      name: name,
+                      minSelections: min,
+                      maxSelections: max,
+                      createdAt: now,
+                      updatedAt: now,
+                    ));
+                  }
+                  if (ctx.mounted) Navigator.pop(ctx);
+                },
+                child: Text(l.actionSave),
+              ),
+            ],
           ),
         ],
       ),

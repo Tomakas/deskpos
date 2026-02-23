@@ -430,6 +430,7 @@ OrderItemModel orderItemFromEntity(OrderItem e) => OrderItemModel(
       salePriceAtt: e.salePriceAtt,
       saleTaxRateAtt: e.saleTaxRateAtt,
       saleTaxAmount: e.saleTaxAmount,
+      unit: e.unit,
       discount: e.discount,
       discountType: e.discountType,
       notes: e.notes,

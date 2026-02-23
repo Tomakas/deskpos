@@ -126,8 +126,6 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
                 onQuickBill: hasSession ? () => _createQuickBill(context) : null,
                 onToggleSession: () => _toggleSession(context, hasSession),
                 onCashMovement: hasSession ? () => _showCashMovement(context) : null,
-                onZReports: () => _showZReports(context),
-                onShifts: () => _showShifts(context),
                 onReservations: () => _showReservations(context),
               ),
             ),
@@ -255,14 +253,6 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
     } finally {
       if (mounted) setState(() => _isProcessing = false);
     }
-  }
-
-  Future<void> _showZReports(BuildContext context) async {
-    await helpers.showZReportsDialog(context, ref);
-  }
-
-  Future<void> _showShifts(BuildContext context) async {
-    await helpers.showShiftsDialog(context, ref);
   }
 
   void _showReservations(BuildContext context) {
@@ -768,8 +758,6 @@ class _RightPanel extends ConsumerWidget {
     required this.onQuickBill,
     required this.onToggleSession,
     required this.onCashMovement,
-    required this.onZReports,
-    required this.onShifts,
     required this.onReservations,
   });
 
@@ -786,8 +774,6 @@ class _RightPanel extends ConsumerWidget {
   final VoidCallback? onQuickBill;
   final VoidCallback onToggleSession;
   final VoidCallback? onCashMovement;
-  final VoidCallback onZReports;
-  final VoidCallback onShifts;
   final VoidCallback onReservations;
 
   @override
@@ -849,8 +835,6 @@ class _RightPanel extends ConsumerWidget {
                         onPressed: () => _showMoreMenu(
                           btnContext,
                           canManageSettings,
-                          onZReports: onZReports,
-                          onShifts: onShifts,
                         ),
                         child: Text(l.billsMore, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12)),
                       );
@@ -973,7 +957,7 @@ class _ButtonRow extends StatelessWidget {
   }
 }
 
-void _showMoreMenu(BuildContext btnContext, bool canManageSettings, {VoidCallback? onZReports, VoidCallback? onShifts}) {
+void _showMoreMenu(BuildContext btnContext, bool canManageSettings) {
   final l = btnContext.l10n;
   final button = btnContext.findRenderObject()! as RenderBox;
   final overlay = Overlay.of(btnContext).context.findRenderObject()! as RenderBox;
@@ -990,14 +974,9 @@ void _showMoreMenu(BuildContext btnContext, bool canManageSettings, {VoidCallbac
     position: position,
     items: [
       if (canManageSettings)
-        PopupMenuItem(value: 'z-reports', height: 48, child: Text(l.moreReports)),
+        PopupMenuItem(value: 'statistics', height: 48, child: Text(l.moreStatistics)),
       if (!canManageSettings)
-        PopupMenuItem(enabled: false, height: 48, child: Text(l.moreReports)),
-      if (canManageSettings)
-        PopupMenuItem(value: 'shifts', height: 48, child: Text(l.moreShifts)),
-      if (!canManageSettings)
-        PopupMenuItem(enabled: false, height: 48, child: Text(l.moreShifts)),
-      PopupMenuItem(enabled: false, height: 48, child: Text(l.moreStatistics)),
+        PopupMenuItem(enabled: false, height: 48, child: Text(l.moreStatistics)),
       if (canManageSettings)
         PopupMenuItem(value: 'vouchers', height: 48, child: Text(l.vouchersTitle)),
       if (!canManageSettings)
@@ -1018,16 +997,14 @@ void _showMoreMenu(BuildContext btnContext, bool canManageSettings, {VoidCallbac
   ).then((value) {
     if (value == null || !btnContext.mounted) return;
     switch (value) {
+      case 'statistics':
+        btnContext.push('/statistics');
       case 'company-settings':
         btnContext.push('/settings/company');
       case 'venue-settings':
         btnContext.push('/settings/venue');
       case 'register-settings':
         btnContext.push('/settings/register');
-      case 'z-reports':
-        onZReports?.call();
-      case 'shifts':
-        onShifts?.call();
       case 'vouchers':
         btnContext.push('/vouchers');
     }

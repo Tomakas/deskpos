@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-02-23 (evening)
+
+### Unit Type Pipeline
+- **`unit` column on `order_items`**: Added `unit` (type `unit_type`, default `'ks'`) to both Drift table and Supabase schema — unit info now persists from product catalog through the full order lifecycle
+- **Shared `localizedUnitType` helper**: Extracted from `catalog_products_tab.dart` into `lib/core/utils/unit_type_l10n.dart` for reuse across the app
+- **Order creation pipeline**: `OrderItemInput`, `_CartItem`, `createOrderWithItems`, `voidItem`, `splitItemsToNewOrder` all carry `unit` through
+- **Bill detail**: Replaced hardcoded `unitPcs` with localized unit from `OrderItemModel.unit`
+- **KDS**: Replaced hardcoded `'x'` suffix with localized unit label
+- **Customer display**: Added `unitLabel` to `DisplayItem` DTO, passed from sell screen
+- **Receipt printing**: Added `unitLabel` to `ReceiptItemData`, `_fmtQty` now formats as `'2 ks'` instead of `'2x'`
+- **Inventory screens**: Replaced raw `.unit.name` with `localizedUnitType()` in 5 locations (dialog, stock document, screen)
+- **Seed data**: Diversified units — Chicken Breast/Flour → `kg`, Heavy Cream → `l`, Hall Rental → `h`
+- **PROJECT.md**: Updated `UnitType` enum values and model references
+
+### SQL
+- **Migration `add_unit_to_order_items`**: `ALTER TABLE order_items ADD COLUMN unit unit_type NOT NULL DEFAULT 'ks'`
+
 ## 2026-02-23
 
 ### UI — Sjednocení stylů tlačítek v dialogech

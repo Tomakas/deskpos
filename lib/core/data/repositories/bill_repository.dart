@@ -112,6 +112,34 @@ class BillRepository {
     return entities.map(billFromEntity).toList();
   }
 
+  Future<List<BillModel>> getPaidInRange(String companyId, DateTime from, DateTime to) async {
+    final entities = await (_db.select(_db.bills)
+          ..where((t) =>
+              t.companyId.equals(companyId) &
+              t.status.equals(BillStatus.paid.name) &
+              t.closedAt.isNotNull() &
+              t.closedAt.isBiggerOrEqualValue(from) &
+              t.closedAt.isSmallerOrEqualValue(to) &
+              t.deletedAt.isNull())
+          ..orderBy([(t) => OrderingTerm.desc(t.closedAt)]))
+        .get();
+    return entities.map(billFromEntity).toList();
+  }
+
+  Future<List<BillModel>> getPaidOrRefundedInRange(String companyId, DateTime from, DateTime to) async {
+    final entities = await (_db.select(_db.bills)
+          ..where((t) =>
+              t.companyId.equals(companyId) &
+              t.status.isIn([BillStatus.paid.name, BillStatus.refunded.name]) &
+              t.closedAt.isNotNull() &
+              t.closedAt.isBiggerOrEqualValue(from) &
+              t.closedAt.isSmallerOrEqualValue(to) &
+              t.deletedAt.isNull())
+          ..orderBy([(t) => OrderingTerm.desc(t.closedAt)]))
+        .get();
+    return entities.map(billFromEntity).toList();
+  }
+
   Stream<List<BillModel>> watchByStatus(String companyId, BillStatus status) {
     return (_db.select(_db.bills)
           ..where((t) =>

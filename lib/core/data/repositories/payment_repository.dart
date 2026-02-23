@@ -24,6 +24,22 @@ class PaymentRepository {
     return entities.map(paymentFromEntity).toList();
   }
 
+  Future<List<PaymentModel>> getTipsInRange(
+    String companyId,
+    DateTime from,
+    DateTime to,
+  ) async {
+    final entities = await (_db.select(_db.payments)
+          ..where((t) =>
+              t.companyId.equals(companyId) &
+              t.tipIncludedAmount.isBiggerThanValue(0) &
+              t.paidAt.isBiggerOrEqualValue(from) &
+              t.paidAt.isSmallerOrEqualValue(to) &
+              t.deletedAt.isNull()))
+        .get();
+    return entities.map(paymentFromEntity).toList();
+  }
+
   Future<List<PaymentModel>> getByBillIds(List<String> billIds) async {
     if (billIds.isEmpty) return [];
     final entities = await (_db.select(_db.payments)

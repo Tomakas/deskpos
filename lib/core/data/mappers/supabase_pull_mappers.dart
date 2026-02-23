@@ -357,6 +357,7 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
         salePriceAtt: Value(json['sale_price_att'] as int),
         saleTaxRateAtt: Value(json['sale_tax_rate_att'] as int),
         saleTaxAmount: Value(json['sale_tax_amount'] as int),
+        unit: Value(_enumFromName(UnitType.values, json['unit'] ?? 'ks')),
         discount: Value(json['discount'] as int? ?? 0),
         discountType: Value(json['discount_type'] != null
             ? _enumFromName(DiscountType.values, json['discount_type'])

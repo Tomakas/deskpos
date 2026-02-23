@@ -16,6 +16,9 @@ import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/utils/formatting_ext.dart';
+import '../../../core/utils/unit_type_l10n.dart';
+import '../../../core/widgets/pos_dialog_actions.dart';
+import '../../../core/widgets/pos_dialog_shell.dart';
 import 'package:go_router/go_router.dart';
 
 /// Kitchen Display System — a touch-optimized, kitchen-facing order board.
@@ -210,11 +213,15 @@ class _ScreenKdsState extends ConsumerState<ScreenKds> {
     final l = context.l10n;
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
-        content: Text(l.orderItemStornoConfirm),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
+      builder: (_) => PosDialogShell(
+        title: l.orderItemStornoConfirm,
+        children: [
+          PosDialogActions(
+            actions: [
+              OutlinedButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
+              FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
+            ],
+          ),
         ],
       ),
     );
@@ -593,7 +600,7 @@ class _KdsItemCard extends ConsumerWidget {
                                 SizedBox(
                                   width: 32,
                                   child: Text(
-                                    '${item.quantity.toStringAsFixed(item.quantity == item.quantity.roundToDouble() ? 0 : 1)}x',
+                                    '${item.quantity.toStringAsFixed(item.quantity == item.quantity.roundToDouble() ? 0 : 1)} ${localizedUnitType(l, item.unit)}',
                                     style: theme.textTheme.bodyMedium?.copyWith(
                                       fontWeight: FontWeight.bold,
                                       decoration:

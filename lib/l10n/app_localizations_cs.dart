@@ -226,9 +226,6 @@ class AppLocalizationsCs extends AppLocalizations {
   String get actionConfirm => 'OK';
 
   @override
-  String get unitPcs => 'ks';
-
-  @override
   String get fieldName => 'Název';
 
   @override
@@ -259,10 +256,10 @@ class AppLocalizationsCs extends AppLocalizations {
   String get fieldCategory => 'Kategorie';
 
   @override
-  String get fieldPrice => 'Cena';
+  String get fieldPrice => 'Prodejní cena';
 
   @override
-  String get fieldTaxRate => 'Daň. sazba';
+  String get fieldTaxRate => 'Prodejní daň';
 
   @override
   String get fieldType => 'Typ';
@@ -1314,6 +1311,48 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get fieldStockTracked => 'Sledování skladu';
+
+  @override
+  String get fieldDescription => 'Popis';
+
+  @override
+  String get fieldSku => 'SKU';
+
+  @override
+  String get fieldUnit => 'Jednotka';
+
+  @override
+  String get unitTypeKs => 'ks';
+
+  @override
+  String get unitTypeG => 'g';
+
+  @override
+  String get unitTypeKg => 'kg';
+
+  @override
+  String get unitTypeMl => 'ml';
+
+  @override
+  String get unitTypeCl => 'cl';
+
+  @override
+  String get unitTypeL => 'l';
+
+  @override
+  String get unitTypeMm => 'mm';
+
+  @override
+  String get unitTypeCm => 'cm';
+
+  @override
+  String get unitTypeM => 'm';
+
+  @override
+  String get unitTypeMin => 'min';
+
+  @override
+  String get unitTypeH => 'h';
 
   @override
   String get fieldParentProduct => 'Nadřazený produkt';
@@ -2672,4 +2711,235 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get inventoryResultNcValue => 'NC';
+
+  @override
+  String get tipStatsTitle => 'Spropitné';
+
+  @override
+  String get tipStatsTotal => 'Celkem';
+
+  @override
+  String get tipStatsColumnUser => 'Obsluha';
+
+  @override
+  String get tipStatsColumnCount => 'Počet';
+
+  @override
+  String get tipStatsColumnAmount => 'Částka';
+
+  @override
+  String get tipStatsEmpty => 'Žádné spropitné v tomto období';
+
+  @override
+  String get moreTipStatistics => 'Spropitné';
+
+  @override
+  String get periodDay => 'Den';
+
+  @override
+  String get periodWeek => 'Týden';
+
+  @override
+  String get periodMonth => 'Měsíc';
+
+  @override
+  String get periodYear => 'Rok';
+
+  @override
+  String get periodCustom => 'Vlastní';
+
+  @override
+  String get periodToday => 'Dnes';
+
+  @override
+  String get periodYesterday => 'Včera';
+
+  @override
+  String get periodThisWeek => 'Tento týden';
+
+  @override
+  String get periodLastWeek => 'Minulý týden';
+
+  @override
+  String get periodThisMonth => 'Tento měsíc';
+
+  @override
+  String get periodLastMonth => 'Minulý měsíc';
+
+  @override
+  String get periodThisYear => 'Letošní rok';
+
+  @override
+  String get periodLastYear => 'Loňský rok';
+
+  @override
+  String get statsTitle => 'Statistiky';
+
+  @override
+  String get statsTabReceipts => 'Účtenky';
+
+  @override
+  String get statsTabSales => 'Prodeje';
+
+  @override
+  String get statsTabShifts => 'Směny';
+
+  @override
+  String get statsTabZReports => 'Z-reporty';
+
+  @override
+  String get statsTabTips => 'Spropitné';
+
+  @override
+  String get statsSummary => 'Souhrn';
+
+  @override
+  String get statsReceiptCount => 'Počet účtenek';
+
+  @override
+  String get statsReceiptTotal => 'Celková tržba';
+
+  @override
+  String get statsReceiptAvg => 'Průměrná účtenka';
+
+  @override
+  String get statsSalesItemCount => 'Prodaných položek';
+
+  @override
+  String get statsSalesTotal => 'Celková tržba';
+
+  @override
+  String get statsSalesUniqueItems => 'Unikátních položek';
+
+  @override
+  String get statsShiftCount => 'Počet směn';
+
+  @override
+  String get statsShiftTotalHours => 'Celkem hodin';
+
+  @override
+  String get statsShiftAvgDuration => 'Průměrná směna';
+
+  @override
+  String get statsZReportCount => 'Počet uzávěrek';
+
+  @override
+  String get statsZReportTotalRevenue => 'Celková tržba';
+
+  @override
+  String get statsZReportTotalDiff => 'Celkový rozdíl';
+
+  @override
+  String get statsTipCount => 'Počet spropitných';
+
+  @override
+  String get statsTipTotal => 'Celkem spropitné';
+
+  @override
+  String get statsTipAvg => 'Průměrné spropitné';
+
+  @override
+  String get statsEmpty => 'Žádná data v tomto období';
+
+  @override
+  String get statsSortDate => 'Datum';
+
+  @override
+  String get statsSortDateAsc => 'Datum (nejstarší)';
+
+  @override
+  String get statsSortAmount => 'Částka';
+
+  @override
+  String get statsSortAmountAsc => 'Částka (nejmenší)';
+
+  @override
+  String get statsSortName => 'Název';
+
+  @override
+  String get statsSortNameDesc => 'Název (Z→A)';
+
+  @override
+  String get statsSortQty => 'Množství';
+
+  @override
+  String get statsSortDuration => 'Délka';
+
+  @override
+  String get statsSortRevenue => 'Tržba';
+
+  @override
+  String get statsColumnBillNumber => 'Číslo';
+
+  @override
+  String get statsColumnCustomer => 'Zákazník';
+
+  @override
+  String get statsColumnPaymentMethod => 'Platba';
+
+  @override
+  String get statsColumnTotal => 'Celkem';
+
+  @override
+  String get statsColumnItemName => 'Položka';
+
+  @override
+  String get statsColumnQty => 'Mn.';
+
+  @override
+  String get statsColumnUnitPrice => 'Cena/ks';
+
+  @override
+  String get statsColumnBill => 'Účtenka';
+
+  @override
+  String get statsColumnDateTime => 'Datum a čas';
+
+  @override
+  String get statsColumnCategory => 'Kategorie';
+
+  @override
+  String get statsColumnTax => 'DPH';
+
+  @override
+  String get statsColumnOrderNumber => 'Obj. č.';
+
+  @override
+  String get statsColumnStatus => 'Stav';
+
+  @override
+  String get statsTabOrders => 'Objednávky';
+
+  @override
+  String get statsOrderCount => 'Počet objednávek';
+
+  @override
+  String get statsOrderTotalItems => 'Celkem položek';
+
+  @override
+  String get statsOrderTotal => 'Celková částka';
+
+  @override
+  String get orderStorno => 'Storno';
+
+  @override
+  String get statsSalesGrossRevenue => 'Hrubá tržba (položky)';
+
+  @override
+  String get statsSalesItemDiscounts => 'Slevy na položky';
+
+  @override
+  String get statsSalesBillDiscount => 'Sleva na účtenku';
+
+  @override
+  String get statsSalesLoyaltyDiscount => 'Věrnostní sleva';
+
+  @override
+  String get statsSalesVoucherDiscount => 'Voucherová sleva';
+
+  @override
+  String get statsSalesRounding => 'Zaokrouhlení';
+
+  @override
+  String get statsSalesFinalTotal => 'Celkem (účtenky)';
 }

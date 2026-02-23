@@ -13,6 +13,8 @@ import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/search_utils.dart';
+import '../../../core/widgets/pos_dialog_actions.dart';
+import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_table.dart';
 
 class UsersTab extends ConsumerStatefulWidget {
@@ -187,18 +189,7 @@ class _UsersTabState extends ConsumerState<UsersTab> {
   }
 
   Future<void> _delete(BuildContext context, WidgetRef ref, UserModel user) async {
-    final l = context.l10n;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        content: Text(l.confirmDelete),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
-        ],
-      ),
-    );
-    if (confirmed != true || !mounted) return;
+    if (!await confirmDelete(context, context.l10n) || !mounted) return;
     await ref.read(userRepositoryProvider).delete(user.id);
   }
 }
@@ -259,108 +250,110 @@ class _UserEditDialogState extends State<_UserEditDialog> {
     final l = context.l10n;
     final isNew = widget.existing == null;
 
-    return AlertDialog(
-      title: Text(isNew ? l.actionAdd : l.actionEdit),
-      content: SizedBox(
-        width: 400,
-        child: Form(
+    return PosDialogShell(
+      title: isNew ? l.actionAdd : l.actionEdit,
+      maxWidth: 400,
+      scrollable: true,
+      children: [
+        Form(
           key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextFormField(
-                  controller: _fullNameCtrl,
-                  decoration: InputDecoration(labelText: l.wizardFullName),
-                  validator: (v) => (v == null || v.trim().isEmpty) ? l.wizardFullNameRequired : null,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: _fullNameCtrl,
+                decoration: InputDecoration(labelText: l.wizardFullName),
+                validator: (v) => (v == null || v.trim().isEmpty) ? l.wizardFullNameRequired : null,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _usernameCtrl,
+                decoration: InputDecoration(labelText: l.wizardUsername),
+                validator: (v) =>
+                    (v == null || v.trim().isEmpty) ? l.wizardUsernameRequired : null,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _pinCtrl,
+                decoration: InputDecoration(
+                  labelText: isNew ? l.wizardPin : '${l.wizardPin} (${l.actionEdit})',
                 ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: _usernameCtrl,
-                  decoration: InputDecoration(labelText: l.wizardUsername),
-                  validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? l.wizardUsernameRequired : null,
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: _pinCtrl,
-                  decoration: InputDecoration(
-                    labelText: isNew ? l.wizardPin : '${l.wizardPin} (${l.actionEdit})',
-                  ),
-                  obscureText: true,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                    LengthLimitingTextInputFormatter(6),
-                  ],
-                  validator: (v) {
-                    if (isNew && (v == null || v.isEmpty)) return l.wizardPinRequired;
-                    if (v != null && v.isNotEmpty && !PinHelper.isValidPin(v)) {
-                      return l.wizardPinLength;
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: _pinConfirmCtrl,
-                  decoration: InputDecoration(labelText: l.wizardPinConfirm),
-                  obscureText: true,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                    LengthLimitingTextInputFormatter(6),
-                  ],
-                  validator: (v) {
-                    if (_pinCtrl.text.isNotEmpty && v != _pinCtrl.text) {
-                      return l.wizardPinMismatch;
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  initialValue: _roleId,
-                  decoration: InputDecoration(labelText: l.fieldRole),
-                  items: widget.roles.map((r) {
-                    final label = switch (r.name) {
-                      RoleName.helper => l.roleHelper,
-                      RoleName.operator => l.roleOperator,
-                      RoleName.admin => l.roleAdmin,
-                    };
-                    return DropdownMenuItem(value: r.id, child: Text(label));
-                  }).toList(),
-                  onChanged: (v) => setState(() => _roleId = v!),
-                ),
-                const SizedBox(height: 12),
-                SwitchListTile(
-                  title: Text(l.fieldActive),
-                  value: _isActive,
-                  onChanged: (v) => setState(() => _isActive = v),
-                ),
-              ],
-            ),
+                obscureText: true,
+                keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(6),
+                ],
+                validator: (v) {
+                  if (isNew && (v == null || v.isEmpty)) return l.wizardPinRequired;
+                  if (v != null && v.isNotEmpty && !PinHelper.isValidPin(v)) {
+                    return l.wizardPinLength;
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _pinConfirmCtrl,
+                decoration: InputDecoration(labelText: l.wizardPinConfirm),
+                obscureText: true,
+                keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(6),
+                ],
+                validator: (v) {
+                  if (_pinCtrl.text.isNotEmpty && v != _pinCtrl.text) {
+                    return l.wizardPinMismatch;
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                initialValue: _roleId,
+                decoration: InputDecoration(labelText: l.fieldRole),
+                items: widget.roles.map((r) {
+                  final label = switch (r.name) {
+                    RoleName.helper => l.roleHelper,
+                    RoleName.operator => l.roleOperator,
+                    RoleName.admin => l.roleAdmin,
+                  };
+                  return DropdownMenuItem(value: r.id, child: Text(label));
+                }).toList(),
+                onChanged: (v) => setState(() => _roleId = v!),
+              ),
+              const SizedBox(height: 12),
+              SwitchListTile(
+                title: Text(l.fieldActive),
+                value: _isActive,
+                onChanged: (v) => setState(() => _isActive = v),
+              ),
+            ],
           ),
         ),
-      ),
-      actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: Text(l.actionCancel)),
-        FilledButton(
-          onPressed: () {
-            if (_formKey.currentState!.validate()) {
-              Navigator.pop(
-                context,
-                _UserFormResult(
-                  fullName: _fullNameCtrl.text.trim(),
-                  username: _usernameCtrl.text.trim(),
-                  pin: _pinCtrl.text.isEmpty ? null : _pinCtrl.text,
-                  roleId: _roleId,
-                  isActive: _isActive,
-                ),
-              );
-            }
-          },
-          child: Text(l.actionSave),
+        const SizedBox(height: 24),
+        PosDialogActions(
+          actions: [
+            OutlinedButton(onPressed: () => Navigator.pop(context), child: Text(l.actionCancel)),
+            FilledButton(
+              onPressed: () {
+                if (_formKey.currentState!.validate()) {
+                  Navigator.pop(
+                    context,
+                    _UserFormResult(
+                      fullName: _fullNameCtrl.text.trim(),
+                      username: _usernameCtrl.text.trim(),
+                      pin: _pinCtrl.text.isEmpty ? null : _pinCtrl.text,
+                      roleId: _roleId,
+                      isActive: _isActive,
+                    ),
+                  );
+                }
+              },
+              child: Text(l.actionSave),
+            ),
+          ],
         ),
       ],
     );

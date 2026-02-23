@@ -11,6 +11,7 @@ import '../../../core/data/repositories/stock_level_repository.dart';
 import '../../../core/data/repositories/stock_movement_repository.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/utils/formatting_ext.dart';
+import '../../../core/utils/unit_type_l10n.dart';
 import '../../../core/widgets/pos_table.dart';
 import '../../../l10n/app_localizations.dart';
 import '../widgets/dialog_inventory.dart';
@@ -239,7 +240,7 @@ class _StockLevelsTab extends ConsumerWidget {
         return PosTable<StockLevelWithItem>(
           columns: [
             PosColumn(label: l.inventoryColumnItem, flex: 3, cellBuilder: (item) => Text(item.itemName, overflow: TextOverflow.ellipsis)),
-            PosColumn(label: l.inventoryColumnUnit, flex: 1, headerAlign: TextAlign.center, cellBuilder: (item) => Text(item.unit.name, textAlign: TextAlign.center)),
+            PosColumn(label: l.inventoryColumnUnit, flex: 1, headerAlign: TextAlign.center, cellBuilder: (item) => Text(localizedUnitType(l, item.unit), textAlign: TextAlign.center)),
             PosColumn(
               label: l.inventoryColumnQuantity,
               flex: 1,

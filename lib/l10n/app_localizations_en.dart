@@ -226,9 +226,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get actionConfirm => 'OK';
 
   @override
-  String get unitPcs => 'pcs';
-
-  @override
   String get fieldName => 'Name';
 
   @override
@@ -259,10 +256,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fieldCategory => 'Category';
 
   @override
-  String get fieldPrice => 'Price';
+  String get fieldPrice => 'Sale Price';
 
   @override
-  String get fieldTaxRate => 'Tax Rate';
+  String get fieldTaxRate => 'Sale Tax';
 
   @override
   String get fieldType => 'Type';
@@ -1316,6 +1313,48 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fieldStockTracked => 'Stock Tracked';
+
+  @override
+  String get fieldDescription => 'Description';
+
+  @override
+  String get fieldSku => 'SKU';
+
+  @override
+  String get fieldUnit => 'Unit';
+
+  @override
+  String get unitTypeKs => 'pcs';
+
+  @override
+  String get unitTypeG => 'g';
+
+  @override
+  String get unitTypeKg => 'kg';
+
+  @override
+  String get unitTypeMl => 'ml';
+
+  @override
+  String get unitTypeCl => 'cl';
+
+  @override
+  String get unitTypeL => 'l';
+
+  @override
+  String get unitTypeMm => 'mm';
+
+  @override
+  String get unitTypeCm => 'cm';
+
+  @override
+  String get unitTypeM => 'm';
+
+  @override
+  String get unitTypeMin => 'min';
+
+  @override
+  String get unitTypeH => 'h';
 
   @override
   String get fieldParentProduct => 'Parent Product';
@@ -2676,4 +2715,235 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get inventoryResultNcValue => 'PC';
+
+  @override
+  String get tipStatsTitle => 'Tips';
+
+  @override
+  String get tipStatsTotal => 'Total';
+
+  @override
+  String get tipStatsColumnUser => 'Staff';
+
+  @override
+  String get tipStatsColumnCount => 'Count';
+
+  @override
+  String get tipStatsColumnAmount => 'Amount';
+
+  @override
+  String get tipStatsEmpty => 'No tips in this period';
+
+  @override
+  String get moreTipStatistics => 'Tips';
+
+  @override
+  String get periodDay => 'Day';
+
+  @override
+  String get periodWeek => 'Week';
+
+  @override
+  String get periodMonth => 'Month';
+
+  @override
+  String get periodYear => 'Year';
+
+  @override
+  String get periodCustom => 'Custom';
+
+  @override
+  String get periodToday => 'Today';
+
+  @override
+  String get periodYesterday => 'Yesterday';
+
+  @override
+  String get periodThisWeek => 'This week';
+
+  @override
+  String get periodLastWeek => 'Last week';
+
+  @override
+  String get periodThisMonth => 'This month';
+
+  @override
+  String get periodLastMonth => 'Last month';
+
+  @override
+  String get periodThisYear => 'This year';
+
+  @override
+  String get periodLastYear => 'Last year';
+
+  @override
+  String get statsTitle => 'Statistics';
+
+  @override
+  String get statsTabReceipts => 'Receipts';
+
+  @override
+  String get statsTabSales => 'Sales';
+
+  @override
+  String get statsTabShifts => 'Shifts';
+
+  @override
+  String get statsTabZReports => 'Z-reports';
+
+  @override
+  String get statsTabTips => 'Tips';
+
+  @override
+  String get statsSummary => 'Summary';
+
+  @override
+  String get statsReceiptCount => 'Receipt count';
+
+  @override
+  String get statsReceiptTotal => 'Total revenue';
+
+  @override
+  String get statsReceiptAvg => 'Average receipt';
+
+  @override
+  String get statsSalesItemCount => 'Items sold';
+
+  @override
+  String get statsSalesTotal => 'Total revenue';
+
+  @override
+  String get statsSalesUniqueItems => 'Unique items';
+
+  @override
+  String get statsShiftCount => 'Shift count';
+
+  @override
+  String get statsShiftTotalHours => 'Total hours';
+
+  @override
+  String get statsShiftAvgDuration => 'Average shift';
+
+  @override
+  String get statsZReportCount => 'Session count';
+
+  @override
+  String get statsZReportTotalRevenue => 'Total revenue';
+
+  @override
+  String get statsZReportTotalDiff => 'Total difference';
+
+  @override
+  String get statsTipCount => 'Tip count';
+
+  @override
+  String get statsTipTotal => 'Total tips';
+
+  @override
+  String get statsTipAvg => 'Average tip';
+
+  @override
+  String get statsEmpty => 'No data in this period';
+
+  @override
+  String get statsSortDate => 'Date';
+
+  @override
+  String get statsSortDateAsc => 'Date (oldest)';
+
+  @override
+  String get statsSortAmount => 'Amount';
+
+  @override
+  String get statsSortAmountAsc => 'Amount (lowest)';
+
+  @override
+  String get statsSortName => 'Name';
+
+  @override
+  String get statsSortNameDesc => 'Name (Z→A)';
+
+  @override
+  String get statsSortQty => 'Quantity';
+
+  @override
+  String get statsSortDuration => 'Duration';
+
+  @override
+  String get statsSortRevenue => 'Revenue';
+
+  @override
+  String get statsColumnBillNumber => 'Number';
+
+  @override
+  String get statsColumnCustomer => 'Customer';
+
+  @override
+  String get statsColumnPaymentMethod => 'Payment';
+
+  @override
+  String get statsColumnTotal => 'Total';
+
+  @override
+  String get statsColumnItemName => 'Item';
+
+  @override
+  String get statsColumnQty => 'Qty';
+
+  @override
+  String get statsColumnUnitPrice => 'Unit price';
+
+  @override
+  String get statsColumnBill => 'Bill';
+
+  @override
+  String get statsColumnDateTime => 'Date & time';
+
+  @override
+  String get statsColumnCategory => 'Category';
+
+  @override
+  String get statsColumnTax => 'Tax';
+
+  @override
+  String get statsColumnOrderNumber => 'Order #';
+
+  @override
+  String get statsColumnStatus => 'Status';
+
+  @override
+  String get statsTabOrders => 'Orders';
+
+  @override
+  String get statsOrderCount => 'Order count';
+
+  @override
+  String get statsOrderTotalItems => 'Total items';
+
+  @override
+  String get statsOrderTotal => 'Total amount';
+
+  @override
+  String get orderStorno => 'Storno';
+
+  @override
+  String get statsSalesGrossRevenue => 'Gross item revenue';
+
+  @override
+  String get statsSalesItemDiscounts => 'Item discounts';
+
+  @override
+  String get statsSalesBillDiscount => 'Bill discount';
+
+  @override
+  String get statsSalesLoyaltyDiscount => 'Loyalty discount';
+
+  @override
+  String get statsSalesVoucherDiscount => 'Voucher discount';
+
+  @override
+  String get statsSalesRounding => 'Rounding';
+
+  @override
+  String get statsSalesFinalTotal => 'Total (receipts)';
 }

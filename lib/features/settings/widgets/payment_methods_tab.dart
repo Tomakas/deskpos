@@ -9,6 +9,8 @@ import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/pos_dialog_actions.dart';
+import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_table.dart';
 
 class PaymentMethodsTab extends ConsumerWidget {
@@ -97,41 +99,39 @@ class PaymentMethodsTab extends ConsumerWidget {
     final result = await showDialog<bool>(
       context: context,
       builder: (_) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
-          title: Text(existing == null ? l.actionAdd : l.actionEdit),
-          content: SizedBox(
-            width: 350,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: nameCtrl,
-                  decoration: InputDecoration(labelText: l.fieldName),
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<PaymentType>(
-                  initialValue: type,
-                  decoration: InputDecoration(labelText: l.fieldType),
-                  items: PaymentType.values
-                      .map((t) => DropdownMenuItem(
-                            value: t,
-                            child: Text(_typeLabel(l, t)),
-                          ))
-                      .toList(),
-                  onChanged: (v) => setDialogState(() => type = v!),
-                ),
-                const SizedBox(height: 12),
-                SwitchListTile(
-                  title: Text(l.fieldActive),
-                  value: isActive,
-                  onChanged: (v) => setDialogState(() => isActive = v),
-                ),
+        builder: (ctx, setDialogState) => PosDialogShell(
+          title: existing == null ? l.actionAdd : l.actionEdit,
+          maxWidth: 350,
+          children: [
+            TextField(
+              controller: nameCtrl,
+              decoration: InputDecoration(labelText: l.fieldName),
+            ),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<PaymentType>(
+              initialValue: type,
+              decoration: InputDecoration(labelText: l.fieldType),
+              items: PaymentType.values
+                  .map((t) => DropdownMenuItem(
+                        value: t,
+                        child: Text(_typeLabel(l, t)),
+                      ))
+                  .toList(),
+              onChanged: (v) => setDialogState(() => type = v!),
+            ),
+            const SizedBox(height: 12),
+            SwitchListTile(
+              title: Text(l.fieldActive),
+              value: isActive,
+              onChanged: (v) => setDialogState(() => isActive = v),
+            ),
+            const SizedBox(height: 24),
+            PosDialogActions(
+              actions: [
+                OutlinedButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.actionCancel)),
+                FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.actionSave)),
               ],
             ),
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.actionCancel)),
-            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.actionSave)),
           ],
         ),
       ),
@@ -164,18 +164,7 @@ class PaymentMethodsTab extends ConsumerWidget {
   }
 
   Future<void> _delete(BuildContext context, WidgetRef ref, PaymentMethodModel method) async {
-    final l = context.l10n;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        content: Text(l.confirmDelete),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
-        ],
-      ),
-    );
-    if (confirmed != true || !context.mounted) return;
+    if (!await confirmDelete(context, context.l10n) || !context.mounted) return;
     await ref.read(paymentMethodRepositoryProvider).delete(method.id);
   }
 }

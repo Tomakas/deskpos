@@ -375,6 +375,7 @@ Map<String, dynamic> orderItemToSupabaseJson(OrderItemModel m) => {
       'sale_price_att': m.salePriceAtt,
       'sale_tax_rate_att': m.saleTaxRateAtt,
       'sale_tax_amount': m.saleTaxAmount,
+      'unit': m.unit.name,
       'discount': m.discount,
       'discount_type': m.discountType?.name,
       'notes': m.notes,

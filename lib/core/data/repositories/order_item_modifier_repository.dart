@@ -60,6 +60,14 @@ class OrderItemModifierRepository
         updatedAt: Value(now),
       );
 
+  Future<List<OrderItemModifierModel>> getByOrderItemIds(List<String> orderItemIds) async {
+    if (orderItemIds.isEmpty) return [];
+    final rows = await (db.select(db.orderItemModifiers)
+          ..where((t) => t.orderItemId.isIn(orderItemIds) & t.deletedAt.isNull()))
+        .get();
+    return rows.map(fromEntity).toList();
+  }
+
   Future<List<OrderItemModifierModel>> getByOrderItem(String orderItemId) async {
     final rows = await (db.select(db.orderItemModifiers)
           ..where((t) => t.orderItemId.equals(orderItemId) & t.deletedAt.isNull()))

@@ -17264,6 +17264,16 @@ class $OrderItemsTable extends OrderItems
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   ).withConverter<DiscountType?>($OrderItemsTable.$converterdiscountTypen);
+  @override
+  late final GeneratedColumnWithTypeConverter<UnitType, String> unit =
+      GeneratedColumn<String>(
+        'unit',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultValue: Constant(UnitType.ks.name),
+      ).withConverter<UnitType>($OrderItemsTable.$converterunit);
   static const VerificationMeta _notesMeta = const VerificationMeta('notes');
   @override
   late final GeneratedColumn<String> notes = GeneratedColumn<String>(
@@ -17336,6 +17346,7 @@ class $OrderItemsTable extends OrderItems
     saleTaxAmount,
     discount,
     discountType,
+    unit,
     notes,
     status,
     prepStartedAt,
@@ -17602,6 +17613,12 @@ class $OrderItemsTable extends OrderItems
           data['${effectivePrefix}discount_type'],
         ),
       ),
+      unit: $OrderItemsTable.$converterunit.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}unit'],
+        )!,
+      ),
       notes: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}notes'],
@@ -17640,6 +17657,8 @@ class $OrderItemsTable extends OrderItems
   $converterdiscountTypen = JsonTypeConverter2.asNullable(
     $converterdiscountType,
   );
+  static JsonTypeConverter2<UnitType, String, String> $converterunit =
+      const EnumNameConverter<UnitType>(UnitType.values);
   static JsonTypeConverter2<PrepStatus, String, String> $converterstatus =
       const EnumNameConverter<PrepStatus>(PrepStatus.values);
 }
@@ -17663,6 +17682,7 @@ class OrderItem extends DataClass implements Insertable<OrderItem> {
   final int saleTaxAmount;
   final int discount;
   final DiscountType? discountType;
+  final UnitType unit;
   final String? notes;
   final PrepStatus status;
   final DateTime? prepStartedAt;
@@ -17687,6 +17707,7 @@ class OrderItem extends DataClass implements Insertable<OrderItem> {
     required this.saleTaxAmount,
     required this.discount,
     this.discountType,
+    required this.unit,
     this.notes,
     required this.status,
     this.prepStartedAt,
@@ -17724,6 +17745,11 @@ class OrderItem extends DataClass implements Insertable<OrderItem> {
     if (!nullToAbsent || discountType != null) {
       map['discount_type'] = Variable<String>(
         $OrderItemsTable.$converterdiscountTypen.toSql(discountType),
+      );
+    }
+    {
+      map['unit'] = Variable<String>(
+        $OrderItemsTable.$converterunit.toSql(unit),
       );
     }
     if (!nullToAbsent || notes != null) {
@@ -17776,6 +17802,7 @@ class OrderItem extends DataClass implements Insertable<OrderItem> {
       discountType: discountType == null && nullToAbsent
           ? const Value.absent()
           : Value(discountType),
+      unit: Value(unit),
       notes: notes == null && nullToAbsent
           ? const Value.absent()
           : Value(notes),
@@ -17818,6 +17845,9 @@ class OrderItem extends DataClass implements Insertable<OrderItem> {
       discountType: $OrderItemsTable.$converterdiscountTypen.fromJson(
         serializer.fromJson<String?>(json['discountType']),
       ),
+      unit: $OrderItemsTable.$converterunit.fromJson(
+        serializer.fromJson<String>(json['unit']),
+      ),
       notes: serializer.fromJson<String?>(json['notes']),
       status: $OrderItemsTable.$converterstatus.fromJson(
         serializer.fromJson<String>(json['status']),
@@ -17851,6 +17881,9 @@ class OrderItem extends DataClass implements Insertable<OrderItem> {
       'discountType': serializer.toJson<String?>(
         $OrderItemsTable.$converterdiscountTypen.toJson(discountType),
       ),
+      'unit': serializer.toJson<String>(
+        $OrderItemsTable.$converterunit.toJson(unit),
+      ),
       'notes': serializer.toJson<String?>(notes),
       'status': serializer.toJson<String>(
         $OrderItemsTable.$converterstatus.toJson(status),
@@ -17880,6 +17913,7 @@ class OrderItem extends DataClass implements Insertable<OrderItem> {
     int? saleTaxAmount,
     int? discount,
     Value<DiscountType?> discountType = const Value.absent(),
+    UnitType? unit,
     Value<String?> notes = const Value.absent(),
     PrepStatus? status,
     Value<DateTime?> prepStartedAt = const Value.absent(),
@@ -17908,6 +17942,7 @@ class OrderItem extends DataClass implements Insertable<OrderItem> {
     saleTaxAmount: saleTaxAmount ?? this.saleTaxAmount,
     discount: discount ?? this.discount,
     discountType: discountType.present ? discountType.value : this.discountType,
+    unit: unit ?? this.unit,
     notes: notes.present ? notes.value : this.notes,
     status: status ?? this.status,
     prepStartedAt: prepStartedAt.present
@@ -17950,6 +17985,7 @@ class OrderItem extends DataClass implements Insertable<OrderItem> {
       discountType: data.discountType.present
           ? data.discountType.value
           : this.discountType,
+      unit: data.unit.present ? data.unit.value : this.unit,
       notes: data.notes.present ? data.notes.value : this.notes,
       status: data.status.present ? data.status.value : this.status,
       prepStartedAt: data.prepStartedAt.present
@@ -17983,6 +18019,7 @@ class OrderItem extends DataClass implements Insertable<OrderItem> {
           ..write('saleTaxAmount: $saleTaxAmount, ')
           ..write('discount: $discount, ')
           ..write('discountType: $discountType, ')
+          ..write('unit: $unit, ')
           ..write('notes: $notes, ')
           ..write('status: $status, ')
           ..write('prepStartedAt: $prepStartedAt, ')
@@ -18012,6 +18049,7 @@ class OrderItem extends DataClass implements Insertable<OrderItem> {
     saleTaxAmount,
     discount,
     discountType,
+    unit,
     notes,
     status,
     prepStartedAt,
@@ -18040,6 +18078,7 @@ class OrderItem extends DataClass implements Insertable<OrderItem> {
           other.saleTaxAmount == this.saleTaxAmount &&
           other.discount == this.discount &&
           other.discountType == this.discountType &&
+          other.unit == this.unit &&
           other.notes == this.notes &&
           other.status == this.status &&
           other.prepStartedAt == this.prepStartedAt &&
@@ -18066,6 +18105,7 @@ class OrderItemsCompanion extends UpdateCompanion<OrderItem> {
   final Value<int> saleTaxAmount;
   final Value<int> discount;
   final Value<DiscountType?> discountType;
+  final Value<UnitType> unit;
   final Value<String?> notes;
   final Value<PrepStatus> status;
   final Value<DateTime?> prepStartedAt;
@@ -18091,6 +18131,7 @@ class OrderItemsCompanion extends UpdateCompanion<OrderItem> {
     this.saleTaxAmount = const Value.absent(),
     this.discount = const Value.absent(),
     this.discountType = const Value.absent(),
+    this.unit = const Value.absent(),
     this.notes = const Value.absent(),
     this.status = const Value.absent(),
     this.prepStartedAt = const Value.absent(),
@@ -18117,6 +18158,7 @@ class OrderItemsCompanion extends UpdateCompanion<OrderItem> {
     required int saleTaxAmount,
     this.discount = const Value.absent(),
     this.discountType = const Value.absent(),
+    this.unit = const Value.absent(),
     this.notes = const Value.absent(),
     required PrepStatus status,
     this.prepStartedAt = const Value.absent(),
@@ -18152,6 +18194,7 @@ class OrderItemsCompanion extends UpdateCompanion<OrderItem> {
     Expression<int>? saleTaxAmount,
     Expression<int>? discount,
     Expression<String>? discountType,
+    Expression<String>? unit,
     Expression<String>? notes,
     Expression<String>? status,
     Expression<DateTime>? prepStartedAt,
@@ -18178,6 +18221,7 @@ class OrderItemsCompanion extends UpdateCompanion<OrderItem> {
       if (saleTaxAmount != null) 'sale_tax_amount': saleTaxAmount,
       if (discount != null) 'discount': discount,
       if (discountType != null) 'discount_type': discountType,
+      if (unit != null) 'unit': unit,
       if (notes != null) 'notes': notes,
       if (status != null) 'status': status,
       if (prepStartedAt != null) 'prep_started_at': prepStartedAt,
@@ -18206,6 +18250,7 @@ class OrderItemsCompanion extends UpdateCompanion<OrderItem> {
     Value<int>? saleTaxAmount,
     Value<int>? discount,
     Value<DiscountType?>? discountType,
+    Value<UnitType>? unit,
     Value<String?>? notes,
     Value<PrepStatus>? status,
     Value<DateTime?>? prepStartedAt,
@@ -18232,6 +18277,7 @@ class OrderItemsCompanion extends UpdateCompanion<OrderItem> {
       saleTaxAmount: saleTaxAmount ?? this.saleTaxAmount,
       discount: discount ?? this.discount,
       discountType: discountType ?? this.discountType,
+      unit: unit ?? this.unit,
       notes: notes ?? this.notes,
       status: status ?? this.status,
       prepStartedAt: prepStartedAt ?? this.prepStartedAt,
@@ -18300,6 +18346,11 @@ class OrderItemsCompanion extends UpdateCompanion<OrderItem> {
         $OrderItemsTable.$converterdiscountTypen.toSql(discountType.value),
       );
     }
+    if (unit.present) {
+      map['unit'] = Variable<String>(
+        $OrderItemsTable.$converterunit.toSql(unit.value),
+      );
+    }
     if (notes.present) {
       map['notes'] = Variable<String>(notes.value);
     }
@@ -18344,6 +18395,7 @@ class OrderItemsCompanion extends UpdateCompanion<OrderItem> {
           ..write('saleTaxAmount: $saleTaxAmount, ')
           ..write('discount: $discount, ')
           ..write('discountType: $discountType, ')
+          ..write('unit: $unit, ')
           ..write('notes: $notes, ')
           ..write('status: $status, ')
           ..write('prepStartedAt: $prepStartedAt, ')
@@ -48625,6 +48677,7 @@ typedef $$OrderItemsTableCreateCompanionBuilder =
       required int saleTaxAmount,
       Value<int> discount,
       Value<DiscountType?> discountType,
+      Value<UnitType> unit,
       Value<String?> notes,
       required PrepStatus status,
       Value<DateTime?> prepStartedAt,
@@ -48652,6 +48705,7 @@ typedef $$OrderItemsTableUpdateCompanionBuilder =
       Value<int> saleTaxAmount,
       Value<int> discount,
       Value<DiscountType?> discountType,
+      Value<UnitType> unit,
       Value<String?> notes,
       Value<PrepStatus> status,
       Value<DateTime?> prepStartedAt,
@@ -48759,6 +48813,12 @@ class $$OrderItemsTableFilterComposer
     column: $table.discountType,
     builder: (column) => ColumnWithTypeConverterFilters(column),
   );
+
+  ColumnWithTypeConverterFilters<UnitType, UnitType, String> get unit =>
+      $composableBuilder(
+        column: $table.unit,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
 
   ColumnFilters<String> get notes => $composableBuilder(
     column: $table.notes,
@@ -48886,6 +48946,11 @@ class $$OrderItemsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get unit => $composableBuilder(
+    column: $table.unit,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get notes => $composableBuilder(
     column: $table.notes,
     builder: (column) => ColumnOrderings(column),
@@ -48990,6 +49055,9 @@ class $$OrderItemsTableAnnotationComposer
         builder: (column) => column,
       );
 
+  GeneratedColumnWithTypeConverter<UnitType, String> get unit =>
+      $composableBuilder(column: $table.unit, builder: (column) => column);
+
   GeneratedColumn<String> get notes =>
       $composableBuilder(column: $table.notes, builder: (column) => column);
 
@@ -49059,6 +49127,7 @@ class $$OrderItemsTableTableManager
                 Value<int> saleTaxAmount = const Value.absent(),
                 Value<int> discount = const Value.absent(),
                 Value<DiscountType?> discountType = const Value.absent(),
+                Value<UnitType> unit = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
                 Value<PrepStatus> status = const Value.absent(),
                 Value<DateTime?> prepStartedAt = const Value.absent(),
@@ -49084,6 +49153,7 @@ class $$OrderItemsTableTableManager
                 saleTaxAmount: saleTaxAmount,
                 discount: discount,
                 discountType: discountType,
+                unit: unit,
                 notes: notes,
                 status: status,
                 prepStartedAt: prepStartedAt,
@@ -49111,6 +49181,7 @@ class $$OrderItemsTableTableManager
                 required int saleTaxAmount,
                 Value<int> discount = const Value.absent(),
                 Value<DiscountType?> discountType = const Value.absent(),
+                Value<UnitType> unit = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
                 required PrepStatus status,
                 Value<DateTime?> prepStartedAt = const Value.absent(),
@@ -49136,6 +49207,7 @@ class $$OrderItemsTableTableManager
                 saleTaxAmount: saleTaxAmount,
                 discount: discount,
                 discountType: discountType,
+                unit: unit,
                 notes: notes,
                 status: status,
                 prepStartedAt: prepStartedAt,

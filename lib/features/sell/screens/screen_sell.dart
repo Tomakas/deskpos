@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/data/enums/display_device_type.dart';
 import '../../../core/data/enums/sell_mode.dart';
 import '../../../core/data/enums/item_type.dart';
+import '../../../core/data/enums/unit_type.dart';
 import '../../../core/data/enums/layout_item_type.dart';
 import '../../../core/data/models/bill_model.dart';
 import '../../../core/data/models/category_model.dart';
@@ -29,6 +30,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatting_ext.dart';
+import '../../../core/utils/unit_type_l10n.dart';
 import '../../../core/widgets/pos_color_palette.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
@@ -107,6 +109,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
   void _pushToDisplay() {
     if (_displayCode == null) return;
 
+    final l = context.l10n;
     final items = <DisplayItem>[];
     int subtotal = 0;
     for (final entry in _cart) {
@@ -118,6 +121,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
           quantity: entry.quantity,
           unitPrice: entry.effectiveUnitPrice,
           totalPrice: totalPrice,
+          unitLabel: localizedUnitType(l, entry.unit),
           notes: entry.notes,
           modifiers: entry.modifiers
               .map((m) => DisplayModifier(name: m.name, unitPrice: m.unitPrice))
@@ -458,7 +462,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
                                 textBaseline: TextBaseline.alphabetic,
                                 children: [
                                   Text(
-                                    '${qty}x',
+                                    '$qty ${localizedUnitType(l, item.unit)}',
                                     style: theme.textTheme.titleMedium?.copyWith(
                                       color: theme.colorScheme.onSurfaceVariant,
                                     ),
@@ -540,10 +544,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
                       child: SizedBox(
                         height: 44,
                         child: OutlinedButton(
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: theme.colorScheme.error,
-                            side: BorderSide(color: theme.colorScheme.error),
-                          ),
+                          style: PosButtonStyles.destructiveOutlined(context),
                           onPressed: () => _onCancelTap(context),
                           child: Text(l.sellCancelOrder),
                         ),
@@ -1023,6 +1024,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
           itemId: item.id,
           name: item.name,
           unitPrice: item.unitPrice,
+          unit: item.unit,
           saleTaxRateId: item.saleTaxRateId,
           modifiers: modifiers,
         ));
@@ -1077,6 +1079,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
         salePriceAtt: cartItem.unitPrice,
         saleTaxRateAtt: taxRateBps,
         saleTaxAmount: taxAmount,
+        unit: cartItem.unit,
         notes: cartItem.notes,
         modifiers: modInputs,
       ));
@@ -1329,6 +1332,7 @@ class _CartItem {
     required this.itemId,
     required this.name,
     required this.unitPrice,
+    this.unit = UnitType.ks,
     this.saleTaxRateId,
     this.modifiers = const [],
   });
@@ -1336,6 +1340,7 @@ class _CartItem {
   final String itemId;
   final String name;
   final int unitPrice;
+  final UnitType unit;
   final String? saleTaxRateId;
   final List<_CartModifier> modifiers;
   double quantity = 1;
@@ -1416,7 +1421,7 @@ class _ItemNoteDialogState extends ConsumerState<_ItemNoteDialog> {
               textBaseline: TextBaseline.alphabetic,
               children: [
                 Text(
-                  '${qtyStr}x',
+                  '$qtyStr ${localizedUnitType(l, item.unit)}',
                   style: theme.textTheme.titleMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -1577,16 +1582,10 @@ class _RetailMenuButton extends ConsumerWidget {
         if (hasSession)
           PopupMenuItem(value: 'cash-journal', height: 48, child: Text(l.billsCashJournal)),
         PopupMenuItem(
-          value: 'z-reports',
+          value: 'statistics',
           enabled: canManage,
           height: 48,
-          child: Text(l.moreReports),
-        ),
-        PopupMenuItem(
-          value: 'shifts',
-          enabled: canManage,
-          height: 48,
-          child: Text(l.moreShifts),
+          child: Text(l.moreStatistics),
         ),
         const PopupMenuDivider(),
         PopupMenuItem(
@@ -1659,10 +1658,8 @@ class _RetailMenuButton extends ConsumerWidget {
         }
       case 'cash-journal':
         await helpers.showCashJournalDialog(context, ref);
-      case 'z-reports':
-        await helpers.showZReportsDialog(context, ref);
-      case 'shifts':
-        await helpers.showShiftsDialog(context, ref);
+      case 'statistics':
+        if (context.mounted) context.push('/statistics');
       case 'bills':
         final register = await ref.read(activeRegisterProvider.future);
         if (!context.mounted) return;

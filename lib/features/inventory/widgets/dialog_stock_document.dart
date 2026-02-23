@@ -13,6 +13,7 @@ import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/utils/formatters.dart';
+import '../../../core/utils/unit_type_l10n.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 
@@ -423,7 +424,7 @@ class _ItemSearchDialogState extends ConsumerState<_ItemSearchDialog> {
                   return ListTile(
                     title: Text(item.name),
                     subtitle: item.sku != null ? Text(item.sku!) : null,
-                    trailing: Text(item.unit.name),
+                    trailing: Text(localizedUnitType(l, item.unit)),
                     onTap: () => Navigator.pop(context, [item]),
                   );
                 },

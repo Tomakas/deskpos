@@ -11,6 +11,9 @@ import '../../../core/data/providers/database_provider.dart';
 import '../../../core/data/providers/sync_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/logging/app_logger.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/pos_dialog_actions.dart';
+import '../../../core/widgets/pos_dialog_shell.dart';
 import '../screens/screen_cloud_auth.dart';
 
 class CloudTab extends ConsumerWidget {
@@ -127,20 +130,23 @@ class CloudTab extends ConsumerWidget {
     final l = context.l10n;
     return showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(title),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(l.actionCancel),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
-            ),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(confirm),
+      builder: (ctx) => PosDialogShell(
+        title: title,
+        children: [
+          Text(message),
+          const SizedBox(height: 24),
+          PosDialogActions(
+            actions: [
+              OutlinedButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: Text(l.actionCancel),
+              ),
+              FilledButton(
+                style: PosButtonStyles.destructiveFilled(ctx),
+                onPressed: () => Navigator.pop(ctx, true),
+                child: Text(confirm),
+              ),
+            ],
           ),
         ],
       ),

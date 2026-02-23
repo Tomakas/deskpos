@@ -17,6 +17,7 @@ import '../../../core/utils/file_opener.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
+import '../../../core/utils/unit_type_l10n.dart';
 import '../../../core/widgets/pos_table.dart';
 
 class InventoryLineWithName {
@@ -110,7 +111,7 @@ class _DialogInventoryState extends ConsumerState<DialogInventory> {
                     label: l.inventoryColumnUnit,
                     width: 80,
                     headerAlign: TextAlign.center,
-                    cellBuilder: (item) => Text(item.unit.name, textAlign: TextAlign.center),
+                    cellBuilder: (item) => Text(localizedUnitType(l, item.unit), textAlign: TextAlign.center),
                   ),
                   if (!widget.blindMode)
                     PosColumn(
@@ -223,7 +224,7 @@ class _DialogInventoryState extends ConsumerState<DialogInventory> {
 
       final pdfLines = filtered.map((item) => InventoryPdfLine(
         itemName: item.itemName,
-        unitName: item.unit.name,
+        unitName: localizedUnitType(l, item.unit),
         currentQuantity: item.quantity,
         actualQuantity: null,
         purchasePrice: item.purchasePrice,
@@ -265,6 +266,7 @@ class _DialogInventoryState extends ConsumerState<DialogInventory> {
   }
 
   Future<void> _save(BuildContext context) async {
+    final l = context.l10n;
     final stockLevelRepo = ref.read(stockLevelRepositoryProvider);
 
     var levels = await stockLevelRepo
@@ -287,7 +289,7 @@ class _DialogInventoryState extends ConsumerState<DialogInventory> {
         InventoryLineWithName(
           itemId: itemId,
           itemName: item.itemName,
-          unitName: item.unit.name,
+          unitName: localizedUnitType(l, item.unit),
           currentQuantity: item.quantity,
           actualQuantity: actualQty,
           purchasePrice: item.purchasePrice,

@@ -11,6 +11,8 @@ import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/pos_dialog_actions.dart';
+import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_table.dart';
 
 // ---------------------------------------------------------------------------
@@ -434,104 +436,101 @@ class RegistersTab extends ConsumerWidget {
     final result = await showDialog<bool>(
       context: context,
       builder: (_) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
-          title: Text(existing == null ? l.modePOS : l.actionEdit),
-          content: SizedBox(
-            width: 400,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: nameCtrl,
-                    decoration: InputDecoration(labelText: l.registerName),
-                  ),
-                  const SizedBox(height: 12),
-                  DropdownButtonFormField<HardwareType>(
-                    initialValue: type,
-                    decoration: InputDecoration(labelText: l.registerType),
-                    items: HardwareType.values
-                        .map((t) => DropdownMenuItem(
-                              value: t,
-                              child: Text(_registerTypeLabel(l, t)),
-                            ))
-                        .toList(),
-                    onChanged: (v) => setDialogState(() => type = v!),
-                  ),
-                  if (existing != null && type == HardwareType.local) ...[
-                    const SizedBox(height: 16),
-                    SwitchListTile(
-                      title: Text(l.registerIsMain),
-                      value: isMain,
-                      onChanged: isMain
-                          ? null
-                          : (v) => setDialogState(() => isMain = v),
-                    ),
-                  ],
-                  const SizedBox(height: 16),
-                  SwitchListTile(
-                    title: Text(l.fieldActive),
-                    value: isActive,
-                    onChanged: (v) => setDialogState(() => isActive = v),
-                  ),
-                  const Divider(),
-                  Text(
-                    l.registerPaymentFlags,
-                    style: Theme.of(ctx).textTheme.titleSmall,
-                  ),
-                  const SizedBox(height: 8),
-                  SwitchListTile(
-                    title: Text(l.registerAllowCash),
-                    value: allowCash,
-                    onChanged: (v) => setDialogState(() => allowCash = v),
-                  ),
-                  SwitchListTile(
-                    title: Text(l.registerAllowCard),
-                    value: allowCard,
-                    onChanged: (v) => setDialogState(() => allowCard = v),
-                  ),
-                  SwitchListTile(
-                    title: Text(l.registerAllowTransfer),
-                    value: allowTransfer,
-                    onChanged: (v) =>
-                        setDialogState(() => allowTransfer = v),
-                  ),
-                  SwitchListTile(
-                    title: Text(l.registerAllowCredit),
-                    value: allowCredit,
-                    onChanged: (v) =>
-                        setDialogState(() => allowCredit = v),
-                  ),
-                  SwitchListTile(
-                    title: Text(l.registerAllowVoucher),
-                    value: allowVoucher,
-                    onChanged: (v) =>
-                        setDialogState(() => allowVoucher = v),
-                  ),
-                  SwitchListTile(
-                    title: Text(l.registerAllowOther),
-                    value: allowOther,
-                    onChanged: (v) =>
-                        setDialogState(() => allowOther = v),
-                  ),
-                  SwitchListTile(
-                    title: Text(l.registerAllowRefunds),
-                    value: allowRefunds,
-                    onChanged: (v) =>
-                        setDialogState(() => allowRefunds = v),
-                  ),
-                ],
+        builder: (ctx, setDialogState) => PosDialogShell(
+          title: existing == null ? l.modePOS : l.actionEdit,
+          maxWidth: 400,
+          scrollable: true,
+          children: [
+            TextField(
+              controller: nameCtrl,
+              decoration: InputDecoration(labelText: l.registerName),
+            ),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<HardwareType>(
+              initialValue: type,
+              decoration: InputDecoration(labelText: l.registerType),
+              items: HardwareType.values
+                  .map((t) => DropdownMenuItem(
+                        value: t,
+                        child: Text(_registerTypeLabel(l, t)),
+                      ))
+                  .toList(),
+              onChanged: (v) => setDialogState(() => type = v!),
+            ),
+            if (existing != null && type == HardwareType.local) ...[
+              const SizedBox(height: 16),
+              SwitchListTile(
+                title: Text(l.registerIsMain),
+                value: isMain,
+                onChanged: isMain
+                    ? null
+                    : (v) => setDialogState(() => isMain = v),
               ),
+            ],
+            const SizedBox(height: 16),
+            SwitchListTile(
+              title: Text(l.fieldActive),
+              value: isActive,
+              onChanged: (v) => setDialogState(() => isActive = v),
             ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: Text(l.actionCancel),
+            const Divider(),
+            Text(
+              l.registerPaymentFlags,
+              style: Theme.of(ctx).textTheme.titleSmall,
             ),
-            FilledButton(
-              onPressed: () => Navigator.pop(ctx, true),
-              child: Text(l.actionSave),
+            const SizedBox(height: 8),
+            SwitchListTile(
+              title: Text(l.registerAllowCash),
+              value: allowCash,
+              onChanged: (v) => setDialogState(() => allowCash = v),
+            ),
+            SwitchListTile(
+              title: Text(l.registerAllowCard),
+              value: allowCard,
+              onChanged: (v) => setDialogState(() => allowCard = v),
+            ),
+            SwitchListTile(
+              title: Text(l.registerAllowTransfer),
+              value: allowTransfer,
+              onChanged: (v) =>
+                  setDialogState(() => allowTransfer = v),
+            ),
+            SwitchListTile(
+              title: Text(l.registerAllowCredit),
+              value: allowCredit,
+              onChanged: (v) =>
+                  setDialogState(() => allowCredit = v),
+            ),
+            SwitchListTile(
+              title: Text(l.registerAllowVoucher),
+              value: allowVoucher,
+              onChanged: (v) =>
+                  setDialogState(() => allowVoucher = v),
+            ),
+            SwitchListTile(
+              title: Text(l.registerAllowOther),
+              value: allowOther,
+              onChanged: (v) =>
+                  setDialogState(() => allowOther = v),
+            ),
+            SwitchListTile(
+              title: Text(l.registerAllowRefunds),
+              value: allowRefunds,
+              onChanged: (v) =>
+                  setDialogState(() => allowRefunds = v),
+            ),
+            const SizedBox(height: 24),
+            PosDialogActions(
+              actions: [
+                OutlinedButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  child: Text(l.actionCancel),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.pop(ctx, true),
+                  child: Text(l.actionSave),
+                ),
+              ],
             ),
           ],
         ),
@@ -584,24 +583,7 @@ class RegistersTab extends ConsumerWidget {
 
   Future<void> _deleteRegister(
       BuildContext context, WidgetRef ref, RegisterModel register) async {
-    final l = context.l10n;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        content: Text(l.confirmDelete),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(l.no),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(l.yes),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true || !context.mounted) return;
+    if (!await confirmDelete(context, context.l10n) || !context.mounted) return;
     final regRepo = ref.read(registerRepositoryProvider);
     await regRepo.delete(register.id);
     if (!context.mounted) return;
@@ -632,51 +614,49 @@ class RegistersTab extends ConsumerWidget {
     final result = await showDialog<bool>(
       context: context,
       builder: (_) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
-          title: Text(_displayTypeLabel(l, type)),
-          content: SizedBox(
-            width: 400,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: nameCtrl,
-                  decoration: InputDecoration(labelText: l.registerName),
+        builder: (ctx, setDialogState) => PosDialogShell(
+          title: _displayTypeLabel(l, type),
+          maxWidth: 400,
+          children: [
+            TextField(
+              controller: nameCtrl,
+              decoration: InputDecoration(labelText: l.registerName),
+            ),
+            if (isCustomerDisplay) ...[
+              const SizedBox(height: 12),
+              TextField(
+                controller: welcomeTextCtrl,
+                decoration: InputDecoration(labelText: l.displayWelcomeText),
+              ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                initialValue: parentRegisterId,
+                decoration: InputDecoration(labelText: l.registerParent),
+                items: registers
+                    .map((r) => DropdownMenuItem(
+                          value: r.id,
+                          child: Text(
+                              r.name.isEmpty ? r.code : r.name),
+                        ))
+                    .toList(),
+                onChanged: (v) =>
+                    setDialogState(() => parentRegisterId = v),
+              ),
+            ],
+            const SizedBox(height: 24),
+            PosDialogActions(
+              actions: [
+                OutlinedButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  child: Text(l.actionCancel),
                 ),
-                if (isCustomerDisplay) ...[
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: welcomeTextCtrl,
-                    decoration: InputDecoration(labelText: l.displayWelcomeText),
-                  ),
-                  const SizedBox(height: 12),
-                  DropdownButtonFormField<String>(
-                    initialValue: parentRegisterId,
-                    decoration: InputDecoration(labelText: l.registerParent),
-                    items: registers
-                        .map((r) => DropdownMenuItem(
-                              value: r.id,
-                              child: Text(
-                                  r.name.isEmpty ? r.code : r.name),
-                            ))
-                        .toList(),
-                    onChanged: (v) =>
-                        setDialogState(() => parentRegisterId = v),
-                  ),
-                ],
+                FilledButton(
+                  onPressed: isCustomerDisplay && parentRegisterId == null
+                      ? null
+                      : () => Navigator.pop(ctx, true),
+                  child: Text(l.actionSave),
+                ),
               ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: Text(l.actionCancel),
-            ),
-            FilledButton(
-              onPressed: isCustomerDisplay && parentRegisterId == null
-                  ? null
-                  : () => Navigator.pop(ctx, true),
-              child: Text(l.actionSave),
             ),
           ],
         ),
@@ -711,43 +691,41 @@ class RegistersTab extends ConsumerWidget {
     final result = await showDialog<bool>(
       context: context,
       builder: (_) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
-          title: Text(_displayTypeLabel(l, device.type)),
-          content: SizedBox(
-            width: 400,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: nameCtrl,
-                  decoration: InputDecoration(labelText: l.registerName),
+        builder: (ctx, setDialogState) => PosDialogShell(
+          title: _displayTypeLabel(l, device.type),
+          maxWidth: 400,
+          children: [
+            TextField(
+              controller: nameCtrl,
+              decoration: InputDecoration(labelText: l.registerName),
+            ),
+            if (isCustomerDisplay) ...[
+              const SizedBox(height: 12),
+              TextField(
+                controller: welcomeTextCtrl,
+                decoration:
+                    InputDecoration(labelText: l.displayWelcomeText),
+              ),
+            ],
+            const SizedBox(height: 12),
+            SwitchListTile(
+              title: Text(l.fieldActive),
+              value: isActive,
+              onChanged: (v) => setDialogState(() => isActive = v),
+              contentPadding: EdgeInsets.zero,
+            ),
+            const SizedBox(height: 24),
+            PosDialogActions(
+              actions: [
+                OutlinedButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  child: Text(l.actionCancel),
                 ),
-                if (isCustomerDisplay) ...[
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: welcomeTextCtrl,
-                    decoration:
-                        InputDecoration(labelText: l.displayWelcomeText),
-                  ),
-                ],
-                const SizedBox(height: 12),
-                SwitchListTile(
-                  title: Text(l.fieldActive),
-                  value: isActive,
-                  onChanged: (v) => setDialogState(() => isActive = v),
-                  contentPadding: EdgeInsets.zero,
+                FilledButton(
+                  onPressed: () => Navigator.pop(ctx, true),
+                  child: Text(l.actionSave),
                 ),
               ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: Text(l.actionCancel),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(ctx, true),
-              child: Text(l.actionSave),
             ),
           ],
         ),
@@ -768,24 +746,7 @@ class RegistersTab extends ConsumerWidget {
     WidgetRef ref,
     DisplayDeviceModel device,
   ) async {
-    final l = context.l10n;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        content: Text(l.confirmDelete),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(l.no),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(l.yes),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true || !context.mounted) return;
+    if (!await confirmDelete(context, context.l10n) || !context.mounted) return;
     await ref.read(displayDeviceRepositoryProvider).delete(device.id);
   }
 }

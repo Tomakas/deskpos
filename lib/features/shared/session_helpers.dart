@@ -6,20 +6,17 @@ import '../../core/data/enums/bill_status.dart';
 import '../../core/data/enums/cash_movement_type.dart';
 import '../../core/data/enums/hardware_type.dart';
 import '../../core/data/enums/payment_type.dart';
-import '../../core/data/models/user_model.dart';
 import '../../core/data/providers/auth_providers.dart';
 import '../../core/data/providers/repository_providers.dart';
 import '../../core/data/result.dart';
 import '../../core/l10n/app_localizations_ext.dart';
 import '../../core/utils/formatting_ext.dart';
-import '../bills/providers/z_report_providers.dart';
+import '../../core/widgets/pos_dialog_actions.dart';
+import '../../core/widgets/pos_dialog_shell.dart';
 import '../bills/widgets/dialog_cash_journal.dart';
 import '../bills/widgets/dialog_cash_movement.dart';
 import '../bills/widgets/dialog_closing_session.dart';
 import '../bills/widgets/dialog_opening_cash.dart';
-import '../bills/widgets/dialog_shifts_list.dart';
-import '../bills/widgets/dialog_z_report.dart';
-import '../bills/widgets/dialog_z_report_list.dart';
 
 /// Performs logout: closes active shift, clears auth state, navigates to /login.
 Future<void> performLogout(BuildContext context, WidgetRef ref) async {
@@ -127,77 +124,6 @@ Future<void> showCashJournalDialog(BuildContext context, WidgetRef ref) async {
   );
 }
 
-/// Shows the Z-reports list dialog.
-Future<void> showZReportsDialog(BuildContext context, WidgetRef ref) async {
-  final company = ref.read(currentCompanyProvider);
-  if (company == null) return;
-
-  final zReportService = ref.read(zReportServiceProvider);
-  final summaries = await zReportService.getSessionSummaries(company.id);
-  if (!context.mounted) return;
-
-  await showDialog(
-    context: context,
-    builder: (_) => DialogZReportList(
-      sessions: summaries,
-      onSessionSelected: (sessionId) async {
-        Navigator.pop(context);
-        final zReport = await zReportService.buildZReport(sessionId);
-        if (zReport != null && context.mounted) {
-          showDialog(
-            context: context,
-            builder: (_) => DialogZReport(data: zReport),
-          );
-        }
-      },
-      onVenueReport: (dateFrom, dateTo) async {
-        Navigator.pop(context);
-        final venueReport = await zReportService.buildVenueZReport(
-          company.id, dateFrom, dateTo,
-        );
-        if (venueReport != null && context.mounted) {
-          showDialog(
-            context: context,
-            builder: (_) => DialogZReport(data: venueReport),
-          );
-        }
-      },
-    ),
-  );
-}
-
-/// Shows the shifts list dialog.
-Future<void> showShiftsDialog(BuildContext context, WidgetRef ref) async {
-  final company = ref.read(currentCompanyProvider);
-  if (company == null) return;
-
-  final shiftRepo = ref.read(shiftRepositoryProvider);
-  final userRepo = ref.read(userRepositoryProvider);
-  final shifts = await shiftRepo.getByCompany(company.id);
-  if (!context.mounted) return;
-
-  final uniqueUserIds = shifts.map((s) => s.userId).toSet();
-  final userMap = <String, UserModel?>{};
-  for (final uid in uniqueUserIds) {
-    userMap[uid] = await userRepo.getById(uid, includeDeleted: true);
-  }
-  final rows = <ShiftDisplayRow>[];
-  for (final shift in shifts) {
-    final user = userMap[shift.userId];
-    rows.add(ShiftDisplayRow(
-      username: user?.username ?? '-',
-      loginAt: shift.loginAt,
-      logoutAt: shift.logoutAt,
-    ));
-  }
-
-  if (!context.mounted) return;
-  showDialog(
-    context: context,
-    builder: (_) => DialogShiftsList(shifts: rows),
-  );
-}
-
 /// Closes the active register session with full reconciliation flow.
 Future<void> closeSession(BuildContext context, WidgetRef ref) async {
   final l = context.l10n;
@@ -285,17 +211,22 @@ Future<void> closeSession(BuildContext context, WidgetRef ref) async {
   if (openBillsCount > 0) {
     final shouldContinue = await showDialog<bool>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(l.closingOpenBillsWarningTitle),
-        content: Text(l.closingOpenBillsWarningMessage(openBillsCount, ref.money(openBillsAmount))),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: Text(l.actionCancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: Text(l.closingOpenBillsContinue),
+      builder: (dialogContext) => PosDialogShell(
+        title: l.closingOpenBillsWarningTitle,
+        children: [
+          Text(l.closingOpenBillsWarningMessage(openBillsCount, ref.money(openBillsAmount))),
+          const SizedBox(height: 24),
+          PosDialogActions(
+            actions: [
+              OutlinedButton(
+                onPressed: () => Navigator.pop(dialogContext, false),
+                child: Text(l.actionCancel),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(dialogContext, true),
+                child: Text(l.closingOpenBillsContinue),
+              ),
+            ],
           ),
         ],
       ),
