@@ -371,41 +371,44 @@ class _SectionTabBar extends ConsumerWidget {
               ],
               if (showSort) ...[
                 const SizedBox(width: 8),
-                SizedBox(
-                  height: 40,
-                  child: PopupMenuButton<_SortField>(
-                    onSelected: (field) {
-                      if (field == sortField) {
-                        onSortChanged(field, !sortAscending);
-                      } else {
-                        onSortChanged(field, true);
-                      }
-                    },
-                    itemBuilder: (_) => [
-                      for (final entry in {
-                        _SortField.table: l.sortByTable,
-                        _SortField.total: l.sortByTotal,
-                        _SortField.lastOrder: l.sortByLastOrder,
-                      }.entries)
-                        PopupMenuItem(
-                          value: entry.key,
-                          child: Row(
-                            children: [
-                              Expanded(child: Text(entry.value)),
-                              if (entry.key == sortField)
-                                Icon(
-                                  sortAscending ? Icons.arrow_upward : Icons.arrow_downward,
-                                  size: 18,
-                                ),
-                            ],
+                Flexible(
+                  fit: FlexFit.loose,
+                  child: SizedBox(
+                    height: 40,
+                    child: PopupMenuButton<_SortField>(
+                      onSelected: (field) {
+                        if (field == sortField) {
+                          onSortChanged(field, !sortAscending);
+                        } else {
+                          onSortChanged(field, true);
+                        }
+                      },
+                      itemBuilder: (_) => [
+                        for (final entry in {
+                          _SortField.table: l.sortByTable,
+                          _SortField.total: l.sortByTotal,
+                          _SortField.lastOrder: l.sortByLastOrder,
+                        }.entries)
+                          PopupMenuItem(
+                            value: entry.key,
+                            child: Row(
+                              children: [
+                                Expanded(child: Text(entry.value)),
+                                if (entry.key == sortField)
+                                  Icon(
+                                    sortAscending ? Icons.arrow_upward : Icons.arrow_downward,
+                                    size: 18,
+                                  ),
+                              ],
+                            ),
                           ),
+                      ],
+                      child: Chip(
+                        label: Text(l.billsSorting),
+                        avatar: Icon(
+                          sortAscending ? Icons.arrow_upward : Icons.arrow_downward,
+                          size: 16,
                         ),
-                    ],
-                    child: Chip(
-                      label: Text(l.billsSorting),
-                      avatar: Icon(
-                        sortAscending ? Icons.arrow_upward : Icons.arrow_downward,
-                        size: 16,
                       ),
                     ),
                   ),

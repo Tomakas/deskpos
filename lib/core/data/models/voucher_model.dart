@@ -29,6 +29,7 @@ class VoucherModel with _$VoucherModel implements CompanyScopedModel {
     DateTime? redeemedAt,
     String? redeemedOnBillId,
     String? sourceBillId,
+    String? createdByUserId,
     String? note,
     required DateTime createdAt,
     required DateTime updatedAt,

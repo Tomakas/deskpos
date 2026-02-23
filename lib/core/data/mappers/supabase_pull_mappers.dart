@@ -749,6 +749,7 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
         redeemedAt: Value(_parseDateTime(json['redeemed_at'])),
         redeemedOnBillId: Value(json['redeemed_on_bill_id'] as String?),
         sourceBillId: Value(json['source_bill_id'] as String?),
+        createdByUserId: Value(json['created_by_user_id'] as String?),
         note: Value(json['note'] as String?),
         createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
         updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),

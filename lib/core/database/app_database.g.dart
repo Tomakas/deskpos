@@ -38703,6 +38703,17 @@ class $VouchersTable extends Vouchers with TableInfo<$VouchersTable, Voucher> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _createdByUserIdMeta = const VerificationMeta(
+    'createdByUserId',
+  );
+  @override
+  late final GeneratedColumn<String> createdByUserId = GeneratedColumn<String>(
+    'created_by_user_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _noteMeta = const VerificationMeta('note');
   @override
   late final GeneratedColumn<String> note = GeneratedColumn<String>(
@@ -38739,6 +38750,7 @@ class $VouchersTable extends Vouchers with TableInfo<$VouchersTable, Voucher> {
     redeemedAt,
     redeemedOnBillId,
     sourceBillId,
+    createdByUserId,
     note,
   ];
   @override
@@ -38902,6 +38914,15 @@ class $VouchersTable extends Vouchers with TableInfo<$VouchersTable, Voucher> {
         ),
       );
     }
+    if (data.containsKey('created_by_user_id')) {
+      context.handle(
+        _createdByUserIdMeta,
+        createdByUserId.isAcceptableOrUnknown(
+          data['created_by_user_id']!,
+          _createdByUserIdMeta,
+        ),
+      );
+    }
     if (data.containsKey('note')) {
       context.handle(
         _noteMeta,
@@ -39025,6 +39046,10 @@ class $VouchersTable extends Vouchers with TableInfo<$VouchersTable, Voucher> {
         DriftSqlType.string,
         data['${effectivePrefix}source_bill_id'],
       ),
+      createdByUserId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}created_by_user_id'],
+      ),
       note: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}note'],
@@ -39085,6 +39110,7 @@ class Voucher extends DataClass implements Insertable<Voucher> {
   final DateTime? redeemedAt;
   final String? redeemedOnBillId;
   final String? sourceBillId;
+  final String? createdByUserId;
   final String? note;
   const Voucher({
     this.lastSyncedAt,
@@ -39112,6 +39138,7 @@ class Voucher extends DataClass implements Insertable<Voucher> {
     this.redeemedAt,
     this.redeemedOnBillId,
     this.sourceBillId,
+    this.createdByUserId,
     this.note,
   });
   @override
@@ -39180,6 +39207,9 @@ class Voucher extends DataClass implements Insertable<Voucher> {
     if (!nullToAbsent || sourceBillId != null) {
       map['source_bill_id'] = Variable<String>(sourceBillId);
     }
+    if (!nullToAbsent || createdByUserId != null) {
+      map['created_by_user_id'] = Variable<String>(createdByUserId);
+    }
     if (!nullToAbsent || note != null) {
       map['note'] = Variable<String>(note);
     }
@@ -39241,6 +39271,9 @@ class Voucher extends DataClass implements Insertable<Voucher> {
       sourceBillId: sourceBillId == null && nullToAbsent
           ? const Value.absent()
           : Value(sourceBillId),
+      createdByUserId: createdByUserId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createdByUserId),
       note: note == null && nullToAbsent ? const Value.absent() : Value(note),
     );
   }
@@ -39284,6 +39317,7 @@ class Voucher extends DataClass implements Insertable<Voucher> {
       redeemedAt: serializer.fromJson<DateTime?>(json['redeemedAt']),
       redeemedOnBillId: serializer.fromJson<String?>(json['redeemedOnBillId']),
       sourceBillId: serializer.fromJson<String?>(json['sourceBillId']),
+      createdByUserId: serializer.fromJson<String?>(json['createdByUserId']),
       note: serializer.fromJson<String?>(json['note']),
     );
   }
@@ -39324,6 +39358,7 @@ class Voucher extends DataClass implements Insertable<Voucher> {
       'redeemedAt': serializer.toJson<DateTime?>(redeemedAt),
       'redeemedOnBillId': serializer.toJson<String?>(redeemedOnBillId),
       'sourceBillId': serializer.toJson<String?>(sourceBillId),
+      'createdByUserId': serializer.toJson<String?>(createdByUserId),
       'note': serializer.toJson<String?>(note),
     };
   }
@@ -39354,6 +39389,7 @@ class Voucher extends DataClass implements Insertable<Voucher> {
     Value<DateTime?> redeemedAt = const Value.absent(),
     Value<String?> redeemedOnBillId = const Value.absent(),
     Value<String?> sourceBillId = const Value.absent(),
+    Value<String?> createdByUserId = const Value.absent(),
     Value<String?> note = const Value.absent(),
   }) => Voucher(
     lastSyncedAt: lastSyncedAt.present ? lastSyncedAt.value : this.lastSyncedAt,
@@ -39391,6 +39427,9 @@ class Voucher extends DataClass implements Insertable<Voucher> {
         ? redeemedOnBillId.value
         : this.redeemedOnBillId,
     sourceBillId: sourceBillId.present ? sourceBillId.value : this.sourceBillId,
+    createdByUserId: createdByUserId.present
+        ? createdByUserId.value
+        : this.createdByUserId,
     note: note.present ? note.value : this.note,
   );
   Voucher copyWithCompanion(VouchersCompanion data) {
@@ -39442,6 +39481,9 @@ class Voucher extends DataClass implements Insertable<Voucher> {
       sourceBillId: data.sourceBillId.present
           ? data.sourceBillId.value
           : this.sourceBillId,
+      createdByUserId: data.createdByUserId.present
+          ? data.createdByUserId.value
+          : this.createdByUserId,
       note: data.note.present ? data.note.value : this.note,
     );
   }
@@ -39474,6 +39516,7 @@ class Voucher extends DataClass implements Insertable<Voucher> {
           ..write('redeemedAt: $redeemedAt, ')
           ..write('redeemedOnBillId: $redeemedOnBillId, ')
           ..write('sourceBillId: $sourceBillId, ')
+          ..write('createdByUserId: $createdByUserId, ')
           ..write('note: $note')
           ..write(')'))
         .toString();
@@ -39506,6 +39549,7 @@ class Voucher extends DataClass implements Insertable<Voucher> {
     redeemedAt,
     redeemedOnBillId,
     sourceBillId,
+    createdByUserId,
     note,
   ]);
   @override
@@ -39537,6 +39581,7 @@ class Voucher extends DataClass implements Insertable<Voucher> {
           other.redeemedAt == this.redeemedAt &&
           other.redeemedOnBillId == this.redeemedOnBillId &&
           other.sourceBillId == this.sourceBillId &&
+          other.createdByUserId == this.createdByUserId &&
           other.note == this.note);
 }
 
@@ -39566,6 +39611,7 @@ class VouchersCompanion extends UpdateCompanion<Voucher> {
   final Value<DateTime?> redeemedAt;
   final Value<String?> redeemedOnBillId;
   final Value<String?> sourceBillId;
+  final Value<String?> createdByUserId;
   final Value<String?> note;
   final Value<int> rowid;
   const VouchersCompanion({
@@ -39594,6 +39640,7 @@ class VouchersCompanion extends UpdateCompanion<Voucher> {
     this.redeemedAt = const Value.absent(),
     this.redeemedOnBillId = const Value.absent(),
     this.sourceBillId = const Value.absent(),
+    this.createdByUserId = const Value.absent(),
     this.note = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -39623,6 +39670,7 @@ class VouchersCompanion extends UpdateCompanion<Voucher> {
     this.redeemedAt = const Value.absent(),
     this.redeemedOnBillId = const Value.absent(),
     this.sourceBillId = const Value.absent(),
+    this.createdByUserId = const Value.absent(),
     this.note = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -39657,6 +39705,7 @@ class VouchersCompanion extends UpdateCompanion<Voucher> {
     Expression<DateTime>? redeemedAt,
     Expression<String>? redeemedOnBillId,
     Expression<String>? sourceBillId,
+    Expression<String>? createdByUserId,
     Expression<String>? note,
     Expression<int>? rowid,
   }) {
@@ -39686,6 +39735,7 @@ class VouchersCompanion extends UpdateCompanion<Voucher> {
       if (redeemedAt != null) 'redeemed_at': redeemedAt,
       if (redeemedOnBillId != null) 'redeemed_on_bill_id': redeemedOnBillId,
       if (sourceBillId != null) 'source_bill_id': sourceBillId,
+      if (createdByUserId != null) 'created_by_user_id': createdByUserId,
       if (note != null) 'note': note,
       if (rowid != null) 'rowid': rowid,
     });
@@ -39717,6 +39767,7 @@ class VouchersCompanion extends UpdateCompanion<Voucher> {
     Value<DateTime?>? redeemedAt,
     Value<String?>? redeemedOnBillId,
     Value<String?>? sourceBillId,
+    Value<String?>? createdByUserId,
     Value<String?>? note,
     Value<int>? rowid,
   }) {
@@ -39746,6 +39797,7 @@ class VouchersCompanion extends UpdateCompanion<Voucher> {
       redeemedAt: redeemedAt ?? this.redeemedAt,
       redeemedOnBillId: redeemedOnBillId ?? this.redeemedOnBillId,
       sourceBillId: sourceBillId ?? this.sourceBillId,
+      createdByUserId: createdByUserId ?? this.createdByUserId,
       note: note ?? this.note,
       rowid: rowid ?? this.rowid,
     );
@@ -39837,6 +39889,9 @@ class VouchersCompanion extends UpdateCompanion<Voucher> {
     if (sourceBillId.present) {
       map['source_bill_id'] = Variable<String>(sourceBillId.value);
     }
+    if (createdByUserId.present) {
+      map['created_by_user_id'] = Variable<String>(createdByUserId.value);
+    }
     if (note.present) {
       map['note'] = Variable<String>(note.value);
     }
@@ -39874,6 +39929,7 @@ class VouchersCompanion extends UpdateCompanion<Voucher> {
           ..write('redeemedAt: $redeemedAt, ')
           ..write('redeemedOnBillId: $redeemedOnBillId, ')
           ..write('sourceBillId: $sourceBillId, ')
+          ..write('createdByUserId: $createdByUserId, ')
           ..write('note: $note, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -58374,6 +58430,7 @@ typedef $$VouchersTableCreateCompanionBuilder =
       Value<DateTime?> redeemedAt,
       Value<String?> redeemedOnBillId,
       Value<String?> sourceBillId,
+      Value<String?> createdByUserId,
       Value<String?> note,
       Value<int> rowid,
     });
@@ -58404,6 +58461,7 @@ typedef $$VouchersTableUpdateCompanionBuilder =
       Value<DateTime?> redeemedAt,
       Value<String?> redeemedOnBillId,
       Value<String?> sourceBillId,
+      Value<String?> createdByUserId,
       Value<String?> note,
       Value<int> rowid,
     });
@@ -58550,6 +58608,11 @@ class $$VouchersTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get createdByUserId => $composableBuilder(
+    column: $table.createdByUserId,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get note => $composableBuilder(
     column: $table.note,
     builder: (column) => ColumnFilters(column),
@@ -58690,6 +58753,11 @@ class $$VouchersTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get createdByUserId => $composableBuilder(
+    column: $table.createdByUserId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get note => $composableBuilder(
     column: $table.note,
     builder: (column) => ColumnOrderings(column),
@@ -58804,6 +58872,11 @@ class $$VouchersTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get createdByUserId => $composableBuilder(
+    column: $table.createdByUserId,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get note =>
       $composableBuilder(column: $table.note, builder: (column) => column);
 }
@@ -58862,6 +58935,7 @@ class $$VouchersTableTableManager
                 Value<DateTime?> redeemedAt = const Value.absent(),
                 Value<String?> redeemedOnBillId = const Value.absent(),
                 Value<String?> sourceBillId = const Value.absent(),
+                Value<String?> createdByUserId = const Value.absent(),
                 Value<String?> note = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => VouchersCompanion(
@@ -58890,6 +58964,7 @@ class $$VouchersTableTableManager
                 redeemedAt: redeemedAt,
                 redeemedOnBillId: redeemedOnBillId,
                 sourceBillId: sourceBillId,
+                createdByUserId: createdByUserId,
                 note: note,
                 rowid: rowid,
               ),
@@ -58921,6 +58996,7 @@ class $$VouchersTableTableManager
                 Value<DateTime?> redeemedAt = const Value.absent(),
                 Value<String?> redeemedOnBillId = const Value.absent(),
                 Value<String?> sourceBillId = const Value.absent(),
+                Value<String?> createdByUserId = const Value.absent(),
                 Value<String?> note = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => VouchersCompanion.insert(
@@ -58949,6 +59025,7 @@ class $$VouchersTableTableManager
                 redeemedAt: redeemedAt,
                 redeemedOnBillId: redeemedOnBillId,
                 sourceBillId: sourceBillId,
+                createdByUserId: createdByUserId,
                 note: note,
                 rowid: rowid,
               ),

@@ -4184,6 +4184,18 @@ abstract class AppLocalizations {
   /// **'Poznámka'**
   String get voucherNote;
 
+  /// No description provided for @voucherCreatedAt.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vytvořeno'**
+  String get voucherCreatedAt;
+
+  /// No description provided for @voucherCreatedBy.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vytvořil'**
+  String get voucherCreatedBy;
+
   /// No description provided for @voucherScopeBill.
   ///
   /// In cs, this message translates to:
@@ -4225,6 +4237,12 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Prodat'**
   String get voucherSell;
+
+  /// No description provided for @voucherPrint.
+  ///
+  /// In cs, this message translates to:
+  /// **'Tisk'**
+  String get voucherPrint;
 
   /// No description provided for @voucherCancel.
   ///

@@ -2127,6 +2127,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get voucherNote => 'Note';
 
   @override
+  String get voucherCreatedAt => 'Created';
+
+  @override
+  String get voucherCreatedBy => 'Created by';
+
+  @override
   String get voucherScopeBill => 'Full Bill';
 
   @override
@@ -2146,6 +2152,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get voucherSell => 'Sell';
+
+  @override
+  String get voucherPrint => 'Print';
 
   @override
   String get voucherCancel => 'Cancel Voucher';

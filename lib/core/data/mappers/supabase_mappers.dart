@@ -686,6 +686,7 @@ Map<String, dynamic> voucherToSupabaseJson(VoucherModel m) => {
       'redeemed_at': toIso8601Utc(m.redeemedAt),
       'redeemed_on_bill_id': m.redeemedOnBillId,
       'source_bill_id': m.sourceBillId,
+      'created_by_user_id': m.createdByUserId,
       'note': m.note,
     };
 

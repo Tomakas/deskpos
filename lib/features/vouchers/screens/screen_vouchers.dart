@@ -162,7 +162,13 @@ class _ScreenVouchersState extends ConsumerState<ScreenVouchers> {
       PosColumn<VoucherModel>(
         label: l.reservationStatus,
         flex: 1,
-        cellBuilder: (v) => Text(_statusLabel(v.status, l)),
+        headerAlign: TextAlign.center,
+        cellBuilder: (v) => Text(_statusLabel(v.status, l), textAlign: TextAlign.center),
+      ),
+      PosColumn<VoucherModel>(
+        label: l.voucherCreatedAt,
+        flex: 1,
+        cellBuilder: (v) => Text(ref.fmtDate(v.createdAt)),
       ),
       PosColumn<VoucherModel>(
         label: l.voucherExpires,
@@ -173,8 +179,13 @@ class _ScreenVouchersState extends ConsumerState<ScreenVouchers> {
       PosColumn<VoucherModel>(
         label: l.voucherUsedCount,
         flex: 1,
-        numeric: true,
-        cellBuilder: (v) => Text('${v.usedCount}/${v.maxUses}', textAlign: TextAlign.right),
+        headerAlign: TextAlign.center,
+        cellBuilder: (v) => Text('${v.usedCount}/${v.maxUses}', textAlign: TextAlign.center),
+      ),
+      PosColumn<VoucherModel>(
+        label: l.voucherNote,
+        flex: 2,
+        cellBuilder: (v) => Text(v.note ?? '', overflow: TextOverflow.ellipsis),
       ),
     ];
   }

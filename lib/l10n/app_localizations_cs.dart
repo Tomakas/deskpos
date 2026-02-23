@@ -2126,6 +2126,12 @@ class AppLocalizationsCs extends AppLocalizations {
   String get voucherNote => 'Poznámka';
 
   @override
+  String get voucherCreatedAt => 'Vytvořeno';
+
+  @override
+  String get voucherCreatedBy => 'Vytvořil';
+
+  @override
   String get voucherScopeBill => 'Celý účet';
 
   @override
@@ -2145,6 +2151,9 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get voucherSell => 'Prodat';
+
+  @override
+  String get voucherPrint => 'Tisk';
 
   @override
   String get voucherCancel => 'Zrušit voucher';

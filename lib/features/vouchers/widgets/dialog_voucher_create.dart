@@ -36,7 +36,7 @@ class _DialogVoucherCreateState extends ConsumerState<DialogVoucherCreate> {
   String _valueInput = '';
   int _maxUses = 1;
   String? _note;
-  DateTime? _expiresAt;
+  DateTime? _expiresAt = DateTime.now().add(const Duration(days: 365));
   String? _selectedItemId;
   String? _selectedItemName;
   String? _selectedCategoryId;
@@ -45,6 +45,14 @@ class _DialogVoucherCreateState extends ConsumerState<DialogVoucherCreate> {
   int get _rawValue {
     final parsed = double.tryParse(_valueInput) ?? 0;
     return (parsed * 100).round();
+  }
+
+  String get _valueDisplayText {
+    final base = _valueInput.isEmpty ? '0' : _valueInput;
+    if (_type == VoucherType.discount) {
+      return _discountType == DiscountType.percent ? '$base %' : '$base ${ref.currencySymbol}';
+    }
+    return '$base ${ref.currencySymbol}';
   }
 
   @override
@@ -101,61 +109,53 @@ class _DialogVoucherCreateState extends ConsumerState<DialogVoucherCreate> {
                     child: FilterChip(
                       label: SizedBox(
                         width: double.infinity,
-                        child: Text(entry.value, textAlign: TextAlign.center),
+                        child: Text(
+                          _scopeChipLabel(entry.key, entry.value),
+                          textAlign: TextAlign.center,
+                        ),
                       ),
                       selected: _scope == entry.key,
-                      onSelected: (_) => setState(() {
-                    _scope = entry.key;
-                    _selectedItemId = null;
-                    _selectedItemName = null;
-                    _selectedCategoryId = null;
-                    _selectedCategoryName = null;
-                  }),
+                      onSelected: (_) => _onScopeSelected(entry.key, context),
                     ),
                   ),
                 ),
               ],
             ],
           ),
-          if (_scope == VoucherDiscountScope.product) ...[
-            const SizedBox(height: 8),
-            SizedBox(
-              width: double.infinity,
-              height: 44,
-              child: OutlinedButton.icon(
-                icon: const Icon(Icons.search, size: 20),
-                label: Text(_selectedItemName ?? l.gridEditorSelectItem),
-                onPressed: () => _selectItem(context),
-              ),
-            ),
-          ],
-          if (_scope == VoucherDiscountScope.category) ...[
-            const SizedBox(height: 8),
-            SizedBox(
-              width: double.infinity,
-              height: 44,
-              child: OutlinedButton.icon(
-                icon: const Icon(Icons.category, size: 20),
-                label: Text(_selectedCategoryName ?? l.gridEditorSelectCategory),
-                onPressed: () => _selectCategory(context),
-              ),
-            ),
-          ],
           const SizedBox(height: 8),
         ],
-        // Value input
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-          decoration: BoxDecoration(
-            border: Border.all(color: theme.dividerColor),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            _valueInput.isEmpty ? '0' : _valueInput,
-            style: theme.textTheme.headlineMedium,
-            textAlign: TextAlign.right,
-          ),
+        // Value input + max uses
+        Row(
+          children: [
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+                decoration: BoxDecoration(
+                  border: Border.all(color: theme.dividerColor),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  _valueDisplayText,
+                  style: theme.textTheme.headlineMedium,
+                  textAlign: TextAlign.right,
+                ),
+              ),
+            ),
+            if (_type == VoucherType.discount) ...[
+              const SizedBox(width: 12),
+              IconButton(
+                onPressed: _maxUses > 1 ? () => setState(() => _maxUses--) : null,
+                icon: const Icon(Icons.remove),
+                visualDensity: VisualDensity.compact,
+              ),
+              Text('${l.voucherMaxUses}: $_maxUses', style: theme.textTheme.bodyMedium),
+              IconButton(
+                onPressed: () => setState(() => _maxUses++),
+                icon: const Icon(Icons.add),
+                visualDensity: VisualDensity.compact,
+              ),
+            ],
+          ],
         ),
         const SizedBox(height: 12),
         // Numpad
@@ -163,7 +163,14 @@ class _DialogVoucherCreateState extends ConsumerState<DialogVoucherCreate> {
           child: PosNumpad(
             size: PosNumpadSize.compact,
             expand: true,
-            onDigit: (d) => setState(() => _valueInput += d),
+            onDigit: (d) {
+              final next = _valueInput + d;
+              if (_type == VoucherType.discount && _discountType == DiscountType.percent) {
+                final parsed = double.tryParse(next) ?? 0;
+                if (parsed > 100) return;
+              }
+              setState(() => _valueInput = next);
+            },
             onBackspace: () {
               if (_valueInput.isNotEmpty) {
                 setState(() => _valueInput = _valueInput.substring(0, _valueInput.length - 1));
@@ -188,26 +195,17 @@ class _DialogVoucherCreateState extends ConsumerState<DialogVoucherCreate> {
                   },
           ),
         ),
-        const SizedBox(height: 12),
-        // Max uses (discount only)
-        if (_type == VoucherType.discount) ...[
-          Row(
-            children: [
-              Text(l.voucherMaxUses),
-              const Spacer(),
-              IconButton(
-                onPressed: _maxUses > 1 ? () => setState(() => _maxUses--) : null,
-                icon: const Icon(Icons.remove),
-              ),
-              Text('$_maxUses', style: theme.textTheme.titleMedium),
-              IconButton(
-                onPressed: () => setState(() => _maxUses++),
-                icon: const Icon(Icons.add),
-              ),
-            ],
+        const SizedBox(height: 8),
+        // Note
+        TextField(
+          decoration: InputDecoration(
+            labelText: l.voucherNote,
+            isDense: true,
+            border: const OutlineInputBorder(),
           ),
-          const SizedBox(height: 8),
-        ],
+          onChanged: (v) => _note = v.isEmpty ? null : v,
+        ),
+        const SizedBox(height: 8),
         // Expiration
         Row(
           children: [
@@ -339,6 +337,7 @@ class _DialogVoucherCreateState extends ConsumerState<DialogVoucherCreate> {
         maxUses: 1,
         usedCount: 0,
         expiresAt: _expiresAt,
+        createdByUserId: ref.read(activeUserProvider)?.id,
         note: _note,
         sourceBillId: bill.id,
         createdAt: now,
@@ -368,6 +367,37 @@ class _DialogVoucherCreateState extends ConsumerState<DialogVoucherCreate> {
     if (_scope == VoucherDiscountScope.product) return _selectedItemId != null;
     if (_scope == VoucherDiscountScope.category) return _selectedCategoryId != null;
     return true;
+  }
+
+  String _scopeChipLabel(VoucherDiscountScope scope, String defaultLabel) {
+    if (_scope == scope) {
+      if (scope == VoucherDiscountScope.product && _selectedItemName != null) {
+        return _selectedItemName!;
+      }
+      if (scope == VoucherDiscountScope.category && _selectedCategoryName != null) {
+        return _selectedCategoryName!;
+      }
+    }
+    return defaultLabel;
+  }
+
+  void _onScopeSelected(VoucherDiscountScope scope, BuildContext context) {
+    if (_scope == scope) {
+      // Already selected — re-open picker for product/category
+      if (scope == VoucherDiscountScope.product) _selectItem(context);
+      if (scope == VoucherDiscountScope.category) _selectCategory(context);
+      return;
+    }
+    setState(() {
+      _scope = scope;
+      _selectedItemId = null;
+      _selectedItemName = null;
+      _selectedCategoryId = null;
+      _selectedCategoryName = null;
+    });
+    // Immediately open picker for product/category
+    if (scope == VoucherDiscountScope.product) _selectItem(context);
+    if (scope == VoucherDiscountScope.category) _selectCategory(context);
   }
 
   Future<void> _selectItem(BuildContext context) async {
@@ -421,6 +451,7 @@ class _DialogVoucherCreateState extends ConsumerState<DialogVoucherCreate> {
       maxUses: _maxUses,
       usedCount: 0,
       expiresAt: _expiresAt,
+      createdByUserId: ref.read(activeUserProvider)?.id,
       note: _note,
       createdAt: now,
       updatedAt: now,

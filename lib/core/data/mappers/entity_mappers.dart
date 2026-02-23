@@ -921,6 +921,7 @@ VoucherModel voucherFromEntity(Voucher e) => VoucherModel(
       redeemedAt: e.redeemedAt,
       redeemedOnBillId: e.redeemedOnBillId,
       sourceBillId: e.sourceBillId,
+      createdByUserId: e.createdByUserId,
       note: e.note,
       createdAt: e.createdAt,
       updatedAt: e.updatedAt,
@@ -946,6 +947,7 @@ VouchersCompanion voucherToCompanion(VoucherModel m) => VouchersCompanion.insert
       redeemedAt: Value(m.redeemedAt),
       redeemedOnBillId: Value(m.redeemedOnBillId),
       sourceBillId: Value(m.sourceBillId),
+      createdByUserId: Value(m.createdByUserId),
       note: Value(m.note),
     );
 

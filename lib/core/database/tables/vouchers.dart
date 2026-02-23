@@ -27,6 +27,7 @@ class Vouchers extends Table with SyncColumnsMixin {
   DateTimeColumn get redeemedAt => dateTime().nullable()();
   TextColumn get redeemedOnBillId => text().nullable()();
   TextColumn get sourceBillId => text().nullable()();
+  TextColumn get createdByUserId => text().nullable()();
   TextColumn get note => text().nullable()();
 
   @override

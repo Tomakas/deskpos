@@ -1,24 +1,77 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path_provider/path_provider.dart';
 
+import '../../../core/data/enums/voucher_discount_scope.dart';
 import '../../../core/data/enums/voucher_status.dart';
 import '../../../core/data/enums/voucher_type.dart';
 import '../../../core/data/models/voucher_model.dart';
+import '../../../core/data/providers/auth_providers.dart';
+import '../../../core/data/providers/printing_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/logging/app_logger.dart';
+import '../../../core/printing/voucher_pdf_builder.dart';
+import '../../../core/utils/file_opener.dart';
+import '../../../core/utils/formatters.dart';
+import '../../../core/utils/formatting_ext.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/utils/formatting_ext.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 
-class DialogVoucherDetail extends ConsumerWidget {
+class DialogVoucherDetail extends ConsumerStatefulWidget {
   const DialogVoucherDetail({super.key, required this.voucher});
   final VoucherModel voucher;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DialogVoucherDetail> createState() => _DialogVoucherDetailState();
+}
+
+class _DialogVoucherDetailState extends ConsumerState<DialogVoucherDetail> {
+  String? _scopeTargetName;
+  String? _createdByName;
+  bool _printing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAsyncData();
+  }
+
+  Future<void> _loadAsyncData() async {
+    final v = widget.voucher;
+
+    // Load scope target name (product / category)
+    if (v.type == VoucherType.discount) {
+      String? name;
+      if (v.discountScope == VoucherDiscountScope.product && v.itemId != null) {
+        final item = await ref.read(itemRepositoryProvider).getById(v.itemId!, includeDeleted: true);
+        name = item?.name;
+      } else if (v.discountScope == VoucherDiscountScope.category && v.categoryId != null) {
+        final cat = await ref.read(categoryRepositoryProvider).getById(v.categoryId!, includeDeleted: true);
+        name = cat?.name;
+      }
+      if (name != null && mounted) {
+        setState(() => _scopeTargetName = name);
+      }
+    }
+
+    // Load created-by user name
+    if (v.createdByUserId != null) {
+      final user = await ref.read(userRepositoryProvider).getById(v.createdByUserId!, includeDeleted: true);
+      if (user != null && mounted) {
+        setState(() => _createdByName = user.fullName);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final voucher = widget.voucher;
     final l = context.l10n;
     final theme = Theme.of(context);
 
@@ -37,7 +90,7 @@ class DialogVoucherDetail extends ConsumerWidget {
               : ref.money(voucher.value),
         ),
         if (voucher.type == VoucherType.discount) ...[
-          _row(l.voucherDiscount, voucher.discountScope?.name ?? '-'),
+          _row(l.voucherDiscount, _scopeLabel(voucher, l)),
           _row(l.voucherMaxUses, '${voucher.maxUses}'),
         ],
         _row(l.voucherUsedCount, '${voucher.usedCount}/${voucher.maxUses}'),
@@ -45,11 +98,17 @@ class DialogVoucherDetail extends ConsumerWidget {
             voucher.expiresAt != null ? ref.fmtDateTime(voucher.expiresAt!) : '-'),
         if (voucher.redeemedAt != null)
           _row(l.voucherRedeemedAt, ref.fmtDateTime(voucher.redeemedAt!)),
-        if (voucher.note != null && voucher.note!.isNotEmpty)
-          _row(l.voucherNote, voucher.note!),
-        _row(l.voucherIdLabel, voucher.id),
+        _row(l.voucherCreatedAt, ref.fmtDateTime(voucher.createdAt)),
+        if (_createdByName != null)
+          _row(l.voucherCreatedBy, _createdByName!),
+        _row(l.voucherNote, voucher.note ?? '-'),
         const SizedBox(height: 16),
         PosDialogActions(
+          leading: OutlinedButton.icon(
+            onPressed: _printing ? null : () => _printVoucher(context),
+            icon: const Icon(Icons.print_outlined),
+            label: Text(l.voucherPrint),
+          ),
           actions: [
             OutlinedButton(
               onPressed: () => Navigator.pop(context),
@@ -65,6 +124,19 @@ class DialogVoucherDetail extends ConsumerWidget {
         ),
       ],
     );
+  }
+
+  String _scopeLabel(VoucherModel voucher, AppLocalizations l) {
+    final scopeName = switch (voucher.discountScope) {
+      VoucherDiscountScope.bill => l.voucherScopeBill,
+      VoucherDiscountScope.product => l.voucherScopeProduct,
+      VoucherDiscountScope.category => l.voucherScopeCategory,
+      null => '-',
+    };
+    if (_scopeTargetName != null) {
+      return '$scopeName: $_scopeTargetName';
+    }
+    return scopeName;
   }
 
   Widget _row(String label, String value) {
@@ -92,9 +164,68 @@ class DialogVoucherDetail extends ConsumerWidget {
         VoucherStatus.cancelled => l.voucherStatusCancelled,
       };
 
+  Future<void> _printVoucher(BuildContext context) async {
+    setState(() => _printing = true);
+    try {
+      final voucher = widget.voucher;
+      final l = context.l10n;
+      final locale = ref.read(appLocaleProvider).value ?? 'cs';
+      final company = ref.read(currentCompanyProvider);
+
+      String valueLine;
+      if (voucher.type == VoucherType.discount && voucher.discountType?.name == 'percent') {
+        valueLine = '${voucher.value / 100}%';
+      } else {
+        valueLine = ref.read(currentCurrencyProvider).value != null
+            ? formatMoney(voucher.value, ref.read(currentCurrencyProvider).value, appLocale: locale)
+            : '${voucher.value}';
+      }
+
+      String? scopeLine;
+      if (voucher.type == VoucherType.discount) {
+        scopeLine = _scopeLabel(voucher, l);
+      }
+
+      final data = VoucherPdfData(
+        code: voucher.code,
+        typeName: _typeLabel(voucher.type, l),
+        valueLine: valueLine,
+        scopeLine: scopeLine,
+        maxUses: voucher.type == VoucherType.discount ? '${voucher.maxUses}' : null,
+        expiresAt: voucher.expiresAt != null
+            ? formatDateForPrint(voucher.expiresAt!, locale)
+            : null,
+        note: voucher.note,
+        companyName: company?.name,
+      );
+
+      final labels = VoucherPdfLabels(
+        type: l.filterTitle,
+        value: l.voucherValue,
+        scope: l.voucherDiscount,
+        maxUses: l.voucherMaxUses,
+        expires: l.voucherExpires,
+        note: l.voucherNote,
+      );
+
+      final bytes = await ref.read(printingServiceProvider)
+          .generateVoucherPdf(data, labels);
+
+      final dir = await getTemporaryDirectory();
+      if (!dir.existsSync()) dir.createSync(recursive: true);
+      final file = File('${dir.path}/voucher_${voucher.code}.pdf');
+      await file.writeAsBytes(bytes);
+      await FileOpener.share(file.path);
+    } catch (e, s) {
+      AppLogger.error('Failed to print voucher', error: e, stackTrace: s);
+    } finally {
+      if (mounted) setState(() => _printing = false);
+    }
+  }
+
   Future<void> _cancelVoucher(BuildContext context, WidgetRef ref) async {
     final now = DateTime.now();
-    final updated = voucher.copyWith(
+    final updated = widget.voucher.copyWith(
       status: VoucherStatus.cancelled,
       updatedAt: now,
     );

@@ -20,6 +20,7 @@ import 'inventory_pdf_builder.dart';
 import 'pdf_font_loader.dart';
 import 'receipt_data.dart';
 import 'receipt_pdf_builder.dart';
+import 'voucher_pdf_builder.dart';
 import 'z_report_pdf_builder.dart';
 
 class PrintingService {
@@ -257,6 +258,22 @@ class PrintingService {
     final bold = await fontLoader.bold;
 
     return InventoryPdfBuilder(
+      data: data,
+      labels: labels,
+      regular: regular,
+      bold: bold,
+    ).build();
+  }
+
+  Future<Uint8List> generateVoucherPdf(
+    VoucherPdfData data,
+    VoucherPdfLabels labels,
+  ) async {
+    final fontLoader = PdfFontLoader.instance;
+    final regular = await fontLoader.regular;
+    final bold = await fontLoader.bold;
+
+    return VoucherPdfBuilder(
       data: data,
       labels: labels,
       regular: regular,

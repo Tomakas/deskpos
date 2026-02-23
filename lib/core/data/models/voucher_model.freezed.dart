@@ -35,6 +35,7 @@ mixin _$VoucherModel {
   DateTime? get redeemedAt => throw _privateConstructorUsedError;
   String? get redeemedOnBillId => throw _privateConstructorUsedError;
   String? get sourceBillId => throw _privateConstructorUsedError;
+  String? get createdByUserId => throw _privateConstructorUsedError;
   String? get note => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
   DateTime get updatedAt => throw _privateConstructorUsedError;
@@ -73,6 +74,7 @@ abstract class $VoucherModelCopyWith<$Res> {
     DateTime? redeemedAt,
     String? redeemedOnBillId,
     String? sourceBillId,
+    String? createdByUserId,
     String? note,
     DateTime createdAt,
     DateTime updatedAt,
@@ -113,6 +115,7 @@ class _$VoucherModelCopyWithImpl<$Res, $Val extends VoucherModel>
     Object? redeemedAt = freezed,
     Object? redeemedOnBillId = freezed,
     Object? sourceBillId = freezed,
+    Object? createdByUserId = freezed,
     Object? note = freezed,
     Object? createdAt = null,
     Object? updatedAt = null,
@@ -192,6 +195,10 @@ class _$VoucherModelCopyWithImpl<$Res, $Val extends VoucherModel>
                 ? _value.sourceBillId
                 : sourceBillId // ignore: cast_nullable_to_non_nullable
                       as String?,
+            createdByUserId: freezed == createdByUserId
+                ? _value.createdByUserId
+                : createdByUserId // ignore: cast_nullable_to_non_nullable
+                      as String?,
             note: freezed == note
                 ? _value.note
                 : note // ignore: cast_nullable_to_non_nullable
@@ -242,6 +249,7 @@ abstract class _$$VoucherModelImplCopyWith<$Res>
     DateTime? redeemedAt,
     String? redeemedOnBillId,
     String? sourceBillId,
+    String? createdByUserId,
     String? note,
     DateTime createdAt,
     DateTime updatedAt,
@@ -281,6 +289,7 @@ class __$$VoucherModelImplCopyWithImpl<$Res>
     Object? redeemedAt = freezed,
     Object? redeemedOnBillId = freezed,
     Object? sourceBillId = freezed,
+    Object? createdByUserId = freezed,
     Object? note = freezed,
     Object? createdAt = null,
     Object? updatedAt = null,
@@ -360,6 +369,10 @@ class __$$VoucherModelImplCopyWithImpl<$Res>
             ? _value.sourceBillId
             : sourceBillId // ignore: cast_nullable_to_non_nullable
                   as String?,
+        createdByUserId: freezed == createdByUserId
+            ? _value.createdByUserId
+            : createdByUserId // ignore: cast_nullable_to_non_nullable
+                  as String?,
         note: freezed == note
             ? _value.note
             : note // ignore: cast_nullable_to_non_nullable
@@ -403,6 +416,7 @@ class _$VoucherModelImpl implements _VoucherModel {
     this.redeemedAt,
     this.redeemedOnBillId,
     this.sourceBillId,
+    this.createdByUserId,
     this.note,
     required this.createdAt,
     required this.updatedAt,
@@ -448,6 +462,8 @@ class _$VoucherModelImpl implements _VoucherModel {
   @override
   final String? sourceBillId;
   @override
+  final String? createdByUserId;
+  @override
   final String? note;
   @override
   final DateTime createdAt;
@@ -458,7 +474,7 @@ class _$VoucherModelImpl implements _VoucherModel {
 
   @override
   String toString() {
-    return 'VoucherModel(id: $id, companyId: $companyId, code: $code, type: $type, status: $status, value: $value, discountType: $discountType, discountScope: $discountScope, itemId: $itemId, categoryId: $categoryId, minOrderValue: $minOrderValue, maxUses: $maxUses, usedCount: $usedCount, customerId: $customerId, expiresAt: $expiresAt, redeemedAt: $redeemedAt, redeemedOnBillId: $redeemedOnBillId, sourceBillId: $sourceBillId, note: $note, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+    return 'VoucherModel(id: $id, companyId: $companyId, code: $code, type: $type, status: $status, value: $value, discountType: $discountType, discountScope: $discountScope, itemId: $itemId, categoryId: $categoryId, minOrderValue: $minOrderValue, maxUses: $maxUses, usedCount: $usedCount, customerId: $customerId, expiresAt: $expiresAt, redeemedAt: $redeemedAt, redeemedOnBillId: $redeemedOnBillId, sourceBillId: $sourceBillId, createdByUserId: $createdByUserId, note: $note, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
   }
 
   @override
@@ -495,6 +511,8 @@ class _$VoucherModelImpl implements _VoucherModel {
                 other.redeemedOnBillId == redeemedOnBillId) &&
             (identical(other.sourceBillId, sourceBillId) ||
                 other.sourceBillId == sourceBillId) &&
+            (identical(other.createdByUserId, createdByUserId) ||
+                other.createdByUserId == createdByUserId) &&
             (identical(other.note, note) || other.note == note) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
@@ -525,6 +543,7 @@ class _$VoucherModelImpl implements _VoucherModel {
     redeemedAt,
     redeemedOnBillId,
     sourceBillId,
+    createdByUserId,
     note,
     createdAt,
     updatedAt,
@@ -560,6 +579,7 @@ abstract class _VoucherModel implements VoucherModel {
     final DateTime? redeemedAt,
     final String? redeemedOnBillId,
     final String? sourceBillId,
+    final String? createdByUserId,
     final String? note,
     required final DateTime createdAt,
     required final DateTime updatedAt,
@@ -602,6 +622,8 @@ abstract class _VoucherModel implements VoucherModel {
   String? get redeemedOnBillId;
   @override
   String? get sourceBillId;
+  @override
+  String? get createdByUserId;
   @override
   String? get note;
   @override
