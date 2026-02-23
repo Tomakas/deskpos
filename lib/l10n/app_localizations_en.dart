@@ -277,6 +277,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get roleOperator => 'Operator';
 
   @override
+  String get roleManager => 'Manager';
+
+  @override
   String get roleAdmin => 'Administrator';
 
   @override
@@ -1018,6 +1021,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get billDetailDiscount => 'Discount';
 
   @override
+  String get billDetailRemoveDiscount => 'Remove Discount';
+
+  @override
+  String get billDetailRemoveDiscountConfirm =>
+      'Remove discount from this bill?';
+
+  @override
   String get billStatusRefunded => 'Refunded';
 
   @override
@@ -1641,6 +1651,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get receiptDiscount => 'Discount';
 
   @override
+  String get receiptVoucherDiscount => 'Voucher';
+
+  @override
   String get receiptTotal => 'Total';
 
   @override
@@ -2173,6 +2186,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get billDetailVoucher => 'Voucher';
+
+  @override
+  String get billDetailRemoveVoucher => 'Remove Voucher';
+
+  @override
+  String get billDetailRemoveVoucherConfirm =>
+      'Remove applied voucher from this bill?';
 
   @override
   String get wizardLanguage => 'Language';
@@ -2946,4 +2966,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statsSalesFinalTotal => 'Total (receipts)';
+
+  @override
+  String get sellEnterQuantity => 'Enter quantity';
 }

@@ -18,6 +18,7 @@ class OrderItems extends Table with SyncColumnsMixin {
   IntColumn get saleTaxAmount => integer()();
   IntColumn get discount => integer().withDefault(const Constant(0))();
   TextColumn get discountType => textEnum<DiscountType>().nullable()();
+  IntColumn get voucherDiscount => integer().withDefault(const Constant(0))();
   TextColumn get unit => textEnum<UnitType>().withDefault(Constant(UnitType.ks.name))();
   TextColumn get notes => text().nullable()();
   TextColumn get status => textEnum<PrepStatus>()();

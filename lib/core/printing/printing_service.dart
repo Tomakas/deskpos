@@ -4,6 +4,7 @@ import '../data/enums/discount_type.dart';
 import '../data/enums/prep_status.dart';
 import '../data/enums/unit_type.dart';
 import '../data/models/currency_model.dart';
+import '../data/models/order_item_modifier_model.dart';
 import '../data/repositories/bill_repository.dart';
 import '../data/repositories/company_repository.dart';
 import '../data/repositories/order_item_modifier_repository.dart';
@@ -96,6 +97,14 @@ class PrintingService {
     }
 
     // 8. Build receipt items (with modifiers)
+    // Load all modifiers in batch
+    final allItemIds = activeItems.map((i) => i.id).toList();
+    final allMods = await orderItemModifierRepo.getByOrderItemIds(allItemIds);
+    final modsByItem = <String, List<OrderItemModifierModel>>{};
+    for (final mod in allMods) {
+      modsByItem.putIfAbsent(mod.orderItemId, () => []).add(mod);
+    }
+
     final receiptItems = <ReceiptItemData>[];
     for (final item in activeItems) {
       final itemTotal = (item.salePriceAtt * item.quantity).round();
@@ -108,8 +117,7 @@ class PrintingService {
         }
       }
 
-      // Load modifiers for this order item
-      final mods = await orderItemModifierRepo.getByOrderItem(item.id);
+      final mods = modsByItem[item.id] ?? [];
       final receiptMods = mods.map((m) => ReceiptModifierData(
         name: m.modifierItemName,
         unitPrice: m.unitPrice,
@@ -120,10 +128,11 @@ class PrintingService {
         name: item.itemName,
         quantity: item.quantity,
         unitPrice: item.salePriceAtt,
-        total: itemTotal - itemDiscount,
+        total: itemTotal - itemDiscount - item.voucherDiscount,
         taxRateBasisPoints: item.saleTaxRateAtt,
         unitLabel: unitLocalizer != null ? unitLocalizer(item.unit) : item.unit.name,
         discount: itemDiscount,
+        voucherDiscount: item.voucherDiscount,
         notes: item.notes,
         modifiers: receiptMods,
       ));

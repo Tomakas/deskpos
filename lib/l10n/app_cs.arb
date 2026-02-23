@@ -112,6 +112,7 @@
 
   "roleHelper": "Pomocník",
   "roleOperator": "Obsluha",
+  "roleManager": "Manažer",
   "roleAdmin": "Administrátor",
 
   "paymentTypeCash": "Hotovost",
@@ -418,6 +419,8 @@
   },
 
   "billDetailDiscount": "Sleva",
+  "billDetailRemoveDiscount": "Zrušit slevu",
+  "billDetailRemoveDiscountConfirm": "Odebrat slevu z tohoto účtu?",
   "billStatusRefunded": "Refundovaný",
   "refundTitle": "Refund",
   "refundConfirmFull": "Opravdu chcete refundovat celý účet?",
@@ -660,6 +663,7 @@
 
   "receiptSubtotal": "Mezisoučet",
   "receiptDiscount": "Sleva",
+  "receiptVoucherDiscount": "Voucher",
   "receiptTotal": "Celkem",
   "receiptRounding": "Zaokrouhlení",
   "receiptTaxTitle": "Rekapitulace DPH",
@@ -894,6 +898,8 @@
   "voucherRedeemedAt": "Uplatněno",
   "voucherIdLabel": "ID",
   "billDetailVoucher": "Voucher",
+  "billDetailRemoveVoucher": "Zrušit voucher",
+  "billDetailRemoveVoucherConfirm": "Odebrat použitý voucher z tohoto účtu?",
 
   "wizardLanguage": "Jazyk",
   "wizardCurrency": "Výchozí měna",
@@ -1198,5 +1204,7 @@
   "statsSalesLoyaltyDiscount": "Věrnostní sleva",
   "statsSalesVoucherDiscount": "Voucherová sleva",
   "statsSalesRounding": "Zaokrouhlení",
-  "statsSalesFinalTotal": "Celkem (účtenky)"
+  "statsSalesFinalTotal": "Celkem (účtenky)",
+
+  "sellEnterQuantity": "Zadejte množství"
 }

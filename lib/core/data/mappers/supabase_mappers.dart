@@ -378,6 +378,7 @@ Map<String, dynamic> orderItemToSupabaseJson(OrderItemModel m) => {
       'unit': m.unit.name,
       'discount': m.discount,
       'discount_type': m.discountType?.name,
+      'voucher_discount': m.voucherDiscount,
       'notes': m.notes,
       'status': m.status.name,
       'prep_started_at': toIso8601Utc(m.prepStartedAt),

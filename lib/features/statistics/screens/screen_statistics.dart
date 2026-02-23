@@ -52,6 +52,7 @@ class _SalesRow {
     required this.unitPrice,
     required this.total,
     required this.discount,
+    this.voucherDiscount = 0,
     required this.taxRate,
     required this.categoryName,
   });
@@ -59,8 +60,9 @@ class _SalesRow {
   final String itemName;
   final double qty;
   final int unitPrice; // effective per-unit price (base + modifiers − discount) / qty
-  final int total;     // itemSubtotal − itemDiscount (negative for storno)
+  final int total;     // itemSubtotal − itemDiscount − voucherDiscount (negative for storno)
   final int discount;  // item-level discount amount in cents (sum for aggregated rows)
+  final int voucherDiscount; // voucher discount attributed to this item
   final int taxRate;   // saleTaxRateAtt (e.g. 2100 = 21%)
   final String categoryName;
 }
@@ -388,11 +390,12 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
         }
       }
 
-      final itemTotal = (itemSubtotal - itemDiscount) * sign;
+      final voucherDisc = item.voucherDiscount;
+      final itemTotal = (itemSubtotal - itemDiscount - voucherDisc) * sign;
       final qty = item.quantity * sign;
       // Effective per-unit price (always positive — for display)
       final effectiveUnitPrice = item.quantity > 0
-          ? ((itemSubtotal - itemDiscount) / item.quantity).round()
+          ? ((itemSubtotal - itemDiscount - voucherDisc) / item.quantity).round()
           : 0;
 
       final category = itemCategoryMap[item.itemId] ?? '';
@@ -409,6 +412,7 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
           unitPrice: effectiveUnitPrice,
           total: existing.total + itemTotal,
           discount: existing.discount + itemDiscount,
+          voucherDiscount: existing.voucherDiscount + voucherDisc,
           taxRate: item.saleTaxRateAtt,
           categoryName: category,
         );
@@ -420,6 +424,7 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
           unitPrice: effectiveUnitPrice,
           total: itemTotal,
           discount: itemDiscount,
+          voucherDiscount: voucherDisc,
           taxRate: item.saleTaxRateAtt,
           categoryName: category,
         );
@@ -444,11 +449,17 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
       totalRounding += bill.roundingAmount;
     }
 
+    // Per-item voucher discounts are already embedded in item totals.
+    // bill.voucherDiscountAmount is only set for gift/deposit vouchers (bill-level).
+    // For discount vouchers, it's 0 (discount is in item.voucherDiscount).
+    final totalPerItemVoucher = items.fold<int>(0, (s, i) => s + i.voucherDiscount);
+    final unattributedVoucher = totalVoucher + totalPerItemVoucher;
+
     setState(() {
       _salesRows = map.values.toList();
       _salesTotalBillDiscount = totalBillDiscount;
       _salesTotalLoyaltyDiscount = totalLoyalty;
-      _salesTotalVoucherDiscount = totalVoucher;
+      _salesTotalVoucherDiscount = unattributedVoucher;
       _salesTotalRounding = totalRounding;
     });
   }

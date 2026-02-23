@@ -131,6 +131,14 @@ class ReceiptPdfBuilder {
                     style: smallStyle,
                   ),
                 ),
+              if (item.voucherDiscount > 0)
+                pw.Padding(
+                  padding: const pw.EdgeInsets.only(left: 12),
+                  child: pw.Text(
+                    '${labels.voucherDiscount}: -${_fmtMoney(item.voucherDiscount)}',
+                    style: smallStyle,
+                  ),
+                ),
               if (item.notes != null && item.notes!.isNotEmpty)
                 pw.Padding(
                   padding: const pw.EdgeInsets.only(left: 12),

@@ -126,6 +126,7 @@ class _UsersTabState extends ConsumerState<UsersTab> {
     return switch (role.name) {
       RoleName.helper => l.roleHelper,
       RoleName.operator => l.roleOperator,
+      RoleName.manager => l.roleManager,
       RoleName.admin => l.roleAdmin,
     };
   }
@@ -317,6 +318,7 @@ class _UserEditDialogState extends State<_UserEditDialog> {
                   final label = switch (r.name) {
                     RoleName.helper => l.roleHelper,
                     RoleName.operator => l.roleOperator,
+                    RoleName.manager => l.roleManager,
                     RoleName.admin => l.roleAdmin,
                   };
                   return DropdownMenuItem(value: r.id, child: Text(label));

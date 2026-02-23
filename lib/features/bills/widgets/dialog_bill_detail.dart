@@ -7,11 +7,14 @@ import '../../../core/data/enums/discount_type.dart';
 import '../../../core/data/enums/display_device_type.dart';
 import '../../../core/data/enums/prep_status.dart';
 import '../../../core/data/enums/unit_type.dart';
+import '../../../core/data/enums/voucher_discount_scope.dart';
 import '../../../core/data/enums/voucher_type.dart';
+import '../../../core/data/utils/voucher_discount_calculator.dart';
 import '../../../core/data/models/bill_model.dart';
 import '../../../core/data/models/customer_display_content.dart';
 import '../../../core/data/models/customer_model.dart';
 import '../../../core/data/models/order_item_model.dart';
+import '../../../core/data/models/order_item_modifier_model.dart';
 import '../../../core/data/models/order_model.dart';
 import '../../../core/data/models/table_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
@@ -458,38 +461,49 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
 
         if (allItems.isEmpty) return const SizedBox.shrink();
 
-        // Group by itemName + salePriceAtt
+        // Group by itemName + salePriceAtt + hasVoucherDiscount
+        // When voucher covers only part of an item's qty, split into two entries.
         final grouped = <String, _SummaryItem>{};
-        for (final item in allItems) {
-          final key = '${item.itemName}|${item.salePriceAtt}';
-          final itemSubtotal = (item.salePriceAtt * item.quantity).round();
-          int itemDiscount = 0;
-          if (item.discount > 0) {
-            if (item.discountType == DiscountType.percent) {
-              itemDiscount = (itemSubtotal * item.discount / 10000).round();
-            } else {
-              itemDiscount = item.discount;
-            }
-          }
-          final itemTotal = itemSubtotal - itemDiscount;
+
+        void addToGroup(String key, String name, int unitPrice, double qty, int total, int totalBeforeVoucher, UnitType unit) {
           final existing = grouped[key];
           if (existing != null) {
             grouped[key] = _SummaryItem(
-              name: item.itemName,
-              unitPrice: item.salePriceAtt,
-              quantity: existing.quantity + item.quantity,
-              totalGross: existing.totalGross + itemTotal,
-              unit: item.unit,
+              name: name,
+              unitPrice: unitPrice,
+              quantity: existing.quantity + qty,
+              totalGross: existing.totalGross + total,
+              totalBeforeVoucher: existing.totalBeforeVoucher + totalBeforeVoucher,
+              unit: unit,
             );
           } else {
             grouped[key] = _SummaryItem(
-              name: item.itemName,
-              unitPrice: item.salePriceAtt,
-              quantity: item.quantity,
-              totalGross: itemTotal,
-              unit: item.unit,
+              name: name,
+              unitPrice: unitPrice,
+              quantity: qty,
+              totalGross: total,
+              totalBeforeVoucher: totalBeforeVoucher,
+              unit: unit,
             );
           }
+        }
+
+        for (final item in allItems) {
+          final fullSubtotal = (item.salePriceAtt * item.quantity).round();
+          int fullDiscount = 0;
+          if (item.discount > 0) {
+            if (item.discountType == DiscountType.percent) {
+              fullDiscount = (fullSubtotal * item.discount / 10000).round();
+            } else {
+              fullDiscount = item.discount;
+            }
+          }
+          final itemTotal = fullSubtotal - fullDiscount - item.voucherDiscount;
+          final totalBeforeVoucher = fullSubtotal - fullDiscount;
+          final hasVoucher = item.voucherDiscount > 0;
+          final key = '${item.itemName}|${item.salePriceAtt}|$hasVoucher';
+          addToGroup(key, item.itemName, item.salePriceAtt, item.quantity,
+              itemTotal, totalBeforeVoucher, item.unit);
         }
 
         final summaryItems = grouped.values.toList()
@@ -519,11 +533,29 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
                   Expanded(child: Text(item.name, style: Theme.of(context).textTheme.bodyMedium)),
                   SizedBox(
                     width: 100,
-                    child: Text(
-                      ref.money(item.totalGross),
-                      textAlign: TextAlign.right,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
+                    child: item.totalGross != item.totalBeforeVoucher
+                        ? Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Text(
+                                ref.moneyValue(item.totalBeforeVoucher),
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  decoration: TextDecoration.lineThrough,
+                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                ref.money(item.totalGross),
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                            ],
+                          )
+                        : Text(
+                            ref.money(item.totalGross),
+                            textAlign: TextAlign.right,
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
                   ),
                 ],
               ),
@@ -572,8 +604,12 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
             const SizedBox(height: 4),
             Expanded(
               child: _SideButton(
-                label: l.billDetailDiscount,
-                onPressed: isOpened && !_isProcessing ? () => _applyBillDiscount(context, ref, bill) : null,
+                label: bill.discountAmount > 0 ? l.billDetailRemoveDiscount : l.billDetailDiscount,
+                onPressed: isOpened && !_isProcessing
+                    ? () => bill.discountAmount > 0
+                        ? _removeBillDiscount(context, ref, bill)
+                        : _applyBillDiscount(context, ref, bill)
+                    : null,
               ),
             ),
             const SizedBox(height: 4),
@@ -588,8 +624,12 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
             const SizedBox(height: 4),
             Expanded(
               child: _SideButton(
-                label: l.billDetailVoucher,
-                onPressed: isOpened && !_isProcessing ? () => _applyVoucher(context, ref, bill) : null,
+                label: bill.voucherId != null ? l.billDetailRemoveVoucher : l.billDetailVoucher,
+                onPressed: isOpened && !_isProcessing
+                    ? () => bill.voucherId != null
+                        ? _removeVoucher(context, ref, bill)
+                        : _applyVoucher(context, ref, bill)
+                    : null,
               ),
             ),
           ],
@@ -793,10 +833,31 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
       if (confirmed != true) return;
       if (!mounted) return;
 
+      // Reverse voucher redemption before cancelling (items still active)
+      if (bill.voucherId != null) {
+        final voucherRepo = ref.read(voucherRepositoryProvider);
+        final voucher = await voucherRepo.getById(bill.voucherId!, includeDeleted: true);
+        if (voucher != null) {
+          int usesToReturn = 1;
+          if (voucher.type == VoucherType.discount) {
+            // Count uses from items that have voucherDiscount > 0
+            final orderRepo = ref.read(orderRepositoryProvider);
+            final activeItems = await orderRepo.getOrderItemsByBill(bill.id);
+            usesToReturn = activeItems
+                .where((i) => i.voucherDiscount > 0 &&
+                    i.status != PrepStatus.cancelled && i.status != PrepStatus.voided)
+                .fold<double>(0, (s, i) => s + i.quantity)
+                .ceil();
+          }
+          if (usesToReturn > 0) {
+            await voucherRepo.unredeem(voucher.id, usesToReturn: usesToReturn);
+          }
+        }
+      }
+
       final repo = ref.read(billRepositoryProvider);
       final result = await repo.cancelBill(bill.id, userId: ref.read(activeUserProvider)?.id);
       if (result is Success) {
-        await repo.updateTotals(bill.id);
         if (context.mounted) Navigator.pop(context);
       }
     } finally {
@@ -822,6 +883,41 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
         bill.id,
         result.$1,
         result.$2,
+      );
+    } finally {
+      if (mounted) setState(() => _isProcessing = false);
+    }
+  }
+
+  Future<void> _removeBillDiscount(BuildContext context, WidgetRef ref, BillModel bill) async {
+    if (_isProcessing) return;
+    final l = context.l10n;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => PosDialogShell(
+        title: l.billDetailRemoveDiscount,
+        maxWidth: 400,
+        children: [
+          Text(l.billDetailRemoveDiscountConfirm),
+          const SizedBox(height: 16),
+          PosDialogActions(
+            actions: [
+              OutlinedButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.no)),
+              FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.yes)),
+            ],
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _isProcessing = true);
+    try {
+      await ref.read(billRepositoryProvider).updateDiscount(
+        bill.id,
+        DiscountType.absolute,
+        0,
       );
     } finally {
       if (mounted) setState(() => _isProcessing = false);
@@ -909,16 +1005,55 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
       final voucher = (result as Success).value;
       // Calculate discount amount based on voucher type
       int discountAmount;
+      int usesConsumed = 1;
       if (voucher.type == VoucherType.gift || voucher.type == VoucherType.deposit) {
         // Cap at bill total
         discountAmount = voucher.value.clamp(0, bill.totalGross);
       } else {
-        // Discount voucher
-        if (voucher.discountType == DiscountType.percent) {
-          discountAmount = (bill.subtotalGross * voucher.value / 10000).round();
-        } else {
-          discountAmount = voucher.value.clamp(0, bill.subtotalGross);
+        // Discount voucher — scope-aware computation + physical item splitting
+        final orderRepo = ref.read(orderRepositoryProvider);
+        final modifierRepo = ref.read(orderItemModifierRepositoryProvider);
+        final activeItems = await orderRepo.getOrderItemsByBill(bill.id);
+        final filtered = activeItems
+            .where((i) => i.status != PrepStatus.cancelled && i.status != PrepStatus.voided)
+            .toList();
+        final itemIds = filtered.map((i) => i.id).toList();
+        final allMods = await modifierRepo.getByOrderItemIds(itemIds);
+        final modsByItem = <String, List<OrderItemModifierModel>>{};
+        for (final mod in allMods) {
+          modsByItem.putIfAbsent(mod.orderItemId, () => []).add(mod);
         }
+        // Build itemId→categoryId map for category scope
+        Map<String, String>? itemCategoryMap;
+        if (voucher.discountScope == VoucherDiscountScope.category && voucher.categoryId != null) {
+          final itemRepo = ref.read(itemRepositoryProvider);
+          itemCategoryMap = {};
+          final catalogIds = filtered.map((i) => i.itemId).toSet();
+          for (final catId in catalogIds) {
+            final catalogItem = await itemRepo.getById(catId, includeDeleted: true);
+            if (catalogItem?.categoryId != null) {
+              itemCategoryMap[catId] = catalogItem!.categoryId!;
+            }
+          }
+        }
+        final vResult = VoucherDiscountCalculator.compute(
+          voucher: voucher,
+          activeItems: filtered,
+          modsByItem: modsByItem,
+          subtotalGross: bill.subtotalGross,
+          itemCategoryMap: itemCategoryMap,
+        );
+        // Physically split items and apply per-item voucher discounts
+        for (final attr in vResult.attributions) {
+          await orderRepo.applyVoucherToOrderItem(
+            orderItemId: attr.orderItemId,
+            coveredQty: attr.coveredQty,
+            voucherDiscountAmount: attr.discountAmount,
+          );
+        }
+        // Discount is embedded in items; bill-level voucherDiscountAmount = 0
+        discountAmount = 0;
+        usesConsumed = vResult.attributions.fold<double>(0, (s, a) => s + a.coveredQty).ceil();
       }
 
       final billRepo = ref.read(billRepositoryProvider);
@@ -927,7 +1062,66 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
         voucherId: voucher.id,
         voucherDiscountAmount: discountAmount,
       );
-      await voucherRepo.redeem(voucher.id, bill.id);
+      await voucherRepo.redeem(voucher.id, bill.id, usesConsumed: usesConsumed);
+    } finally {
+      if (mounted) setState(() => _isProcessing = false);
+    }
+  }
+
+  Future<void> _removeVoucher(BuildContext context, WidgetRef ref, BillModel bill) async {
+    if (_isProcessing || bill.voucherId == null) return;
+    final l = context.l10n;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => PosDialogShell(
+        title: l.billDetailRemoveVoucher,
+        maxWidth: 400,
+        children: [
+          Text(l.billDetailRemoveVoucherConfirm),
+          const SizedBox(height: 16),
+          PosDialogActions(
+            actions: [
+              OutlinedButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.no)),
+              FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.yes)),
+            ],
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _isProcessing = true);
+    try {
+      final voucherRepo = ref.read(voucherRepositoryProvider);
+      final voucher = await voucherRepo.getById(bill.voucherId!, includeDeleted: true);
+
+      if (voucher != null) {
+        // Count uses to return
+        int usesToReturn = 1;
+        if (voucher.type == VoucherType.discount) {
+          final orderRepo = ref.read(orderRepositoryProvider);
+          final activeItems = await orderRepo.getOrderItemsByBill(bill.id);
+          usesToReturn = activeItems
+              .where((i) => i.voucherDiscount > 0 &&
+                  i.status != PrepStatus.cancelled && i.status != PrepStatus.voided)
+              .fold<double>(0, (s, i) => s + i.quantity)
+              .ceil();
+        }
+
+        // Unredeem voucher
+        if (usesToReturn > 0) {
+          await voucherRepo.unredeem(voucher.id, usesToReturn: usesToReturn);
+        }
+      }
+
+      // Clear per-item voucher discounts
+      final orderRepo = ref.read(orderRepositoryProvider);
+      await orderRepo.clearVoucherDiscounts(bill.id);
+
+      // Clear bill-level voucher fields + recalculate totals
+      final billRepo = ref.read(billRepositoryProvider);
+      await billRepo.removeVoucher(bill.id);
     } finally {
       if (mounted) setState(() => _isProcessing = false);
     }
@@ -1318,11 +1512,15 @@ class _OrderSection extends ConsumerWidget {
                                 width: 100,
                                 child: () {
                                   final itemSubtotal = (item.salePriceAtt * item.quantity).round() + modTotal;
+                                  int itemDiscount = 0;
                                   if (item.discount > 0) {
-                                    final itemDiscount = item.discountType == DiscountType.percent
+                                    itemDiscount = item.discountType == DiscountType.percent
                                         ? (itemSubtotal * item.discount / 10000).round()
                                         : item.discount;
-                                    final discountedPrice = itemSubtotal - itemDiscount;
+                                  }
+                                  final totalDiscount = itemDiscount + item.voucherDiscount;
+                                  if (totalDiscount > 0) {
+                                    final discountedPrice = itemSubtotal - totalDiscount;
                                     return Row(
                                       mainAxisAlignment: MainAxisAlignment.end,
                                       children: [
@@ -1654,11 +1852,13 @@ class _SummaryItem {
     required this.unitPrice,
     required this.quantity,
     required this.totalGross,
+    int? totalBeforeVoucher,
     required this.unit,
-  });
+  }) : totalBeforeVoucher = totalBeforeVoucher ?? totalGross;
   final String name;
   final int unitPrice;
   final double quantity;
   final int totalGross;
+  final int totalBeforeVoucher;
   final UnitType unit;
 }

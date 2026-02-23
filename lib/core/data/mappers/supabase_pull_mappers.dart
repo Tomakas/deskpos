@@ -362,6 +362,7 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
         discountType: Value(json['discount_type'] != null
             ? _enumFromName(DiscountType.values, json['discount_type'])
             : null),
+        voucherDiscount: Value(json['voucher_discount'] as int? ?? 0),
         notes: Value(json['notes'] as String?),
         status: Value(_enumFromName(PrepStatus.values, json['status'])),
         prepStartedAt: Value(_parseDateTime(json['prep_started_at'])),

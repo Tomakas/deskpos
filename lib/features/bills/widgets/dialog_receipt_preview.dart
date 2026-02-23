@@ -26,6 +26,7 @@ Future<void> showReceiptPrintDialog(
   final labels = ReceiptLabels(
     subtotal: l.receiptSubtotal,
     discount: l.receiptDiscount,
+    voucherDiscount: l.receiptVoucherDiscount,
     total: l.receiptTotal,
     rounding: l.receiptRounding,
     taxTitle: l.receiptTaxTitle,

@@ -989,6 +989,195 @@ class OrderRepository {
     }
   }
 
+  /// Applies a voucher discount to a single order item, optionally splitting it.
+  ///
+  /// If [coveredQty] < item.quantity, the item is split:
+  ///  - The original item's quantity is reduced to the uncovered portion.
+  ///  - A new item is created for the covered portion with [voucherDiscountAmount].
+  ///  - Modifiers are duplicated for the new item.
+  ///
+  /// If [coveredQty] >= item.quantity, the voucher discount is applied directly.
+  Future<void> applyVoucherToOrderItem({
+    required String orderItemId,
+    required double coveredQty,
+    required int voucherDiscountAmount,
+  }) async {
+    await _db.transaction(() async {
+      final now = DateTime.now();
+      final itemEntity = await (_db.select(_db.orderItems)
+            ..where((t) => t.id.equals(orderItemId)))
+          .getSingle();
+
+      final uncoveredQty = itemEntity.quantity - coveredQty;
+
+      if (uncoveredQty > 0) {
+        // SPLIT: original becomes the uncovered portion (no voucher discount).
+        // If it had an absolute manual discount, proportion it.
+        if (itemEntity.discount > 0 && itemEntity.discountType == DiscountType.absolute) {
+          final uncoveredDisc = (itemEntity.discount * uncoveredQty / itemEntity.quantity).round();
+          await (_db.update(_db.orderItems)..where((t) => t.id.equals(orderItemId))).write(
+            OrderItemsCompanion(
+              quantity: Value(uncoveredQty),
+              discount: Value(uncoveredDisc),
+              updatedAt: Value(now),
+            ),
+          );
+        } else {
+          // Percent discount stays the same rate, or no discount
+          await (_db.update(_db.orderItems)..where((t) => t.id.equals(orderItemId))).write(
+            OrderItemsCompanion(
+              quantity: Value(uncoveredQty),
+              updatedAt: Value(now),
+            ),
+          );
+        }
+
+        // Enqueue sync for updated original
+        final updatedEntity = await (_db.select(_db.orderItems)
+              ..where((t) => t.id.equals(orderItemId)))
+            .getSingle();
+        await _enqueueOrderItem('update', orderItemFromEntity(updatedEntity));
+
+        // CREATE: covered portion with voucher discount
+        final newItemId = const Uuid().v7();
+        // Proportioned manual discount for the covered portion
+        int coveredManualDisc = 0;
+        if (itemEntity.discount > 0) {
+          if (itemEntity.discountType == DiscountType.absolute) {
+            coveredManualDisc = itemEntity.discount -
+                (itemEntity.discount * uncoveredQty / itemEntity.quantity).round();
+          }
+          // Percent discount stays on the item as-is (rate doesn't change)
+        }
+
+        await _db.into(_db.orderItems).insert(OrderItemsCompanion.insert(
+          id: newItemId,
+          companyId: itemEntity.companyId,
+          orderId: itemEntity.orderId,
+          itemId: itemEntity.itemId,
+          itemName: itemEntity.itemName,
+          quantity: coveredQty,
+          salePriceAtt: itemEntity.salePriceAtt,
+          saleTaxRateAtt: itemEntity.saleTaxRateAtt,
+          saleTaxAmount: itemEntity.saleTaxAmount,
+          unit: Value(itemEntity.unit),
+          discount: Value(coveredManualDisc),
+          discountType: Value(coveredManualDisc > 0 ? DiscountType.absolute : itemEntity.discountType),
+          voucherDiscount: Value(voucherDiscountAmount),
+          notes: Value(itemEntity.notes),
+          status: itemEntity.status,
+        ));
+
+        // Enqueue sync for new item
+        final newEntity = await (_db.select(_db.orderItems)
+              ..where((t) => t.id.equals(newItemId)))
+            .getSingle();
+        await _enqueueOrderItem('insert', orderItemFromEntity(newEntity));
+
+        // Copy modifiers to the new item
+        final mods = await (_db.select(_db.orderItemModifiers)
+              ..where((t) => t.orderItemId.equals(orderItemId) & t.deletedAt.isNull()))
+            .get();
+        for (final mod in mods) {
+          final newModId = const Uuid().v7();
+          await _db.into(_db.orderItemModifiers).insert(
+            OrderItemModifiersCompanion.insert(
+              id: newModId,
+              companyId: itemEntity.companyId,
+              orderItemId: newItemId,
+              modifierItemId: mod.modifierItemId,
+              modifierGroupId: mod.modifierGroupId,
+              modifierItemName: Value(mod.modifierItemName),
+              quantity: Value(mod.quantity),
+              unitPrice: mod.unitPrice,
+              taxRate: mod.taxRate,
+              taxAmount: mod.taxAmount,
+            ),
+          );
+          if (orderItemModifierRepo != null) {
+            final modModel = OrderItemModifierModel(
+              id: newModId,
+              companyId: itemEntity.companyId,
+              orderItemId: newItemId,
+              modifierItemId: mod.modifierItemId,
+              modifierGroupId: mod.modifierGroupId,
+              modifierItemName: mod.modifierItemName,
+              quantity: mod.quantity,
+              unitPrice: mod.unitPrice,
+              taxRate: mod.taxRate,
+              taxAmount: mod.taxAmount,
+              createdAt: now,
+              updatedAt: now,
+            );
+            await syncQueueRepo?.enqueue(
+              companyId: itemEntity.companyId,
+              entityType: 'order_item_modifiers',
+              entityId: newModId,
+              operation: 'insert',
+              payload: jsonEncode(orderItemModifierToSupabaseJson(modModel)),
+            );
+          }
+        }
+      } else {
+        // FULL COVERAGE: apply voucher discount to existing item
+        await (_db.update(_db.orderItems)..where((t) => t.id.equals(orderItemId))).write(
+          OrderItemsCompanion(
+            voucherDiscount: Value(voucherDiscountAmount),
+            updatedAt: Value(now),
+          ),
+        );
+
+        final updatedEntity = await (_db.select(_db.orderItems)
+              ..where((t) => t.id.equals(orderItemId)))
+            .getSingle();
+        await _enqueueOrderItem('update', orderItemFromEntity(updatedEntity));
+      }
+
+      // Recalculate order totals
+      await _recalculateOrderTotals(itemEntity.orderId);
+    });
+  }
+
+  /// Zeros out [voucherDiscount] on all items of a bill and enqueues sync.
+  ///
+  /// Called when a voucher is removed from an open bill. Items that were
+  /// previously split remain as separate rows (no merging).
+  Future<void> clearVoucherDiscounts(String billId) async {
+    final orders = await (_db.select(_db.orders)
+          ..where((t) => t.billId.equals(billId) & t.deletedAt.isNull()))
+        .get();
+    if (orders.isEmpty) return;
+    final orderIds = orders.map((o) => o.id).toList();
+
+    await _db.transaction(() async {
+      final now = DateTime.now();
+      final items = await (_db.select(_db.orderItems)
+            ..where((t) =>
+                t.orderId.isIn(orderIds) &
+                t.deletedAt.isNull() &
+                t.voucherDiscount.isBiggerThanValue(0)))
+          .get();
+
+      for (final item in items) {
+        await (_db.update(_db.orderItems)..where((t) => t.id.equals(item.id)))
+            .write(OrderItemsCompanion(
+          voucherDiscount: const Value(0),
+          updatedAt: Value(now),
+        ));
+        final updated = await (_db.select(_db.orderItems)
+              ..where((t) => t.id.equals(item.id)))
+            .getSingle();
+        await _enqueueOrderItem('update', orderItemFromEntity(updated));
+      }
+
+      // Recalculate order totals for affected orders
+      final affectedOrderIds = items.map((i) => i.orderId).toSet();
+      for (final orderId in affectedOrderIds) {
+        await _recalculateOrderTotals(orderId);
+      }
+    });
+  }
+
   /// Recalculates order totals excluding voided/cancelled items.
   Future<void> _recalculateOrderTotals(String orderId) async {
     final items = await (_db.select(_db.orderItems)

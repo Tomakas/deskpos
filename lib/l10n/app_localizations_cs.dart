@@ -277,6 +277,9 @@ class AppLocalizationsCs extends AppLocalizations {
   String get roleOperator => 'Obsluha';
 
   @override
+  String get roleManager => 'Manažer';
+
+  @override
   String get roleAdmin => 'Administrátor';
 
   @override
@@ -1016,6 +1019,12 @@ class AppLocalizationsCs extends AppLocalizations {
   String get billDetailDiscount => 'Sleva';
 
   @override
+  String get billDetailRemoveDiscount => 'Zrušit slevu';
+
+  @override
+  String get billDetailRemoveDiscountConfirm => 'Odebrat slevu z tohoto účtu?';
+
+  @override
   String get billStatusRefunded => 'Refundovaný';
 
   @override
@@ -1639,6 +1648,9 @@ class AppLocalizationsCs extends AppLocalizations {
   String get receiptDiscount => 'Sleva';
 
   @override
+  String get receiptVoucherDiscount => 'Voucher';
+
+  @override
   String get receiptTotal => 'Celkem';
 
   @override
@@ -2172,6 +2184,13 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get billDetailVoucher => 'Voucher';
+
+  @override
+  String get billDetailRemoveVoucher => 'Zrušit voucher';
+
+  @override
+  String get billDetailRemoveVoucherConfirm =>
+      'Odebrat použitý voucher z tohoto účtu?';
 
   @override
   String get wizardLanguage => 'Jazyk';
@@ -2942,4 +2961,7 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get statsSalesFinalTotal => 'Celkem (účtenky)';
+
+  @override
+  String get sellEnterQuantity => 'Zadejte množství';
 }

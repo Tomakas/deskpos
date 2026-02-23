@@ -433,6 +433,7 @@ OrderItemModel orderItemFromEntity(OrderItem e) => OrderItemModel(
       unit: e.unit,
       discount: e.discount,
       discountType: e.discountType,
+      voucherDiscount: e.voucherDiscount,
       notes: e.notes,
       status: e.status,
       prepStartedAt: e.prepStartedAt,

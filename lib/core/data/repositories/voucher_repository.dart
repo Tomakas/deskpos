@@ -114,8 +114,9 @@ class VoucherRepository
     return Success(voucher);
   }
 
-  /// Mark voucher as redeemed
-  Future<Result<VoucherModel>> redeem(String voucherId, String billId) async {
+  /// Mark voucher as redeemed.
+  /// [usesConsumed] is the number of item units covered by this redemption.
+  Future<Result<VoucherModel>> redeem(String voucherId, String billId, {int usesConsumed = 1}) async {
     try {
       return await db.transaction(() async {
         final now = DateTime.now();
@@ -124,7 +125,7 @@ class VoucherRepository
             .getSingle();
         final current = voucherFromEntity(entity);
 
-        final newUsedCount = current.usedCount + 1;
+        final newUsedCount = current.usedCount + usesConsumed;
         final newStatus = newUsedCount >= current.maxUses
             ? VoucherStatus.redeemed
             : current.status;
@@ -142,6 +143,37 @@ class VoucherRepository
     } catch (e, s) {
       AppLogger.error('Failed to redeem voucher: $e', error: e, stackTrace: s, tag: 'VOUCHER');
       return Failure('Failed to redeem voucher: $e');
+    }
+  }
+
+  /// Reverse a voucher redemption (e.g. on bill cancellation).
+  /// [usesToReturn] is the number of item units to return.
+  Future<Result<VoucherModel>> unredeem(String voucherId, {int usesToReturn = 1}) async {
+    try {
+      return await db.transaction(() async {
+        final entity = await (db.select(db.vouchers)
+              ..where((t) => t.id.equals(voucherId)))
+            .getSingle();
+        final current = voucherFromEntity(entity);
+
+        final newUsedCount = (current.usedCount - usesToReturn).clamp(0, current.maxUses);
+        final newStatus = newUsedCount < current.maxUses
+            ? VoucherStatus.active
+            : current.status;
+
+        final updated = current.copyWith(
+          usedCount: newUsedCount,
+          status: newStatus,
+          redeemedAt: newUsedCount == 0 ? null : current.redeemedAt,
+          redeemedOnBillId: newUsedCount == 0 ? null : current.redeemedOnBillId,
+          updatedAt: DateTime.now(),
+        );
+
+        return update(updated);
+      });
+    } catch (e, s) {
+      AppLogger.error('Failed to unredeem voucher: $e', error: e, stackTrace: s, tag: 'VOUCHER');
+      return Failure('Failed to unredeem voucher: $e');
     }
   }
 

@@ -29,6 +29,7 @@ mixin _$OrderItemModel {
   UnitType get unit => throw _privateConstructorUsedError;
   int get discount => throw _privateConstructorUsedError;
   DiscountType? get discountType => throw _privateConstructorUsedError;
+  int get voucherDiscount => throw _privateConstructorUsedError;
   String? get notes => throw _privateConstructorUsedError;
   PrepStatus get status => throw _privateConstructorUsedError;
   DateTime? get prepStartedAt => throw _privateConstructorUsedError;
@@ -65,6 +66,7 @@ abstract class $OrderItemModelCopyWith<$Res> {
     UnitType unit,
     int discount,
     DiscountType? discountType,
+    int voucherDiscount,
     String? notes,
     PrepStatus status,
     DateTime? prepStartedAt,
@@ -103,6 +105,7 @@ class _$OrderItemModelCopyWithImpl<$Res, $Val extends OrderItemModel>
     Object? unit = null,
     Object? discount = null,
     Object? discountType = freezed,
+    Object? voucherDiscount = null,
     Object? notes = freezed,
     Object? status = null,
     Object? prepStartedAt = freezed,
@@ -162,6 +165,10 @@ class _$OrderItemModelCopyWithImpl<$Res, $Val extends OrderItemModel>
                 ? _value.discountType
                 : discountType // ignore: cast_nullable_to_non_nullable
                       as DiscountType?,
+            voucherDiscount: null == voucherDiscount
+                ? _value.voucherDiscount
+                : voucherDiscount // ignore: cast_nullable_to_non_nullable
+                      as int,
             notes: freezed == notes
                 ? _value.notes
                 : notes // ignore: cast_nullable_to_non_nullable
@@ -222,6 +229,7 @@ abstract class _$$OrderItemModelImplCopyWith<$Res>
     UnitType unit,
     int discount,
     DiscountType? discountType,
+    int voucherDiscount,
     String? notes,
     PrepStatus status,
     DateTime? prepStartedAt,
@@ -259,6 +267,7 @@ class __$$OrderItemModelImplCopyWithImpl<$Res>
     Object? unit = null,
     Object? discount = null,
     Object? discountType = freezed,
+    Object? voucherDiscount = null,
     Object? notes = freezed,
     Object? status = null,
     Object? prepStartedAt = freezed,
@@ -318,6 +327,10 @@ class __$$OrderItemModelImplCopyWithImpl<$Res>
             ? _value.discountType
             : discountType // ignore: cast_nullable_to_non_nullable
                   as DiscountType?,
+        voucherDiscount: null == voucherDiscount
+            ? _value.voucherDiscount
+            : voucherDiscount // ignore: cast_nullable_to_non_nullable
+                  as int,
         notes: freezed == notes
             ? _value.notes
             : notes // ignore: cast_nullable_to_non_nullable
@@ -371,6 +384,7 @@ class _$OrderItemModelImpl implements _OrderItemModel {
     this.unit = UnitType.ks,
     this.discount = 0,
     this.discountType,
+    this.voucherDiscount = 0,
     this.notes,
     required this.status,
     this.prepStartedAt,
@@ -408,6 +422,9 @@ class _$OrderItemModelImpl implements _OrderItemModel {
   @override
   final DiscountType? discountType;
   @override
+  @JsonKey()
+  final int voucherDiscount;
+  @override
   final String? notes;
   @override
   final PrepStatus status;
@@ -426,7 +443,7 @@ class _$OrderItemModelImpl implements _OrderItemModel {
 
   @override
   String toString() {
-    return 'OrderItemModel(id: $id, companyId: $companyId, orderId: $orderId, itemId: $itemId, itemName: $itemName, quantity: $quantity, salePriceAtt: $salePriceAtt, saleTaxRateAtt: $saleTaxRateAtt, saleTaxAmount: $saleTaxAmount, unit: $unit, discount: $discount, discountType: $discountType, notes: $notes, status: $status, prepStartedAt: $prepStartedAt, readyAt: $readyAt, deliveredAt: $deliveredAt, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+    return 'OrderItemModel(id: $id, companyId: $companyId, orderId: $orderId, itemId: $itemId, itemName: $itemName, quantity: $quantity, salePriceAtt: $salePriceAtt, saleTaxRateAtt: $saleTaxRateAtt, saleTaxAmount: $saleTaxAmount, unit: $unit, discount: $discount, discountType: $discountType, voucherDiscount: $voucherDiscount, notes: $notes, status: $status, prepStartedAt: $prepStartedAt, readyAt: $readyAt, deliveredAt: $deliveredAt, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
   }
 
   @override
@@ -454,6 +471,8 @@ class _$OrderItemModelImpl implements _OrderItemModel {
                 other.discount == discount) &&
             (identical(other.discountType, discountType) ||
                 other.discountType == discountType) &&
+            (identical(other.voucherDiscount, voucherDiscount) ||
+                other.voucherDiscount == voucherDiscount) &&
             (identical(other.notes, notes) || other.notes == notes) &&
             (identical(other.status, status) || other.status == status) &&
             (identical(other.prepStartedAt, prepStartedAt) ||
@@ -484,6 +503,7 @@ class _$OrderItemModelImpl implements _OrderItemModel {
     unit,
     discount,
     discountType,
+    voucherDiscount,
     notes,
     status,
     prepStartedAt,
@@ -520,6 +540,7 @@ abstract class _OrderItemModel implements OrderItemModel {
     final UnitType unit,
     final int discount,
     final DiscountType? discountType,
+    final int voucherDiscount,
     final String? notes,
     required final PrepStatus status,
     final DateTime? prepStartedAt,
@@ -554,6 +575,8 @@ abstract class _OrderItemModel implements OrderItemModel {
   int get discount;
   @override
   DiscountType? get discountType;
+  @override
+  int get voucherDiscount;
   @override
   String? get notes;
   @override

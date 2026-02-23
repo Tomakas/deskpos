@@ -72,9 +72,9 @@ Admin vytvoří firmu, nastaví uživatele, stoly a produkty. Více uživatelů 
 
 #### Milník 1.4 — Oprávnění (engine)
 
-- **Task1.10** Permission engine — 106 permissions v 17 skupinách, O(1) check přes in-memory Set
-- **Task1.11** Role šablony — helper (20), operator (62), manager (85), admin (106)
-- **Výsledek:** Permission engine a role šablony jsou připraveny. Admin má všech 106 oprávnění.
+- **Task1.10** Permission engine — 113 permissions v 17 skupinách, O(1) check přes in-memory Set
+- **Task1.11** Role šablony — helper (19), operator (66), manager (92), admin (113)
+- **Výsledek:** Permission engine a role šablony jsou připraveny. Admin má všech 113 oprávnění.
 
 #### Milník 1.5 — Hlavní obrazovka
 
@@ -1481,7 +1481,7 @@ Když server odmítne push (`LWW_CONFLICT`), outbox processor označí entry jak
 
 ### Globální reference data
 
-`roles` (4), `permissions` (106), `role_permissions`, `currencies` jsou **globální** (bez `company_id`):
+`roles` (4), `permissions` (113), `role_permissions`, `currencies` jsou **globální** (bez `company_id`):
 - V Etapě 1–2: seedovány lokálně při onboardingu
 - Od Etapy 3: pull ze Supabase (bez company_id filtru); nejsou v ALLOWED_TABLES Ingest EF — klient je nepushuje
 - Aktuální design předpokládá 1 firma = 1 Supabase projekt
@@ -1578,6 +1578,26 @@ Bill totaly se přepočítávají **po každé změně** (createOrder, cancelOrd
 7. `bill.total_gross = subtotal_gross - bill_discount - loyalty_discount_amount - voucher_discount_amount + rounding_amount`
 
 **Slevy (od Etapy 3.2):** 2 úrovně — položka (`order_items.discount` + `discount_type`) a účet (`bills.discount_amount` + `discount_type`). `DiscountType` enum: `absolute` (v haléřích) nebo `percent` (v setinách procenta, 10000 = 100%). UI: `DialogDiscount` s přepínačem Kč/%, numpadem a náhledem efektivní slevy. Slevy na úrovni objednávky (Order) neexistují.
+
+**Voucher slevy — scope-aware výpočet s per-item atribucí:**
+
+Utility `VoucherDiscountCalculator` (`lib/core/data/utils/voucher_discount_calculator.dart`) — stateless pure-computation třída (žádný DB přístup). Vstup: voucher, aktivní položky, modifikátory, subtotalGross, volitelně itemId→categoryId mapa. Výstup: `VoucherDiscountResult` s `totalDiscount` a `List<VoucherItemAttribution>` (orderItemId, coveredQty, discountAmount).
+
+Algoritmus:
+1. **Filtr dle scope:** `bill` → všechny položky, `product` → pouze item.itemId == voucher.itemId, `category` → pouze položky se shodnou categoryId
+2. **Effective unit price:** `(basePrice × qty + modifiers − itemDiscount) / qty` pro každou matchující položku
+3. **Třídění:** sestupně dle effective unit price (nejdražší první)
+4. **Alokace `maxUses`:** přidělení covered qty přes seřazené položky (každá jednotka = 1 use)
+5. **Výpočet slevy:** percent → `coveredValue × voucher.value / 10000` per item; absolute → `voucher.value` rozdělen proporcionálně
+6. **Cap:** celková sleva ≤ subtotalGross
+
+**Zobrazení atribuce:**
+- **Bill Detail (Summary view):** položky s částečným pokrytím se rozdělí na 2 řádky (se slevou × plná cena); slevené řádky zobrazují přeškrtnutou původní cenu
+- **Bill Detail (Order History view):** kombinace manuální slevy + voucher slevy v přeškrtnutí
+- **Účtenka (PDF):** řádek „Voucher: −X" pod dotčenou položkou (`ReceiptItemData.voucherDiscount`, `ReceiptLabels.voucherDiscount`)
+- **Statistiky (Sales tab):** voucher sleva atribuována k jednotlivým položkám v `_SalesRow.voucherDiscount`; bill-level `_salesTotalVoucherDiscount` zobrazuje pouze neatribuovaný zbytek (gift/deposit vouchery)
+
+**Redeem/unredeem:** `VoucherRepository.redeem()` přijímá `usesConsumed` (počet pokrytých jednotek, ne hardcoded 1). `VoucherRepository.unredeem()` vrací uses zpět (dekrementuje `usedCount`, nastaví `status = active` pokud `usedCount < maxUses`).
 
 ### Platební metody
 
@@ -1846,7 +1866,7 @@ sequenceDiagram
         end
     end
 
-    BR->>DB: UPDATE bills (status: cancelled, closed_at: now)
+    BR->>DB: UPDATE bills (status: cancelled, closed_at: now, all financial fields: 0)
     BR-->>UI: Success(bill)
 ```
 
@@ -1854,7 +1874,9 @@ sequenceDiagram
 - Lze stornovat pouze `opened` bill (ne `paid`)
 - Payment záznamy se neruší — zůstávají jako audit trail
 - V E3.2+: zaplacený bill → refund (ne cancel)
+- **Nulování finančních hodnot:** při stornu se vynulují `subtotalGross`, `subtotalNet`, `taxTotal`, `totalGross`, `discountAmount`, `discountType`, `loyaltyDiscountAmount`, `voucherDiscountAmount`, `roundingAmount` → stornovaný účet má vždy `totalGross = 0`
 - Pokud bill měl loyalty slevu (`loyaltyPointsUsed > 0`), vrátí redeemed body zákazníkovi
+- Pokud bill měl voucher (`voucherId != null`), vrátí spotřebované uses přes `VoucherRepository.unredeem()` (počet uses se spočítá z aktivních položek před stornováním objednávek pomocí `VoucherDiscountCalculator`)
 - **Transakčnost:** Cancel/void jednotlivých objednávek probíhá před hlavní transakcí (update bill status + enqueue). Přeskočení delivered objednávek je implicitní (žádný else branch).
 
 #### Storno objednávky (cancelOrder / voidOrder)
@@ -1868,7 +1890,7 @@ sequenceDiagram
 |------|-------------|-------------|
 | Cancel/void jedné order | Zůstává `opened` | Přepočítají se |
 | Cancel/void všech orders | Zůstává `opened` (prázdný bill povolen) | 0 |
-| cancelBill | → `cancelled` | Všechny orders cancel/void dle stavu |
+| cancelBill | → `cancelled` | Vynulovány (subtotal, total, slevy, rounding) + orders cancel/void |
 
 ### Workflow — Register Session (od Etapy 2)
 
@@ -2100,9 +2122,9 @@ Po odeslání formuláře se v jedné transakci vytvoří:
 | Company | 1 | Dle formuláře, status: `trial`, `auth_user_id` z Kroku 1 |
 | Currency | 1 | CZK (Kč, 2 des. místa). Formátování řídí `intl` package dle locale. |
 | TaxRate | 3 | Základní 21% (`regular`), Snížená 12% (`regular`), Nulová 0% (`noTax`), is_default: Základní=true |
-| Permission | 106 | Viz [Katalog oprávnění](#katalog-oprávnění-106) — 17 skupin |
+| Permission | 113 | Viz [Katalog oprávnění](#katalog-oprávnění-113) — 17 skupin |
 | Role | 4 | helper, operator, manager, admin |
-| RolePermission | 273 | helper: 20, operator: 62, manager: 85, admin: 106 |
+| RolePermission | 290 | helper: 19, operator: 66, manager: 92, admin: 113 |
 | PaymentMethod | 5 | Viz [Platební metody](#platební-metody), vč. Zákaznický kredit (credit) a Stravenky (voucher) |
 | Section | 1 (3 s demo) | Hlavní (zelená). S `withTestData`: + Zahrádka (oranžová), Interní (šedá) |
 | Table | 0 (18 s demo) | S `withTestData`: Hlavní: Stůl 1–7 + Bar 1–3 (kap. 4, 4×4 / 2×2), Zahrádka: Stolek 1–5 (kap. 2, 2×2), Interní: Majitel, Repre, Odpisy (kap. 0, off-map) |
@@ -2116,7 +2138,7 @@ Po odeslání formuláře se v jedné transakci vytvoří:
 | Customer | 0 (5 s demo) | S `withTestData`: Martin Svoboda, Lucie Černá, Tomáš Krejčí, Eva Nováková, Petr Veselý |
 | Register | 1 | code: `REG-1`, type: `local`, is_active: true, allow_cash/card/transfer/credit/voucher/other: true, allow_refunds: false, grid: 5×8, sell_mode: gastro |
 | User | 1 | Admin s PIN hashem, role_id: admin |
-| UserPermission | 106 | Všech 106 oprávnění, granted_by: admin user ID (self-grant při onboardingu) |
+| UserPermission | 113 | Všech 113 oprávnění, granted_by: admin user ID (self-grant při onboardingu) |
 
 **Pořadí seedu (respektuje FK závislosti):**
 1. Currency → Company (`default_currency_id`)
@@ -2152,8 +2174,6 @@ Implementováno — navigace z ScreenOnboarding na `/connect-company`:
 
 Systém oprávnění funguje **offline-first**. Veškerá data jsou uložena lokálně v Drift (SQLite). V Etapě 1–2 jsou `roles`, `permissions` a `role_permissions` seedovány lokálně. Od Etapy 3 se synchronizují se Supabase (read-only pull).
 
-> **Detailní design:** Kompletní rozpis všech oprávnění včetně popisu, skupin a matice rolí viz `docs/PERMISSIONS_DESIGN_v2.md`.
-
 ### Klíčové principy
 
 - `user_permissions` = **zdroj pravdy** pro autorizaci (ne role)
@@ -2166,13 +2186,13 @@ Systém oprávnění funguje **offline-first**. Veškerá data jsou uložena lok
 ```
 ┌─────────────────────────────────────────────────────┐
 │  permissions (katalog)                              │
-│  106 položek v 17 skupinách, read-only, seed lokálně│
+│  113 položek v 17 skupinách, read-only, seed lokálně│
 └─────────────────────┬───────────────────────────────┘
                       │
 ┌─────────────────────▼───────────────────────────────┐
 │  role_permissions (šablony)                         │
 │  Vazba role → permission, read-only                 │
-│  admin: 106, manager: 85, operator: 62, helper: 20  │
+│  admin: 113, manager: 92, operator: 66, helper: 19  │
 └─────────────────────┬───────────────────────────────┘
                       │  "Přiřadit roli" = zkopírovat permission_ids
                       ▼
@@ -2196,36 +2216,383 @@ Systém oprávnění funguje **offline-first**. Veškerá data jsou uložena lok
 
 | Role | Český název | Oprávnění | Popis |
 |------|-------------|:---------:|-------|
-| `helper` | Pomocník / Číšník | 20 | Základní obsluha — objednávky, platby, vidí jen své věci |
-| `operator` | Směnový vedoucí | 62 | Řídí směnu — storna, refundace, slevy, pokladní operace |
-| `manager` | Manažer | 85 | Řídí provoz — katalog, sklad, reporty, zaměstnanci, nastavení provozovny |
-| `admin` | Administrátor / Majitel | 106 | Plný přístup — systém, daně, data, role, destruktivní akce |
+| `helper` | Pomocník / Číšník | 19 | Základní obsluha — objednávky, platby, vidí jen své věci |
+| `operator` | Směnový vedoucí | 66 | Řídí směnu — storna, refundace, slevy, pokladní operace, statistiky (session) |
+| `manager` | Manažer | 92 | Řídí provoz — katalog, sklad, statistiky (historie), zaměstnanci, nastavení provozovny |
+| `admin` | Administrátor / Majitel | 113 | Plný přístup — systém, daně, data, role, destruktivní akce |
 
-### Katalog oprávnění (106)
+> **Aktuální stav:** Seed SQL má zatím jen starých 16 permissions. Manager má dočasně všech 16 (= admin). Migrace na 113 permissions proběhne v dalším kroku.
+
+### Katalog oprávnění (113)
 
 17 skupin s konvencí `skupina.akce`:
 
-| # | Skupina | Prefix | Počet | Příklady |
-|---|---------|--------|:-----:|----------|
-| 1 | Objednávky | `orders.*` | 17 | `create`, `view`, `void_item`, `void_bill`, `split`, `merge`, `reopen`, `bump` |
-| 2 | Platby | `payments.*` | 11 | `accept`, `refund`, `method_cash`, `method_card`, `method_voucher`, `accept_tip` |
-| 3 | Slevy a ceny | `discounts.*` | 5 | `apply_item`, `apply_bill`, `custom`, `price_override`, `loyalty` |
-| 4 | Pokladna | `register.*` | 7 | `open_session`, `close_session`, `cash_in`, `cash_out`, `open_drawer` |
-| 5 | Směny | `shifts.*` | 4 | `clock_in_out`, `view_own`, `view_all`, `manage` |
-| 6 | Produkty | `products.*` | 11 | `manage`, `manage_categories`, `manage_modifiers`, `manage_suppliers` |
-| 7 | Sklad | `stock.*` | 8 | `receive`, `wastage`, `adjust`, `count`, `transfer`, `manage_warehouses` |
-| 8 | Zákazníci | `customers.*` | 4 | `view`, `manage`, `manage_credit`, `manage_loyalty` |
-| 9 | Vouchery | `vouchers.*` | 3 | `view`, `manage`, `redeem` |
-| 10 | Provoz | `venue.*` | 3 | `view`, `reservations_view`, `reservations_manage` |
-| 11 | Reporty | `reports.*` | 5 | `view_own`, `view_sales`, `view_financial`, `view_staff`, `view_tips` |
-| 12 | Tisk | `printing.*` | 4 | `receipt`, `reprint`, `z_report`, `inventory_report` |
-| 13 | Data | `data.*` | 3 | `export`, `import`, `backup` |
-| 14 | Uživatelé | `users.*` | 4 | `view`, `manage`, `assign_roles`, `manage_permissions` |
-| 15 | Nastavení firma | `settings_company.*` | 7 | `info`, `security`, `fiscal`, `cloud`, `data_wipe`, `view_log`, `clear_log` |
-| 16 | Nastavení provozovna | `settings_venue.*` | 3 | `sections`, `tables`, `floor_plan` |
-| 17 | Nastavení pokladna | `settings_register.*` | 7 | `manage`, `hardware`, `grid`, `displays`, `payment_methods`, `tax_rates`, `manage_devices` |
+| # | Skupina | Prefix | Počet |
+|---|---------|--------|:-----:|
+| 1 | Objednávky | `orders.*` | 17 |
+| 2 | Platby | `payments.*` | 11 |
+| 3 | Slevy a ceny | `discounts.*` | 5 |
+| 4 | Pokladna | `register.*` | 7 |
+| 5 | Směny zaměstnanců | `shifts.*` | 4 |
+| 6 | Produkty a katalog | `products.*` | 11 |
+| 7 | Sklad | `stock.*` | 8 |
+| 8 | Zákazníci a věrnost | `customers.*` | 4 |
+| 9 | Vouchery | `vouchers.*` | 3 |
+| 10 | Provoz — stoly a rezervace | `venue.*` | 3 |
+| 11 | Statistiky a reporty | `stats.*` | 12 |
+| 12 | Tisk | `printing.*` | 4 |
+| 13 | Data | `data.*` | 3 |
+| 14 | Uživatelé a role | `users.*` | 4 |
+| 15 | Nastavení — firma | `settings_company.*` | 7 |
+| 16 | Nastavení — provozovna | `settings_venue.*` | 3 |
+| 17 | Nastavení — pokladna | `settings_register.*` | 7 |
+| | | **Celkem** | **113** |
 
-### Souhrnná matice rolí
+#### Objednávky (`orders`)
+
+Zahrnuje správu účtů, objednávek i KDS/obrazovku objednávek — jde o jedno
+propojené workflow se sdílenými akcemi.
+
+| Kód | Název | Popis |
+|-----|-------|-------|
+| `orders.create` | Vytvořit objednávku | Přidávat položky na účet |
+| `orders.view` | Zobrazit vlastní | Vidět objednávky přiřazené k sobě |
+| `orders.view_all` | Zobrazit všechny | Vidět objednávky všech zaměstnanců |
+| `orders.view_paid` | Zobrazit zaplacené | Vidět historii zaplacených účtů |
+| `orders.view_cancelled` | Zobrazit stornované | Vidět stornované a zrušené účty |
+| `orders.view_detail` | Detail v info panelu | Zobrazit cenu, modifikátory a poznámky; bez tohoto oprávnění uživatel vidí jen čas, stav a název |
+| `orders.edit` | Upravit objednávku | Měnit položky na vlastní otevřené objednávce |
+| `orders.edit_others` | Upravit cizí | Měnit položky na objednávce jiného zaměstnance |
+| `orders.void_item` | Storno položky | Stornovat jednotlivou položku (vytvoří storno objednávku) |
+| `orders.void_bill` | Storno celého účtu | Zrušit nebo stornovat celý účet |
+| `orders.reopen` | Znovu otevřít účet | Otevřít již zaplacený nebo zrušený účet |
+| `orders.transfer` | Přesunout účet | Přesunout účet na jiný stůl nebo sekci |
+| `orders.split` | Rozdělit účet | Rozdělit účet na více účtů |
+| `orders.merge` | Sloučit účty | Spojit více účtů do jednoho |
+| `orders.assign_customer` | Přiřadit zákazníka | Přiřadit zákazníka k účtu/objednávce |
+| `orders.bump` | Posunout stav | Potvrdit přípravu nebo expedici položky |
+| `orders.bump_back` | Vrátit stav | Vrátit položku do předchozího stavu přípravy |
+
+#### Platby (`payments`)
+
+| Kód | Název | Popis |
+|-----|-------|-------|
+| `payments.accept` | Přijímat platby | Zpracovat platbu na účtu |
+| `payments.refund` | Vrátit platbu | Refundovat celý zaplacený účet |
+| `payments.refund_item` | Vrátit položku | Refundovat jednu položku z účtu |
+| `payments.method_cash` | Platba hotovostí | Přijímat hotovostní platby |
+| `payments.method_card` | Platba kartou | Přijímat kartové platby |
+| `payments.method_voucher` | Platba voucherem | Platba dárkovým nebo slevovým voucherem z aplikace |
+| `payments.method_meal_ticket` | Platba stravenkami | Platba stravenkami (Sodexo, Up, Edenred apod.) |
+| `payments.method_credit` | Platba na kredit | Platba z kreditu zákazníka |
+| `payments.skip_cash_dialog` | Přeskočit dialog hotovosti | Dokončit hotovostní platbu bez zadání přijaté částky; bez tohoto oprávnění musí obsluha zadat kolik zákazník dal a systém zobrazí kolik vrátit |
+| `payments.accept_tip` | Přijmout spropitné | Přijmout spropitné při platbě |
+| `payments.adjust_tip` | Upravit spropitné | Upravit spropitné po zaplacení |
+
+#### Slevy a ceny (`discounts`)
+
+| Kód | Název | Popis |
+|-----|-------|-------|
+| `discounts.apply_item` | Sleva na položku | Aplikovat slevu na jednu položku |
+| `discounts.apply_bill` | Sleva na účet | Aplikovat slevu na celý účet |
+| `discounts.custom` | Vlastní sleva | Zadat libovolnou částku nebo procento slevy |
+| `discounts.price_override` | Přepsat cenu | Ručně změnit prodejní cenu položky |
+| `discounts.loyalty` | Uplatnit věrnostní body | Použít body zákazníka jako slevu |
+
+#### Pokladna (`register`)
+
+Správa pokladních sessions — otevření a uzavření pokladny, hotovostní operace.
+
+> **Pozn.:** Směny zaměstnanců (příchod / odchod / docházka) jsou v samostatné
+> skupině Směny zaměstnanců (`shifts`).
+
+| Kód | Název | Popis |
+|-----|-------|-------|
+| `register.open_session` | Otevřít pokladnu | Zahájit pokladní session s počátečním stavem hotovosti |
+| `register.close_session` | Uzavřít pokladnu | Provést uzávěrku (Z-report) |
+| `register.view_session` | Zobrazit stav pokladny | Vidět X-report a aktuální stav hotovosti |
+| `register.view_all_sessions` | Historie uzávěrek | Vidět uzávěrky všech pokladen a uživatelů |
+| `register.cash_in` | Vklad hotovosti | Zaznamenat vklad do pokladny |
+| `register.cash_out` | Výběr hotovosti | Zaznamenat výběr z pokladny |
+| `register.open_drawer` | Otevřít zásuvku | Otevřít pokladní zásuvku bez transakce ("no sale") |
+
+#### Směny zaměstnanců (`shifts`)
+
+Evidence pracovních směn — příchod, odchod, docházka.
+
+| Kód | Název | Popis |
+|-----|-------|-------|
+| `shifts.clock_in_out` | Přihlásit / odhlásit směnu | Zaznamenat vlastní příchod a odchod |
+| `shifts.view_own` | Zobrazit vlastní směny | Vidět historii vlastních směn |
+| `shifts.view_all` | Zobrazit všechny směny | Vidět směny všech zaměstnanců |
+| `shifts.manage` | Spravovat směny | Vytvářet, upravovat a mazat směny zaměstnanců |
+
+#### Produkty a katalog (`products`)
+
+| Kód | Název | Popis |
+|-----|-------|-------|
+| `products.view` | Zobrazit produkty | Vidět katalog a prodejní ceny |
+| `products.view_cost` | Zobrazit nákupní ceny | Vidět nákupní cenu a marži |
+| `products.manage` | Spravovat produkty | Vytvářet, upravovat a mazat produkty |
+| `products.manage_categories` | Spravovat kategorie | Vytvářet, upravovat a mazat kategorie |
+| `products.manage_modifiers` | Spravovat modifikátory | Vytvářet, upravovat a mazat skupiny modifikátorů |
+| `products.manage_recipes` | Spravovat receptury | Vytvářet, upravovat a mazat receptury (BOM) |
+| `products.manage_purchase_price` | Měnit nákupní ceny | Upravit nákupní cenu produktu (i při naskladnění) |
+| `products.manage_tax` | Měnit daňové sazby | Přiřazovat a měnit daňové sazby na položkách |
+| `products.manage_suppliers` | Spravovat dodavatele | Vytvářet, upravovat a mazat dodavatele |
+| `products.manage_manufacturers` | Spravovat výrobce | Vytvářet, upravovat a mazat výrobce |
+| `products.set_availability` | Označit nedostupnost | Dočasně vyřadit položku z prodeje |
+
+#### Sklad (`stock`)
+
+| Kód | Název | Popis |
+|-----|-------|-------|
+| `stock.view` | Zobrazit stavy skladu | Vidět aktuální množství a stavy zásob |
+| `stock.receive` | Příjem zboží | Vytvořit příjemku |
+| `stock.wastage` | Zaznamenat odpis | Vytvořit doklad odpisu nebo zmetku |
+| `stock.adjust` | Korekce skladu | Ručně upravit množství na skladě |
+| `stock.count` | Inventura | Provést inventurní sčítání |
+| `stock.transfer` | Přesun mezi sklady | Přesunout zboží mezi sklady |
+| `stock.set_price_strategy` | Změnit strategii NC | Měnit strategii změny nákupní ceny při příjmu (přepsat / zachovat / průměr / vážený průměr) |
+| `stock.manage_warehouses` | Spravovat sklady | Vytvořit, upravit a smazat sklady |
+
+#### Zákazníci a věrnost (`customers`)
+
+| Kód | Název | Popis |
+|-----|-------|-------|
+| `customers.view` | Zobrazit zákazníky | Vidět seznam a detail zákazníků |
+| `customers.manage` | Spravovat zákazníky | Vytvářet, upravovat a mazat zákazníky |
+| `customers.manage_credit` | Spravovat kredit | Přidávat a odebírat kredit zákazníka |
+| `customers.manage_loyalty` | Spravovat body | Ručně upravit věrnostní body |
+
+#### Vouchery (`vouchers`)
+
+| Kód | Název | Popis |
+|-----|-------|-------|
+| `vouchers.view` | Zobrazit vouchery | Vidět seznam voucherů |
+| `vouchers.manage` | Spravovat vouchery | Vytvářet, upravovat a mazat vouchery |
+| `vouchers.redeem` | Uplatnit voucher | Použít voucher na účet |
+
+#### Provoz — stoly a rezervace (`venue`)
+
+Provozní pohled na stoly a rezervace během směny. Zobrazení formou mapy
+nebo seznamu je uživatelská preference, ne oprávnění.
+
+> **Pozn.:** Konfigurace stolů, sekcí a půdorysu je v
+> skupině Nastavení — provozovna (`settings_venue`).
+
+| Kód | Název | Popis |
+|-----|-------|-------|
+| `venue.view` | Zobrazit stoly | Vidět stoly a jejich stav (mapa nebo seznam dle preferencí) |
+| `venue.reservations_view` | Zobrazit rezervace | Vidět seznam rezervací |
+| `venue.reservations_manage` | Spravovat rezervace | Vytvářet, upravovat a rušit rezervace |
+
+#### Statistiky a reporty (`stats`)
+
+Odpovídá obrazovce **Statistiky** s 6 taby. Každý tab má dvě úrovně:
+- **session** — data pouze z aktuální pokladní session (date range selector skrytý)
+- **all** (`*_all`) — data za libovolné období (date range selector viditelný)
+
+`*_all` implikuje base permission — kdo má `stats.receipts_all`, nepotřebuje zvlášť `stats.receipts`.
+
+Tisk a export nejsou omezeny zvlášť — kdo může data vidět, může je i tisknout/exportovat.
+
+| Kód | Název | Popis |
+|-----|-------|-------|
+| `stats.receipts` | Účtenky (session) | Vidět zaplacené účtenky v aktuální session |
+| `stats.receipts_all` | Účtenky (historie) | Vidět zaplacené účtenky za libovolné období |
+| `stats.sales` | Prodeje (session) | Vidět prodeje po položkách v aktuální session |
+| `stats.sales_all` | Prodeje (historie) | Vidět prodeje po položkách za libovolné období |
+| `stats.orders` | Objednávky (session) | Vidět objednávky v aktuální session |
+| `stats.orders_all` | Objednávky (historie) | Vidět objednávky za libovolné období |
+| `stats.tips` | Spropitné (session) | Vidět přehled spropitného v aktuální session |
+| `stats.tips_all` | Spropitné (historie) | Vidět přehled spropitného za libovolné období |
+| `stats.cash_journal` | Pokladní deník (session) | Vidět pokladní pohyby v aktuální session |
+| `stats.cash_journal_all` | Pokladní deník (historie) | Vidět pokladní pohyby za libovolné období |
+| `stats.shifts` | Směny | Vidět směny všech zaměstnanců (inherentně historické) |
+| `stats.z_reports` | Uzávěrky | Vidět uzávěrky (Z-reporty) všech sessions (inherentně historické) |
+
+#### Tisk (`printing`)
+
+| Kód | Název | Popis |
+|-----|-------|-------|
+| `printing.receipt` | Tisk účtenky | Vytisknout účtenku pro zákazníka |
+| `printing.reprint` | Opakovaný tisk | Znovu vytisknout již vytištěnou účtenku |
+| `printing.z_report` | Tisk Z-reportu | Vytisknout uzávěrkový report |
+| `printing.inventory_report` | Tisk inventurního reportu | Vytisknout skladový nebo inventurní report |
+
+#### Data (`data`)
+
+Operace s daty — export, import, zálohy.
+
+| Kód | Název | Popis |
+|-----|-------|-------|
+| `data.export` | Export dat | Exportovat reporty a seznamy do CSV nebo PDF |
+| `data.import` | Import dat | Importovat produkty, zákazníky a další data z CSV |
+| `data.backup` | Záloha a obnova | Vytvořit zálohu dat nebo obnovit ze zálohy |
+
+#### Uživatelé a role (`users`)
+
+| Kód | Název | Popis |
+|-----|-------|-------|
+| `users.view` | Zobrazit uživatele | Vidět seznam zaměstnanců |
+| `users.manage` | Spravovat uživatele | Vytvářet, upravovat a deaktivovat zaměstnance |
+| `users.assign_roles` | Přiřadit roli | Změnit roli zaměstnance |
+| `users.manage_permissions` | Spravovat oprávnění | Přidělit nebo odebrat jednotlivá oprávnění |
+
+#### Nastavení — firma (`settings_company`)
+
+Odpovídá obrazovce **Nastavení firmy** (info, zabezpečení, cloud, fiskální).
+
+| Kód | Název | Popis |
+|-----|-------|-------|
+| `settings_company.info` | Informace o firmě | Upravit název, IČO, adresu, měnu, jazyk, prodejní mód |
+| `settings_company.security` | Zabezpečení | Nastavit PIN politiku a automatický zámek |
+| `settings_company.fiscal` | Fiskální nastavení | Nastavit EET, fiskalizaci a tiskové povinnosti |
+| `settings_company.cloud` | Cloud a synchronizace | Spravovat synchronizaci, přihlášení a migraci dat |
+| `settings_company.data_wipe` | Smazat data | Provést factory reset nebo smazání všech dat |
+| `settings_company.view_log` | Zobrazit systémový log | Zobrazit diagnostický a systémový log |
+| `settings_company.clear_log` | Smazat log | Smazat / vyčistit systémový log |
+
+#### Nastavení — provozovna (`settings_venue`)
+
+Odpovídá obrazovce **Nastavení provozovny** (sekce, stoly, půdorys).
+
+| Kód | Název | Popis |
+|-----|-------|-------|
+| `settings_venue.sections` | Spravovat sekce | Vytvářet, upravovat a mazat sekce restaurace |
+| `settings_venue.tables` | Spravovat stoly | Vytvářet, upravovat a mazat stoly |
+| `settings_venue.floor_plan` | Editovat půdorys | Upravovat rozvržení mapy a pozice prvků |
+
+#### Nastavení — pokladna (`settings_register`)
+
+Odpovídá obrazovce **Nastavení pokladny** (terminály, hardware, grid, displeje).
+
+| Kód | Název | Popis |
+|-----|-------|-------|
+| `settings_register.manage` | Spravovat pokladny | Vytvářet, upravovat a mazat pokladní terminály |
+| `settings_register.hardware` | Nastavit hardware | Konfigurovat tiskárny, skenery, platební terminály a zásuvku |
+| `settings_register.grid` | Editovat prodejní grid | Upravovat rozvržení tlačítek na prodejní obrazovce |
+| `settings_register.displays` | Spravovat displeje | Konfigurovat zákaznické a kuchyňské displeje |
+| `settings_register.payment_methods` | Platební metody | Vytvářet, upravovat a mazat platební metody |
+| `settings_register.tax_rates` | Daňové sazby | Vytvářet, upravovat a mazat daňové sazby |
+| `settings_register.manage_devices` | Správa zobrazovacích zařízení | Spravovat KDS a zákaznické displeje jako zařízení |
+
+### Přiřazení rolím
+
+#### Helper (Pomocník / Číšník)
+
+> **19 oprávnění.** Základní provoz — přijímá objednávky, inkasuje platby,
+> vidí jen své věci, nemůže stornovat, refundovat, dávat slevy ani měnit
+> nastavení. V info panelu objednávek vidí pouze čas, stav a název
+> (bez cen a modifikátorů). Nemá přístup ke statistikám.
+
+| Skupina | Oprávnění | Počet |
+|---------|-----------|:-----:|
+| orders | `create`, `view`, `edit`, `assign_customer`, `bump` | 5 |
+| payments | `accept`, `method_cash`, `method_card`, `accept_tip` | 4 |
+| discounts | — | 0 |
+| register | `view_session` | 1 |
+| shifts | `clock_in_out`, `view_own` | 2 |
+| products | `view` | 1 |
+| stock | — | 0 |
+| customers | `view` | 1 |
+| vouchers | `view`, `redeem` | 2 |
+| venue | `view`, `reservations_view` | 2 |
+| stats | — | 0 |
+| printing | `receipt` | 1 |
+| data | — | 0 |
+| users | — | 0 |
+| settings_company | — | 0 |
+| settings_venue | — | 0 |
+| settings_register | — | 0 |
+| | **Celkem** | **19** |
+
+#### Operator (Směnový vedoucí)
+
+> **66 oprávnění.** Vše od helpera + storna, refundace, slevy, pokladní
+> operace, odpisy, správa zákazníků a rezervací. Plný detail v objednávkách.
+> Statistiky omezeny na aktuální session (bez date range selectoru).
+> Řídí provoz během směny.
+
+| Skupina | Navíc oproti helper | Celkem |
+|---------|---------------------|:------:|
+| orders | + `view_all`, `view_paid`, `view_cancelled`, `view_detail`, `edit_others`, `void_item`, `void_bill`, `transfer`, `split`, `merge`, `bump_back` | 16 |
+| payments | + `refund`, `refund_item`, `method_voucher`, `method_meal_ticket`, `method_credit`, `skip_cash_dialog`, `adjust_tip` | 11 |
+| discounts | + `apply_item`, `apply_bill`, `custom`, `loyalty` | 4 |
+| register | + `open_session`, `close_session`, `view_all_sessions`, `cash_in`, `cash_out`, `open_drawer` | 7 |
+| shifts | + `view_all` | 3 |
+| products | + `set_availability` | 2 |
+| stock | + `view`, `wastage` | 2 |
+| customers | + `manage`, `manage_credit` | 3 |
+| vouchers | + `manage` | 3 |
+| venue | + `reservations_manage` | 3 |
+| stats | + `receipts`, `sales`, `orders`, `tips`, `cash_journal` | 5 |
+| printing | + `reprint`, `z_report` | 3 |
+| data | — | 0 |
+| users | + `view` | 1 |
+| settings_company | — | 0 |
+| settings_venue | — | 0 |
+| settings_register | — | 0 |
+| | **Celkem** | **66** |
+
+#### Manager (Manažer)
+
+> **92 oprávnění.** Vše od operátora + správa katalogu (produkty, kategorie,
+> modifikátory, receptury, dodavatelé, výrobci), skladu (příjem, korekce,
+> inventura, přesun), zaměstnanců, nastavení provozovny a export dat.
+> Plný přístup ke statistikám včetně historie, směn a uzávěrek.
+> Řídí celý provoz na denní bázi.
+
+| Skupina | Navíc oproti operator | Celkem |
+|---------|----------------------|:------:|
+| orders | + `reopen` | 17 |
+| payments | — | 11 |
+| discounts | — | 4 |
+| register | — | 7 |
+| shifts | + `manage` | 4 |
+| products | + `view_cost`, `manage`, `manage_categories`, `manage_modifiers`, `manage_recipes`, `manage_suppliers`, `manage_manufacturers` | 9 |
+| stock | + `receive`, `adjust`, `count`, `transfer` | 6 |
+| customers | + `manage_loyalty` | 4 |
+| vouchers | — | 3 |
+| venue | — | 3 |
+| stats | + `receipts_all`, `sales_all`, `orders_all`, `tips_all`, `cash_journal_all`, `shifts`, `z_reports` | 12 |
+| printing | + `inventory_report` | 4 |
+| data | + `export` | 1 |
+| users | + `manage` | 2 |
+| settings_company | — | 0 |
+| settings_venue | + `sections`, `tables`, `floor_plan` | 3 |
+| settings_register | + `grid`, `displays` | 2 |
+| | **Celkem** | **92** |
+
+#### Admin (Administrátor / Majitel)
+
+> **113 oprávnění (vše).** Vše od manažera + systémová nastavení firmy,
+> správa daní a nákupních cen, cenová strategie, sklady, role a oprávnění
+> uživatelů, import/záloha dat, registr a hardware, destruktivní akce.
+
+| Skupina | Navíc oproti manager | Celkem |
+|---------|---------------------|:------:|
+| orders | — | 17 |
+| payments | — | 11 |
+| discounts | + `price_override` | 5 |
+| register | — | 7 |
+| shifts | — | 4 |
+| products | + `manage_purchase_price`, `manage_tax` | 11 |
+| stock | + `set_price_strategy`, `manage_warehouses` | 8 |
+| customers | — | 4 |
+| vouchers | — | 3 |
+| venue | — | 3 |
+| stats | — | 12 |
+| printing | — | 4 |
+| data | + `import`, `backup` | 3 |
+| users | + `assign_roles`, `manage_permissions` | 4 |
+| settings_company | + `info`, `security`, `fiscal`, `cloud`, `data_wipe`, `view_log`, `clear_log` | 7 |
+| settings_venue | — | 3 |
+| settings_register | + `manage`, `hardware`, `payment_methods`, `tax_rates`, `manage_devices` | 7 |
+| | **Celkem** | **113** |
+
+#### Souhrnná matice
 
 | Skupina | Počet | helper | operator | manager | admin |
 |---------|:-----:|:------:|:--------:|:-------:|:-----:|
@@ -2239,14 +2606,22 @@ Systém oprávnění funguje **offline-first**. Veškerá data jsou uložena lok
 | customers | 4 | 1 | 3 | 4 | 4 |
 | vouchers | 3 | 2 | 3 | 3 | 3 |
 | venue | 3 | 2 | 3 | 3 | 3 |
-| reports | 5 | 1 | 4 | 5 | 5 |
+| stats | 12 | 0 | 5 | 12 | 12 |
 | printing | 4 | 1 | 3 | 4 | 4 |
 | data | 3 | 0 | 0 | 1 | 3 |
 | users | 4 | 0 | 1 | 2 | 4 |
 | settings_company | 7 | 0 | 0 | 0 | 7 |
 | settings_venue | 3 | 0 | 0 | 3 | 3 |
 | settings_register | 7 | 0 | 0 | 2 | 7 |
-| **Celkem** | **106** | **20** | **62** | **85** | **106** |
+| **Celkem** | **113** | **19** | **66** | **92** | **113** |
+
+#### Progrese mezi rolemi
+
+| Přechod | Nových oprávnění | Hlavní oblasti |
+|---------|:----------------:|----------------|
+| helper → operator | +47 | Storna, refundace, slevy, pokladní operace, statistiky (session) |
+| operator → manager | +26 | Katalog, sklad, zaměstnanci, statistiky (historie + směny + uzávěrky), nastavení provozovny |
+| manager → admin | +21 | Systém, daně, ceny, data, role, hardware, destruktivní akce |
 
 ### Přiřazení role uživateli
 
@@ -2264,6 +2639,48 @@ Metoda `applyRoleToUser`:
 | **Repository** | Vynucení při operaci | `billRepo.cancelBill()` → `orders.void_bill` |
 
 Kontrolovat **vždy v UI** (tlačítko se nezobrazí) **i v repozitáři** (nelze obejít přímým voláním).
+
+### Budoucí rozšíření
+
+Oprávnění připravená v architektuře, ale ne v prvním releasu.
+
+| Kód | Popis | Kdy |
+|-----|-------|-----|
+| `payments.terminal` | Ovládání platebního terminálu | Integrace terminálu |
+| `hardware.print_required` | Povinnost tisku účtenky | Fiskalizace |
+| `hardware.scanner` | Použití čtečky čárových kódů | Integrace skeneru |
+| `hardware.drawer` | Ovládání pokladní zásuvky | HW integrace |
+| `fiscal.eet_manage` | Správa EET nastavení | EET implementace |
+| `fiscal.eet_override` | Přepsat fiskální data | EET implementace |
+| `reports.dashboard` | Přístup k dashboardu | Stage 4 |
+| `stock.purchase_orders` | Objednávky od dodavatelů | Stage 4+ |
+| `delivery.manage` | Správa rozvozů | Budoucí modul |
+| `kiosk.manage` | Správa kiosku | Budoucí modul |
+
+### Tří-stavový model (inspirace Shopify)
+
+Zvážit rozšíření z binárního `granted` / `not granted` na tři stavy:
+
+| Stav | Chování |
+|------|---------|
+| **Allowed** | Povoleno vždy |
+| **Denied** | Zakázáno (výchozí pro nepřidělené) |
+| **Approval Required** | Vyžaduje PIN nadřízeného |
+
+Vyžaduje přidání sloupce `grant_type` do `user_permissions`.
+Není nutné pro MVP, ale architektura by s tím měla počítat.
+
+### Elevated Permissions (inspirace Lightspeed)
+
+Dočasné povýšení oprávnění:
+
+1. Číšník (helper) chce provést storno
+2. Systém požádá o PIN nadřízeného (operator / manager / admin)
+3. Nadřízený zadá svůj PIN
+4. Akce se provede a zaloguje pod oba uživatele
+5. Oprávnění se nezmění trvale
+
+Vhodné pro: storna, refundace, ruční slevy, otevření zásuvky.
 
 ---
 
@@ -2804,7 +3221,7 @@ Funkce, které nejsou součástí aktuálního plánu. Mohou se přidat kdykoli 
 
 ### CRM a zákazníci (rozšíření)
 
-> **Implementováno:** Tabulky `customers` a `customer_transactions` existují, zákaznický tab v katalogu funguje, `company_settings` obsahuje loyalty sloupce (`loyalty_earn_rate`, `loyalty_point_value`), `bills` obsahují `customer_id`, `loyalty_points_used`, `loyalty_discount_amount`. Věrnostní program — `DialogLoyaltyRedeem` pro uplatnění bodů, `BillRepository.applyLoyaltyDiscount`. Voucher systém — kompletní implementace: tabulka `vouchers` (19 sloupců), 3 enumy (`VoucherType`, `VoucherStatus`, `VoucherDiscountScope`), `VoucherRepository` (validace, redeem, generování kódů), UI: `ScreenVouchers` (správa), `DialogVoucherCreate`, `DialogVoucherDetail`, `DialogVoucherRedeem` (uplatnění na účtu), `BillRepository.applyVoucher/removeVoucher`. Route `/vouchers` s `settings.manage` guardem.
+> **Implementováno:** Tabulky `customers` a `customer_transactions` existují, zákaznický tab v katalogu funguje, `company_settings` obsahuje loyalty sloupce (`loyalty_earn_rate`, `loyalty_point_value`), `bills` obsahují `customer_id`, `loyalty_points_used`, `loyalty_discount_amount`. Věrnostní program — `DialogLoyaltyRedeem` pro uplatnění bodů, `BillRepository.applyLoyaltyDiscount`. Voucher systém — kompletní implementace: tabulka `vouchers` (19 sloupců), 3 enumy (`VoucherType`, `VoucherStatus`, `VoucherDiscountScope`), `VoucherRepository` (validace, redeem, unredeem, generování kódů), UI: `ScreenVouchers` (správa), `DialogVoucherCreate`, `DialogVoucherDetail`, `DialogVoucherRedeem` (uplatnění na účtu), `BillRepository.applyVoucher/removeVoucher`. Route `/vouchers` s `settings.manage` guardem. Scope-aware výpočet slevy: `VoucherDiscountCalculator` s per-item atribucí, zobrazení v Bill Detail (rozdělení položek + přeškrtnutí), účtenka (PDF řádek „Voucher: −X"), statistiky (per-item breakdown). Storno účtu vrací voucher uses přes `unredeem()`.
 
 - Zákaznický tier systém
 

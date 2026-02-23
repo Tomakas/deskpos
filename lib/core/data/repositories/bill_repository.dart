@@ -243,7 +243,7 @@ class BillRepository {
               }
             }
 
-            subtotalGross += itemSubtotal - itemDiscount;
+            subtotalGross += itemSubtotal - itemDiscount - item.voucherDiscount;
             taxTotal += itemTax;
           }
         }
@@ -468,11 +468,20 @@ class BillRepository {
         }
       }
 
-      // Update bill status (atomic with enqueue)
+      // Update bill status + zero out discounts (atomic with enqueue)
       final cancelledBill = await _db.transaction(() async {
         await (_db.update(_db.bills)..where((t) => t.id.equals(billId))).write(
           BillsCompanion(
             status: const Value(BillStatus.cancelled),
+            subtotalGross: const Value(0),
+            subtotalNet: const Value(0),
+            taxTotal: const Value(0),
+            totalGross: const Value(0),
+            discountAmount: const Value(0),
+            discountType: const Value(null),
+            loyaltyDiscountAmount: const Value(0),
+            voucherDiscountAmount: const Value(0),
+            roundingAmount: const Value(0),
             closedAt: Value(now),
             updatedAt: Value(now),
           ),

@@ -33,6 +33,7 @@ import '../../../core/utils/formatting_ext.dart';
 import '../../../core/utils/unit_type_l10n.dart';
 import '../../../core/widgets/pos_color_palette.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
+import '../../../core/widgets/pos_numpad.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/data/providers/permission_providers.dart';
 import '../../bills/widgets/dialog_customer_search.dart';
@@ -638,6 +639,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
               title: Text(item.name),
               trailing: Text(ref.money(item.unitPrice)),
               onTap: () => _addToCart(ref, item, company.id),
+              onLongPress: () => _addToCart(ref, item, company.id, forceQuantityDialog: true),
             );
           },
         );
@@ -759,6 +761,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
           ? parseHexColor(layoutItem.color)
           : Theme.of(context).colorScheme.primaryContainer,
       onTap: item.isSellable ? () => _addToCart(ref, item, companyId) : null,
+      onLongPress: item.isSellable ? () => _addToCart(ref, item, companyId, forceQuantityDialog: true) : null,
     );
   }
 
@@ -890,7 +893,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     }
   }
 
-  Future<void> _addToCart(WidgetRef ref, ItemModel item, String companyId) async {
+  Future<void> _addToCart(WidgetRef ref, ItemModel item, String companyId, {bool forceQuantityDialog = false}) async {
     // Variant items: add directly (user picked from search or sub-grid)
     // Product items: check for variants first
     ItemModel selectedItem = item;
@@ -904,6 +907,17 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
       }
     }
 
+    // Quantity dialog for non-ks items, or when forced (long press)
+    double quantity = 1;
+    if (selectedItem.unit != UnitType.ks || forceQuantityDialog) {
+      final q = await showDialog<double>(
+        context: context,
+        builder: (_) => _QuantityInputDialog(item: selectedItem),
+      );
+      if (q == null || !mounted) return;
+      quantity = q;
+    }
+
     // Check for modifier groups (on item itself + inherited from parent)
     final groups = await _loadModifierGroups(ref, selectedItem);
     if (!mounted) return;
@@ -913,10 +927,10 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
       // Mandatory modifier groups — must show dialog
       final modifiers = await _showModifierDialog(selectedItem, groups);
       if (modifiers == null || !mounted) return;
-      _addItemToCart(selectedItem, modifiers: modifiers);
+      _addItemToCart(selectedItem, quantity: quantity, modifiers: modifiers);
     } else {
       // No modifier groups or all optional — add directly
-      _addItemToCart(selectedItem);
+      _addItemToCart(selectedItem, quantity: quantity);
     }
   }
 
@@ -999,7 +1013,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     );
   }
 
-  void _addItemToCart(ItemModel item, {List<_CartModifier> modifiers = const []}) {
+  void _addItemToCart(ItemModel item, {double quantity = 1, List<_CartModifier> modifiers = const []}) {
     setState(() {
       // Find last separator index
       int lastSepIdx = -1;
@@ -1018,7 +1032,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
           })
           .firstOrNull;
       if (existing != null) {
-        existing.quantity++;
+        existing.quantity += quantity;
       } else {
         _cart.add(_CartItem(
           itemId: item.id,
@@ -1027,7 +1041,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
           unit: item.unit,
           saleTaxRateId: item.saleTaxRateId,
           modifiers: modifiers,
-        ));
+        )..quantity = quantity);
       }
     });
     _pushToDisplay();
@@ -1547,6 +1561,116 @@ class _ItemNoteDialogState extends ConsumerState<_ItemNoteDialog> {
   }
 }
 
+class _QuantityInputDialog extends StatefulWidget {
+  const _QuantityInputDialog({required this.item});
+  final ItemModel item;
+
+  @override
+  State<_QuantityInputDialog> createState() => _QuantityInputDialogState();
+}
+
+class _QuantityInputDialogState extends State<_QuantityInputDialog> {
+  String _amountText = '';
+
+  void _numpadTap(String digit) {
+    if (_amountText.length >= 7) return;
+    setState(() => _amountText += digit);
+  }
+
+  void _numpadDot() {
+    if (_amountText.contains('.')) return;
+    setState(() => _amountText += _amountText.isEmpty ? '0.' : '.');
+  }
+
+  void _numpadBackspace() {
+    if (_amountText.isEmpty) return;
+    setState(() {
+      _amountText = _amountText.substring(0, _amountText.length - 1);
+    });
+  }
+
+  void _numpadClear() {
+    setState(() => _amountText = '');
+  }
+
+  void _confirm() {
+    final value = double.tryParse(_amountText);
+    if (value == null || value <= 0) return;
+    Navigator.pop(context, value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    final theme = Theme.of(context);
+    final unitLabel = localizedUnitType(l, widget.item.unit);
+
+    return PosDialogShell(
+      title: l.sellEnterQuantity,
+      maxWidth: 340,
+      maxHeight: 520,
+      expandHeight: true,
+      children: [
+        Center(
+          child: Text(
+            '${widget.item.name} ($unitLabel)',
+            style: theme.textTheme.bodySmall,
+            textAlign: TextAlign.center,
+          ),
+        ),
+        const SizedBox(height: 20),
+        // Amount display
+        Container(
+          height: 48,
+          width: double.infinity,
+          decoration: BoxDecoration(
+            border: Border.all(color: theme.dividerColor),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          alignment: Alignment.centerRight,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Text(
+            _amountText.isEmpty ? '0' : '$_amountText $unitLabel',
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        // Numpad
+        Expanded(
+          child: PosNumpad(
+            width: 250,
+            expand: true,
+            onDigit: _numpadTap,
+            onBackspace: _numpadBackspace,
+            onClear: _numpadClear,
+            onDot: _numpadDot,
+          ),
+        ),
+        const SizedBox(height: 16),
+        // Actions
+        SizedBox(
+          width: 250,
+          child: PosDialogActions(
+            expanded: true,
+            actions: [
+              OutlinedButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(l.actionCancel),
+              ),
+              FilledButton(
+                onPressed: _confirm,
+                child: Text(l.actionConfirm),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _ModifierGroupWithItems {
   const _ModifierGroupWithItems({required this.group, required this.items});
   final ModifierGroupModel group;
@@ -1885,12 +2009,14 @@ class _ItemButton extends StatelessWidget {
     required this.label,
     required this.color,
     this.onTap,
+    this.onLongPress,
     this.subtitle,
     this.isCategory = false,
   });
   final String label;
   final Color color;
   final VoidCallback? onTap;
+  final VoidCallback? onLongPress;
   final String? subtitle;
   final bool isCategory;
 
@@ -1904,6 +2030,7 @@ class _ItemButton extends StatelessWidget {
         clipBehavior: Clip.hardEdge,
         child: InkWell(
           onTap: onTap,
+          onLongPress: onLongPress,
           borderRadius: BorderRadius.circular(8),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),

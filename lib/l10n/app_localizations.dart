@@ -626,6 +626,12 @@ abstract class AppLocalizations {
   /// **'Obsluha'**
   String get roleOperator;
 
+  /// No description provided for @roleManager.
+  ///
+  /// In cs, this message translates to:
+  /// **'Manažer'**
+  String get roleManager;
+
   /// No description provided for @roleAdmin.
   ///
   /// In cs, this message translates to:
@@ -2036,6 +2042,18 @@ abstract class AppLocalizations {
   /// **'Sleva'**
   String get billDetailDiscount;
 
+  /// No description provided for @billDetailRemoveDiscount.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zrušit slevu'**
+  String get billDetailRemoveDiscount;
+
+  /// No description provided for @billDetailRemoveDiscountConfirm.
+  ///
+  /// In cs, this message translates to:
+  /// **'Odebrat slevu z tohoto účtu?'**
+  String get billDetailRemoveDiscountConfirm;
+
   /// No description provided for @billStatusRefunded.
   ///
   /// In cs, this message translates to:
@@ -3260,6 +3278,12 @@ abstract class AppLocalizations {
   /// **'Sleva'**
   String get receiptDiscount;
 
+  /// No description provided for @receiptVoucherDiscount.
+  ///
+  /// In cs, this message translates to:
+  /// **'Voucher'**
+  String get receiptVoucherDiscount;
+
   /// No description provided for @receiptTotal.
   ///
   /// In cs, this message translates to:
@@ -4279,6 +4303,18 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Voucher'**
   String get billDetailVoucher;
+
+  /// No description provided for @billDetailRemoveVoucher.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zrušit voucher'**
+  String get billDetailRemoveVoucher;
+
+  /// No description provided for @billDetailRemoveVoucherConfirm.
+  ///
+  /// In cs, this message translates to:
+  /// **'Odebrat použitý voucher z tohoto účtu?'**
+  String get billDetailRemoveVoucherConfirm;
 
   /// No description provided for @wizardLanguage.
   ///
@@ -5767,6 +5803,12 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Celkem (účtenky)'**
   String get statsSalesFinalTotal;
+
+  /// No description provided for @sellEnterQuantity.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zadejte množství'**
+  String get sellEnterQuantity;
 }
 
 class _AppLocalizationsDelegate

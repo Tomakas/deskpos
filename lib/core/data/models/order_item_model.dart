@@ -21,6 +21,7 @@ class OrderItemModel with _$OrderItemModel {
     @Default(UnitType.ks) UnitType unit,
     @Default(0) int discount,
     DiscountType? discountType,
+    @Default(0) int voucherDiscount,
     String? notes,
     required PrepStatus status,
     DateTime? prepStartedAt,

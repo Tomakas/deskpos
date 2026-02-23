@@ -66,6 +66,7 @@ class ReceiptItemData {
     required this.taxRateBasisPoints,
     this.unitLabel = 'ks',
     this.discount = 0,
+    this.voucherDiscount = 0,
     this.notes,
     this.modifiers = const [],
   });
@@ -77,6 +78,7 @@ class ReceiptItemData {
   final int taxRateBasisPoints;
   final String unitLabel;
   final int discount;
+  final int voucherDiscount;
   final String? notes;
   final List<ReceiptModifierData> modifiers;
 }
@@ -123,6 +125,7 @@ class ReceiptLabels {
   const ReceiptLabels({
     required this.subtotal,
     required this.discount,
+    required this.voucherDiscount,
     required this.total,
     required this.rounding,
     required this.taxTitle,
@@ -145,6 +148,7 @@ class ReceiptLabels {
 
   final String subtotal;
   final String discount;
+  final String voucherDiscount;
   final String total;
   final String rounding;
   final String taxTitle;

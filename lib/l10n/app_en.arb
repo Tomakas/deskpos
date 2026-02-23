@@ -419,6 +419,8 @@
   },
 
   "billDetailDiscount": "Discount",
+  "billDetailRemoveDiscount": "Remove Discount",
+  "billDetailRemoveDiscountConfirm": "Remove discount from this bill?",
   "billStatusRefunded": "Refunded",
   "refundTitle": "Refund",
   "refundConfirmFull": "Are you sure you want to refund the entire bill?",
@@ -661,6 +663,7 @@
 
   "receiptSubtotal": "Subtotal",
   "receiptDiscount": "Discount",
+  "receiptVoucherDiscount": "Voucher",
   "receiptTotal": "Total",
   "receiptRounding": "Rounding",
   "receiptTaxTitle": "Tax Summary",
@@ -895,6 +898,8 @@
   "voucherRedeemedAt": "Redeemed",
   "voucherIdLabel": "ID",
   "billDetailVoucher": "Voucher",
+  "billDetailRemoveVoucher": "Remove Voucher",
+  "billDetailRemoveVoucherConfirm": "Remove applied voucher from this bill?",
 
   "wizardLanguage": "Language",
   "wizardCurrency": "Default Currency",
@@ -1199,5 +1204,7 @@
   "statsSalesLoyaltyDiscount": "Loyalty discount",
   "statsSalesVoucherDiscount": "Voucher discount",
   "statsSalesRounding": "Rounding",
-  "statsSalesFinalTotal": "Total (receipts)"
+  "statsSalesFinalTotal": "Total (receipts)",
+
+  "sellEnterQuantity": "Enter quantity"
 }
