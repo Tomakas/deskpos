@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import '../../database/app_database.dart';
 import '../../logging/app_logger.dart';
+import '../enums/role_name.dart';
 import '../mappers/entity_mappers.dart';
 import '../mappers/supabase_mappers.dart';
 import '../models/user_model.dart';
@@ -95,5 +96,41 @@ class UserRepository
               t.deletedAt.isNull()))
         .getSingleOrNull();
     return entity == null ? null : userFromEntity(entity);
+  }
+
+  /// Returns true if [roleId] is the admin role and the user is the sole
+  /// active admin in their company.
+  Future<bool> isLastAdmin(String companyId, String roleId) async {
+    final adminRole = await (db.select(db.roles)
+          ..where((r) => r.name.equalsValue(RoleName.admin)))
+        .getSingleOrNull();
+    if (adminRole == null || roleId != adminRole.id) return false;
+    final admins = await (db.select(db.users)
+          ..where((t) =>
+              t.companyId.equals(companyId) &
+              t.roleId.equals(adminRole.id) &
+              t.deletedAt.isNull()))
+        .get();
+    return admins.length <= 1;
+  }
+
+  @override
+  Future<Result<void>> delete(String id) async {
+    final user = await getById(id);
+    if (user != null && await isLastAdmin(user.companyId, user.roleId)) {
+      return const Failure('Cannot delete the last admin');
+    }
+    return super.delete(id);
+  }
+
+  @override
+  Future<Result<UserModel>> update(UserModel model) async {
+    final existing = await getById(model.id);
+    if (existing != null && existing.roleId != model.roleId) {
+      if (await isLastAdmin(existing.companyId, existing.roleId)) {
+        return const Failure('Cannot change role of the last admin');
+      }
+    }
+    return super.update(model);
   }
 }

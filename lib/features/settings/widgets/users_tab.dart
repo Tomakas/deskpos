@@ -28,6 +28,12 @@ class UsersTab extends ConsumerStatefulWidget {
   ConsumerState<UsersTab> createState() => _UsersTabState();
 }
 
+bool _isLastAdmin(List<UserModel> users, List<RoleModel> roles, UserModel user) {
+  final adminRole = roles.where((r) => r.name == RoleName.admin).firstOrNull;
+  if (adminRole == null || user.roleId != adminRole.id) return false;
+  return users.where((u) => u.roleId == adminRole.id).length <= 1;
+}
+
 class _UsersTabState extends ConsumerState<UsersTab> {
   final _searchCtrl = TextEditingController();
   String _query = '';
@@ -71,7 +77,7 @@ class _UsersTabState extends ConsumerState<UsersTab> {
                   onSearchChanged: (v) => setState(() => _query = normalizeSearch(v)),
                   trailing: [
                     FilledButton.icon(
-                      onPressed: () => _showEditDialog(context, ref, roles, null),
+                      onPressed: () => _showEditDialog(context, ref, roles, users, null),
                       icon: const Icon(Icons.add),
                       label: Text(l.actionAdd),
                     ),
@@ -115,23 +121,26 @@ class _UsersTabState extends ConsumerState<UsersTab> {
                       PosColumn(
                         label: l.fieldActions,
                         flex: 2,
-                        cellBuilder: (user) => Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.edit, size: 20),
-                              onPressed: () => _showEditDialog(context, ref, roles, user),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.security, size: 20),
-                              onPressed: () => _showEditDialog(context, ref, roles, user, initialTabIndex: 1),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.delete, size: 20),
-                              onPressed: () => _delete(context, ref, user),
-                            ),
-                          ],
-                        ),
+                        cellBuilder: (user) {
+                          final isLast = _isLastAdmin(users, roles, user);
+                          return Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.edit, size: 20),
+                                onPressed: () => _showEditDialog(context, ref, roles, users, user),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.security, size: 20),
+                                onPressed: () => _showEditDialog(context, ref, roles, users, user, initialTabIndex: 1),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete, size: 20),
+                                onPressed: isLast ? null : () => _delete(context, ref, user),
+                              ),
+                            ],
+                          );
+                        },
                       ),
                     ],
                     items: filtered,
@@ -160,14 +169,17 @@ class _UsersTabState extends ConsumerState<UsersTab> {
     BuildContext context,
     WidgetRef ref,
     List<RoleModel> roles,
+    List<UserModel> users,
     UserModel? existing, {
     int initialTabIndex = 0,
   }) async {
+    final isLast = existing != null ? _isLastAdmin(users, roles, existing) : false;
     final result = await showDialog<_UserFormResult>(
       context: context,
       builder: (_) => _UserEditDialog(
         roles: roles,
         existing: existing,
+        isLastAdmin: isLast,
         initialTabIndex: initialTabIndex,
       ),
     );
@@ -271,10 +283,12 @@ class _UserEditDialog extends ConsumerStatefulWidget {
   const _UserEditDialog({
     required this.roles,
     this.existing,
+    this.isLastAdmin = false,
     this.initialTabIndex = 0,
   });
   final List<RoleModel> roles;
   final UserModel? existing;
+  final bool isLastAdmin;
   final int initialTabIndex;
 
   @override
@@ -578,7 +592,7 @@ class _UserEditDialogState extends ConsumerState<_UserEditDialog>
                 };
                 return DropdownMenuItem(value: r.id, child: Text(label));
               }).toList(),
-              onChanged: (v) => _onRoleChanged(v!),
+              onChanged: widget.isLastAdmin ? null : (v) => _onRoleChanged(v!),
             ),
             const SizedBox(height: 12),
             SwitchListTile(
