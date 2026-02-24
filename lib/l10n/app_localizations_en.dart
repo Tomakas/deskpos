@@ -2978,4 +2978,473 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sellEnterQuantity => 'Enter quantity';
+
+  @override
+  String get statsFilterTitle => 'Filter';
+
+  @override
+  String get statsFilterPaymentMethod => 'Payment method';
+
+  @override
+  String get statsFilterTakeaway => 'Type';
+
+  @override
+  String get statsFilterAll => 'All';
+
+  @override
+  String get statsFilterDineIn => 'Dine-in';
+
+  @override
+  String get statsFilterTakeawayOnly => 'Takeaway';
+
+  @override
+  String get statsFilterCategory => 'Category';
+
+  @override
+  String get statsFilterStatus => 'Status';
+
+  @override
+  String get statsFilterApply => 'Apply';
+
+  @override
+  String get statsFilterStorno => 'Storno';
+
+  @override
+  String get statsFilterDiscount => 'Discount';
+
+  @override
+  String get statsFilterWithDiscount => 'With discount';
+
+  @override
+  String get statsFilterWithoutDiscount => 'Without discount';
+
+  @override
+  String get permOrdersCreate => 'Create order';
+
+  @override
+  String get permOrdersView => 'View own orders';
+
+  @override
+  String get permOrdersViewAll => 'View all orders';
+
+  @override
+  String get permOrdersViewPaid => 'View paid bills';
+
+  @override
+  String get permOrdersViewCancelled => 'View cancelled bills';
+
+  @override
+  String get permOrdersViewDetail => 'Order detail in info panel';
+
+  @override
+  String get permOrdersEdit => 'Edit order';
+
+  @override
+  String get permOrdersEditOthers => 'Edit others\' orders';
+
+  @override
+  String get permOrdersVoidItem => 'Void item';
+
+  @override
+  String get permOrdersVoidBill => 'Void bill';
+
+  @override
+  String get permOrdersReopen => 'Reopen bill';
+
+  @override
+  String get permOrdersTransfer => 'Transfer bill';
+
+  @override
+  String get permOrdersSplit => 'Split bill';
+
+  @override
+  String get permOrdersMerge => 'Merge bills';
+
+  @override
+  String get permOrdersAssignCustomer => 'Assign customer';
+
+  @override
+  String get permOrdersBump => 'Bump status';
+
+  @override
+  String get permOrdersBumpBack => 'Bump back status';
+
+  @override
+  String get permPaymentsAccept => 'Accept payment';
+
+  @override
+  String get permPaymentsRefund => 'Refund payment';
+
+  @override
+  String get permPaymentsRefundItem => 'Refund item';
+
+  @override
+  String get permPaymentsMethodCash => 'Cash payment';
+
+  @override
+  String get permPaymentsMethodCard => 'Card payment';
+
+  @override
+  String get permPaymentsMethodVoucher => 'Voucher payment';
+
+  @override
+  String get permPaymentsMethodMealTicket => 'Meal ticket payment';
+
+  @override
+  String get permPaymentsMethodCredit => 'Credit payment';
+
+  @override
+  String get permPaymentsSkipCashDialog => 'Skip cash dialog';
+
+  @override
+  String get permPaymentsAcceptTip => 'Accept tip';
+
+  @override
+  String get permPaymentsAdjustTip => 'Adjust tip';
+
+  @override
+  String get permDiscountsApplyItem => 'Item discount';
+
+  @override
+  String get permDiscountsApplyBill => 'Bill discount';
+
+  @override
+  String get permDiscountsCustom => 'Custom discount';
+
+  @override
+  String get permDiscountsPriceOverride => 'Price override';
+
+  @override
+  String get permDiscountsLoyalty => 'Loyalty discount';
+
+  @override
+  String get permRegisterOpenSession => 'Open register session';
+
+  @override
+  String get permRegisterCloseSession => 'Close register session';
+
+  @override
+  String get permRegisterViewSession => 'View register session';
+
+  @override
+  String get permRegisterViewAllSessions => 'View all sessions';
+
+  @override
+  String get permRegisterCashIn => 'Cash deposit';
+
+  @override
+  String get permRegisterCashOut => 'Cash withdrawal';
+
+  @override
+  String get permRegisterOpenDrawer => 'Open cash drawer';
+
+  @override
+  String get permShiftsClockInOut => 'Clock in/out';
+
+  @override
+  String get permShiftsViewOwn => 'View own shifts';
+
+  @override
+  String get permShiftsViewAll => 'View all shifts';
+
+  @override
+  String get permShiftsManage => 'Manage shifts';
+
+  @override
+  String get permProductsView => 'View products';
+
+  @override
+  String get permProductsViewCost => 'View purchase prices';
+
+  @override
+  String get permProductsManage => 'Manage products';
+
+  @override
+  String get permProductsManageCategories => 'Manage categories';
+
+  @override
+  String get permProductsManageModifiers => 'Manage modifiers';
+
+  @override
+  String get permProductsManageRecipes => 'Manage recipes';
+
+  @override
+  String get permProductsManagePurchasePrice => 'Manage purchase prices';
+
+  @override
+  String get permProductsManageTax => 'Manage tax rates';
+
+  @override
+  String get permProductsManageSuppliers => 'Manage suppliers';
+
+  @override
+  String get permProductsManageManufacturers => 'Manage manufacturers';
+
+  @override
+  String get permProductsSetAvailability => 'Set availability';
+
+  @override
+  String get permStockView => 'View stock';
+
+  @override
+  String get permStockReceive => 'Receive stock';
+
+  @override
+  String get permStockWastage => 'Record wastage';
+
+  @override
+  String get permStockAdjust => 'Adjust stock';
+
+  @override
+  String get permStockCount => 'Stock count';
+
+  @override
+  String get permStockTransfer => 'Stock transfer';
+
+  @override
+  String get permStockSetPriceStrategy => 'Set price strategy';
+
+  @override
+  String get permStockManageWarehouses => 'Manage warehouses';
+
+  @override
+  String get permCustomersView => 'View customers';
+
+  @override
+  String get permCustomersManage => 'Manage customers';
+
+  @override
+  String get permCustomersManageCredit => 'Manage customer credit';
+
+  @override
+  String get permCustomersManageLoyalty => 'Manage loyalty points';
+
+  @override
+  String get permVouchersView => 'View vouchers';
+
+  @override
+  String get permVouchersManage => 'Manage vouchers';
+
+  @override
+  String get permVouchersRedeem => 'Redeem voucher';
+
+  @override
+  String get permVenueView => 'View venue';
+
+  @override
+  String get permVenueReservationsView => 'View reservations';
+
+  @override
+  String get permVenueReservationsManage => 'Manage reservations';
+
+  @override
+  String get permStatsReceipts => 'Receipts (session)';
+
+  @override
+  String get permStatsReceiptsAll => 'Receipts (history)';
+
+  @override
+  String get permStatsSales => 'Sales (session)';
+
+  @override
+  String get permStatsSalesAll => 'Sales (history)';
+
+  @override
+  String get permStatsOrders => 'Orders (session)';
+
+  @override
+  String get permStatsOrdersAll => 'Orders (history)';
+
+  @override
+  String get permStatsTips => 'Tips (session)';
+
+  @override
+  String get permStatsTipsAll => 'Tips (history)';
+
+  @override
+  String get permStatsCashJournal => 'Cash journal (session)';
+
+  @override
+  String get permStatsCashJournalAll => 'Cash journal (history)';
+
+  @override
+  String get permStatsShifts => 'Shifts';
+
+  @override
+  String get permStatsZReports => 'Z-reports';
+
+  @override
+  String get permPrintingReceipt => 'Print receipt';
+
+  @override
+  String get permPrintingReprint => 'Reprint receipt';
+
+  @override
+  String get permPrintingZReport => 'Print Z-report';
+
+  @override
+  String get permPrintingInventoryReport => 'Print inventory report';
+
+  @override
+  String get permDataExport => 'Export data';
+
+  @override
+  String get permDataImport => 'Import data';
+
+  @override
+  String get permDataBackup => 'Backup and restore';
+
+  @override
+  String get permUsersView => 'View users';
+
+  @override
+  String get permUsersManage => 'Manage users';
+
+  @override
+  String get permUsersAssignRoles => 'Assign roles';
+
+  @override
+  String get permUsersManagePermissions => 'Manage permissions';
+
+  @override
+  String get permSettingsCompanyInfo => 'Company info';
+
+  @override
+  String get permSettingsCompanySecurity => 'Security settings';
+
+  @override
+  String get permSettingsCompanyFiscal => 'Fiscal settings';
+
+  @override
+  String get permSettingsCompanyCloud => 'Cloud and sync';
+
+  @override
+  String get permSettingsCompanyDataWipe => 'Wipe data';
+
+  @override
+  String get permSettingsCompanyViewLog => 'View system log';
+
+  @override
+  String get permSettingsCompanyClearLog => 'Clear system log';
+
+  @override
+  String get permSettingsVenueSections => 'Manage sections';
+
+  @override
+  String get permSettingsVenueTables => 'Manage tables';
+
+  @override
+  String get permSettingsVenueFloorPlan => 'Edit floor plan';
+
+  @override
+  String get permSettingsRegisterManage => 'Manage registers';
+
+  @override
+  String get permSettingsRegisterHardware => 'Configure hardware';
+
+  @override
+  String get permSettingsRegisterGrid => 'Edit sell grid';
+
+  @override
+  String get permSettingsRegisterDisplays => 'Manage displays';
+
+  @override
+  String get permSettingsRegisterPaymentMethods => 'Payment methods';
+
+  @override
+  String get permSettingsRegisterTaxRates => 'Tax rates';
+
+  @override
+  String get permSettingsRegisterManageDevices => 'Manage display devices';
+
+  @override
+  String get permGroupOrders => 'Orders';
+
+  @override
+  String get permGroupPayments => 'Payments';
+
+  @override
+  String get permGroupDiscounts => 'Discounts & prices';
+
+  @override
+  String get permGroupRegister => 'Register';
+
+  @override
+  String get permGroupShifts => 'Shifts';
+
+  @override
+  String get permGroupProducts => 'Products & catalog';
+
+  @override
+  String get permGroupStock => 'Stock';
+
+  @override
+  String get permGroupCustomers => 'Customers & loyalty';
+
+  @override
+  String get permGroupVouchers => 'Vouchers';
+
+  @override
+  String get permGroupVenue => 'Venue';
+
+  @override
+  String get permGroupStats => 'Statistics & reports';
+
+  @override
+  String get permGroupPrinting => 'Printing';
+
+  @override
+  String get permGroupData => 'Data';
+
+  @override
+  String get permGroupUsers => 'Users & roles';
+
+  @override
+  String get permGroupSettingsCompany => 'Settings — company';
+
+  @override
+  String get permGroupSettingsVenue => 'Settings — venue';
+
+  @override
+  String get permGroupSettingsRegister => 'Settings — register';
+
+  @override
+  String get tabProfile => 'Profile';
+
+  @override
+  String get tabPermissions => 'Permissions';
+
+  @override
+  String get permissionsResetToRole => 'Reset to role';
+
+  @override
+  String get permissionsCustomized => '(customized)';
+
+  @override
+  String get permissionsResetConfirm =>
+      'Reset all permissions to role template?';
+
+  @override
+  String get statsReceiptDetailTitle => 'Receipt detail';
+
+  @override
+  String get statsReceiptType => 'Type';
+
+  @override
+  String get statsOrderDetailTitle => 'Order detail';
+
+  @override
+  String get statsOrderPrepStarted => 'Prep started';
+
+  @override
+  String get statsOrderReady => 'Ready';
+
+  @override
+  String get statsOrderDelivered => 'Delivered';
+
+  @override
+  String get statsOrderCreated => 'Created';
+
+  @override
+  String get statsOrderItems => 'Items';
 }

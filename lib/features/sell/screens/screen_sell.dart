@@ -1689,8 +1689,14 @@ class _RetailMenuButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
-    final canManage = ref.watch(hasPermissionProvider('settings.manage'));
+    final canStats = ref.watch(hasAnyPermissionInGroupProvider('stats'));
     final canViewOrders = ref.watch(hasPermissionProvider('orders.view'));
+    final canCatalog = ref.watch(hasAnyPermissionInGroupProvider('products'));
+    final canInventory = ref.watch(hasAnyPermissionInGroupProvider('stock'));
+    final canVouchers = ref.watch(hasAnyPermissionInGroupProvider('vouchers'));
+    final canCompanySettings = ref.watch(hasAnyPermissionInGroupProvider('settings_company'));
+    final canVenueSettings = ref.watch(hasAnyPermissionInGroupProvider('settings_venue'));
+    final canRegisterSettings = ref.watch(hasAnyPermissionInGroupProvider('settings_register'));
     final sessionAsync = ref.watch(activeRegisterSessionProvider);
     final hasSession = sessionAsync.valueOrNull != null;
 
@@ -1707,7 +1713,7 @@ class _RetailMenuButton extends ConsumerWidget {
           PopupMenuItem(value: 'cash-journal', height: 48, child: Text(l.billsCashJournal)),
         PopupMenuItem(
           value: 'statistics',
-          enabled: canManage,
+          enabled: canStats,
           height: 48,
           child: Text(l.moreStatistics),
         ),
@@ -1725,38 +1731,38 @@ class _RetailMenuButton extends ConsumerWidget {
         ),
         PopupMenuItem(
           value: 'catalog',
-          enabled: canManage,
+          enabled: canCatalog,
           height: 48,
           child: Text(l.moreCatalog),
         ),
         PopupMenuItem(
           value: 'inventory',
-          enabled: canManage,
+          enabled: canInventory,
           height: 48,
           child: Text(l.billsInventory),
         ),
         PopupMenuItem(
           value: 'vouchers',
-          enabled: canManage,
+          enabled: canVouchers,
           height: 48,
           child: Text(l.vouchersTitle),
         ),
         const PopupMenuDivider(),
         PopupMenuItem(
           value: 'company-settings',
-          enabled: canManage,
+          enabled: canCompanySettings,
           height: 48,
           child: Text(l.moreCompanySettings),
         ),
         PopupMenuItem(
           value: 'venue-settings',
-          enabled: canManage,
+          enabled: canVenueSettings,
           height: 48,
           child: Text(l.moreVenueSettings),
         ),
         PopupMenuItem(
           value: 'register-settings',
-          enabled: canManage,
+          enabled: canRegisterSettings,
           height: 48,
           child: Text(l.moreRegisterSettings),
         ),

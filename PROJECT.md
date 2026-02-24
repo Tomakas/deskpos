@@ -2,7 +2,7 @@
 
 > Konsolidovaná dokumentace projektu EPOS Desktop App.
 >
-> **Poslední aktualizace:** 2026-02-23
+> **Poslední aktualizace:** 2026-02-24
 
 ---
 
@@ -73,7 +73,7 @@ Admin vytvoří firmu, nastaví uživatele, stoly a produkty. Více uživatelů 
 #### Milník 1.4 — Oprávnění (engine)
 
 - **Task1.10** Permission engine — 113 permissions v 17 skupinách, O(1) check přes in-memory Set
-- **Task1.11** Role šablony — helper (19), operator (66), manager (92), admin (113)
+- **Task1.11** Role šablony — helper (19), operator (63), manager (92), admin (113)
 - **Výsledek:** Permission engine a role šablony jsou připraveny. Admin má všech 113 oprávnění.
 
 #### Milník 1.5 — Hlavní obrazovka
@@ -194,6 +194,8 @@ Funkce, které nejsou nezbytné pro základní prodej, ale rozšiřují možnost
 - **Receptury**: rozpad na ingredience přes `product_recipes`, samotná receptura nemá vlastní zásobu
 - **Storno/void**: automatické vrácení zásob (reverzní stock_movement)
 - **Odečítání**: vše s `isStockTracked=true` bez ohledu na `item_type`
+- **Modifikátory**: stock-tracked modifikátory objednávkové položky se odečítají/vracejí společně s hlavní položkou (qty modifikátoru × qty hlavní položky)
+- **Směr dle ceny**: záporná cena položky → inbound movement (přírůstek skladu, např. vratná láhev), kladná → outbound. Receptury vždy outbound/inbound bez ohledu na cenu.
 - **Záporné zásoby povoleny** (běžné v gastronomii)
 - **Nákupní cena při příjemce**: volba strategie per doklad s override per položka (přepsat / ponechat / průměr / vážený průměr)
 - **Prodejní odpisy**: jen `stock_movements` bez `stock_document_id` (nullable FK). Doklady jen pro ruční operace (příjemka, výdejka, inventura, oprava).
@@ -207,20 +209,21 @@ Funkce, které nejsou nezbytné pro základní prodej, ale rozšiřují možnost
 - **Task3.22** ✅ WarehouseRepository — getDefault (lazy init „Hlavní sklad" při prvním přístupu), watchAll. Extends BaseCompanyScopedRepository.
 - **Task3.23** ✅ StockLevelRepository — getOrCreate (lazy init), watchByWarehouse (JOIN s items pro název/unit/purchasePrice), adjustQuantity (delta), setQuantity (absolutní), setMinQuantity. Injektovaný SyncQueueRepository.
 - **Task3.24** ✅ StockDocumentRepository — createDocument (transakce: insert document + movements + adjust stock_levels + update purchase_price dle strategie per položka, enqueue všech dotčených entit). createInventoryDocument (difference-based movements). Logika nákupní ceny: per položka zjistí strategii (item override ?? document strategy), aplikuje dle typu (overwrite/keep/average/weightedAverage). watchByWarehouse, generateDocumentNumber (R-001/W-001/I-001/C-001).
-- **Task3.25** ✅ Automatický odpis v OrderRepository — modifikace `createOrderWithItems`: po insertu pro každý isStockTracked item vytvořit stock_movement (bez stock_document_id). Receptury: rozpad přes product_recipes, odečtení ingrediencí. Modifikace `updateStatus`: při cancelled/voided reverzní stock_movements. Nové závislosti: StockLevelRepository, StockMovementRepository.
+- **Task3.25** ✅ Automatický odpis v OrderRepository — modifikace `createOrderWithItems`: po insertu pro každý isStockTracked item vytvořit stock_movement (bez stock_document_id). Receptury: rozpad přes product_recipes, odečtení ingrediencí. Modifikátory: po zpracování hlavní položky se iterují její modifikátory a pro stock-tracked modifikátory se vytvoří vlastní stock_movement (qty modifikátoru × qty hlavní položky). Směr dle ceny: záporná cena → inbound (přírůstek), kladná → outbound (odpis); receptury vždy outbound. Modifikace `updateStatus`: při cancelled/voided reverzní stock_movements (včetně modifikátorů, se správným směrem dle ceny). Modifikace `voidItem`: reversal jedné položky včetně jejích modifikátorů. Nové závislosti: StockLevelRepository, StockMovementRepository, OrderItemModifierRepository.
 - **Task3.26** ✅ ScreenInventory — fullscreen route `/inventory`, 3 taby (Zásoby, Doklady, Pohyby). Tab Zásoby: DataTable se stock-tracked položkami (Položka, Jednotka, Množství, Min.množství, Nákupní cena, Celková hodnota) + footer s celkovou hodnotou skladu. Tab Doklady: DataTable se skladovými doklady (Číslo, Typ, Datum, Dodavatel, Poznámka, Celkem). Tab Pohyby: DataTable s historií skladových pohybů s vyhledáváním. Tlačítka: Příjemka, Výdejka, Inventura, Oprava. Přístup: tlačítko SKLAD na ScreenBills.
 - **Task3.27** ✅ DialogStockDocument — znovupoužitelný dialog pro příjemku/výdejku/opravu. Pole: dodavatel (dropdown, jen receipt), strategie ceny (dropdown + per-item override, jen receipt), seznam položek (search + quantity + price). Validace: ≥1 položka.
 - **Task3.28** ✅ Inventura — 3-krokový flow: (1) `DialogInventoryType` — výběr scope inventury (blind mode, filtr položek), (2) `DialogInventory` — zadání skutečných stavů, (3) `DialogInventoryResult` — zobrazení rozdílů a potvrzení. Výsledek vytvoří stock_movements a jeden stock_document typu `inventory`.
-- **Výsledek:** Plné skladové hospodářství s evidencí zásob, příjemkami, výdejkami, automatickým odpisem při prodeji (s rozpadem receptur), inventurami a plnou synchronizací přes outbox.
+- **Výsledek:** Plné skladové hospodářství s evidencí zásob, příjemkami, výdejkami, automatickým odpisem při prodeji (s rozpadem receptur a odečtem stock-tracked modifikátorů), směrem pohybu dle ceny (záporná cena → inbound), inventurami a plnou synchronizací přes outbox.
 
 #### Milník 3.6 — Tisk
 
 - ✅ Účtenka — PDF 80mm šířka (thermal receipt styl), generováno lokálně přes `pdf` package, otevřeno v systémovém prohlížeči. Obsahuje: hlavička firmy (název, adresa, IČO, DIČ), info účtu, položky se slevami, DPH rekapitulace, platby se spropitným, patička.
 - ✅ Z-report — PDF A4, kopíruje strukturu `DialogZReport` (session info, tržby, DPH, spropitné, slevy, počty účtů, cash reconciliation, směny).
 - ✅ Fonty — bundled Roboto TTF (české diakritické znaky) v `assets/fonts/`.
-- ✅ Infrastruktura — `lib/core/printing/` (PdfFontLoader, ReceiptData, ReceiptPdfBuilder, ZReportPdfBuilder, InventoryPdfBuilder, PrintingService), provider v `lib/core/data/providers/printing_providers.dart`.
+- ✅ Voucher — PDF 80mm šířka (thermal receipt styl), tisk z `DialogVoucherDetail`. Obsahuje: název firmy, kód voucheru, typ, hodnota, scope (s názvem produktu/kategorie), max. použití, platnost, poznámka.
+- ✅ Infrastruktura — `lib/core/printing/` (PdfFontLoader, ReceiptData, ReceiptPdfBuilder, ZReportPdfBuilder, InventoryPdfBuilder, VoucherPdfBuilder, PrintingService), provider v `lib/core/data/providers/printing_providers.dart`.
 - **Task3.30** Tisk reportů — tržby, prodeje dle kategorií/zaměstnanců (backlog)
-- **Výsledek:** Lze tisknout účtenky a denní uzávěrky do PDF. Kuchyňské tisky a tisk reportů mimo scope v1.
+- **Výsledek:** Lze tisknout účtenky, denní uzávěrky a vouchery do PDF. Kuchyňské tisky a tisk reportů mimo scope v1.
 
 #### Milník 3.7 — Rezervace
 
@@ -733,21 +736,22 @@ Deklarativní routing s auth guardem:
 /bills               → ScreenBills (hlavní obrazovka)
 /sell                → ScreenSell (rychlý prodej — bez billId)
 /sell/:billId        → ScreenSell (objednávka na existující účet)
-/settings/company    → ScreenCompanySettings (Firma, Uživatelé, Zabezpečení, Cloud, Daň. sazby, Plat. metody, Log) — vyžaduje settings.manage
-/settings/venue      → ScreenVenueSettings (Sekce, Stoly, Mapa podlaží) — vyžaduje settings.manage
-/settings/register   → ScreenRegisterSettings (Režim, Prodej) — vyžaduje settings.manage
-/catalog             → ScreenCatalog (7 tabů: Produkty, Kategorie, Skupiny modifikátorů, Dodavatelé, Výrobci, Receptury, Zákazníci) — vyžaduje settings.manage
-/inventory           → ScreenInventory (3 taby: Zásoby, Doklady, Pohyby) + akční tlačítka (Příjemka, Výdejka, Oprava, Inventura) — vyžaduje settings.manage
+/settings/company    → ScreenCompanySettings (Firma, Uživatelé, Zabezpečení, Cloud, Daň. sazby, Plat. metody, Log) — vyžaduje settings_company.*
+/settings/venue      → ScreenVenueSettings (Sekce, Stoly, Mapa podlaží) — vyžaduje settings_venue.*
+/settings/register   → ScreenRegisterSettings (Režim, Prodej) — vyžaduje settings_register.*
+/catalog             → ScreenCatalog (7 tabů: Produkty, Kategorie, Skupiny modifikátorů, Dodavatelé, Výrobci, Receptury, Zákazníci) — vyžaduje products.*
+/inventory           → ScreenInventory (3 taby: Zásoby, Doklady, Pohyby) + akční tlačítka (Příjemka, Výdejka, Oprava, Inventura) — vyžaduje stock.*
 /orders              → ScreenOrders (přehled objednávek, kartový seznam, filtry, akce) — vyžaduje orders.view
 /kds                 → ScreenKds (kuchyňský displej, touch-optimized grid, status bumping) — volba na login obrazovce
-/vouchers            → ScreenVouchers (správa voucherů) — vyžaduje settings.manage
+/vouchers            → ScreenVouchers (správa voucherů) — vyžaduje vouchers.*
+/statistics          → ScreenStatistics (Receipts, Sales, Shifts, Z-Reports, Tips, Orders taby) — vyžaduje stats.*
 /customer-display    → ScreenCustomerDisplay (idle nebo active mód via `?code=` query param)
 /display-code        → ScreenDisplayCode (6-digit kód pro spárování displeje, `?type=` query param — default `customer_display`)
 ```
 
 **Auth guard:** Router čeká na `appInitProvider`. Nepřihlášený uživatel je přesměrován na `/login`. Pokud neexistuje firma, přesměrování na `/onboarding`. Po přihlášení se z auth/onboarding stránek přesměruje na `/bills` (POS režim) nebo `/kds` (KDS režim — dle volby na login obrazovce).
 
-**Permission guard:** Routy `/settings/*` vyžadují odpovídající `settings_company.*` / `settings_venue.*` / `settings_register.*` oprávnění. `/catalog` vyžaduje `products.view`, `/vouchers` vyžaduje `vouchers.view`, `/inventory` vyžaduje `stock.view`. Routa `/orders` vyžaduje `orders.view`. Route `/kds` nemá permission guard (režim se volí při přihlášení). Route `/customer-display` a `/display-code` nemají permission guard (veřejný displej). Bez oprávnění se uživatel přesměruje na `/bills`.
+**Permission guard:** Každá chráněná routa používá `hasAnyPermissionInGroupProvider` — uživatel se na obrazovku dostane, pokud má **alespoň jedno** oprávnění z příslušné skupiny. Routy `/settings/*` vyžadují odpovídající `settings_company.*` / `settings_venue.*` / `settings_register.*`. `/catalog` vyžaduje `products.*`, `/inventory` vyžaduje `stock.*`, `/vouchers` vyžaduje `vouchers.*`, `/statistics` vyžaduje `stats.*`. Routa `/orders` vyžaduje konkrétní `orders.view`. Route `/kds` nemá permission guard (režim se volí při přihlášení). Route `/customer-display` a `/display-code` nemají permission guard (veřejný displej). Bez oprávnění se uživatel přesměruje na `/bills`.
 
 ---
 
@@ -775,7 +779,7 @@ lib/
 │   │   └── tables/                    # Definice tabulek (44 souborů: 43 tabulek + mixin)
 │   ├── widgets/                       # PosTable<T>, PosTableToolbar, PosDialogShell, PosDialogActions, PosDialogTheme, PosNumpad, LockOverlay, InactivityDetector, PosColorPalette, PairingConfirmationListener
 │   ├── utils/                         # search_utils.dart, formatters.dart, formatting_ext.dart, file_opener.dart
-│   ├── printing/                      # PdfFontLoader, ReceiptData, ReceiptPdfBuilder, ZReportPdfBuilder, InventoryPdfBuilder, PrintingService
+│   ├── printing/                      # PdfFontLoader, ReceiptData, ReceiptPdfBuilder, ZReportPdfBuilder, InventoryPdfBuilder, VoucherPdfBuilder, PrintingService
 │   ├── routing/                       # GoRouter + auth guard (app_router.dart)
 │   ├── network/                       # Supabase konfigurace (URL, anon key)
 │   ├── sync/                          # Sync engine
@@ -1069,7 +1073,7 @@ Všechny aktivní tabulky obsahují společné sync sloupce (viz [SyncColumnsMix
 
 | Tabulka | Sloupce |
 |---------|---------|
-| **vouchers** | id (T), company_id →companies, code (T), type (T — VoucherType), status (T — VoucherStatus), value (I), discount_type (T? — DiscountType), discount_scope (T? — VoucherDiscountScope), item_id →items?, category_id →categories?, min_order_value (I?), max_uses (I, default 1), used_count (I, default 0), customer_id →customers?, source_bill_id →bills?, redeemed_on_bill_id →bills?, expires_at (D?), redeemed_at (D?), note (T?) |
+| **vouchers** | id (T), company_id →companies, code (T), type (T — VoucherType), status (T — VoucherStatus), value (I), discount_type (T? — DiscountType), discount_scope (T? — VoucherDiscountScope), item_id →items?, category_id →categories?, min_order_value (I?), max_uses (I, default 1), used_count (I, default 0), customer_id →customers?, source_bill_id →bills?, redeemed_on_bill_id →bills?, expires_at (D?), redeemed_at (D?), created_by_user_id (T?), note (T?) |
 
 ##### Sklad
 
@@ -1144,7 +1148,7 @@ Všechny aktivní tabulky obsahují společné sync sloupce (viz [SyncColumnsMix
 
 | Tabulka | Důvod |
 |---------|-------|
-| audit_log | Audit trail, write-only (zapisuje Ingest Edge Function). RLS zapnuto bez policy = implicitní deny pro všechny role. Zápis pouze přes Edge Functions (service_role). |
+| audit_log | Audit trail, write-only (zapisuje Ingest Edge Function). RLS zapnuto, SELECT policy `audit_log_select_own` pro `authenticated` (company-scoped). Zápis pouze přes Edge Functions (service_role). |
 
 #### Timestamp konvence
 
@@ -1360,7 +1364,7 @@ graph TD
 **Architektura:**
 - Server-side AFTER INSERT OR UPDATE triggers (`trg_{table}_broadcast`) na 36 company-scoped tabulkách
 - Trigger funkce `broadcast_sync_change()` (35 tabulek s `company_id`) a `broadcast_company_sync_change()` (tabulka `companies` s `id`) volají `realtime.send()` s `to_jsonb(NEW)` do kanálu `sync:{company_id}`
-- Triggers jsou `SECURITY DEFINER` (přístup k `realtime` schématu) s `EXCEPTION WHEN OTHERS` (best-effort, nezablokují DML)
+- Triggers jsou `SECURITY DEFINER` s `SET search_path = 'public'` (přístup k `realtime` schématu) s `EXCEPTION WHEN OTHERS` (best-effort, nezablokují DML)
 - Klient: jeden `RealtimeChannel` (`sync:{companyId}`) s `onBroadcast(event: 'change')`
 - Callback: `_handleBroadcast` → `SyncService.mergeRow` (LWW merge přes `insertOnConflictUpdate`)
 - Pouze INSERT a UPDATE — systém používá soft deletes (UPDATE na `deleted_at`), hard DELETE se nevyskytuje
@@ -1534,7 +1538,24 @@ ALTER TABLE bills ADD COLUMN customer_name text;
 -- 3. Broadcast from Database triggers (see 20260222_001_add_broadcast_triggers.sql)
 -- Triggers on 36 tables call realtime.send() to push changes to sync:{company_id} channel.
 
--- 4. Verify RLS SELECT policies allow company-scoped reads for all users
+-- 4. Voucher: created_by_user_id
+ALTER TABLE vouchers ADD COLUMN created_by_user_id text;
+
+-- 5. Voucher discount on order_items
+ALTER TABLE order_items ADD COLUMN voucher_discount integer NOT NULL DEFAULT 0;
+
+-- 6. Audit fixes (audit_fixes_schema + audit_fixes_manager_role migrations):
+--    - K3: ALTER TYPE role_name ADD VALUE 'manager' + INSERT manager role row
+--    - V1: SET search_path = 'public' on broadcast_sync_change, broadcast_company_sync_change
+--    - S1: RLS SELECT policy audit_log_select_own for authenticated
+--    - S2: 7 FK indexes on modifier tables (item_modifier_groups, modifier_group_items, order_item_modifiers)
+--    - S3: Modifier RLS policies fixed from public → authenticated role
+
+-- 7. Permissions 113 (permissions_113 migration):
+--    - Replaces 16 seed permissions with 113 granular permissions in 17 groups
+--    - 287 role_permission assignments (helper: 19, operator: 63, manager: 92, admin: 113)
+
+-- 8. Verify RLS SELECT policies allow company-scoped reads for all users
 ```
 
 ---
@@ -1598,6 +1619,10 @@ Algoritmus:
 - **Statistiky (Sales tab):** voucher sleva atribuována k jednotlivým položkám v `_SalesRow.voucherDiscount`; bill-level `_salesTotalVoucherDiscount` zobrazuje pouze neatribuovaný zbytek (gift/deposit vouchery)
 
 **Redeem/unredeem:** `VoucherRepository.redeem()` přijímá `usesConsumed` (počet pokrytých jednotek, ne hardcoded 1). `VoucherRepository.unredeem()` vrací uses zpět (dekrementuje `usedCount`, nastaví `status = active` pokud `usedCount < maxUses`).
+
+**Odebrání voucheru z účtu:** Tlačítko VOUCHER v Bill Detail funguje jako toggle — pokud účet má voucher, zobrazí „Zrušit voucher" s potvrzením. Sekvence: unredeem (spočítá uses z položek s voucherDiscount > 0) → `OrderRepository.clearVoucherDiscounts` (vynuluje per-item voucherDiscount, enqueue, přepočet totálů) → `BillRepository.removeVoucher` (vymaže bill-level voucher pole). Freeze-on-apply strategie: po aplikaci voucheru přidání nových položek nevyvolá přepočet; uživatel musí voucher ručně odebrat a znovu aplikovat.
+
+**Odebrání slevy z účtu:** Tlačítko SLEVA v Bill Detail funguje jako toggle — pokud účet má slevu, zobrazí „Zrušit slevu" s potvrzením → `BillRepository.updateDiscount(billId, DiscountType.absolute, 0)`.
 
 ### Platební metody
 
@@ -1939,10 +1964,10 @@ stateDiagram-v2
 #### OrderRepository
 
 - **Query:** watchByBill, watchByCompany, watchOrderItems, getOrderItems, getOrderItemsByBill, watchLastOrderTimesByCompany
-- **Business:** createOrderWithItems (s orderNotes a item notes + automatický stock odpis), updateStatus (s automatickým reversal stock při cancelled/voided), markReady, markDelivered, cancelOrder, voidOrder, updateItemStatus (per-item status s odvozeným order status), voidItem (void jedné položky + storno order), updateOrderNotes, updateItemNotes, updateItemDiscount, reassignOrdersToBill (přesun všech objednávek mezi účty — pro merge), splitItemsToNewOrder (vytvoření nové objednávky na cílovém účtu a přesun vybraných položek — pro split; automaticky zruší zdrojové objednávky bez zbývajících položek)
-- **Stock deduction:** Po `createOrderWithItems` automaticky volá `_deductStockForOrder` mimo hlavní transakci (po úspěšném insertu objednávky) — pro každý `isStockTracked` item vytvoří `stock_movement` (outbound, bez stock_document_id). Receptury (`item_type == recipe`): rozpad přes `product_recipes`, odečtení ingrediencí místo receptury samotné.
-- **Stock reversal:** Při `updateStatus` do cancelled/voided volá `_reverseStockForOrder` — vytvoří reverzní inbound movements pro všechny dříve odečtené položky.
-- **Závislosti:** Injektovaný `SyncQueueRepository`, volitelné `StockLevelRepository` a `StockMovementRepository` (pro stock odpis/reversal)
+- **Business:** createOrderWithItems (s orderNotes a item notes + automatický stock odpis), updateStatus (s automatickým reversal stock při cancelled/voided), markReady, markDelivered, cancelOrder, voidOrder, updateItemStatus (per-item status s odvozeným order status), voidItem (void jedné položky + storno order), updateOrderNotes, updateItemNotes, updateItemDiscount, clearVoucherDiscounts (vynuluje `voucherDiscount` na všech položkách účtu, enqueue + přepočet totálů — pro odebrání voucheru), reassignOrdersToBill (přesun všech objednávek mezi účty — pro merge), splitItemsToNewOrder (vytvoření nové objednávky na cílovém účtu a přesun vybraných položek — pro split; automaticky zruší zdrojové objednávky bez zbývajících položek)
+- **Stock deduction:** Po `createOrderWithItems` automaticky volá `_deductStockForOrder` mimo hlavní transakci (po úspěšném insertu objednávky) — pro každý `isStockTracked` item vytvoří `stock_movement` (bez stock_document_id). Směr dle ceny: záporná cena položky → inbound (přírůstek skladu, např. vratná láhev), kladná → outbound (odpis). Receptury (`item_type == recipe`): rozpad přes `product_recipes`, odečtení ingrediencí místo receptury samotné (vždy outbound). Po zpracování hlavní položky se iterují její modifikátory — pro každý stock-tracked modifikátor se vytvoří vlastní stock_movement (qty modifikátoru × qty hlavní položky, směr dle ceny modifikátoru).
+- **Stock reversal:** Při `updateStatus` do cancelled/voided volá `_reverseStockForOrder` — vytvoří reverzní movements (opačný směr dle ceny) pro hlavní položky i jejich modifikátory. `_reverseStockForSingleItem` (při voidItem) reverzuje jednu položku včetně jejích modifikátorů přes `orderItemModifierRepo.getByOrderItem()`.
+- **Závislosti:** Injektovaný `SyncQueueRepository`, volitelné `StockLevelRepository`, `StockMovementRepository` a `OrderItemModifierRepository` (pro stock odpis/reversal včetně modifikátorů)
 - **Sync:** Ruční enqueue — `_enqueueOrder`, `_enqueueOrderItem`. createOrderWithItems enqueueuje order + všechny items. updateStatus enqueueuje order + všechny items (delegující metody cancelOrder, voidOrder, markReady, markDelivered automaticky pokryty přes updateStatus).
 
 #### PaymentRepository
@@ -2011,6 +2036,12 @@ stateDiagram-v2
 - **Query:** getAll, getRolePermissions, getUserPermissions, watchUserPermissionCodes (reaktivní Set<String>)
 - **Business:** applyRoleToUser (soft-delete existujících user_permissions + vytvoření nových z role šablony)
 - **Sync:** Injektovaný `SyncQueueRepository`, ruční enqueue `_enqueueUserPermission` po každé mutaci
+
+#### VoucherRepository
+
+- **Extends:** `BaseCompanyScopedRepository<VoucherModel>` — automatický CRUD + sync
+- **Query:** watchFiltered (company + volitelný filtr typu a stavu)
+- **Business:** create (generování unikátního kódu, validace, uložení s `createdByUserId`), redeem (inkrementuje `usedCount` o `usesConsumed`, nastaví status/redeemedAt/redeemedOnBillId pokud plně využit), unredeem (dekrementuje `usedCount`, nastaví `status = active` pokud `usedCount < maxUses`, vymaže redeemedAt/redeemedOnBillId), validate (kontrola expirace, stavu, limitu použití, min. hodnoty účtu, zákazníka)
 
 ---
 
@@ -2124,7 +2155,7 @@ Po odeslání formuláře se v jedné transakci vytvoří:
 | TaxRate | 3 | Základní 21% (`regular`), Snížená 12% (`regular`), Nulová 0% (`noTax`), is_default: Základní=true |
 | Permission | 113 | Viz [Katalog oprávnění](#katalog-oprávnění-113) — 17 skupin |
 | Role | 4 | helper, operator, manager, admin |
-| RolePermission | 290 | helper: 19, operator: 66, manager: 92, admin: 113 |
+| RolePermission | 287 | helper: 19, operator: 63, manager: 92, admin: 113 |
 | PaymentMethod | 5 | Viz [Platební metody](#platební-metody), vč. Zákaznický kredit (credit) a Stravenky (voucher) |
 | Section | 1 (3 s demo) | Hlavní (zelená). S `withTestData`: + Zahrádka (oranžová), Interní (šedá) |
 | Table | 0 (18 s demo) | S `withTestData`: Hlavní: Stůl 1–7 + Bar 1–3 (kap. 4, 4×4 / 2×2), Zahrádka: Stolek 1–5 (kap. 2, 2×2), Interní: Majitel, Repre, Odpisy (kap. 0, off-map) |
@@ -2192,7 +2223,7 @@ Systém oprávnění funguje **offline-first**. Veškerá data jsou uložena lok
 ┌─────────────────────▼───────────────────────────────┐
 │  role_permissions (šablony)                         │
 │  Vazba role → permission, read-only                 │
-│  admin: 113, manager: 92, operator: 66, helper: 19  │
+│  admin: 113, manager: 92, operator: 63, helper: 19  │
 └─────────────────────┬───────────────────────────────┘
                       │  "Přiřadit roli" = zkopírovat permission_ids
                       ▼
@@ -2209,6 +2240,9 @@ Systém oprávnění funguje **offline-first**. Veškerá data jsou uložena lok
 ┌─────────────────────▼───────────────────────────────┐
 │  hasPermissionProvider('orders.void_item')           │
 │  → true / false (O(1) contains)                     │
+├─────────────────────────────────────────────────────┤
+│  hasAnyPermissionInGroupProvider('products')         │
+│  → true pokud existuje jakýkoli 'products.*' kód    │
 └─────────────────────────────────────────────────────┘
 ```
 
@@ -2217,11 +2251,9 @@ Systém oprávnění funguje **offline-first**. Veškerá data jsou uložena lok
 | Role | Český název | Oprávnění | Popis |
 |------|-------------|:---------:|-------|
 | `helper` | Pomocník / Číšník | 19 | Základní obsluha — objednávky, platby, vidí jen své věci |
-| `operator` | Směnový vedoucí | 66 | Řídí směnu — storna, refundace, slevy, pokladní operace, statistiky (session) |
+| `operator` | Směnový vedoucí | 63 | Řídí směnu — storna, refundace, slevy, pokladní operace, statistiky (session) |
 | `manager` | Manažer | 92 | Řídí provoz — katalog, sklad, statistiky (historie), zaměstnanci, nastavení provozovny |
 | `admin` | Administrátor / Majitel | 113 | Plný přístup — systém, daně, data, role, destruktivní akce |
-
-> **Aktuální stav:** Seed SQL má zatím jen starých 16 permissions. Manager má dočasně všech 16 (= admin). Migrace na 113 permissions proběhne v dalším kroku.
 
 ### Katalog oprávnění (113)
 
@@ -2510,7 +2542,7 @@ Odpovídá obrazovce **Nastavení pokladny** (terminály, hardware, grid, disple
 
 #### Operator (Směnový vedoucí)
 
-> **66 oprávnění.** Vše od helpera + storna, refundace, slevy, pokladní
+> **63 oprávnění.** Vše od helpera + storna, refundace, slevy, pokladní
 > operace, odpisy, správa zákazníků a rezervací. Plný detail v objednávkách.
 > Statistiky omezeny na aktuální session (bez date range selectoru).
 > Řídí provoz během směny.
@@ -2534,7 +2566,7 @@ Odpovídá obrazovce **Nastavení pokladny** (terminály, hardware, grid, disple
 | settings_company | — | 0 |
 | settings_venue | — | 0 |
 | settings_register | — | 0 |
-| | **Celkem** | **66** |
+| | **Celkem** | **63** |
 
 #### Manager (Manažer)
 
@@ -2613,14 +2645,14 @@ Odpovídá obrazovce **Nastavení pokladny** (terminály, hardware, grid, disple
 | settings_company | 7 | 0 | 0 | 0 | 7 |
 | settings_venue | 3 | 0 | 0 | 3 | 3 |
 | settings_register | 7 | 0 | 0 | 2 | 7 |
-| **Celkem** | **113** | **19** | **66** | **92** | **113** |
+| **Celkem** | **113** | **19** | **63** | **92** | **113** |
 
 #### Progrese mezi rolemi
 
 | Přechod | Nových oprávnění | Hlavní oblasti |
 |---------|:----------------:|----------------|
-| helper → operator | +47 | Storna, refundace, slevy, pokladní operace, statistiky (session) |
-| operator → manager | +26 | Katalog, sklad, zaměstnanci, statistiky (historie + směny + uzávěrky), nastavení provozovny |
+| helper → operator | +44 | Storna, refundace, slevy, pokladní operace, statistiky (session) |
+| operator → manager | +29 | Katalog, sklad, zaměstnanci, statistiky (historie + směny + uzávěrky), nastavení provozovny |
 | manager → admin | +21 | Systém, daně, ceny, data, role, hardware, destruktivní akce |
 
 ### Přiřazení role uživateli
@@ -2860,7 +2892,7 @@ Dialog (750×520px) s informacemi o účtu a historií objednávek. 3-řádkový
 
 **Header:** Název stolu (nebo "Rychlý účet" pro isTakeaway), celková útrata v Kč, čas vytvoření (d.M.yyyy HH:mm), čas poslední objednávky (streamováno)
 **Centrum:** Historie objednávek — čas (HH:mm), množství (N ks), položka, cena, barevný status indikátor (● — modrá/oranžová/zelená/šedá/červená dle PrepStatus), PopupMenu pro změnu stavu (⋮). Tap na položku otevřeného účtu → dialog (poznámka + sleva + tlačítko STORNO → void položky → storno order). Tap na položku zaplaceného účtu → refund per-item. Storno ordery se v historii zobrazují červeně s prefixem "STORNO" a referencí na původní order.
-**Pravý sloupec (100px):** 9 tlačítek — Zákazník (jen pro otevřené → DialogCustomerSearch), Přesunout, Sloučit, Rozdělit, Sumář/Historie (toggle), Sleva, Loyalty Redeem (jen pro otevřené s přiřazeným zákazníkem → DialogLoyaltyRedeem), Voucher (jen pro otevřené → DialogVoucherRedeem), Tisk (→ DialogReceiptPreview). Tisk má modrou tónovanou barvu. Sloučit/Rozdělit/Přesunout/Sleva aktivní jen pro otevřené účty.
+**Pravý sloupec (100px):** 9 tlačítek — Zákazník (jen pro otevřené → DialogCustomerSearch), Přesunout, Sloučit, Rozdělit, Sumář/Historie (toggle), Sleva (toggle: apply/remove — pokud účet má slevu, zobrazí „Zrušit slevu" s potvrzením), Loyalty Redeem (jen pro otevřené s přiřazeným zákazníkem → DialogLoyaltyRedeem), Voucher (toggle: apply/remove — pokud účet má voucher, zobrazí „Zrušit voucher" s potvrzením a odebrání per-item voucherDiscount), Tisk (→ DialogReceiptPreview). Tisk má modrou tónovanou barvu. Sloučit/Rozdělit/Přesunout/Sleva/Voucher aktivní jen pro otevřené účty.
 **Bottom:** Podmíněný footer dle stavu účtu:
   - Otevřený bill: ZAVŘÍT (červená), STORNO (outlined červená, s potvrzením → cancelBill), ZAPLATIT (zelená, jen pokud totalGross > 0 → DialogPayment), OBJEDNAT (modrá → `/sell/{billId}`)
   - Zaplacený bill: ZAVŘÍT + TISK ÚČTENKY (tonal → DialogReceiptPreview) + REFUND (oranžová, s potvrzením → refundBill). Klik na položku → refund per-item (s potvrzením).
@@ -2875,14 +2907,14 @@ Dialog (750×520px) s informacemi o účtu a historií objednávek. 3-řádkový
 | STORNO | E2 | Storno účtu (cancelBill, s potvrzením) |
 | ZAVŘÍT | E2 | Zavře dialog (Navigator.pop) |
 | REFUND | E3.2 | Refund celého účtu (jen pro paid bill, s potvrzením) |
-| SLEVA | E3.2 | Sleva na účet (DialogDiscount, jen pro opened bill) |
+| SLEVA | E3.2 | Toggle: pokud účet nemá slevu → DialogDiscount; pokud účet má slevu → potvrzovací dialog → odebrání slevy (updateDiscount na 0) |
 | ZÁKAZNÍK | E3.7 | Přiřazení zákazníka k účtu (DialogCustomerSearch, jen pro otevřené účty) |
 | PŘESUNOUT | E3.2 | Přesun na jiný stůl (DialogNewBill s předvyplněnými hodnotami → moveBill) |
 | SLOUČIT | E3.2 | Sloučení účtů — DialogMergeBill (výběr cílového otevřeného účtu → mergeBill, zdrojový účet cancelled, otevře se detail cílového) |
 | ROZDĚLIT | E3.2 | Rozdělení účtu — DialogSplitBill (výběr položek, dva režimy: "rozdělit a zaplatit" → nový účet + DialogPayment, "rozdělit na nový účet" → DialogNewBill + nový účet) |
 | SUMÁŘ | E3.2 | Toggle sumář/historie objednávek (seskupené položky dle názvu a ceny) |
 | LOYALTY | E3.7 | Uplatnění věrnostních bodů (DialogLoyaltyRedeem, jen pro otevřené účty s přiřazeným zákazníkem) |
-| VOUCHER | E3.7 | Uplatnění voucheru (DialogVoucherRedeem → zadání kódu → validace → aplikace slevy) |
+| VOUCHER | E3.7 | Toggle: pokud účet nemá voucher → DialogVoucherRedeem (zadání kódu → validace → aplikace slevy); pokud účet má voucher → potvrzovací dialog → odebrání voucheru (unredeem uses, clearVoucherDiscounts, removeVoucher) |
 | TISK | E3.7 | Tisk účtenky (DialogReceiptPreview — PDF generace a náhled) |
 
 #### DialogPayment (platba účtu)
@@ -3028,6 +3060,7 @@ Layout: **7 tabů + inline editace**
 | Kategorie | Název, Nadřazená kategorie (dropdown), Aktivní, Akce |
 | Dodavatelé | Název, Kontaktní osoba, E-mail, Telefon, Akce |
 | Výrobci | Název, Akce |
+| Sk.modifikátorů | Název skupiny, Min. výběr, Max. výběr; editační dialog: název, min/max, seznam položek skupiny (přidání z libovolných položek kromě receptur) |
 | Receptury | Nadřazený produkt (dropdown), Složka (dropdown), Požadované množství, Akce |
 | Zákazníci | Jméno, Telefon, Body, Kredit, Akce |
 
@@ -3221,7 +3254,7 @@ Funkce, které nejsou součástí aktuálního plánu. Mohou se přidat kdykoli 
 
 ### CRM a zákazníci (rozšíření)
 
-> **Implementováno:** Tabulky `customers` a `customer_transactions` existují, zákaznický tab v katalogu funguje, `company_settings` obsahuje loyalty sloupce (`loyalty_earn_rate`, `loyalty_point_value`), `bills` obsahují `customer_id`, `loyalty_points_used`, `loyalty_discount_amount`. Věrnostní program — `DialogLoyaltyRedeem` pro uplatnění bodů, `BillRepository.applyLoyaltyDiscount`. Voucher systém — kompletní implementace: tabulka `vouchers` (19 sloupců), 3 enumy (`VoucherType`, `VoucherStatus`, `VoucherDiscountScope`), `VoucherRepository` (validace, redeem, unredeem, generování kódů), UI: `ScreenVouchers` (správa), `DialogVoucherCreate`, `DialogVoucherDetail`, `DialogVoucherRedeem` (uplatnění na účtu), `BillRepository.applyVoucher/removeVoucher`. Route `/vouchers` s `settings.manage` guardem. Scope-aware výpočet slevy: `VoucherDiscountCalculator` s per-item atribucí, zobrazení v Bill Detail (rozdělení položek + přeškrtnutí), účtenka (PDF řádek „Voucher: −X"), statistiky (per-item breakdown). Storno účtu vrací voucher uses přes `unredeem()`.
+> **Implementováno:** Tabulky `customers` a `customer_transactions` existují, zákaznický tab v katalogu funguje, `company_settings` obsahuje loyalty sloupce (`loyalty_earn_rate`, `loyalty_point_value`), `bills` obsahují `customer_id`, `loyalty_points_used`, `loyalty_discount_amount`. Věrnostní program — `DialogLoyaltyRedeem` pro uplatnění bodů, `BillRepository.applyLoyaltyDiscount`. Voucher systém — kompletní implementace: tabulka `vouchers` (20 sloupců vč. `created_by_user_id`), 3 enumy (`VoucherType`, `VoucherStatus`, `VoucherDiscountScope`), `VoucherRepository` (validace, redeem, unredeem, generování kódů), UI: `ScreenVouchers` (správa — sloupce: kód, typ, hodnota, stav (vystředěný), vytvořeno, platnost, použito (vystředěný), poznámka; filtry dle typu a stavu), `DialogVoucherCreate` (scope chipy s okamžitým otevřením pickeru a zobrazením vybraného názvu, hodnota+max. použití na jednom řádku, zobrazení jednotky Kč/% u částky, cap 100 % pro procentní slevu, poznámka, defaultní platnost 1 rok, uložení `createdByUserId`), `DialogVoucherDetail` (typ, stav, hodnota, scope s názvem produktu/kategorie, max. použití, použito, platnost, vytvořeno, vytvořil, poznámka (vždy zobrazena), tisk voucheru do PDF 80mm, zrušení voucheru), `DialogVoucherRedeem` (uplatnění na účtu), `BillRepository.applyVoucher/removeVoucher`, `OrderRepository.clearVoucherDiscounts`. Route `/vouchers` s `settings.manage` guardem. Scope-aware výpočet slevy: `VoucherDiscountCalculator` s per-item atribucí, zobrazení v Bill Detail (rozdělení položek + přeškrtnutí), účtenka (PDF řádek „Voucher: −X"), statistiky (per-item breakdown). Storno účtu vrací voucher uses přes `unredeem()`. Tisk voucheru: `VoucherPdfBuilder` (80mm receipt PDF s údaji voucheru), `PrintingService.generateVoucherPdf`, tlačítko v `DialogVoucherDetail`.
 
 - Zákaznický tier systém
 
@@ -3229,7 +3262,7 @@ Funkce, které nejsou součástí aktuálního plánu. Mohou se přidat kdykoli 
 
 > **Implementováno:** Vizuální mapa stolů — `FloorMapView` (runtime, per-sekce) + `FloorMapEditorTab` (editor v nastavení provozovny). Mřížka 32×20, drag & drop přesun, tvar stolu (rectangle/round), grid pozice na tabulce `tables` (grid_row, grid_col, grid_width, grid_height, shape). Dekorativní prvky mapy (stěny, bary, zóny, popisky) — tabulka `map_elements` s volitelnou barvou a textem. Editor: single tap = výběr s 4 rohovými resize handles, double tap = edit dialog, long press = drag přesun. Runtime: neinteraktivní vrstvení (barevné prvky pod stoly, textové nad).
 
-> **Implementováno:** Modifikátory položek — 4 tabulky (`modifier_groups`, `modifier_group_items`, `item_modifier_groups`, `order_item_modifiers`). Skupiny modifikátorů s pravidly výběru (min/max), přiřazení k produktům (dědičnost na varianty). Sell screen: modifier dialog (povinný pro skupiny s min≥1, volitelný skip pro nepovinné). Košík: modifikátory pod položkou, effectiveUnitPrice = base + Σ(modifier prices). Order tracking: snapshoty v `order_item_modifiers`. Downstream: KDS, customer display, bill detail, receipt PDF. Katalog: tab "Modifikátory" (správa skupin + items), přiřazení skupin k produktům v editačním dialogu. Storno: kopírování modifikátorů do storno objednávky.
+> **Implementováno:** Modifikátory položek — 4 tabulky (`modifier_groups`, `modifier_group_items`, `item_modifier_groups`, `order_item_modifiers`). Skupiny modifikátorů s pravidly výběru (min/max), přiřazení k produktům (dědičnost na varianty). Členem skupiny modifikátorů může být jakýkoli typ položky kromě receptury (`item_type != recipe`) — tj. product, service, counter, ingredient, variant i modifier. Sell screen: modifier dialog (povinný pro skupiny s min≥1, volitelný skip pro nepovinné). Košík: modifikátory pod položkou, effectiveUnitPrice = base + Σ(modifier prices). Order tracking: snapshoty v `order_item_modifiers`. Downstream: KDS, customer display, bill detail, receipt PDF. Katalog: tab "Modifikátory" (správa skupin + items — výběr z libovolných položek kromě receptur), přiřazení skupin k produktům v editačním dialogu. Sklad: stock-tracked modifikátory se odečítají/vracejí společně s hlavní položkou objednávky (qty modifikátoru × qty hlavní položky, směr dle ceny). Storno: kopírování modifikátorů do storno objednávky + reversal skladových pohybů modifikátorů.
 
 > **Pozn.:** Rezervace jsou implementovány v Etapě 3.7 (Milník 3.7).
 
@@ -3379,7 +3412,7 @@ Projekt využívá **Riverpod** jako Service Locator a DI kontejner.
 |--------|-------------------|
 | `database_provider.dart` | `appDatabaseProvider` — singleton Drift DB |
 | `auth_providers.dart` | `sessionManagerProvider`, `authServiceProvider`, `seedServiceProvider`, `deviceIdProvider` (persistent UUID zařízení), `activeUserProvider`, `loggedInUsersProvider`, `companyStreamProvider`, `currentCompanyProvider`, `appInitProvider`, `deviceRegistrationProvider`, `activeRegisterProvider` (null bez device binding), `activeRegisterSessionProvider`, `manualLockProvider` |
-| `permission_providers.dart` | `userPermissionCodesProvider` (reaktivní Set\<String\>), `hasPermissionProvider` (O(1) family check) |
+| `permission_providers.dart` | `userPermissionCodesProvider` (reaktivní Set\<String\>), `hasPermissionProvider` (O(1) family check), `hasAnyPermissionInGroupProvider` (group-level check via `startsWith`) |
 | `repository_providers.dart` | 40 repozitářů — `syncQueueRepositoryProvider`, `syncMetadataRepositoryProvider`, `deviceRegistrationRepositoryProvider`, `companyRepositoryProvider`, `companySettingsRepositoryProvider`, `userRepositoryProvider`, `roleRepositoryProvider`, `permissionRepositoryProvider`, `sectionRepositoryProvider`, `tableRepositoryProvider`, `mapElementRepositoryProvider`, `categoryRepositoryProvider`, `itemRepositoryProvider`, `modifierGroupRepositoryProvider`, `modifierGroupItemRepositoryProvider`, `itemModifierGroupRepositoryProvider`, `orderItemModifierRepositoryProvider`, `taxRateRepositoryProvider`, `paymentMethodRepositoryProvider`, `billRepositoryProvider`, `orderRepositoryProvider`, `registerRepositoryProvider`, `registerSessionRepositoryProvider`, `shiftRepositoryProvider`, `cashMovementRepositoryProvider`, `paymentRepositoryProvider`, `layoutItemRepositoryProvider`, `customerRepositoryProvider`, `reservationRepositoryProvider`, `customerTransactionRepositoryProvider`, `supplierRepositoryProvider`, `manufacturerRepositoryProvider`, `productRecipeRepositoryProvider`, `warehouseRepositoryProvider`, `stockLevelRepositoryProvider`, `stockMovementRepositoryProvider`, `voucherRepositoryProvider`, `stockDocumentRepositoryProvider`, `displayDeviceRepositoryProvider`, `currencyRepositoryProvider` |
 | `sync_providers.dart` | `supabaseAuthServiceProvider`, `supabaseAuthStateProvider`, `isSupabaseAuthenticatedProvider`, `outboxProcessorProvider`, `syncServiceProvider`, `realtimeServiceProvider`, `syncLifecycleManagerProvider`, `customerDisplayChannelProvider`, `pairingChannelProvider`, `pendingPairingRequestProvider`, `pairingListenerProvider`, `syncLifecycleWatcherProvider` |
 | `printing_providers.dart` | `printingServiceProvider` |

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/data/enums/bill_status.dart';
 import '../../../core/data/enums/discount_type.dart';
 import '../../../core/data/models/bill_model.dart';
 import '../../../core/data/models/order_item_model.dart';
@@ -34,11 +35,11 @@ enum _StatSection { receipts, sales, orders, shifts, zReports, tips }
 // ---------------------------------------------------------------------------
 
 enum _ReceiptSort { dateDesc, dateAsc, amountDesc, amountAsc }
-enum _SalesSort { dateDesc, dateAsc, nameAsc, nameDesc, qtyDesc, totalDesc }
-enum _ShiftSort { dateDesc, dateAsc, durationDesc }
-enum _ZReportSort { dateDesc, dateAsc, revenueDesc }
-enum _TipSort { dateDesc, dateAsc, amountDesc }
-enum _OrderSort { dateDesc, dateAsc, amountDesc }
+enum _SalesSort { dateDesc, dateAsc, nameAsc, nameDesc, qtyDesc, qtyAsc, totalDesc, totalAsc }
+enum _ShiftSort { dateDesc, dateAsc, durationDesc, durationAsc }
+enum _ZReportSort { dateDesc, dateAsc, revenueDesc, revenueAsc }
+enum _TipSort { dateDesc, dateAsc, amountDesc, amountAsc }
+enum _OrderSort { dateDesc, dateAsc, amountDesc, amountAsc }
 
 // ---------------------------------------------------------------------------
 // Aggregated row models for Sales tab
@@ -47,6 +48,7 @@ enum _OrderSort { dateDesc, dateAsc, amountDesc }
 class _SalesRow {
   _SalesRow({
     required this.closedAt,
+    required this.billId,
     required this.itemName,
     required this.qty,
     required this.unitPrice,
@@ -57,6 +59,7 @@ class _SalesRow {
     required this.categoryName,
   });
   final DateTime closedAt;  // bill closedAt (for date/time column)
+  final String billId;      // for navigation to bill detail
   final String itemName;
   final double qty;
   final int unitPrice; // effective per-unit price (base + modifiers − discount) / qty
@@ -96,11 +99,13 @@ class _TipRow {
   _TipRow({
     required this.paidAt,
     required this.userName,
+    required this.billId,
     required this.billNumber,
     required this.amount,
   });
   final DateTime paidAt;
   final String userName;
+  final String billId;       // for navigation to bill detail
   final String billNumber;
   final int amount;
 }
@@ -128,6 +133,7 @@ class _ShiftRow {
 
 class _OrderRow {
   _OrderRow({
+    required this.orderId,
     required this.createdAt,
     required this.orderNumber,
     required this.userName,
@@ -135,7 +141,12 @@ class _OrderRow {
     required this.totalGross,
     required this.status,
     required this.isStorno,
+    this.prepStartedAt,
+    this.readyAt,
+    this.deliveredAt,
+    this.notes,
   });
+  final String orderId;           // for loading order items
   final DateTime createdAt;
   final String orderNumber;
   final String userName;
@@ -143,6 +154,10 @@ class _OrderRow {
   final int totalGross;
   final PrepStatus status;
   final bool isStorno;
+  final DateTime? prepStartedAt;
+  final DateTime? readyAt;
+  final DateTime? deliveredAt;
+  final String? notes;
 }
 
 // ---------------------------------------------------------------------------
@@ -172,6 +187,8 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
   final _searchCtrl = TextEditingController();
   String _query = '';
 
+  final _sortButtonKey = GlobalKey();
+
   // Per-section sort
   _ReceiptSort _receiptSort = _ReceiptSort.dateDesc;
   _SalesSort _salesSort = _SalesSort.dateDesc;
@@ -179,6 +196,15 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
   _ZReportSort _zReportSort = _ZReportSort.dateDesc;
   _TipSort _tipSort = _TipSort.dateDesc;
   _OrderSort _orderSort = _OrderSort.dateDesc;
+
+  // Per-section filters
+  Set<String> _receiptPaymentFilter = {};
+  bool? _receiptTakeawayFilter;
+  bool? _receiptDiscountFilter;
+  Set<String> _salesCategoryFilter = {};
+  bool? _salesDiscountFilter;
+  Set<PrepStatus> _orderStatusFilter = {};
+  bool? _orderStornoFilter;
 
   // Per-section data
   List<BillModel> _receipts = [];
@@ -407,6 +433,7 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
       if (existing != null) {
         map[key] = _SalesRow(
           closedAt: closedAt,
+          billId: billId,
           itemName: item.itemName,
           qty: existing.qty + qty,
           unitPrice: effectiveUnitPrice,
@@ -419,6 +446,7 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
       } else {
         map[key] = _SalesRow(
           closedAt: closedAt,
+          billId: billId,
           itemName: item.itemName,
           qty: qty,
           unitPrice: effectiveUnitPrice,
@@ -478,6 +506,7 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
     if (!mounted) return;
 
     final rows = orders.map((o) => _OrderRow(
+      orderId: o.id,
       createdAt: o.createdAt,
       orderNumber: o.orderNumber,
       userName: userMap[o.createdByUserId] ?? '-',
@@ -485,6 +514,10 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
       totalGross: o.subtotalGross,
       status: o.status,
       isStorno: o.isStorno,
+      prepStartedAt: o.prepStartedAt,
+      readyAt: o.readyAt,
+      deliveredAt: o.deliveredAt,
+      notes: o.notes,
     )).toList();
     setState(() => _orderRows = rows);
   }
@@ -578,6 +611,7 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
     final rows = payments.map((p) => _TipRow(
       paidAt: p.paidAt,
       userName: p.userId != null ? (userMap[p.userId]?.username ?? '-') : '-',
+      billId: p.billId,
       billNumber: billMap[p.billId]?.billNumber ?? '-',
       amount: p.tipIncludedAmount,
     )).toList();
@@ -596,6 +630,23 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
 
   List<BillModel> get _filteredReceipts {
     var list = _receipts;
+    if (_receiptPaymentFilter.isNotEmpty) {
+      list = list.where((b) {
+        final methods = _paymentMethods[b.id];
+        if (methods == null) return false;
+        final billMethods = methods.split(', ');
+        return billMethods.any((m) => _receiptPaymentFilter.contains(m));
+      }).toList();
+    }
+    if (_receiptTakeawayFilter != null) {
+      list = list.where((b) => b.isTakeaway == _receiptTakeawayFilter).toList();
+    }
+    if (_receiptDiscountFilter != null) {
+      list = list.where((b) {
+        final hasDiscount = b.discountAmount > 0 || b.loyaltyDiscountAmount > 0 || b.voucherDiscountAmount > 0;
+        return _receiptDiscountFilter! ? hasDiscount : !hasDiscount;
+      }).toList();
+    }
     if (_query.isNotEmpty) {
       final q = normalizeSearch(_query);
       list = list.where((b) =>
@@ -617,6 +668,15 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
 
   List<_SalesRow> get _filteredSales {
     var list = _salesRows;
+    if (_salesCategoryFilter.isNotEmpty) {
+      list = list.where((r) => _salesCategoryFilter.contains(r.categoryName)).toList();
+    }
+    if (_salesDiscountFilter != null) {
+      list = list.where((r) {
+        final hasDiscount = r.discount > 0 || r.voucherDiscount > 0;
+        return _salesDiscountFilter! ? hasDiscount : !hasDiscount;
+      }).toList();
+    }
     if (_query.isNotEmpty) {
       final q = normalizeSearch(_query);
       list = list.where((r) => normalizeSearch(r.itemName).contains(q)).toList();
@@ -632,14 +692,24 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
         list.sort((a, b) => b.itemName.compareTo(a.itemName));
       case _SalesSort.qtyDesc:
         list.sort((a, b) => b.qty.compareTo(a.qty));
+      case _SalesSort.qtyAsc:
+        list.sort((a, b) => a.qty.compareTo(b.qty));
       case _SalesSort.totalDesc:
         list.sort((a, b) => b.total.compareTo(a.total));
+      case _SalesSort.totalAsc:
+        list.sort((a, b) => a.total.compareTo(b.total));
     }
     return list;
   }
 
   List<_OrderRow> get _filteredOrders {
     var list = _orderRows;
+    if (_orderStatusFilter.isNotEmpty) {
+      list = list.where((r) => _orderStatusFilter.contains(r.status)).toList();
+    }
+    if (_orderStornoFilter == true) {
+      list = list.where((r) => r.isStorno).toList();
+    }
     if (_query.isNotEmpty) {
       final q = normalizeSearch(_query);
       list = list.where((r) =>
@@ -653,6 +723,8 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
         list.sort((a, b) => a.createdAt.compareTo(b.createdAt));
       case _OrderSort.amountDesc:
         list.sort((a, b) => b.totalGross.compareTo(a.totalGross));
+      case _OrderSort.amountAsc:
+        list.sort((a, b) => a.totalGross.compareTo(b.totalGross));
     }
     return list;
   }
@@ -670,6 +742,8 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
         list.sort((a, b) => a.loginAt.compareTo(b.loginAt));
       case _ShiftSort.durationDesc:
         list.sort((a, b) => b.duration.compareTo(a.duration));
+      case _ShiftSort.durationAsc:
+        list.sort((a, b) => a.duration.compareTo(b.duration));
     }
     return list;
   }
@@ -689,6 +763,8 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
         list.sort((a, b) => a.closedAt.compareTo(b.closedAt));
       case _ZReportSort.revenueDesc:
         list.sort((a, b) => b.revenue.compareTo(a.revenue));
+      case _ZReportSort.revenueAsc:
+        list.sort((a, b) => a.revenue.compareTo(b.revenue));
     }
     return list;
   }
@@ -708,6 +784,8 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
         list.sort((a, b) => a.paidAt.compareTo(b.paidAt));
       case _TipSort.amountDesc:
         list.sort((a, b) => b.amount.compareTo(a.amount));
+      case _TipSort.amountAsc:
+        list.sort((a, b) => a.amount.compareTo(b.amount));
     }
     return list;
   }
@@ -741,77 +819,72 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
     switch (_section) {
       case _StatSection.receipts:
         _showSortPopup<_ReceiptSort>(
-          items: {
-            _ReceiptSort.dateDesc: l.statsSortDate,
-            _ReceiptSort.dateAsc: l.statsSortDateAsc,
-            _ReceiptSort.amountDesc: l.statsSortAmount,
-            _ReceiptSort.amountAsc: l.statsSortAmountAsc,
-          },
+          fields: [
+            (_ReceiptSort.dateDesc, _ReceiptSort.dateAsc, l.statsSortDate),
+            (_ReceiptSort.amountDesc, _ReceiptSort.amountAsc, l.statsSortAmount),
+          ],
           current: _receiptSort,
           onSelected: (v) => setState(() => _receiptSort = v),
         );
       case _StatSection.sales:
         _showSortPopup<_SalesSort>(
-          items: {
-            _SalesSort.dateDesc: l.statsSortDate,
-            _SalesSort.dateAsc: l.statsSortDateAsc,
-            _SalesSort.nameAsc: l.statsSortName,
-            _SalesSort.nameDesc: l.statsSortNameDesc,
-            _SalesSort.qtyDesc: l.statsSortQty,
-            _SalesSort.totalDesc: l.statsSortAmount,
-          },
+          fields: [
+            (_SalesSort.dateDesc, _SalesSort.dateAsc, l.statsSortDate),
+            (_SalesSort.nameAsc, _SalesSort.nameDesc, l.statsSortName),
+            (_SalesSort.qtyDesc, _SalesSort.qtyAsc, l.statsSortQty),
+            (_SalesSort.totalDesc, _SalesSort.totalAsc, l.statsSortAmount),
+          ],
           current: _salesSort,
           onSelected: (v) => setState(() => _salesSort = v),
         );
       case _StatSection.orders:
         _showSortPopup<_OrderSort>(
-          items: {
-            _OrderSort.dateDesc: l.statsSortDate,
-            _OrderSort.dateAsc: l.statsSortDateAsc,
-            _OrderSort.amountDesc: l.statsSortAmount,
-          },
+          fields: [
+            (_OrderSort.dateDesc, _OrderSort.dateAsc, l.statsSortDate),
+            (_OrderSort.amountDesc, _OrderSort.amountAsc, l.statsSortAmount),
+          ],
           current: _orderSort,
           onSelected: (v) => setState(() => _orderSort = v),
         );
       case _StatSection.shifts:
         _showSortPopup<_ShiftSort>(
-          items: {
-            _ShiftSort.dateDesc: l.statsSortDate,
-            _ShiftSort.dateAsc: l.statsSortDateAsc,
-            _ShiftSort.durationDesc: l.statsSortDuration,
-          },
+          fields: [
+            (_ShiftSort.dateDesc, _ShiftSort.dateAsc, l.statsSortDate),
+            (_ShiftSort.durationDesc, _ShiftSort.durationAsc, l.statsSortDuration),
+          ],
           current: _shiftSort,
           onSelected: (v) => setState(() => _shiftSort = v),
         );
       case _StatSection.zReports:
         _showSortPopup<_ZReportSort>(
-          items: {
-            _ZReportSort.dateDesc: l.statsSortDate,
-            _ZReportSort.dateAsc: l.statsSortDateAsc,
-            _ZReportSort.revenueDesc: l.statsSortRevenue,
-          },
+          fields: [
+            (_ZReportSort.dateDesc, _ZReportSort.dateAsc, l.statsSortDate),
+            (_ZReportSort.revenueDesc, _ZReportSort.revenueAsc, l.statsSortRevenue),
+          ],
           current: _zReportSort,
           onSelected: (v) => setState(() => _zReportSort = v),
         );
       case _StatSection.tips:
         _showSortPopup<_TipSort>(
-          items: {
-            _TipSort.dateDesc: l.statsSortDate,
-            _TipSort.dateAsc: l.statsSortDateAsc,
-            _TipSort.amountDesc: l.statsSortAmount,
-          },
+          fields: [
+            (_TipSort.dateDesc, _TipSort.dateAsc, l.statsSortDate),
+            (_TipSort.amountDesc, _TipSort.amountAsc, l.statsSortAmount),
+          ],
           current: _tipSort,
           onSelected: (v) => setState(() => _tipSort = v),
         );
     }
   }
 
+  /// Each field is (defaultValue, oppositeValue, label).
+  /// Clicking the active field toggles direction; clicking another selects its default.
   void _showSortPopup<T>({
-    required Map<T, String> items,
+    required List<(T, T, String)> fields,
     required T current,
     required ValueChanged<T> onSelected,
   }) {
-    final button = context.findRenderObject()! as RenderBox;
+    final buttonContext = _sortButtonKey.currentContext!;
+    final button = buttonContext.findRenderObject()! as RenderBox;
     final overlay = Overlay.of(context).context.findRenderObject()! as RenderBox;
     final position = RelativeRect.fromRect(
       button.localToGlobal(Offset.zero, ancestor: overlay) & button.size,
@@ -820,23 +893,459 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
     showMenu<T>(
       context: context,
       position: position,
-      items: items.entries.map((e) => PopupMenuItem<T>(
-        value: e.key,
-        height: 48,
-        child: Row(
-          children: [
-            if (e.key == current)
-              const Padding(
-                padding: EdgeInsets.only(right: 8),
-                child: Icon(Icons.check, size: 18),
-              ),
-            Text(e.value),
-          ],
-        ),
-      )).toList(),
+      items: fields.map((field) {
+        final (def, alt, label) = field;
+        final isActiveDefault = current == def;
+        final isActiveAlt = current == alt;
+        final isActive = isActiveDefault || isActiveAlt;
+        // Clicking toggles if active, otherwise selects the default value
+        final value = isActiveDefault ? alt : isActiveAlt ? def : def;
+        return PopupMenuItem<T>(
+          value: value,
+          height: 48,
+          child: Row(
+            children: [
+              if (isActive)
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: Icon(
+                    isActiveDefault ? Icons.arrow_downward : Icons.arrow_upward,
+                    size: 18,
+                  ),
+                )
+              else
+                const SizedBox(width: 26),
+              Text(label),
+            ],
+          ),
+        );
+      }).toList(),
     ).then((value) {
       if (value != null) onSelected(value);
     });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Filter
+  // ---------------------------------------------------------------------------
+
+  bool get _sectionHasFilter => switch (_section) {
+    _StatSection.receipts || _StatSection.sales || _StatSection.orders => true,
+    _ => false,
+  };
+
+  bool get _hasActiveFilter =>
+      _receiptPaymentFilter.isNotEmpty ||
+      _receiptTakeawayFilter != null ||
+      _receiptDiscountFilter != null ||
+      _salesCategoryFilter.isNotEmpty ||
+      _salesDiscountFilter != null ||
+      _orderStatusFilter.isNotEmpty ||
+      _orderStornoFilter != null;
+
+  void _showFilterDialog() {
+    switch (_section) {
+      case _StatSection.receipts:
+        _showReceiptFilterDialog();
+      case _StatSection.sales:
+        _showSalesFilterDialog();
+      case _StatSection.orders:
+        _showOrderFilterDialog();
+      default:
+        break;
+    }
+  }
+
+  void _showReceiptFilterDialog() {
+    final l = context.l10n;
+    // Collect distinct payment method names from loaded data
+    final allMethodNames = _paymentMethods.values
+        .expand((v) => v.split(', '))
+        .toSet()
+        .toList()
+      ..sort();
+
+    var selectedMethods = Set<String>.from(_receiptPaymentFilter);
+    var selectedTakeaway = _receiptTakeawayFilter;
+    var selectedDiscount = _receiptDiscountFilter;
+
+    showDialog(
+      context: context,
+      builder: (_) => StatefulBuilder(
+        builder: (ctx, setDialogState) => PosDialogShell(
+          title: l.statsFilterTitle,
+          scrollable: true,
+          children: [
+            // Payment method filter
+            if (allMethodNames.isNotEmpty) ...[
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(l.statsFilterPaymentMethod, style: const TextStyle(fontWeight: FontWeight.bold)),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 4,
+                children: [
+                  for (final name in allMethodNames)
+                    FilterChip(
+                      label: Text(name),
+                      selected: selectedMethods.contains(name),
+                      onSelected: (v) => setDialogState(() {
+                        if (v) {
+                          selectedMethods.add(name);
+                        } else {
+                          selectedMethods.remove(name);
+                        }
+                      }),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 16),
+            ],
+            // Takeaway filter
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(l.statsFilterTakeaway, style: const TextStyle(fontWeight: FontWeight.bold)),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: SizedBox(
+                    height: 40,
+                    child: FilterChip(
+                      label: SizedBox(
+                        width: double.infinity,
+                        child: Text(l.statsFilterAll, textAlign: TextAlign.center),
+                      ),
+                      selected: selectedTakeaway == null,
+                      onSelected: (_) => setDialogState(() => selectedTakeaway = null),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: SizedBox(
+                    height: 40,
+                    child: FilterChip(
+                      label: SizedBox(
+                        width: double.infinity,
+                        child: Text(l.statsFilterDineIn, textAlign: TextAlign.center),
+                      ),
+                      selected: selectedTakeaway == false,
+                      onSelected: (_) => setDialogState(() => selectedTakeaway = false),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: SizedBox(
+                    height: 40,
+                    child: FilterChip(
+                      label: SizedBox(
+                        width: double.infinity,
+                        child: Text(l.statsFilterTakeawayOnly, textAlign: TextAlign.center),
+                      ),
+                      selected: selectedTakeaway == true,
+                      onSelected: (_) => setDialogState(() => selectedTakeaway = true),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            // Discount filter
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(l.statsFilterDiscount, style: const TextStyle(fontWeight: FontWeight.bold)),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: SizedBox(
+                    height: 40,
+                    child: FilterChip(
+                      label: SizedBox(
+                        width: double.infinity,
+                        child: Text(l.statsFilterAll, textAlign: TextAlign.center),
+                      ),
+                      selected: selectedDiscount == null,
+                      onSelected: (_) => setDialogState(() => selectedDiscount = null),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: SizedBox(
+                    height: 40,
+                    child: FilterChip(
+                      label: SizedBox(
+                        width: double.infinity,
+                        child: Text(l.statsFilterWithDiscount, textAlign: TextAlign.center),
+                      ),
+                      selected: selectedDiscount == true,
+                      onSelected: (_) => setDialogState(() => selectedDiscount = selectedDiscount == true ? null : true),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: SizedBox(
+                    height: 40,
+                    child: FilterChip(
+                      label: SizedBox(
+                        width: double.infinity,
+                        child: Text(l.statsFilterWithoutDiscount, textAlign: TextAlign.center),
+                      ),
+                      selected: selectedDiscount == false,
+                      onSelected: (_) => setDialogState(() => selectedDiscount = selectedDiscount == false ? null : false),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            PosDialogActions(actions: [
+              OutlinedButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text(l.actionCancel),
+              ),
+              FilledButton(
+                onPressed: () {
+                  setState(() {
+                    _receiptPaymentFilter = selectedMethods;
+                    _receiptTakeawayFilter = selectedTakeaway;
+                    _receiptDiscountFilter = selectedDiscount;
+                  });
+                  Navigator.pop(ctx);
+                },
+                child: Text(l.statsFilterApply),
+              ),
+            ]),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showSalesFilterDialog() {
+    final l = context.l10n;
+    final allCategories = _salesRows.map((r) => r.categoryName).where((c) => c.isNotEmpty).toSet().toList()..sort();
+
+    var selectedCategories = Set<String>.from(_salesCategoryFilter);
+    var selectedDiscount = _salesDiscountFilter;
+
+    showDialog(
+      context: context,
+      builder: (_) => StatefulBuilder(
+        builder: (ctx, setDialogState) => PosDialogShell(
+          title: l.statsFilterTitle,
+          scrollable: true,
+          children: [
+            if (allCategories.isNotEmpty) ...[
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(l.statsFilterCategory, style: const TextStyle(fontWeight: FontWeight.bold)),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 4,
+                children: [
+                  for (final name in allCategories)
+                    FilterChip(
+                      label: Text(name),
+                      selected: selectedCategories.contains(name),
+                      onSelected: (v) => setDialogState(() {
+                        if (v) {
+                          selectedCategories.add(name);
+                        } else {
+                          selectedCategories.remove(name);
+                        }
+                      }),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 16),
+            ],
+            // Discount filter
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(l.statsFilterDiscount, style: const TextStyle(fontWeight: FontWeight.bold)),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: SizedBox(
+                    height: 40,
+                    child: FilterChip(
+                      label: SizedBox(
+                        width: double.infinity,
+                        child: Text(l.statsFilterAll, textAlign: TextAlign.center),
+                      ),
+                      selected: selectedDiscount == null,
+                      onSelected: (_) => setDialogState(() => selectedDiscount = null),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: SizedBox(
+                    height: 40,
+                    child: FilterChip(
+                      label: SizedBox(
+                        width: double.infinity,
+                        child: Text(l.statsFilterWithDiscount, textAlign: TextAlign.center),
+                      ),
+                      selected: selectedDiscount == true,
+                      onSelected: (_) => setDialogState(() => selectedDiscount = selectedDiscount == true ? null : true),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: SizedBox(
+                    height: 40,
+                    child: FilterChip(
+                      label: SizedBox(
+                        width: double.infinity,
+                        child: Text(l.statsFilterWithoutDiscount, textAlign: TextAlign.center),
+                      ),
+                      selected: selectedDiscount == false,
+                      onSelected: (_) => setDialogState(() => selectedDiscount = selectedDiscount == false ? null : false),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            PosDialogActions(actions: [
+              OutlinedButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text(l.actionCancel),
+              ),
+              FilledButton(
+                onPressed: () {
+                  setState(() {
+                    _salesCategoryFilter = selectedCategories;
+                    _salesDiscountFilter = selectedDiscount;
+                  });
+                  Navigator.pop(ctx);
+                },
+                child: Text(l.statsFilterApply),
+              ),
+            ]),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showOrderFilterDialog() {
+    final l = context.l10n;
+    final statusLabels = {
+      PrepStatus.created: l.prepStatusCreated,
+      PrepStatus.ready: l.prepStatusReady,
+      PrepStatus.delivered: l.prepStatusDelivered,
+      PrepStatus.cancelled: l.prepStatusCancelled,
+      PrepStatus.voided: l.prepStatusVoided,
+    };
+
+    var selectedStatuses = Set<PrepStatus>.from(_orderStatusFilter);
+    var selectedStorno = _orderStornoFilter;
+
+    showDialog(
+      context: context,
+      builder: (_) => StatefulBuilder(
+        builder: (ctx, setDialogState) => PosDialogShell(
+          title: l.statsFilterTitle,
+          scrollable: true,
+          children: [
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(l.statsFilterStatus, style: const TextStyle(fontWeight: FontWeight.bold)),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              children: [
+                for (final entry in statusLabels.entries)
+                  FilterChip(
+                    label: Text(entry.value),
+                    selected: selectedStatuses.contains(entry.key),
+                    onSelected: (v) => setDialogState(() {
+                      if (v) {
+                        selectedStatuses.add(entry.key);
+                      } else {
+                        selectedStatuses.remove(entry.key);
+                      }
+                    }),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            // Storno filter
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(l.statsFilterStorno, style: const TextStyle(fontWeight: FontWeight.bold)),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: SizedBox(
+                    height: 40,
+                    child: FilterChip(
+                      label: SizedBox(
+                        width: double.infinity,
+                        child: Text(l.statsFilterAll, textAlign: TextAlign.center),
+                      ),
+                      selected: selectedStorno == null,
+                      onSelected: (_) => setDialogState(() => selectedStorno = null),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: SizedBox(
+                    height: 40,
+                    child: FilterChip(
+                      label: SizedBox(
+                        width: double.infinity,
+                        child: Text(l.statsFilterStorno, textAlign: TextAlign.center),
+                      ),
+                      selected: selectedStorno == true,
+                      onSelected: (_) => setDialogState(() => selectedStorno = selectedStorno == true ? null : true),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            PosDialogActions(actions: [
+              OutlinedButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text(l.actionCancel),
+              ),
+              FilledButton(
+                onPressed: () {
+                  setState(() {
+                    _orderStatusFilter = selectedStatuses;
+                    _orderStornoFilter = selectedStorno;
+                  });
+                  Navigator.pop(ctx);
+                },
+                child: Text(l.statsFilterApply),
+              ),
+            ]),
+          ],
+        ),
+      ),
+    );
   }
 
   // ---------------------------------------------------------------------------
@@ -967,6 +1476,213 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
   }
 
   // ---------------------------------------------------------------------------
+  // Receipt detail tap (shared by Receipts, Sales, Tips)
+  // ---------------------------------------------------------------------------
+
+  Future<void> _showReceiptDetail(String billId) async {
+    final billRepo = ref.read(billRepositoryProvider);
+    final orderRepo = ref.read(orderRepositoryProvider);
+    final paymentRepo = ref.read(paymentRepositoryProvider);
+    final paymentMethodRepo = ref.read(paymentMethodRepositoryProvider);
+
+    final result = await billRepo.getById(billId);
+    if (result is! Success<BillModel> || !mounted) return;
+    final bill = result.value;
+
+    // Load order items
+    final orders = await orderRepo.getOrdersByBillIds([billId]);
+    if (!mounted) return;
+    final activeOrderIds = orders
+        .where((o) => o.status != PrepStatus.cancelled && o.status != PrepStatus.voided)
+        .map((o) => o.id)
+        .toSet();
+    final allItems = await orderRepo.getOrderItemsByBillIds([billId]);
+    if (!mounted) return;
+    final items = allItems
+        .where((i) => activeOrderIds.contains(i.orderId) &&
+            i.status != PrepStatus.cancelled &&
+            i.status != PrepStatus.voided)
+        .toList();
+
+    // Load payment methods
+    final payments = await paymentRepo.getByBillIds([billId]);
+    if (!mounted) return;
+    final allMethods = await paymentMethodRepo.getAll(bill.companyId);
+    if (!mounted) return;
+    final methodNameMap = {for (final m in allMethods) m.id: m.name};
+    final paymentNames = payments
+        .map((p) => methodNameMap[p.paymentMethodId] ?? '-')
+        .toSet()
+        .join(', ');
+    final tipTotal = payments.fold(0, (s, p) => s + p.tipIncludedAmount);
+
+    // Customer name
+    String? customerName = bill.customerName;
+    if ((customerName == null || customerName.isEmpty) && bill.customerId != null) {
+      customerName = _customerNames[bill.customerId!];
+    }
+
+    final l = context.l10n;
+    showDialog(
+      context: context,
+      builder: (_) => PosDialogShell(
+        title: l.statsReceiptDetailTitle,
+        scrollable: true,
+        children: [
+          // Header
+          _orderDetailRow(l.statsColumnBillNumber, bill.billNumber),
+          _orderDetailRow(l.statsColumnStatus, _billStatusLabel(bill.status, l)),
+          _orderDetailRow(l.statsColumnDateTime,
+              ref.fmtDateTime(bill.closedAt ?? bill.openedAt)),
+          if (customerName != null && customerName.isNotEmpty)
+            _orderDetailRow(l.statsColumnCustomer, customerName),
+          if (bill.isTakeaway)
+            _orderDetailRow(l.statsReceiptType, l.billDetailTakeaway),
+          if (paymentNames.isNotEmpty)
+            _orderDetailRow(l.receiptPayment, paymentNames),
+          const Divider(height: 24),
+          // Items
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(l.statsOrderItems,
+                style: const TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          const SizedBox(height: 8),
+          for (final item in items)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      '${item.quantity == item.quantity.roundToDouble() ? '${item.quantity.round()}' : item.quantity.toStringAsFixed(2)}\u00d7 ${item.itemName}',
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  Text(ref.money(
+                      (item.salePriceAtt * item.quantity).round())),
+                ],
+              ),
+            ),
+          const Divider(height: 24),
+          // Financial summary
+          _orderDetailRow(l.receiptSubtotal, ref.money(bill.subtotalGross)),
+          if (bill.discountAmount > 0)
+            _orderDetailRow(l.receiptDiscount,
+                '– ${ref.money(bill.discountAmount)}'),
+          if (bill.loyaltyDiscountAmount > 0)
+            _orderDetailRow(l.statsSalesLoyaltyDiscount,
+                '– ${ref.money(bill.loyaltyDiscountAmount)}'),
+          if (bill.voucherDiscountAmount > 0)
+            _orderDetailRow(l.receiptVoucherDiscount,
+                '– ${ref.money(bill.voucherDiscountAmount)}'),
+          if (bill.roundingAmount != 0)
+            _orderDetailRow(l.receiptRounding,
+                ref.money(bill.roundingAmount)),
+          _orderDetailRow(l.receiptTotal, ref.money(bill.totalGross)),
+          if (tipTotal > 0)
+            _orderDetailRow(l.receiptTip, ref.money(tipTotal)),
+          const SizedBox(height: 16),
+          PosDialogActions(actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(l.actionClose),
+            ),
+          ]),
+        ],
+      ),
+    );
+  }
+
+  String _billStatusLabel(BillStatus status, dynamic l) {
+    return switch (status) {
+      BillStatus.opened => l.billStatusOpened,
+      BillStatus.paid => l.billStatusPaid,
+      BillStatus.cancelled => l.billStatusCancelled,
+      BillStatus.refunded => l.billStatusRefunded,
+    };
+  }
+
+  // ---------------------------------------------------------------------------
+  // Order detail tap
+  // ---------------------------------------------------------------------------
+
+  Future<void> _onOrderRowTap(_OrderRow row) async {
+    final orderRepo = ref.read(orderRepositoryProvider);
+    final items = await orderRepo.getOrderItems(row.orderId);
+    if (!mounted) return;
+
+    final l = context.l10n;
+    showDialog(
+      context: context,
+      builder: (_) => PosDialogShell(
+        title: l.statsOrderDetailTitle,
+        scrollable: true,
+        children: [
+          // Header info
+          _orderDetailRow(l.statsColumnOrderNumber, row.orderNumber),
+          _orderDetailRow(l.statsColumnStatus,
+              row.isStorno ? l.orderStorno : _prepStatusLabel(row.status, l)),
+          _orderDetailRow(l.zReportColumnUser, row.userName),
+          _orderDetailRow(l.statsOrderCreated, ref.fmtDateTime(row.createdAt)),
+          if (row.prepStartedAt != null)
+            _orderDetailRow(l.statsOrderPrepStarted, ref.fmtTime(row.prepStartedAt!)),
+          if (row.readyAt != null)
+            _orderDetailRow(l.statsOrderReady, ref.fmtTime(row.readyAt!)),
+          if (row.deliveredAt != null)
+            _orderDetailRow(l.statsOrderDelivered, ref.fmtTime(row.deliveredAt!)),
+          if (row.notes != null && row.notes!.isNotEmpty)
+            _orderDetailRow(l.sellNote, row.notes!),
+          const Divider(height: 24),
+          // Items
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(l.statsOrderItems,
+                style: const TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          const SizedBox(height: 8),
+          for (final item in items)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      '${item.quantity == item.quantity.roundToDouble() ? '${item.quantity.round()}' : item.quantity.toStringAsFixed(2)}\u00d7 ${item.itemName}',
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  Text(ref.money(
+                      (item.salePriceAtt * item.quantity).round())),
+                ],
+              ),
+            ),
+          const SizedBox(height: 16),
+          PosDialogActions(actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(l.actionClose),
+            ),
+          ]),
+        ],
+      ),
+    );
+  }
+
+  Widget _orderDetailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
+        ],
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
   // Helpers
   // ---------------------------------------------------------------------------
 
@@ -1020,12 +1736,21 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
             searchHint: l.searchHint,
             onSearchChanged: (v) => setState(() => _query = v),
             trailing: [
+              if (_sectionHasFilter)
+                IconButton(
+                  icon: Icon(
+                    Icons.filter_alt_outlined,
+                    color: _hasActiveFilter ? Theme.of(context).colorScheme.primary : null,
+                  ),
+                  onPressed: _showFilterDialog,
+                ),
               IconButton(
-                icon: const Icon(Icons.sort),
+                key: _sortButtonKey,
+                icon: const Icon(Icons.swap_vert),
                 onPressed: _showSortMenu,
               ),
               IconButton(
-                icon: const Icon(Icons.summarize),
+                icon: const Icon(Icons.functions),
                 onPressed: _showSummary,
               ),
             ],
@@ -1067,6 +1792,7 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
     final data = _filteredReceipts;
     return PosTable<BillModel>(
       emptyMessage: l.statsEmpty,
+      onRowTap: (bill) => _showReceiptDetail(bill.id),
       columns: [
         PosColumn(
           label: l.statsColumnDateTime,
@@ -1103,6 +1829,7 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
     final data = _filteredSales;
     return PosTable<_SalesRow>(
       emptyMessage: l.statsEmpty,
+      onRowTap: (row) => _showReceiptDetail(row.billId),
       columns: [
         PosColumn(
           label: l.statsColumnDateTime,
@@ -1155,6 +1882,7 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
     final data = _filteredOrders;
     return PosTable<_OrderRow>(
       emptyMessage: l.statsEmpty,
+      onRowTap: _onOrderRowTap,
       columns: [
         PosColumn(
           label: l.statsColumnDateTime,
@@ -1299,6 +2027,7 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
     final data = _filteredTips;
     return PosTable<_TipRow>(
       emptyMessage: l.statsEmpty,
+      onRowTap: (tip) => _showReceiptDetail(tip.billId),
       columns: [
         PosColumn(
           label: l.zReportColumnDate,

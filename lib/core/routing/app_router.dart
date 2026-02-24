@@ -115,7 +115,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/settings/company',
         redirect: (context, state) {
-          final hasPermission = ref.read(hasPermissionProvider('settings.manage'));
+          final hasPermission = ref.read(hasAnyPermissionInGroupProvider('settings_company'));
           if (!hasPermission) return _homeRoute(ref);
           return null;
         },
@@ -124,7 +124,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/settings/venue',
         redirect: (context, state) {
-          final hasPermission = ref.read(hasPermissionProvider('settings.manage'));
+          final hasPermission = ref.read(hasAnyPermissionInGroupProvider('settings_venue'));
           if (!hasPermission) return _homeRoute(ref);
           return null;
         },
@@ -133,7 +133,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/settings/register',
         redirect: (context, state) {
-          final hasPermission = ref.read(hasPermissionProvider('settings.manage'));
+          final hasPermission = ref.read(hasAnyPermissionInGroupProvider('settings_register'));
           if (!hasPermission) return _homeRoute(ref);
           return null;
         },
@@ -142,7 +142,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/catalog',
         redirect: (context, state) {
-          final hasPermission = ref.read(hasPermissionProvider('settings.manage'));
+          final hasPermission = ref.read(hasAnyPermissionInGroupProvider('products'));
           if (!hasPermission) return _homeRoute(ref);
           return null;
         },
@@ -151,7 +151,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/inventory',
         redirect: (context, state) {
-          final hasPermission = ref.read(hasPermissionProvider('settings.manage'));
+          final hasPermission = ref.read(hasAnyPermissionInGroupProvider('stock'));
           if (!hasPermission) return _homeRoute(ref);
           return null;
         },
@@ -173,7 +173,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/vouchers',
         redirect: (context, state) {
-          final hasPermission = ref.read(hasPermissionProvider('settings.manage'));
+          final hasPermission = ref.read(hasAnyPermissionInGroupProvider('vouchers'));
           if (!hasPermission) return _homeRoute(ref);
           return null;
         },
@@ -182,7 +182,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/statistics',
         redirect: (context, state) {
-          final hasPermission = ref.read(hasPermissionProvider('settings.manage'));
+          final hasPermission = ref.read(hasAnyPermissionInGroupProvider('stats'));
           if (!hasPermission) return _homeRoute(ref);
           return null;
         },

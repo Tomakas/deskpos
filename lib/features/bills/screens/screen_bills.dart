@@ -54,7 +54,6 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
   Widget build(BuildContext context) {
     final activeUser = ref.watch(activeUserProvider);
     final loggedIn = ref.watch(loggedInUsersProvider);
-    final canManageSettings = ref.watch(hasPermissionProvider('settings.manage'));
     final sessionAsync = ref.watch(activeRegisterSessionProvider);
     final hasSession = sessionAsync.valueOrNull != null;
 
@@ -115,7 +114,6 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
               child: _RightPanel(
                 activeUser: activeUser,
                 loggedInUsers: loggedIn,
-                canManageSettings: canManageSettings,
                 hasSession: hasSession,
                 sessionAsync: sessionAsync,
                 showMap: _showMap,
@@ -371,11 +369,9 @@ class _SectionTabBar extends ConsumerWidget {
               ],
               if (showSort) ...[
                 const SizedBox(width: 8),
-                Flexible(
-                  fit: FlexFit.loose,
-                  child: SizedBox(
-                    height: 40,
-                    child: PopupMenuButton<_SortField>(
+                SizedBox(
+                  height: 40,
+                  child: PopupMenuButton<_SortField>(
                       onSelected: (field) {
                         if (field == sortField) {
                           onSortChanged(field, !sortAscending);
@@ -411,7 +407,6 @@ class _SectionTabBar extends ConsumerWidget {
                         ),
                       ),
                     ),
-                  ),
                 ),
               ],
               // Panel toggle ear – styled as a tab protruding from the panel
@@ -750,7 +745,6 @@ class _RightPanel extends ConsumerWidget {
   const _RightPanel({
     required this.activeUser,
     required this.loggedInUsers,
-    required this.canManageSettings,
     required this.hasSession,
     required this.sessionAsync,
     required this.showMap,
@@ -766,7 +760,6 @@ class _RightPanel extends ConsumerWidget {
 
   final UserModel? activeUser;
   final List<UserModel> loggedInUsers;
-  final bool canManageSettings;
   final bool hasSession;
   final AsyncValue<RegisterSessionModel?> sessionAsync;
   final bool showMap;
@@ -783,6 +776,12 @@ class _RightPanel extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
     final theme = Theme.of(context);
+    final canCatalog = ref.watch(hasAnyPermissionInGroupProvider('products'));
+    final canStats = ref.watch(hasAnyPermissionInGroupProvider('stats'));
+    final canVouchers = ref.watch(hasAnyPermissionInGroupProvider('vouchers'));
+    final canCompanySettings = ref.watch(hasAnyPermissionInGroupProvider('settings_company'));
+    final canVenueSettings = ref.watch(hasAnyPermissionInGroupProvider('settings_venue'));
+    final canRegisterSettings = ref.watch(hasAnyPermissionInGroupProvider('settings_register'));
 
     return Stack(
       children: [
@@ -806,7 +805,7 @@ class _RightPanel extends ConsumerWidget {
             left: l.billsCashJournal,
             right: l.moreCatalog,
             onLeft: onCashMovement,
-            onRight: canManageSettings ? () => context.push('/catalog') : null,
+            onRight: canCatalog ? () => context.push('/catalog') : null,
           ),
           // Row 3: OBJEDNÁVKY | REZERVACE
           _ButtonRow(
@@ -837,7 +836,11 @@ class _RightPanel extends ConsumerWidget {
                       return FilledButton.tonal(
                         onPressed: () => _showMoreMenu(
                           btnContext,
-                          canManageSettings,
+                          canStats: canStats,
+                          canVouchers: canVouchers,
+                          canCompanySettings: canCompanySettings,
+                          canVenueSettings: canVenueSettings,
+                          canRegisterSettings: canRegisterSettings,
                         ),
                         child: Text(l.billsMore, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12)),
                       );
@@ -960,7 +963,14 @@ class _ButtonRow extends StatelessWidget {
   }
 }
 
-void _showMoreMenu(BuildContext btnContext, bool canManageSettings) {
+void _showMoreMenu(
+  BuildContext btnContext, {
+  required bool canStats,
+  required bool canVouchers,
+  required bool canCompanySettings,
+  required bool canVenueSettings,
+  required bool canRegisterSettings,
+}) {
   final l = btnContext.l10n;
   final button = btnContext.findRenderObject()! as RenderBox;
   final overlay = Overlay.of(btnContext).context.findRenderObject()! as RenderBox;
@@ -976,26 +986,11 @@ void _showMoreMenu(BuildContext btnContext, bool canManageSettings) {
     context: btnContext,
     position: position,
     items: [
-      if (canManageSettings)
-        PopupMenuItem(value: 'statistics', height: 48, child: Text(l.moreStatistics)),
-      if (!canManageSettings)
-        PopupMenuItem(enabled: false, height: 48, child: Text(l.moreStatistics)),
-      if (canManageSettings)
-        PopupMenuItem(value: 'vouchers', height: 48, child: Text(l.vouchersTitle)),
-      if (!canManageSettings)
-        PopupMenuItem(enabled: false, height: 48, child: Text(l.vouchersTitle)),
-      if (canManageSettings)
-        PopupMenuItem(value: 'company-settings', height: 48, child: Text(l.moreCompanySettings)),
-      if (!canManageSettings)
-        PopupMenuItem(enabled: false, height: 48, child: Text(l.moreCompanySettings)),
-      if (canManageSettings)
-        PopupMenuItem(value: 'venue-settings', height: 48, child: Text(l.moreVenueSettings)),
-      if (!canManageSettings)
-        PopupMenuItem(enabled: false, height: 48, child: Text(l.moreVenueSettings)),
-      if (canManageSettings)
-        PopupMenuItem(value: 'register-settings', height: 48, child: Text(l.moreRegisterSettings)),
-      if (!canManageSettings)
-        PopupMenuItem(enabled: false, height: 48, child: Text(l.moreRegisterSettings)),
+      PopupMenuItem(value: 'statistics', enabled: canStats, height: 48, child: Text(l.moreStatistics)),
+      PopupMenuItem(value: 'vouchers', enabled: canVouchers, height: 48, child: Text(l.vouchersTitle)),
+      PopupMenuItem(value: 'company-settings', enabled: canCompanySettings, height: 48, child: Text(l.moreCompanySettings)),
+      PopupMenuItem(value: 'venue-settings', enabled: canVenueSettings, height: 48, child: Text(l.moreVenueSettings)),
+      PopupMenuItem(value: 'register-settings', enabled: canRegisterSettings, height: 48, child: Text(l.moreRegisterSettings)),
     ],
   ).then((value) {
     if (value == null || !btnContext.mounted) return;

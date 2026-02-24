@@ -2973,4 +2973,473 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get sellEnterQuantity => 'Zadejte množství';
+
+  @override
+  String get statsFilterTitle => 'Filtr';
+
+  @override
+  String get statsFilterPaymentMethod => 'Typ platby';
+
+  @override
+  String get statsFilterTakeaway => 'Typ';
+
+  @override
+  String get statsFilterAll => 'Vše';
+
+  @override
+  String get statsFilterDineIn => 'Na místě';
+
+  @override
+  String get statsFilterTakeawayOnly => 'S sebou';
+
+  @override
+  String get statsFilterCategory => 'Kategorie';
+
+  @override
+  String get statsFilterStatus => 'Stav';
+
+  @override
+  String get statsFilterApply => 'Použít';
+
+  @override
+  String get statsFilterStorno => 'Storno';
+
+  @override
+  String get statsFilterDiscount => 'Sleva';
+
+  @override
+  String get statsFilterWithDiscount => 'Se slevou';
+
+  @override
+  String get statsFilterWithoutDiscount => 'Bez slevy';
+
+  @override
+  String get permOrdersCreate => 'Vytvořit objednávku';
+
+  @override
+  String get permOrdersView => 'Zobrazit vlastní objednávky';
+
+  @override
+  String get permOrdersViewAll => 'Zobrazit všechny objednávky';
+
+  @override
+  String get permOrdersViewPaid => 'Zobrazit zaplacené účty';
+
+  @override
+  String get permOrdersViewCancelled => 'Zobrazit stornované účty';
+
+  @override
+  String get permOrdersViewDetail => 'Detail objednávky v info panelu';
+
+  @override
+  String get permOrdersEdit => 'Upravit objednávku';
+
+  @override
+  String get permOrdersEditOthers => 'Upravit cizí objednávky';
+
+  @override
+  String get permOrdersVoidItem => 'Storno položky';
+
+  @override
+  String get permOrdersVoidBill => 'Storno účtu';
+
+  @override
+  String get permOrdersReopen => 'Znovu otevřít účet';
+
+  @override
+  String get permOrdersTransfer => 'Přesunout účet';
+
+  @override
+  String get permOrdersSplit => 'Rozdělit účet';
+
+  @override
+  String get permOrdersMerge => 'Sloučit účty';
+
+  @override
+  String get permOrdersAssignCustomer => 'Přiřadit zákazníka';
+
+  @override
+  String get permOrdersBump => 'Posunout stav';
+
+  @override
+  String get permOrdersBumpBack => 'Vrátit stav';
+
+  @override
+  String get permPaymentsAccept => 'Přijmout platbu';
+
+  @override
+  String get permPaymentsRefund => 'Vrátit platbu';
+
+  @override
+  String get permPaymentsRefundItem => 'Vrátit položku';
+
+  @override
+  String get permPaymentsMethodCash => 'Platba hotovostí';
+
+  @override
+  String get permPaymentsMethodCard => 'Platba kartou';
+
+  @override
+  String get permPaymentsMethodVoucher => 'Platba voucherem';
+
+  @override
+  String get permPaymentsMethodMealTicket => 'Platba stravenkami';
+
+  @override
+  String get permPaymentsMethodCredit => 'Platba na kredit';
+
+  @override
+  String get permPaymentsSkipCashDialog => 'Přeskočit dialog hotovosti';
+
+  @override
+  String get permPaymentsAcceptTip => 'Přijmout spropitné';
+
+  @override
+  String get permPaymentsAdjustTip => 'Upravit spropitné';
+
+  @override
+  String get permDiscountsApplyItem => 'Sleva na položku';
+
+  @override
+  String get permDiscountsApplyBill => 'Sleva na účet';
+
+  @override
+  String get permDiscountsCustom => 'Vlastní sleva';
+
+  @override
+  String get permDiscountsPriceOverride => 'Přepsat cenu';
+
+  @override
+  String get permDiscountsLoyalty => 'Věrnostní sleva';
+
+  @override
+  String get permRegisterOpenSession => 'Otevřít pokladnu';
+
+  @override
+  String get permRegisterCloseSession => 'Uzavřít pokladnu';
+
+  @override
+  String get permRegisterViewSession => 'Zobrazit stav pokladny';
+
+  @override
+  String get permRegisterViewAllSessions => 'Historie uzávěrek';
+
+  @override
+  String get permRegisterCashIn => 'Vklad hotovosti';
+
+  @override
+  String get permRegisterCashOut => 'Výběr hotovosti';
+
+  @override
+  String get permRegisterOpenDrawer => 'Otevřít zásuvku';
+
+  @override
+  String get permShiftsClockInOut => 'Příchod/odchod';
+
+  @override
+  String get permShiftsViewOwn => 'Zobrazit vlastní směny';
+
+  @override
+  String get permShiftsViewAll => 'Zobrazit všechny směny';
+
+  @override
+  String get permShiftsManage => 'Spravovat směny';
+
+  @override
+  String get permProductsView => 'Zobrazit produkty';
+
+  @override
+  String get permProductsViewCost => 'Zobrazit nákupní ceny';
+
+  @override
+  String get permProductsManage => 'Spravovat produkty';
+
+  @override
+  String get permProductsManageCategories => 'Spravovat kategorie';
+
+  @override
+  String get permProductsManageModifiers => 'Spravovat modifikátory';
+
+  @override
+  String get permProductsManageRecipes => 'Spravovat receptury';
+
+  @override
+  String get permProductsManagePurchasePrice => 'Měnit nákupní ceny';
+
+  @override
+  String get permProductsManageTax => 'Měnit daňové sazby';
+
+  @override
+  String get permProductsManageSuppliers => 'Spravovat dodavatele';
+
+  @override
+  String get permProductsManageManufacturers => 'Spravovat výrobce';
+
+  @override
+  String get permProductsSetAvailability => 'Označit nedostupnost';
+
+  @override
+  String get permStockView => 'Zobrazit sklad';
+
+  @override
+  String get permStockReceive => 'Příjem zboží';
+
+  @override
+  String get permStockWastage => 'Zaznamenat odpis';
+
+  @override
+  String get permStockAdjust => 'Korekce skladu';
+
+  @override
+  String get permStockCount => 'Inventura';
+
+  @override
+  String get permStockTransfer => 'Přesun mezi sklady';
+
+  @override
+  String get permStockSetPriceStrategy => 'Změnit strategii NC';
+
+  @override
+  String get permStockManageWarehouses => 'Spravovat sklady';
+
+  @override
+  String get permCustomersView => 'Zobrazit zákazníky';
+
+  @override
+  String get permCustomersManage => 'Spravovat zákazníky';
+
+  @override
+  String get permCustomersManageCredit => 'Spravovat kredit';
+
+  @override
+  String get permCustomersManageLoyalty => 'Spravovat body';
+
+  @override
+  String get permVouchersView => 'Zobrazit vouchery';
+
+  @override
+  String get permVouchersManage => 'Spravovat vouchery';
+
+  @override
+  String get permVouchersRedeem => 'Uplatnit voucher';
+
+  @override
+  String get permVenueView => 'Zobrazit stoly';
+
+  @override
+  String get permVenueReservationsView => 'Zobrazit rezervace';
+
+  @override
+  String get permVenueReservationsManage => 'Spravovat rezervace';
+
+  @override
+  String get permStatsReceipts => 'Účtenky (session)';
+
+  @override
+  String get permStatsReceiptsAll => 'Účtenky (historie)';
+
+  @override
+  String get permStatsSales => 'Prodeje (session)';
+
+  @override
+  String get permStatsSalesAll => 'Prodeje (historie)';
+
+  @override
+  String get permStatsOrders => 'Objednávky (session)';
+
+  @override
+  String get permStatsOrdersAll => 'Objednávky (historie)';
+
+  @override
+  String get permStatsTips => 'Spropitné (session)';
+
+  @override
+  String get permStatsTipsAll => 'Spropitné (historie)';
+
+  @override
+  String get permStatsCashJournal => 'Pokladní deník (session)';
+
+  @override
+  String get permStatsCashJournalAll => 'Pokladní deník (historie)';
+
+  @override
+  String get permStatsShifts => 'Směny';
+
+  @override
+  String get permStatsZReports => 'Uzávěrky';
+
+  @override
+  String get permPrintingReceipt => 'Tisk účtenky';
+
+  @override
+  String get permPrintingReprint => 'Opakovaný tisk';
+
+  @override
+  String get permPrintingZReport => 'Tisk Z-reportu';
+
+  @override
+  String get permPrintingInventoryReport => 'Tisk inventurního reportu';
+
+  @override
+  String get permDataExport => 'Export dat';
+
+  @override
+  String get permDataImport => 'Import dat';
+
+  @override
+  String get permDataBackup => 'Záloha a obnova';
+
+  @override
+  String get permUsersView => 'Zobrazit uživatele';
+
+  @override
+  String get permUsersManage => 'Spravovat uživatele';
+
+  @override
+  String get permUsersAssignRoles => 'Přiřadit roli';
+
+  @override
+  String get permUsersManagePermissions => 'Spravovat oprávnění';
+
+  @override
+  String get permSettingsCompanyInfo => 'Informace o firmě';
+
+  @override
+  String get permSettingsCompanySecurity => 'Zabezpečení';
+
+  @override
+  String get permSettingsCompanyFiscal => 'Fiskální nastavení';
+
+  @override
+  String get permSettingsCompanyCloud => 'Cloud a synchronizace';
+
+  @override
+  String get permSettingsCompanyDataWipe => 'Smazat data';
+
+  @override
+  String get permSettingsCompanyViewLog => 'Zobrazit systémový log';
+
+  @override
+  String get permSettingsCompanyClearLog => 'Smazat log';
+
+  @override
+  String get permSettingsVenueSections => 'Spravovat sekce';
+
+  @override
+  String get permSettingsVenueTables => 'Spravovat stoly';
+
+  @override
+  String get permSettingsVenueFloorPlan => 'Editovat půdorys';
+
+  @override
+  String get permSettingsRegisterManage => 'Spravovat pokladny';
+
+  @override
+  String get permSettingsRegisterHardware => 'Nastavit hardware';
+
+  @override
+  String get permSettingsRegisterGrid => 'Editovat prodejní grid';
+
+  @override
+  String get permSettingsRegisterDisplays => 'Spravovat displeje';
+
+  @override
+  String get permSettingsRegisterPaymentMethods => 'Platební metody';
+
+  @override
+  String get permSettingsRegisterTaxRates => 'Daňové sazby';
+
+  @override
+  String get permSettingsRegisterManageDevices =>
+      'Správa zobrazovacích zařízení';
+
+  @override
+  String get permGroupOrders => 'Objednávky';
+
+  @override
+  String get permGroupPayments => 'Platby';
+
+  @override
+  String get permGroupDiscounts => 'Slevy a ceny';
+
+  @override
+  String get permGroupRegister => 'Pokladna';
+
+  @override
+  String get permGroupShifts => 'Směny';
+
+  @override
+  String get permGroupProducts => 'Produkty a katalog';
+
+  @override
+  String get permGroupStock => 'Sklad';
+
+  @override
+  String get permGroupCustomers => 'Zákazníci a věrnost';
+
+  @override
+  String get permGroupVouchers => 'Vouchery';
+
+  @override
+  String get permGroupVenue => 'Provoz';
+
+  @override
+  String get permGroupStats => 'Statistiky a reporty';
+
+  @override
+  String get permGroupPrinting => 'Tisk';
+
+  @override
+  String get permGroupData => 'Data';
+
+  @override
+  String get permGroupUsers => 'Uživatelé a role';
+
+  @override
+  String get permGroupSettingsCompany => 'Nastavení — firma';
+
+  @override
+  String get permGroupSettingsVenue => 'Nastavení — provozovna';
+
+  @override
+  String get permGroupSettingsRegister => 'Nastavení — pokladna';
+
+  @override
+  String get tabProfile => 'Profil';
+
+  @override
+  String get tabPermissions => 'Oprávnění';
+
+  @override
+  String get permissionsResetToRole => 'Reset na šablonu';
+
+  @override
+  String get permissionsCustomized => '(upraveno)';
+
+  @override
+  String get permissionsResetConfirm => 'Resetovat oprávnění na šablonu role?';
+
+  @override
+  String get statsReceiptDetailTitle => 'Detail účtenky';
+
+  @override
+  String get statsReceiptType => 'Typ';
+
+  @override
+  String get statsOrderDetailTitle => 'Detail objednávky';
+
+  @override
+  String get statsOrderPrepStarted => 'Příprava zahájena';
+
+  @override
+  String get statsOrderReady => 'Hotovo';
+
+  @override
+  String get statsOrderDelivered => 'Doručeno';
+
+  @override
+  String get statsOrderCreated => 'Vytvořeno';
+
+  @override
+  String get statsOrderItems => 'Položky';
 }

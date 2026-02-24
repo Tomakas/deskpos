@@ -1,5 +1,38 @@
 # Changelog
 
+## 2026-02-24
+
+### SQL — Audit Fix Migrations
+- **audit_fixes_schema**: K1 `order_items.voucher_discount` (integer NOT NULL DEFAULT 0), K2 `vouchers.created_by_user_id` (text), K3 `role_name` enum + `manager` value, V1 `SET search_path = 'public'` on `broadcast_sync_change` and `broadcast_company_sync_change`, S1 RLS SELECT policy on `audit_log` for `authenticated`, S2 7 FK indexes on modifier tables, S3 modifier RLS policies fixed from `public` to `authenticated`
+- **audit_fixes_manager_role**: INSERT manager role row (split from schema migration — PG requires enum ADD VALUE to be committed before use)
+- **permissions_113**: DELETE user_permissions + role_permissions + old 16 permissions, INSERT 113 new permissions in 17 groups, INSERT 287 role_permission assignments (helper: 19, operator: 63, manager: 92, admin: 113)
+
+### Local File Cleanup
+- Deleted redundant `20260223_004_add_voucher_discount_to_order_items.sql` and `20260223_005_add_created_by_user_id_to_vouchers.sql` (content consolidated into audit_fixes_schema migration)
+
+### Permission Guards — `settings.manage` → granular group checks
+- **New provider**: `hasAnyPermissionInGroupProvider` — returns `true` if user has any permission code starting with `group.` prefix
+- **Router**: 7 route guards replaced `settings.manage` with group-specific checks (`products`, `stock`, `vouchers`, `stats`, `settings_company`, `settings_venue`, `settings_register`)
+- **Sell screen**: Hamburger menu items individually gated by their respective permission group
+- **Bills screen**: Catalog button and popup menu items individually gated; removed `canManageSettings` prop from `_RightPanel`, reads providers directly; simplified `_showMoreMenu` to use `enabled:` parameter
+
+### Documentation
+- **PROJECT.md**: Fixed operator role permission count 66→63, RolePermission total 290→287, updated audit_log description with SELECT policy, added search_path to broadcast trigger docs, removed stale "Aktuální stav" note about old 16 permissions, added migration references for audit fixes and permissions_113, updated route table and permission guard description from `settings.manage` to group-based `hasAnyPermissionInGroupProvider`, added `/statistics` route, added `hasAnyPermissionInGroupProvider` to provider architecture diagram and DI table
+
+## 2026-02-23 (night)
+
+### Stock — Modifier Deduction & Price-Based Direction
+- **Modifier stock deduction**: `_deductStockForOrder` now iterates modifier items after each main item — stock-tracked modifiers create their own `stock_movement` (qty modifier × qty main item)
+- **Modifier stock reversal**: `_reverseStockForOrder` and `_reverseStockForSingleItem` reverse modifier stock movements via `orderItemModifierRepo.getByOrderItem()`
+- **Price-based direction**: Negative-price items (e.g. deposit returns) create inbound movements on sale and outbound on reversal. Recipes keep hardcoded outbound/inbound.
+- **Helpers**: `_stockDirectionForSale(int unitPrice)` and `_stockDirectionForReversal(int unitPrice)` in `OrderRepository`
+
+### Catalog — Modifier Group Item Filter
+- **Any item as modifier**: Modifier group item selection changed from `itemType == modifier` to `itemType != recipe` — regular products, services, counters, ingredients, and variants can now be added as modifier group members
+
+### Documentation
+- **PROJECT.md**: Updated Milník 3.5 key decisions, Task3.25, OrderRepository section, modifier implementation note, and catalog tab columns
+
 ## 2026-02-23 (evening)
 
 ### Unit Type Pipeline

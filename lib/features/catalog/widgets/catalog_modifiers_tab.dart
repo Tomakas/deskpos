@@ -237,7 +237,7 @@ class _GroupItemsSection extends ConsumerWidget {
 
     // Get all modifier-type items
     final allItems = await ref.read(itemRepositoryProvider).watchAll(company.id).first;
-    final modifierItems = allItems.where((i) => i.itemType == ItemType.modifier && i.deletedAt == null).toList();
+    final modifierItems = allItems.where((i) => i.itemType != ItemType.recipe && i.deletedAt == null).toList();
 
     // Get existing group items to exclude already-added ones
     final existingGi = await ref.read(modifierGroupItemRepositoryProvider).getByGroup(group.id);

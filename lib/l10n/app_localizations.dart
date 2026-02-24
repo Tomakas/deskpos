@@ -5827,6 +5827,942 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Zadejte množství'**
   String get sellEnterQuantity;
+
+  /// No description provided for @statsFilterTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Filtr'**
+  String get statsFilterTitle;
+
+  /// No description provided for @statsFilterPaymentMethod.
+  ///
+  /// In cs, this message translates to:
+  /// **'Typ platby'**
+  String get statsFilterPaymentMethod;
+
+  /// No description provided for @statsFilterTakeaway.
+  ///
+  /// In cs, this message translates to:
+  /// **'Typ'**
+  String get statsFilterTakeaway;
+
+  /// No description provided for @statsFilterAll.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vše'**
+  String get statsFilterAll;
+
+  /// No description provided for @statsFilterDineIn.
+  ///
+  /// In cs, this message translates to:
+  /// **'Na místě'**
+  String get statsFilterDineIn;
+
+  /// No description provided for @statsFilterTakeawayOnly.
+  ///
+  /// In cs, this message translates to:
+  /// **'S sebou'**
+  String get statsFilterTakeawayOnly;
+
+  /// No description provided for @statsFilterCategory.
+  ///
+  /// In cs, this message translates to:
+  /// **'Kategorie'**
+  String get statsFilterCategory;
+
+  /// No description provided for @statsFilterStatus.
+  ///
+  /// In cs, this message translates to:
+  /// **'Stav'**
+  String get statsFilterStatus;
+
+  /// No description provided for @statsFilterApply.
+  ///
+  /// In cs, this message translates to:
+  /// **'Použít'**
+  String get statsFilterApply;
+
+  /// No description provided for @statsFilterStorno.
+  ///
+  /// In cs, this message translates to:
+  /// **'Storno'**
+  String get statsFilterStorno;
+
+  /// No description provided for @statsFilterDiscount.
+  ///
+  /// In cs, this message translates to:
+  /// **'Sleva'**
+  String get statsFilterDiscount;
+
+  /// No description provided for @statsFilterWithDiscount.
+  ///
+  /// In cs, this message translates to:
+  /// **'Se slevou'**
+  String get statsFilterWithDiscount;
+
+  /// No description provided for @statsFilterWithoutDiscount.
+  ///
+  /// In cs, this message translates to:
+  /// **'Bez slevy'**
+  String get statsFilterWithoutDiscount;
+
+  /// No description provided for @permOrdersCreate.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vytvořit objednávku'**
+  String get permOrdersCreate;
+
+  /// No description provided for @permOrdersView.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zobrazit vlastní objednávky'**
+  String get permOrdersView;
+
+  /// No description provided for @permOrdersViewAll.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zobrazit všechny objednávky'**
+  String get permOrdersViewAll;
+
+  /// No description provided for @permOrdersViewPaid.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zobrazit zaplacené účty'**
+  String get permOrdersViewPaid;
+
+  /// No description provided for @permOrdersViewCancelled.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zobrazit stornované účty'**
+  String get permOrdersViewCancelled;
+
+  /// No description provided for @permOrdersViewDetail.
+  ///
+  /// In cs, this message translates to:
+  /// **'Detail objednávky v info panelu'**
+  String get permOrdersViewDetail;
+
+  /// No description provided for @permOrdersEdit.
+  ///
+  /// In cs, this message translates to:
+  /// **'Upravit objednávku'**
+  String get permOrdersEdit;
+
+  /// No description provided for @permOrdersEditOthers.
+  ///
+  /// In cs, this message translates to:
+  /// **'Upravit cizí objednávky'**
+  String get permOrdersEditOthers;
+
+  /// No description provided for @permOrdersVoidItem.
+  ///
+  /// In cs, this message translates to:
+  /// **'Storno položky'**
+  String get permOrdersVoidItem;
+
+  /// No description provided for @permOrdersVoidBill.
+  ///
+  /// In cs, this message translates to:
+  /// **'Storno účtu'**
+  String get permOrdersVoidBill;
+
+  /// No description provided for @permOrdersReopen.
+  ///
+  /// In cs, this message translates to:
+  /// **'Znovu otevřít účet'**
+  String get permOrdersReopen;
+
+  /// No description provided for @permOrdersTransfer.
+  ///
+  /// In cs, this message translates to:
+  /// **'Přesunout účet'**
+  String get permOrdersTransfer;
+
+  /// No description provided for @permOrdersSplit.
+  ///
+  /// In cs, this message translates to:
+  /// **'Rozdělit účet'**
+  String get permOrdersSplit;
+
+  /// No description provided for @permOrdersMerge.
+  ///
+  /// In cs, this message translates to:
+  /// **'Sloučit účty'**
+  String get permOrdersMerge;
+
+  /// No description provided for @permOrdersAssignCustomer.
+  ///
+  /// In cs, this message translates to:
+  /// **'Přiřadit zákazníka'**
+  String get permOrdersAssignCustomer;
+
+  /// No description provided for @permOrdersBump.
+  ///
+  /// In cs, this message translates to:
+  /// **'Posunout stav'**
+  String get permOrdersBump;
+
+  /// No description provided for @permOrdersBumpBack.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vrátit stav'**
+  String get permOrdersBumpBack;
+
+  /// No description provided for @permPaymentsAccept.
+  ///
+  /// In cs, this message translates to:
+  /// **'Přijmout platbu'**
+  String get permPaymentsAccept;
+
+  /// No description provided for @permPaymentsRefund.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vrátit platbu'**
+  String get permPaymentsRefund;
+
+  /// No description provided for @permPaymentsRefundItem.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vrátit položku'**
+  String get permPaymentsRefundItem;
+
+  /// No description provided for @permPaymentsMethodCash.
+  ///
+  /// In cs, this message translates to:
+  /// **'Platba hotovostí'**
+  String get permPaymentsMethodCash;
+
+  /// No description provided for @permPaymentsMethodCard.
+  ///
+  /// In cs, this message translates to:
+  /// **'Platba kartou'**
+  String get permPaymentsMethodCard;
+
+  /// No description provided for @permPaymentsMethodVoucher.
+  ///
+  /// In cs, this message translates to:
+  /// **'Platba voucherem'**
+  String get permPaymentsMethodVoucher;
+
+  /// No description provided for @permPaymentsMethodMealTicket.
+  ///
+  /// In cs, this message translates to:
+  /// **'Platba stravenkami'**
+  String get permPaymentsMethodMealTicket;
+
+  /// No description provided for @permPaymentsMethodCredit.
+  ///
+  /// In cs, this message translates to:
+  /// **'Platba na kredit'**
+  String get permPaymentsMethodCredit;
+
+  /// No description provided for @permPaymentsSkipCashDialog.
+  ///
+  /// In cs, this message translates to:
+  /// **'Přeskočit dialog hotovosti'**
+  String get permPaymentsSkipCashDialog;
+
+  /// No description provided for @permPaymentsAcceptTip.
+  ///
+  /// In cs, this message translates to:
+  /// **'Přijmout spropitné'**
+  String get permPaymentsAcceptTip;
+
+  /// No description provided for @permPaymentsAdjustTip.
+  ///
+  /// In cs, this message translates to:
+  /// **'Upravit spropitné'**
+  String get permPaymentsAdjustTip;
+
+  /// No description provided for @permDiscountsApplyItem.
+  ///
+  /// In cs, this message translates to:
+  /// **'Sleva na položku'**
+  String get permDiscountsApplyItem;
+
+  /// No description provided for @permDiscountsApplyBill.
+  ///
+  /// In cs, this message translates to:
+  /// **'Sleva na účet'**
+  String get permDiscountsApplyBill;
+
+  /// No description provided for @permDiscountsCustom.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vlastní sleva'**
+  String get permDiscountsCustom;
+
+  /// No description provided for @permDiscountsPriceOverride.
+  ///
+  /// In cs, this message translates to:
+  /// **'Přepsat cenu'**
+  String get permDiscountsPriceOverride;
+
+  /// No description provided for @permDiscountsLoyalty.
+  ///
+  /// In cs, this message translates to:
+  /// **'Věrnostní sleva'**
+  String get permDiscountsLoyalty;
+
+  /// No description provided for @permRegisterOpenSession.
+  ///
+  /// In cs, this message translates to:
+  /// **'Otevřít pokladnu'**
+  String get permRegisterOpenSession;
+
+  /// No description provided for @permRegisterCloseSession.
+  ///
+  /// In cs, this message translates to:
+  /// **'Uzavřít pokladnu'**
+  String get permRegisterCloseSession;
+
+  /// No description provided for @permRegisterViewSession.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zobrazit stav pokladny'**
+  String get permRegisterViewSession;
+
+  /// No description provided for @permRegisterViewAllSessions.
+  ///
+  /// In cs, this message translates to:
+  /// **'Historie uzávěrek'**
+  String get permRegisterViewAllSessions;
+
+  /// No description provided for @permRegisterCashIn.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vklad hotovosti'**
+  String get permRegisterCashIn;
+
+  /// No description provided for @permRegisterCashOut.
+  ///
+  /// In cs, this message translates to:
+  /// **'Výběr hotovosti'**
+  String get permRegisterCashOut;
+
+  /// No description provided for @permRegisterOpenDrawer.
+  ///
+  /// In cs, this message translates to:
+  /// **'Otevřít zásuvku'**
+  String get permRegisterOpenDrawer;
+
+  /// No description provided for @permShiftsClockInOut.
+  ///
+  /// In cs, this message translates to:
+  /// **'Příchod/odchod'**
+  String get permShiftsClockInOut;
+
+  /// No description provided for @permShiftsViewOwn.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zobrazit vlastní směny'**
+  String get permShiftsViewOwn;
+
+  /// No description provided for @permShiftsViewAll.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zobrazit všechny směny'**
+  String get permShiftsViewAll;
+
+  /// No description provided for @permShiftsManage.
+  ///
+  /// In cs, this message translates to:
+  /// **'Spravovat směny'**
+  String get permShiftsManage;
+
+  /// No description provided for @permProductsView.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zobrazit produkty'**
+  String get permProductsView;
+
+  /// No description provided for @permProductsViewCost.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zobrazit nákupní ceny'**
+  String get permProductsViewCost;
+
+  /// No description provided for @permProductsManage.
+  ///
+  /// In cs, this message translates to:
+  /// **'Spravovat produkty'**
+  String get permProductsManage;
+
+  /// No description provided for @permProductsManageCategories.
+  ///
+  /// In cs, this message translates to:
+  /// **'Spravovat kategorie'**
+  String get permProductsManageCategories;
+
+  /// No description provided for @permProductsManageModifiers.
+  ///
+  /// In cs, this message translates to:
+  /// **'Spravovat modifikátory'**
+  String get permProductsManageModifiers;
+
+  /// No description provided for @permProductsManageRecipes.
+  ///
+  /// In cs, this message translates to:
+  /// **'Spravovat receptury'**
+  String get permProductsManageRecipes;
+
+  /// No description provided for @permProductsManagePurchasePrice.
+  ///
+  /// In cs, this message translates to:
+  /// **'Měnit nákupní ceny'**
+  String get permProductsManagePurchasePrice;
+
+  /// No description provided for @permProductsManageTax.
+  ///
+  /// In cs, this message translates to:
+  /// **'Měnit daňové sazby'**
+  String get permProductsManageTax;
+
+  /// No description provided for @permProductsManageSuppliers.
+  ///
+  /// In cs, this message translates to:
+  /// **'Spravovat dodavatele'**
+  String get permProductsManageSuppliers;
+
+  /// No description provided for @permProductsManageManufacturers.
+  ///
+  /// In cs, this message translates to:
+  /// **'Spravovat výrobce'**
+  String get permProductsManageManufacturers;
+
+  /// No description provided for @permProductsSetAvailability.
+  ///
+  /// In cs, this message translates to:
+  /// **'Označit nedostupnost'**
+  String get permProductsSetAvailability;
+
+  /// No description provided for @permStockView.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zobrazit sklad'**
+  String get permStockView;
+
+  /// No description provided for @permStockReceive.
+  ///
+  /// In cs, this message translates to:
+  /// **'Příjem zboží'**
+  String get permStockReceive;
+
+  /// No description provided for @permStockWastage.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zaznamenat odpis'**
+  String get permStockWastage;
+
+  /// No description provided for @permStockAdjust.
+  ///
+  /// In cs, this message translates to:
+  /// **'Korekce skladu'**
+  String get permStockAdjust;
+
+  /// No description provided for @permStockCount.
+  ///
+  /// In cs, this message translates to:
+  /// **'Inventura'**
+  String get permStockCount;
+
+  /// No description provided for @permStockTransfer.
+  ///
+  /// In cs, this message translates to:
+  /// **'Přesun mezi sklady'**
+  String get permStockTransfer;
+
+  /// No description provided for @permStockSetPriceStrategy.
+  ///
+  /// In cs, this message translates to:
+  /// **'Změnit strategii NC'**
+  String get permStockSetPriceStrategy;
+
+  /// No description provided for @permStockManageWarehouses.
+  ///
+  /// In cs, this message translates to:
+  /// **'Spravovat sklady'**
+  String get permStockManageWarehouses;
+
+  /// No description provided for @permCustomersView.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zobrazit zákazníky'**
+  String get permCustomersView;
+
+  /// No description provided for @permCustomersManage.
+  ///
+  /// In cs, this message translates to:
+  /// **'Spravovat zákazníky'**
+  String get permCustomersManage;
+
+  /// No description provided for @permCustomersManageCredit.
+  ///
+  /// In cs, this message translates to:
+  /// **'Spravovat kredit'**
+  String get permCustomersManageCredit;
+
+  /// No description provided for @permCustomersManageLoyalty.
+  ///
+  /// In cs, this message translates to:
+  /// **'Spravovat body'**
+  String get permCustomersManageLoyalty;
+
+  /// No description provided for @permVouchersView.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zobrazit vouchery'**
+  String get permVouchersView;
+
+  /// No description provided for @permVouchersManage.
+  ///
+  /// In cs, this message translates to:
+  /// **'Spravovat vouchery'**
+  String get permVouchersManage;
+
+  /// No description provided for @permVouchersRedeem.
+  ///
+  /// In cs, this message translates to:
+  /// **'Uplatnit voucher'**
+  String get permVouchersRedeem;
+
+  /// No description provided for @permVenueView.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zobrazit stoly'**
+  String get permVenueView;
+
+  /// No description provided for @permVenueReservationsView.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zobrazit rezervace'**
+  String get permVenueReservationsView;
+
+  /// No description provided for @permVenueReservationsManage.
+  ///
+  /// In cs, this message translates to:
+  /// **'Spravovat rezervace'**
+  String get permVenueReservationsManage;
+
+  /// No description provided for @permStatsReceipts.
+  ///
+  /// In cs, this message translates to:
+  /// **'Účtenky (session)'**
+  String get permStatsReceipts;
+
+  /// No description provided for @permStatsReceiptsAll.
+  ///
+  /// In cs, this message translates to:
+  /// **'Účtenky (historie)'**
+  String get permStatsReceiptsAll;
+
+  /// No description provided for @permStatsSales.
+  ///
+  /// In cs, this message translates to:
+  /// **'Prodeje (session)'**
+  String get permStatsSales;
+
+  /// No description provided for @permStatsSalesAll.
+  ///
+  /// In cs, this message translates to:
+  /// **'Prodeje (historie)'**
+  String get permStatsSalesAll;
+
+  /// No description provided for @permStatsOrders.
+  ///
+  /// In cs, this message translates to:
+  /// **'Objednávky (session)'**
+  String get permStatsOrders;
+
+  /// No description provided for @permStatsOrdersAll.
+  ///
+  /// In cs, this message translates to:
+  /// **'Objednávky (historie)'**
+  String get permStatsOrdersAll;
+
+  /// No description provided for @permStatsTips.
+  ///
+  /// In cs, this message translates to:
+  /// **'Spropitné (session)'**
+  String get permStatsTips;
+
+  /// No description provided for @permStatsTipsAll.
+  ///
+  /// In cs, this message translates to:
+  /// **'Spropitné (historie)'**
+  String get permStatsTipsAll;
+
+  /// No description provided for @permStatsCashJournal.
+  ///
+  /// In cs, this message translates to:
+  /// **'Pokladní deník (session)'**
+  String get permStatsCashJournal;
+
+  /// No description provided for @permStatsCashJournalAll.
+  ///
+  /// In cs, this message translates to:
+  /// **'Pokladní deník (historie)'**
+  String get permStatsCashJournalAll;
+
+  /// No description provided for @permStatsShifts.
+  ///
+  /// In cs, this message translates to:
+  /// **'Směny'**
+  String get permStatsShifts;
+
+  /// No description provided for @permStatsZReports.
+  ///
+  /// In cs, this message translates to:
+  /// **'Uzávěrky'**
+  String get permStatsZReports;
+
+  /// No description provided for @permPrintingReceipt.
+  ///
+  /// In cs, this message translates to:
+  /// **'Tisk účtenky'**
+  String get permPrintingReceipt;
+
+  /// No description provided for @permPrintingReprint.
+  ///
+  /// In cs, this message translates to:
+  /// **'Opakovaný tisk'**
+  String get permPrintingReprint;
+
+  /// No description provided for @permPrintingZReport.
+  ///
+  /// In cs, this message translates to:
+  /// **'Tisk Z-reportu'**
+  String get permPrintingZReport;
+
+  /// No description provided for @permPrintingInventoryReport.
+  ///
+  /// In cs, this message translates to:
+  /// **'Tisk inventurního reportu'**
+  String get permPrintingInventoryReport;
+
+  /// No description provided for @permDataExport.
+  ///
+  /// In cs, this message translates to:
+  /// **'Export dat'**
+  String get permDataExport;
+
+  /// No description provided for @permDataImport.
+  ///
+  /// In cs, this message translates to:
+  /// **'Import dat'**
+  String get permDataImport;
+
+  /// No description provided for @permDataBackup.
+  ///
+  /// In cs, this message translates to:
+  /// **'Záloha a obnova'**
+  String get permDataBackup;
+
+  /// No description provided for @permUsersView.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zobrazit uživatele'**
+  String get permUsersView;
+
+  /// No description provided for @permUsersManage.
+  ///
+  /// In cs, this message translates to:
+  /// **'Spravovat uživatele'**
+  String get permUsersManage;
+
+  /// No description provided for @permUsersAssignRoles.
+  ///
+  /// In cs, this message translates to:
+  /// **'Přiřadit roli'**
+  String get permUsersAssignRoles;
+
+  /// No description provided for @permUsersManagePermissions.
+  ///
+  /// In cs, this message translates to:
+  /// **'Spravovat oprávnění'**
+  String get permUsersManagePermissions;
+
+  /// No description provided for @permSettingsCompanyInfo.
+  ///
+  /// In cs, this message translates to:
+  /// **'Informace o firmě'**
+  String get permSettingsCompanyInfo;
+
+  /// No description provided for @permSettingsCompanySecurity.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zabezpečení'**
+  String get permSettingsCompanySecurity;
+
+  /// No description provided for @permSettingsCompanyFiscal.
+  ///
+  /// In cs, this message translates to:
+  /// **'Fiskální nastavení'**
+  String get permSettingsCompanyFiscal;
+
+  /// No description provided for @permSettingsCompanyCloud.
+  ///
+  /// In cs, this message translates to:
+  /// **'Cloud a synchronizace'**
+  String get permSettingsCompanyCloud;
+
+  /// No description provided for @permSettingsCompanyDataWipe.
+  ///
+  /// In cs, this message translates to:
+  /// **'Smazat data'**
+  String get permSettingsCompanyDataWipe;
+
+  /// No description provided for @permSettingsCompanyViewLog.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zobrazit systémový log'**
+  String get permSettingsCompanyViewLog;
+
+  /// No description provided for @permSettingsCompanyClearLog.
+  ///
+  /// In cs, this message translates to:
+  /// **'Smazat log'**
+  String get permSettingsCompanyClearLog;
+
+  /// No description provided for @permSettingsVenueSections.
+  ///
+  /// In cs, this message translates to:
+  /// **'Spravovat sekce'**
+  String get permSettingsVenueSections;
+
+  /// No description provided for @permSettingsVenueTables.
+  ///
+  /// In cs, this message translates to:
+  /// **'Spravovat stoly'**
+  String get permSettingsVenueTables;
+
+  /// No description provided for @permSettingsVenueFloorPlan.
+  ///
+  /// In cs, this message translates to:
+  /// **'Editovat půdorys'**
+  String get permSettingsVenueFloorPlan;
+
+  /// No description provided for @permSettingsRegisterManage.
+  ///
+  /// In cs, this message translates to:
+  /// **'Spravovat pokladny'**
+  String get permSettingsRegisterManage;
+
+  /// No description provided for @permSettingsRegisterHardware.
+  ///
+  /// In cs, this message translates to:
+  /// **'Nastavit hardware'**
+  String get permSettingsRegisterHardware;
+
+  /// No description provided for @permSettingsRegisterGrid.
+  ///
+  /// In cs, this message translates to:
+  /// **'Editovat prodejní grid'**
+  String get permSettingsRegisterGrid;
+
+  /// No description provided for @permSettingsRegisterDisplays.
+  ///
+  /// In cs, this message translates to:
+  /// **'Spravovat displeje'**
+  String get permSettingsRegisterDisplays;
+
+  /// No description provided for @permSettingsRegisterPaymentMethods.
+  ///
+  /// In cs, this message translates to:
+  /// **'Platební metody'**
+  String get permSettingsRegisterPaymentMethods;
+
+  /// No description provided for @permSettingsRegisterTaxRates.
+  ///
+  /// In cs, this message translates to:
+  /// **'Daňové sazby'**
+  String get permSettingsRegisterTaxRates;
+
+  /// No description provided for @permSettingsRegisterManageDevices.
+  ///
+  /// In cs, this message translates to:
+  /// **'Správa zobrazovacích zařízení'**
+  String get permSettingsRegisterManageDevices;
+
+  /// No description provided for @permGroupOrders.
+  ///
+  /// In cs, this message translates to:
+  /// **'Objednávky'**
+  String get permGroupOrders;
+
+  /// No description provided for @permGroupPayments.
+  ///
+  /// In cs, this message translates to:
+  /// **'Platby'**
+  String get permGroupPayments;
+
+  /// No description provided for @permGroupDiscounts.
+  ///
+  /// In cs, this message translates to:
+  /// **'Slevy a ceny'**
+  String get permGroupDiscounts;
+
+  /// No description provided for @permGroupRegister.
+  ///
+  /// In cs, this message translates to:
+  /// **'Pokladna'**
+  String get permGroupRegister;
+
+  /// No description provided for @permGroupShifts.
+  ///
+  /// In cs, this message translates to:
+  /// **'Směny'**
+  String get permGroupShifts;
+
+  /// No description provided for @permGroupProducts.
+  ///
+  /// In cs, this message translates to:
+  /// **'Produkty a katalog'**
+  String get permGroupProducts;
+
+  /// No description provided for @permGroupStock.
+  ///
+  /// In cs, this message translates to:
+  /// **'Sklad'**
+  String get permGroupStock;
+
+  /// No description provided for @permGroupCustomers.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zákazníci a věrnost'**
+  String get permGroupCustomers;
+
+  /// No description provided for @permGroupVouchers.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vouchery'**
+  String get permGroupVouchers;
+
+  /// No description provided for @permGroupVenue.
+  ///
+  /// In cs, this message translates to:
+  /// **'Provoz'**
+  String get permGroupVenue;
+
+  /// No description provided for @permGroupStats.
+  ///
+  /// In cs, this message translates to:
+  /// **'Statistiky a reporty'**
+  String get permGroupStats;
+
+  /// No description provided for @permGroupPrinting.
+  ///
+  /// In cs, this message translates to:
+  /// **'Tisk'**
+  String get permGroupPrinting;
+
+  /// No description provided for @permGroupData.
+  ///
+  /// In cs, this message translates to:
+  /// **'Data'**
+  String get permGroupData;
+
+  /// No description provided for @permGroupUsers.
+  ///
+  /// In cs, this message translates to:
+  /// **'Uživatelé a role'**
+  String get permGroupUsers;
+
+  /// No description provided for @permGroupSettingsCompany.
+  ///
+  /// In cs, this message translates to:
+  /// **'Nastavení — firma'**
+  String get permGroupSettingsCompany;
+
+  /// No description provided for @permGroupSettingsVenue.
+  ///
+  /// In cs, this message translates to:
+  /// **'Nastavení — provozovna'**
+  String get permGroupSettingsVenue;
+
+  /// No description provided for @permGroupSettingsRegister.
+  ///
+  /// In cs, this message translates to:
+  /// **'Nastavení — pokladna'**
+  String get permGroupSettingsRegister;
+
+  /// No description provided for @tabProfile.
+  ///
+  /// In cs, this message translates to:
+  /// **'Profil'**
+  String get tabProfile;
+
+  /// No description provided for @tabPermissions.
+  ///
+  /// In cs, this message translates to:
+  /// **'Oprávnění'**
+  String get tabPermissions;
+
+  /// No description provided for @permissionsResetToRole.
+  ///
+  /// In cs, this message translates to:
+  /// **'Reset na šablonu'**
+  String get permissionsResetToRole;
+
+  /// No description provided for @permissionsCustomized.
+  ///
+  /// In cs, this message translates to:
+  /// **'(upraveno)'**
+  String get permissionsCustomized;
+
+  /// No description provided for @permissionsResetConfirm.
+  ///
+  /// In cs, this message translates to:
+  /// **'Resetovat oprávnění na šablonu role?'**
+  String get permissionsResetConfirm;
+
+  /// No description provided for @statsReceiptDetailTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Detail účtenky'**
+  String get statsReceiptDetailTitle;
+
+  /// No description provided for @statsReceiptType.
+  ///
+  /// In cs, this message translates to:
+  /// **'Typ'**
+  String get statsReceiptType;
+
+  /// No description provided for @statsOrderDetailTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Detail objednávky'**
+  String get statsOrderDetailTitle;
+
+  /// No description provided for @statsOrderPrepStarted.
+  ///
+  /// In cs, this message translates to:
+  /// **'Příprava zahájena'**
+  String get statsOrderPrepStarted;
+
+  /// No description provided for @statsOrderReady.
+  ///
+  /// In cs, this message translates to:
+  /// **'Hotovo'**
+  String get statsOrderReady;
+
+  /// No description provided for @statsOrderDelivered.
+  ///
+  /// In cs, this message translates to:
+  /// **'Doručeno'**
+  String get statsOrderDelivered;
+
+  /// No description provided for @statsOrderCreated.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vytvořeno'**
+  String get statsOrderCreated;
+
+  /// No description provided for @statsOrderItems.
+  ///
+  /// In cs, this message translates to:
+  /// **'Položky'**
+  String get statsOrderItems;
 }
 
 class _AppLocalizationsDelegate

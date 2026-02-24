@@ -142,6 +142,95 @@ class PermissionRepository {
     }
   }
 
+  /// Stream of permission IDs granted to a specific role (for comparison)
+  Stream<Set<String>> watchRolePermissionIds(String roleId) {
+    final query = _db.select(_db.rolePermissions)
+      ..where((t) => t.roleId.equals(roleId) & t.deletedAt.isNull());
+    return query.watch().map((rows) {
+      return rows.map((r) => r.permissionId).toSet();
+    });
+  }
+
+  /// Stream of permission IDs granted to a specific user
+  Stream<Set<String>> watchUserPermissionIds(String companyId, String userId) {
+    final query = _db.select(_db.userPermissions)
+      ..where((t) =>
+          t.companyId.equals(companyId) &
+          t.userId.equals(userId) &
+          t.deletedAt.isNull());
+    return query.watch().map((rows) {
+      return rows.map((r) => r.permissionId).toSet();
+    });
+  }
+
+  /// Grant single permission to user
+  Future<Result<void>> grantPermission({
+    required String companyId,
+    required String userId,
+    required String permissionId,
+    required String grantedBy,
+    required String Function() generateId,
+  }) async {
+    try {
+      await _db.transaction(() async {
+        final newId = generateId();
+        await _db.into(_db.userPermissions).insert(
+              UserPermissionsCompanion.insert(
+                id: newId,
+                companyId: companyId,
+                userId: userId,
+                permissionId: permissionId,
+                grantedBy: grantedBy,
+              ),
+            );
+        final newEntity = await (_db.select(_db.userPermissions)
+              ..where((t) => t.id.equals(newId)))
+            .getSingle();
+        await _enqueueUserPermission('insert', userPermissionFromEntity(newEntity));
+      });
+      return const Success(null);
+    } catch (e, s) {
+      AppLogger.error('Failed to grant permission', error: e, stackTrace: s);
+      return Failure('Failed to grant permission: $e');
+    }
+  }
+
+  /// Revoke single permission from user (soft-delete)
+  Future<Result<void>> revokePermission({
+    required String companyId,
+    required String userId,
+    required String permissionId,
+  }) async {
+    try {
+      await _db.transaction(() async {
+        final existing = await (_db.select(_db.userPermissions)
+              ..where((t) =>
+                  t.companyId.equals(companyId) &
+                  t.userId.equals(userId) &
+                  t.permissionId.equals(permissionId) &
+                  t.deletedAt.isNull()))
+            .getSingleOrNull();
+        if (existing == null) return;
+
+        final now = DateTime.now();
+        await (_db.update(_db.userPermissions)
+              ..where((t) => t.id.equals(existing.id)))
+            .write(UserPermissionsCompanion(
+          deletedAt: Value(now),
+          updatedAt: Value(now),
+        ));
+        final deletedEntity = await (_db.select(_db.userPermissions)
+              ..where((t) => t.id.equals(existing.id)))
+            .getSingle();
+        await _enqueueUserPermission('delete', userPermissionFromEntity(deletedEntity));
+      });
+      return const Success(null);
+    } catch (e, s) {
+      AppLogger.error('Failed to revoke permission', error: e, stackTrace: s);
+      return Failure('Failed to revoke permission: $e');
+    }
+  }
+
   Future<void> _enqueueUserPermission(String operation, UserPermissionModel model) async {
     if (syncQueueRepo == null) return;
     final json = userPermissionToSupabaseJson(model);

@@ -965,6 +965,7 @@ class OrderRepository {
     if (itemDef == null || !itemDef.isStockTracked) return;
 
     if (itemDef.itemType == ItemType.recipe) {
+      // Recipe ingredients — always inbound on reversal
       final recipes = await (_db.select(_db.productRecipes)
             ..where((t) => t.parentProductId.equals(itemDef.id) & t.deletedAt.isNull()))
           .get();
@@ -984,8 +985,28 @@ class OrderRepository {
         warehouseId: warehouse.id,
         itemId: itemDef.id,
         quantity: item.quantity,
-        direction: StockMovementDirection.inbound,
+        direction: _stockDirectionForReversal(item.salePriceAtt),
       );
+    }
+
+    // Reverse stock for modifiers
+    if (orderItemModifierRepo != null) {
+      final mods = await orderItemModifierRepo!.getByOrderItem(item.id);
+      for (final mod in mods) {
+        final modItem = await (_db.select(_db.items)
+              ..where((t) => t.id.equals(mod.modifierItemId)))
+            .getSingleOrNull();
+        if (modItem == null || !modItem.isStockTracked) continue;
+
+        final modQty = mod.quantity * item.quantity;
+        await _createStockMovement(
+          companyId: companyId,
+          warehouseId: warehouse.id,
+          itemId: modItem.id,
+          quantity: modQty,
+          direction: _stockDirectionForReversal(mod.unitPrice),
+        );
+      }
     }
   }
 
@@ -1258,7 +1279,7 @@ class OrderRepository {
       if (item == null || !item.isStockTracked) continue;
 
       if (item.itemType == ItemType.recipe) {
-        // Decompose recipe into ingredients
+        // Decompose recipe into ingredients — always outbound for recipes
         final recipes = await (_db.select(_db.productRecipes)
               ..where((t) => t.parentProductId.equals(item.id) & t.deletedAt.isNull()))
             .get();
@@ -1278,7 +1299,24 @@ class OrderRepository {
           warehouseId: warehouse.id,
           itemId: item.id,
           quantity: orderItem.quantity,
-          direction: StockMovementDirection.outbound,
+          direction: _stockDirectionForSale(orderItem.salePriceAtt),
+        );
+      }
+
+      // Deduct stock for modifiers
+      for (final mod in orderItem.modifiers) {
+        final modItem = await (_db.select(_db.items)
+              ..where((t) => t.id.equals(mod.modifierItemId)))
+            .getSingleOrNull();
+        if (modItem == null || !modItem.isStockTracked) continue;
+
+        final modQty = mod.quantity * orderItem.quantity;
+        await _createStockMovement(
+          companyId: companyId,
+          warehouseId: warehouse.id,
+          itemId: modItem.id,
+          quantity: modQty,
+          direction: _stockDirectionForSale(mod.unitPrice),
         );
       }
     }
@@ -1303,6 +1341,7 @@ class OrderRepository {
       if (item == null || !item.isStockTracked) continue;
 
       if (item.itemType == ItemType.recipe) {
+        // Recipe ingredients — always inbound on reversal
         final recipes = await (_db.select(_db.productRecipes)
               ..where((t) => t.parentProductId.equals(item.id) & t.deletedAt.isNull()))
             .get();
@@ -1313,7 +1352,7 @@ class OrderRepository {
             warehouseId: warehouse.id,
             itemId: recipe.componentProductId,
             quantity: componentQty,
-            direction: StockMovementDirection.inbound, // reverse
+            direction: StockMovementDirection.inbound,
           );
         }
       } else {
@@ -1322,11 +1361,44 @@ class OrderRepository {
           warehouseId: warehouse.id,
           itemId: item.id,
           quantity: orderItem.quantity,
-          direction: StockMovementDirection.inbound, // reverse
+          direction: _stockDirectionForReversal(orderItem.salePriceAtt),
         );
+      }
+
+      // Reverse stock for modifiers
+      if (orderItemModifierRepo != null) {
+        final mods = await orderItemModifierRepo!.getByOrderItem(orderItem.id);
+        for (final mod in mods) {
+          final modItem = await (_db.select(_db.items)
+                ..where((t) => t.id.equals(mod.modifierItemId)))
+              .getSingleOrNull();
+          if (modItem == null || !modItem.isStockTracked) continue;
+
+          final modQty = mod.quantity * orderItem.quantity;
+          await _createStockMovement(
+            companyId: companyId,
+            warehouseId: warehouse.id,
+            itemId: modItem.id,
+            quantity: modQty,
+            direction: _stockDirectionForReversal(mod.unitPrice),
+          );
+        }
       }
     }
   }
+
+  /// Returns outbound for positive prices (normal sale deduction),
+  /// inbound for negative prices (e.g. deposit return adds to stock).
+  StockMovementDirection _stockDirectionForSale(int unitPrice) =>
+      unitPrice < 0
+          ? StockMovementDirection.inbound
+          : StockMovementDirection.outbound;
+
+  /// Inverse of [_stockDirectionForSale] for reversal/void.
+  StockMovementDirection _stockDirectionForReversal(int unitPrice) =>
+      unitPrice < 0
+          ? StockMovementDirection.outbound
+          : StockMovementDirection.inbound;
 
   /// Creates a stock movement (no document) and adjusts stock level.
   Future<void> _createStockMovement({
