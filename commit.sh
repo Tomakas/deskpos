@@ -106,11 +106,12 @@ for entry in "${ENTRIES[@]}"; do
 done
 
 # Update changelog
-printf '%s\n' "${ENTRIES[@]}" | python3 - "$CHANGELOG" <<'PYTHON'
+printf '%s\n' "${ENTRIES[@]}" | python3 - "$CHANGELOG" "$NEW_VERSION" <<'PYTHON'
 import sys
 from datetime import date
 
 changelog_path = sys.argv[1]
+version = sys.argv[2] if len(sys.argv) > 2 and sys.argv[2] else None
 
 entries = []
 for line in sys.stdin:
@@ -134,6 +135,12 @@ type_map = {
 }
 
 today = date.today().isoformat()
+today_prefix = f"## {today}"
+
+if version:
+    today_header = f"## {today} — v{version}"
+else:
+    today_header = today_prefix
 
 with open(changelog_path, "r") as f:
     content = f.read()
@@ -153,10 +160,16 @@ else:
 header_lines = lines[:header_end]
 body_lines = lines[header_end:]
 
-today_header = f"## {today}"
-has_today = any(line.strip() == today_header for line in body_lines)
+# Find existing today section (with or without version suffix)
+found_today = False
+for i, line in enumerate(body_lines):
+    stripped = line.strip()
+    if stripped == today_prefix or stripped.startswith(today_prefix + " — v"):
+        body_lines[i] = today_header
+        found_today = True
+        break
 
-if not has_today:
+if not found_today:
     body_lines = ["", today_header] + body_lines
 
 today_start = None

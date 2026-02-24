@@ -1,23 +1,6 @@
 # Changelog
 
-## 2026-02-24 (evening)
-
-### Multi-Currency Cash Payments
-- **New tables**: `company_currencies` (alternative currencies per company with manual exchange rate), `session_currency_cash` (per-currency opening/closing cash tracking per register session)
-- **Payments**: Added `foreign_currency_id`, `foreign_amount`, `exchange_rate` nullable columns — `amount` always stays in base currency for backward compatibility
-- **Lock default currency**: After the first bill is created, the company's default currency cannot be changed (FilterChips disabled in settings)
-- **Settings UI**: New "Alternative currencies" section in Company Info — add/remove currencies, set exchange rates
-- **Payment dialog**: "Other currency" button activates foreign currency mode — filters to cash-only methods, shows amount in foreign currency with conversion rate, supports custom amount editing
-- **BillRepository**: `recordPayment()` accepts foreign currency params; `refundBill()` and `refundItem()` copy foreign metadata with negated amounts
-- **Opening/Closing cash**: Dialogs and session helpers extended to track opening/closing cash per foreign currency; expected cash calculated from foreign amount aggregation
-- **Z-Report**: `ForeignCurrencyCashSummary` data class; `ZReportService.buildZReport()` and `buildVenueZReport()` aggregate foreign currency cash; dialog and PDF show per-currency reconciliation
-- **Receipt**: `ReceiptPaymentData` extended with foreign currency fields; PDF shows "20.00 EUR × 25.50" under foreign currency payments
-- **Statistics**: Receipt detail shows foreign currency code next to payment method name
-- **Supabase migration**: `20260224_002_add_multi_currency.sql` — CREATE TABLE + RLS + triggers for both new tables, ALTER TABLE payments for 3 new columns
-- **Sync**: Both new tables registered in `tableDependencyOrder` and `_getDriftTable`; Supabase push/pull mappers added
-- **L10n**: ~15 new keys in cs/en for all multi-currency UI surfaces
-
-## 2026-02-24
+## 2026-02-24 — v0.5.5
 
 ### Last Admin Guard
 - **UserRepository**: `isLastAdmin(companyId, roleId)` counts active non-deleted admins; overrides `delete()` and `update()` to block deletion, role demotion, and deactivation of the last active admin
@@ -42,7 +25,7 @@
 ### Documentation
 - **PROJECT.md**: Fixed operator role permission count 66→63, RolePermission total 290→287, updated audit_log description with SELECT policy, added search_path to broadcast trigger docs, removed stale "Aktuální stav" note about old 16 permissions, added migration references for audit fixes and permissions_113, updated route table and permission guard description from `settings.manage` to group-based `hasAnyPermissionInGroupProvider`, added `/statistics` route, added `hasAnyPermissionInGroupProvider` to provider architecture diagram and DI table
 
-## 2026-02-23 (night)
+## 2026-02-23 (night) — v0.5.0
 
 ### Stock — Modifier Deduction & Price-Based Direction
 - **Modifier stock deduction**: `_deductStockForOrder` now iterates modifier items after each main item — stock-tracked modifiers create their own `stock_movement` (qty modifier × qty main item)
@@ -56,7 +39,7 @@
 ### Documentation
 - **PROJECT.md**: Updated Milník 3.5 key decisions, Task3.25, OrderRepository section, modifier implementation note, and catalog tab columns
 
-## 2026-02-23 (evening)
+## 2026-02-23 (evening) — v0.5.0
 
 ### Unit Type Pipeline
 - **`unit` column on `order_items`**: Added `unit` (type `unit_type`, default `'ks'`) to both Drift table and Supabase schema — unit info now persists from product catalog through the full order lifecycle
@@ -73,7 +56,7 @@
 ### SQL
 - **Migration `add_unit_to_order_items`**: `ALTER TABLE order_items ADD COLUMN unit unit_type NOT NULL DEFAULT 'ks'`
 
-## 2026-02-23
+## 2026-02-23 — v0.5.0
 
 ### UI — Sjednocení stylů tlačítek v dialogech
 - **Globální button theme** (`app.dart`): `minimumSize` width 160→0 (tlačítka se přizpůsobí obsahu), `padding` horizontal 16→6, přidán `chipTheme` s padding 6 a `labelPadding: zero` pro FilterChipy
@@ -81,7 +64,7 @@
 - **Migrace 22 dialogů** na `PosDialogActions` s konzistentními typy tlačítek: Cancel/Close = `OutlinedButton`, Confirm = `FilledButton`, Destructive = `PosButtonStyles.destructiveOutlined`
 - **Odstranění ad-hoc overridů**: Sjednocení výšky (44px default), spacingu (8px), odstranění explicitních fontSize/padding/height z jednotlivých dialogů
 
-## 2026-02-22 (night)
+## 2026-02-22 (night) — v0.5.0
 
 ### Sync
 - **Broadcast from Database**: Nahrazení Postgres Changes (CDC) za Supabase Broadcast from Database. Server-side AFTER INSERT OR UPDATE triggers (`trg_{table}_broadcast`) na 36 company-scoped tabulkách volají `realtime.send()`. Klient subscribuje jeden broadcast kanál `sync:{companyId}` místo 27 PostgresChanges listenerů.
@@ -92,7 +75,7 @@
 ### SQL
 - **Migrace `20260222_001_add_broadcast_triggers.sql`**: Dvě trigger funkce (`broadcast_sync_change`, `broadcast_company_sync_change`) a 36 triggerů. SECURITY DEFINER, best-effort (EXCEPTION WHEN OTHERS).
 
-## 2026-02-22 (evening)
+## 2026-02-22 (evening) — v0.5.0
 
 ### Build & Distribution
 - **Windows installer**: Přidán Inno Setup skript (`windows/installer/deskpos.iss`) — generuje `DeskPOS-x.y.z-Setup.exe`

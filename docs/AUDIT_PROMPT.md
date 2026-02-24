@@ -123,6 +123,10 @@ Před reportováním nálezu ověř, že NEJDE o jeden z těchto známých vzor�
 9. **PROJECT.md popisuje budoucí plánované features (Etapa 4+, neoznačené tasky)** — PROJECT.md slouží jako DESIGN dokument, obsahuje i plánované funkce. Neimplementované tasky z budoucích etap NEJSOU bugy. NEREPORTUJ jako „chybějící implementace". Reportuj POUZE pokud je feature popsaná jako „hotová" ale není.
 10. **Komentáře v kódu vysvětlující záměrné chování** — pokud kód má komentář typu „e.g. after schema fix" nebo „intentionally", respektuj záměr autora. Reportuj max jako INFO pokud máš pochybnosti o správnosti záměru.
 11. **`as dynamic` v sync engine** — Drift neposkytuje společné rozhraní pro `.id`, `.companyId`, `.updatedAt` přes různé tabulky. Dynamic cast je nutný workaround pro generické operace. Reportuj max jako NÍZKÉ — known Drift limitation.
+12. **Server-side guard triggery (BEFORE triggers vyhazující exception)** — triggery typu `guard_last_admin` záměrně blokují nebezpečné operace přes `RAISE EXCEPTION`. Toto je standardní PostgreSQL pattern pro business rule enforcement — ne chybějící error handling. NEREPORTUJ samotnou existenci RAISE EXCEPTION jako problém. Reportuj POUZE pokud je guard logika neúplná nebo obejitelná.
+13. **Tranzitivní permission dependency graf** — automatický grant prerequisites a revoke dependents při editaci uživatelských oprávnění je záměrný design. Graf v `permission_implications.dart` definuje 1:N vztahy (permission → required permissions). NEREPORTUJ automatické změny oprávnění jako „neočekávané side effects".
+14. **Jednosměrné tabulky bez `enforce_lww`** — tabulky, které fungují jako append-only záznamy nebo jednosměrné logy (sync_queue, session_currency_cash, cash_movements apod.), záměrně nemají LWW trigger. NEREPORTUJ, pokud je absence LWW konzistentní s jednosměrným charakterem tabulky.
+15. **Realtime broadcast nested payload** — Supabase Broadcast from Database posílá payload v nested struktuře `payload['payload']`. Dvojitý unwrap je konvence Supabase Realtime, ne chyba. NEREPORTUJ jako code smell.
 
 ### Definice závažností (STRIKTNÍ)
 
@@ -162,12 +166,13 @@ Každý agent (α/β/γ) **MUSÍ** svou práci rozdělit na podagenty. Audit vy�
 **Povinné podagenty (spouštěj paralelně kde je to možné):**
 
 1. **Podagent: Sběr kontextu** — FÁZE 1 (přečte PROJECT.md, CLAUDE.md, CHANGELOG, pubspec, main.dart, app.dart, strom souborů). Vrátí souhrn klíčových informací, ne celý obsah.
-2. **Podagent: Repositories + Sync + Mappers** — FÁZE 3.1, 3.2, mappers
-3. **Podagent: Auth + Security + Routing + Providers** — FÁZE 3.3, 3.5, 3.6, seed service
-4. **Podagent: UI (všechny screeny a widgety)** — FÁZE 3.4
-5. **Podagent: Code quality + Drift tabulky + Testy** — FÁZE 3.7, 3.8, Drift table definitions
-6. **Podagent: Best practices + Konzistence** — FÁZE 3.9, 3.10
-7. **Podagent: Dokumentace vs implementace** — FÁZE 5
+2. **Podagent: Repositories + Business logika** — FÁZE 3.1, 3.11 (architektura repozitářů, workflow integrita, server-client guard konzistence)
+3. **Podagent: Sync engine + Mappers** — FÁZE 3.2, mappers (sync tabulky, pull/push/broadcast, realtime, LWW, mapper kompletnost)
+4. **Podagent: Auth + Security + Permissions + Routing + Providers** — FÁZE 3.3, 3.5, 3.6, seed service (PIN, sessions, permission systém, dependency graf, route guards)
+5. **Podagent: UI (všechny screeny a widgety)** — FÁZE 3.4
+6. **Podagent: Code quality + Drift tabulky + Testy** — FÁZE 3.7, 3.8, Drift table definitions
+7. **Podagent: Best practices + Konzistence** — FÁZE 3.9, 3.10
+8. **Podagent: Dokumentace vs implementace** — FÁZE 5
 
 **Agent provádí PŘÍMO (ne v podagentech):**
 - FÁZE 2 (Supabase MCP) — vyžaduje MCP nástroje a koordinaci dat
@@ -258,12 +263,21 @@ ORDER BY tablename;
 ```
 
 #### 2.4 Triggery a funkce
+
+Analyzuj **všechny** triggery a funkce v `public` schema. Nekontroluj jen konkrétní jména — projekt průběžně přidává nové kategorie triggerů (sync, LWW, timestamps, broadcast, guard, apod.).
+
 ```sql
--- Všechny triggery
+-- Všechny triggery (kompletní seznam)
 SELECT trigger_name, event_manipulation, event_object_table, action_timing, action_statement
 FROM information_schema.triggers
 WHERE trigger_schema = 'public'
 ORDER BY event_object_table, trigger_name;
+
+-- VŠECHNY custom funkce v public schema (ne jen trigger funkce)
+SELECT p.proname, pg_get_functiondef(p.oid)
+FROM pg_proc p JOIN pg_namespace n ON p.pronamespace = n.oid
+WHERE n.nspname = 'public'
+ORDER BY p.proname;
 
 -- Tabulky BEZ enforce_lww triggeru
 SELECT t.tablename FROM pg_tables t
@@ -280,14 +294,15 @@ WHERE t.schemaname = 'public'
     SELECT event_object_table FROM information_schema.triggers
     WHERE trigger_name LIKE '%timestamps%'
   );
-
--- Těla trigger funkcí
-SELECT p.proname, pg_get_functiondef(p.oid)
-FROM pg_proc p JOIN pg_namespace n ON p.pronamespace = n.oid
-WHERE n.nspname = 'public'
-  AND p.proname IN ('set_server_timestamps', 'enforce_lww', 'get_my_company_ids')
-ORDER BY p.proname;
 ```
+
+**Kategorizuj triggery** a pro každou kategorii ověř pokrytí:
+
+- **Sync timestamps** (`set_server_timestamps`) — mají ho všechny doménové tabulky?
+- **LWW** (`enforce_lww`) — mají ho tabulky, které podporují UPDATE z klienta? (jednosměrné/append-only tabulky ho záměrně nemají — viz Známé vzory bod 14)
+- **Broadcast/Realtime** — mají broadcast trigger všechny company-scoped tabulky, které se synchronizují? Chybí nějaká?
+- **Guard/Constraint** — existují BEFORE triggery vynucující business pravidla? Je jejich logika kompletní a neobejitelná?
+- **Jiné** — existují triggery mimo výše uvedené kategorie? Jsou zdokumentované?
 
 #### 2.5 Migrace a advisors
 - `list_migrations` — seznam všech migrací
@@ -304,8 +319,10 @@ Pro každou tabulku ověř (globální tabulky jako currencies, roles, permissio
 - [ ] Existuje UPDATE policy s USING + WITH CHECK
 - [ ] **Neexistuje** DELETE policy (soft-delete only)
 - [ ] Existuje `set_server_timestamps` trigger (INSERT + UPDATE)
-- [ ] Existuje `enforce_lww` trigger (UPDATE)
-- [ ] Trigger naming je konzistentní (`trg_{table}_timestamps`, `trg_{table}_lww`)
+- [ ] Existuje `enforce_lww` trigger (UPDATE) — pokud tabulka podporuje UPDATE z klienta (jednosměrné tabulky záměrně ne, viz Známé vzory bod 14)
+- [ ] Existuje broadcast/realtime trigger (AFTER INSERT OR UPDATE) — pro company-scoped tabulky, které se synchronizují
+- [ ] Existují guard/constraint triggery tam, kde business pravidla vyžadují server-side enforcement (např. ochrana posledního admina, zamykání konfigurací apod.)
+- [ ] Trigger naming je konzistentní (ověř naming pattern pro každou kategorii triggerů)
 - [ ] Existuje index `idx_{table}_company_updated` (pro sync pull)
 - [ ] FK sloupce mají indexy (pokud mají FK constraint)
 
@@ -320,6 +337,8 @@ Přečti a analyzuj **každý** soubor v těchto adresářích:
 **Repositáře** (`lib/core/data/repositories/*.dart`):
 - [ ] Dodržuje se Repository pattern? Žádný přímý DB přístup mimo repositáře?
 - [ ] `BaseCompanyScopedRepository` — je správně implementován? Dědí z něj správné entity?
+- [ ] **Registrace repozitářů** — jsou VŠECHNY repozitáře zaregistrované v příslušných provider setech (`companyRepos`, providery v `providers/`)? Chybějící registrace = tabulka se nesynchronizuje.
+- [ ] **Dependency injection** — mají všechny repozitáře injektovaný `syncQueueRepo` kde ho potřebují? Nový repozitář bez `syncQueueRepo` = mutace se nepropagují do outboxu.
 - [ ] `getById()` — validuje company_id scope, nebo vrací entitu jakékoli firmy bez ověření?
 - [ ] Manuální outbox — jsou `_enqueue*` volání po **každé** mutaci? Nechybí nějaké?
 - [ ] `Company.create()` — enqueueuje do outboxu? (zvláštní případ — není BaseCompanyScoped)
@@ -327,6 +346,7 @@ Přečti a analyzuj **každý** soubor v těchto adresářích:
 - [ ] Transakce — jsou atomické operace (`createOrderWithItems`, `cancelBill` cascade) v transaction bloku?
 - [ ] N+1 queries — jsou někde smyčky s await uvnitř (query per iteration)?
 - [ ] Stream management — jsou `watchAll`/`watchById` správně company-scoped a filtrují `deletedAt IS NULL`? **POZOR:** Base class deleguje filtrování na `whereCompanyScope()` — vždy čti KONKRÉTNÍ subclass implementaci, ne jen base třídu.
+- [ ] **Server-side vs client-side validace** — pokud existují server-side guard triggery (business rule enforcement), má klient odpovídající validaci PŘED odesláním? Jsou obě strany konzistentní? (např. guard pro posledního admina — blokuje klient stejné operace jako server?)
 
 **Mappery** (`lib/core/data/mappers/*.dart`):
 - [ ] `entity_mappers.dart` — existuje `fromEntity()` a `toCompanion()` pro **každou** entitu? Porovnej s tabulkou v PROJECT.md.
@@ -360,11 +380,13 @@ Přečti a analyzuj:
 - `lib/core/sync/sync_service.dart`
 - `lib/core/sync/outbox_processor.dart`
 - `lib/core/sync/sync_lifecycle_manager.dart`
+- `lib/core/sync/` — **všechny** soubory v tomto adresáři (mohou existovat další, např. broadcast/realtime channel)
 
 Checklist:
-- [ ] Pull tabulky — je pořadí v `_pullTables` správné podle FK závislostí? Srovnej s Supabase FK.
-- [ ] Pull tabulky — jsou **všechny** tabulky v `_pullTables`? Žádná nechybí?
-- [ ] Pull tabulky — jsou v `_pullTables` tabulky, které **neexistují** na Supabase? (crash risk)
+- [ ] Pull tabulky — je pořadí v seznamu tabulek (hledej konstantu s FK dependency order) správné podle FK závislostí? Srovnej s Supabase FK.
+- [ ] Pull tabulky — jsou **všechny** synchronizované tabulky v seznamu? Žádná nechybí?
+- [ ] Pull tabulky — jsou v seznamu tabulky, které **neexistují** na Supabase? (crash risk)
+- [ ] Pull tabulky — rozlišuje se správně globální vs company-scoped pull? (globální tabulky nemají `company_id` filtr)
 - [ ] LWW logika — je `enforce_lww` trigger konzistentní s pull-side LWW v `sync_service.dart`?
 - [ ] Outbox — `_isProcessing` flag brání concurrent processing?
 - [ ] Outbox — `_isPermanentError` detekuje správné chybové typy?
@@ -375,8 +397,12 @@ Checklist:
 - [ ] `enqueueAll` — mají **všechny** BaseCompanyScopedRepository potomci implementaci?
 - [ ] Timer cleanup — `_pullTimer?.cancel()` a `_timer?.cancel()` v dispose/stop?
 - [ ] Dynamic casty — kolik je `as dynamic` v sync kódu? Jsou bezpečné?
+- [ ] **Realtime/Broadcast** — existuje realtime subscription (broadcast channel)? Pokrývá všechny synchronizované company-scoped tabulky? Je payload unpacking robustní (nested struktura)?
+- [ ] **Realtime reconnect** — co se stane při výpadku realtime spojení? Existuje reconnect logika? Fallback na polling?
+- [ ] **Merge konzistence** — je path pro realtime merge (single row) konzistentní s batch pull path? Používají totéž LWW rozhodování?
+- [ ] **Pull watermark precision** — je watermark (`lastPulledAt`) ukládán s dostatečnou přesností (mikrosekundy)? Hrozí ztráta záznamů při zaokrouhlení?
 
-#### 3.3 Autentizace a bezpečnost
+#### 3.3 Autentizace, bezpečnost a oprávnění
 
 Přečti a analyzuj:
 - `lib/core/auth/pin_helper.dart`
@@ -384,6 +410,7 @@ Přečti a analyzuj:
 - `lib/core/auth/session_manager.dart`
 - `lib/core/auth/supabase_auth_service.dart`
 - `lib/core/network/supabase_config.dart`
+- `lib/core/utils/` — hledej soubory související s permissions/implications
 
 Checklist:
 - [ ] PIN hashing — jaký algoritmus? Je dostatečně silný pro 4-6 místný PIN?
@@ -396,20 +423,20 @@ Checklist:
 - [ ] Token expiration — jaký je JWT expiration time?
 - [ ] Leaked password protection — je zapnutá nebo vypnutá? Je to dokumentováno?
 
+**Permission systém:**
+- [ ] **Počet a struktura** — kolik permissions existuje? V kolika skupinách? Sedí seed/migrace s dokumentací a s kódem?
+- [ ] **Role šablony** — kolik rolí existuje? Jaké permissions má každá role přiřazené? Sedí se seedem a dokumentací?
+- [ ] **Dependency graf** — existuje soubor definující permission dependencies (které permissions vyžadují jiné)? Je graf acyklický? Jsou závislosti kompletní (nechybí očekávané prerequisites)? Jsou oboustranné (grant prerequisites + revoke dependents)?
+- [ ] **Permission group guards** — jsou routes/screeny chráněné per-group permission checks? Pokrývají VŠECHNY chráněné routes? Sedí názvy skupin s reálnými permission kódy?
+- [ ] **UI permission enforcement** — jsou akční tlačítka, menu položky a formulářové prvky konzistentně gated přes permission providery? Existují akce přístupné bez oprávnění, které by měly být chráněné?
+- [ ] **Server-client konzistence** — odpovídají client-side permission checks server-side RLS policies? Může klient odeslat operaci, kterou server odmítne (nebo naopak)?
+
 #### 3.4 UI vrstva
 
-Přečti a analyzuj **každý** screen a widget:
-- `lib/features/auth/screens/screen_login.dart`
-- `lib/features/bills/screens/screen_bills.dart`
-- `lib/features/bills/widgets/*.dart` (všechny dialogy)
-- `lib/features/bills/services/*.dart` (services volané z UI)
-- `lib/features/sell/screens/screen_sell.dart`
-- `lib/features/onboarding/screens/*.dart`
-- `lib/features/settings/screens/*.dart`
-- `lib/features/settings/widgets/*.dart`
+Přečti a analyzuj **každý** screen a widget. Projdi **všechny** `lib/features/*/screens/*.dart` a `lib/features/*/widgets/*.dart` — neomezuj se na konkrétní výčet, projekt se průběžně rozrůstá o nové features/screeny.
 
 Checklist:
-- [ ] **Business logika v UI** — je v screen/widget souboru kalkulace, agregace, nebo logika, která patří do repositáře/service?
+- [ ] **Business logika v UI** — je v screen/widget souboru kalkulace, agregace, nebo logika, která patří do repositáře/service? Obzvlášť hledej v komplexních agregačních screenech (statistiky, reporty, Z-reporty) — patří výpočty do UI nebo do service/repository vrstvy?
 - [ ] **Hardcoded stringy** — jsou všechny UI texty přes `context.l10n`?
 - [ ] **Error states** — rozlišuje se loading vs error v `AsyncValue.when()`? Nebo error zobrazuje spinner?
 - [ ] **Mounted checks** — je před každým `setState()` po await kontrola `if (!mounted) return`?
@@ -417,11 +444,13 @@ Checklist:
 - [ ] **Touch targets** — jsou všechny buttony >= 40px výška?
 - [ ] **Chip/button bars** — dodržuje se pattern z CLAUDE.md (Expanded + SizedBox)?
 - [ ] **N+1 v UI** — jsou ve widgetech smyčky s await (query per row)?
-- [ ] **Permission checks** — jsou akce chráněné `hasPermissionProvider`?
+- [ ] **Permission checks** — jsou akce chráněné `hasPermissionProvider` nebo group-level permission providerem? Pokrývají VŠECHNY chráněné akce?
 - [ ] **Direct DB/Supabase access** — volá UI přímo `appDatabaseProvider` nebo `Supabase.instance.client` místo repositáře?
 - [ ] **Processing guard** — mají tlačítka s async akcemi ochranu proti double-tap?
 - [ ] **FutureBuilder** — je future vytvořen v `initState`, nebo inline v `build()`? (Inline = recreated on every rebuild)
 - [ ] **Dialog width** — jsou šířky dialogů konzistentní?
+- [ ] **Agregační screeny** — pokud existují screeny s komplexní agregací dat (statistiky, sales breakdown, Z-reporty), jsou výpočty korektní? Ošetřují edge cases (storno položky, slevy, modifikátory, multi-currency)? Jsou dostatečně výkonné pro velké objemy dat?
+- [ ] **Datový pipeline** — propagují se nové sloupce/fieldy (unit type, foreign currency, modifier metadata) kompletně celým UI řetězcem? (cart → order → KDS → bill → receipt → statistiky)
 
 #### 3.5 Providery a state management
 
@@ -431,6 +460,9 @@ Přečti: `lib/core/data/providers/*.dart`
 - [ ] `ref.onDispose()` — mají providery s timery/streams/subscriptions cleanup?
 - [ ] `appInitProvider` — je inicializační logika kompletní a v správném pořadí?
 - [ ] `activeRegisterProvider` / `activeRegisterSessionProvider` — jsou správně invalidovány při změně stavu?
+- [ ] **Permission providery** — existují providery pro single-permission check i group-level check? Jsou parametry (permission kód, group prefix) konzistentní s reálnými hodnotami v DB?
+- [ ] **Family providery** — jsou `family` providery parametrizovány správným typem? Nehrozí memory leak při velkém počtu unikátních parametrů?
+- [ ] **Kompletnost** — mají VŠECHNY nové repozitáře odpovídající provider? Nechybí provider pro žádnou doménovou oblast?
 
 #### 3.6 Routing
 
@@ -439,7 +471,8 @@ Přečti: `lib/core/routing/app_router.dart`
 - [ ] Auth guard — je redirect logika kompletní? Pokrývá všechny stavy (no company, no user, no session)?
 - [ ] Debug/dev routes — existují routes přístupné bez autentizace nebo permission checku, které by neměly být?
 - [ ] Redirect loops — může nastat nekonečný redirect?
-- [ ] Permission guard konzistence — odpovídá použitý permission kód v routeru dokumentaci?
+- [ ] **Permission guard kompletnost** — mají VŠECHNY chráněné routes permission guard? Používají správný typ (single permission vs group-level check)? Sedí guard parametry s reálnými permission kódy/skupinami?
+- [ ] **Deep link / direct navigation** — co se stane, když uživatel bez oprávnění přistoupí k route přímo (ne přes menu)? Je redirect korektní?
 
 #### 3.7 Kvalita kódu
 
@@ -582,6 +615,16 @@ Analyzuj celý codebase na konzistenci zápisu. Nekonzistence **mezi soubory** j
 - [ ] Je konzistentní styl pro pojmenované vs pozicional parametry u vlastních widgetů?
 - [ ] Je konzistentní styl pro `required` anotace?
 
+#### 3.11 Business logika a workflow integrita
+
+Pro každý netriviální business workflow (platba, storno, refund, stock movement, session lifecycle) ověř kompletní řetězec:
+
+- [ ] **Multi-currency** — pokud systém podporuje více měn: je exchange rate aplikován konzistentně? Jsou částky v cizí měně ukládány spolu s kurzem a základní měnou? Jsou agregace (Z-report, statistiky, cash reconciliation) správně převáděny/součtovány?
+- [ ] **Stock movements při modifikátorech** — pokud objednávka obsahuje modifikátory se stock-tracked položkami: vytváří se separátní stock movement per modifikátor? Je quantity správně násobena (modifier_qty × parent_item_qty)? Je směr pohybu (inbound/outbound) správný i pro speciální případy (záporné ceny, storno, refund)?
+- [ ] **Storno/refund řetězec** — při stornování nebo refundování: jsou VŠECHNY navázané záznamy správně reversovány? (stock movements, cash movements, modifier stock, customer transactions, voucher usage)
+- [ ] **Session lifecycle** — otevření/zavření registrové session: jsou všechny peněžní toky (opening cash, closing cash, expected cash, difference) správně počítány? Pokud existuje multi-currency cash tracking, jsou per-currency záznamy vytvářeny/uzavírány konzistentně?
+- [ ] **Zamykání konfigurace** — existují business pravidla, která zamykají konfiguraci po prvním použití (např. default měna po prvním účtu, aktivní register po první session)? Je zamykání implementováno na klientu i serveru?
+
 ---
 
 ### FÁZE 4 — Křížová validace (Drift ↔ Supabase ↔ Modely ↔ Mappery)
@@ -596,10 +639,7 @@ Jako **první krok** než začneš per-column srovnání:
 4. Tabulky pouze v Drift = **KRITICKÉ** (sync pull/push crash)
 5. Tabulky pouze v Supabase = **VYSOKÉ** (data se nesynchronizují)
 
-Pozn: Infrastrukturní tabulky:
-- `sync_queue` — existuje na obou stranách, ale má odlišné schéma (porovnej zvlášť). Záměrně NEMÁ `enforce_lww` trigger (jednosměrný outbox).
-- `sync_metadata` — existuje POUZE v Drift (local-only). Neexistuje v Supabase. NEREPORTUJ jako chybějící.
-- `device_registrations` — existuje POUZE v Drift (local-only). Neexistuje v Supabase. NEREPORTUJ jako chybějící.
+Pozn: Identifikuj **local-only tabulky** (existují pouze v Drift, záměrně se nesynchronizují — typicky sync metadata, device registrations apod.) a **infrastrukturní tabulky** (existují na obou stranách, ale mají odlišné schéma — typicky sync outbox). Tyto tabulky NEREPORTUJ jako „chybějící na Supabase". Porovnej je zvlášť s ohledem na jejich specifický účel.
 
 #### Krok 2: Per-column srovnání
 
@@ -615,8 +655,8 @@ Pro **každou sdílenou** tabulku:
 
 #### Krok 3: Hledej nesoulady
 
-- Tabulka v Drift `_pullTables` ale ne v Supabase → **KRITICKÉ** (sync pull crash)
-- Tabulka v Supabase ale ne v Drift `_pullTables` → **VYSOKÉ** (data se nesynchronizují)
+- Tabulka v pull seznamu ale ne v Supabase → **KRITICKÉ** (sync pull crash)
+- Tabulka v Supabase ale ne v pull seznamu → **VYSOKÉ** (data se nesynchronizují)
 - NOT NULL sloupec v Supabase bez defaultu chybí v push mapperu → **KRITICKÉ** (INSERT fail)
 - Sloupec v Supabase ale ne v Drift (nullable) → **STŘEDNÍ** (no crash, just always NULL, schema drift)
 - Sloupec v Drift ale ne v Supabase → **STŘEDNÍ** (push pošle extra field, Supabase ho ignoruje)
@@ -625,6 +665,7 @@ Pro **každou sdílenou** tabulku:
 - Sloupec chybí v modelu ale je v Drift a mapperu → **STŘEDNÍ**
 - Sloupec chybí v push/pull mapperu → **VYSOKÉ** (data se ztratí při sync)
 - Enum hodnoty se liší mezi Dart a Supabase → **VYSOKÉ** (crash při neznámé hodnotě)
+- **Nové sloupce na existujících tabulkách** — pokud byla tabulka rozšířena o nové sloupce (FK na jinou tabulku, nullable metadata, apod.), ověř kompletní řetězec: Drift definice → Model → Entity mapper → Push mapper → Pull mapper → UI. Chybějící sloupec v JAKÉMKOLI článku řetězce = data se ztratí.
 
 ---
 
@@ -656,9 +697,10 @@ Přečti `PROJECT.md` **celý** (po částech). Pro každou sekci hledej:
 - [ ] Edge cases popsané v docs — jsou ošetřeny v kódu?
 
 **Seed data a konfigurace:**
-- [ ] Seed data — odpovídá `SeedService` dokumentaci (3 tax rates, 3 payment methods, 3 sections, 5 categories, 25 items)?
-- [ ] Permission kódy — sedí seed s dokumentací? Je jich přesně 14?
-- [ ] Role šablony — sedí helper/operator/admin oprávnění s tabulkou v docs?
+- [ ] Seed data — odpovídá `SeedService` dokumentaci? Porovnej skutečný počet seed záznamů (tax rates, payment methods, sections, categories, items) s docs.
+- [ ] Permission kódy — kolik permissions skutečně existuje v DB/seedu/migraci? Sedí s dokumentací? Jsou organizovány ve skupinách — sedí skupiny s kódem?
+- [ ] Role šablony — kolik rolí existuje? Jaké permissions má každá role přiřazené (spočítej z migrace/seedu)? Sedí s tabulkou v docs?
+- [ ] Permission dependency pravidla — pokud existuje graf závislostí, sedí s reálným chováním UI při grant/revoke?
 
 **UI a routing:**
 - [ ] Route paths — sedí routes v `app_router.dart` s dokumentací?
