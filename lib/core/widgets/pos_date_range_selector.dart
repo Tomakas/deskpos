@@ -11,18 +11,22 @@ class PosDateRangeSelector extends StatefulWidget {
     required this.onChanged,
     required this.locale,
     required this.l10n,
+    this.initialPeriod = DatePeriod.day,
+    this.allowFuture = false,
   });
 
   final void Function(DateTime from, DateTime to) onChanged;
   final String locale;
   final AppLocalizations l10n;
+  final DatePeriod initialPeriod;
+  final bool allowFuture;
 
   @override
   State<PosDateRangeSelector> createState() => _PosDateRangeSelectorState();
 }
 
 class _PosDateRangeSelectorState extends State<PosDateRangeSelector> {
-  DatePeriod _period = DatePeriod.day;
+  late DatePeriod _period = widget.initialPeriod;
   int _offset = 0;
   DateTime? _customFrom;
   DateTime? _customTo;
@@ -187,7 +191,7 @@ class _PosDateRangeSelectorState extends State<PosDateRangeSelector> {
         ),
         IconButton.filledTonal(
           icon: const Icon(Icons.chevron_right),
-          onPressed: isCustom || _offset >= 0 ? null : () => _navigate(1),
+          onPressed: isCustom || (!widget.allowFuture && _offset >= 0) ? null : () => _navigate(1),
         ),
       ],
     );

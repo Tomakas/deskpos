@@ -141,11 +141,11 @@ class OrderRepository {
         for (final item in itemEntities) {
           await _enqueueOrderItem('insert', orderItemFromEntity(item));
         }
+        // Stock deduction for stock-tracked items (inside transaction for atomicity)
+        await _deductStockForOrder(companyId, items);
+
         return o;
       });
-
-      // Stock deduction for stock-tracked items
-      await _deductStockForOrder(companyId, items);
 
       return Success(order);
     } catch (e, s) {

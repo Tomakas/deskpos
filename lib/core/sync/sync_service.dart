@@ -126,41 +126,57 @@ class SyncService {
     }
   }
 
+  // PostgREST max-rows default is 1000; page within that limit.
+  static const _pageSize = 1000;
+
   Future<void> pullTable(String companyId, String tableName) async {
     final lastPulledAt = await _syncMetadataRepo.getLastPulledAt(companyId, tableName);
-
-    // Global tables: no company filter. Companies: filter by id. Others: filter by company_id.
-    var query = _supabase.from(tableName).select();
-    if (tableName == 'companies') {
-      query = query.eq('id', companyId);
-    } else if (!_globalTables.contains(tableName)) {
-      query = query.eq('company_id', companyId);
-    }
-
-    if (lastPulledAt != null) {
-      query = query.gt('updated_at', lastPulledAt);
-    }
-
-    final rows = await query.order('updated_at', ascending: true) as List<dynamic>;
-
-    if (rows.isEmpty) return;
-
-    AppLogger.info(
-      'SyncService: pulled ${rows.length} rows from $tableName (cursor=$lastPulledAt)',
-      tag: 'SYNC',
-    );
 
     // Rows are ordered by updated_at ASC — the last row has the max value.
     // Store the raw ISO 8601 string to preserve full microsecond precision
     // (Drift's DateTimeColumn truncates to seconds, causing re-pulls).
     String? maxUpdatedAt;
+    int offset = 0;
+    int totalPulled = 0;
 
-    for (final row in rows) {
-      final json = row as Map<String, dynamic>;
-      final entityId = extractId(json);
-      maxUpdatedAt = json['updated_at'] as String;
+    while (true) {
+      // Global tables: no company filter. Companies: filter by id. Others: filter by company_id.
+      var query = _supabase.from(tableName).select();
+      if (tableName == 'companies') {
+        query = query.eq('id', companyId);
+      } else if (!_globalTables.contains(tableName)) {
+        query = query.eq('company_id', companyId);
+      }
 
-      await mergeRow(companyId, tableName, entityId, json);
+      if (lastPulledAt != null) {
+        query = query.gt('updated_at', lastPulledAt);
+      }
+
+      final rows = await query
+          .order('updated_at', ascending: true)
+          .range(offset, offset + _pageSize - 1) as List<dynamic>;
+
+      if (rows.isEmpty) break;
+
+      for (final row in rows) {
+        final json = row as Map<String, dynamic>;
+        final entityId = extractId(json);
+        maxUpdatedAt = json['updated_at'] as String;
+
+        await mergeRow(companyId, tableName, entityId, json);
+      }
+
+      totalPulled += rows.length;
+
+      if (rows.length < _pageSize) break;
+      offset += rows.length;
+    }
+
+    if (totalPulled > 0) {
+      AppLogger.info(
+        'SyncService: pulled $totalPulled rows from $tableName (cursor=$lastPulledAt)',
+        tag: 'SYNC',
+      );
     }
 
     if (maxUpdatedAt != null) {

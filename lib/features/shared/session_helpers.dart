@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../core/data/enums/bill_status.dart';
 import '../../core/data/enums/cash_movement_type.dart';
+import '../../core/data/models/session_currency_cash_model.dart';
 import '../../core/data/enums/hardware_type.dart';
 import '../../core/data/enums/payment_type.dart';
 import '../../core/data/providers/auth_providers.dart';
@@ -444,12 +446,16 @@ Future<void> openSession(BuildContext context, WidgetRef ref) async {
   if (openResult is Success) {
     final newSession = (openResult as Success).value;
     for (final entry in result.foreignCash.entries) {
-      await sessionCurrencyCashRepo.create(
+      final now = DateTime.now();
+      await sessionCurrencyCashRepo.create(SessionCurrencyCashModel(
+        id: const Uuid().v7(),
         companyId: company.id,
         registerSessionId: newSession.id,
         currencyId: entry.key,
         openingCash: entry.value,
-      );
+        createdAt: now,
+        updatedAt: now,
+      ));
     }
     if (!context.mounted) return;
 

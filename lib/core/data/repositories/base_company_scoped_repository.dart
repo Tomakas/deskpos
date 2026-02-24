@@ -125,8 +125,11 @@ abstract class BaseCompanyScopedRepository<TTable extends Table,
         .map((rows) => rows.map(fromEntity).toList());
   }
 
-  Future<TModel?> getById(String id, {bool includeDeleted = false}) async {
+  Future<TModel?> getById(String id, {bool includeDeleted = false, String? companyId}) async {
     final query = db.select(table)..where((t) => whereId(t, id));
+    if (companyId != null) {
+      query.where((t) => whereCompanyScope(t, companyId));
+    }
     if (!includeDeleted) {
       query.where((t) => whereNotDeleted(t));
     }

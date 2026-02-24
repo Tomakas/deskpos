@@ -32,6 +32,8 @@ mixin _$CompanyModel {
   String? get businessType => throw _privateConstructorUsedError;
   String get defaultCurrencyId => throw _privateConstructorUsedError;
   String get authUserId => throw _privateConstructorUsedError;
+  bool get isDemo => throw _privateConstructorUsedError;
+  DateTime? get demoExpiresAt => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
   DateTime get updatedAt => throw _privateConstructorUsedError;
   DateTime? get deletedAt => throw _privateConstructorUsedError;
@@ -66,6 +68,8 @@ abstract class $CompanyModelCopyWith<$Res> {
     String? businessType,
     String defaultCurrencyId,
     String authUserId,
+    bool isDemo,
+    DateTime? demoExpiresAt,
     DateTime createdAt,
     DateTime updatedAt,
     DateTime? deletedAt,
@@ -102,6 +106,8 @@ class _$CompanyModelCopyWithImpl<$Res, $Val extends CompanyModel>
     Object? businessType = freezed,
     Object? defaultCurrencyId = null,
     Object? authUserId = null,
+    Object? isDemo = null,
+    Object? demoExpiresAt = freezed,
     Object? createdAt = null,
     Object? updatedAt = null,
     Object? deletedAt = freezed,
@@ -168,6 +174,14 @@ class _$CompanyModelCopyWithImpl<$Res, $Val extends CompanyModel>
                 ? _value.authUserId
                 : authUserId // ignore: cast_nullable_to_non_nullable
                       as String,
+            isDemo: null == isDemo
+                ? _value.isDemo
+                : isDemo // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            demoExpiresAt: freezed == demoExpiresAt
+                ? _value.demoExpiresAt
+                : demoExpiresAt // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
             createdAt: null == createdAt
                 ? _value.createdAt
                 : createdAt // ignore: cast_nullable_to_non_nullable
@@ -211,6 +225,8 @@ abstract class _$$CompanyModelImplCopyWith<$Res>
     String? businessType,
     String defaultCurrencyId,
     String authUserId,
+    bool isDemo,
+    DateTime? demoExpiresAt,
     DateTime createdAt,
     DateTime updatedAt,
     DateTime? deletedAt,
@@ -246,6 +262,8 @@ class __$$CompanyModelImplCopyWithImpl<$Res>
     Object? businessType = freezed,
     Object? defaultCurrencyId = null,
     Object? authUserId = null,
+    Object? isDemo = null,
+    Object? demoExpiresAt = freezed,
     Object? createdAt = null,
     Object? updatedAt = null,
     Object? deletedAt = freezed,
@@ -312,6 +330,14 @@ class __$$CompanyModelImplCopyWithImpl<$Res>
             ? _value.authUserId
             : authUserId // ignore: cast_nullable_to_non_nullable
                   as String,
+        isDemo: null == isDemo
+            ? _value.isDemo
+            : isDemo // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        demoExpiresAt: freezed == demoExpiresAt
+            ? _value.demoExpiresAt
+            : demoExpiresAt // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
         createdAt: null == createdAt
             ? _value.createdAt
             : createdAt // ignore: cast_nullable_to_non_nullable
@@ -348,6 +374,8 @@ class _$CompanyModelImpl implements _CompanyModel {
     this.businessType,
     required this.defaultCurrencyId,
     required this.authUserId,
+    this.isDemo = false,
+    this.demoExpiresAt,
     required this.createdAt,
     required this.updatedAt,
     this.deletedAt,
@@ -384,6 +412,11 @@ class _$CompanyModelImpl implements _CompanyModel {
   @override
   final String authUserId;
   @override
+  @JsonKey()
+  final bool isDemo;
+  @override
+  final DateTime? demoExpiresAt;
+  @override
   final DateTime createdAt;
   @override
   final DateTime updatedAt;
@@ -392,7 +425,7 @@ class _$CompanyModelImpl implements _CompanyModel {
 
   @override
   String toString() {
-    return 'CompanyModel(id: $id, name: $name, status: $status, businessId: $businessId, address: $address, phone: $phone, email: $email, vatNumber: $vatNumber, country: $country, city: $city, postalCode: $postalCode, timezone: $timezone, businessType: $businessType, defaultCurrencyId: $defaultCurrencyId, authUserId: $authUserId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+    return 'CompanyModel(id: $id, name: $name, status: $status, businessId: $businessId, address: $address, phone: $phone, email: $email, vatNumber: $vatNumber, country: $country, city: $city, postalCode: $postalCode, timezone: $timezone, businessType: $businessType, defaultCurrencyId: $defaultCurrencyId, authUserId: $authUserId, isDemo: $isDemo, demoExpiresAt: $demoExpiresAt, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
   }
 
   @override
@@ -422,6 +455,9 @@ class _$CompanyModelImpl implements _CompanyModel {
                 other.defaultCurrencyId == defaultCurrencyId) &&
             (identical(other.authUserId, authUserId) ||
                 other.authUserId == authUserId) &&
+            (identical(other.isDemo, isDemo) || other.isDemo == isDemo) &&
+            (identical(other.demoExpiresAt, demoExpiresAt) ||
+                other.demoExpiresAt == demoExpiresAt) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.updatedAt, updatedAt) ||
@@ -431,7 +467,7 @@ class _$CompanyModelImpl implements _CompanyModel {
   }
 
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     runtimeType,
     id,
     name,
@@ -448,10 +484,12 @@ class _$CompanyModelImpl implements _CompanyModel {
     businessType,
     defaultCurrencyId,
     authUserId,
+    isDemo,
+    demoExpiresAt,
     createdAt,
     updatedAt,
     deletedAt,
-  );
+  ]);
 
   /// Create a copy of CompanyModel
   /// with the given fields replaced by the non-null parameter values.
@@ -479,6 +517,8 @@ abstract class _CompanyModel implements CompanyModel {
     final String? businessType,
     required final String defaultCurrencyId,
     required final String authUserId,
+    final bool isDemo,
+    final DateTime? demoExpiresAt,
     required final DateTime createdAt,
     required final DateTime updatedAt,
     final DateTime? deletedAt,
@@ -514,6 +554,10 @@ abstract class _CompanyModel implements CompanyModel {
   String get defaultCurrencyId;
   @override
   String get authUserId;
+  @override
+  bool get isDemo;
+  @override
+  DateTime? get demoExpiresAt;
   @override
   DateTime get createdAt;
   @override

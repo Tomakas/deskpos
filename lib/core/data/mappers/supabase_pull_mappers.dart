@@ -457,6 +457,8 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
         businessType: Value(json['business_type'] as String?),
         defaultCurrencyId: Value(json['default_currency_id'] as String),
         authUserId: Value(json['auth_user_id'] as String),
+        isDemo: Value(json['is_demo'] as bool? ?? false),
+        demoExpiresAt: Value(_parseDateTime(json['demo_expires_at'])),
         createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
         updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
         deletedAt: Value(_parseDateTime(json['deleted_at'])),

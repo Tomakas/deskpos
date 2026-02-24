@@ -1,15 +1,21 @@
+import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../../core/auth/pin_helper.dart';
 import '../../../core/data/providers/auth_providers.dart';
+import '../../../core/data/providers/database_provider.dart';
 import '../../../core/data/providers/sync_providers.dart';
 import '../../../core/data/result.dart';
+import '../../../core/database/app_database.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
-import '../../../l10n/app_localizations.dart';
 import '../../../core/logging/app_logger.dart';
+import '../../../core/widgets/pos_dialog_actions.dart';
+import '../../../l10n/app_localizations.dart';
 
 class ScreenOnboarding extends ConsumerStatefulWidget {
   const ScreenOnboarding({super.key});
@@ -25,6 +31,7 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
   bool _withTestData = false;
   String _selectedLocale = 'cs';
   String _selectedCurrencyCode = 'CZK';
+  String _selectedMode = 'gastro';
 
   // Step 0: Supabase account
   final _authEmailCtrl = TextEditingController();
@@ -112,10 +119,6 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
                 const SizedBox(height: 32),
                 Text(l.onboardingTitle, style: Theme.of(context).textTheme.headlineMedium),
                 const SizedBox(height: 48),
-                // --- Pokladna ---
-                Text(l.onboardingSectionPos,
-                    style: Theme.of(context).textTheme.titleSmall),
-                const SizedBox(height: 16),
                 SizedBox(
                   width: double.infinity,
                   height: 52,
@@ -136,10 +139,6 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
                 const SizedBox(height: 32),
                 const Divider(),
                 const SizedBox(height: 16),
-                // --- Displeje ---
-                Text(l.onboardingSectionDisplays,
-                    style: Theme.of(context).textTheme.titleSmall),
-                const SizedBox(height: 16),
                 SizedBox(
                   width: double.infinity,
                   height: 52,
@@ -147,6 +146,23 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
                     onPressed: () => context.go('/display-code?type=customer_display'),
                     child: Text(l.onboardingCustomerDisplay),
                   ),
+                ),
+                const SizedBox(height: 32),
+                const Divider(),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: FilledButton.tonal(
+                    onPressed: _showDemoDialog,
+                    child: Text(l.onboardingCreateDemo),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  l.onboardingCreateDemoSubtitle,
+                  style: Theme.of(context).textTheme.bodySmall,
+                  textAlign: TextAlign.center,
                 ),
               ],
             ),
@@ -352,6 +368,42 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
         controlAffinity: ListTileControlAffinity.leading,
         contentPadding: EdgeInsets.zero,
       ),
+      if (_withTestData) ...[
+        const SizedBox(height: 8),
+        Text(l.wizardDemoMode, style: Theme.of(context).textTheme.titleSmall),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: SizedBox(
+                height: 40,
+                child: FilterChip(
+                  label: SizedBox(
+                    width: double.infinity,
+                    child: Text(l.sellModeGastro, textAlign: TextAlign.center),
+                  ),
+                  selected: _selectedMode == 'gastro',
+                  onSelected: (_) => setState(() => _selectedMode = 'gastro'),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: SizedBox(
+                height: 40,
+                child: FilterChip(
+                  label: SizedBox(
+                    width: double.infinity,
+                    child: Text(l.sellModeRetail, textAlign: TextAlign.center),
+                  ),
+                  selected: _selectedMode == 'retail',
+                  onSelected: (_) => setState(() => _selectedMode = 'retail'),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
     ];
   }
 
@@ -505,7 +557,6 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
       adminFullName: _fullNameCtrl.text.trim(),
       adminUsername: _usernameCtrl.text.trim(),
       adminPin: _pinCtrl.text,
-      withTestData: _withTestData,
       deviceId: myDeviceId,
       locale: _selectedLocale,
       defaultCurrencyCode: _selectedCurrencyCode,
@@ -515,7 +566,26 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
     if (!mounted) return;
 
     switch (result) {
-      case Success():
+      case Success(value: final companyId):
+        // Seed static demo data if "with test data" was checked
+        if (_withTestData) {
+          // Find the default tax rate for this company
+          final db = ref.read(appDatabaseProvider);
+          final defaultTaxRate = await (db.select(db.taxRates)
+                ..where((t) => t.companyId.equals(companyId) & t.isDefault.equals(true)))
+              .getSingleOrNull();
+
+          if (defaultTaxRate != null && mounted) {
+            await seedService.seedStaticDemoData(
+              companyId: companyId,
+              locale: _selectedLocale,
+              mode: _selectedMode,
+              defaultTaxRateId: defaultTaxRate.id,
+            );
+          }
+        }
+
+        if (!mounted) return;
         // Clear pre-company locale override — company settings now own the locale
         ref.read(pendingLocaleProvider.notifier).state = null;
         ref.invalidate(appInitProvider);
@@ -525,6 +595,260 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
       case Failure(message: final msg):
         AppLogger.error('Onboarding failed: $msg');
         setState(() => _isSubmitting = false);
+    }
+  }
+
+  // --- Demo flow (anonymous auth) ---
+
+  void _showDemoDialog() {
+    var demoMode = 'gastro';
+    String? demoError;
+    var demoSubmitting = false;
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setDialogState) {
+          final l = dialogContext.l10n;
+          return AlertDialog(
+            title: Text(l.demoDialogTitle),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: SizedBox(
+                        height: 40,
+                        child: FilterChip(
+                          label: SizedBox(
+                            width: double.infinity,
+                            child: Text(l.sellModeGastro, textAlign: TextAlign.center),
+                          ),
+                          selected: demoMode == 'gastro',
+                          onSelected: (_) => setDialogState(() => demoMode = 'gastro'),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: SizedBox(
+                        height: 40,
+                        child: FilterChip(
+                          label: SizedBox(
+                            width: double.infinity,
+                            child: Text(l.sellModeRetail, textAlign: TextAlign.center),
+                          ),
+                          selected: demoMode == 'retail',
+                          onSelected: (_) => setDialogState(() => demoMode = 'retail'),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  l.demoDialogInfo,
+                  style: Theme.of(dialogContext).textTheme.bodySmall,
+                ),
+                if (demoError != null) ...[
+                  const SizedBox(height: 16),
+                  Text(
+                    demoError!,
+                    style: TextStyle(color: Theme.of(dialogContext).colorScheme.error),
+                  ),
+                ],
+              ],
+            ),
+            actions: [
+              PosDialogActions(
+                actions: [
+                  OutlinedButton(
+                    onPressed: demoSubmitting ? null : () => Navigator.of(dialogContext).pop(),
+                    child: Text(l.wizardBack),
+                  ),
+                  FilledButton(
+                    onPressed: demoSubmitting
+                        ? null
+                        : () async {
+                            setDialogState(() {
+                              demoSubmitting = true;
+                              demoError = null;
+                            });
+                            await _executeDemoCreation(
+                              dialogContext: dialogContext,
+                              mode: demoMode,
+                              onError: (msg) {
+                                if (dialogContext.mounted) {
+                                  setDialogState(() {
+                                    demoError = msg;
+                                    demoSubmitting = false;
+                                  });
+                                }
+                              },
+                            );
+                          },
+                    child: demoSubmitting
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Text(l.demoDialogCreate),
+                  ),
+                ],
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Future<void> _executeDemoCreation({
+    required BuildContext dialogContext,
+    required String mode,
+    required void Function(String) onError,
+  }) async {
+    final l = context.l10n;
+    final currencyCode = _selectedLocale == 'cs' ? 'CZK' : 'EUR';
+    final companyName = mode == 'gastro'
+        ? 'Demo Gastro'
+        : (_selectedLocale == 'cs' ? 'Demo Maloobchod' : 'Demo Retail');
+
+    // 1. Anonymous sign-in
+    final authService = ref.read(supabaseAuthServiceProvider);
+
+    // Clear any stale session
+    if (authService.isAuthenticated) {
+      await authService.signOut();
+      if (!mounted) return;
+    }
+
+    final authResult = await authService.signInAnonymously();
+    if (!mounted) return;
+
+    switch (authResult) {
+      case Failure(message: final msg):
+        onError(msg);
+        return;
+      case Success():
+        break;
+    }
+
+    // Close demo dialog and show progress dialog
+    if (dialogContext.mounted) Navigator.of(dialogContext).pop();
+
+    final progressNotifier = ValueNotifier<String>(l.wizardDemoCreating);
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => PopScope(
+        canPop: false,
+        child: ValueListenableBuilder<String>(
+          valueListenable: progressNotifier,
+          builder: (_, status, _) => AlertDialog(
+            content: Row(
+              children: [
+                const CircularProgressIndicator(),
+                const SizedBox(width: 24),
+                Expanded(child: Text(status)),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    try {
+      // 2. Pull global tables
+      final syncService = ref.read(syncServiceProvider);
+      const globalTables = ['currencies', 'roles', 'permissions', 'role_permissions'];
+      for (final table in globalTables) {
+        await syncService.pullTable('_global', table);
+      }
+      if (!mounted) return;
+
+      // 3. Call edge function to create demo company server-side
+      progressNotifier.value = l.wizardDemoCreating;
+      final supabase = Supabase.instance.client;
+      final response = await supabase.functions.invoke(
+        'create-demo-data',
+        body: {
+          'locale': _selectedLocale,
+          'mode': mode,
+          'currency_code': currencyCode,
+          'company_name': companyName,
+        },
+      );
+
+      if (!mounted) return;
+
+      final result = response.data as Map<String, dynamic>;
+
+      if (result['ok'] != true) {
+        throw Exception(result['message'] ?? 'Demo data creation failed');
+      }
+
+      final companyId = result['company_id'] as String;
+      final registerId = result['register_id'] as String;
+
+      // 4. Pull all company data from server
+      progressNotifier.value = l.wizardDemoDownloading;
+      await syncService.pullAll(companyId);
+      if (!mounted) return;
+
+      // 5. Create device_registration locally (local-only table)
+      final db = ref.read(appDatabaseProvider);
+      await db.into(db.deviceRegistrations).insert(
+        DeviceRegistrationsCompanion.insert(
+          id: const Uuid().v7(),
+          companyId: companyId,
+          registerId: registerId,
+          createdAt: DateTime.now(),
+        ),
+      );
+
+      // 6. Insert completed sync_queue marker (prevents _initialPush
+      //    from re-pushing all pulled demo data back to server)
+      await db.into(db.syncQueue).insert(
+        SyncQueueCompanion.insert(
+          id: const Uuid().v7(),
+          companyId: companyId,
+          entityType: '_marker',
+          entityId: 'demo_onboarding',
+          operation: 'create',
+          payload: '{}',
+          idempotencyKey: 'demo_marker_${DateTime.now().millisecondsSinceEpoch}',
+        ).copyWith(
+          status: const Value('completed'),
+          processedAt: Value(DateTime.now()),
+        ),
+      );
+
+      if (!mounted) return;
+
+      // Close progress dialog
+      Navigator.of(context).pop();
+
+      // Clear pre-company locale override — company settings now own the locale
+      ref.read(pendingLocaleProvider.notifier).state = null;
+      ref.invalidate(appInitProvider);
+      await ref.read(appInitProvider.future);
+      if (mounted) context.go('/login');
+    } catch (e, s) {
+      AppLogger.error('Demo onboarding failed', error: e, stackTrace: s);
+      if (!mounted) return;
+      Navigator.of(context).pop(); // Close progress dialog
+      if (!mounted) return;
+      // Show error so it's not silently swallowed
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Demo failed: $e'),
+          duration: const Duration(seconds: 10),
+        ),
+      );
     }
   }
 }

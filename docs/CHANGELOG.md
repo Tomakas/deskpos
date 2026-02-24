@@ -1,5 +1,52 @@
 # Changelog
 
+## 2026-02-25 — Onboarding Redesign + Demo Flow
+
+### Demo Company Flow
+- **Anonymous auth**: `SupabaseAuthService.signInAnonymously()` — Supabase anonymous sign-in for demo companies (no email/password needed)
+- **`create-demo-data` Edge Function**: New edge function accepts `locale`, `mode`, `currency_code`, `company_name`; calls `create_demo_company` SQL function via service-role RPC; returns company ID on success
+- **`create_demo_company` SQL function** (`20260224_004`): ~1700-line PL/pgSQL function that creates a complete company with 4 users, 90 days of transactional history (bills, orders, payments, sessions, stock), localized for cs/en × gastro/retail
+- **Demo company business details**: Company INSERT includes all business fields — fictional IČO (`12345678`), DIČ, email, phone, address, city, PSČ, country; localized per locale/mode (cs→CZ/Praha, en→AT/Wien; gastro→Národní 15/Hauptstraße 15, retail→Vinohradská 42/Marktgasse 42)
+- **`is_demo` + `demo_expires_at`** columns on `companies` table (`20260225_001`): Mark demo companies, index for cleanup queries
+- **pg_cron cleanup** (`20260225_002`): Hourly hard-delete of expired demo companies — cascades all child records (orders, bills, payments, users, etc.) via `DELETE FROM companies WHERE is_demo AND demo_expires_at < now()`
+- **Seed data** (`20260224_003`): `seed_demo_data` table with 4 rows (cs/gastro, cs/retail, en/gastro, en/retail) containing pre-generated JSON arrays for items, categories, tables, users, tax rates, etc.
+- **Drift schema**: Added `isDemo` (bool, default false) and `demoExpiresAt` (nullable DateTime) to `companies` table + model + all 4 mapper files
+- **Client-side expiry**: `appInitProvider` checks `isDemo && demoExpiresAt.isBefore(now)` → routes to onboarding; also handles lost anonymous session (no Supabase auth + isDemo company → needsOnboarding)
+
+### Onboarding UI
+- **Screen layout restructure**: Replaced 3-section layout with flat layout — language toggle, title, "Založit novou firmu" (FilledButton), "Připojit se ke stávající" (OutlinedButton), divider, "Připojit zákaznický displej" (OutlinedButton), divider, "Vytvořit Demo" (FilledButton.tonal), subtitle (bodySmall)
+- **Demo dialog**: New `_showDemoDialog()` — Gastro/Maloobchod FilterChip selection, info text about 24h expiry, Cancel/Vytvořit actions; on confirm: anonymous sign-in → pull global tables → call edge function → pull company data → create device registration → insert sync marker → navigate to `/login`
+- **Removed** `onboardingSectionPos` and `onboardingSectionDisplays` section headings
+
+### Ingest Hardening
+- **`supabase/functions/ingest/index.ts`**: Added `.is("deleted_at", null)` to company ownership query — prevents writes to soft-deleted (expired demo) companies
+
+### Display Devices
+- **Unique constraint** (`20260225_003`): `UNIQUE (company_id, code)` on `display_devices` — prevents duplicate pairing codes within a company
+
+### Sync
+- **Pagination fix** (`sync_service.dart`): `pullTable()` now paginates with `.range()` in 1000-row pages — fixes silent data truncation caused by PostgREST `max-rows` default (1000 rows); affects all 25+ pull tables
+
+### Bills
+- **Session scoping** (`screen_bills.dart`): Bills table filtered by `registerSessionId == activeSession.id` — shows only bills from the current register session instead of all company bills
+
+### Localization
+- **Czech**: `sellModeRetail` changed from `"Retail"` to `"Maloobchod"` — affects sell mode selector, onboarding, and all user-facing UI
+- **Demo company name**: Localized — `"Demo Maloobchod"` (cs) / `"Demo Retail"` (en) for retail mode
+- **New keys**: `onboardingCreateDemo`, `onboardingCreateDemoSubtitle`, `demoDialogTitle`, `demoDialogInfo`, `demoDialogCreate`
+- **Removed keys**: `onboardingSectionPos`, `onboardingSectionDisplays`
+
+### Documentation
+- **PROJECT.md**: ~15 edits — companies schema (is_demo, demo_expires_at), sync pagination docs, anonymous auth, navigation diagram (demo flow), ScreenOnboarding layout, demo dialog section, pullTable pagination, Create-Demo-Data Edge Function section, Ingest hardening, Supabase Deployment Requirements (+5 items), ScreenBills session scoping, SellMode Czech label (Maloobchod), Known Issues (+3 demo items), Task4.24 update
+
+## 2026-02-24 (evening)
+
+### Cash Tender Dialog
+- **DialogCashTender**: New numpad dialog for entering received cash and calculating change; quick denomination buttons, foreign currency conversion line, change/remaining display
+- **DialogPayment integration**: Cash tender dialog shown before `recordPayment()` for cash payments; skippable via `payments.skip_cash_dialog` permission; "Bez zadání" button allows proceeding without tender evidence
+- **Foreign currency change tracking**: Automatic `CashMovement(withdrawal)` created when change is returned in base currency from a foreign currency payment — correctly reduces `expectedCash` in Z-report
+- **Localization**: 7 new l10n keys (`cashTenderTitle`, `cashTenderAmountDue`, `cashTenderChange`, `cashTenderRemaining`, `cashTenderSkip`, `cashTenderConversion`, `cashTenderChangeReason`)
+
 ## 2026-02-24 — v0.5.5
 
 ### Last Admin Guard

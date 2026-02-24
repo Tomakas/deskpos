@@ -295,7 +295,7 @@
   "settingsSectionSellOptions": "Volby prodeje",
   "settingsSellMode": "Režim prodeje",
   "sellModeGastro": "Gastro",
-  "sellModeRetail": "Retail",
+  "sellModeRetail": "Maloobchod",
   "settingsSectionGrid": "Zobrazení mřížky",
   "companyFieldVatNumber": "DIČ",
   "settingsLanguage": "Jazyk aplikace",
@@ -1000,9 +1000,12 @@
 
   "billDetailShowOnDisplay": "Zák. displej",
 
-  "onboardingSectionPos": "Pokladna",
-  "onboardingSectionDisplays": "Displeje",
   "onboardingCustomerDisplay": "Zákaznický displej",
+  "onboardingCreateDemo": "Vytvořit Demo",
+  "onboardingCreateDemoSubtitle": "Kompletní demo firma s 3 měsíci historie \u2022 automaticky se smaže po 24h",
+  "demoDialogTitle": "Vytvořit demo firmu",
+  "demoDialogInfo": "Demo se automaticky smaže po 24 hodinách",
+  "demoDialogCreate": "Vytvořit",
   "onboardingKdsDisplay": "Objednávkový displej (KDS)",
 
   "displayCodeTitle": "Zadejte kód",
@@ -1407,6 +1410,37 @@
     }
   },
   "paymentChangeInBase": "Vráceno v základní měně",
+
+  "cashTenderTitle": "Hotovost",
+  "cashTenderAmountDue": "K úhradě",
+  "cashTenderChange": "Vrátit: {amount}",
+  "@cashTenderChange": {
+    "placeholders": {
+      "amount": {"type": "String"}
+    }
+  },
+  "cashTenderRemaining": "Zbývá: {amount}",
+  "@cashTenderRemaining": {
+    "placeholders": {
+      "amount": {"type": "String"}
+    }
+  },
+  "cashTenderSkip": "Bez zadání",
+  "cashTenderConversion": "{foreignAmount} × {rate} = {baseAmount}",
+  "@cashTenderConversion": {
+    "placeholders": {
+      "foreignAmount": {"type": "String"},
+      "rate": {"type": "String"},
+      "baseAmount": {"type": "String"}
+    }
+  },
+  "cashTenderChangeReason": "Vydáno z platby v {currencyCode}",
+  "@cashTenderChangeReason": {
+    "placeholders": {
+      "currencyCode": {"type": "String"}
+    }
+  },
+
   "openingForeignCashTitle": "Počáteční stav cizích měn",
   "closingForeignCashTitle": "Uzávěrka cizích měn",
   "zReportForeignCashTitle": "Pokladna cizí měny",
@@ -1416,5 +1450,10 @@
   "zReportForeignClosing": "Skutečný stav",
   "zReportForeignDifference": "Rozdíl",
   "currencySelectorTitle": "Vyberte měnu",
-  "currencySelectorBack": "Zpět"
+  "currencySelectorBack": "Zpět",
+
+  "wizardDemoMode": "Režim dema",
+  "wizardDemoCreating": "Vytváření demo dat...",
+  "wizardDemoDownloading": "Stahování dat...",
+  "wizardDemoInfo": "Demo vytvoří 4 uživatele, všichni s PINem 1111"
 }

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../auth/auth_service.dart';
@@ -79,12 +80,26 @@ final appInitProvider = FutureProvider<_AppInitState>((ref) async {
 
   final companyRepo = ref.watch(companyRepositoryProvider);
   final result = await companyRepo.getFirst();
-  final hasCompany = switch (result) {
-    Success(value: final company) => company != null,
-    Failure() => false,
+  final company = switch (result) {
+    Success(value: final c) => c,
+    Failure() => null,
   };
 
-  return hasCompany ? _AppInitState.needsLogin : _AppInitState.needsOnboarding;
+  if (company == null) return _AppInitState.needsOnboarding;
+
+  // Client-side demo expiry check (server cron is authoritative)
+  if (company.isDemo &&
+      company.demoExpiresAt != null &&
+      company.demoExpiresAt!.isBefore(DateTime.now())) {
+    return _AppInitState.needsOnboarding;
+  }
+
+  // Lost anonymous session: local demo company exists but no Supabase auth session
+  if (company.isDemo && Supabase.instance.client.auth.currentSession == null) {
+    return _AppInitState.needsOnboarding;
+  }
+
+  return _AppInitState.needsLogin;
 });
 
 enum _AppInitState { needsOnboarding, needsLogin, displayMode }

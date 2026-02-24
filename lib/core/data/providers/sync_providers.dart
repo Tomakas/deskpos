@@ -85,6 +85,8 @@ final syncLifecycleManagerProvider = Provider<SyncLifecycleManager>((ref) {
       ref.watch(warehouseRepositoryProvider),          // warehouses (23)
       ref.watch(customerTransactionRepositoryProvider),// customer_transactions (31)
       ref.watch(voucherRepositoryProvider),            // vouchers (32)
+      ref.watch(companyCurrencyRepositoryProvider),    // company_currencies (33)
+      ref.watch(sessionCurrencyCashRepositoryProvider),// session_currency_cash (34)
     ],
     db: ref.watch(appDatabaseProvider),
   );

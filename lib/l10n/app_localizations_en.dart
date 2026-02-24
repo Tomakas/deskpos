@@ -2442,13 +2442,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get billDetailShowOnDisplay => 'Customer Display';
 
   @override
-  String get onboardingSectionPos => 'Point of Sale';
-
-  @override
-  String get onboardingSectionDisplays => 'Displays';
-
-  @override
   String get onboardingCustomerDisplay => 'Customer Display';
+
+  @override
+  String get onboardingCreateDemo => 'Create Demo';
+
+  @override
+  String get onboardingCreateDemoSubtitle =>
+      'Complete demo company with 3 months of history • auto-deletes after 24h';
+
+  @override
+  String get demoDialogTitle => 'Create Demo Company';
+
+  @override
+  String get demoDialogInfo => 'Demo auto-deletes after 24 hours';
+
+  @override
+  String get demoDialogCreate => 'Create';
 
   @override
   String get onboardingKdsDisplay => 'Order Display (KDS)';
@@ -3478,6 +3488,39 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paymentChangeInBase => 'Change in base currency';
 
   @override
+  String get cashTenderTitle => 'Cash';
+
+  @override
+  String get cashTenderAmountDue => 'Amount due';
+
+  @override
+  String cashTenderChange(String amount) {
+    return 'Change: $amount';
+  }
+
+  @override
+  String cashTenderRemaining(String amount) {
+    return 'Remaining: $amount';
+  }
+
+  @override
+  String get cashTenderSkip => 'Skip';
+
+  @override
+  String cashTenderConversion(
+    String foreignAmount,
+    String rate,
+    String baseAmount,
+  ) {
+    return '$foreignAmount × $rate = $baseAmount';
+  }
+
+  @override
+  String cashTenderChangeReason(String currencyCode) {
+    return 'Change from $currencyCode payment';
+  }
+
+  @override
   String get openingForeignCashTitle => 'Opening cash for foreign currencies';
 
   @override
@@ -3506,4 +3549,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get currencySelectorBack => 'Back';
+
+  @override
+  String get wizardDemoMode => 'Demo mode';
+
+  @override
+  String get wizardDemoCreating => 'Creating demo data...';
+
+  @override
+  String get wizardDemoDownloading => 'Downloading data...';
+
+  @override
+  String get wizardDemoInfo => 'Demo creates 4 users, all with PIN 1111';
 }

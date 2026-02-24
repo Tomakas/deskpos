@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/data/enums/cash_movement_type.dart';
 import '../../../core/data/enums/payment_type.dart';
 import '../../../core/data/models/bill_model.dart';
 import '../../../core/data/models/company_currency_model.dart';
@@ -11,12 +12,14 @@ import '../../../core/data/models/customer_model.dart';
 import '../../../core/data/models/payment_method_model.dart';
 import '../../../core/data/models/payment_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
+import '../../../core/data/providers/permission_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/utils/formatting_ext.dart';
+import 'dialog_cash_tender.dart';
 import 'dialog_change_total.dart';
 
 class DialogPayment extends ConsumerStatefulWidget {
@@ -604,6 +607,43 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
 
     if (_remaining <= 0) return;
 
+    // --- Cash tender dialog for cash payments ---
+    final methods =
+        await (_paymentMethodsFuture ?? Future.value(<PaymentMethodModel>[]));
+    if (!context.mounted) return;
+    final method = methods.where((m) => m.id == methodId).firstOrNull;
+    final isCash = method?.type == PaymentType.cash;
+
+    CashTenderResult? tenderResult;
+    if (isCash) {
+      final canSkip =
+          ref.read(hasPermissionProvider('payments.skip_cash_dialog'));
+      if (!canSkip) {
+        final baseCurrency = ref.read(currentCurrencyProvider).value;
+        if (baseCurrency == null) {
+          setState(() => _processing = false);
+          return;
+        }
+
+        final payCurrency = _selectedForeignCurrencyDetail ?? baseCurrency;
+        tenderResult = await showDialog<CashTenderResult>(
+          context: context,
+          builder: (_) => DialogCashTender(
+            amountDue: _remaining,
+            currency: payCurrency,
+            baseCurrency: baseCurrency,
+            exchangeRate: _selectedForeignCurrencyId != null
+                ? _selectedCompanyCurrency!.exchangeRate
+                : null,
+          ),
+        );
+
+        if (!context.mounted) return;
+        // tenderResult == null → user chose "Bez zadání" or dismissed
+        // Payment proceeds normally without tender evidence
+      }
+    }
+
     // Foreign currency payment
     String? foreignCurrencyId;
     int? foreignAmount;
@@ -658,6 +698,27 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
     if (!context.mounted) return;
 
     if (result is Success<BillModel>) {
+      // Create CashMovement for foreign currency change returned in base currency
+      if (tenderResult != null &&
+          _selectedForeignCurrencyId != null &&
+          tenderResult.changeAmount > 0) {
+        final user = ref.read(activeUserProvider);
+        if (session != null && user != null) {
+          final l = context.l10n;
+          await ref.read(cashMovementRepositoryProvider).create(
+                companyId: _bill.companyId,
+                registerSessionId: session.id,
+                userId: user.id,
+                type: CashMovementType.withdrawal,
+                amount: tenderResult.changeAmount,
+                reason: l.cashTenderChangeReason(
+                    _selectedForeignCurrencyDetail!.code),
+              );
+        }
+      }
+
+      if (!context.mounted) return;
+
       final updatedBill = result.value;
       final fullyPaid = updatedBill.paidAmount >= updatedBill.totalGross;
 

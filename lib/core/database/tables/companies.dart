@@ -20,6 +20,8 @@ class Companies extends Table with SyncColumnsMixin {
   TextColumn get businessType => text().nullable()();
   TextColumn get defaultCurrencyId => text()();
   TextColumn get authUserId => text()();
+  BoolColumn get isDemo => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get demoExpiresAt => dateTime().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};

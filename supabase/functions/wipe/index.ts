@@ -23,6 +23,7 @@ const COMPANY_TABLES = [
   "vouchers",
   "shifts",
   "cash_movements",
+  "session_currency_cash",
   "register_sessions",
   "payments",
   "order_item_modifiers",
@@ -50,6 +51,7 @@ const COMPANY_TABLES = [
   "payment_methods",
   "tax_rates",
   "sections",
+  "company_currencies",
   "company_settings",
 ];
 

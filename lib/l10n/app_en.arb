@@ -1000,9 +1000,12 @@
 
   "billDetailShowOnDisplay": "Customer Display",
 
-  "onboardingSectionPos": "Point of Sale",
-  "onboardingSectionDisplays": "Displays",
   "onboardingCustomerDisplay": "Customer Display",
+  "onboardingCreateDemo": "Create Demo",
+  "onboardingCreateDemoSubtitle": "Complete demo company with 3 months of history \u2022 auto-deletes after 24h",
+  "demoDialogTitle": "Create Demo Company",
+  "demoDialogInfo": "Demo auto-deletes after 24 hours",
+  "demoDialogCreate": "Create",
   "onboardingKdsDisplay": "Order Display (KDS)",
 
   "displayCodeTitle": "Enter Code",
@@ -1407,6 +1410,37 @@
     }
   },
   "paymentChangeInBase": "Change in base currency",
+
+  "cashTenderTitle": "Cash",
+  "cashTenderAmountDue": "Amount due",
+  "cashTenderChange": "Change: {amount}",
+  "@cashTenderChange": {
+    "placeholders": {
+      "amount": {"type": "String"}
+    }
+  },
+  "cashTenderRemaining": "Remaining: {amount}",
+  "@cashTenderRemaining": {
+    "placeholders": {
+      "amount": {"type": "String"}
+    }
+  },
+  "cashTenderSkip": "Skip",
+  "cashTenderConversion": "{foreignAmount} × {rate} = {baseAmount}",
+  "@cashTenderConversion": {
+    "placeholders": {
+      "foreignAmount": {"type": "String"},
+      "rate": {"type": "String"},
+      "baseAmount": {"type": "String"}
+    }
+  },
+  "cashTenderChangeReason": "Change from {currencyCode} payment",
+  "@cashTenderChangeReason": {
+    "placeholders": {
+      "currencyCode": {"type": "String"}
+    }
+  },
+
   "openingForeignCashTitle": "Opening cash for foreign currencies",
   "closingForeignCashTitle": "Closing cash for foreign currencies",
   "zReportForeignCashTitle": "Foreign currency cash",
@@ -1416,5 +1450,10 @@
   "zReportForeignClosing": "Actual",
   "zReportForeignDifference": "Difference",
   "currencySelectorTitle": "Select currency",
-  "currencySelectorBack": "Back"
+  "currencySelectorBack": "Back",
+
+  "wizardDemoMode": "Demo mode",
+  "wizardDemoCreating": "Creating demo data...",
+  "wizardDemoDownloading": "Downloading data...",
+  "wizardDemoInfo": "Demo creates 4 users, all with PIN 1111"
 }

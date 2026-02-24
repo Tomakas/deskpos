@@ -703,7 +703,7 @@ class AppLocalizationsCs extends AppLocalizations {
   String get sellModeGastro => 'Gastro';
 
   @override
-  String get sellModeRetail => 'Retail';
+  String get sellModeRetail => 'Maloobchod';
 
   @override
   String get settingsSectionGrid => 'Zobrazení mřížky';
@@ -2439,13 +2439,23 @@ class AppLocalizationsCs extends AppLocalizations {
   String get billDetailShowOnDisplay => 'Zák. displej';
 
   @override
-  String get onboardingSectionPos => 'Pokladna';
-
-  @override
-  String get onboardingSectionDisplays => 'Displeje';
-
-  @override
   String get onboardingCustomerDisplay => 'Zákaznický displej';
+
+  @override
+  String get onboardingCreateDemo => 'Vytvořit Demo';
+
+  @override
+  String get onboardingCreateDemoSubtitle =>
+      'Kompletní demo firma s 3 měsíci historie • automaticky se smaže po 24h';
+
+  @override
+  String get demoDialogTitle => 'Vytvořit demo firmu';
+
+  @override
+  String get demoDialogInfo => 'Demo se automaticky smaže po 24 hodinách';
+
+  @override
+  String get demoDialogCreate => 'Vytvořit';
 
   @override
   String get onboardingKdsDisplay => 'Objednávkový displej (KDS)';
@@ -3473,6 +3483,39 @@ class AppLocalizationsCs extends AppLocalizations {
   String get paymentChangeInBase => 'Vráceno v základní měně';
 
   @override
+  String get cashTenderTitle => 'Hotovost';
+
+  @override
+  String get cashTenderAmountDue => 'K úhradě';
+
+  @override
+  String cashTenderChange(String amount) {
+    return 'Vrátit: $amount';
+  }
+
+  @override
+  String cashTenderRemaining(String amount) {
+    return 'Zbývá: $amount';
+  }
+
+  @override
+  String get cashTenderSkip => 'Bez zadání';
+
+  @override
+  String cashTenderConversion(
+    String foreignAmount,
+    String rate,
+    String baseAmount,
+  ) {
+    return '$foreignAmount × $rate = $baseAmount';
+  }
+
+  @override
+  String cashTenderChangeReason(String currencyCode) {
+    return 'Vydáno z platby v $currencyCode';
+  }
+
+  @override
   String get openingForeignCashTitle => 'Počáteční stav cizích měn';
 
   @override
@@ -3501,4 +3544,16 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get currencySelectorBack => 'Zpět';
+
+  @override
+  String get wizardDemoMode => 'Režim dema';
+
+  @override
+  String get wizardDemoCreating => 'Vytváření demo dat...';
+
+  @override
+  String get wizardDemoDownloading => 'Stahování dat...';
+
+  @override
+  String get wizardDemoInfo => 'Demo vytvoří 4 uživatele, všichni s PINem 1111';
 }

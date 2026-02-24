@@ -62,6 +62,8 @@ CompanyModel companyFromEntity(Company e) => CompanyModel(
       businessType: e.businessType,
       defaultCurrencyId: e.defaultCurrencyId,
       authUserId: e.authUserId,
+      isDemo: e.isDemo,
+      demoExpiresAt: e.demoExpiresAt,
       createdAt: e.createdAt,
       updatedAt: e.updatedAt,
       deletedAt: e.deletedAt,
@@ -83,6 +85,8 @@ CompaniesCompanion companyToCompanion(CompanyModel m) => CompaniesCompanion.inse
       businessType: Value(m.businessType),
       defaultCurrencyId: m.defaultCurrencyId,
       authUserId: m.authUserId,
+      isDemo: Value(m.isDemo),
+      demoExpiresAt: Value(m.demoExpiresAt),
     );
 
 // --- CompanyCurrency ---
@@ -597,6 +601,29 @@ SessionCurrencyCashModel sessionCurrencyCashFromEntity(SessionCurrencyCashData e
       createdAt: e.createdAt,
       updatedAt: e.updatedAt,
       deletedAt: e.deletedAt,
+    );
+
+SessionCurrencyCashCompanion sessionCurrencyCashToCompanion(SessionCurrencyCashModel m) =>
+    SessionCurrencyCashCompanion.insert(
+      id: m.id,
+      companyId: m.companyId,
+      registerSessionId: m.registerSessionId,
+      currencyId: m.currencyId,
+      openingCash: Value(m.openingCash),
+    );
+
+SessionCurrencyCashCompanion sessionCurrencyCashToUpdateCompanion(SessionCurrencyCashModel m) =>
+    SessionCurrencyCashCompanion(
+      closingCash: Value(m.closingCash),
+      expectedCash: Value(m.expectedCash),
+      difference: Value(m.difference),
+      updatedAt: Value(DateTime.now()),
+    );
+
+SessionCurrencyCashCompanion sessionCurrencyCashToDeleteCompanion(DateTime now) =>
+    SessionCurrencyCashCompanion(
+      deletedAt: Value(now),
+      updatedAt: Value(now),
     );
 
 // --- DeviceRegistration ---

@@ -1439,7 +1439,7 @@ abstract class AppLocalizations {
   /// No description provided for @sellModeRetail.
   ///
   /// In cs, this message translates to:
-  /// **'Retail'**
+  /// **'Maloobchod'**
   String get sellModeRetail;
 
   /// No description provided for @settingsSectionGrid.
@@ -4790,23 +4790,41 @@ abstract class AppLocalizations {
   /// **'Zák. displej'**
   String get billDetailShowOnDisplay;
 
-  /// No description provided for @onboardingSectionPos.
-  ///
-  /// In cs, this message translates to:
-  /// **'Pokladna'**
-  String get onboardingSectionPos;
-
-  /// No description provided for @onboardingSectionDisplays.
-  ///
-  /// In cs, this message translates to:
-  /// **'Displeje'**
-  String get onboardingSectionDisplays;
-
   /// No description provided for @onboardingCustomerDisplay.
   ///
   /// In cs, this message translates to:
   /// **'Zákaznický displej'**
   String get onboardingCustomerDisplay;
+
+  /// No description provided for @onboardingCreateDemo.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vytvořit Demo'**
+  String get onboardingCreateDemo;
+
+  /// No description provided for @onboardingCreateDemoSubtitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Kompletní demo firma s 3 měsíci historie • automaticky se smaže po 24h'**
+  String get onboardingCreateDemoSubtitle;
+
+  /// No description provided for @demoDialogTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vytvořit demo firmu'**
+  String get demoDialogTitle;
+
+  /// No description provided for @demoDialogInfo.
+  ///
+  /// In cs, this message translates to:
+  /// **'Demo se automaticky smaže po 24 hodinách'**
+  String get demoDialogInfo;
+
+  /// No description provided for @demoDialogCreate.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vytvořit'**
+  String get demoDialogCreate;
 
   /// No description provided for @onboardingKdsDisplay.
   ///
@@ -6812,6 +6830,52 @@ abstract class AppLocalizations {
   /// **'Vráceno v základní měně'**
   String get paymentChangeInBase;
 
+  /// No description provided for @cashTenderTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Hotovost'**
+  String get cashTenderTitle;
+
+  /// No description provided for @cashTenderAmountDue.
+  ///
+  /// In cs, this message translates to:
+  /// **'K úhradě'**
+  String get cashTenderAmountDue;
+
+  /// No description provided for @cashTenderChange.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vrátit: {amount}'**
+  String cashTenderChange(String amount);
+
+  /// No description provided for @cashTenderRemaining.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zbývá: {amount}'**
+  String cashTenderRemaining(String amount);
+
+  /// No description provided for @cashTenderSkip.
+  ///
+  /// In cs, this message translates to:
+  /// **'Bez zadání'**
+  String get cashTenderSkip;
+
+  /// No description provided for @cashTenderConversion.
+  ///
+  /// In cs, this message translates to:
+  /// **'{foreignAmount} × {rate} = {baseAmount}'**
+  String cashTenderConversion(
+    String foreignAmount,
+    String rate,
+    String baseAmount,
+  );
+
+  /// No description provided for @cashTenderChangeReason.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vydáno z platby v {currencyCode}'**
+  String cashTenderChangeReason(String currencyCode);
+
   /// No description provided for @openingForeignCashTitle.
   ///
   /// In cs, this message translates to:
@@ -6871,6 +6935,30 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Zpět'**
   String get currencySelectorBack;
+
+  /// No description provided for @wizardDemoMode.
+  ///
+  /// In cs, this message translates to:
+  /// **'Režim dema'**
+  String get wizardDemoMode;
+
+  /// No description provided for @wizardDemoCreating.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vytváření demo dat...'**
+  String get wizardDemoCreating;
+
+  /// No description provided for @wizardDemoDownloading.
+  ///
+  /// In cs, this message translates to:
+  /// **'Stahování dat...'**
+  String get wizardDemoDownloading;
+
+  /// No description provided for @wizardDemoInfo.
+  ///
+  /// In cs, this message translates to:
+  /// **'Demo vytvoří 4 uživatele, všichni s PINem 1111'**
+  String get wizardDemoInfo;
 }
 
 class _AppLocalizationsDelegate

@@ -490,7 +490,14 @@ class _BillsTable extends ConsumerWidget {
         sectionIds: sectionFilters.isEmpty ? null : sectionFilters,
       ),
       builder: (context, billSnap) {
-        final allBills = billSnap.data ?? [];
+        var allBills = billSnap.data ?? [];
+
+        // Scope to active register session when one exists
+        final activeSession = ref.watch(activeRegisterSessionProvider).valueOrNull;
+        if (activeSession != null) {
+          allBills = allBills.where((b) => b.registerSessionId == activeSession.id).toList();
+        }
+
         // Refunded bills are shown under the "paid" filter
         final effectiveFilters = Set<BillStatus>.from(statusFilters);
         if (effectiveFilters.contains(BillStatus.paid)) {

@@ -67,6 +67,24 @@ class SupabaseAuthService {
     }
   }
 
+  Future<Result<String>> signInAnonymously() async {
+    try {
+      final response = await _auth.signInAnonymously();
+      final userId = response.user?.id;
+      if (userId == null) {
+        return const Failure('Anonymous sign in failed: no user returned');
+      }
+      AppLogger.info('Supabase anonymous sign in successful', tag: 'SYNC');
+      return Success(userId);
+    } on AuthException catch (e, s) {
+      AppLogger.error('Supabase anonymous sign in failed', tag: 'SYNC', error: e, stackTrace: s);
+      return Failure(e.message);
+    } catch (e, s) {
+      AppLogger.error('Supabase anonymous sign in failed', tag: 'SYNC', error: e, stackTrace: s);
+      return Failure('Anonymous sign in failed: $e');
+    }
+  }
+
   Future<void> signOut() async {
     try {
       await _auth.signOut();

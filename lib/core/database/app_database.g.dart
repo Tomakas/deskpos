@@ -3915,6 +3915,31 @@ class $CompaniesTable extends Companies
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _isDemoMeta = const VerificationMeta('isDemo');
+  @override
+  late final GeneratedColumn<bool> isDemo = GeneratedColumn<bool>(
+    'is_demo',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_demo" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _demoExpiresAtMeta = const VerificationMeta(
+    'demoExpiresAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> demoExpiresAt =
+      GeneratedColumn<DateTime>(
+        'demo_expires_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
   @override
   List<GeneratedColumn> get $columns => [
     lastSyncedAt,
@@ -3939,6 +3964,8 @@ class $CompaniesTable extends Companies
     businessType,
     defaultCurrencyId,
     authUserId,
+    isDemo,
+    demoExpiresAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -4101,6 +4128,21 @@ class $CompaniesTable extends Companies
     } else if (isInserting) {
       context.missing(_authUserIdMeta);
     }
+    if (data.containsKey('is_demo')) {
+      context.handle(
+        _isDemoMeta,
+        isDemo.isAcceptableOrUnknown(data['is_demo']!, _isDemoMeta),
+      );
+    }
+    if (data.containsKey('demo_expires_at')) {
+      context.handle(
+        _demoExpiresAtMeta,
+        demoExpiresAt.isAcceptableOrUnknown(
+          data['demo_expires_at']!,
+          _demoExpiresAtMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -4200,6 +4242,14 @@ class $CompaniesTable extends Companies
         DriftSqlType.string,
         data['${effectivePrefix}auth_user_id'],
       )!,
+      isDemo: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_demo'],
+      )!,
+      demoExpiresAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}demo_expires_at'],
+      ),
     );
   }
 
@@ -4235,6 +4285,8 @@ class Company extends DataClass implements Insertable<Company> {
   final String? businessType;
   final String defaultCurrencyId;
   final String authUserId;
+  final bool isDemo;
+  final DateTime? demoExpiresAt;
   const Company({
     this.lastSyncedAt,
     required this.version,
@@ -4258,6 +4310,8 @@ class Company extends DataClass implements Insertable<Company> {
     this.businessType,
     required this.defaultCurrencyId,
     required this.authUserId,
+    required this.isDemo,
+    this.demoExpiresAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -4316,6 +4370,10 @@ class Company extends DataClass implements Insertable<Company> {
     }
     map['default_currency_id'] = Variable<String>(defaultCurrencyId);
     map['auth_user_id'] = Variable<String>(authUserId);
+    map['is_demo'] = Variable<bool>(isDemo);
+    if (!nullToAbsent || demoExpiresAt != null) {
+      map['demo_expires_at'] = Variable<DateTime>(demoExpiresAt);
+    }
     return map;
   }
 
@@ -4369,6 +4427,10 @@ class Company extends DataClass implements Insertable<Company> {
           : Value(businessType),
       defaultCurrencyId: Value(defaultCurrencyId),
       authUserId: Value(authUserId),
+      isDemo: Value(isDemo),
+      demoExpiresAt: demoExpiresAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(demoExpiresAt),
     );
   }
 
@@ -4402,6 +4464,8 @@ class Company extends DataClass implements Insertable<Company> {
       businessType: serializer.fromJson<String?>(json['businessType']),
       defaultCurrencyId: serializer.fromJson<String>(json['defaultCurrencyId']),
       authUserId: serializer.fromJson<String>(json['authUserId']),
+      isDemo: serializer.fromJson<bool>(json['isDemo']),
+      demoExpiresAt: serializer.fromJson<DateTime?>(json['demoExpiresAt']),
     );
   }
   @override
@@ -4432,6 +4496,8 @@ class Company extends DataClass implements Insertable<Company> {
       'businessType': serializer.toJson<String?>(businessType),
       'defaultCurrencyId': serializer.toJson<String>(defaultCurrencyId),
       'authUserId': serializer.toJson<String>(authUserId),
+      'isDemo': serializer.toJson<bool>(isDemo),
+      'demoExpiresAt': serializer.toJson<DateTime?>(demoExpiresAt),
     };
   }
 
@@ -4458,6 +4524,8 @@ class Company extends DataClass implements Insertable<Company> {
     Value<String?> businessType = const Value.absent(),
     String? defaultCurrencyId,
     String? authUserId,
+    bool? isDemo,
+    Value<DateTime?> demoExpiresAt = const Value.absent(),
   }) => Company(
     lastSyncedAt: lastSyncedAt.present ? lastSyncedAt.value : this.lastSyncedAt,
     version: version ?? this.version,
@@ -4485,6 +4553,10 @@ class Company extends DataClass implements Insertable<Company> {
     businessType: businessType.present ? businessType.value : this.businessType,
     defaultCurrencyId: defaultCurrencyId ?? this.defaultCurrencyId,
     authUserId: authUserId ?? this.authUserId,
+    isDemo: isDemo ?? this.isDemo,
+    demoExpiresAt: demoExpiresAt.present
+        ? demoExpiresAt.value
+        : this.demoExpiresAt,
   );
   Company copyWithCompanion(CompaniesCompanion data) {
     return Company(
@@ -4526,6 +4598,10 @@ class Company extends DataClass implements Insertable<Company> {
       authUserId: data.authUserId.present
           ? data.authUserId.value
           : this.authUserId,
+      isDemo: data.isDemo.present ? data.isDemo.value : this.isDemo,
+      demoExpiresAt: data.demoExpiresAt.present
+          ? data.demoExpiresAt.value
+          : this.demoExpiresAt,
     );
   }
 
@@ -4553,7 +4629,9 @@ class Company extends DataClass implements Insertable<Company> {
           ..write('timezone: $timezone, ')
           ..write('businessType: $businessType, ')
           ..write('defaultCurrencyId: $defaultCurrencyId, ')
-          ..write('authUserId: $authUserId')
+          ..write('authUserId: $authUserId, ')
+          ..write('isDemo: $isDemo, ')
+          ..write('demoExpiresAt: $demoExpiresAt')
           ..write(')'))
         .toString();
   }
@@ -4582,6 +4660,8 @@ class Company extends DataClass implements Insertable<Company> {
     businessType,
     defaultCurrencyId,
     authUserId,
+    isDemo,
+    demoExpiresAt,
   ]);
   @override
   bool operator ==(Object other) =>
@@ -4608,7 +4688,9 @@ class Company extends DataClass implements Insertable<Company> {
           other.timezone == this.timezone &&
           other.businessType == this.businessType &&
           other.defaultCurrencyId == this.defaultCurrencyId &&
-          other.authUserId == this.authUserId);
+          other.authUserId == this.authUserId &&
+          other.isDemo == this.isDemo &&
+          other.demoExpiresAt == this.demoExpiresAt);
 }
 
 class CompaniesCompanion extends UpdateCompanion<Company> {
@@ -4634,6 +4716,8 @@ class CompaniesCompanion extends UpdateCompanion<Company> {
   final Value<String?> businessType;
   final Value<String> defaultCurrencyId;
   final Value<String> authUserId;
+  final Value<bool> isDemo;
+  final Value<DateTime?> demoExpiresAt;
   final Value<int> rowid;
   const CompaniesCompanion({
     this.lastSyncedAt = const Value.absent(),
@@ -4658,6 +4742,8 @@ class CompaniesCompanion extends UpdateCompanion<Company> {
     this.businessType = const Value.absent(),
     this.defaultCurrencyId = const Value.absent(),
     this.authUserId = const Value.absent(),
+    this.isDemo = const Value.absent(),
+    this.demoExpiresAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   CompaniesCompanion.insert({
@@ -4683,6 +4769,8 @@ class CompaniesCompanion extends UpdateCompanion<Company> {
     this.businessType = const Value.absent(),
     required String defaultCurrencyId,
     required String authUserId,
+    this.isDemo = const Value.absent(),
+    this.demoExpiresAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        name = Value(name),
@@ -4712,6 +4800,8 @@ class CompaniesCompanion extends UpdateCompanion<Company> {
     Expression<String>? businessType,
     Expression<String>? defaultCurrencyId,
     Expression<String>? authUserId,
+    Expression<bool>? isDemo,
+    Expression<DateTime>? demoExpiresAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -4737,6 +4827,8 @@ class CompaniesCompanion extends UpdateCompanion<Company> {
       if (businessType != null) 'business_type': businessType,
       if (defaultCurrencyId != null) 'default_currency_id': defaultCurrencyId,
       if (authUserId != null) 'auth_user_id': authUserId,
+      if (isDemo != null) 'is_demo': isDemo,
+      if (demoExpiresAt != null) 'demo_expires_at': demoExpiresAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -4764,6 +4856,8 @@ class CompaniesCompanion extends UpdateCompanion<Company> {
     Value<String?>? businessType,
     Value<String>? defaultCurrencyId,
     Value<String>? authUserId,
+    Value<bool>? isDemo,
+    Value<DateTime?>? demoExpiresAt,
     Value<int>? rowid,
   }) {
     return CompaniesCompanion(
@@ -4789,6 +4883,8 @@ class CompaniesCompanion extends UpdateCompanion<Company> {
       businessType: businessType ?? this.businessType,
       defaultCurrencyId: defaultCurrencyId ?? this.defaultCurrencyId,
       authUserId: authUserId ?? this.authUserId,
+      isDemo: isDemo ?? this.isDemo,
+      demoExpiresAt: demoExpiresAt ?? this.demoExpiresAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -4864,6 +4960,12 @@ class CompaniesCompanion extends UpdateCompanion<Company> {
     if (authUserId.present) {
       map['auth_user_id'] = Variable<String>(authUserId.value);
     }
+    if (isDemo.present) {
+      map['is_demo'] = Variable<bool>(isDemo.value);
+    }
+    if (demoExpiresAt.present) {
+      map['demo_expires_at'] = Variable<DateTime>(demoExpiresAt.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -4895,6 +4997,8 @@ class CompaniesCompanion extends UpdateCompanion<Company> {
           ..write('businessType: $businessType, ')
           ..write('defaultCurrencyId: $defaultCurrencyId, ')
           ..write('authUserId: $authUserId, ')
+          ..write('isDemo: $isDemo, ')
+          ..write('demoExpiresAt: $demoExpiresAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -44477,6 +44581,8 @@ typedef $$CompaniesTableCreateCompanionBuilder =
       Value<String?> businessType,
       required String defaultCurrencyId,
       required String authUserId,
+      Value<bool> isDemo,
+      Value<DateTime?> demoExpiresAt,
       Value<int> rowid,
     });
 typedef $$CompaniesTableUpdateCompanionBuilder =
@@ -44503,6 +44609,8 @@ typedef $$CompaniesTableUpdateCompanionBuilder =
       Value<String?> businessType,
       Value<String> defaultCurrencyId,
       Value<String> authUserId,
+      Value<bool> isDemo,
+      Value<DateTime?> demoExpiresAt,
       Value<int> rowid,
     });
 
@@ -44625,6 +44733,16 @@ class $$CompaniesTableFilterComposer
     column: $table.authUserId,
     builder: (column) => ColumnFilters(column),
   );
+
+  ColumnFilters<bool> get isDemo => $composableBuilder(
+    column: $table.isDemo,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get demoExpiresAt => $composableBuilder(
+    column: $table.demoExpiresAt,
+    builder: (column) => ColumnFilters(column),
+  );
 }
 
 class $$CompaniesTableOrderingComposer
@@ -44745,6 +44863,16 @@ class $$CompaniesTableOrderingComposer
     column: $table.authUserId,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get isDemo => $composableBuilder(
+    column: $table.isDemo,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get demoExpiresAt => $composableBuilder(
+    column: $table.demoExpiresAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$CompaniesTableAnnotationComposer
@@ -44837,6 +44965,14 @@ class $$CompaniesTableAnnotationComposer
     column: $table.authUserId,
     builder: (column) => column,
   );
+
+  GeneratedColumn<bool> get isDemo =>
+      $composableBuilder(column: $table.isDemo, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get demoExpiresAt => $composableBuilder(
+    column: $table.demoExpiresAt,
+    builder: (column) => column,
+  );
 }
 
 class $$CompaniesTableTableManager
@@ -44889,6 +45025,8 @@ class $$CompaniesTableTableManager
                 Value<String?> businessType = const Value.absent(),
                 Value<String> defaultCurrencyId = const Value.absent(),
                 Value<String> authUserId = const Value.absent(),
+                Value<bool> isDemo = const Value.absent(),
+                Value<DateTime?> demoExpiresAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => CompaniesCompanion(
                 lastSyncedAt: lastSyncedAt,
@@ -44913,6 +45051,8 @@ class $$CompaniesTableTableManager
                 businessType: businessType,
                 defaultCurrencyId: defaultCurrencyId,
                 authUserId: authUserId,
+                isDemo: isDemo,
+                demoExpiresAt: demoExpiresAt,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -44939,6 +45079,8 @@ class $$CompaniesTableTableManager
                 Value<String?> businessType = const Value.absent(),
                 required String defaultCurrencyId,
                 required String authUserId,
+                Value<bool> isDemo = const Value.absent(),
+                Value<DateTime?> demoExpiresAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => CompaniesCompanion.insert(
                 lastSyncedAt: lastSyncedAt,
@@ -44963,6 +45105,8 @@ class $$CompaniesTableTableManager
                 businessType: businessType,
                 defaultCurrencyId: defaultCurrencyId,
                 authUserId: authUserId,
+                isDemo: isDemo,
+                demoExpiresAt: demoExpiresAt,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

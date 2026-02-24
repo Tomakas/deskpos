@@ -151,9 +151,7 @@ class _DialogCashJournalState extends ConsumerState<DialogCashJournal> {
 
     return PosDialogShell(
       title: l.cashJournalBalance,
-      maxWidth: 520,
-      maxHeight: 500,
-      expandHeight: true,
+      maxWidth: 800,
       padding: const EdgeInsets.all(20),
       children: [
         // Header: balance
@@ -228,17 +226,18 @@ class _DialogCashJournalState extends ConsumerState<DialogCashJournal> {
         const SizedBox(height: 8),
 
         // Table
-        Expanded(
+        SizedBox(
+          height: 400,
           child: PosTable<_JournalEntry>(
             columns: [
               PosColumn(
                 label: l.cashJournalColumnTime,
-                width: 50,
+                flex: 1,
                 cellBuilder: (e) => Text(ref.fmtTime(e.createdAt), style: theme.textTheme.bodySmall),
               ),
               PosColumn(
                 label: l.cashJournalColumnType,
-                width: 60,
+                flex: 1,
                 cellBuilder: (e) {
                   final typeName = switch (e.kind) {
                     _EntryKind.deposit => l.cashMovementDeposit,
@@ -250,7 +249,7 @@ class _DialogCashJournalState extends ConsumerState<DialogCashJournal> {
               ),
               PosColumn(
                 label: l.cashJournalColumnAmount,
-                width: 80,
+                flex: 1,
                 numeric: true,
                 cellBuilder: (e) {
                   final String sign;
@@ -275,13 +274,13 @@ class _DialogCashJournalState extends ConsumerState<DialogCashJournal> {
               ),
               PosColumn(
                 label: l.cashJournalColumnNote,
-                cellBuilder: (e) => Padding(
-                  padding: const EdgeInsets.only(left: 12),
-                  child: Text(
-                    e.note ?? '',
-                    style: theme.textTheme.bodySmall,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                flex: 4,
+                headerAlign: TextAlign.center,
+                cellBuilder: (e) => Text(
+                  e.note ?? '',
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodySmall,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],

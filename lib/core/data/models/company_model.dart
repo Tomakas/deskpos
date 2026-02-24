@@ -22,6 +22,8 @@ class CompanyModel with _$CompanyModel {
     String? businessType,
     required String defaultCurrencyId,
     required String authUserId,
+    @Default(false) bool isDemo,
+    DateTime? demoExpiresAt,
     required DateTime createdAt,
     required DateTime updatedAt,
     DateTime? deletedAt,

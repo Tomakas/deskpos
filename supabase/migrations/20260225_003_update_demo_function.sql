@@ -1,0 +1,7 @@
+-- No function signature change needed.
+-- The is_demo + demo_expires_at columns are set by the edge function
+-- after calling create_demo_company, avoiding duplication of the
+-- 1600+ line function body.
+--
+-- This migration is intentionally empty — kept as a placeholder
+-- to maintain sequential numbering.

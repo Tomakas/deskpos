@@ -197,6 +197,7 @@ class _RouterNotifier extends ChangeNotifier {
     _ref.listen(appInitProvider, (_, __) => notifyListeners());
     _ref.listen(activeUserProvider, (_, __) => notifyListeners());
     _ref.listen(activeRegisterProvider, (_, __) => notifyListeners());
+    _ref.listen(userPermissionCodesProvider, (_, __) => notifyListeners());
   }
   final Ref _ref;
 }

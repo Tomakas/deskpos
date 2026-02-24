@@ -43,6 +43,8 @@ const ALLOWED_TABLES = new Set([
   "stock_levels",
   "stock_documents",
   "stock_movements",
+  "company_currencies",
+  "session_currency_cash",
 ]);
 
 interface IngestRequest {
@@ -116,6 +118,7 @@ Deno.serve(async (req) => {
         .select("id")
         .eq("id", companyId)
         .eq("auth_user_id", user.id)
+        .is("deleted_at", null)
         .maybeSingle();
 
       if (!company) {

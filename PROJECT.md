@@ -41,7 +41,7 @@
 
 ## Roadmap
 
-4 etapy, každá s milníky a tasky. Schéma obsahuje **43 tabulek** (40 doménových + 1 lokální device_registrations + 2 sync). Sync se řeší až v Etapě 3 — do té doby funguje aplikace offline na jednom zařízení.
+4 etapy, každá s milníky a tasky. Schéma obsahuje **45 tabulek** (42 doménových + 1 lokální device_registrations + 2 sync). Sync se řeší až v Etapě 3 — do té doby funguje aplikace offline na jednom zařízení.
 
 ---
 
@@ -452,11 +452,18 @@ Layout (centered, max-width 420, SingleChildScrollView):
 - **Sekce 1: Aktivační kód** — TextField + "Aktivovat" button → `companyRepo.activateLicense(code)`. Error inline pod polem (žádné snackbary). Loading state na buttonu.
 - **Sekce 2: Re-autentizace** (zobrazena pouze pokud JWT expired) — Kontrola: `Supabase.instance.client.auth.currentSession == null`. Email pre-filled + password pole + "Přihlásit se" button. Link: zapomenuté heslo. **KRITICKÉ: zabraňuje deadlocku session expired + license expired.**
 
-##### Task4.24 — Onboarding redesign: 3-krokový wizard
+##### Task4.24 — Onboarding redesign: 3-krokový wizard + demo flow
 
 **Soubor:** `lib/features/onboarding/screens/screen_onboarding.dart`
 
-**Krok 0 — Registrace / Přihlášení** (NOVÝ):
+**Úvodní obrazovka** (implementováno):
+- Přepínač jazyka (cs/en)
+- „Založit novou firmu" (`FilledButton`) → wizard
+- „Připojit se ke stávající" (`OutlinedButton`) → `/connect-company`
+- „Připojit zákaznický displej" (`OutlinedButton`) → `/display-code`
+- „Vytvořit Demo" (`FilledButton.tonal`) → demo dialog (viz [Vytvořit Demo](#vytvořit-demo-demo-dialog))
+
+**Wizard — Krok 0 — Registrace / Přihlášení:**
 
 Dva režimy (flag `_isSignIn`):
 
@@ -775,15 +782,15 @@ lib/
 │   │   ├── repositories/              # Repozitáře (41 souborů: 40 repozitářů + 1 base abstrakce)
 │   │   └── services/                  # SeedService (onboarding seed)
 │   ├── database/                      # Drift databáze
-│   │   ├── app_database.dart          # @DriftDatabase (43 tabulek)
-│   │   └── tables/                    # Definice tabulek (44 souborů: 43 tabulek + mixin)
+│   │   ├── app_database.dart          # @DriftDatabase (45 tabulek)
+│   │   └── tables/                    # Definice tabulek (46 souborů: 45 tabulek + mixin)
 │   ├── widgets/                       # PosTable<T>, PosTableToolbar, PosDialogShell, PosDialogActions, PosDialogTheme, PosNumpad, LockOverlay, InactivityDetector, PosColorPalette, PairingConfirmationListener
 │   ├── utils/                         # search_utils.dart, formatters.dart, formatting_ext.dart, file_opener.dart
 │   ├── printing/                      # PdfFontLoader, ReceiptData, ReceiptPdfBuilder, ZReportPdfBuilder, InventoryPdfBuilder, VoucherPdfBuilder, PrintingService
 │   ├── routing/                       # GoRouter + auth guard (app_router.dart)
 │   ├── network/                       # Supabase konfigurace (URL, anon key)
 │   ├── sync/                          # Sync engine
-│   │   ├── sync_service.dart          # Pull (30s interval, 40 tabulek) + mergeRow (LWW) + tableDependencyOrder
+│   │   ├── sync_service.dart          # Pull (30s interval, 40 tabulek, paginovaný po 1000 řádcích) + mergeRow (LWW) + tableDependencyOrder
 │   │   ├── outbox_processor.dart      # Push přes Ingest Edge Function (5s interval + immediate nudge, FK ordering, retry)
 │   │   ├── realtime_service.dart      # Supabase Broadcast from Database (36 tabulek, <2s)
 │   │   ├── broadcast_channel.dart     # Supabase Realtime Broadcast wrapper (pairing, display)
@@ -989,7 +996,7 @@ Navíc každá tabulka definuje: `createdAt`, `updatedAt`, `deletedAt` (soft del
 > **Poznámky:**
 > - `TableEntity` používá `@DataClassName('TableEntity')` anotaci (konflikt s Drift `Table`)
 > - `SyncQueue` a `SyncMetadata` nepoužívají `SyncColumnsMixin` (vlastní timestamps)
-> - **Drift vs Supabase:** Drift má 43 tabulek (40 doménových + device_registrations + sync_queue + sync_metadata). Supabase má 42 tabulek (40 doménových + sync_queue + audit_log). `device_registrations` a `sync_metadata` jsou Drift-only, `audit_log` je server-only.
+> - **Drift vs Supabase:** Drift má 45 tabulek (42 doménových + device_registrations + sync_queue + sync_metadata). Supabase má 44 tabulek (42 doménových + sync_queue + audit_log). `device_registrations` a `sync_metadata` jsou Drift-only, `audit_log` je server-only.
 
 #### Sloupce tabulek
 
@@ -1030,7 +1037,7 @@ Všechny aktivní tabulky obsahují společné sync sloupce (viz [SyncColumnsMix
 
 | Tabulka | Sloupce |
 |---------|---------|
-| **companies** | id (T), name (T), status (T — CompanyStatus), business_id (T?), address (T?), phone (T?), email (T?), vat_number (T?), country (T?), city (T?), postal_code (T?), timezone (T?), business_type (T?), default_currency_id →currencies, auth_user_id (T — uuid na Supabase, FK na auth.users) |
+| **companies** | id (T), name (T), status (T — CompanyStatus), business_id (T?), address (T?), phone (T?), email (T?), vat_number (T?), country (T?), city (T?), postal_code (T?), timezone (T?), business_type (T?), default_currency_id →currencies, auth_user_id (T — uuid na Supabase, FK na auth.users), is_demo (B, default false), demo_expires_at (DT?) |
 | **company_settings** | id (T), company_id →companies, require_pin_on_switch (B, default true), auto_lock_timeout_minutes (I?), loyalty_earn_rate (I, default 0), loyalty_point_value (I, default 0), locale (T, default 'cs') |
 | **users** | id (T), company_id →companies, auth_user_id (T?), username (T), full_name (T), email (T?), phone (T?), pin_hash (T), pin_enabled (B, default true), role_id →roles, is_active (B, default true) |
 | **roles** | id (T), name (T — RoleName enum) |
@@ -1202,7 +1209,7 @@ Klientské timestampy se ukládají v **UTC**.
 | `VoucherStatus` | `VoucherModel` | active, redeemed, expired, cancelled |
 | `VoucherDiscountScope` | `VoucherModel` | bill, product, category |
 | `DisplayDeviceType` | `DisplayDeviceModel` | customerDisplay, kds |
-| `SellMode` | `RegisterModel` | gastro, retail — na Supabase uložen jako TEXT (bez PG enum), validace pouze na klientovi |
+| `SellMode` | `RegisterModel` | gastro, retail — na Supabase uložen jako TEXT (bez PG enum), validace pouze na klientovi. UI label: cs „Gastro" / „Maloobchod", en „Gastro" / „Retail" |
 
 ##### ENUMs rozšíření (přidají se s příslušnými tabulkami)
 
@@ -1288,11 +1295,11 @@ graph LR
 
 ### Ingest Edge Function
 
-Všechny outbox zápisy procházejí přes Supabase Edge Function `ingest` (`supabase/functions/ingest/index.ts`). `OutboxProcessor` nevolá Supabase tabulky přímo — místo toho posílá payload do EF přes `_supabaseClient.functions.invoke('ingest', ...)`. ALLOWED_TABLES obsahuje 36 tabulek (40 doménových minus 4 globální server-owned: currencies, roles, permissions, role_permissions, které se seedují migrací; audit_log je write-only server-side).
+Všechny outbox zápisy procházejí přes Supabase Edge Function `ingest` (`supabase/functions/ingest/index.ts`). `OutboxProcessor` nevolá Supabase tabulky přímo — místo toho posílá payload do EF přes `_supabaseClient.functions.invoke('ingest', ...)`. ALLOWED_TABLES obsahuje 38 tabulek (42 doménových minus 4 globální server-owned: currencies, roles, permissions, role_permissions, které se seedují migrací; audit_log je write-only server-side).
 
 **Architektura:**
 - Přijímá JWT z klienta, validuje autentizaci
-- Ověřuje company ownership (auth_user_id = JWT user)
+- Ověřuje company ownership (auth_user_id = JWT user, `deleted_at IS NULL` — zabraňuje zápisům do soft-deleted firem)
 - Zapisuje do Supabase tabulek přes `service_role` (obchází RLS)
 - Loguje operace do `audit_log`
 - Vše prochází přes `upsert(payload, { onConflict: "id" })` — pole `operation` slouží pouze pro audit log, ne pro routing
@@ -1307,6 +1314,31 @@ Všechny outbox zápisy procházejí přes Supabase Edge Function `ingest` (`sup
   "idempotency_key": "uuid"
 }
 ```
+
+### Create-Demo-Data Edge Function
+
+Edge Function `create-demo-data` (`supabase/functions/create-demo-data/index.ts`) vytváří kompletní demo firmu se 90 dny historických dat.
+
+**Autentizace:** JWT (anonymous nebo registered user).
+
+**Parametry:** `locale` ('cs'|'en'), `mode` ('gastro'|'retail'), `currency_code`, `company_name`
+
+**Postup:**
+1. Ověří JWT, získá `auth_user_id`
+2. **Abuse guard:** Pokud user již má firmu (`companies WHERE auth_user_id = uid AND deleted_at IS NULL`), vrátí chybu
+3. Volá RPC `create_demo_company(p_auth_user_id, p_locale, p_mode, p_currency_code, p_company_name)` — PL/pgSQL funkce (~1700 řádků) generující veškerá demo data z tabulky `seed_demo_data`
+4. Označí firmu jako demo: `UPDATE companies SET is_demo = true, demo_expires_at = <now + 24h>` (JS Date, ne SQL now())
+5. Vrátí `{ company_id, register_id }`
+
+**SQL funkce `create_demo_company`** (`supabase/migrations/20260224_004_create_demo_company_function.sql`):
+- Načítá šablony z tabulky `seed_demo_data` (4 varianty: cs/gastro, cs/retail, en/gastro, en/retail)
+- Generuje: firmu s kompletními údaji (IČO, DIČ, email, telefon, adresa — fiktivní, lokalizované), company_settings, 4 uživatele (PIN 1111), tax rates, payment methods, warehouses, sections, tables, categories, items, modifiers, suppliers, manufacturers, customers, vouchers
+- **90-day history loop:** Pro každý den vytváří register sessions, shifts, bills s orders a payments, cash movements, stock documents, reservations, customer transactions
+- Multi-currency support (cizí měna s manuálním kurzem)
+
+**Seed data** (`supabase/migrations/20260224_003_seed_demo_data.sql`):
+- Tabulka `seed_demo_data` s 4 variantami dat (locale × mode)
+- Obsahuje: tax rates, payment methods, sections, tables, map elements, categories, items, modifiers, suppliers, manufacturers, customers, vouchers, daily schedule template
 
 ### Wipe Edge Function
 
@@ -1426,11 +1458,13 @@ Pull je fallback mechanismus zajišťující konzistenci i při výpadku Broadca
 
 **Jak `pullTable()` funguje:**
 1. Načte watermark: `syncMetadataRepo.getLastPulledAt(companyId, tableName)` — ISO 8601 string uložený v `sync_metadata`
-2. Query na Supabase: `.from(tableName).select().eq('company_id', companyId).gt('updated_at', lastPulledAt).order('updated_at', ascending: true)`
+2. Query na Supabase: `.from(tableName).select().eq('company_id', companyId).gt('updated_at', lastPulledAt).order('updated_at', ascending: true).range(offset, offset + 999)`
 3. Pro každý řádek: `mergeRow()` (LWW merge do lokální DB)
-4. Uloží nový watermark: `max(updated_at)` z odpovědi → `syncMetadataRepo.setLastPulledAt(...)`
+4. Pokud vrátil `_pageSize` (1000) řádků → offset += rows.length, opakuje bod 2 (další stránka)
+5. Uloží nový watermark: `max(updated_at)` z odpovědi → `syncMetadataRepo.setLastPulledAt(...)`
 
 **Klíčové detaily:**
+- **Paginace po 1000 řádcích** — PostgREST má default `max-rows = 1000`, větší `.limit()` je tiše oříznut. `.range()` offset-based paginace zajistí stažení všech řádků i pro tabulky s tisíci záznamy (bills, orders, order_items...)
 - Watermark je server-side `updated_at` (nastavený triggerem `set_server_timestamps`), ne klientský `client_updated_at`
 - Globální tabulky se pullují bez `company_id` filtru; tabulka `companies` se filtruje přes `.eq('id', companyId)`
 - `pullAll()` iteruje všech 40 tabulek v FK-respektujícím pořadí (`tableDependencyOrder`) — rodiče před dětmi
@@ -1513,6 +1547,9 @@ Flow pro nové zařízení (6 kroků — enum `_Step`):
 - **InitialSync recovery**: Pokud InitialSync selže uprostřed, data jsou neúplná. Další auto-pull (30s) doplní chybějící data.
 - **Z-report per-register filtering**: Venue Z-report agreguje všechny sessions dle data — pro přesné per-register výsledky by měl filtrovat dle `registerSessionId` (design issue, ne bug).
 - **Mobile session Z-report po handover**: Po cash handover (mobile→local) se `expectedCash` v Z-reportu mobile session zobrazí nekonzistentně — handover snižuje cash, ale session Z-report to nereflektuje v řádku expected cash (design issue vyžadující redesign close/handover flow).
+- **Demo firma — currency auto-derived**: Měna se odvozuje z jazyka (cs→CZK, en→EUR). Uživatelé, kteří potřebují jinou měnu, musí použít regulární flow.
+- **Demo firma — expirace během aktivního použití**: pg_cron hard-deletuje expired demo firmy (včetně všech child records). Pokud k tomu dojde během aktivní práce, klient to detekuje: (a) `appInitProvider` při dalším spuštění/re-init zjistí `demoExpiresAt < now()` z lokální DB → `needsOnboarding`, (b) push selže s chybou (firma neexistuje na serveru) — nefatální, outbox ji označí jako permanent error. Lokální data zůstanou do dalšího onboardingu.
+- **Demo firma — ztráta anonymního tokenu**: Při reinstalaci/uninstall aplikace se ztratí refresh token, demo firma je osiřelá dokud ji pg_cron necleanupuje. Klient to detekuje (no Supabase auth + local demo company → expired).
 
 ### Supabase Deployment Requirements (Milník 3.9)
 
@@ -1560,6 +1597,22 @@ ALTER TABLE order_items ADD COLUMN voucher_discount integer NOT NULL DEFAULT 0;
 --    - 287 role_permission assignments (helper: 19, operator: 63, manager: 92, admin: 113)
 
 -- 8. Verify RLS SELECT policies allow company-scoped reads for all users
+
+-- 9. Demo company columns + cleanup
+ALTER TABLE companies ADD COLUMN is_demo boolean NOT NULL DEFAULT false;
+ALTER TABLE companies ADD COLUMN demo_expires_at timestamptz;
+CREATE INDEX idx_companies_demo_expires ON companies (demo_expires_at) WHERE is_demo = true AND deleted_at IS NULL;
+
+-- 10. Demo cleanup cron job (pg_cron, hourly hard-delete expired demos)
+-- See 20260225_002_demo_cleanup_cron.sql
+
+-- 11. Demo seed data + creation function
+-- See 20260224_003_seed_demo_data.sql + 20260224_004_create_demo_company_function.sql
+
+-- 12. Display devices: per-company unique constraint (replaces global UNIQUE(code))
+-- See 20260225_003_fix_display_devices_unique.sql
+
+-- 13. Anonymous sign-ins: Enable in Supabase Dashboard > Authentication > Settings
 ```
 
 ---
@@ -2094,12 +2147,13 @@ Progresivní lockout chrání proti hádání PIN kódu:
 ### Cloud Sync Auth (implementováno)
 
 - **Sign-up** probíhá v onboarding wizardu (Krok 1) — při zakládání nové firmy
+- **Anonymous sign-in** (`signInAnonymously()`) — pro demo firmy. Nevyžaduje email/heslo. Supabase musí mít povolené "Allow anonymous sign-ins" v Authentication > Settings.
 - `ScreenCloudAuth` (embedded v CloudTab v nastavení) slouží pouze pro **sign-in** na dalších zařízeních — zobrazuje připojený email
 - Synchronizace se spustí až po validním Supabase session (RLS vyžaduje auth)
-- `SupabaseAuthService` zajišťuje signIn/signUp a session management
+- `SupabaseAuthService` zajišťuje signIn/signUp/signInAnonymously a session management
 - Sign-up vyžaduje potvrzení emailu — pokud Supabase vrátí null session, zobrazí se chybová hláška
 
-> **Supabase Auth konfigurace:** Funkce **Leaked Password Protection** (HaveIBeenPwned integrace) je v projektu záměrně **vypnutá**. Důvod: POS systém používá jednoduché admin heslo primárně pro sync mezi zařízeními, nikoliv pro přímé přihlašování uživatelů. Uživatelé se přihlašují pomocí PIN kódu.
+> **Supabase Auth konfigurace:** Funkce **Leaked Password Protection** (HaveIBeenPwned integrace) je v projektu záměrně **vypnutá**. Důvod: POS systém používá jednoduché admin heslo primárně pro sync mezi zařízeními, nikoliv pro přímé přihlašování uživatelů. Uživatelé se přihlašují pomocí PIN kódu. **Anonymous sign-ins** povoleny pro demo flow.
 
 ### Navigace
 
@@ -2110,30 +2164,62 @@ graph TD
     INIT --> |needsOnboarding| ONBOARD[ScreenOnboarding]
     INIT --> |needsLogin| PIN[ScreenLogin]
     INIT --> |displayMode| DISPLAY[ScreenDisplayCode / ScreenCustomerDisplay]
-    ONBOARD --> |Založit firmu - wizard 3 kroky| PIN
-    ONBOARD --> |Připojit se k firmě| CONNECT[ConnectCompanyScreen]
-    ONBOARD --> |Customer Display| DISPLAYCODE[ScreenDisplayCode]
-    CONNECT --> PIN
+    INIT --> |demo expired / lost anon session| ONBOARD
+
+    %% === Založit firmu (wizard 3 kroky) ===
+    ONBOARD --> |Založit novou firmu| WIZ1[Krok 1: Cloud účet — email + heslo]
+    WIZ1 --> |signUp / signIn| WIZ2[Krok 2: Firma — název, IČO, adresa...]
+    WIZ2 --> WIZ3[Krok 3: Admin — jméno, username, PIN]
+    WIZ3 --> |seedOnboarding + pullAll| PIN
+
+    %% === Vytvořit Demo ===
+    ONBOARD --> |Vytvořit Demo| DEMO_DLG[Demo dialog — Gastro / Maloobchod]
+    DEMO_DLG --> |signInAnonymously| DEMO_PROG[Progress dialog]
+    DEMO_PROG --> |pull global tables| DEMO_EF[Edge Function create-demo-data]
+    DEMO_EF --> |pullAll — 90 dní historie| DEMO_DEV[Device registration + sync marker]
+    DEMO_DEV --> PIN
+
+    %% === Připojit se k firmě ===
+    ONBOARD --> |Připojit se ke stávající| CONNECT[ConnectCompanyScreen — email + heslo]
+    CONNECT --> |signIn → hledání firmy| CONNECT_SYNC[pullAll — stažení dat firmy]
+    CONNECT_SYNC --> PIN
+
+    %% === Customer Display ===
+    ONBOARD --> |Připojit zákaznický displej| DISPLAYCODE[ScreenDisplayCode]
+
+    %% === Po přihlášení ===
     PIN --> |PIN ověřen, POS režim| BILLS[ScreenBills]
-    PIN --> |PIN ověřen, KDS režim| KDS[ScreenKds - titul Objednávky]
+    PIN --> |PIN ověřen, KDS režim| KDS[ScreenKds — Objednávky]
 ```
 
-> **Aktuální stav:** Router začíná na `/loading`, čeká na `appInitProvider`. Žádná firma → `/onboarding` (volba: založit, připojit, nebo display). Wizard „Založit firmu" má 3 kroky: cloud účet (sign-up/sign-in) → firma → admin uživatel. Firma existuje → `/login` (PIN s volbou POS/KDS režimu). Po přihlášení → `/bills` (POS) nebo `/kds` (KDS) dle zvoleného režimu. Display mode → `/customer-display` nebo `/display-code`. Na dalších zařízeních se přihlašuje přes Settings → CloudTab (pouze sign-in).
+> **Popis:** Router začíná na `/loading`, čeká na `appInitProvider`. Žádná firma (nebo expired demo / ztracená anonymous session) → `/onboarding` se 4 možnostmi:
+>
+> 1. **Založit novou firmu** — wizard: cloud účet (sign-up/sign-in) → firemní údaje → admin uživatel → `seedOnboarding()` + `pullAll()`
+> 2. **Vytvořit Demo** — dialog: výběr Gastro/Maloobchod → `signInAnonymously()` → pull global tables → Edge Function `create-demo-data` (server generuje 90 dní historie) → `pullAll()` → device registration + sync marker. Demo firma: `is_demo = true`, `demo_expires_at = +24h`. Expirace: server pg_cron hard-delete (hourly), klient detekuje v `appInitProvider`.
+> 3. **Připojit se ke stávající** — email + heslo (sign-in) → nalezení firmy → `pullAll()`
+> 4. **Připojit zákaznický displej** — navigace na `/display-code`
+>
+> Firma existuje → `/login` (PIN s volbou POS/KDS režimu). Po přihlášení → `/bills` (POS) nebo `/kds` (KDS). Na dalších zařízeních se přihlašuje přes Settings → CloudTab (pouze sign-in).
 
 #### ScreenOnboarding Flow
 
 Při prvním spuštění aplikace (bez lokálních dat) se zobrazí **ScreenOnboarding**.
 
+##### Layout úvodní obrazovky
+
+Tlačítka v hlavním sloupci (centered, max-width 420):
+
+1. **Přepínač jazyka** (cs/en) — `FilterChip` v `Row` s `Expanded`
+2. **Název „ePOS"** — titul
+3. **„Založit novou firmu"** (`FilledButton`) → zobrazí wizard (3 kroky)
+4. **„Připojit se ke stávající"** (`OutlinedButton`) → naviguje na `/connect-company`
+5. `Divider`
+6. **„Připojit zákaznický displej"** (`OutlinedButton`) → naviguje na `/display-code?type=customer_display`
+7. `Divider`
+8. **„Vytvořit Demo"** (`FilledButton.tonal`) → zobrazí demo dialog
+9. **Podnázev** (`bodySmall`): „Kompletní demo firma s 3 měsíci historie • automaticky se smaže po 24h"
+
 ##### Vytvoření firmy (wizard)
-
-Tři sekce na úvodní obrazovce:
-
-**Sekce „Pokladna" (Point of Sale):**
-- **„Založit novou firmu"** → zobrazí wizard (3 kroky)
-- **„Připojit se k firmě"** → naviguje na `/connect-company` (ScreenConnectCompany)
-
-**Sekce „Displeje" (Displays):**
-- **„Customer Display"** → naviguje na `/display-code?type=customer_display` (ScreenDisplayCode — 6-digit párovací kód)
 
 **Krok 1 — Cloud účet:**
 - E-mail + heslo (Supabase Auth sign-up nebo sign-in)
@@ -2185,6 +2271,47 @@ Po odeslání formuláře se v jedné transakci vytvoří:
 7. User → UserPermissions
 
 Po dokončení se zobrazí `ScreenLogin`.
+
+##### Vytvořit Demo (demo dialog)
+
+Dialog se zobrazí po kliknutí na „Vytvořit Demo":
+
+- **Titul:** „Vytvořit demo firmu" / „Create Demo Company"
+- **Výběr režimu:** Gastro / Maloobchod (`FilterChip` v `Row` s `Expanded`, internal value `'gastro'`/`'retail'`)
+- **Info text** (`bodySmall`): „Demo se automaticky smaže po 24 hodinách"
+- **Error text** (inline, `colorScheme.error`) — zobrazí se při selhání
+- **Akce:** Cancel (`OutlinedButton`) + Vytvořit (`FilledButton`)
+
+**Měna:** Automaticky derivována z jazyka (cs → CZK, en → EUR).
+
+**Název firmy:** Lokalizovaný — cs: „Demo Gastro" / „Demo Maloobchod", en: „Demo Gastro" / „Demo Retail".
+
+**Flow po potvrzení:**
+1. Clear stale session — pokud existuje stará Supabase session, provede `signOut()`
+2. `signInAnonymously()` — selhání → inline error v demo dialogu (dialog zůstává otevřený)
+3. Zavření demo dialogu → otevření progress dialogu (nedismissovatelný, `CircularProgressIndicator` + status text)
+4. Pull globálních tabulek (currencies, roles, permissions, role_permissions)
+5. Volání Edge Function `create-demo-data` s parametry: `locale`, `mode`, `currency_code`, `company_name`
+6. `pullAll(companyId)` — stáhne veškerá demo data (90 dní historie, 4 uživatelé, účty, objednávky...)
+7. Device registration (register binding)
+8. Sync marker `_marker/demo_onboarding` (zabrání `_initialPush` re-push demo dat zpět na server)
+9. Clear `pendingLocaleProvider`, invalidate `appInitProvider`, navigate na `/login`
+
+> **Error handling:** Selhání v kroku 2 se zobrazí inline v demo dialogu. Selhání v krocích 3–8 (po zavření demo dialogu) zavře progress dialog a zobrazí `SnackBar` s chybovou hláškou.
+
+**Demo firma obsahuje:**
+- Kompletní firemní údaje (IČO, DIČ, email, telefon, adresa, město, PSČ, země — fiktivní, lokalizované)
+- 4 uživatelé (všichni PIN 1111): Admin, Manažer, Operátor, Obsluhující
+- 90 dní historie: denní register sessions, směny, účty, objednávky, platby, cash movements
+- Kategorie, produkty, modifikátory, stoly (gastro), dodavatelé, výrobci
+- Zákazníci, rezervace, vouchery
+- Multi-currency cash (cizí měna s manuálním kurzem)
+- Skladové dokumenty a pohyby
+- `is_demo = true`, `demo_expires_at = now() + 24h`
+
+**Expirace demo firmy:**
+- **Server:** pg_cron job (`cleanup-expired-demos`) každou hodinu hard-deletuje expired demo firmy (cascade všech child records)
+- **Klient:** `appInitProvider` kontroluje `isDemo && demoExpiresAt < now()` → vrátí `needsOnboarding`. Také detekuje ztrátu anonymní session (no Supabase auth + local demo company → expired).
 
 ##### Připojit se k firmě (ConnectCompanyScreen)
 
@@ -2863,6 +2990,7 @@ Layout: **80/20 horizontální split**
 - **Barva řádku** = status účtu (opened=modrá, paid=zelená, cancelled=růžová, refunded=oranžová v rámci zelené skupiny)
 - **Sloupec Host:** Zobrazuje jméno přiřazeného zákazníka (customer_id → customers)
 - **Sloupec Poslední objednávka:** Relativní čas (< 1min, Xmin, Xh Ym) — aktualizuje se reaktivně ze streamu
+- **Session scoping:** Při aktivní register session se zobrazují pouze účty patřící do aktuální session (`registerSessionId == activeSession.id`). Bez aktivní session se zobrazují všechny účty.
 - **Bottom bar:** FilterChip pro filtrování podle statusu (Otevřené, Zaplacené, Stornované) — 3 chipy
   - **Výchozí stav:** Pouze "Otevřené" vybrané
   - **Barvy chipů:** Modrá (otevřené), Zelená (zaplacené — zahrnuje i refundované), Růžová (stornované)
@@ -2969,6 +3097,8 @@ Layout: **3-sloupcový** (max 600px šířka, IntrinsicHeight)
 **Split payment pattern:** Po platbě se dialog nezavře, pokud `paidAmount < totalGross` — aktualizuje se `_bill` z výsledku `recordPayment`, resetuje `_customAmount`, zobrazí se zbytek k úhradě + seznam provedených plateb. Dialog se zavře s `true` teprve při plné úhradě (`paidAmount >= totalGross`).
 **Přeplatek:** Pokud `customAmount > remaining`, rozdíl se předá jako `tipAmount` do `recordPayment` a uloží do `payments.tip_included_amount`.
 **DialogChangeTotalToPay:** Numpad dialog s quick buttons (zaokrouhlené hodnoty 10/50/100/500) pro zadání custom částky. Vstup: `originalAmount` (zbývající v haléřích). Výstup: `int` (částka v haléřích) nebo null.
+
+**DialogCashTender:** Numpad dialog pro zadání přijaté hotovosti a výpočet vrácení. Zobrazí se po výběru hotovostní platby, pokud uživatel nemá oprávnění `payments.skip_cash_dialog`. Layout: quick buttons (flex 1) + numpad (flex 3), header s dlužnou částkou, řádek s vrácením/zbytkem. Vstup: `amountDue` (zbývající v haléřích výchozí měny), `currency` (měna platby), `baseCurrency`, volitelný `exchangeRate`. Výstup: `CashTenderResult(receivedAmount, changeAmount)` nebo null ("Bez zadání"). Při platbě v cizí měně s nenulovým vrácením se automaticky vytvoří `CashMovement(withdrawal)` ve výchozí měně pro evidenci výdeje hotovosti — promítne se do expectedCash v Z-reportu.
 
 #### ScreenSell (prodejní obrazovka)
 

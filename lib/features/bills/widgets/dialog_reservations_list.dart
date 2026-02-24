@@ -8,6 +8,7 @@ import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/utils/formatting_ext.dart';
+import '../../../core/widgets/pos_date_range_selector.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_table.dart';
@@ -21,34 +22,14 @@ class DialogReservationsList extends ConsumerStatefulWidget {
 }
 
 class _DialogReservationsListState extends ConsumerState<DialogReservationsList> {
-  late DateTime _dateFrom;
-  late DateTime _dateTo;
+  DateTime? _dateFrom;
+  DateTime? _dateTo;
 
-  @override
-  void initState() {
-    super.initState();
-    final now = DateTime.now();
-    _dateFrom = DateTime(now.year, now.month, now.day);
-    _dateTo = _dateFrom.add(const Duration(days: 7)).subtract(const Duration(seconds: 1));
-  }
-
-  Future<void> _pickDate(BuildContext context, bool isFrom) async {
-    final initial = isFrom ? _dateFrom : _dateTo;
-    final result = await showDatePicker(
-      context: context,
-      initialDate: initial,
-      firstDate: DateTime(2020),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
-    );
-    if (result != null && mounted) {
-      setState(() {
-        if (isFrom) {
-          _dateFrom = result;
-        } else {
-          _dateTo = DateTime(result.year, result.month, result.day, 23, 59, 59);
-        }
-      });
-    }
+  void _onDateRangeChanged(DateTime from, DateTime to) {
+    setState(() {
+      _dateFrom = from;
+      _dateTo = to;
+    });
   }
 
   Future<void> _openCreateDialog() async {
@@ -90,6 +71,7 @@ class _DialogReservationsListState extends ConsumerState<DialogReservationsList>
     final l = context.l10n;
     final theme = Theme.of(context);
     final company = ref.watch(currentCompanyProvider);
+    final locale = ref.watch(appLocaleProvider).value ?? 'cs';
 
     if (company == null) return const SizedBox.shrink();
 
@@ -98,18 +80,18 @@ class _DialogReservationsListState extends ConsumerState<DialogReservationsList>
       titleStyle: theme.textTheme.headlineSmall,
       maxWidth: 800,
       children: [
-        // Date filter row
+        // Date range selector + New button
         Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            TextButton(
-              onPressed: () => _pickDate(context, true),
-              child: Text(ref.fmtDate(_dateFrom)),
-            ),
-            const Text(' — '),
-            TextButton(
-              onPressed: () => _pickDate(context, false),
-              child: Text(ref.fmtDate(_dateTo)),
+            Expanded(
+              child: PosDateRangeSelector(
+                onChanged: _onDateRangeChanged,
+                locale: locale,
+                l10n: l,
+                initialPeriod: DatePeriod.week,
+                allowFuture: true,
+              ),
             ),
             const SizedBox(width: 16),
             FilledButton.tonalIcon(
@@ -124,55 +106,57 @@ class _DialogReservationsListState extends ConsumerState<DialogReservationsList>
         // Table
         SizedBox(
           height: 400,
-          child: StreamBuilder<List<ReservationModel>>(
-            stream: ref.watch(reservationRepositoryProvider).watchByDateRange(
-                  company.id,
-                  _dateFrom,
-                  _dateTo,
-                ),
-            builder: (context, snap) {
-              final reservations = snap.data ?? [];
-
-              // Load tables for name lookup
-              return StreamBuilder<List<TableModel>>(
-                stream: ref.watch(tableRepositoryProvider).watchAll(company.id),
-                builder: (context, tablesnap) {
-                  final tables = tablesnap.data ?? [];
-                  final tableMap = {for (final t in tables) t.id: t.name};
-
-                  return PosTable<ReservationModel>(
-                    columns: [
-                      PosColumn(label: l.reservationColumnDate, width: 80, cellBuilder: (r) => Text(ref.fmtDate(r.reservationDate))),
-                      PosColumn(label: l.reservationColumnTime, width: 50, cellBuilder: (r) => Text(ref.fmtTime(r.reservationDate))),
-                      PosColumn(label: l.reservationColumnName, cellBuilder: (r) => Text(r.customerName)),
-                      PosColumn(label: l.reservationColumnPhone, width: 100, cellBuilder: (r) => Text(r.customerPhone ?? '')),
-                      PosColumn(label: l.reservationColumnPartySize, width: 50, cellBuilder: (r) => Text('${r.partySize}', textAlign: TextAlign.center)),
-                      PosColumn(label: l.reservationColumnTable, width: 80, cellBuilder: (r) => Text(r.tableId != null ? (tableMap[r.tableId] ?? '-') : '-')),
-                      PosColumn(
-                        label: l.reservationColumnStatus,
-                        width: 90,
-                        numeric: true,
-                        cellBuilder: (r) => Text(
-                          _statusLabel(context, r.status),
-                          textAlign: TextAlign.right,
-                          style: TextStyle(
-                            color: r.status == ReservationStatus.cancelled
-                                ? theme.colorScheme.error
-                                : r.status == ReservationStatus.confirmed
-                                    ? theme.colorScheme.primary
-                                    : null,
-                          ),
-                        ),
+          child: _dateFrom == null || _dateTo == null
+              ? const SizedBox.shrink()
+              : StreamBuilder<List<ReservationModel>>(
+                  stream: ref.watch(reservationRepositoryProvider).watchByDateRange(
+                        company.id,
+                        _dateFrom!,
+                        _dateTo!,
                       ),
-                    ],
-                    items: reservations,
-                    onRowTap: (r) => _openEditDialog(r),
-                    emptyMessage: l.reservationsEmpty,
-                  );
-                },
-              );
-            },
-          ),
+                  builder: (context, snap) {
+                    final reservations = snap.data ?? [];
+
+                    // Load tables for name lookup
+                    return StreamBuilder<List<TableModel>>(
+                      stream: ref.watch(tableRepositoryProvider).watchAll(company.id),
+                      builder: (context, tablesnap) {
+                        final tables = tablesnap.data ?? [];
+                        final tableMap = {for (final t in tables) t.id: t.name};
+
+                        return PosTable<ReservationModel>(
+                          columns: [
+                            PosColumn(label: l.reservationColumnDate, width: 80, cellBuilder: (r) => Text(ref.fmtDate(r.reservationDate))),
+                            PosColumn(label: l.reservationColumnTime, width: 50, cellBuilder: (r) => Text(ref.fmtTime(r.reservationDate))),
+                            PosColumn(label: l.reservationColumnName, cellBuilder: (r) => Text(r.customerName)),
+                            PosColumn(label: l.reservationColumnPhone, width: 100, cellBuilder: (r) => Text(r.customerPhone ?? '')),
+                            PosColumn(label: l.reservationColumnPartySize, width: 50, cellBuilder: (r) => Text('${r.partySize}', textAlign: TextAlign.center)),
+                            PosColumn(label: l.reservationColumnTable, width: 80, cellBuilder: (r) => Text(r.tableId != null ? (tableMap[r.tableId] ?? '-') : '-')),
+                            PosColumn(
+                              label: l.reservationColumnStatus,
+                              width: 90,
+                              numeric: true,
+                              cellBuilder: (r) => Text(
+                                _statusLabel(context, r.status),
+                                textAlign: TextAlign.right,
+                                style: TextStyle(
+                                  color: r.status == ReservationStatus.cancelled
+                                      ? theme.colorScheme.error
+                                      : r.status == ReservationStatus.confirmed
+                                          ? theme.colorScheme.primary
+                                          : null,
+                                ),
+                              ),
+                            ),
+                          ],
+                          items: reservations,
+                          onRowTap: (r) => _openEditDialog(r),
+                          emptyMessage: l.reservationsEmpty,
+                        );
+                      },
+                    );
+                  },
+                ),
         ),
 
         const SizedBox(height: 16),
