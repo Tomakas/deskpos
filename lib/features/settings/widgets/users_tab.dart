@@ -31,7 +31,7 @@ class UsersTab extends ConsumerStatefulWidget {
 bool _isLastAdmin(List<UserModel> users, List<RoleModel> roles, UserModel user) {
   final adminRole = roles.where((r) => r.name == RoleName.admin).firstOrNull;
   if (adminRole == null || user.roleId != adminRole.id) return false;
-  return users.where((u) => u.roleId == adminRole.id).length <= 1;
+  return users.where((u) => u.roleId == adminRole.id && u.isActive).length <= 1;
 }
 
 class _UsersTabState extends ConsumerState<UsersTab> {
@@ -621,7 +621,7 @@ class _UserEditDialogState extends ConsumerState<_UserEditDialog>
     return Column(
       children: [
         // Header with reset button
-        if (_isCustomized)
+        if (_isCustomized && !widget.isLastAdmin)
           Padding(
             padding: const EdgeInsets.only(top: 8, bottom: 4),
             child: Row(
@@ -664,14 +664,14 @@ class _UserEditDialogState extends ConsumerState<_UserEditDialog>
                           ? false
                           : null,
                   tristate: true,
-                  onChanged: (_) => _toggleGroup(category, !allGranted),
+                  onChanged: widget.isLastAdmin ? null : (_) => _toggleGroup(category, !allGranted),
                 ),
                 children: [
                   for (final perm in perms)
                     CheckboxListTile(
                       title: Text(localizedPermissionName(l, perm.code)),
                       value: _grantedPermissionIds.contains(perm.id),
-                      onChanged: (v) => _togglePermission(perm.id, v ?? false),
+                      onChanged: widget.isLastAdmin ? null : (v) => _togglePermission(perm.id, v ?? false),
                       dense: true,
                       controlAffinity: ListTileControlAffinity.leading,
                     ),

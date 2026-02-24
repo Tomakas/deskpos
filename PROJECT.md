@@ -2672,6 +2672,31 @@ Metoda `applyRoleToUser`:
 
 Kontrolovat **vždy v UI** (tlačítko se nezobrazí) **i v repozitáři** (nelze obejít přímým voláním).
 
+### Last Admin Guard
+
+Ochrana proti ztrátě posledního aktivního admina ve firmě. Tři vrstvy:
+
+| Vrstva | Soubor | Chování |
+|--------|--------|---------|
+| **UI** | `users_tab.dart` | Disable: delete button, role dropdown, isActive switch, permissions checkboxy |
+| **Repository** | `UserRepository` | `isLastAdmin()` → `Failure` při delete, role change, deaktivaci |
+| **Supabase trigger** | `guard_last_admin` | `BEFORE UPDATE` + `BEFORE DELETE` na `users`, `ERRCODE 23514` |
+
+**Definice "poslední admin":** jediný uživatel s `role = admin`, `is_active = true`, `deleted_at IS NULL` v dané firmě.
+
+**Chráněné operace pro posledního admina:**
+- Smazání (soft-delete)
+- Změna role na non-admin
+- Deaktivace (`is_active → false`)
+- Změna individuálních oprávnění (permissions tab readonly)
+- Hard DELETE (Supabase trigger)
+
+**Známé limitace:**
+- `UserRepository.update()` / `delete()` vrací `Result<Failure>`, ale UI (volající kód v `_showEditDialog` / `_delete`) návratovou hodnotu nekontroluje — pokud repo guard odmítne operaci (např. stale UI flag), selhání je tiché. Toto je obecný vzor v celé codebase, ne specifický problém last admin guardu.
+- Supabase trigger používá row-level `BEFORE UPDATE` — bulk `UPDATE` v jednom SQL statementu může guard obejít (každý řádek vidí pre-statement snapshot). V praxi nepřístupné přes ingest (single-row upsert), hrozí pouze přes přímý SQL.
+- `isLastAdmin` flag v edit dialogu se počítá při otevření a neaktualizuje se — pokud mezitím jiné zařízení smaže druhého admina, UI guard je stale. Repository guard to zachytí, ale viz bod 1 (tiché selhání).
+- TOCTOU gap v repository: guard check probíhá mimo transakci `super.delete()`/`super.update()`. Bezpečné pro lokální SQLite (single-writer), ale při případném přechodu na server-side logiku by vyžadovalo transakční wrapping.
+
 ### Budoucí rozšíření
 
 Oprávnění připravená v architektuře, ale ne v prvním releasu.

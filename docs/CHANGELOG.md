@@ -2,6 +2,12 @@
 
 ## 2026-02-24
 
+### Last Admin Guard
+- **UserRepository**: `isLastAdmin(companyId, roleId)` counts active non-deleted admins; overrides `delete()` and `update()` to block deletion, role demotion, and deactivation of the last active admin
+- **UI (`users_tab.dart`)**: `_isLastAdmin()` pure helper disables delete button, role dropdown, isActive switch, and all permission checkboxes for the last active admin
+- **Supabase migration (`20260224_001_last_admin_guard.sql`)**: `BEFORE UPDATE` trigger covers role change, soft delete, and deactivation; `BEFORE DELETE` trigger covers hard delete; both use `FOR UPDATE` for concurrency and `ERRCODE 23514` for permanent error classification in ingest
+- **PROJECT.md**: Added "Last Admin Guard" section with known limitations
+
 ### SQL — Audit Fix Migrations
 - **audit_fixes_schema**: K1 `order_items.voucher_discount` (integer NOT NULL DEFAULT 0), K2 `vouchers.created_by_user_id` (text), K3 `role_name` enum + `manager` value, V1 `SET search_path = 'public'` on `broadcast_sync_change` and `broadcast_company_sync_change`, S1 RLS SELECT policy on `audit_log` for `authenticated`, S2 7 FK indexes on modifier tables, S3 modifier RLS policies fixed from `public` to `authenticated`
 - **audit_fixes_manager_role**: INSERT manager role row (split from schema migration — PG requires enum ADD VALUE to be committed before use)

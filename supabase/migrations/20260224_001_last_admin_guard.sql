@@ -22,6 +22,7 @@ BEGIN
     FROM users
     WHERE company_id = OLD.company_id
       AND role_id = admin_role_id
+      AND is_active = true
       AND deleted_at IS NULL
       AND id != OLD.id
     FOR UPDATE;
@@ -58,6 +59,7 @@ BEGIN
     FROM users
     WHERE company_id = OLD.company_id
       AND role_id = admin_role_id
+      AND is_active = true
       AND deleted_at IS NULL
       AND id != OLD.id
     FOR UPDATE;

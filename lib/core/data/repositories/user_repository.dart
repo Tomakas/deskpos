@@ -109,6 +109,7 @@ class UserRepository
           ..where((t) =>
               t.companyId.equals(companyId) &
               t.roleId.equals(adminRole.id) &
+              t.isActive.equals(true) &
               t.deletedAt.isNull()))
         .get();
     return admins.length <= 1;
