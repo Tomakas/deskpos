@@ -1386,5 +1386,35 @@
   "statsOrderReady": "Hotovo",
   "statsOrderDelivered": "Doručeno",
   "statsOrderCreated": "Vytvořeno",
-  "statsOrderItems": "Položky"
+  "statsOrderItems": "Položky",
+
+  "settingsCurrencyLocked": "Výchozí měnu nelze změnit po vytvoření prvního účtu.",
+  "settingsAlternativeCurrencies": "Alternativní měny",
+  "settingsAddCurrency": "Přidat měnu",
+  "settingsExchangeRate": "Kurz",
+  "settingsExchangeRateLabel": "1 {code} =",
+  "@settingsExchangeRateLabel": {
+    "placeholders": {
+      "code": {"type": "String"}
+    }
+  },
+  "paymentForeignCurrencySelect": "Jiná měna",
+  "paymentForeignRate": "× {rate} = {amount}",
+  "@paymentForeignRate": {
+    "placeholders": {
+      "rate": {"type": "String"},
+      "amount": {"type": "String"}
+    }
+  },
+  "paymentChangeInBase": "Vráceno v základní měně",
+  "openingForeignCashTitle": "Počáteční stav cizích měn",
+  "closingForeignCashTitle": "Uzávěrka cizích měn",
+  "zReportForeignCashTitle": "Pokladna cizí měny",
+  "zReportForeignOpening": "Počáteční stav",
+  "zReportForeignRevenue": "Tržby",
+  "zReportForeignExpected": "Očekávaný stav",
+  "zReportForeignClosing": "Skutečný stav",
+  "zReportForeignDifference": "Rozdíl",
+  "currencySelectorTitle": "Vyberte měnu",
+  "currencySelectorBack": "Zpět"
 }

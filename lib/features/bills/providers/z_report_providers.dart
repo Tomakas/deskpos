@@ -13,4 +13,6 @@ final zReportServiceProvider = Provider<ZReportService>((ref) => ZReportService(
       userRepo: ref.watch(userRepositoryProvider),
       orderRepo: ref.watch(orderRepositoryProvider),
       registerRepo: ref.watch(registerRepositoryProvider),
+      sessionCurrencyCashRepo: ref.watch(sessionCurrencyCashRepositoryProvider),
+      currencyRepo: ref.watch(currencyRepositoryProvider),
     ));

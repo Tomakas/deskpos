@@ -12,6 +12,7 @@ import 'tables/categories.dart';
 import 'tables/customer_transactions.dart';
 import 'tables/customers.dart';
 import 'tables/companies.dart';
+import 'tables/company_currencies.dart';
 import 'tables/company_settings.dart';
 import 'tables/currencies.dart';
 import 'tables/device_registrations.dart';
@@ -35,6 +36,7 @@ import 'tables/registers.dart';
 import 'tables/role_permissions.dart';
 import 'tables/roles.dart';
 import 'tables/sections.dart';
+import 'tables/session_currency_cash.dart';
 import 'tables/shifts.dart';
 import 'tables/stock_documents.dart';
 import 'tables/stock_levels.dart';
@@ -57,6 +59,7 @@ part 'app_database.g.dart';
   CashMovements,
   Categories,
   Companies,
+  CompanyCurrencies,
   CustomerTransactions,
   Customers,
   CompanySettings,
@@ -83,6 +86,7 @@ part 'app_database.g.dart';
   RolePermissions,
   Roles,
   Sections,
+  SessionCurrencyCash,
   Shifts,
   StockDocuments,
   StockLevels,

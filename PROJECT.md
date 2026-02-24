@@ -931,6 +931,7 @@ Navíc každá tabulka definuje: `createdAt`, `updatedAt`, `deletedAt` (soft del
 | `bills` | `Bills` | `Bill` | `BillModel` |
 | `cash_movements` | `CashMovements` | `CashMovement` | `CashMovementModel` |
 | `categories` | `Categories` | `Category` | `CategoryModel` |
+| `company_currencies` | `CompanyCurrencies` | `CompanyCurrency` | `CompanyCurrencyModel` |
 | `companies` | `Companies` | `Company` | `CompanyModel` |
 | `company_settings` | `CompanySettings` | `CompanySetting` | `CompanySettingsModel` |
 | `currencies` | `Currencies` | `Currency` | `CurrencyModel` |
@@ -957,6 +958,7 @@ Navíc každá tabulka definuje: `createdAt`, `updatedAt`, `deletedAt` (soft del
 | `role_permissions` | `RolePermissions` | `RolePermission` | `RolePermissionModel` |
 | `roles` | `Roles` | `Role` | `RoleModel` |
 | `sections` | `Sections` | `Section` | `SectionModel` |
+| `session_currency_cash` | `SessionCurrencyCash` | `SessionCurrencyCashEntity` | `SessionCurrencyCashModel` |
 | `shifts` | `Shifts` | `Shift` | `ShiftModel` |
 | `stock_documents` | `StockDocuments` | `StockDocument` | `StockDocumentModel` |
 | `stock_levels` | `StockLevels` | `StockLevel` | `StockLevelModel` |
@@ -1003,8 +1005,10 @@ Všechny aktivní tabulky obsahují společné sync sloupce (viz [SyncColumnsMix
 | **bills** | id (T), company_id →companies, section_id →sections?, table_id →tables?, opened_by_user_id →users, register_id →registers?, last_register_id →registers?, register_session_id →register_sessions?, bill_number (T), number_of_guests (I, default 0), is_takeaway (B, default false), status (T — BillStatus), currency_id →currencies, customer_id →customers?, customer_name (T?), subtotal_gross (I, default 0), subtotal_net (I, default 0), discount_amount (I, default 0), discount_type (T? — DiscountType), tax_total (I, default 0), total_gross (I, default 0), rounding_amount (I, default 0), paid_amount (I, default 0), loyalty_points_used (I, default 0), loyalty_discount_amount (I, default 0), loyalty_points_earned (I, default 0), voucher_discount_amount (I, default 0), voucher_id →vouchers?, opened_at (D), closed_at (D?), map_pos_x (I?), map_pos_y (I?) |
 | **orders** | id (T), company_id →companies, bill_id →bills, created_by_user_id →users, register_id →registers?, order_number (T), notes (T?), status (T — PrepStatus), item_count (I, default 0), subtotal_gross (I, default 0), subtotal_net (I, default 0), tax_total (I, default 0), is_storno (B, default false), storno_source_order_id →orders?, prep_started_at (D?), ready_at (D?), delivered_at (D?) |
 | **order_items** | id (T), company_id →companies, order_id →orders, item_id →items, item_name (T), quantity (R), sale_price_att (I), sale_tax_rate_att (I), sale_tax_amount (I), discount (I, default 0), discount_type (T? — DiscountType), notes (T?), status (T — PrepStatus), prep_started_at (D?), ready_at (D?), delivered_at (D?) |
-| **payments** | id (T), company_id →companies, bill_id →bills, register_id →registers?, register_session_id →register_sessions?, payment_method_id →payment_methods, user_id →users?, amount (I), paid_at (D), currency_id →currencies, tip_included_amount (I, default 0), notes (T?), transaction_id (T?), payment_provider (T?), card_last4 (T?), authorization_code (T?) |
+| **payments** | id (T), company_id →companies, bill_id →bills, register_id →registers?, register_session_id →register_sessions?, payment_method_id →payment_methods, user_id →users?, amount (I), paid_at (D), currency_id →currencies, tip_included_amount (I, default 0), notes (T?), transaction_id (T?), payment_provider (T?), card_last4 (T?), authorization_code (T?), foreign_currency_id →currencies?, foreign_amount (I?), exchange_rate (R?) |
 | **payment_methods** | id (T), company_id →companies, name (T), type (T — PaymentType), is_active (B, default true) |
+| **company_currencies** | id (T), company_id →companies, currency_id →currencies, exchange_rate (R), is_active (B, default true), sort_order (I, default 0) |
+| **session_currency_cash** | id (T), company_id →companies, register_session_id →register_sessions, currency_id →currencies, opening_cash (I, default 0), closing_cash (I?), expected_cash (I?), difference (I?) |
 
 ##### Katalog (items, categories, tax)
 

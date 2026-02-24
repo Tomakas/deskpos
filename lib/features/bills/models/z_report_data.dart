@@ -1,5 +1,30 @@
 import '../widgets/dialog_closing_session.dart';
 
+/// Foreign currency cash summary for Z-report.
+class ForeignCurrencyCashSummary {
+  const ForeignCurrencyCashSummary({
+    required this.currencyCode,
+    required this.currencySymbol,
+    required this.decimalPlaces,
+    required this.openingCash,
+    required this.closingCash,
+    required this.expectedCash,
+    required this.difference,
+    required this.cashRevenue,
+    required this.paymentCount,
+  });
+
+  final String currencyCode;
+  final String currencySymbol;
+  final int decimalPlaces;
+  final int openingCash;
+  final int closingCash;
+  final int expectedCash;
+  final int difference;
+  final int cashRevenue;
+  final int paymentCount;
+}
+
 class ZReportData {
   const ZReportData({
     required this.sessionId,
@@ -30,6 +55,7 @@ class ZReportData {
     required this.openBillsAtCloseAmount,
     this.registerBreakdowns = const [],
     this.registerName,
+    this.foreignCurrencyCash = const [],
   });
 
   final String sessionId;
@@ -72,6 +98,9 @@ class ZReportData {
 
   /// Name of the register for this session
   final String? registerName;
+
+  /// Foreign currency cash summaries.
+  final List<ForeignCurrencyCashSummary> foreignCurrencyCash;
 }
 
 /// Per-register summary within a venue Z-report

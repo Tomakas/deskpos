@@ -234,6 +234,41 @@ Future<void> closeSession(BuildContext context, WidgetRef ref) async {
     if (shouldContinue != true || !context.mounted) return;
   }
 
+  // Build foreign currency cash data
+  final sessionCurrencyCashRepo = ref.read(sessionCurrencyCashRepositoryProvider);
+  final currencyRepo = ref.read(currencyRepositoryProvider);
+  final sessionCurrencyCashList = await sessionCurrencyCashRepo.getBySession(session.id);
+  if (!context.mounted) return;
+
+  // Aggregate foreignAmount per currencyId from cash payments
+  final foreignRevenue = <String, int>{};
+  for (final p in allPayments) {
+    if (p.foreignCurrencyId != null && p.foreignAmount != null) {
+      final method = methodMap[p.paymentMethodId];
+      if (method?.type == PaymentType.cash) {
+        foreignRevenue[p.foreignCurrencyId!] =
+            (foreignRevenue[p.foreignCurrencyId!] ?? 0) + p.foreignAmount!;
+      }
+    }
+  }
+
+  final foreignCurrencyCash = <ForeignCurrencyCashData>[];
+  for (final scc in sessionCurrencyCashList) {
+    final cur = await currencyRepo.getById(scc.currencyId);
+    if (cur == null) continue;
+    final revenue = foreignRevenue[scc.currencyId] ?? 0;
+    foreignCurrencyCash.add(ForeignCurrencyCashData(
+      currencyId: scc.currencyId,
+      code: cur.code,
+      symbol: cur.symbol,
+      decimalPlaces: cur.decimalPlaces,
+      openingCash: scc.openingCash,
+      expectedCash: scc.openingCash + revenue,
+      cashRevenue: revenue,
+    ));
+  }
+  if (!context.mounted) return;
+
   final closingData = ClosingSessionData(
     sessionOpenedAt: session.openedAt,
     openedByUserName: openedByName,
@@ -248,6 +283,7 @@ Future<void> closeSession(BuildContext context, WidgetRef ref) async {
     cashWithdrawals: cashWithdrawals,
     openBillsCount: openBillsCount,
     openBillsAmount: openBillsAmount,
+    foreignCurrencyCash: foreignCurrencyCash,
   );
 
   final result = await showDialog<ClosingSessionResult>(
@@ -269,6 +305,22 @@ Future<void> closeSession(BuildContext context, WidgetRef ref) async {
     openBillsAtCloseCount: openBillsCount,
     openBillsAtCloseAmount: openBillsAmount,
   );
+  if (!context.mounted) return;
+
+  // Save foreign currency closing data
+  final sccById = {for (final scc in sessionCurrencyCashList) scc.currencyId: scc};
+  final expectedByCurrency = {for (final fc in foreignCurrencyCash) fc.currencyId: fc.expectedCash};
+  for (final entry in result.foreignClosingCash.entries) {
+    final scc = sccById[entry.key];
+    if (scc == null) continue;
+    final expected = expectedByCurrency[entry.key] ?? 0;
+    await sessionCurrencyCashRepo.updateClosing(
+      scc.id,
+      closingCash: entry.value,
+      expectedCash: expected,
+      difference: entry.value - expected,
+    );
+  }
   if (!context.mounted) return;
 
   // Cash handover: if mobile register with parent, transfer cash to parent session
@@ -323,13 +375,39 @@ Future<void> openSession(BuildContext context, WidgetRef ref) async {
   final sessionRepo = ref.read(registerSessionRepositoryProvider);
   final lastClosingCash = await sessionRepo.getLastClosingCash(company.id, registerId: register.id);
 
+  // Load active foreign currencies + their last closing cash
+  final companyCurrencyRepo = ref.read(companyCurrencyRepositoryProvider);
+  final currencyRepo = ref.read(currencyRepositoryProvider);
+  final sessionCurrencyCashRepo = ref.read(sessionCurrencyCashRepositoryProvider);
+  final activeForeign = await companyCurrencyRepo.getActive(company.id);
+  final foreignOpenings = <ForeignCurrencyOpening>[];
+  for (final cc in activeForeign) {
+    final cur = await currencyRepo.getById(cc.currencyId);
+    if (cur == null) continue;
+    final lastForeignClosing = await sessionCurrencyCashRepo.getLastClosingCash(
+      company.id, cc.currencyId, registerId: register.id,
+    );
+    foreignOpenings.add(ForeignCurrencyOpening(
+      currencyId: cc.currencyId,
+      code: cur.code,
+      symbol: cur.symbol,
+      decimalPlaces: cur.decimalPlaces,
+      lastClosingCash: lastForeignClosing,
+    ));
+  }
+
   if (!context.mounted) return;
 
-  final openingCash = await showDialog<int>(
+  final result = await showDialog<OpeningCashResult>(
     context: context,
-    builder: (_) => DialogOpeningCash(initialAmount: lastClosingCash),
+    builder: (_) => DialogOpeningCash(
+      initialAmount: lastClosingCash,
+      foreignCurrencies: foreignOpenings,
+    ),
   );
-  if (openingCash == null || !context.mounted) return;
+  if (result == null || !context.mounted) return;
+
+  final openingCash = result.baseCash;
 
   // Snapshot open bills at session open
   final allBillsForOpen = await ref.read(billRepositoryProvider).getByCompany(company.id);
@@ -362,9 +440,20 @@ Future<void> openSession(BuildContext context, WidgetRef ref) async {
     if (!context.mounted) return;
   }
 
-  // Create shift for current user after opening session
+  // Create SessionCurrencyCash records for each foreign currency
   if (openResult is Success) {
     final newSession = (openResult as Success).value;
+    for (final entry in result.foreignCash.entries) {
+      await sessionCurrencyCashRepo.create(
+        companyId: company.id,
+        registerSessionId: newSession.id,
+        currencyId: entry.key,
+        openingCash: entry.value,
+      );
+    }
+    if (!context.mounted) return;
+
+    // Create shift for current user after opening session
     await ref.read(shiftRepositoryProvider).create(
       companyId: company.id,
       registerSessionId: newSession.id,

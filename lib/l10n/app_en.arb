@@ -1386,5 +1386,35 @@
   "statsOrderReady": "Ready",
   "statsOrderDelivered": "Delivered",
   "statsOrderCreated": "Created",
-  "statsOrderItems": "Items"
+  "statsOrderItems": "Items",
+
+  "settingsCurrencyLocked": "Default currency cannot be changed after the first bill is created.",
+  "settingsAlternativeCurrencies": "Alternative currencies",
+  "settingsAddCurrency": "Add currency",
+  "settingsExchangeRate": "Exchange rate",
+  "settingsExchangeRateLabel": "1 {code} =",
+  "@settingsExchangeRateLabel": {
+    "placeholders": {
+      "code": {"type": "String"}
+    }
+  },
+  "paymentForeignCurrencySelect": "Other currency",
+  "paymentForeignRate": "× {rate} = {amount}",
+  "@paymentForeignRate": {
+    "placeholders": {
+      "rate": {"type": "String"},
+      "amount": {"type": "String"}
+    }
+  },
+  "paymentChangeInBase": "Change in base currency",
+  "openingForeignCashTitle": "Opening cash for foreign currencies",
+  "closingForeignCashTitle": "Closing cash for foreign currencies",
+  "zReportForeignCashTitle": "Foreign currency cash",
+  "zReportForeignOpening": "Opening",
+  "zReportForeignRevenue": "Revenue",
+  "zReportForeignExpected": "Expected",
+  "zReportForeignClosing": "Actual",
+  "zReportForeignDifference": "Difference",
+  "currencySelectorTitle": "Select currency",
+  "currencySelectorBack": "Back"
 }

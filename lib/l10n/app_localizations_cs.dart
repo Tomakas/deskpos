@@ -3442,4 +3442,63 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get statsOrderItems => 'Položky';
+
+  @override
+  String get settingsCurrencyLocked =>
+      'Výchozí měnu nelze změnit po vytvoření prvního účtu.';
+
+  @override
+  String get settingsAlternativeCurrencies => 'Alternativní měny';
+
+  @override
+  String get settingsAddCurrency => 'Přidat měnu';
+
+  @override
+  String get settingsExchangeRate => 'Kurz';
+
+  @override
+  String settingsExchangeRateLabel(String code) {
+    return '1 $code =';
+  }
+
+  @override
+  String get paymentForeignCurrencySelect => 'Jiná měna';
+
+  @override
+  String paymentForeignRate(String rate, String amount) {
+    return '× $rate = $amount';
+  }
+
+  @override
+  String get paymentChangeInBase => 'Vráceno v základní měně';
+
+  @override
+  String get openingForeignCashTitle => 'Počáteční stav cizích měn';
+
+  @override
+  String get closingForeignCashTitle => 'Uzávěrka cizích měn';
+
+  @override
+  String get zReportForeignCashTitle => 'Pokladna cizí měny';
+
+  @override
+  String get zReportForeignOpening => 'Počáteční stav';
+
+  @override
+  String get zReportForeignRevenue => 'Tržby';
+
+  @override
+  String get zReportForeignExpected => 'Očekávaný stav';
+
+  @override
+  String get zReportForeignClosing => 'Skutečný stav';
+
+  @override
+  String get zReportForeignDifference => 'Rozdíl';
+
+  @override
+  String get currencySelectorTitle => 'Vyberte měnu';
+
+  @override
+  String get currencySelectorBack => 'Zpět';
 }

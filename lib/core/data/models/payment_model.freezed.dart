@@ -33,6 +33,9 @@ mixin _$PaymentModel {
   String? get paymentProvider => throw _privateConstructorUsedError;
   String? get cardLast4 => throw _privateConstructorUsedError;
   String? get authorizationCode => throw _privateConstructorUsedError;
+  String? get foreignCurrencyId => throw _privateConstructorUsedError;
+  int? get foreignAmount => throw _privateConstructorUsedError;
+  double? get exchangeRate => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
   DateTime get updatedAt => throw _privateConstructorUsedError;
   DateTime? get deletedAt => throw _privateConstructorUsedError;
@@ -68,6 +71,9 @@ abstract class $PaymentModelCopyWith<$Res> {
     String? paymentProvider,
     String? cardLast4,
     String? authorizationCode,
+    String? foreignCurrencyId,
+    int? foreignAmount,
+    double? exchangeRate,
     DateTime createdAt,
     DateTime updatedAt,
     DateTime? deletedAt,
@@ -105,6 +111,9 @@ class _$PaymentModelCopyWithImpl<$Res, $Val extends PaymentModel>
     Object? paymentProvider = freezed,
     Object? cardLast4 = freezed,
     Object? authorizationCode = freezed,
+    Object? foreignCurrencyId = freezed,
+    Object? foreignAmount = freezed,
+    Object? exchangeRate = freezed,
     Object? createdAt = null,
     Object? updatedAt = null,
     Object? deletedAt = freezed,
@@ -175,6 +184,18 @@ class _$PaymentModelCopyWithImpl<$Res, $Val extends PaymentModel>
                 ? _value.authorizationCode
                 : authorizationCode // ignore: cast_nullable_to_non_nullable
                       as String?,
+            foreignCurrencyId: freezed == foreignCurrencyId
+                ? _value.foreignCurrencyId
+                : foreignCurrencyId // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            foreignAmount: freezed == foreignAmount
+                ? _value.foreignAmount
+                : foreignAmount // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            exchangeRate: freezed == exchangeRate
+                ? _value.exchangeRate
+                : exchangeRate // ignore: cast_nullable_to_non_nullable
+                      as double?,
             createdAt: null == createdAt
                 ? _value.createdAt
                 : createdAt // ignore: cast_nullable_to_non_nullable
@@ -219,6 +240,9 @@ abstract class _$$PaymentModelImplCopyWith<$Res>
     String? paymentProvider,
     String? cardLast4,
     String? authorizationCode,
+    String? foreignCurrencyId,
+    int? foreignAmount,
+    double? exchangeRate,
     DateTime createdAt,
     DateTime updatedAt,
     DateTime? deletedAt,
@@ -255,6 +279,9 @@ class __$$PaymentModelImplCopyWithImpl<$Res>
     Object? paymentProvider = freezed,
     Object? cardLast4 = freezed,
     Object? authorizationCode = freezed,
+    Object? foreignCurrencyId = freezed,
+    Object? foreignAmount = freezed,
+    Object? exchangeRate = freezed,
     Object? createdAt = null,
     Object? updatedAt = null,
     Object? deletedAt = freezed,
@@ -325,6 +352,18 @@ class __$$PaymentModelImplCopyWithImpl<$Res>
             ? _value.authorizationCode
             : authorizationCode // ignore: cast_nullable_to_non_nullable
                   as String?,
+        foreignCurrencyId: freezed == foreignCurrencyId
+            ? _value.foreignCurrencyId
+            : foreignCurrencyId // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        foreignAmount: freezed == foreignAmount
+            ? _value.foreignAmount
+            : foreignAmount // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        exchangeRate: freezed == exchangeRate
+            ? _value.exchangeRate
+            : exchangeRate // ignore: cast_nullable_to_non_nullable
+                  as double?,
         createdAt: null == createdAt
             ? _value.createdAt
             : createdAt // ignore: cast_nullable_to_non_nullable
@@ -362,6 +401,9 @@ class _$PaymentModelImpl implements _PaymentModel {
     this.paymentProvider,
     this.cardLast4,
     this.authorizationCode,
+    this.foreignCurrencyId,
+    this.foreignAmount,
+    this.exchangeRate,
     required this.createdAt,
     required this.updatedAt,
     this.deletedAt,
@@ -401,6 +443,12 @@ class _$PaymentModelImpl implements _PaymentModel {
   @override
   final String? authorizationCode;
   @override
+  final String? foreignCurrencyId;
+  @override
+  final int? foreignAmount;
+  @override
+  final double? exchangeRate;
+  @override
   final DateTime createdAt;
   @override
   final DateTime updatedAt;
@@ -409,7 +457,7 @@ class _$PaymentModelImpl implements _PaymentModel {
 
   @override
   String toString() {
-    return 'PaymentModel(id: $id, companyId: $companyId, billId: $billId, registerId: $registerId, registerSessionId: $registerSessionId, userId: $userId, paymentMethodId: $paymentMethodId, amount: $amount, paidAt: $paidAt, currencyId: $currencyId, tipIncludedAmount: $tipIncludedAmount, notes: $notes, transactionId: $transactionId, paymentProvider: $paymentProvider, cardLast4: $cardLast4, authorizationCode: $authorizationCode, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+    return 'PaymentModel(id: $id, companyId: $companyId, billId: $billId, registerId: $registerId, registerSessionId: $registerSessionId, userId: $userId, paymentMethodId: $paymentMethodId, amount: $amount, paidAt: $paidAt, currencyId: $currencyId, tipIncludedAmount: $tipIncludedAmount, notes: $notes, transactionId: $transactionId, paymentProvider: $paymentProvider, cardLast4: $cardLast4, authorizationCode: $authorizationCode, foreignCurrencyId: $foreignCurrencyId, foreignAmount: $foreignAmount, exchangeRate: $exchangeRate, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
   }
 
   @override
@@ -443,6 +491,12 @@ class _$PaymentModelImpl implements _PaymentModel {
                 other.cardLast4 == cardLast4) &&
             (identical(other.authorizationCode, authorizationCode) ||
                 other.authorizationCode == authorizationCode) &&
+            (identical(other.foreignCurrencyId, foreignCurrencyId) ||
+                other.foreignCurrencyId == foreignCurrencyId) &&
+            (identical(other.foreignAmount, foreignAmount) ||
+                other.foreignAmount == foreignAmount) &&
+            (identical(other.exchangeRate, exchangeRate) ||
+                other.exchangeRate == exchangeRate) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.updatedAt, updatedAt) ||
@@ -470,6 +524,9 @@ class _$PaymentModelImpl implements _PaymentModel {
     paymentProvider,
     cardLast4,
     authorizationCode,
+    foreignCurrencyId,
+    foreignAmount,
+    exchangeRate,
     createdAt,
     updatedAt,
     deletedAt,
@@ -502,6 +559,9 @@ abstract class _PaymentModel implements PaymentModel {
     final String? paymentProvider,
     final String? cardLast4,
     final String? authorizationCode,
+    final String? foreignCurrencyId,
+    final int? foreignAmount,
+    final double? exchangeRate,
     required final DateTime createdAt,
     required final DateTime updatedAt,
     final DateTime? deletedAt,
@@ -539,6 +599,12 @@ abstract class _PaymentModel implements PaymentModel {
   String? get cardLast4;
   @override
   String? get authorizationCode;
+  @override
+  String? get foreignCurrencyId;
+  @override
+  int? get foreignAmount;
+  @override
+  double? get exchangeRate;
   @override
   DateTime get createdAt;
   @override

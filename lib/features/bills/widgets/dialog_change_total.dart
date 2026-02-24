@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/data/models/currency_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/utils/formatters.dart';
-import '../../../core/utils/formatting_ext.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_numpad.dart';
@@ -13,9 +13,14 @@ class DialogChangeTotalToPay extends ConsumerStatefulWidget {
   const DialogChangeTotalToPay({
     super.key,
     required this.originalAmount,
+    this.currency,
   });
 
   final int originalAmount;
+
+  /// Optional foreign currency. When provided, the numpad works in this
+  /// currency instead of the company default.
+  final CurrencyModel? currency;
 
   @override
   ConsumerState<DialogChangeTotalToPay> createState() => _DialogChangeTotalToPayState();
@@ -26,15 +31,21 @@ class _DialogChangeTotalToPayState extends ConsumerState<DialogChangeTotalToPay>
   bool _replaceOnNextDigit = true;
   late final List<int> _displayQuick;
 
-  int get _amountInMinor {
-    final currency = ref.read(currentCurrencyProvider).value;
-    return parseMoney(_input, currency);
-  }
+  CurrencyModel? get _currency =>
+      widget.currency ?? ref.read(currentCurrencyProvider).value;
+
+  int get _amountInMinor => parseMoney(_input, _currency);
+
+  String _fmt(int minorUnits) =>
+      formatMoney(minorUnits, _currency, appLocale: ref.read(appLocaleProvider).value ?? 'cs');
+
+  String _fmtWithSign(int minorUnits) =>
+      formatMoneyWithSign(minorUnits, _currency, appLocale: ref.read(appLocaleProvider).value ?? 'cs');
 
   @override
   void initState() {
     super.initState();
-    final currency = ref.read(currentCurrencyProvider).value;
+    final currency = widget.currency ?? ref.read(currentCurrencyProvider).value;
     // Compute quick amounts — round up to nearest 10, 50, 100, 500
     final originalWhole = wholeUnitsFromMinor(widget.originalAmount, currency) + 1;
     final quickAmounts = <int>[];
@@ -73,10 +84,10 @@ class _DialogChangeTotalToPayState extends ConsumerState<DialogChangeTotalToPay>
         crossAxisAlignment: WrapCrossAlignment.center,
         spacing: 6,
         children: [
-          Text(ref.money(widget.originalAmount), style: smallStyle),
+          Text(_fmt(widget.originalAmount), style: smallStyle),
           Text('→', style: smallStyle),
-          Text(ref.money(_amountInMinor), style: bigStyle),
-          Text('(${ref.moneyWithSign(difference)})', style: diffStyle),
+          Text(_fmt(_amountInMinor), style: bigStyle),
+          Text('(${_fmtWithSign(difference)})', style: diffStyle),
         ],
       ),
       maxWidth: 440,

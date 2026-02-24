@@ -20,6 +20,9 @@ class Payments extends Table with SyncColumnsMixin {
   TextColumn get paymentProvider => text().nullable()();
   TextColumn get cardLast4 => text().nullable()();
   TextColumn get authorizationCode => text().nullable()();
+  TextColumn get foreignCurrencyId => text().nullable()();
+  IntColumn get foreignAmount => integer().nullable()();
+  RealColumn get exchangeRate => real().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};

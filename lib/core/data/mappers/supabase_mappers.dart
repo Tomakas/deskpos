@@ -5,6 +5,7 @@ import '../models/cash_movement_model.dart';
 import '../models/category_model.dart';
 import '../models/customer_model.dart';
 import '../models/customer_transaction_model.dart';
+import '../models/company_currency_model.dart';
 import '../models/company_model.dart';
 import '../models/display_device_model.dart';
 import '../models/company_settings_model.dart';
@@ -26,6 +27,7 @@ import '../models/reservation_model.dart';
 import '../models/voucher_model.dart';
 import '../models/register_session_model.dart';
 import '../models/section_model.dart';
+import '../models/session_currency_cash_model.dart';
 import '../models/shift_model.dart';
 import '../models/stock_document_model.dart';
 import '../models/stock_level_model.dart';
@@ -408,6 +410,23 @@ Map<String, dynamic> paymentToSupabaseJson(PaymentModel m) => {
       'payment_provider': m.paymentProvider,
       'card_last4': m.cardLast4,
       'authorization_code': m.authorizationCode,
+      'foreign_currency_id': m.foreignCurrencyId,
+      'foreign_amount': m.foreignAmount,
+      'exchange_rate': m.exchangeRate,
+    };
+
+Map<String, dynamic> companyCurrencyToSupabaseJson(CompanyCurrencyModel m) => {
+      ..._baseSyncFields(
+        id: m.id,
+        companyId: m.companyId,
+        createdAt: m.createdAt,
+        updatedAt: m.updatedAt,
+        deletedAt: m.deletedAt,
+      ),
+      'currency_id': m.currencyId,
+      'exchange_rate': m.exchangeRate,
+      'is_active': m.isActive,
+      'sort_order': m.sortOrder,
     };
 
 Map<String, dynamic> companySettingsToSupabaseJson(CompanySettingsModel m) => {
@@ -532,6 +551,22 @@ Map<String, dynamic> cashMovementToSupabaseJson(CashMovementModel m) => {
       'type': m.type.name,
       'amount': m.amount,
       'reason': m.reason,
+    };
+
+Map<String, dynamic> sessionCurrencyCashToSupabaseJson(SessionCurrencyCashModel m) => {
+      ..._baseSyncFields(
+        id: m.id,
+        companyId: m.companyId,
+        createdAt: m.createdAt,
+        updatedAt: m.updatedAt,
+        deletedAt: m.deletedAt,
+      ),
+      'register_session_id': m.registerSessionId,
+      'currency_id': m.currencyId,
+      'opening_cash': m.openingCash,
+      'closing_cash': m.closingCash,
+      'expected_cash': m.expectedCash,
+      'difference': m.difference,
     };
 
 Map<String, dynamic> layoutItemToSupabaseJson(LayoutItemModel m) => {

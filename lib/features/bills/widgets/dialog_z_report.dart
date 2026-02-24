@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 
+import '../../../core/data/models/currency_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/printing_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
@@ -194,6 +195,18 @@ class DialogZReport extends ConsumerWidget {
                   bold: true,
                   valueColor: cashDifferenceColor(data.difference, context),
                 ),
+
+
+                // --- Foreign currency cash ---
+                if (data.foreignCurrencyCash.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Text(l.zReportForeignCashTitle, style: theme.textTheme.titleSmall),
+                  const SizedBox(height: 8),
+                  for (final fc in data.foreignCurrencyCash) ...[
+                    _buildForeignCashSection(context, ref, fc, l),
+                    const SizedBox(height: 8),
+                  ],
+                ],
                 const Divider(height: 24),
 
                 // --- Per-register breakdown (venue reports) ---
@@ -272,6 +285,42 @@ class DialogZReport extends ConsumerWidget {
                   ],
                 ),
               ],
+    );
+  }
+
+  Widget _buildForeignCashSection(
+    BuildContext context, WidgetRef ref,
+    ForeignCurrencyCashSummary fc, dynamic l,
+  ) {
+    final theme = Theme.of(context);
+    final locale = ref.read(appLocaleProvider).value ?? 'cs';
+    final cur = CurrencyModel(
+      id: '', code: fc.currencyCode, symbol: fc.currencySymbol,
+      name: '', decimalPlaces: fc.decimalPlaces,
+      createdAt: DateTime.now(), updatedAt: DateTime.now(),
+    );
+    String fmt(int amount) => formatMoney(amount, cur, appLocale: locale);
+    String fmtSign(int amount) => formatMoneyWithSign(amount, cur, appLocale: locale);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('${fc.currencyCode} (${fc.currencySymbol})',
+            style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 4),
+        _row(context, l.zReportForeignOpening, fmt(fc.openingCash)),
+        _row(context, l.zReportForeignRevenue, fmtSign(fc.cashRevenue)),
+        const Divider(height: 8),
+        _row(context, l.zReportForeignExpected, fmt(fc.expectedCash), bold: true),
+        _row(context, l.zReportForeignClosing, fmt(fc.closingCash)),
+        _row(
+          context,
+          l.zReportForeignDifference,
+          fmtSign(fc.difference),
+          bold: true,
+          valueColor: cashDifferenceColor(fc.difference, context),
+        ),
+      ],
     );
   }
 

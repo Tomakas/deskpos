@@ -4901,6 +4901,783 @@ class CompaniesCompanion extends UpdateCompanion<Company> {
   }
 }
 
+class $CompanyCurrenciesTable extends CompanyCurrencies
+    with TableInfo<$CompanyCurrenciesTable, CompanyCurrency> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CompanyCurrenciesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _lastSyncedAtMeta = const VerificationMeta(
+    'lastSyncedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> lastSyncedAt = GeneratedColumn<DateTime>(
+    'last_synced_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _versionMeta = const VerificationMeta(
+    'version',
+  );
+  @override
+  late final GeneratedColumn<int> version = GeneratedColumn<int>(
+    'version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _serverCreatedAtMeta = const VerificationMeta(
+    'serverCreatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> serverCreatedAt =
+      GeneratedColumn<DateTime>(
+        'server_created_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _serverUpdatedAtMeta = const VerificationMeta(
+    'serverUpdatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> serverUpdatedAt =
+      GeneratedColumn<DateTime>(
+        'server_updated_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _companyIdMeta = const VerificationMeta(
+    'companyId',
+  );
+  @override
+  late final GeneratedColumn<String> companyId = GeneratedColumn<String>(
+    'company_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _currencyIdMeta = const VerificationMeta(
+    'currencyId',
+  );
+  @override
+  late final GeneratedColumn<String> currencyId = GeneratedColumn<String>(
+    'currency_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _exchangeRateMeta = const VerificationMeta(
+    'exchangeRate',
+  );
+  @override
+  late final GeneratedColumn<double> exchangeRate = GeneratedColumn<double>(
+    'exchange_rate',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _isActiveMeta = const VerificationMeta(
+    'isActive',
+  );
+  @override
+  late final GeneratedColumn<bool> isActive = GeneratedColumn<bool>(
+    'is_active',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_active" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  static const VerificationMeta _sortOrderMeta = const VerificationMeta(
+    'sortOrder',
+  );
+  @override
+  late final GeneratedColumn<int> sortOrder = GeneratedColumn<int>(
+    'sort_order',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    lastSyncedAt,
+    version,
+    serverCreatedAt,
+    serverUpdatedAt,
+    createdAt,
+    updatedAt,
+    deletedAt,
+    id,
+    companyId,
+    currencyId,
+    exchangeRate,
+    isActive,
+    sortOrder,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'company_currencies';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<CompanyCurrency> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('last_synced_at')) {
+      context.handle(
+        _lastSyncedAtMeta,
+        lastSyncedAt.isAcceptableOrUnknown(
+          data['last_synced_at']!,
+          _lastSyncedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('version')) {
+      context.handle(
+        _versionMeta,
+        version.isAcceptableOrUnknown(data['version']!, _versionMeta),
+      );
+    }
+    if (data.containsKey('server_created_at')) {
+      context.handle(
+        _serverCreatedAtMeta,
+        serverCreatedAt.isAcceptableOrUnknown(
+          data['server_created_at']!,
+          _serverCreatedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('server_updated_at')) {
+      context.handle(
+        _serverUpdatedAtMeta,
+        serverUpdatedAt.isAcceptableOrUnknown(
+          data['server_updated_at']!,
+          _serverUpdatedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('company_id')) {
+      context.handle(
+        _companyIdMeta,
+        companyId.isAcceptableOrUnknown(data['company_id']!, _companyIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_companyIdMeta);
+    }
+    if (data.containsKey('currency_id')) {
+      context.handle(
+        _currencyIdMeta,
+        currencyId.isAcceptableOrUnknown(data['currency_id']!, _currencyIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_currencyIdMeta);
+    }
+    if (data.containsKey('exchange_rate')) {
+      context.handle(
+        _exchangeRateMeta,
+        exchangeRate.isAcceptableOrUnknown(
+          data['exchange_rate']!,
+          _exchangeRateMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_exchangeRateMeta);
+    }
+    if (data.containsKey('is_active')) {
+      context.handle(
+        _isActiveMeta,
+        isActive.isAcceptableOrUnknown(data['is_active']!, _isActiveMeta),
+      );
+    }
+    if (data.containsKey('sort_order')) {
+      context.handle(
+        _sortOrderMeta,
+        sortOrder.isAcceptableOrUnknown(data['sort_order']!, _sortOrderMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  CompanyCurrency map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CompanyCurrency(
+      lastSyncedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_synced_at'],
+      ),
+      version: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}version'],
+      )!,
+      serverCreatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}server_created_at'],
+      ),
+      serverUpdatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}server_updated_at'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      companyId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}company_id'],
+      )!,
+      currencyId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}currency_id'],
+      )!,
+      exchangeRate: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}exchange_rate'],
+      )!,
+      isActive: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_active'],
+      )!,
+      sortOrder: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}sort_order'],
+      )!,
+    );
+  }
+
+  @override
+  $CompanyCurrenciesTable createAlias(String alias) {
+    return $CompanyCurrenciesTable(attachedDatabase, alias);
+  }
+}
+
+class CompanyCurrency extends DataClass implements Insertable<CompanyCurrency> {
+  final DateTime? lastSyncedAt;
+  final int version;
+  final DateTime? serverCreatedAt;
+  final DateTime? serverUpdatedAt;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  final String id;
+  final String companyId;
+  final String currencyId;
+  final double exchangeRate;
+  final bool isActive;
+  final int sortOrder;
+  const CompanyCurrency({
+    this.lastSyncedAt,
+    required this.version,
+    this.serverCreatedAt,
+    this.serverUpdatedAt,
+    required this.createdAt,
+    required this.updatedAt,
+    this.deletedAt,
+    required this.id,
+    required this.companyId,
+    required this.currencyId,
+    required this.exchangeRate,
+    required this.isActive,
+    required this.sortOrder,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (!nullToAbsent || lastSyncedAt != null) {
+      map['last_synced_at'] = Variable<DateTime>(lastSyncedAt);
+    }
+    map['version'] = Variable<int>(version);
+    if (!nullToAbsent || serverCreatedAt != null) {
+      map['server_created_at'] = Variable<DateTime>(serverCreatedAt);
+    }
+    if (!nullToAbsent || serverUpdatedAt != null) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    map['id'] = Variable<String>(id);
+    map['company_id'] = Variable<String>(companyId);
+    map['currency_id'] = Variable<String>(currencyId);
+    map['exchange_rate'] = Variable<double>(exchangeRate);
+    map['is_active'] = Variable<bool>(isActive);
+    map['sort_order'] = Variable<int>(sortOrder);
+    return map;
+  }
+
+  CompanyCurrenciesCompanion toCompanion(bool nullToAbsent) {
+    return CompanyCurrenciesCompanion(
+      lastSyncedAt: lastSyncedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastSyncedAt),
+      version: Value(version),
+      serverCreatedAt: serverCreatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(serverCreatedAt),
+      serverUpdatedAt: serverUpdatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(serverUpdatedAt),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+      id: Value(id),
+      companyId: Value(companyId),
+      currencyId: Value(currencyId),
+      exchangeRate: Value(exchangeRate),
+      isActive: Value(isActive),
+      sortOrder: Value(sortOrder),
+    );
+  }
+
+  factory CompanyCurrency.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CompanyCurrency(
+      lastSyncedAt: serializer.fromJson<DateTime?>(json['lastSyncedAt']),
+      version: serializer.fromJson<int>(json['version']),
+      serverCreatedAt: serializer.fromJson<DateTime?>(json['serverCreatedAt']),
+      serverUpdatedAt: serializer.fromJson<DateTime?>(json['serverUpdatedAt']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      id: serializer.fromJson<String>(json['id']),
+      companyId: serializer.fromJson<String>(json['companyId']),
+      currencyId: serializer.fromJson<String>(json['currencyId']),
+      exchangeRate: serializer.fromJson<double>(json['exchangeRate']),
+      isActive: serializer.fromJson<bool>(json['isActive']),
+      sortOrder: serializer.fromJson<int>(json['sortOrder']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'lastSyncedAt': serializer.toJson<DateTime?>(lastSyncedAt),
+      'version': serializer.toJson<int>(version),
+      'serverCreatedAt': serializer.toJson<DateTime?>(serverCreatedAt),
+      'serverUpdatedAt': serializer.toJson<DateTime?>(serverUpdatedAt),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'id': serializer.toJson<String>(id),
+      'companyId': serializer.toJson<String>(companyId),
+      'currencyId': serializer.toJson<String>(currencyId),
+      'exchangeRate': serializer.toJson<double>(exchangeRate),
+      'isActive': serializer.toJson<bool>(isActive),
+      'sortOrder': serializer.toJson<int>(sortOrder),
+    };
+  }
+
+  CompanyCurrency copyWith({
+    Value<DateTime?> lastSyncedAt = const Value.absent(),
+    int? version,
+    Value<DateTime?> serverCreatedAt = const Value.absent(),
+    Value<DateTime?> serverUpdatedAt = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+    String? id,
+    String? companyId,
+    String? currencyId,
+    double? exchangeRate,
+    bool? isActive,
+    int? sortOrder,
+  }) => CompanyCurrency(
+    lastSyncedAt: lastSyncedAt.present ? lastSyncedAt.value : this.lastSyncedAt,
+    version: version ?? this.version,
+    serverCreatedAt: serverCreatedAt.present
+        ? serverCreatedAt.value
+        : this.serverCreatedAt,
+    serverUpdatedAt: serverUpdatedAt.present
+        ? serverUpdatedAt.value
+        : this.serverUpdatedAt,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+    id: id ?? this.id,
+    companyId: companyId ?? this.companyId,
+    currencyId: currencyId ?? this.currencyId,
+    exchangeRate: exchangeRate ?? this.exchangeRate,
+    isActive: isActive ?? this.isActive,
+    sortOrder: sortOrder ?? this.sortOrder,
+  );
+  CompanyCurrency copyWithCompanion(CompanyCurrenciesCompanion data) {
+    return CompanyCurrency(
+      lastSyncedAt: data.lastSyncedAt.present
+          ? data.lastSyncedAt.value
+          : this.lastSyncedAt,
+      version: data.version.present ? data.version.value : this.version,
+      serverCreatedAt: data.serverCreatedAt.present
+          ? data.serverCreatedAt.value
+          : this.serverCreatedAt,
+      serverUpdatedAt: data.serverUpdatedAt.present
+          ? data.serverUpdatedAt.value
+          : this.serverUpdatedAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      id: data.id.present ? data.id.value : this.id,
+      companyId: data.companyId.present ? data.companyId.value : this.companyId,
+      currencyId: data.currencyId.present
+          ? data.currencyId.value
+          : this.currencyId,
+      exchangeRate: data.exchangeRate.present
+          ? data.exchangeRate.value
+          : this.exchangeRate,
+      isActive: data.isActive.present ? data.isActive.value : this.isActive,
+      sortOrder: data.sortOrder.present ? data.sortOrder.value : this.sortOrder,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CompanyCurrency(')
+          ..write('lastSyncedAt: $lastSyncedAt, ')
+          ..write('version: $version, ')
+          ..write('serverCreatedAt: $serverCreatedAt, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('id: $id, ')
+          ..write('companyId: $companyId, ')
+          ..write('currencyId: $currencyId, ')
+          ..write('exchangeRate: $exchangeRate, ')
+          ..write('isActive: $isActive, ')
+          ..write('sortOrder: $sortOrder')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    lastSyncedAt,
+    version,
+    serverCreatedAt,
+    serverUpdatedAt,
+    createdAt,
+    updatedAt,
+    deletedAt,
+    id,
+    companyId,
+    currencyId,
+    exchangeRate,
+    isActive,
+    sortOrder,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CompanyCurrency &&
+          other.lastSyncedAt == this.lastSyncedAt &&
+          other.version == this.version &&
+          other.serverCreatedAt == this.serverCreatedAt &&
+          other.serverUpdatedAt == this.serverUpdatedAt &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt &&
+          other.id == this.id &&
+          other.companyId == this.companyId &&
+          other.currencyId == this.currencyId &&
+          other.exchangeRate == this.exchangeRate &&
+          other.isActive == this.isActive &&
+          other.sortOrder == this.sortOrder);
+}
+
+class CompanyCurrenciesCompanion extends UpdateCompanion<CompanyCurrency> {
+  final Value<DateTime?> lastSyncedAt;
+  final Value<int> version;
+  final Value<DateTime?> serverCreatedAt;
+  final Value<DateTime?> serverUpdatedAt;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<String> id;
+  final Value<String> companyId;
+  final Value<String> currencyId;
+  final Value<double> exchangeRate;
+  final Value<bool> isActive;
+  final Value<int> sortOrder;
+  final Value<int> rowid;
+  const CompanyCurrenciesCompanion({
+    this.lastSyncedAt = const Value.absent(),
+    this.version = const Value.absent(),
+    this.serverCreatedAt = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.id = const Value.absent(),
+    this.companyId = const Value.absent(),
+    this.currencyId = const Value.absent(),
+    this.exchangeRate = const Value.absent(),
+    this.isActive = const Value.absent(),
+    this.sortOrder = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  CompanyCurrenciesCompanion.insert({
+    this.lastSyncedAt = const Value.absent(),
+    this.version = const Value.absent(),
+    this.serverCreatedAt = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    required String id,
+    required String companyId,
+    required String currencyId,
+    required double exchangeRate,
+    this.isActive = const Value.absent(),
+    this.sortOrder = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       companyId = Value(companyId),
+       currencyId = Value(currencyId),
+       exchangeRate = Value(exchangeRate);
+  static Insertable<CompanyCurrency> custom({
+    Expression<DateTime>? lastSyncedAt,
+    Expression<int>? version,
+    Expression<DateTime>? serverCreatedAt,
+    Expression<DateTime>? serverUpdatedAt,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<String>? id,
+    Expression<String>? companyId,
+    Expression<String>? currencyId,
+    Expression<double>? exchangeRate,
+    Expression<bool>? isActive,
+    Expression<int>? sortOrder,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (lastSyncedAt != null) 'last_synced_at': lastSyncedAt,
+      if (version != null) 'version': version,
+      if (serverCreatedAt != null) 'server_created_at': serverCreatedAt,
+      if (serverUpdatedAt != null) 'server_updated_at': serverUpdatedAt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (id != null) 'id': id,
+      if (companyId != null) 'company_id': companyId,
+      if (currencyId != null) 'currency_id': currencyId,
+      if (exchangeRate != null) 'exchange_rate': exchangeRate,
+      if (isActive != null) 'is_active': isActive,
+      if (sortOrder != null) 'sort_order': sortOrder,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  CompanyCurrenciesCompanion copyWith({
+    Value<DateTime?>? lastSyncedAt,
+    Value<int>? version,
+    Value<DateTime?>? serverCreatedAt,
+    Value<DateTime?>? serverUpdatedAt,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? deletedAt,
+    Value<String>? id,
+    Value<String>? companyId,
+    Value<String>? currencyId,
+    Value<double>? exchangeRate,
+    Value<bool>? isActive,
+    Value<int>? sortOrder,
+    Value<int>? rowid,
+  }) {
+    return CompanyCurrenciesCompanion(
+      lastSyncedAt: lastSyncedAt ?? this.lastSyncedAt,
+      version: version ?? this.version,
+      serverCreatedAt: serverCreatedAt ?? this.serverCreatedAt,
+      serverUpdatedAt: serverUpdatedAt ?? this.serverUpdatedAt,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      id: id ?? this.id,
+      companyId: companyId ?? this.companyId,
+      currencyId: currencyId ?? this.currencyId,
+      exchangeRate: exchangeRate ?? this.exchangeRate,
+      isActive: isActive ?? this.isActive,
+      sortOrder: sortOrder ?? this.sortOrder,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (lastSyncedAt.present) {
+      map['last_synced_at'] = Variable<DateTime>(lastSyncedAt.value);
+    }
+    if (version.present) {
+      map['version'] = Variable<int>(version.value);
+    }
+    if (serverCreatedAt.present) {
+      map['server_created_at'] = Variable<DateTime>(serverCreatedAt.value);
+    }
+    if (serverUpdatedAt.present) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (companyId.present) {
+      map['company_id'] = Variable<String>(companyId.value);
+    }
+    if (currencyId.present) {
+      map['currency_id'] = Variable<String>(currencyId.value);
+    }
+    if (exchangeRate.present) {
+      map['exchange_rate'] = Variable<double>(exchangeRate.value);
+    }
+    if (isActive.present) {
+      map['is_active'] = Variable<bool>(isActive.value);
+    }
+    if (sortOrder.present) {
+      map['sort_order'] = Variable<int>(sortOrder.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CompanyCurrenciesCompanion(')
+          ..write('lastSyncedAt: $lastSyncedAt, ')
+          ..write('version: $version, ')
+          ..write('serverCreatedAt: $serverCreatedAt, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('id: $id, ')
+          ..write('companyId: $companyId, ')
+          ..write('currencyId: $currencyId, ')
+          ..write('exchangeRate: $exchangeRate, ')
+          ..write('isActive: $isActive, ')
+          ..write('sortOrder: $sortOrder, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $CustomerTransactionsTable extends CustomerTransactions
     with TableInfo<$CustomerTransactionsTable, CustomerTransaction> {
   @override
@@ -20784,6 +21561,40 @@ class $PaymentsTable extends Payments with TableInfo<$PaymentsTable, Payment> {
         type: DriftSqlType.string,
         requiredDuringInsert: false,
       );
+  static const VerificationMeta _foreignCurrencyIdMeta = const VerificationMeta(
+    'foreignCurrencyId',
+  );
+  @override
+  late final GeneratedColumn<String> foreignCurrencyId =
+      GeneratedColumn<String>(
+        'foreign_currency_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _foreignAmountMeta = const VerificationMeta(
+    'foreignAmount',
+  );
+  @override
+  late final GeneratedColumn<int> foreignAmount = GeneratedColumn<int>(
+    'foreign_amount',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _exchangeRateMeta = const VerificationMeta(
+    'exchangeRate',
+  );
+  @override
+  late final GeneratedColumn<double> exchangeRate = GeneratedColumn<double>(
+    'exchange_rate',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     lastSyncedAt,
@@ -20809,6 +21620,9 @@ class $PaymentsTable extends Payments with TableInfo<$PaymentsTable, Payment> {
     paymentProvider,
     cardLast4,
     authorizationCode,
+    foreignCurrencyId,
+    foreignAmount,
+    exchangeRate,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -20998,6 +21812,33 @@ class $PaymentsTable extends Payments with TableInfo<$PaymentsTable, Payment> {
         ),
       );
     }
+    if (data.containsKey('foreign_currency_id')) {
+      context.handle(
+        _foreignCurrencyIdMeta,
+        foreignCurrencyId.isAcceptableOrUnknown(
+          data['foreign_currency_id']!,
+          _foreignCurrencyIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('foreign_amount')) {
+      context.handle(
+        _foreignAmountMeta,
+        foreignAmount.isAcceptableOrUnknown(
+          data['foreign_amount']!,
+          _foreignAmountMeta,
+        ),
+      );
+    }
+    if (data.containsKey('exchange_rate')) {
+      context.handle(
+        _exchangeRateMeta,
+        exchangeRate.isAcceptableOrUnknown(
+          data['exchange_rate']!,
+          _exchangeRateMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -21099,6 +21940,18 @@ class $PaymentsTable extends Payments with TableInfo<$PaymentsTable, Payment> {
         DriftSqlType.string,
         data['${effectivePrefix}authorization_code'],
       ),
+      foreignCurrencyId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}foreign_currency_id'],
+      ),
+      foreignAmount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}foreign_amount'],
+      ),
+      exchangeRate: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}exchange_rate'],
+      ),
     );
   }
 
@@ -21132,6 +21985,9 @@ class Payment extends DataClass implements Insertable<Payment> {
   final String? paymentProvider;
   final String? cardLast4;
   final String? authorizationCode;
+  final String? foreignCurrencyId;
+  final int? foreignAmount;
+  final double? exchangeRate;
   const Payment({
     this.lastSyncedAt,
     required this.version,
@@ -21156,6 +22012,9 @@ class Payment extends DataClass implements Insertable<Payment> {
     this.paymentProvider,
     this.cardLast4,
     this.authorizationCode,
+    this.foreignCurrencyId,
+    this.foreignAmount,
+    this.exchangeRate,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -21206,6 +22065,15 @@ class Payment extends DataClass implements Insertable<Payment> {
     }
     if (!nullToAbsent || authorizationCode != null) {
       map['authorization_code'] = Variable<String>(authorizationCode);
+    }
+    if (!nullToAbsent || foreignCurrencyId != null) {
+      map['foreign_currency_id'] = Variable<String>(foreignCurrencyId);
+    }
+    if (!nullToAbsent || foreignAmount != null) {
+      map['foreign_amount'] = Variable<int>(foreignAmount);
+    }
+    if (!nullToAbsent || exchangeRate != null) {
+      map['exchange_rate'] = Variable<double>(exchangeRate);
     }
     return map;
   }
@@ -21259,6 +22127,15 @@ class Payment extends DataClass implements Insertable<Payment> {
       authorizationCode: authorizationCode == null && nullToAbsent
           ? const Value.absent()
           : Value(authorizationCode),
+      foreignCurrencyId: foreignCurrencyId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(foreignCurrencyId),
+      foreignAmount: foreignAmount == null && nullToAbsent
+          ? const Value.absent()
+          : Value(foreignAmount),
+      exchangeRate: exchangeRate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(exchangeRate),
     );
   }
 
@@ -21295,6 +22172,11 @@ class Payment extends DataClass implements Insertable<Payment> {
       authorizationCode: serializer.fromJson<String?>(
         json['authorizationCode'],
       ),
+      foreignCurrencyId: serializer.fromJson<String?>(
+        json['foreignCurrencyId'],
+      ),
+      foreignAmount: serializer.fromJson<int?>(json['foreignAmount']),
+      exchangeRate: serializer.fromJson<double?>(json['exchangeRate']),
     );
   }
   @override
@@ -21324,6 +22206,9 @@ class Payment extends DataClass implements Insertable<Payment> {
       'paymentProvider': serializer.toJson<String?>(paymentProvider),
       'cardLast4': serializer.toJson<String?>(cardLast4),
       'authorizationCode': serializer.toJson<String?>(authorizationCode),
+      'foreignCurrencyId': serializer.toJson<String?>(foreignCurrencyId),
+      'foreignAmount': serializer.toJson<int?>(foreignAmount),
+      'exchangeRate': serializer.toJson<double?>(exchangeRate),
     };
   }
 
@@ -21351,6 +22236,9 @@ class Payment extends DataClass implements Insertable<Payment> {
     Value<String?> paymentProvider = const Value.absent(),
     Value<String?> cardLast4 = const Value.absent(),
     Value<String?> authorizationCode = const Value.absent(),
+    Value<String?> foreignCurrencyId = const Value.absent(),
+    Value<int?> foreignAmount = const Value.absent(),
+    Value<double?> exchangeRate = const Value.absent(),
   }) => Payment(
     lastSyncedAt: lastSyncedAt.present ? lastSyncedAt.value : this.lastSyncedAt,
     version: version ?? this.version,
@@ -21387,6 +22275,13 @@ class Payment extends DataClass implements Insertable<Payment> {
     authorizationCode: authorizationCode.present
         ? authorizationCode.value
         : this.authorizationCode,
+    foreignCurrencyId: foreignCurrencyId.present
+        ? foreignCurrencyId.value
+        : this.foreignCurrencyId,
+    foreignAmount: foreignAmount.present
+        ? foreignAmount.value
+        : this.foreignAmount,
+    exchangeRate: exchangeRate.present ? exchangeRate.value : this.exchangeRate,
   );
   Payment copyWithCompanion(PaymentsCompanion data) {
     return Payment(
@@ -21435,6 +22330,15 @@ class Payment extends DataClass implements Insertable<Payment> {
       authorizationCode: data.authorizationCode.present
           ? data.authorizationCode.value
           : this.authorizationCode,
+      foreignCurrencyId: data.foreignCurrencyId.present
+          ? data.foreignCurrencyId.value
+          : this.foreignCurrencyId,
+      foreignAmount: data.foreignAmount.present
+          ? data.foreignAmount.value
+          : this.foreignAmount,
+      exchangeRate: data.exchangeRate.present
+          ? data.exchangeRate.value
+          : this.exchangeRate,
     );
   }
 
@@ -21463,7 +22367,10 @@ class Payment extends DataClass implements Insertable<Payment> {
           ..write('transactionId: $transactionId, ')
           ..write('paymentProvider: $paymentProvider, ')
           ..write('cardLast4: $cardLast4, ')
-          ..write('authorizationCode: $authorizationCode')
+          ..write('authorizationCode: $authorizationCode, ')
+          ..write('foreignCurrencyId: $foreignCurrencyId, ')
+          ..write('foreignAmount: $foreignAmount, ')
+          ..write('exchangeRate: $exchangeRate')
           ..write(')'))
         .toString();
   }
@@ -21493,6 +22400,9 @@ class Payment extends DataClass implements Insertable<Payment> {
     paymentProvider,
     cardLast4,
     authorizationCode,
+    foreignCurrencyId,
+    foreignAmount,
+    exchangeRate,
   ]);
   @override
   bool operator ==(Object other) =>
@@ -21520,7 +22430,10 @@ class Payment extends DataClass implements Insertable<Payment> {
           other.transactionId == this.transactionId &&
           other.paymentProvider == this.paymentProvider &&
           other.cardLast4 == this.cardLast4 &&
-          other.authorizationCode == this.authorizationCode);
+          other.authorizationCode == this.authorizationCode &&
+          other.foreignCurrencyId == this.foreignCurrencyId &&
+          other.foreignAmount == this.foreignAmount &&
+          other.exchangeRate == this.exchangeRate);
 }
 
 class PaymentsCompanion extends UpdateCompanion<Payment> {
@@ -21547,6 +22460,9 @@ class PaymentsCompanion extends UpdateCompanion<Payment> {
   final Value<String?> paymentProvider;
   final Value<String?> cardLast4;
   final Value<String?> authorizationCode;
+  final Value<String?> foreignCurrencyId;
+  final Value<int?> foreignAmount;
+  final Value<double?> exchangeRate;
   final Value<int> rowid;
   const PaymentsCompanion({
     this.lastSyncedAt = const Value.absent(),
@@ -21572,6 +22488,9 @@ class PaymentsCompanion extends UpdateCompanion<Payment> {
     this.paymentProvider = const Value.absent(),
     this.cardLast4 = const Value.absent(),
     this.authorizationCode = const Value.absent(),
+    this.foreignCurrencyId = const Value.absent(),
+    this.foreignAmount = const Value.absent(),
+    this.exchangeRate = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   PaymentsCompanion.insert({
@@ -21598,6 +22517,9 @@ class PaymentsCompanion extends UpdateCompanion<Payment> {
     this.paymentProvider = const Value.absent(),
     this.cardLast4 = const Value.absent(),
     this.authorizationCode = const Value.absent(),
+    this.foreignCurrencyId = const Value.absent(),
+    this.foreignAmount = const Value.absent(),
+    this.exchangeRate = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        companyId = Value(companyId),
@@ -21630,6 +22552,9 @@ class PaymentsCompanion extends UpdateCompanion<Payment> {
     Expression<String>? paymentProvider,
     Expression<String>? cardLast4,
     Expression<String>? authorizationCode,
+    Expression<String>? foreignCurrencyId,
+    Expression<int>? foreignAmount,
+    Expression<double>? exchangeRate,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -21656,6 +22581,9 @@ class PaymentsCompanion extends UpdateCompanion<Payment> {
       if (paymentProvider != null) 'payment_provider': paymentProvider,
       if (cardLast4 != null) 'card_last4': cardLast4,
       if (authorizationCode != null) 'authorization_code': authorizationCode,
+      if (foreignCurrencyId != null) 'foreign_currency_id': foreignCurrencyId,
+      if (foreignAmount != null) 'foreign_amount': foreignAmount,
+      if (exchangeRate != null) 'exchange_rate': exchangeRate,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -21684,6 +22612,9 @@ class PaymentsCompanion extends UpdateCompanion<Payment> {
     Value<String?>? paymentProvider,
     Value<String?>? cardLast4,
     Value<String?>? authorizationCode,
+    Value<String?>? foreignCurrencyId,
+    Value<int?>? foreignAmount,
+    Value<double?>? exchangeRate,
     Value<int>? rowid,
   }) {
     return PaymentsCompanion(
@@ -21710,6 +22641,9 @@ class PaymentsCompanion extends UpdateCompanion<Payment> {
       paymentProvider: paymentProvider ?? this.paymentProvider,
       cardLast4: cardLast4 ?? this.cardLast4,
       authorizationCode: authorizationCode ?? this.authorizationCode,
+      foreignCurrencyId: foreignCurrencyId ?? this.foreignCurrencyId,
+      foreignAmount: foreignAmount ?? this.foreignAmount,
+      exchangeRate: exchangeRate ?? this.exchangeRate,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -21786,6 +22720,15 @@ class PaymentsCompanion extends UpdateCompanion<Payment> {
     if (authorizationCode.present) {
       map['authorization_code'] = Variable<String>(authorizationCode.value);
     }
+    if (foreignCurrencyId.present) {
+      map['foreign_currency_id'] = Variable<String>(foreignCurrencyId.value);
+    }
+    if (foreignAmount.present) {
+      map['foreign_amount'] = Variable<int>(foreignAmount.value);
+    }
+    if (exchangeRate.present) {
+      map['exchange_rate'] = Variable<double>(exchangeRate.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -21818,6 +22761,9 @@ class PaymentsCompanion extends UpdateCompanion<Payment> {
           ..write('paymentProvider: $paymentProvider, ')
           ..write('cardLast4: $cardLast4, ')
           ..write('authorizationCode: $authorizationCode, ')
+          ..write('foreignCurrencyId: $foreignCurrencyId, ')
+          ..write('foreignAmount: $foreignAmount, ')
+          ..write('exchangeRate: $exchangeRate, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -29247,6 +30193,904 @@ class SectionsCompanion extends UpdateCompanion<Section> {
           ..write('color: $color, ')
           ..write('isActive: $isActive, ')
           ..write('isDefault: $isDefault, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $SessionCurrencyCashTable extends SessionCurrencyCash
+    with TableInfo<$SessionCurrencyCashTable, SessionCurrencyCashData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SessionCurrencyCashTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _lastSyncedAtMeta = const VerificationMeta(
+    'lastSyncedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> lastSyncedAt = GeneratedColumn<DateTime>(
+    'last_synced_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _versionMeta = const VerificationMeta(
+    'version',
+  );
+  @override
+  late final GeneratedColumn<int> version = GeneratedColumn<int>(
+    'version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _serverCreatedAtMeta = const VerificationMeta(
+    'serverCreatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> serverCreatedAt =
+      GeneratedColumn<DateTime>(
+        'server_created_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _serverUpdatedAtMeta = const VerificationMeta(
+    'serverUpdatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> serverUpdatedAt =
+      GeneratedColumn<DateTime>(
+        'server_updated_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _companyIdMeta = const VerificationMeta(
+    'companyId',
+  );
+  @override
+  late final GeneratedColumn<String> companyId = GeneratedColumn<String>(
+    'company_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _registerSessionIdMeta = const VerificationMeta(
+    'registerSessionId',
+  );
+  @override
+  late final GeneratedColumn<String> registerSessionId =
+      GeneratedColumn<String>(
+        'register_session_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _currencyIdMeta = const VerificationMeta(
+    'currencyId',
+  );
+  @override
+  late final GeneratedColumn<String> currencyId = GeneratedColumn<String>(
+    'currency_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _openingCashMeta = const VerificationMeta(
+    'openingCash',
+  );
+  @override
+  late final GeneratedColumn<int> openingCash = GeneratedColumn<int>(
+    'opening_cash',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _closingCashMeta = const VerificationMeta(
+    'closingCash',
+  );
+  @override
+  late final GeneratedColumn<int> closingCash = GeneratedColumn<int>(
+    'closing_cash',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _expectedCashMeta = const VerificationMeta(
+    'expectedCash',
+  );
+  @override
+  late final GeneratedColumn<int> expectedCash = GeneratedColumn<int>(
+    'expected_cash',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _differenceMeta = const VerificationMeta(
+    'difference',
+  );
+  @override
+  late final GeneratedColumn<int> difference = GeneratedColumn<int>(
+    'difference',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    lastSyncedAt,
+    version,
+    serverCreatedAt,
+    serverUpdatedAt,
+    createdAt,
+    updatedAt,
+    deletedAt,
+    id,
+    companyId,
+    registerSessionId,
+    currencyId,
+    openingCash,
+    closingCash,
+    expectedCash,
+    difference,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'session_currency_cash';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SessionCurrencyCashData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('last_synced_at')) {
+      context.handle(
+        _lastSyncedAtMeta,
+        lastSyncedAt.isAcceptableOrUnknown(
+          data['last_synced_at']!,
+          _lastSyncedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('version')) {
+      context.handle(
+        _versionMeta,
+        version.isAcceptableOrUnknown(data['version']!, _versionMeta),
+      );
+    }
+    if (data.containsKey('server_created_at')) {
+      context.handle(
+        _serverCreatedAtMeta,
+        serverCreatedAt.isAcceptableOrUnknown(
+          data['server_created_at']!,
+          _serverCreatedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('server_updated_at')) {
+      context.handle(
+        _serverUpdatedAtMeta,
+        serverUpdatedAt.isAcceptableOrUnknown(
+          data['server_updated_at']!,
+          _serverUpdatedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('company_id')) {
+      context.handle(
+        _companyIdMeta,
+        companyId.isAcceptableOrUnknown(data['company_id']!, _companyIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_companyIdMeta);
+    }
+    if (data.containsKey('register_session_id')) {
+      context.handle(
+        _registerSessionIdMeta,
+        registerSessionId.isAcceptableOrUnknown(
+          data['register_session_id']!,
+          _registerSessionIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_registerSessionIdMeta);
+    }
+    if (data.containsKey('currency_id')) {
+      context.handle(
+        _currencyIdMeta,
+        currencyId.isAcceptableOrUnknown(data['currency_id']!, _currencyIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_currencyIdMeta);
+    }
+    if (data.containsKey('opening_cash')) {
+      context.handle(
+        _openingCashMeta,
+        openingCash.isAcceptableOrUnknown(
+          data['opening_cash']!,
+          _openingCashMeta,
+        ),
+      );
+    }
+    if (data.containsKey('closing_cash')) {
+      context.handle(
+        _closingCashMeta,
+        closingCash.isAcceptableOrUnknown(
+          data['closing_cash']!,
+          _closingCashMeta,
+        ),
+      );
+    }
+    if (data.containsKey('expected_cash')) {
+      context.handle(
+        _expectedCashMeta,
+        expectedCash.isAcceptableOrUnknown(
+          data['expected_cash']!,
+          _expectedCashMeta,
+        ),
+      );
+    }
+    if (data.containsKey('difference')) {
+      context.handle(
+        _differenceMeta,
+        difference.isAcceptableOrUnknown(data['difference']!, _differenceMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  SessionCurrencyCashData map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SessionCurrencyCashData(
+      lastSyncedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_synced_at'],
+      ),
+      version: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}version'],
+      )!,
+      serverCreatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}server_created_at'],
+      ),
+      serverUpdatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}server_updated_at'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      companyId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}company_id'],
+      )!,
+      registerSessionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}register_session_id'],
+      )!,
+      currencyId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}currency_id'],
+      )!,
+      openingCash: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}opening_cash'],
+      )!,
+      closingCash: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}closing_cash'],
+      ),
+      expectedCash: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}expected_cash'],
+      ),
+      difference: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}difference'],
+      ),
+    );
+  }
+
+  @override
+  $SessionCurrencyCashTable createAlias(String alias) {
+    return $SessionCurrencyCashTable(attachedDatabase, alias);
+  }
+}
+
+class SessionCurrencyCashData extends DataClass
+    implements Insertable<SessionCurrencyCashData> {
+  final DateTime? lastSyncedAt;
+  final int version;
+  final DateTime? serverCreatedAt;
+  final DateTime? serverUpdatedAt;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  final String id;
+  final String companyId;
+  final String registerSessionId;
+  final String currencyId;
+  final int openingCash;
+  final int? closingCash;
+  final int? expectedCash;
+  final int? difference;
+  const SessionCurrencyCashData({
+    this.lastSyncedAt,
+    required this.version,
+    this.serverCreatedAt,
+    this.serverUpdatedAt,
+    required this.createdAt,
+    required this.updatedAt,
+    this.deletedAt,
+    required this.id,
+    required this.companyId,
+    required this.registerSessionId,
+    required this.currencyId,
+    required this.openingCash,
+    this.closingCash,
+    this.expectedCash,
+    this.difference,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (!nullToAbsent || lastSyncedAt != null) {
+      map['last_synced_at'] = Variable<DateTime>(lastSyncedAt);
+    }
+    map['version'] = Variable<int>(version);
+    if (!nullToAbsent || serverCreatedAt != null) {
+      map['server_created_at'] = Variable<DateTime>(serverCreatedAt);
+    }
+    if (!nullToAbsent || serverUpdatedAt != null) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    map['id'] = Variable<String>(id);
+    map['company_id'] = Variable<String>(companyId);
+    map['register_session_id'] = Variable<String>(registerSessionId);
+    map['currency_id'] = Variable<String>(currencyId);
+    map['opening_cash'] = Variable<int>(openingCash);
+    if (!nullToAbsent || closingCash != null) {
+      map['closing_cash'] = Variable<int>(closingCash);
+    }
+    if (!nullToAbsent || expectedCash != null) {
+      map['expected_cash'] = Variable<int>(expectedCash);
+    }
+    if (!nullToAbsent || difference != null) {
+      map['difference'] = Variable<int>(difference);
+    }
+    return map;
+  }
+
+  SessionCurrencyCashCompanion toCompanion(bool nullToAbsent) {
+    return SessionCurrencyCashCompanion(
+      lastSyncedAt: lastSyncedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastSyncedAt),
+      version: Value(version),
+      serverCreatedAt: serverCreatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(serverCreatedAt),
+      serverUpdatedAt: serverUpdatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(serverUpdatedAt),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+      id: Value(id),
+      companyId: Value(companyId),
+      registerSessionId: Value(registerSessionId),
+      currencyId: Value(currencyId),
+      openingCash: Value(openingCash),
+      closingCash: closingCash == null && nullToAbsent
+          ? const Value.absent()
+          : Value(closingCash),
+      expectedCash: expectedCash == null && nullToAbsent
+          ? const Value.absent()
+          : Value(expectedCash),
+      difference: difference == null && nullToAbsent
+          ? const Value.absent()
+          : Value(difference),
+    );
+  }
+
+  factory SessionCurrencyCashData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SessionCurrencyCashData(
+      lastSyncedAt: serializer.fromJson<DateTime?>(json['lastSyncedAt']),
+      version: serializer.fromJson<int>(json['version']),
+      serverCreatedAt: serializer.fromJson<DateTime?>(json['serverCreatedAt']),
+      serverUpdatedAt: serializer.fromJson<DateTime?>(json['serverUpdatedAt']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      id: serializer.fromJson<String>(json['id']),
+      companyId: serializer.fromJson<String>(json['companyId']),
+      registerSessionId: serializer.fromJson<String>(json['registerSessionId']),
+      currencyId: serializer.fromJson<String>(json['currencyId']),
+      openingCash: serializer.fromJson<int>(json['openingCash']),
+      closingCash: serializer.fromJson<int?>(json['closingCash']),
+      expectedCash: serializer.fromJson<int?>(json['expectedCash']),
+      difference: serializer.fromJson<int?>(json['difference']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'lastSyncedAt': serializer.toJson<DateTime?>(lastSyncedAt),
+      'version': serializer.toJson<int>(version),
+      'serverCreatedAt': serializer.toJson<DateTime?>(serverCreatedAt),
+      'serverUpdatedAt': serializer.toJson<DateTime?>(serverUpdatedAt),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'id': serializer.toJson<String>(id),
+      'companyId': serializer.toJson<String>(companyId),
+      'registerSessionId': serializer.toJson<String>(registerSessionId),
+      'currencyId': serializer.toJson<String>(currencyId),
+      'openingCash': serializer.toJson<int>(openingCash),
+      'closingCash': serializer.toJson<int?>(closingCash),
+      'expectedCash': serializer.toJson<int?>(expectedCash),
+      'difference': serializer.toJson<int?>(difference),
+    };
+  }
+
+  SessionCurrencyCashData copyWith({
+    Value<DateTime?> lastSyncedAt = const Value.absent(),
+    int? version,
+    Value<DateTime?> serverCreatedAt = const Value.absent(),
+    Value<DateTime?> serverUpdatedAt = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+    String? id,
+    String? companyId,
+    String? registerSessionId,
+    String? currencyId,
+    int? openingCash,
+    Value<int?> closingCash = const Value.absent(),
+    Value<int?> expectedCash = const Value.absent(),
+    Value<int?> difference = const Value.absent(),
+  }) => SessionCurrencyCashData(
+    lastSyncedAt: lastSyncedAt.present ? lastSyncedAt.value : this.lastSyncedAt,
+    version: version ?? this.version,
+    serverCreatedAt: serverCreatedAt.present
+        ? serverCreatedAt.value
+        : this.serverCreatedAt,
+    serverUpdatedAt: serverUpdatedAt.present
+        ? serverUpdatedAt.value
+        : this.serverUpdatedAt,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+    id: id ?? this.id,
+    companyId: companyId ?? this.companyId,
+    registerSessionId: registerSessionId ?? this.registerSessionId,
+    currencyId: currencyId ?? this.currencyId,
+    openingCash: openingCash ?? this.openingCash,
+    closingCash: closingCash.present ? closingCash.value : this.closingCash,
+    expectedCash: expectedCash.present ? expectedCash.value : this.expectedCash,
+    difference: difference.present ? difference.value : this.difference,
+  );
+  SessionCurrencyCashData copyWithCompanion(SessionCurrencyCashCompanion data) {
+    return SessionCurrencyCashData(
+      lastSyncedAt: data.lastSyncedAt.present
+          ? data.lastSyncedAt.value
+          : this.lastSyncedAt,
+      version: data.version.present ? data.version.value : this.version,
+      serverCreatedAt: data.serverCreatedAt.present
+          ? data.serverCreatedAt.value
+          : this.serverCreatedAt,
+      serverUpdatedAt: data.serverUpdatedAt.present
+          ? data.serverUpdatedAt.value
+          : this.serverUpdatedAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      id: data.id.present ? data.id.value : this.id,
+      companyId: data.companyId.present ? data.companyId.value : this.companyId,
+      registerSessionId: data.registerSessionId.present
+          ? data.registerSessionId.value
+          : this.registerSessionId,
+      currencyId: data.currencyId.present
+          ? data.currencyId.value
+          : this.currencyId,
+      openingCash: data.openingCash.present
+          ? data.openingCash.value
+          : this.openingCash,
+      closingCash: data.closingCash.present
+          ? data.closingCash.value
+          : this.closingCash,
+      expectedCash: data.expectedCash.present
+          ? data.expectedCash.value
+          : this.expectedCash,
+      difference: data.difference.present
+          ? data.difference.value
+          : this.difference,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SessionCurrencyCashData(')
+          ..write('lastSyncedAt: $lastSyncedAt, ')
+          ..write('version: $version, ')
+          ..write('serverCreatedAt: $serverCreatedAt, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('id: $id, ')
+          ..write('companyId: $companyId, ')
+          ..write('registerSessionId: $registerSessionId, ')
+          ..write('currencyId: $currencyId, ')
+          ..write('openingCash: $openingCash, ')
+          ..write('closingCash: $closingCash, ')
+          ..write('expectedCash: $expectedCash, ')
+          ..write('difference: $difference')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    lastSyncedAt,
+    version,
+    serverCreatedAt,
+    serverUpdatedAt,
+    createdAt,
+    updatedAt,
+    deletedAt,
+    id,
+    companyId,
+    registerSessionId,
+    currencyId,
+    openingCash,
+    closingCash,
+    expectedCash,
+    difference,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SessionCurrencyCashData &&
+          other.lastSyncedAt == this.lastSyncedAt &&
+          other.version == this.version &&
+          other.serverCreatedAt == this.serverCreatedAt &&
+          other.serverUpdatedAt == this.serverUpdatedAt &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt &&
+          other.id == this.id &&
+          other.companyId == this.companyId &&
+          other.registerSessionId == this.registerSessionId &&
+          other.currencyId == this.currencyId &&
+          other.openingCash == this.openingCash &&
+          other.closingCash == this.closingCash &&
+          other.expectedCash == this.expectedCash &&
+          other.difference == this.difference);
+}
+
+class SessionCurrencyCashCompanion
+    extends UpdateCompanion<SessionCurrencyCashData> {
+  final Value<DateTime?> lastSyncedAt;
+  final Value<int> version;
+  final Value<DateTime?> serverCreatedAt;
+  final Value<DateTime?> serverUpdatedAt;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<String> id;
+  final Value<String> companyId;
+  final Value<String> registerSessionId;
+  final Value<String> currencyId;
+  final Value<int> openingCash;
+  final Value<int?> closingCash;
+  final Value<int?> expectedCash;
+  final Value<int?> difference;
+  final Value<int> rowid;
+  const SessionCurrencyCashCompanion({
+    this.lastSyncedAt = const Value.absent(),
+    this.version = const Value.absent(),
+    this.serverCreatedAt = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.id = const Value.absent(),
+    this.companyId = const Value.absent(),
+    this.registerSessionId = const Value.absent(),
+    this.currencyId = const Value.absent(),
+    this.openingCash = const Value.absent(),
+    this.closingCash = const Value.absent(),
+    this.expectedCash = const Value.absent(),
+    this.difference = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SessionCurrencyCashCompanion.insert({
+    this.lastSyncedAt = const Value.absent(),
+    this.version = const Value.absent(),
+    this.serverCreatedAt = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    required String id,
+    required String companyId,
+    required String registerSessionId,
+    required String currencyId,
+    this.openingCash = const Value.absent(),
+    this.closingCash = const Value.absent(),
+    this.expectedCash = const Value.absent(),
+    this.difference = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       companyId = Value(companyId),
+       registerSessionId = Value(registerSessionId),
+       currencyId = Value(currencyId);
+  static Insertable<SessionCurrencyCashData> custom({
+    Expression<DateTime>? lastSyncedAt,
+    Expression<int>? version,
+    Expression<DateTime>? serverCreatedAt,
+    Expression<DateTime>? serverUpdatedAt,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<String>? id,
+    Expression<String>? companyId,
+    Expression<String>? registerSessionId,
+    Expression<String>? currencyId,
+    Expression<int>? openingCash,
+    Expression<int>? closingCash,
+    Expression<int>? expectedCash,
+    Expression<int>? difference,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (lastSyncedAt != null) 'last_synced_at': lastSyncedAt,
+      if (version != null) 'version': version,
+      if (serverCreatedAt != null) 'server_created_at': serverCreatedAt,
+      if (serverUpdatedAt != null) 'server_updated_at': serverUpdatedAt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (id != null) 'id': id,
+      if (companyId != null) 'company_id': companyId,
+      if (registerSessionId != null) 'register_session_id': registerSessionId,
+      if (currencyId != null) 'currency_id': currencyId,
+      if (openingCash != null) 'opening_cash': openingCash,
+      if (closingCash != null) 'closing_cash': closingCash,
+      if (expectedCash != null) 'expected_cash': expectedCash,
+      if (difference != null) 'difference': difference,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SessionCurrencyCashCompanion copyWith({
+    Value<DateTime?>? lastSyncedAt,
+    Value<int>? version,
+    Value<DateTime?>? serverCreatedAt,
+    Value<DateTime?>? serverUpdatedAt,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? deletedAt,
+    Value<String>? id,
+    Value<String>? companyId,
+    Value<String>? registerSessionId,
+    Value<String>? currencyId,
+    Value<int>? openingCash,
+    Value<int?>? closingCash,
+    Value<int?>? expectedCash,
+    Value<int?>? difference,
+    Value<int>? rowid,
+  }) {
+    return SessionCurrencyCashCompanion(
+      lastSyncedAt: lastSyncedAt ?? this.lastSyncedAt,
+      version: version ?? this.version,
+      serverCreatedAt: serverCreatedAt ?? this.serverCreatedAt,
+      serverUpdatedAt: serverUpdatedAt ?? this.serverUpdatedAt,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      id: id ?? this.id,
+      companyId: companyId ?? this.companyId,
+      registerSessionId: registerSessionId ?? this.registerSessionId,
+      currencyId: currencyId ?? this.currencyId,
+      openingCash: openingCash ?? this.openingCash,
+      closingCash: closingCash ?? this.closingCash,
+      expectedCash: expectedCash ?? this.expectedCash,
+      difference: difference ?? this.difference,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (lastSyncedAt.present) {
+      map['last_synced_at'] = Variable<DateTime>(lastSyncedAt.value);
+    }
+    if (version.present) {
+      map['version'] = Variable<int>(version.value);
+    }
+    if (serverCreatedAt.present) {
+      map['server_created_at'] = Variable<DateTime>(serverCreatedAt.value);
+    }
+    if (serverUpdatedAt.present) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (companyId.present) {
+      map['company_id'] = Variable<String>(companyId.value);
+    }
+    if (registerSessionId.present) {
+      map['register_session_id'] = Variable<String>(registerSessionId.value);
+    }
+    if (currencyId.present) {
+      map['currency_id'] = Variable<String>(currencyId.value);
+    }
+    if (openingCash.present) {
+      map['opening_cash'] = Variable<int>(openingCash.value);
+    }
+    if (closingCash.present) {
+      map['closing_cash'] = Variable<int>(closingCash.value);
+    }
+    if (expectedCash.present) {
+      map['expected_cash'] = Variable<int>(expectedCash.value);
+    }
+    if (difference.present) {
+      map['difference'] = Variable<int>(difference.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SessionCurrencyCashCompanion(')
+          ..write('lastSyncedAt: $lastSyncedAt, ')
+          ..write('version: $version, ')
+          ..write('serverCreatedAt: $serverCreatedAt, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('id: $id, ')
+          ..write('companyId: $companyId, ')
+          ..write('registerSessionId: $registerSessionId, ')
+          ..write('currencyId: $currencyId, ')
+          ..write('openingCash: $openingCash, ')
+          ..write('closingCash: $closingCash, ')
+          ..write('expectedCash: $expectedCash, ')
+          ..write('difference: $difference, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -40667,6 +42511,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $CashMovementsTable cashMovements = $CashMovementsTable(this);
   late final $CategoriesTable categories = $CategoriesTable(this);
   late final $CompaniesTable companies = $CompaniesTable(this);
+  late final $CompanyCurrenciesTable companyCurrencies =
+      $CompanyCurrenciesTable(this);
   late final $CustomerTransactionsTable customerTransactions =
       $CustomerTransactionsTable(this);
   late final $CustomersTable customers = $CustomersTable(this);
@@ -40704,6 +42550,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   );
   late final $RolesTable roles = $RolesTable(this);
   late final $SectionsTable sections = $SectionsTable(this);
+  late final $SessionCurrencyCashTable sessionCurrencyCash =
+      $SessionCurrencyCashTable(this);
   late final $ShiftsTable shifts = $ShiftsTable(this);
   late final $StockDocumentsTable stockDocuments = $StockDocumentsTable(this);
   late final $StockLevelsTable stockLevels = $StockLevelsTable(this);
@@ -40734,6 +42582,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final Index idxCompaniesUpdatedAt = Index(
     'idx_companies_updated_at',
     'CREATE INDEX idx_companies_updated_at ON companies (updated_at)',
+  );
+  late final Index idxCompanyCurrenciesCompanyUpdated = Index(
+    'idx_company_currencies_company_updated',
+    'CREATE INDEX idx_company_currencies_company_updated ON company_currencies (company_id, updated_at)',
   );
   late final Index idxCustomerTransactionsCompanyUpdated = Index(
     'idx_customer_transactions_company_updated',
@@ -40818,6 +42670,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final Index idxSectionsCompanyUpdated = Index(
     'idx_sections_company_updated',
     'CREATE INDEX idx_sections_company_updated ON sections (company_id, updated_at)',
+  );
+  late final Index idxSessionCurrencyCashCompanyUpdated = Index(
+    'idx_session_currency_cash_company_updated',
+    'CREATE INDEX idx_session_currency_cash_company_updated ON session_currency_cash (company_id, updated_at)',
   );
   late final Index idxShiftsCompanyUpdated = Index(
     'idx_shifts_company_updated',
@@ -40904,6 +42760,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     cashMovements,
     categories,
     companies,
+    companyCurrencies,
     customerTransactions,
     customers,
     companySettings,
@@ -40930,6 +42787,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     rolePermissions,
     roles,
     sections,
+    sessionCurrencyCash,
     shifts,
     stockDocuments,
     stockLevels,
@@ -40947,6 +42805,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     idxCashMovementsCompanyUpdated,
     idxCategoriesCompanyUpdated,
     idxCompaniesUpdatedAt,
+    idxCompanyCurrenciesCompanyUpdated,
     idxCustomerTransactionsCompanyUpdated,
     idxCustomersCompanyUpdated,
     idxCompanySettingsCompanyUpdated,
@@ -40968,6 +42827,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     idxRegistersCompanyUpdated,
     idxReservationsCompanyUpdated,
     idxSectionsCompanyUpdated,
+    idxSessionCurrencyCashCompanyUpdated,
     idxShiftsCompanyUpdated,
     idxStockDocumentsCompanyUpdated,
     idxStockDocumentsWarehouse,
@@ -43125,6 +44985,377 @@ typedef $$CompaniesTableProcessedTableManager =
       $$CompaniesTableUpdateCompanionBuilder,
       (Company, BaseReferences<_$AppDatabase, $CompaniesTable, Company>),
       Company,
+      PrefetchHooks Function()
+    >;
+typedef $$CompanyCurrenciesTableCreateCompanionBuilder =
+    CompanyCurrenciesCompanion Function({
+      Value<DateTime?> lastSyncedAt,
+      Value<int> version,
+      Value<DateTime?> serverCreatedAt,
+      Value<DateTime?> serverUpdatedAt,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      required String id,
+      required String companyId,
+      required String currencyId,
+      required double exchangeRate,
+      Value<bool> isActive,
+      Value<int> sortOrder,
+      Value<int> rowid,
+    });
+typedef $$CompanyCurrenciesTableUpdateCompanionBuilder =
+    CompanyCurrenciesCompanion Function({
+      Value<DateTime?> lastSyncedAt,
+      Value<int> version,
+      Value<DateTime?> serverCreatedAt,
+      Value<DateTime?> serverUpdatedAt,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<String> id,
+      Value<String> companyId,
+      Value<String> currencyId,
+      Value<double> exchangeRate,
+      Value<bool> isActive,
+      Value<int> sortOrder,
+      Value<int> rowid,
+    });
+
+class $$CompanyCurrenciesTableFilterComposer
+    extends Composer<_$AppDatabase, $CompanyCurrenciesTable> {
+  $$CompanyCurrenciesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<DateTime> get lastSyncedAt => $composableBuilder(
+    column: $table.lastSyncedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get version => $composableBuilder(
+    column: $table.version,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get serverCreatedAt => $composableBuilder(
+    column: $table.serverCreatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get companyId => $composableBuilder(
+    column: $table.companyId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get currencyId => $composableBuilder(
+    column: $table.currencyId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get exchangeRate => $composableBuilder(
+    column: $table.exchangeRate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isActive => $composableBuilder(
+    column: $table.isActive,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$CompanyCurrenciesTableOrderingComposer
+    extends Composer<_$AppDatabase, $CompanyCurrenciesTable> {
+  $$CompanyCurrenciesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<DateTime> get lastSyncedAt => $composableBuilder(
+    column: $table.lastSyncedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get version => $composableBuilder(
+    column: $table.version,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get serverCreatedAt => $composableBuilder(
+    column: $table.serverCreatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get companyId => $composableBuilder(
+    column: $table.companyId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get currencyId => $composableBuilder(
+    column: $table.currencyId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get exchangeRate => $composableBuilder(
+    column: $table.exchangeRate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isActive => $composableBuilder(
+    column: $table.isActive,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$CompanyCurrenciesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CompanyCurrenciesTable> {
+  $$CompanyCurrenciesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<DateTime> get lastSyncedAt => $composableBuilder(
+    column: $table.lastSyncedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get version =>
+      $composableBuilder(column: $table.version, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get serverCreatedAt => $composableBuilder(
+    column: $table.serverCreatedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get companyId =>
+      $composableBuilder(column: $table.companyId, builder: (column) => column);
+
+  GeneratedColumn<String> get currencyId => $composableBuilder(
+    column: $table.currencyId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get exchangeRate => $composableBuilder(
+    column: $table.exchangeRate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get isActive =>
+      $composableBuilder(column: $table.isActive, builder: (column) => column);
+
+  GeneratedColumn<int> get sortOrder =>
+      $composableBuilder(column: $table.sortOrder, builder: (column) => column);
+}
+
+class $$CompanyCurrenciesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CompanyCurrenciesTable,
+          CompanyCurrency,
+          $$CompanyCurrenciesTableFilterComposer,
+          $$CompanyCurrenciesTableOrderingComposer,
+          $$CompanyCurrenciesTableAnnotationComposer,
+          $$CompanyCurrenciesTableCreateCompanionBuilder,
+          $$CompanyCurrenciesTableUpdateCompanionBuilder,
+          (
+            CompanyCurrency,
+            BaseReferences<
+              _$AppDatabase,
+              $CompanyCurrenciesTable,
+              CompanyCurrency
+            >,
+          ),
+          CompanyCurrency,
+          PrefetchHooks Function()
+        > {
+  $$CompanyCurrenciesTableTableManager(
+    _$AppDatabase db,
+    $CompanyCurrenciesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CompanyCurrenciesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CompanyCurrenciesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$CompanyCurrenciesTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<DateTime?> lastSyncedAt = const Value.absent(),
+                Value<int> version = const Value.absent(),
+                Value<DateTime?> serverCreatedAt = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<String> id = const Value.absent(),
+                Value<String> companyId = const Value.absent(),
+                Value<String> currencyId = const Value.absent(),
+                Value<double> exchangeRate = const Value.absent(),
+                Value<bool> isActive = const Value.absent(),
+                Value<int> sortOrder = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CompanyCurrenciesCompanion(
+                lastSyncedAt: lastSyncedAt,
+                version: version,
+                serverCreatedAt: serverCreatedAt,
+                serverUpdatedAt: serverUpdatedAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                id: id,
+                companyId: companyId,
+                currencyId: currencyId,
+                exchangeRate: exchangeRate,
+                isActive: isActive,
+                sortOrder: sortOrder,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                Value<DateTime?> lastSyncedAt = const Value.absent(),
+                Value<int> version = const Value.absent(),
+                Value<DateTime?> serverCreatedAt = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                required String id,
+                required String companyId,
+                required String currencyId,
+                required double exchangeRate,
+                Value<bool> isActive = const Value.absent(),
+                Value<int> sortOrder = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CompanyCurrenciesCompanion.insert(
+                lastSyncedAt: lastSyncedAt,
+                version: version,
+                serverCreatedAt: serverCreatedAt,
+                serverUpdatedAt: serverUpdatedAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                id: id,
+                companyId: companyId,
+                currencyId: currencyId,
+                exchangeRate: exchangeRate,
+                isActive: isActive,
+                sortOrder: sortOrder,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$CompanyCurrenciesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CompanyCurrenciesTable,
+      CompanyCurrency,
+      $$CompanyCurrenciesTableFilterComposer,
+      $$CompanyCurrenciesTableOrderingComposer,
+      $$CompanyCurrenciesTableAnnotationComposer,
+      $$CompanyCurrenciesTableCreateCompanionBuilder,
+      $$CompanyCurrenciesTableUpdateCompanionBuilder,
+      (
+        CompanyCurrency,
+        BaseReferences<_$AppDatabase, $CompanyCurrenciesTable, CompanyCurrency>,
+      ),
+      CompanyCurrency,
       PrefetchHooks Function()
     >;
 typedef $$CustomerTransactionsTableCreateCompanionBuilder =
@@ -50310,6 +52541,9 @@ typedef $$PaymentsTableCreateCompanionBuilder =
       Value<String?> paymentProvider,
       Value<String?> cardLast4,
       Value<String?> authorizationCode,
+      Value<String?> foreignCurrencyId,
+      Value<int?> foreignAmount,
+      Value<double?> exchangeRate,
       Value<int> rowid,
     });
 typedef $$PaymentsTableUpdateCompanionBuilder =
@@ -50337,6 +52571,9 @@ typedef $$PaymentsTableUpdateCompanionBuilder =
       Value<String?> paymentProvider,
       Value<String?> cardLast4,
       Value<String?> authorizationCode,
+      Value<String?> foreignCurrencyId,
+      Value<int?> foreignAmount,
+      Value<double?> exchangeRate,
       Value<int> rowid,
     });
 
@@ -50461,6 +52698,21 @@ class $$PaymentsTableFilterComposer
 
   ColumnFilters<String> get authorizationCode => $composableBuilder(
     column: $table.authorizationCode,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get foreignCurrencyId => $composableBuilder(
+    column: $table.foreignCurrencyId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get foreignAmount => $composableBuilder(
+    column: $table.foreignAmount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get exchangeRate => $composableBuilder(
+    column: $table.exchangeRate,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -50588,6 +52840,21 @@ class $$PaymentsTableOrderingComposer
     column: $table.authorizationCode,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get foreignCurrencyId => $composableBuilder(
+    column: $table.foreignCurrencyId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get foreignAmount => $composableBuilder(
+    column: $table.foreignAmount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get exchangeRate => $composableBuilder(
+    column: $table.exchangeRate,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$PaymentsTableAnnotationComposer
@@ -50689,6 +52956,21 @@ class $$PaymentsTableAnnotationComposer
     column: $table.authorizationCode,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get foreignCurrencyId => $composableBuilder(
+    column: $table.foreignCurrencyId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get foreignAmount => $composableBuilder(
+    column: $table.foreignAmount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get exchangeRate => $composableBuilder(
+    column: $table.exchangeRate,
+    builder: (column) => column,
+  );
 }
 
 class $$PaymentsTableTableManager
@@ -50742,6 +53024,9 @@ class $$PaymentsTableTableManager
                 Value<String?> paymentProvider = const Value.absent(),
                 Value<String?> cardLast4 = const Value.absent(),
                 Value<String?> authorizationCode = const Value.absent(),
+                Value<String?> foreignCurrencyId = const Value.absent(),
+                Value<int?> foreignAmount = const Value.absent(),
+                Value<double?> exchangeRate = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => PaymentsCompanion(
                 lastSyncedAt: lastSyncedAt,
@@ -50767,6 +53052,9 @@ class $$PaymentsTableTableManager
                 paymentProvider: paymentProvider,
                 cardLast4: cardLast4,
                 authorizationCode: authorizationCode,
+                foreignCurrencyId: foreignCurrencyId,
+                foreignAmount: foreignAmount,
+                exchangeRate: exchangeRate,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -50794,6 +53082,9 @@ class $$PaymentsTableTableManager
                 Value<String?> paymentProvider = const Value.absent(),
                 Value<String?> cardLast4 = const Value.absent(),
                 Value<String?> authorizationCode = const Value.absent(),
+                Value<String?> foreignCurrencyId = const Value.absent(),
+                Value<int?> foreignAmount = const Value.absent(),
+                Value<double?> exchangeRate = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => PaymentsCompanion.insert(
                 lastSyncedAt: lastSyncedAt,
@@ -50819,6 +53110,9 @@ class $$PaymentsTableTableManager
                 paymentProvider: paymentProvider,
                 cardLast4: cardLast4,
                 authorizationCode: authorizationCode,
+                foreignCurrencyId: foreignCurrencyId,
+                foreignAmount: foreignAmount,
+                exchangeRate: exchangeRate,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -54186,6 +56480,430 @@ typedef $$SectionsTableProcessedTableManager =
       $$SectionsTableUpdateCompanionBuilder,
       (Section, BaseReferences<_$AppDatabase, $SectionsTable, Section>),
       Section,
+      PrefetchHooks Function()
+    >;
+typedef $$SessionCurrencyCashTableCreateCompanionBuilder =
+    SessionCurrencyCashCompanion Function({
+      Value<DateTime?> lastSyncedAt,
+      Value<int> version,
+      Value<DateTime?> serverCreatedAt,
+      Value<DateTime?> serverUpdatedAt,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      required String id,
+      required String companyId,
+      required String registerSessionId,
+      required String currencyId,
+      Value<int> openingCash,
+      Value<int?> closingCash,
+      Value<int?> expectedCash,
+      Value<int?> difference,
+      Value<int> rowid,
+    });
+typedef $$SessionCurrencyCashTableUpdateCompanionBuilder =
+    SessionCurrencyCashCompanion Function({
+      Value<DateTime?> lastSyncedAt,
+      Value<int> version,
+      Value<DateTime?> serverCreatedAt,
+      Value<DateTime?> serverUpdatedAt,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<String> id,
+      Value<String> companyId,
+      Value<String> registerSessionId,
+      Value<String> currencyId,
+      Value<int> openingCash,
+      Value<int?> closingCash,
+      Value<int?> expectedCash,
+      Value<int?> difference,
+      Value<int> rowid,
+    });
+
+class $$SessionCurrencyCashTableFilterComposer
+    extends Composer<_$AppDatabase, $SessionCurrencyCashTable> {
+  $$SessionCurrencyCashTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<DateTime> get lastSyncedAt => $composableBuilder(
+    column: $table.lastSyncedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get version => $composableBuilder(
+    column: $table.version,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get serverCreatedAt => $composableBuilder(
+    column: $table.serverCreatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get companyId => $composableBuilder(
+    column: $table.companyId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get registerSessionId => $composableBuilder(
+    column: $table.registerSessionId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get currencyId => $composableBuilder(
+    column: $table.currencyId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get openingCash => $composableBuilder(
+    column: $table.openingCash,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get closingCash => $composableBuilder(
+    column: $table.closingCash,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get expectedCash => $composableBuilder(
+    column: $table.expectedCash,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get difference => $composableBuilder(
+    column: $table.difference,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$SessionCurrencyCashTableOrderingComposer
+    extends Composer<_$AppDatabase, $SessionCurrencyCashTable> {
+  $$SessionCurrencyCashTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<DateTime> get lastSyncedAt => $composableBuilder(
+    column: $table.lastSyncedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get version => $composableBuilder(
+    column: $table.version,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get serverCreatedAt => $composableBuilder(
+    column: $table.serverCreatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get companyId => $composableBuilder(
+    column: $table.companyId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get registerSessionId => $composableBuilder(
+    column: $table.registerSessionId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get currencyId => $composableBuilder(
+    column: $table.currencyId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get openingCash => $composableBuilder(
+    column: $table.openingCash,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get closingCash => $composableBuilder(
+    column: $table.closingCash,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get expectedCash => $composableBuilder(
+    column: $table.expectedCash,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get difference => $composableBuilder(
+    column: $table.difference,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$SessionCurrencyCashTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SessionCurrencyCashTable> {
+  $$SessionCurrencyCashTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<DateTime> get lastSyncedAt => $composableBuilder(
+    column: $table.lastSyncedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get version =>
+      $composableBuilder(column: $table.version, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get serverCreatedAt => $composableBuilder(
+    column: $table.serverCreatedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get companyId =>
+      $composableBuilder(column: $table.companyId, builder: (column) => column);
+
+  GeneratedColumn<String> get registerSessionId => $composableBuilder(
+    column: $table.registerSessionId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get currencyId => $composableBuilder(
+    column: $table.currencyId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get openingCash => $composableBuilder(
+    column: $table.openingCash,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get closingCash => $composableBuilder(
+    column: $table.closingCash,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get expectedCash => $composableBuilder(
+    column: $table.expectedCash,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get difference => $composableBuilder(
+    column: $table.difference,
+    builder: (column) => column,
+  );
+}
+
+class $$SessionCurrencyCashTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $SessionCurrencyCashTable,
+          SessionCurrencyCashData,
+          $$SessionCurrencyCashTableFilterComposer,
+          $$SessionCurrencyCashTableOrderingComposer,
+          $$SessionCurrencyCashTableAnnotationComposer,
+          $$SessionCurrencyCashTableCreateCompanionBuilder,
+          $$SessionCurrencyCashTableUpdateCompanionBuilder,
+          (
+            SessionCurrencyCashData,
+            BaseReferences<
+              _$AppDatabase,
+              $SessionCurrencyCashTable,
+              SessionCurrencyCashData
+            >,
+          ),
+          SessionCurrencyCashData,
+          PrefetchHooks Function()
+        > {
+  $$SessionCurrencyCashTableTableManager(
+    _$AppDatabase db,
+    $SessionCurrencyCashTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SessionCurrencyCashTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SessionCurrencyCashTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$SessionCurrencyCashTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<DateTime?> lastSyncedAt = const Value.absent(),
+                Value<int> version = const Value.absent(),
+                Value<DateTime?> serverCreatedAt = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<String> id = const Value.absent(),
+                Value<String> companyId = const Value.absent(),
+                Value<String> registerSessionId = const Value.absent(),
+                Value<String> currencyId = const Value.absent(),
+                Value<int> openingCash = const Value.absent(),
+                Value<int?> closingCash = const Value.absent(),
+                Value<int?> expectedCash = const Value.absent(),
+                Value<int?> difference = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SessionCurrencyCashCompanion(
+                lastSyncedAt: lastSyncedAt,
+                version: version,
+                serverCreatedAt: serverCreatedAt,
+                serverUpdatedAt: serverUpdatedAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                id: id,
+                companyId: companyId,
+                registerSessionId: registerSessionId,
+                currencyId: currencyId,
+                openingCash: openingCash,
+                closingCash: closingCash,
+                expectedCash: expectedCash,
+                difference: difference,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                Value<DateTime?> lastSyncedAt = const Value.absent(),
+                Value<int> version = const Value.absent(),
+                Value<DateTime?> serverCreatedAt = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                required String id,
+                required String companyId,
+                required String registerSessionId,
+                required String currencyId,
+                Value<int> openingCash = const Value.absent(),
+                Value<int?> closingCash = const Value.absent(),
+                Value<int?> expectedCash = const Value.absent(),
+                Value<int?> difference = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SessionCurrencyCashCompanion.insert(
+                lastSyncedAt: lastSyncedAt,
+                version: version,
+                serverCreatedAt: serverCreatedAt,
+                serverUpdatedAt: serverUpdatedAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                id: id,
+                companyId: companyId,
+                registerSessionId: registerSessionId,
+                currencyId: currencyId,
+                openingCash: openingCash,
+                closingCash: closingCash,
+                expectedCash: expectedCash,
+                difference: difference,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$SessionCurrencyCashTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $SessionCurrencyCashTable,
+      SessionCurrencyCashData,
+      $$SessionCurrencyCashTableFilterComposer,
+      $$SessionCurrencyCashTableOrderingComposer,
+      $$SessionCurrencyCashTableAnnotationComposer,
+      $$SessionCurrencyCashTableCreateCompanionBuilder,
+      $$SessionCurrencyCashTableUpdateCompanionBuilder,
+      (
+        SessionCurrencyCashData,
+        BaseReferences<
+          _$AppDatabase,
+          $SessionCurrencyCashTable,
+          SessionCurrencyCashData
+        >,
+      ),
+      SessionCurrencyCashData,
       PrefetchHooks Function()
     >;
 typedef $$ShiftsTableCreateCompanionBuilder =
@@ -59399,6 +62117,8 @@ class $AppDatabaseManager {
       $$CategoriesTableTableManager(_db, _db.categories);
   $$CompaniesTableTableManager get companies =>
       $$CompaniesTableTableManager(_db, _db.companies);
+  $$CompanyCurrenciesTableTableManager get companyCurrencies =>
+      $$CompanyCurrenciesTableTableManager(_db, _db.companyCurrencies);
   $$CustomerTransactionsTableTableManager get customerTransactions =>
       $$CustomerTransactionsTableTableManager(_db, _db.customerTransactions);
   $$CustomersTableTableManager get customers =>
@@ -59451,6 +62171,8 @@ class $AppDatabaseManager {
       $$RolesTableTableManager(_db, _db.roles);
   $$SectionsTableTableManager get sections =>
       $$SectionsTableTableManager(_db, _db.sections);
+  $$SessionCurrencyCashTableTableManager get sessionCurrencyCash =>
+      $$SessionCurrencyCashTableTableManager(_db, _db.sessionCurrencyCash);
   $$ShiftsTableTableManager get shifts =>
       $$ShiftsTableTableManager(_db, _db.shifts);
   $$StockDocumentsTableTableManager get stockDocuments =>

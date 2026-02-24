@@ -6763,6 +6763,114 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Položky'**
   String get statsOrderItems;
+
+  /// No description provided for @settingsCurrencyLocked.
+  ///
+  /// In cs, this message translates to:
+  /// **'Výchozí měnu nelze změnit po vytvoření prvního účtu.'**
+  String get settingsCurrencyLocked;
+
+  /// No description provided for @settingsAlternativeCurrencies.
+  ///
+  /// In cs, this message translates to:
+  /// **'Alternativní měny'**
+  String get settingsAlternativeCurrencies;
+
+  /// No description provided for @settingsAddCurrency.
+  ///
+  /// In cs, this message translates to:
+  /// **'Přidat měnu'**
+  String get settingsAddCurrency;
+
+  /// No description provided for @settingsExchangeRate.
+  ///
+  /// In cs, this message translates to:
+  /// **'Kurz'**
+  String get settingsExchangeRate;
+
+  /// No description provided for @settingsExchangeRateLabel.
+  ///
+  /// In cs, this message translates to:
+  /// **'1 {code} ='**
+  String settingsExchangeRateLabel(String code);
+
+  /// No description provided for @paymentForeignCurrencySelect.
+  ///
+  /// In cs, this message translates to:
+  /// **'Jiná měna'**
+  String get paymentForeignCurrencySelect;
+
+  /// No description provided for @paymentForeignRate.
+  ///
+  /// In cs, this message translates to:
+  /// **'× {rate} = {amount}'**
+  String paymentForeignRate(String rate, String amount);
+
+  /// No description provided for @paymentChangeInBase.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vráceno v základní měně'**
+  String get paymentChangeInBase;
+
+  /// No description provided for @openingForeignCashTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Počáteční stav cizích měn'**
+  String get openingForeignCashTitle;
+
+  /// No description provided for @closingForeignCashTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Uzávěrka cizích měn'**
+  String get closingForeignCashTitle;
+
+  /// No description provided for @zReportForeignCashTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Pokladna cizí měny'**
+  String get zReportForeignCashTitle;
+
+  /// No description provided for @zReportForeignOpening.
+  ///
+  /// In cs, this message translates to:
+  /// **'Počáteční stav'**
+  String get zReportForeignOpening;
+
+  /// No description provided for @zReportForeignRevenue.
+  ///
+  /// In cs, this message translates to:
+  /// **'Tržby'**
+  String get zReportForeignRevenue;
+
+  /// No description provided for @zReportForeignExpected.
+  ///
+  /// In cs, this message translates to:
+  /// **'Očekávaný stav'**
+  String get zReportForeignExpected;
+
+  /// No description provided for @zReportForeignClosing.
+  ///
+  /// In cs, this message translates to:
+  /// **'Skutečný stav'**
+  String get zReportForeignClosing;
+
+  /// No description provided for @zReportForeignDifference.
+  ///
+  /// In cs, this message translates to:
+  /// **'Rozdíl'**
+  String get zReportForeignDifference;
+
+  /// No description provided for @currencySelectorTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vyberte měnu'**
+  String get currencySelectorTitle;
+
+  /// No description provided for @currencySelectorBack.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zpět'**
+  String get currencySelectorBack;
 }
 
 class _AppLocalizationsDelegate

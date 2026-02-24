@@ -7,6 +7,7 @@ import '../data/models/currency_model.dart';
 import '../data/models/order_item_modifier_model.dart';
 import '../data/repositories/bill_repository.dart';
 import '../data/repositories/company_repository.dart';
+import '../data/repositories/currency_repository.dart';
 import '../data/repositories/order_item_modifier_repository.dart';
 import '../data/repositories/order_repository.dart';
 import '../data/repositories/payment_method_repository.dart';
@@ -33,6 +34,7 @@ class PrintingService {
     required this.tableRepo,
     required this.userRepo,
     required this.orderItemModifierRepo,
+    required this.currencyRepo,
   });
 
   final BillRepository billRepo;
@@ -43,6 +45,7 @@ class PrintingService {
   final TableRepository tableRepo;
   final UserRepository userRepo;
   final OrderItemModifierRepository orderItemModifierRepo;
+  final CurrencyRepository currencyRepo;
 
   Future<ReceiptData?> buildReceiptData(String billId, {CurrencyModel? currency, String Function(UnitType)? unitLocalizer}) async {
     // 1. Get bill (includeDeleted: receipt may be reprinted after cancellation)
@@ -176,15 +179,30 @@ class PrintingService {
         )).toList()
       ..sort((a, b) => a.taxRateBasisPoints.compareTo(b.taxRateBasisPoints));
 
-    // 10. Build payment data
-    final receiptPayments = payments
-        .where((p) => p.amount > 0)
-        .map((p) => ReceiptPaymentData(
-              methodName: methods[p.paymentMethodId] ?? '?',
-              amount: p.amount,
-              tip: p.tipIncludedAmount,
-            ))
-        .toList();
+    // 10. Build payment data (resolve foreign currency info)
+    final foreignCurrencyCache = <String, CurrencyModel?>{};
+    final receiptPayments = <ReceiptPaymentData>[];
+    for (final p in payments) {
+      if (p.amount <= 0) continue;
+      CurrencyModel? foreignCur;
+      if (p.foreignCurrencyId != null) {
+        if (!foreignCurrencyCache.containsKey(p.foreignCurrencyId!)) {
+          foreignCurrencyCache[p.foreignCurrencyId!] =
+              await currencyRepo.getById(p.foreignCurrencyId!);
+        }
+        foreignCur = foreignCurrencyCache[p.foreignCurrencyId!];
+      }
+      receiptPayments.add(ReceiptPaymentData(
+        methodName: methods[p.paymentMethodId] ?? '?',
+        amount: p.amount,
+        tip: p.tipIncludedAmount,
+        foreignCurrencyCode: foreignCur?.code,
+        foreignCurrencySymbol: foreignCur?.symbol,
+        foreignAmount: p.foreignAmount,
+        foreignDecimalPlaces: foreignCur?.decimalPlaces,
+        exchangeRate: p.exchangeRate,
+      ));
+    }
 
     return ReceiptData(
       companyName: company.name,

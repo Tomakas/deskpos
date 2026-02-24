@@ -238,6 +238,22 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
         lastSyncedAt: Value(now),
       );
 
+    case 'company_currencies':
+      return CompanyCurrenciesCompanion(
+        id: Value(json['id'] as String),
+        companyId: Value(json['company_id'] as String),
+        currencyId: Value(json['currency_id'] as String),
+        exchangeRate: Value((json['exchange_rate'] as num).toDouble()),
+        isActive: Value(json['is_active'] as bool? ?? true),
+        sortOrder: Value(json['sort_order'] as int? ?? 0),
+        createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
+        updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
+        deletedAt: Value(_parseDateTime(json['deleted_at'])),
+        serverCreatedAt: Value(_parseDateTime(json['created_at'])),
+        serverUpdatedAt: Value(_parseDateTime(json['updated_at'])),
+        lastSyncedAt: Value(now),
+      );
+
     case 'tax_rates':
       return TaxRatesCompanion(
         id: Value(json['id'] as String),
@@ -394,6 +410,11 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
         paymentProvider: Value(json['payment_provider'] as String?),
         cardLast4: Value(json['card_last4'] as String?),
         authorizationCode: Value(json['authorization_code'] as String?),
+        foreignCurrencyId: Value(json['foreign_currency_id'] as String?),
+        foreignAmount: Value(json['foreign_amount'] as int?),
+        exchangeRate: Value(json['exchange_rate'] != null
+            ? (json['exchange_rate'] as num).toDouble()
+            : null),
         createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
         updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
         deletedAt: Value(_parseDateTime(json['deleted_at'])),
@@ -589,6 +610,24 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
         type: Value(_enumFromName(CashMovementType.values, json['type'])),
         amount: Value(json['amount'] as int),
         reason: Value(json['reason'] as String?),
+        createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
+        updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
+        deletedAt: Value(_parseDateTime(json['deleted_at'])),
+        serverCreatedAt: Value(_parseDateTime(json['created_at'])),
+        serverUpdatedAt: Value(_parseDateTime(json['updated_at'])),
+        lastSyncedAt: Value(now),
+      );
+
+    case 'session_currency_cash':
+      return SessionCurrencyCashCompanion(
+        id: Value(json['id'] as String),
+        companyId: Value(json['company_id'] as String),
+        registerSessionId: Value(json['register_session_id'] as String),
+        currencyId: Value(json['currency_id'] as String),
+        openingCash: Value(json['opening_cash'] as int? ?? 0),
+        closingCash: Value(json['closing_cash'] as int?),
+        expectedCash: Value(json['expected_cash'] as int?),
+        difference: Value(json['difference'] as int?),
         createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
         updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
         deletedAt: Value(_parseDateTime(json['deleted_at'])),

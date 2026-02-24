@@ -6,6 +6,7 @@ import '../repositories/bill_repository.dart';
 import '../repositories/cash_movement_repository.dart';
 import '../repositories/display_device_repository.dart';
 import '../repositories/category_repository.dart';
+import '../repositories/company_currency_repository.dart';
 import '../repositories/customer_repository.dart';
 import '../repositories/customer_transaction_repository.dart';
 import '../repositories/company_repository.dart';
@@ -31,6 +32,7 @@ import '../repositories/register_session_repository.dart';
 import '../repositories/shift_repository.dart';
 import '../repositories/role_repository.dart';
 import '../repositories/section_repository.dart';
+import '../repositories/session_currency_cash_repository.dart';
 import '../repositories/stock_document_repository.dart';
 import '../repositories/stock_level_repository.dart';
 import '../repositories/stock_movement_repository.dart';
@@ -145,6 +147,13 @@ final taxRateRepositoryProvider = Provider<TaxRateRepository>((ref) {
   );
 });
 
+final companyCurrencyRepositoryProvider = Provider<CompanyCurrencyRepository>((ref) {
+  return CompanyCurrencyRepository(
+    ref.watch(appDatabaseProvider),
+    syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
+  );
+});
+
 final paymentMethodRepositoryProvider = Provider<PaymentMethodRepository>((ref) {
   return PaymentMethodRepository(
     ref.watch(appDatabaseProvider),
@@ -195,6 +204,13 @@ final registerSessionRepositoryProvider = Provider<RegisterSessionRepository>((r
 
 final shiftRepositoryProvider = Provider<ShiftRepository>((ref) {
   return ShiftRepository(
+    ref.watch(appDatabaseProvider),
+    syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
+  );
+});
+
+final sessionCurrencyCashRepositoryProvider = Provider<SessionCurrencyCashRepository>((ref) {
+  return SessionCurrencyCashRepository(
     ref.watch(appDatabaseProvider),
     syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
   );

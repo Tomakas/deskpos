@@ -1,8 +1,12 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/data/enums/payment_type.dart';
 import '../../../core/data/models/bill_model.dart';
+import '../../../core/data/models/company_currency_model.dart';
+import '../../../core/data/models/currency_model.dart';
 import '../../../core/data/models/customer_model.dart';
 import '../../../core/data/models/payment_method_model.dart';
 import '../../../core/data/models/payment_model.dart';
@@ -11,6 +15,7 @@ import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/formatters.dart';
 import '../../../core/utils/formatting_ext.dart';
 import 'dialog_change_total.dart';
 
@@ -31,11 +36,19 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
   bool _processing = false;
   bool _printReceipt = true;
   bool _showOtherPayments = false;
+  bool _showCurrencySelector = false;
   late BillModel _bill;
   int? _customAmount;
+  int? _customForeignAmount;
   CustomerModel? _customer;
   Future<List<PaymentMethodModel>>? _paymentMethodsFuture;
   Stream<List<PaymentMethodModel>>? _paymentMethodsStream;
+
+  // Foreign currency state
+  String? _selectedForeignCurrencyId;
+  CompanyCurrencyModel? _selectedCompanyCurrency;
+  CurrencyModel? _selectedForeignCurrencyDetail;
+  List<(CompanyCurrencyModel, CurrencyModel)> _availableForeignCurrencies = [];
 
   @override
   void initState() {
@@ -46,6 +59,23 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
     if (company != null) {
       _paymentMethodsFuture = ref.read(paymentMethodRepositoryProvider).getAll(company.id);
       _paymentMethodsStream = ref.read(paymentMethodRepositoryProvider).watchAll(company.id);
+      _loadForeignCurrencies(company.id);
+    }
+  }
+
+  Future<void> _loadForeignCurrencies(String companyId) async {
+    final ccRepo = ref.read(companyCurrencyRepositoryProvider);
+    final currencyRepo = ref.read(currencyRepositoryProvider);
+    final active = await ccRepo.getActive(companyId);
+    final result = <(CompanyCurrencyModel, CurrencyModel)>[];
+    for (final cc in active) {
+      final currResult = await currencyRepo.getById(cc.currencyId);
+      if (currResult != null) {
+        result.add((cc, currResult));
+      }
+    }
+    if (mounted) {
+      setState(() => _availableForeignCurrencies = result);
     }
   }
 
@@ -78,34 +108,51 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Left sidebar — action buttons
+            // Left sidebar — action buttons or currency selector
             Expanded(
               child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Column(
-                    children: [
-                      Expanded(child: _SideButton(label: l.paymentOtherCurrency, onPressed: null)),
-                      const SizedBox(height: 8),
-                      Expanded(child: _SideButton(label: l.paymentEet, onPressed: null)),
-                      const SizedBox(height: 8),
-                      Expanded(
-                        child: _SideButton(
-                          label: l.paymentMoreActions,
-                          onPressed: null,
-                        ),
+                padding: const EdgeInsets.all(12),
+                child: _showCurrencySelector
+                    ? _buildCurrencySelector(context, l)
+                    : Column(
+                        children: [
+                          Expanded(
+                            child: _SideButton(
+                              label: _selectedForeignCurrencyId != null
+                                  ? '${_selectedForeignCurrencyDetail!.code} (${_selectedForeignCurrencyDetail!.symbol})'
+                                  : l.paymentOtherCurrency,
+                              onPressed: _availableForeignCurrencies.isNotEmpty
+                                  ? () {
+                                      if (_selectedForeignCurrencyId != null) {
+                                        _clearForeignCurrency();
+                                      } else {
+                                        setState(() => _showCurrencySelector = true);
+                                      }
+                                    }
+                                  : null,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Expanded(child: _SideButton(label: l.paymentEet, onPressed: null)),
+                          const SizedBox(height: 8),
+                          Expanded(
+                            child: _SideButton(
+                              label: l.paymentMoreActions,
+                              onPressed: null,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Expanded(
+                            child: _SideButton(
+                              label: l.actionCancel,
+                              onPressed: () => Navigator.pop(context, _bill.paidAmount > widget.bill.paidAmount),
+                              color: context.appColors.danger,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 8),
-                      Expanded(
-                        child: _SideButton(
-                          label: l.actionCancel,
-                          onPressed: () => Navigator.pop(context, _bill.paidAmount > widget.bill.paidAmount),
-                          color: context.appColors.danger,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
               ),
+            ),
               // Center — bill info + payments list
               Expanded(
                 flex: 2,
@@ -160,7 +207,39 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
                       ),
                       const Spacer(),
                       // Remaining amount
-                      if (_customAmount != null) ...[
+                      if (_selectedForeignCurrencyId != null) ...[
+                        // Foreign currency mode
+                        Text(
+                          ref.money(_remaining),
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        _amountBlock(
+                          context,
+                          _formatForeignMoney(_foreignPayAmount),
+                          onTap: _remaining > 0 ? () => _editAmount(context) : null,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          l.paymentForeignRate(
+                            _selectedCompanyCurrency!.exchangeRate.toString(),
+                            ref.money(_foreignToBase(_foreignPayAmount)),
+                          ),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                        if (_foreignToBase(_foreignPayAmount) > _remaining)
+                          Text(
+                            '(${l.paymentTip(ref.money(_foreignToBase(_foreignPayAmount) - _remaining))})',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              fontStyle: FontStyle.italic,
+                              color: Colors.green,
+                            ),
+                          ),
+                      ] else if (_customAmount != null) ...[
                         Text(
                           ref.money(_remaining),
                           style: theme.textTheme.titleMedium?.copyWith(
@@ -230,24 +309,31 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
                         };
                       }
 
-                      // Primary: cash, card, bank
+                      // Primary: cash, card, bank (foreign currency = cash only)
                       const primaryTypes = {PaymentType.cash, PaymentType.card, PaymentType.bank};
                       final primaryMethods = methods
                           .where((m) => primaryTypes.contains(m.type))
                           .where(isAllowedByRegister)
+                          .where((m) => _selectedForeignCurrencyId == null || m.type == PaymentType.cash)
                           .toList();
 
                       // Secondary: credit (only with customer + credit), voucher, other
-                      final creditMethod = methods
-                          .where((m) => m.type == PaymentType.credit)
-                          .where(isAllowedByRegister)
-                          .firstOrNull;
-                      final secondaryMethods = <PaymentMethodModel>[
-                        ...methods.where((m) => m.type == PaymentType.voucher).where(isAllowedByRegister),
-                        if (creditMethod != null && _customer != null && _customer!.credit > 0)
-                          creditMethod,
-                        ...methods.where((m) => m.type == PaymentType.other).where(isAllowedByRegister),
-                      ];
+                      // Disabled when foreign currency selected
+                      final List<PaymentMethodModel> secondaryMethods;
+                      if (_selectedForeignCurrencyId != null) {
+                        secondaryMethods = [];
+                      } else {
+                        final creditMethod = methods
+                            .where((m) => m.type == PaymentType.credit)
+                            .where(isAllowedByRegister)
+                            .firstOrNull;
+                        secondaryMethods = <PaymentMethodModel>[
+                          ...methods.where((m) => m.type == PaymentType.voucher).where(isAllowedByRegister),
+                          if (creditMethod != null && _customer != null && _customer!.credit > 0)
+                            creditMethod,
+                          ...methods.where((m) => m.type == PaymentType.other).where(isAllowedByRegister),
+                        ];
+                      }
 
                       if (!_showOtherPayments) {
                         // Primary view: up to 3 payment methods + "Jiná platba"
@@ -339,12 +425,30 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
                       style: theme.textTheme.bodyMedium,
                     ),
                     const SizedBox(width: 12),
-                    Text(
-                      ref.money(p.amount),
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
+                    if (p.foreignCurrencyId != null && p.foreignAmount != null) ...[
+                      // Show foreign currency amount
+                      Builder(builder: (context) {
+                        final fc = _availableForeignCurrencies
+                            .where((e) => e.$1.currencyId == p.foreignCurrencyId)
+                            .firstOrNull;
+                        final foreignStr = fc != null
+                            ? formatMoney(p.foreignAmount!, fc.$2)
+                            : '${p.foreignAmount}';
+                        return Text(
+                          '$foreignStr (× ${p.exchangeRate})',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        );
+                      }),
+                    ] else ...[
+                      Text(
+                        ref.money(p.amount),
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
+                    ],
                     if (p.tipIncludedAmount > 0) ...[
                       const SizedBox(width: 4),
                       Text(
@@ -392,13 +496,106 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
     );
   }
 
-  Future<void> _editAmount(BuildContext context) async {
-    final result = await showDialog<int>(
-      context: context,
-      builder: (_) => DialogChangeTotalToPay(originalAmount: _remaining),
+  Widget _buildCurrencySelector(BuildContext context, dynamic l) {
+    return Column(
+      children: [
+        for (final (i, entry) in _availableForeignCurrencies.indexed) ...[
+          if (i > 0) const SizedBox(height: 8),
+          Expanded(
+            child: _SideButton(
+              label: '${entry.$2.code} (${entry.$2.symbol})',
+              onPressed: () {
+                setState(() {
+                  _selectedForeignCurrencyId = entry.$1.currencyId;
+                  _selectedCompanyCurrency = entry.$1;
+                  _selectedForeignCurrencyDetail = entry.$2;
+                  _showCurrencySelector = false;
+                  _customAmount = null;
+                  _customForeignAmount = null;
+                });
+              },
+            ),
+          ),
+        ],
+        if (_availableForeignCurrencies.length < 3) ...[
+          for (var i = _availableForeignCurrencies.length; i < 3; i++) ...[
+            const SizedBox(height: 8),
+            const Expanded(child: SizedBox.shrink()),
+          ],
+        ],
+        const SizedBox(height: 8),
+        Expanded(
+          child: _SideButton(
+            label: l.currencySelectorBack,
+            onPressed: () => setState(() => _showCurrencySelector = false),
+          ),
+        ),
+      ],
     );
-    if (result != null && mounted) {
-      setState(() => _customAmount = result);
+  }
+
+  void _clearForeignCurrency() {
+    setState(() {
+      _selectedForeignCurrencyId = null;
+      _selectedCompanyCurrency = null;
+      _selectedForeignCurrencyDetail = null;
+      _customAmount = null;
+      _customForeignAmount = null;
+    });
+  }
+
+  int get _remainingInForeign {
+    if (_selectedCompanyCurrency == null || _selectedForeignCurrencyDetail == null) return 0;
+    final rate = _selectedCompanyCurrency!.exchangeRate;
+    if (rate <= 0) return 0;
+    final baseCurrency = ref.read(currentCurrencyProvider).value;
+    final baseDecimals = baseCurrency?.decimalPlaces ?? 2;
+    final baseDivisor = pow(10, baseDecimals);
+    final foreignDecimals = _selectedForeignCurrencyDetail!.decimalPlaces;
+    final foreignDivisor = foreignDecimals > 0 ? pow(10, foreignDecimals) : 1;
+    // Convert remaining (base minor units) to foreign minor units, rounded up
+    return (_remaining / baseDivisor / rate * foreignDivisor.toDouble()).ceil();
+  }
+
+  int get _foreignPayAmount => _customForeignAmount ?? _remainingInForeign;
+
+  int _foreignToBase(int foreignMinorUnits) {
+    if (_selectedCompanyCurrency == null || _selectedForeignCurrencyDetail == null) return 0;
+    final rate = _selectedCompanyCurrency!.exchangeRate;
+    if (rate <= 0) return 0;
+    final baseCurrency = ref.read(currentCurrencyProvider).value;
+    final baseDecimals = baseCurrency?.decimalPlaces ?? 2;
+    final baseDivisor = pow(10, baseDecimals);
+    final foreignDecimals = _selectedForeignCurrencyDetail!.decimalPlaces;
+    final foreignDivisor = foreignDecimals > 0 ? pow(10, foreignDecimals) : 1;
+    return ((foreignMinorUnits / foreignDivisor.toDouble()) * rate * baseDivisor).round();
+  }
+
+  String _formatForeignMoney(int minorUnits) {
+    return formatMoney(minorUnits, _selectedForeignCurrencyDetail);
+  }
+
+  Future<void> _editAmount(BuildContext context) async {
+    if (_selectedForeignCurrencyId != null) {
+      // Foreign currency mode — edit in foreign currency
+      final result = await showDialog<int>(
+        context: context,
+        builder: (_) => DialogChangeTotalToPay(
+          originalAmount: _remainingInForeign,
+          currency: _selectedForeignCurrencyDetail,
+        ),
+      );
+      if (result != null && mounted) {
+        setState(() => _customForeignAmount = result);
+      }
+    } else {
+      final result = await showDialog<int>(
+        context: context,
+        builder: (_) => DialogChangeTotalToPay(originalAmount: _remaining),
+      );
+      if (result != null && mounted) {
+        setState(() => _customAmount = result);
+      }
     }
   }
 
@@ -407,9 +604,27 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
 
     if (_remaining <= 0) return;
 
-    final amount = _payAmount;
-    final tipAmount = amount > _remaining ? amount - _remaining : 0;
-    final effectiveAmount = amount > _remaining ? _remaining : amount;
+    // Foreign currency payment
+    String? foreignCurrencyId;
+    int? foreignAmount;
+    double? payExchangeRate;
+    int effectiveAmount;
+    int tipAmount;
+
+    if (_selectedForeignCurrencyId != null) {
+      final foreignAmt = _foreignPayAmount;
+      final baseAmount = _foreignToBase(foreignAmt);
+
+      effectiveAmount = baseAmount > _remaining ? _remaining : baseAmount;
+      tipAmount = baseAmount > _remaining ? baseAmount - _remaining : 0;
+      foreignCurrencyId = _selectedForeignCurrencyId;
+      foreignAmount = foreignAmt;
+      payExchangeRate = _selectedCompanyCurrency!.exchangeRate;
+    } else {
+      final amount = _payAmount;
+      tipAmount = amount > _remaining ? amount - _remaining : 0;
+      effectiveAmount = amount > _remaining ? _remaining : amount;
+    }
 
     // Load loyalty settings for auto-earn
     int loyaltyEarn = 0;
@@ -435,6 +650,9 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
       registerId: register?.id,
       registerSessionId: session?.id,
       loyaltyEarnRate: loyaltyEarn,
+      foreignCurrencyId: foreignCurrencyId,
+      foreignAmount: foreignAmount,
+      exchangeRate: payExchangeRate,
     );
 
     if (!context.mounted) return;
@@ -450,6 +668,7 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
         setState(() {
           _bill = updatedBill;
           _customAmount = null;
+          _customForeignAmount = null;
           _processing = false;
         });
       }

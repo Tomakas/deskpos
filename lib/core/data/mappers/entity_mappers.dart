@@ -4,6 +4,7 @@ import '../../database/app_database.dart';
 import '../models/bill_model.dart';
 import '../models/cash_movement_model.dart';
 import '../models/category_model.dart';
+import '../models/company_currency_model.dart';
 import '../models/display_device_model.dart';
 import '../models/customer_model.dart';
 import '../models/customer_transaction_model.dart';
@@ -30,6 +31,7 @@ import '../models/register_session_model.dart';
 import '../models/role_model.dart';
 import '../models/role_permission_model.dart';
 import '../models/section_model.dart';
+import '../models/session_currency_cash_model.dart';
 import '../models/shift_model.dart';
 import '../models/stock_document_model.dart';
 import '../models/stock_level_model.dart';
@@ -81,6 +83,29 @@ CompaniesCompanion companyToCompanion(CompanyModel m) => CompaniesCompanion.inse
       businessType: Value(m.businessType),
       defaultCurrencyId: m.defaultCurrencyId,
       authUserId: m.authUserId,
+    );
+
+// --- CompanyCurrency ---
+CompanyCurrencyModel companyCurrencyFromEntity(CompanyCurrency e) => CompanyCurrencyModel(
+      id: e.id,
+      companyId: e.companyId,
+      currencyId: e.currencyId,
+      exchangeRate: e.exchangeRate,
+      isActive: e.isActive,
+      sortOrder: e.sortOrder,
+      createdAt: e.createdAt,
+      updatedAt: e.updatedAt,
+      deletedAt: e.deletedAt,
+    );
+
+CompanyCurrenciesCompanion companyCurrencyToCompanion(CompanyCurrencyModel m) =>
+    CompanyCurrenciesCompanion.insert(
+      id: m.id,
+      companyId: m.companyId,
+      currencyId: m.currencyId,
+      exchangeRate: m.exchangeRate,
+      isActive: Value(m.isActive),
+      sortOrder: Value(m.sortOrder),
     );
 
 // --- CompanySettings ---
@@ -462,6 +487,9 @@ PaymentModel paymentFromEntity(Payment e) => PaymentModel(
       paymentProvider: e.paymentProvider,
       cardLast4: e.cardLast4,
       authorizationCode: e.authorizationCode,
+      foreignCurrencyId: e.foreignCurrencyId,
+      foreignAmount: e.foreignAmount,
+      exchangeRate: e.exchangeRate,
       createdAt: e.createdAt,
       updatedAt: e.updatedAt,
       deletedAt: e.deletedAt,
@@ -550,6 +578,22 @@ CashMovementModel cashMovementFromEntity(CashMovement e) => CashMovementModel(
       type: e.type,
       amount: e.amount,
       reason: e.reason,
+      createdAt: e.createdAt,
+      updatedAt: e.updatedAt,
+      deletedAt: e.deletedAt,
+    );
+
+// --- SessionCurrencyCash ---
+SessionCurrencyCashModel sessionCurrencyCashFromEntity(SessionCurrencyCashData e) =>
+    SessionCurrencyCashModel(
+      id: e.id,
+      companyId: e.companyId,
+      registerSessionId: e.registerSessionId,
+      currencyId: e.currencyId,
+      openingCash: e.openingCash,
+      closingCash: e.closingCash,
+      expectedCash: e.expectedCash,
+      difference: e.difference,
       createdAt: e.createdAt,
       updatedAt: e.updatedAt,
       deletedAt: e.deletedAt,

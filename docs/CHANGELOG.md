@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-02-24 (evening)
+
+### Multi-Currency Cash Payments
+- **New tables**: `company_currencies` (alternative currencies per company with manual exchange rate), `session_currency_cash` (per-currency opening/closing cash tracking per register session)
+- **Payments**: Added `foreign_currency_id`, `foreign_amount`, `exchange_rate` nullable columns — `amount` always stays in base currency for backward compatibility
+- **Lock default currency**: After the first bill is created, the company's default currency cannot be changed (FilterChips disabled in settings)
+- **Settings UI**: New "Alternative currencies" section in Company Info — add/remove currencies, set exchange rates
+- **Payment dialog**: "Other currency" button activates foreign currency mode — filters to cash-only methods, shows amount in foreign currency with conversion rate, supports custom amount editing
+- **BillRepository**: `recordPayment()` accepts foreign currency params; `refundBill()` and `refundItem()` copy foreign metadata with negated amounts
+- **Opening/Closing cash**: Dialogs and session helpers extended to track opening/closing cash per foreign currency; expected cash calculated from foreign amount aggregation
+- **Z-Report**: `ForeignCurrencyCashSummary` data class; `ZReportService.buildZReport()` and `buildVenueZReport()` aggregate foreign currency cash; dialog and PDF show per-currency reconciliation
+- **Receipt**: `ReceiptPaymentData` extended with foreign currency fields; PDF shows "20.00 EUR × 25.50" under foreign currency payments
+- **Statistics**: Receipt detail shows foreign currency code next to payment method name
+- **Supabase migration**: `20260224_002_add_multi_currency.sql` — CREATE TABLE + RLS + triggers for both new tables, ALTER TABLE payments for 3 new columns
+- **Sync**: Both new tables registered in `tableDependencyOrder` and `_getDriftTable`; Supabase push/pull mappers added
+- **L10n**: ~15 new keys in cs/en for all multi-currency UI surfaces
+
 ## 2026-02-24
 
 ### Last Admin Guard

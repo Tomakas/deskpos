@@ -1510,8 +1510,26 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
     final allMethods = await paymentMethodRepo.getAll(bill.companyId);
     if (!mounted) return;
     final methodNameMap = {for (final m in allMethods) m.id: m.name};
+    // Resolve foreign currency codes
+    final currencyRepo = ref.read(currencyRepositoryProvider);
+    final foreignCurrencyNames = <String, String>{};
+    for (final p in payments) {
+      if (p.foreignCurrencyId != null && !foreignCurrencyNames.containsKey(p.foreignCurrencyId)) {
+        final cur = await currencyRepo.getById(p.foreignCurrencyId!);
+        foreignCurrencyNames[p.foreignCurrencyId!] = cur?.code ?? '?';
+      }
+    }
+    if (!mounted) return;
+
     final paymentNames = payments
-        .map((p) => methodNameMap[p.paymentMethodId] ?? '-')
+        .map((p) {
+          final name = methodNameMap[p.paymentMethodId] ?? '-';
+          if (p.foreignCurrencyId != null && p.foreignAmount != null) {
+            final curCode = foreignCurrencyNames[p.foreignCurrencyId!] ?? '?';
+            return '$name ($curCode)';
+          }
+          return name;
+        })
         .toSet()
         .join(', ');
     final tipTotal = payments.fold(0, (s, p) => s + p.tipIncludedAmount);

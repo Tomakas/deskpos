@@ -7,11 +7,14 @@ import '../../../core/data/models/cash_movement_model.dart';
 import '../../../core/data/models/register_model.dart';
 import '../../../core/data/repositories/bill_repository.dart';
 import '../../../core/data/repositories/cash_movement_repository.dart';
+import '../../../core/data/repositories/currency_repository.dart';
 import '../../../core/data/repositories/order_repository.dart';
+import '../../../core/data/models/payment_method_model.dart';
 import '../../../core/data/repositories/payment_method_repository.dart';
 import '../../../core/data/repositories/payment_repository.dart';
 import '../../../core/data/repositories/register_repository.dart';
 import '../../../core/data/repositories/register_session_repository.dart';
+import '../../../core/data/repositories/session_currency_cash_repository.dart';
 import '../../../core/data/repositories/shift_repository.dart';
 import '../../../core/data/repositories/user_repository.dart';
 import '../models/z_report_data.dart';
@@ -28,6 +31,8 @@ class ZReportService {
     required this.userRepo,
     required this.orderRepo,
     required this.registerRepo,
+    required this.sessionCurrencyCashRepo,
+    required this.currencyRepo,
   });
 
   final BillRepository billRepo;
@@ -39,6 +44,8 @@ class ZReportService {
   final UserRepository userRepo;
   final OrderRepository orderRepo;
   final RegisterRepository registerRepo;
+  final SessionCurrencyCashRepository sessionCurrencyCashRepo;
+  final CurrencyRepository currencyRepo;
 
   Future<ZReportData?> buildZReport(String sessionId) async {
     final session = await registerSessionRepo.getById(sessionId, includeDeleted: true);
@@ -183,6 +190,11 @@ class ZReportService {
     final sessionEnd = session.closedAt ?? DateTime.now();
     final duration = sessionEnd.difference(session.openedAt);
 
+    // Foreign currency cash
+    final foreignCurrencyCash = await _buildForeignCurrencyCash(
+      sessionId, sessionBills, methodMap,
+    );
+
     return ZReportData(
       sessionId: sessionId,
       openedAt: session.openedAt,
@@ -211,6 +223,7 @@ class ZReportService {
       openBillsAtCloseCount: session.openBillsAtCloseCount ?? 0,
       openBillsAtCloseAmount: session.openBillsAtCloseAmount ?? 0,
       registerName: registerName,
+      foreignCurrencyCash: foreignCurrencyCash,
     );
   }
 
@@ -475,6 +488,13 @@ class ZReportService {
     // Opened by: first session's opener (may be soft-deleted)
     final firstOpener = await userRepo.getById(sessionsInRange.first.openedByUserId, includeDeleted: true);
 
+    // Foreign currency cash — aggregate across all sessions
+    final foreignCurrencyCash = await _buildForeignCurrencyCashMultiSession(
+      sessionsInRange.map((s) => s.id).toList(),
+      allBills,
+      methodMap,
+    );
+
     return ZReportData(
       sessionId: 'venue-${dateFrom.millisecondsSinceEpoch}',
       openedAt: earliest,
@@ -503,6 +523,7 @@ class ZReportService {
       openBillsAtCloseCount: 0,
       openBillsAtCloseAmount: 0,
       registerBreakdowns: registerBreakdowns,
+      foreignCurrencyCash: foreignCurrencyCash,
     );
   }
 
@@ -546,6 +567,120 @@ class ZReportService {
       ));
     }
 
+    return summaries;
+  }
+
+  /// Build foreign currency cash summaries for a single session.
+  Future<List<ForeignCurrencyCashSummary>> _buildForeignCurrencyCash(
+    String sessionId,
+    List<BillModel> sessionBills,
+    Map<String, PaymentMethodModel> methodMap,
+  ) async {
+    final sccList = await sessionCurrencyCashRepo.getBySession(sessionId);
+    if (sccList.isEmpty) return [];
+
+    // Aggregate foreignAmount per currencyId from cash payments
+    final foreignRevenue = <String, int>{};
+    final foreignCount = <String, int>{};
+    for (final bill in sessionBills) {
+      if (bill.status == BillStatus.cancelled) continue;
+      final payments = await paymentRepo.getByBill(bill.id);
+      for (final p in payments) {
+        if (p.foreignCurrencyId != null && p.foreignAmount != null) {
+          final method = methodMap[p.paymentMethodId];
+          if (method?.type == PaymentType.cash) {
+            foreignRevenue[p.foreignCurrencyId!] =
+                (foreignRevenue[p.foreignCurrencyId!] ?? 0) + p.foreignAmount!;
+            foreignCount[p.foreignCurrencyId!] =
+                (foreignCount[p.foreignCurrencyId!] ?? 0) + 1;
+          }
+        }
+      }
+    }
+
+    final summaries = <ForeignCurrencyCashSummary>[];
+    for (final scc in sccList) {
+      final cur = await currencyRepo.getById(scc.currencyId);
+      if (cur == null) continue;
+      final revenue = foreignRevenue[scc.currencyId] ?? 0;
+      final expected = scc.openingCash + revenue;
+      final closing = scc.closingCash ?? 0;
+      summaries.add(ForeignCurrencyCashSummary(
+        currencyCode: cur.code,
+        currencySymbol: cur.symbol,
+        decimalPlaces: cur.decimalPlaces,
+        openingCash: scc.openingCash,
+        closingCash: closing,
+        expectedCash: expected,
+        difference: scc.difference ?? (closing - expected),
+        cashRevenue: revenue,
+        paymentCount: foreignCount[scc.currencyId] ?? 0,
+      ));
+    }
+    return summaries;
+  }
+
+  /// Build foreign currency cash summaries aggregated across multiple sessions.
+  Future<List<ForeignCurrencyCashSummary>> _buildForeignCurrencyCashMultiSession(
+    List<String> sessionIds,
+    List<BillModel> allBills,
+    Map<String, PaymentMethodModel> methodMap,
+  ) async {
+    // Aggregate SessionCurrencyCash across sessions by currencyId
+    final aggregated = <String, ({int opening, int closing, int? difference})>{};
+    for (final sessionId in sessionIds) {
+      final sccList = await sessionCurrencyCashRepo.getBySession(sessionId);
+      for (final scc in sccList) {
+        final existing = aggregated[scc.currencyId];
+        aggregated[scc.currencyId] = (
+          opening: (existing?.opening ?? 0) + scc.openingCash,
+          closing: (existing?.closing ?? 0) + (scc.closingCash ?? 0),
+          difference: null, // Will recompute
+        );
+      }
+    }
+    if (aggregated.isEmpty) return [];
+
+    // Aggregate foreignAmount per currencyId from cash payments across session bills
+    final sessionIdSet = sessionIds.toSet();
+    final foreignRevenue = <String, int>{};
+    final foreignCount = <String, int>{};
+    for (final bill in allBills) {
+      if (bill.status == BillStatus.cancelled) continue;
+      if (bill.registerSessionId == null || !sessionIdSet.contains(bill.registerSessionId)) continue;
+      final payments = await paymentRepo.getByBill(bill.id);
+      for (final p in payments) {
+        if (p.foreignCurrencyId != null && p.foreignAmount != null) {
+          final method = methodMap[p.paymentMethodId];
+          if (method?.type == PaymentType.cash) {
+            foreignRevenue[p.foreignCurrencyId!] =
+                (foreignRevenue[p.foreignCurrencyId!] ?? 0) + p.foreignAmount!;
+            foreignCount[p.foreignCurrencyId!] =
+                (foreignCount[p.foreignCurrencyId!] ?? 0) + 1;
+          }
+        }
+      }
+    }
+
+    final summaries = <ForeignCurrencyCashSummary>[];
+    for (final entry in aggregated.entries) {
+      final cur = await currencyRepo.getById(entry.key);
+      if (cur == null) continue;
+      final revenue = foreignRevenue[entry.key] ?? 0;
+      final expected = entry.value.opening + revenue;
+      final closing = entry.value.closing;
+      summaries.add(ForeignCurrencyCashSummary(
+        currencyCode: cur.code,
+        currencySymbol: cur.symbol,
+        decimalPlaces: cur.decimalPlaces,
+        openingCash: entry.value.opening,
+        closingCash: closing,
+        expectedCash: expected,
+        difference: closing - expected,
+        cashRevenue: revenue,
+        paymentCount: foreignCount[entry.key] ?? 0,
+      ));
+    }
     return summaries;
   }
 }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/data/models/currency_model.dart';
+import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
@@ -12,6 +14,33 @@ import '../../../core/widgets/pos_dialog_shell.dart';
 // ---------------------------------------------------------------------------
 // Data classes
 // ---------------------------------------------------------------------------
+
+/// Foreign currency cash data for closing reconciliation.
+class ForeignCurrencyCashData {
+  const ForeignCurrencyCashData({
+    required this.currencyId,
+    required this.code,
+    required this.symbol,
+    required this.decimalPlaces,
+    required this.openingCash,
+    required this.expectedCash,
+    required this.cashRevenue,
+  });
+
+  final String currencyId;
+  final String code;
+  final String symbol;
+  final int decimalPlaces;
+  final int openingCash;
+  final int expectedCash; // opening + cashRevenue
+  final int cashRevenue;
+
+  CurrencyModel toCurrencyModel() => CurrencyModel(
+    id: currencyId, code: code, symbol: symbol,
+    name: '', decimalPlaces: decimalPlaces,
+    createdAt: DateTime.now(), updatedAt: DateTime.now(),
+  );
+}
 
 class ClosingSessionData {
   const ClosingSessionData({
@@ -28,6 +57,7 @@ class ClosingSessionData {
     required this.cashWithdrawals,
     required this.openBillsCount,
     required this.openBillsAmount,
+    this.foreignCurrencyCash = const [],
   });
 
   final DateTime sessionOpenedAt;
@@ -60,6 +90,9 @@ class ClosingSessionData {
   final int openBillsCount;
   final int openBillsAmount;
 
+  /// Foreign currency cash reconciliation data.
+  final List<ForeignCurrencyCashData> foreignCurrencyCash;
+
   /// Cash revenue only (sum of payments where method type == cash), in haléře.
   int get cashRevenue {
     return paymentSummaries
@@ -90,11 +123,15 @@ class ClosingSessionResult {
   const ClosingSessionResult({
     required this.closingCash,
     this.note,
+    this.foreignClosingCash = const {},
   });
 
   /// Actual cash counted by the cashier, in haléře.
   final int closingCash;
   final String? note;
+
+  /// Foreign currency closing cash: currencyId → amount in minor units.
+  final Map<String, int> foreignClosingCash;
 }
 
 // ---------------------------------------------------------------------------
@@ -111,6 +148,7 @@ class DialogClosingSession extends ConsumerStatefulWidget {
 
 class _DialogClosingSessionState extends ConsumerState<DialogClosingSession> {
   late final TextEditingController _closingCashCtrl;
+  final Map<String, TextEditingController> _foreignClosingCtrls = {};
   String? _note;
 
   ClosingSessionData get _data => widget.data;
@@ -120,11 +158,19 @@ class _DialogClosingSessionState extends ConsumerState<DialogClosingSession> {
     super.initState();
     _closingCashCtrl = TextEditingController();
     _closingCashCtrl.addListener(() => setState(() {}));
+    for (final fc in _data.foreignCurrencyCash) {
+      final ctrl = TextEditingController();
+      ctrl.addListener(() => setState(() {}));
+      _foreignClosingCtrls[fc.currencyId] = ctrl;
+    }
   }
 
   @override
   void dispose() {
     _closingCashCtrl.dispose();
+    for (final ctrl in _foreignClosingCtrls.values) {
+      ctrl.dispose();
+    }
     super.dispose();
   }
 
@@ -149,9 +195,24 @@ class _DialogClosingSessionState extends ConsumerState<DialogClosingSession> {
   void _confirm() {
     final closing = _closingCashMinor;
     if (closing == null) return;
+
+    final foreignClosing = <String, int>{};
+    for (final fc in _data.foreignCurrencyCash) {
+      final ctrl = _foreignClosingCtrls[fc.currencyId]!;
+      final parsed = int.tryParse(ctrl.text);
+      if (parsed != null) {
+        final cur = fc.toCurrencyModel();
+        foreignClosing[fc.currencyId] = parseMoney(parsed.toString(), cur);
+      }
+    }
+
     Navigator.pop(
       context,
-      ClosingSessionResult(closingCash: closing, note: _note),
+      ClosingSessionResult(
+        closingCash: closing,
+        note: _note,
+        foreignClosingCash: foreignClosing,
+      ),
     );
   }
 
@@ -220,6 +281,12 @@ class _DialogClosingSessionState extends ConsumerState<DialogClosingSession> {
 
                 // --- Cash reconciliation ---
                 _buildCashReconciliation(l, theme),
+
+                // --- Foreign currency cash ---
+                if (_data.foreignCurrencyCash.isNotEmpty) ...[
+                  const Divider(height: 24),
+                  _buildForeignCashReconciliation(l, theme),
+                ],
                 const SizedBox(height: 16),
 
                 // --- Closing cash input ---
@@ -335,6 +402,72 @@ class _DialogClosingSessionState extends ConsumerState<DialogClosingSession> {
           ref.money(_data.expectedCash),
           bold: true,
         ),
+      ],
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Section: Foreign currency cash reconciliation
+  // ---------------------------------------------------------------------------
+
+  Widget _buildForeignCashReconciliation(AppLocalizations l, ThemeData theme) {
+    final locale = ref.read(appLocaleProvider).value ?? 'cs';
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(l.closingForeignCashTitle, style: theme.textTheme.titleSmall),
+        const SizedBox(height: 8),
+        for (final fc in _data.foreignCurrencyCash) ...[
+          _buildForeignCurrencySection(fc, l, theme, locale),
+          const SizedBox(height: 12),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildForeignCurrencySection(
+    ForeignCurrencyCashData fc, AppLocalizations l, ThemeData theme, String locale,
+  ) {
+    final cur = fc.toCurrencyModel();
+    String fmt(int amount) => formatMoney(amount, cur, appLocale: locale);
+    String fmtSign(int amount) => formatMoneyWithSign(amount, cur, appLocale: locale);
+
+    final ctrl = _foreignClosingCtrls[fc.currencyId]!;
+    final parsed = int.tryParse(ctrl.text);
+    final closingMinor = parsed != null ? parseMoney(parsed.toString(), cur) : null;
+    final diff = closingMinor != null ? closingMinor - fc.expectedCash : null;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('${fc.code} (${fc.symbol})',
+            style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 4),
+        _row(l.closingOpeningCash, fmt(fc.openingCash)),
+        _row(l.closingCashRevenue, fmtSign(fc.cashRevenue)),
+        const Divider(height: 8),
+        _row(l.closingExpectedCash, fmt(fc.expectedCash), bold: true),
+        const SizedBox(height: 8),
+        TextField(
+          controller: ctrl,
+          decoration: InputDecoration(
+            labelText: l.closingActualCash,
+            suffixText: fc.symbol,
+            border: const OutlineInputBorder(),
+            isDense: true,
+          ),
+          keyboardType: TextInputType.number,
+          style: theme.textTheme.titleMedium,
+        ),
+        if (diff != null) ...[
+          const SizedBox(height: 4),
+          _row(
+            l.closingDifference,
+            fmtSign(diff),
+            bold: true,
+            valueColor: cashDifferenceColor(diff, context),
+          ),
+        ],
       ],
     );
   }

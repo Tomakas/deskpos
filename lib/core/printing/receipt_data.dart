@@ -114,11 +114,23 @@ class ReceiptPaymentData {
     required this.methodName,
     required this.amount,
     this.tip = 0,
+    this.foreignCurrencyCode,
+    this.foreignCurrencySymbol,
+    this.foreignAmount,
+    this.foreignDecimalPlaces,
+    this.exchangeRate,
   });
 
   final String methodName;
   final int amount;
   final int tip;
+
+  /// Foreign currency info (null when paid in base currency).
+  final String? foreignCurrencyCode;
+  final String? foreignCurrencySymbol;
+  final int? foreignAmount;
+  final int? foreignDecimalPlaces;
+  final double? exchangeRate;
 }
 
 class ReceiptLabels {

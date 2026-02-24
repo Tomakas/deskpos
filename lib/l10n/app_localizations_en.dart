@@ -3447,4 +3447,63 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statsOrderItems => 'Items';
+
+  @override
+  String get settingsCurrencyLocked =>
+      'Default currency cannot be changed after the first bill is created.';
+
+  @override
+  String get settingsAlternativeCurrencies => 'Alternative currencies';
+
+  @override
+  String get settingsAddCurrency => 'Add currency';
+
+  @override
+  String get settingsExchangeRate => 'Exchange rate';
+
+  @override
+  String settingsExchangeRateLabel(String code) {
+    return '1 $code =';
+  }
+
+  @override
+  String get paymentForeignCurrencySelect => 'Other currency';
+
+  @override
+  String paymentForeignRate(String rate, String amount) {
+    return '× $rate = $amount';
+  }
+
+  @override
+  String get paymentChangeInBase => 'Change in base currency';
+
+  @override
+  String get openingForeignCashTitle => 'Opening cash for foreign currencies';
+
+  @override
+  String get closingForeignCashTitle => 'Closing cash for foreign currencies';
+
+  @override
+  String get zReportForeignCashTitle => 'Foreign currency cash';
+
+  @override
+  String get zReportForeignOpening => 'Opening';
+
+  @override
+  String get zReportForeignRevenue => 'Revenue';
+
+  @override
+  String get zReportForeignExpected => 'Expected';
+
+  @override
+  String get zReportForeignClosing => 'Actual';
+
+  @override
+  String get zReportForeignDifference => 'Difference';
+
+  @override
+  String get currencySelectorTitle => 'Select currency';
+
+  @override
+  String get currencySelectorBack => 'Back';
 }

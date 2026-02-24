@@ -345,6 +345,9 @@ class BillRepository {
     String? registerId,
     String? registerSessionId,
     int loyaltyEarnRate = 0,
+    String? foreignCurrencyId,
+    int? foreignAmount,
+    double? exchangeRate,
   }) async {
     try {
       final now = DateTime.now();
@@ -365,6 +368,9 @@ class BillRepository {
           paidAt: now,
           currencyId: currencyId,
           tipIncludedAmount: Value(tipAmount),
+          foreignCurrencyId: Value(foreignCurrencyId),
+          foreignAmount: Value(foreignAmount),
+          exchangeRate: Value(exchangeRate),
         ));
 
         final bill = await (_db.select(_db.bills)
@@ -731,6 +737,9 @@ class BillRepository {
             registerId: Value(registerId),
             registerSessionId: Value(registerSessionId),
             userId: Value(userId),
+            foreignCurrencyId: Value(payment.foreignCurrencyId),
+            foreignAmount: Value(payment.foreignAmount != null ? -payment.foreignAmount! : null),
+            exchangeRate: Value(payment.exchangeRate),
           ));
 
           if (cashMethodIds.contains(payment.paymentMethodId)) {
@@ -875,7 +884,8 @@ class BillRepository {
           .toSet();
 
       // Use first payment method as the refund method
-      final refundMethodId = payments.first.paymentMethodId;
+      final refundPayment = payments.first;
+      final refundMethodId = refundPayment.paymentMethodId;
       final isCash = cashMethodIds.contains(refundMethodId);
 
       // Calculate proportional loyalty earned reversal
@@ -901,6 +911,11 @@ class BillRepository {
           registerId: Value(bill.lastRegisterId),
           registerSessionId: Value(registerSessionId),
           userId: Value(userId),
+          foreignCurrencyId: Value(refundPayment.foreignCurrencyId),
+          foreignAmount: Value(refundPayment.foreignAmount != null && refundPayment.amount.abs() > 0
+              ? -(refundAmount * refundPayment.foreignAmount! / refundPayment.amount.abs()).round()
+              : null),
+          exchangeRate: Value(refundPayment.exchangeRate),
         ));
 
         // Void the item

@@ -4,6 +4,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 import '../../features/bills/models/z_report_data.dart';
+import '../data/models/currency_model.dart';
 import '../utils/formatters.dart';
 import 'receipt_data.dart';
 
@@ -191,6 +192,23 @@ class ZReportPdfBuilder {
             _fmtSigned(data.difference),
             boldStyle,
           ),
+
+
+          // --- Foreign currency cash ---
+          if (data.foreignCurrencyCash.isNotEmpty) ...[
+            pw.SizedBox(height: 6),
+            for (final fc in data.foreignCurrencyCash) ...[
+              pw.Text('${fc.currencyCode} (${fc.currencySymbol})', style: boldStyle),
+              pw.SizedBox(height: 4),
+              _row(labels.cashOpening, _fmtForeign(fc.openingCash, fc), baseStyle),
+              _signedForeignRow(labels.cashRevenue, fc.cashRevenue, fc, baseStyle),
+              pw.SizedBox(height: 2),
+              _row(labels.cashExpected, _fmtForeign(fc.expectedCash, fc), boldStyle),
+              _row(labels.cashClosing, _fmtForeign(fc.closingCash, fc), baseStyle),
+              _row(labels.cashDifference, _fmtForeignSigned(fc.difference, fc), boldStyle),
+              pw.SizedBox(height: 6),
+            ],
+          ],
           pw.Divider(),
 
           // --- Shift durations ---
@@ -231,6 +249,32 @@ class ZReportPdfBuilder {
         children: [
           pw.Expanded(child: pw.Text(label, style: style)),
           pw.Text(_fmtSigned(amount), style: style),
+        ],
+      ),
+    );
+  }
+
+  String _fmtForeign(int amount, ForeignCurrencyCashSummary fc) {
+    final cur = CurrencyModel(
+      id: '', code: fc.currencyCode, symbol: fc.currencySymbol,
+      name: '', decimalPlaces: fc.decimalPlaces,
+      createdAt: DateTime.now(), updatedAt: DateTime.now(),
+    );
+    return formatMoneyForPrint(amount, cur);
+  }
+
+  String _fmtForeignSigned(int amount, ForeignCurrencyCashSummary fc) {
+    final prefix = amount >= 0 ? '+' : '';
+    return '$prefix${_fmtForeign(amount, fc)}';
+  }
+
+  pw.Widget _signedForeignRow(String label, int amount, ForeignCurrencyCashSummary fc, pw.TextStyle style) {
+    return pw.Padding(
+      padding: const pw.EdgeInsets.symmetric(vertical: 1),
+      child: pw.Row(
+        children: [
+          pw.Expanded(child: pw.Text(label, style: style)),
+          pw.Text(_fmtForeignSigned(amount, fc), style: style),
         ],
       ),
     );

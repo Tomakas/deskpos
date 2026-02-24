@@ -13,6 +13,7 @@ import '../../../core/data/providers/permission_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/utils/permission_implications.dart';
 import '../../../core/utils/permission_l10n.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
@@ -427,12 +428,31 @@ class _UserEditDialogState extends ConsumerState<_UserEditDialog>
     return !_roleTemplateIds.containsAll(_grantedPermissionIds);
   }
 
+  String? _permissionCodeById(String id) =>
+      _allPermissions.where((p) => p.id == id).firstOrNull?.code;
+
+  String? _permissionIdByCode(String code) =>
+      _allPermissions.where((p) => p.code == code).firstOrNull?.id;
+
   void _togglePermission(String permissionId, bool granted) {
+    final code = _permissionCodeById(permissionId);
     setState(() {
       if (granted) {
         _grantedPermissionIds.add(permissionId);
+        if (code != null) {
+          for (final reqCode in getRequiredPermissions(code)) {
+            final reqId = _permissionIdByCode(reqCode);
+            if (reqId != null) _grantedPermissionIds.add(reqId);
+          }
+        }
       } else {
         _grantedPermissionIds.remove(permissionId);
+        if (code != null) {
+          for (final depCode in getDependentPermissions(code)) {
+            final depId = _permissionIdByCode(depCode);
+            if (depId != null) _grantedPermissionIds.remove(depId);
+          }
+        }
       }
       _permissionsManuallyEdited = true;
     });
@@ -441,11 +461,21 @@ class _UserEditDialogState extends ConsumerState<_UserEditDialog>
   void _toggleGroup(String category, bool granted) {
     final groupPerms = _allPermissions.where((p) => p.category == category);
     setState(() {
-      for (final p in groupPerms) {
-        if (granted) {
+      if (granted) {
+        for (final p in groupPerms) {
           _grantedPermissionIds.add(p.id);
-        } else {
+          for (final reqCode in getRequiredPermissions(p.code)) {
+            final reqId = _permissionIdByCode(reqCode);
+            if (reqId != null) _grantedPermissionIds.add(reqId);
+          }
+        }
+      } else {
+        for (final p in groupPerms) {
           _grantedPermissionIds.remove(p.id);
+          for (final depCode in getDependentPermissions(p.code)) {
+            final depId = _permissionIdByCode(depCode);
+            if (depId != null) _grantedPermissionIds.remove(depId);
+          }
         }
       }
       _permissionsManuallyEdited = true;

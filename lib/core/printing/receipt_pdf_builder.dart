@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
+import '../data/models/currency_model.dart';
 import '../utils/formatters.dart';
 import 'receipt_data.dart';
 
@@ -267,6 +268,15 @@ class ReceiptPdfBuilder {
                 _fmtMoney(p.amount),
                 baseStyle,
               ),
+              if (p.foreignCurrencyCode != null && p.foreignAmount != null) ...[
+                pw.Padding(
+                  padding: const pw.EdgeInsets.only(left: 12),
+                  child: pw.Text(
+                    '${_fmtForeignPayment(p)} × ${p.exchangeRate?.toStringAsFixed(2) ?? '?'}',
+                    style: smallStyle,
+                  ),
+                ),
+              ],
               if (p.tip > 0)
                 pw.Padding(
                   padding: const pw.EdgeInsets.only(left: 12),
@@ -317,5 +327,15 @@ class ReceiptPdfBuilder {
         pw.Text(value, style: style),
       ],
     );
+  }
+
+  String _fmtForeignPayment(ReceiptPaymentData p) {
+    if (p.foreignAmount == null || p.foreignCurrencyCode == null) return '';
+    final cur = CurrencyModel(
+      id: '', code: p.foreignCurrencyCode!, symbol: p.foreignCurrencySymbol ?? '',
+      name: '', decimalPlaces: p.foreignDecimalPlaces ?? 2,
+      createdAt: DateTime.now(), updatedAt: DateTime.now(),
+    );
+    return formatMoneyForPrint(p.foreignAmount!, cur);
   }
 }
