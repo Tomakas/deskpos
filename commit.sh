@@ -170,8 +170,34 @@ PYTHON
 
 echo ""
 echo "Changelog updated."
-echo ""
 
+# Version bump
+CURRENT_VERSION=$(grep -E '^version: ' pubspec.yaml | sed 's/version: //')
+IFS='.' read -r V_MAJOR V_MINOR V_PATCH <<< "$CURRENT_VERSION"
+
+echo ""
+echo "Current version: ${CURRENT_VERSION}"
+echo "Bump version?"
+echo "  1) major (${CURRENT_VERSION} → $((V_MAJOR + 1)).0.0)"
+echo "  2) minor (${CURRENT_VERSION} → ${V_MAJOR}.$((V_MINOR + 1)).0)"
+echo "  3) patch (${CURRENT_VERSION} → ${V_MAJOR}.${V_MINOR}.$((V_PATCH + 1)))"
+echo "  Enter) skip"
+printf "#? "
+read -r bump_choice
+
+case "$bump_choice" in
+  1) NEW_VERSION="$((V_MAJOR + 1)).0.0" ;;
+  2) NEW_VERSION="${V_MAJOR}.$((V_MINOR + 1)).0" ;;
+  3) NEW_VERSION="${V_MAJOR}.${V_MINOR}.$((V_PATCH + 1))" ;;
+  *) NEW_VERSION="" ;;
+esac
+
+if [ -n "$NEW_VERSION" ]; then
+  sed -i '' "s/^version: .*/version: ${NEW_VERSION}/" pubspec.yaml
+  echo "Version bumped: ${CURRENT_VERSION} → ${NEW_VERSION}"
+fi
+
+echo ""
 git add -A
 git commit -m "$COMMIT_MSG"
 
@@ -181,7 +207,11 @@ read -r push_choice
 if [ -z "$push_choice" ] || [[ "$push_choice" =~ ^[Yy]$ ]]; then
   git push
   echo ""
-  echo "Triggering build workflow..."
-  gh workflow run build.yml --ref main
-  echo "Build triggered."
+  printf "Trigger build workflow? [Y/n] "
+  read -r build_choice
+  if [ -z "$build_choice" ] || [[ "$build_choice" =~ ^[Yy]$ ]]; then
+    echo "Triggering build workflow..."
+    gh workflow run build.yml --ref main
+    echo "Build triggered."
+  fi
 fi

@@ -126,9 +126,12 @@ class UserRepository
   @override
   Future<Result<UserModel>> update(UserModel model) async {
     final existing = await getById(model.id);
-    if (existing != null && existing.roleId != model.roleId) {
-      if (await isLastAdmin(existing.companyId, existing.roleId)) {
+    if (existing != null && await isLastAdmin(existing.companyId, existing.roleId)) {
+      if (existing.roleId != model.roleId) {
         return const Failure('Cannot change role of the last admin');
+      }
+      if (existing.isActive && !model.isActive) {
+        return const Failure('Cannot deactivate the last admin');
       }
     }
     return super.update(model);

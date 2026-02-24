@@ -598,7 +598,7 @@ class _UserEditDialogState extends ConsumerState<_UserEditDialog>
             SwitchListTile(
               title: Text(l.fieldActive),
               value: _isActive,
-              onChanged: (v) => setState(() => _isActive = v),
+              onChanged: widget.isLastAdmin ? null : (v) => setState(() => _isActive = v),
             ),
           ],
         ),
