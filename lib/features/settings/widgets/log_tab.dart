@@ -89,7 +89,8 @@ class _LogTabState extends State<LogTab> {
           }
         });
       }
-    } catch (_) {
+    } catch (e, s) {
+      AppLogger.error('Failed to read log file', error: e, stackTrace: s);
       if (mounted) setState(() => _loading = false);
     }
   }

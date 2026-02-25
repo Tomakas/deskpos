@@ -85,7 +85,7 @@ Před spuštěním agentů:
 
 ### Pravidla analýzy
 
-Proveď **kompletní, důkladnou a podrobnou analýzu** celého EPOS projektu. Analýza je čistě **READ-ONLY** — žádný kód se nemodifikuje, žádné commity, žádné migrace.
+Proveď **kompletní, důkladnou a podrobnou analýzu** celého Maty projektu. Analýza je čistě **READ-ONLY** — žádný kód se nemodifikuje, žádné commity, žádné migrace.
 
 1. **Čti každý soubor**, na který odkazuješ. Necituj z paměti — vždy ověř aktuální stav.
 2. **Uváděj přesné cesty a čísla řádků** (`soubor:řádek`) u každého nálezu.
@@ -583,7 +583,7 @@ Analyzuj celý codebase na konzistenci zápisu. Nekonzistence **mezi soubory** j
 
 **Import ordering:**
 - [ ] Je pořadí importů konzistentní napříč soubory? (doporučené: dart:, package:flutter/, package:vlastní/, relativní importy, oddělené prázdnými řádky)
-- [ ] Relativní vs absolutní importy — je konzistentní styl? Nebo mix `import '../...'` a `import 'package:epos/...'`?
+- [ ] Relativní vs absolutní importy — je konzistentní styl? Nebo mix `import '../...'` a `import 'package:maty/...'`?
 - [ ] Jsou `part` / `part of` direktivy umístěny konzistentně?
 
 **Strukturování tříd (method ordering):**
@@ -771,12 +771,8 @@ Seřazené od nejkritičtějších. **Toto je primární výstup celého auditu.
 
 ```
 ### [ZÁVAŽNOST] Název nálezu
-**Soubor:** `cesta/soubor.dart:řádek`
 **Problém:** Co je špatně a jaký je dopad.
 **Řešení:** Jak opravit.
+**Rizika opravy** Odhad rizikovosti opravy
 ```
 
-### Quick-Fix tabulka
-
-| # | Závažnost | Soubor:řádek | Co změnit |
-|---|-----------|-------------|-----------|

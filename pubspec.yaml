@@ -1,7 +1,7 @@
-name: deskpos
-description: "EPOS Desktop App — offline-first POS system"
+name: maty
+description: "Maty — offline-first POS system"
 publish_to: 'none'
-version: 0.5.7
+version: 0.6.0
 
 environment:
   sdk: ^3.10.8

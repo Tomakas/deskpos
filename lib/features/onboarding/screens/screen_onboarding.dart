@@ -147,6 +147,12 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
                     child: Text(l.onboardingCustomerDisplay),
                   ),
                 ),
+                const SizedBox(height: 8),
+                Text(
+                  l.onboardingCustomerDisplaySubtitle,
+                  style: Theme.of(context).textTheme.bodySmall,
+                  textAlign: TextAlign.center,
+                ),
                 const SizedBox(height: 32),
                 const Divider(),
                 const SizedBox(height: 16),

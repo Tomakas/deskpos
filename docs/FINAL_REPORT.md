@@ -242,7 +242,7 @@
 | `print()` statements | 0 found -- AppLogger used consistently |
 | TODO/FIXME/HACK | 0 found -- clean codebase |
 | Import ordering | HIGH consistency -- group order correct in all 25+ sampled files |
-| Import style | 100% relative imports, no `package:epos/` |
+| Import style | 100% relative imports, no `package:maty/` |
 | Trailing commas | Consistent across all sampled files |
 | `part`/`part of` | 100% consistent across Freezed models |
 | Push mapper coverage | 35/35 synced entities have complete push mappers |

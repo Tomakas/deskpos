@@ -326,6 +326,6 @@ Row(
 # 2. Regenerovat Drift kód
 dart run build_runner build --delete-conflicting-outputs
 # 3. Smazat lokální DB (umístěna v ~/Documents, ne v kořenu projektu)
-rm -f ~/Documents/epos_database.sqlite
+rm -f ~/Documents/maty_database.sqlite
 # 4. Spustit aplikaci
 ```

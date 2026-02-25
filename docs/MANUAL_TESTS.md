@@ -1,4 +1,4 @@
-# Manuální testovací skripty — EPOS
+# Manuální testovací skripty — Maty
 
 Kompletní sada testovacích scénářů pro manuální testování POS aplikace.
 

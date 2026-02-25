@@ -101,13 +101,13 @@ abstract class AppLocalizations {
   /// No description provided for @appTitle.
   ///
   /// In cs, this message translates to:
-  /// **'EPOS'**
+  /// **'Maty'**
   String get appTitle;
 
   /// No description provided for @onboardingTitle.
   ///
   /// In cs, this message translates to:
-  /// **'Vítejte v EPOS'**
+  /// **'Vítejte v Maty'**
   String get onboardingTitle;
 
   /// No description provided for @onboardingCreateCompany.
@@ -4802,6 +4802,12 @@ abstract class AppLocalizations {
   /// **'Zákaznický displej'**
   String get onboardingCustomerDisplay;
 
+  /// No description provided for @onboardingCustomerDisplaySubtitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zařízení bude po připojení sloužit jako zákaznický displej.'**
+  String get onboardingCustomerDisplaySubtitle;
+
   /// No description provided for @onboardingCreateDemo.
   ///
   /// In cs, this message translates to:
@@ -4811,7 +4817,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingCreateDemoSubtitle.
   ///
   /// In cs, this message translates to:
-  /// **'Kompletní demo firma s 3 měsíci historie • automaticky se smaže po 24h'**
+  /// **'Kompletní demo firma s tříměsíční historií.'**
   String get onboardingCreateDemoSubtitle;
 
   /// No description provided for @demoDialogTitle.
@@ -5503,6 +5509,30 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Loňský rok'**
   String get periodLastYear;
+
+  /// No description provided for @periodTomorrow.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zítra'**
+  String get periodTomorrow;
+
+  /// No description provided for @periodNextWeek.
+  ///
+  /// In cs, this message translates to:
+  /// **'Příští týden'**
+  String get periodNextWeek;
+
+  /// No description provided for @periodNextMonth.
+  ///
+  /// In cs, this message translates to:
+  /// **'Příští měsíc'**
+  String get periodNextMonth;
+
+  /// No description provided for @periodNextYear.
+  ///
+  /// In cs, this message translates to:
+  /// **'Příští rok'**
+  String get periodNextYear;
 
   /// No description provided for @statsTitle.
   ///
@@ -6972,11 +7002,11 @@ abstract class AppLocalizations {
   /// **'Spropitné'**
   String get dashboardTips;
 
-  /// No description provided for @dashboardShowComparison.
+  /// No description provided for @dashboardPrevPeriod.
   ///
   /// In cs, this message translates to:
-  /// **'Porovnat'**
-  String get dashboardShowComparison;
+  /// **'Předchozí období:'**
+  String get dashboardPrevPeriod;
 
   /// No description provided for @dashboardRevenueOverTime.
   ///

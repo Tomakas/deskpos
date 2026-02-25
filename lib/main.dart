@@ -10,7 +10,7 @@ import 'core/network/supabase_config.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting();
-  AppLogger.info('EPOS starting');
+  AppLogger.info('Maty starting');
 
   await Supabase.initialize(
     url: supabaseUrl,
@@ -19,7 +19,7 @@ Future<void> main() async {
 
   runApp(
     const ProviderScope(
-      child: EposApp(),
+      child: MatyApp(),
     ),
   );
 }

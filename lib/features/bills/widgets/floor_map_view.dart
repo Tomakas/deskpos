@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/data/enums/bill_status.dart';
+import '../../../core/logging/app_logger.dart';
 import '../../../core/data/enums/table_shape.dart';
 import '../../../core/data/models/bill_model.dart';
 import '../../../core/data/models/map_element_model.dart';
@@ -365,7 +366,8 @@ Color _parseColor(String? hex) {
   try {
     final colorValue = int.parse(hex.replaceFirst('#', ''), radix: 16);
     return Color(colorValue | 0xFF000000);
-  } catch (_) {
+  } catch (e) {
+    AppLogger.warn('Invalid hex color: $hex', error: e);
     return Colors.blueGrey;
   }
 }

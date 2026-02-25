@@ -1,9 +1,9 @@
-; Inno Setup Script for DeskPOS
+; Inno Setup Script for Maty
 ; Bundles VC++ Redistributable — user does not need to install it manually.
 
-#define MyAppName "DeskPOS"
-#define MyAppExeName "deskpos.exe"
-#define MyAppPublisher "DeskPOS"
+#define MyAppName "Maty"
+#define MyAppExeName "maty.exe"
+#define MyAppPublisher "Maty"
 
 ; Version is passed via /DMyAppVersion=x.y.z from CI.
 ; Fallback to 1.0.0 when building locally.
@@ -19,7 +19,7 @@ AppPublisher={#MyAppPublisher}
 DefaultDirName={autopf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
-OutputBaseFilename=DeskPOS-{#MyAppVersion}-Setup
+OutputBaseFilename=Maty-{#MyAppVersion}-Setup
 OutputDir=..\..\build\installer
 Compression=lzma2/ultra64
 SolidCompression=yes

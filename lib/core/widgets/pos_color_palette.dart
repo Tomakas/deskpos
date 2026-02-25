@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../logging/app_logger.dart';
+
 /// Shared preset colors used across color pickers in the app.
 const kColorPresets = [
   '#E53935', // Red
@@ -18,6 +20,7 @@ const kColorPresets = [
   '#FF5722', // Deep Orange
   '#6D4C41', // Brown
   '#78909C', // Blue Grey
+  '#546E7A', // Blue Grey Dark
   '#BDBDBD', // Light Grey
   '#FFFFFF', // White
   '#000000', // Black
@@ -29,16 +32,16 @@ Color parseHexColor(String? hex, {Color fallback = Colors.blueGrey}) {
   try {
     final colorValue = int.parse(hex.replaceFirst('#', ''), radix: 16);
     return Color(colorValue | 0xFF000000);
-  } catch (_) {
+  } catch (e) {
+    AppLogger.warn('Invalid hex color: $hex', error: e);
     return fallback;
   }
 }
 
 /// A reusable color palette widget showing preset color circles.
 ///
-/// Shows a "none" option (first circle) plus all [kColorPresets].
-/// [selectedColor] is the currently selected hex string (null = none).
-/// [onColorSelected] is called with the chosen hex string (null = none).
+/// [selectedColor] is the currently selected hex string.
+/// [onColorSelected] is called with the chosen hex string.
 class PosColorPalette extends StatelessWidget {
   const PosColorPalette({
     super.key,
@@ -56,27 +59,6 @@ class PosColorPalette extends StatelessWidget {
       spacing: 6,
       runSpacing: 6,
       children: [
-        // "None" / default option
-        GestureDetector(
-          onTap: () => onColorSelected(null),
-          child: Container(
-            width: 28,
-            height: 28,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: selectedColor == null
-                    ? theme.colorScheme.primary
-                    : theme.dividerColor,
-                width: selectedColor == null ? 2.5 : 1,
-              ),
-            ),
-            child: const Center(
-              child: Icon(Icons.block, size: 14),
-            ),
-          ),
-        ),
-        // Preset colors
         for (final hex in kColorPresets)
           GestureDetector(
             onTap: () => onColorSelected(hex),

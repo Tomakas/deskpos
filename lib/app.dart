@@ -10,8 +10,8 @@ import 'core/widgets/inactivity_detector.dart';
 import 'core/widgets/pairing_confirmation_listener.dart';
 import 'l10n/app_localizations.dart';
 
-class EposApp extends ConsumerWidget {
-  const EposApp({super.key});
+class MatyApp extends ConsumerWidget {
+  const MatyApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -24,7 +24,7 @@ class EposApp extends ConsumerWidget {
     final version = ref.watch(appVersionProvider).valueOrNull;
 
     return MaterialApp.router(
-      title: version != null ? 'EPOS v$version' : 'EPOS',
+      title: version != null ? 'Maty v$version' : 'Maty',
       debugShowCheckedModeBanner: false,
       theme: _buildTheme(),
       localizationsDelegates: AppLocalizations.localizationsDelegates,

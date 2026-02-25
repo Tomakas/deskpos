@@ -34,7 +34,7 @@ class _DialogTipStatisticsState extends ConsumerState<DialogTipStatistics> {
   int _totalTips = 0;
   List<_TipStaffRow> _rows = [];
 
-  Future<void> _loadData(DateTime from, DateTime to) async {
+  Future<void> _loadData(DateTime from, DateTime to, DatePeriod _) async {
     setState(() => _loading = true);
 
     final company = ref.read(currentCompanyProvider);

@@ -1,6 +1,6 @@
-# EPOS Desktop App — Project Documentation
+# Maty — Project Documentation
 
-> Konsolidovaná dokumentace projektu EPOS Desktop App.
+> Konsolidovaná dokumentace projektu Maty.
 >
 > **Poslední aktualizace:** 2026-02-24
 
@@ -26,7 +26,7 @@
 
 ## Přehled
 
-**EPOS Desktop App** je moderní pokladní systém (Point of Sale) pro desktopová i mobilní prostředí (Windows, macOS, Linux, Android, iOS). Aplikace klade důraz na robustnost, rychlost a schopnost fungovat bez závislosti na stálém internetovém připojení.
+**Maty** je moderní pokladní systém (Point of Sale) pro desktopová i mobilní prostředí (Windows, macOS, Linux, Android, iOS). Aplikace klade důraz na robustnost, rychlost a schopnost fungovat bez závislosti na stálém internetovém připojení.
 
 ### Klíčové vlastnosti
 
@@ -767,7 +767,7 @@ Deklarativní routing s auth guardem:
 ```text
 lib/
 ├── main.dart                          # Supabase.initialize + runApp
-├── app.dart                           # EposApp, MaterialApp.router
+├── app.dart                           # MatyApp, MaterialApp.router
 ├── core/                              # Globální infrastruktura a sdílené jádro
 │   ├── auth/                          # Autentizace
 │   │   ├── auth_service.dart          # PIN ověření + brute-force lockout
@@ -902,10 +902,10 @@ Plánované řešení:
 Databáze se ukládá v adresáři dokumentů aplikace (`getApplicationDocumentsDirectory()` z `path_provider`):
 
 ```
-<applicationDocumentsDirectory>/epos_database.sqlite
+<applicationDocumentsDirectory>/maty_database.sqlite
 ```
 
-Cesta se skládá pomocí `path` package (`p.join(dir.path, 'epos_database.sqlite')`). Na macOS typicky `~/Library/Containers/.../Data/Documents/`, na Android `data/data/<package>/files/`.
+Cesta se skládá pomocí `path` package (`p.join(dir.path, 'maty_database.sqlite')`). Na macOS typicky `~/Library/Containers/.../Data/Documents/`, na Android `data/data/<package>/files/`.
 
 ### Mazání lokálních dat (Clean Install)
 
@@ -2210,7 +2210,7 @@ Při prvním spuštění aplikace (bez lokálních dat) se zobrazí **ScreenOnbo
 Tlačítka v hlavním sloupci (centered, max-width 420):
 
 1. **Přepínač jazyka** (cs/en) — `FilterChip` v `Row` s `Expanded`
-2. **Název „ePOS"** — titul
+2. **Název „Maty"** — titul
 3. **„Založit novou firmu"** (`FilledButton`) → zobrazí wizard (3 kroky)
 4. **„Připojit se ke stávající"** (`OutlinedButton`) → naviguje na `/connect-company`
 5. `Divider`
@@ -3473,11 +3473,11 @@ flutter pub get
 
 ### Windows distribuce (Inno Setup)
 
-Windows build se distribuuje jako instalátor (`DeskPOS-x.y.z-Setup.exe`), který automaticky nainstaluje **VC++ Redistributable** (pokud chybí) — uživatel o tom neví a nemusí nic řešit.
+Windows build se distribuuje jako instalátor (`Maty-x.y.z-Setup.exe`), který automaticky nainstaluje **VC++ Redistributable** (pokud chybí) — uživatel o tom neví a nemusí nic řešit.
 
 | Soubor | Účel |
 |--------|------|
-| `windows/installer/deskpos.iss` | Inno Setup skript — definice instalátoru |
+| `windows/installer/maty.iss` | Inno Setup skript — definice instalátoru |
 | `windows/installer/download-vcredist.ps1` | PowerShell skript — stáhne `vc_redist.x64.exe` pro přibalení |
 | `windows/installer/vcredist/` | Stažený redistributable (gitignored) |
 
@@ -3496,8 +3496,8 @@ flutter build windows --release
 powershell -File windows/installer/download-vcredist.ps1
 
 # 3. Vytvoř instalátor (vyžaduje Inno Setup nainstalovaný na Windows)
-iscc /DMyAppVersion=1.0.0 windows/installer/deskpos.iss
-# Výstup: build/installer/DeskPOS-1.0.0-Setup.exe
+iscc /DMyAppVersion=1.0.0 windows/installer/maty.iss
+# Výstup: build/installer/Maty-1.0.0-Setup.exe
 ```
 
 ### Konfigurace prostředí (od Etapy 3)

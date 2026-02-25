@@ -9,10 +9,10 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appTitle => 'EPOS';
+  String get appTitle => 'Maty';
 
   @override
-  String get onboardingTitle => 'Welcome to EPOS';
+  String get onboardingTitle => 'Welcome to Maty';
 
   @override
   String get onboardingCreateCompany => 'Create New Company';
@@ -2448,11 +2448,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onboardingCustomerDisplay => 'Customer Display';
 
   @override
+  String get onboardingCustomerDisplaySubtitle =>
+      'This device will serve as a customer display after connecting.';
+
+  @override
   String get onboardingCreateDemo => 'Create Demo';
 
   @override
   String get onboardingCreateDemoSubtitle =>
-      'Complete demo company with 3 months of history • auto-deletes after 24h';
+      'Complete demo company with three months of history.';
 
   @override
   String get demoDialogTitle => 'Create Demo Company';
@@ -2817,6 +2821,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get periodLastYear => 'Last year';
+
+  @override
+  String get periodTomorrow => 'Tomorrow';
+
+  @override
+  String get periodNextWeek => 'Next week';
+
+  @override
+  String get periodNextMonth => 'Next month';
+
+  @override
+  String get periodNextYear => 'Next year';
 
   @override
   String get statsTitle => 'Statistics';
@@ -3569,7 +3585,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboardTips => 'Tips';
 
   @override
-  String get dashboardShowComparison => 'Compare';
+  String get dashboardPrevPeriod => 'Previous period:';
 
   @override
   String get dashboardRevenueOverTime => 'Revenue over time';

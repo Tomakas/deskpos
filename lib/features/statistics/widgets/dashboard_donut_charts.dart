@@ -108,8 +108,8 @@ class _DonutSection extends StatelessWidget {
                 ),
                 Text(
                   total > 0
-                      ? '${(entry.value / total * 100).round()} %'
-                      : '0 %',
+                      ? '${(entry.value / total * 100).toStringAsFixed(1)} %'
+                      : '0.0 %',
                   style: const TextStyle(fontSize: 12),
                 ),
               ],

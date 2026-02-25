@@ -12,21 +12,15 @@ class DashboardTab extends StatelessWidget {
   const DashboardTab({
     super.key,
     required this.data,
-    required this.showComparison,
-    required this.onComparisonChanged,
     required this.topProductByRevenue,
     required this.onTopProductToggleChanged,
     required this.moneyFormatter,
-    required this.dateFormatter,
   });
 
   final DashboardData data;
-  final bool showComparison;
-  final ValueChanged<bool> onComparisonChanged;
   final bool topProductByRevenue;
   final ValueChanged<bool> onTopProductToggleChanged;
   final String Function(int) moneyFormatter;
-  final String Function(DateTime) dateFormatter;
 
   @override
   Widget build(BuildContext context) {
@@ -50,41 +44,60 @@ class DashboardTab extends StatelessWidget {
         children: [
           DashboardSummaryCards(
             data: data,
-            showComparison: showComparison,
-            onComparisonChanged: onComparisonChanged,
             moneyFormatter: moneyFormatter,
           ),
-          const SizedBox(height: 24),
           if (data.revenueByPeriod.isNotEmpty) ...[
-            DashboardRevenueChart(
-              entries: data.revenueByPeriod,
-              moneyFormatter: moneyFormatter,
+            const SizedBox(height: 16),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: DashboardRevenueChart(
+                  entries: data.revenueByPeriod,
+                  moneyFormatter: moneyFormatter,
+                ),
+              ),
             ),
-            const SizedBox(height: 24),
           ],
           if (data.paymentMethodBreakdown.isNotEmpty ||
               data.categoryBreakdown.isNotEmpty) ...[
-            DashboardDonutCharts(
-              paymentMethods: data.paymentMethodBreakdown,
-              categories: data.categoryBreakdown,
-              moneyFormatter: moneyFormatter,
+            const SizedBox(height: 16),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: DashboardDonutCharts(
+                  paymentMethods: data.paymentMethodBreakdown,
+                  categories: data.categoryBreakdown,
+                  moneyFormatter: moneyFormatter,
+                ),
+              ),
             ),
-            const SizedBox(height: 24),
           ],
           if (data.topProducts.isNotEmpty) ...[
-            DashboardTopProducts(
-              products: data.topProducts,
-              byRevenue: topProductByRevenue,
-              onToggleChanged: onTopProductToggleChanged,
-              moneyFormatter: moneyFormatter,
+            const SizedBox(height: 16),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: DashboardTopProducts(
+                  products: data.topProducts,
+                  byRevenue: topProductByRevenue,
+                  onToggleChanged: onTopProductToggleChanged,
+                  moneyFormatter: moneyFormatter,
+                ),
+              ),
             ),
-            const SizedBox(height: 24),
           ],
-          if (data.heatmapData.any((row) => row.any((v) => v > 0)))
-            DashboardHeatmap(
-              data: data.heatmapData,
-              moneyFormatter: moneyFormatter,
+          if (data.heatmapData.any((row) => row.any((v) => v > 0))) ...[
+            const SizedBox(height: 16),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: DashboardHeatmap(
+                  data: data.heatmapData,
+                  moneyFormatter: moneyFormatter,
+                ),
+              ),
             ),
+          ],
         ],
       ),
     );

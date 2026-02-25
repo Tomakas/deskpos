@@ -192,7 +192,7 @@ class CloudTab extends ConsumerWidget {
 
       // Delete the database file (and WAL/SHM companions)
       final dir = await getApplicationDocumentsDirectory();
-      final basePath = p.join(dir.path, 'epos_database.sqlite');
+      final basePath = p.join(dir.path, 'maty_database.sqlite');
       for (final suffix in ['', '-wal', '-shm', '-journal']) {
         final file = File('$basePath$suffix');
         if (await file.exists()) await file.delete();

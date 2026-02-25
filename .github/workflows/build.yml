@@ -36,18 +36,18 @@ jobs:
           if ($env:GITHUB_REF -match '^refs/tags/v(.+)$') {
             $version = $Matches[1]
           }
-          iscc "/DMyAppVersion=$version" windows/installer/deskpos.iss
+          iscc "/DMyAppVersion=$version" windows/installer/maty.iss
 
       - name: Upload installer
         uses: actions/upload-artifact@v4
         with:
-          name: deskpos-windows-installer
-          path: build/installer/DeskPOS-*-Setup.exe
+          name: maty-windows-installer
+          path: build/installer/Maty-*-Setup.exe
 
       - name: Upload raw build
         uses: actions/upload-artifact@v4
         with:
-          name: deskpos-windows-raw
+          name: maty-windows-raw
           path: build/windows/x64/runner/Release/
 
   build-linux:
@@ -78,5 +78,5 @@ jobs:
       - name: Upload Linux artifact
         uses: actions/upload-artifact@v4
         with:
-          name: deskpos-linux
+          name: maty-linux
           path: build/linux/x64/release/bundle/

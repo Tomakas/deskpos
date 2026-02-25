@@ -9,10 +9,10 @@ class AppLocalizationsCs extends AppLocalizations {
   AppLocalizationsCs([String locale = 'cs']) : super(locale);
 
   @override
-  String get appTitle => 'EPOS';
+  String get appTitle => 'Maty';
 
   @override
-  String get onboardingTitle => 'Vítejte v EPOS';
+  String get onboardingTitle => 'Vítejte v Maty';
 
   @override
   String get onboardingCreateCompany => 'Založit novou firmu';
@@ -2445,11 +2445,15 @@ class AppLocalizationsCs extends AppLocalizations {
   String get onboardingCustomerDisplay => 'Zákaznický displej';
 
   @override
+  String get onboardingCustomerDisplaySubtitle =>
+      'Zařízení bude po připojení sloužit jako zákaznický displej.';
+
+  @override
   String get onboardingCreateDemo => 'Vytvořit Demo';
 
   @override
   String get onboardingCreateDemoSubtitle =>
-      'Kompletní demo firma s 3 měsíci historie • automaticky se smaže po 24h';
+      'Kompletní demo firma s tříměsíční historií.';
 
   @override
   String get demoDialogTitle => 'Vytvořit demo firmu';
@@ -2812,6 +2816,18 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get periodLastYear => 'Loňský rok';
+
+  @override
+  String get periodTomorrow => 'Zítra';
+
+  @override
+  String get periodNextWeek => 'Příští týden';
+
+  @override
+  String get periodNextMonth => 'Příští měsíc';
+
+  @override
+  String get periodNextYear => 'Příští rok';
 
   @override
   String get statsTitle => 'Statistiky';
@@ -3564,7 +3580,7 @@ class AppLocalizationsCs extends AppLocalizations {
   String get dashboardTips => 'Spropitné';
 
   @override
-  String get dashboardShowComparison => 'Porovnat';
+  String get dashboardPrevPeriod => 'Předchozí období:';
 
   @override
   String get dashboardRevenueOverTime => 'Tržba v čase';

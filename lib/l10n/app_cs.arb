@@ -1,9 +1,9 @@
 {
   "@@locale": "cs",
 
-  "appTitle": "EPOS",
+  "appTitle": "Maty",
 
-  "onboardingTitle": "Vítejte v EPOS",
+  "onboardingTitle": "Vítejte v Maty",
   "onboardingCreateCompany": "Založit novou firmu",
   "onboardingJoinCompany": "Připojit se k firmě",
   "onboardingJoinCompanyDisabled": "Dostupné od verze 3.0",
@@ -1002,8 +1002,9 @@
   "billDetailShowOnDisplay": "Zák. displej",
 
   "onboardingCustomerDisplay": "Zákaznický displej",
+  "onboardingCustomerDisplaySubtitle": "Zařízení bude po připojení sloužit jako zákaznický displej.",
   "onboardingCreateDemo": "Vytvořit Demo",
-  "onboardingCreateDemoSubtitle": "Kompletní demo firma s 3 měsíci historie \u2022 automaticky se smaže po 24h",
+  "onboardingCreateDemoSubtitle": "Kompletní demo firma s tříměsíční historií.",
   "demoDialogTitle": "Vytvořit demo firmu",
   "demoDialogInfo": "Demo se automaticky smaže po 24 hodinách",
   "demoDialogCreate": "Vytvořit",
@@ -1153,6 +1154,10 @@
   "periodLastMonth": "Minulý měsíc",
   "periodThisYear": "Letošní rok",
   "periodLastYear": "Loňský rok",
+  "periodTomorrow": "Zítra",
+  "periodNextWeek": "Příští týden",
+  "periodNextMonth": "Příští měsíc",
+  "periodNextYear": "Příští rok",
 
   "statsTitle": "Statistiky",
   "statsTabReceipts": "Účtenky",
@@ -1458,7 +1463,7 @@
   "dashboardBillCount": "Účty",
   "dashboardAverage": "Průměr",
   "dashboardTips": "Spropitné",
-  "dashboardShowComparison": "Porovnat",
+  "dashboardPrevPeriod": "Předchozí období:",
   "dashboardRevenueOverTime": "Tržba v čase",
   "dashboardPaymentMethods": "Platební metody",
   "dashboardCategories": "Kategorie",

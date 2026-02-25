@@ -2,7 +2,7 @@
 set -euo pipefail
 
 URL="https://rrnvlsguhkelracusofe.supabase.co/functions/v1/reset-db"
-LOCAL_DB="$HOME/Documents/epos_database.sqlite"
+LOCAL_DB="$HOME/Documents/maty_database.sqlite"
 
 echo "This will DELETE all company data and auth users from Supabase"
 echo "and remove the local SQLite database ($LOCAL_DB)."

@@ -25,7 +25,7 @@ class _DialogReservationsListState extends ConsumerState<DialogReservationsList>
   DateTime? _dateFrom;
   DateTime? _dateTo;
 
-  void _onDateRangeChanged(DateTime from, DateTime to) {
+  void _onDateRangeChanged(DateTime from, DateTime to, DatePeriod _) {
     setState(() {
       _dateFrom = from;
       _dateTo = to;
@@ -80,26 +80,12 @@ class _DialogReservationsListState extends ConsumerState<DialogReservationsList>
       titleStyle: theme.textTheme.headlineSmall,
       maxWidth: 800,
       children: [
-        // Date range selector + New button
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: PosDateRangeSelector(
-                onChanged: _onDateRangeChanged,
-                locale: locale,
-                l10n: l,
-                initialPeriod: DatePeriod.week,
-                allowFuture: true,
-              ),
-            ),
-            const SizedBox(width: 16),
-            FilledButton.tonalIcon(
-              onPressed: _openCreateDialog,
-              icon: const Icon(Icons.add, size: 18),
-              label: Text(l.reservationNew),
-            ),
-          ],
+        PosDateRangeSelector(
+          onChanged: _onDateRangeChanged,
+          locale: locale,
+          l10n: l,
+          initialPeriod: DatePeriod.week,
+          allowFuture: true,
         ),
         const SizedBox(height: 8),
 
@@ -161,6 +147,11 @@ class _DialogReservationsListState extends ConsumerState<DialogReservationsList>
 
         const SizedBox(height: 16),
         PosDialogActions(
+          leading: FilledButton.tonalIcon(
+            onPressed: _openCreateDialog,
+            icon: const Icon(Icons.add, size: 18),
+            label: Text(l.reservationNew),
+          ),
           actions: [
             OutlinedButton(
               onPressed: () => Navigator.pop(context),

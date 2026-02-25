@@ -45,4 +45,4 @@ app.*.map.json
 /android/app/release
 
 # Local database
-epos_database.sqlite
+maty_database.sqlite

@@ -15,7 +15,7 @@ class PosDateRangeSelector extends StatefulWidget {
     this.allowFuture = false,
   });
 
-  final void Function(DateTime from, DateTime to) onChanged;
+  final void Function(DateTime from, DateTime to, DatePeriod period) onChanged;
   final String locale;
   final AppLocalizations l10n;
   final DatePeriod initialPeriod;
@@ -26,20 +26,23 @@ class PosDateRangeSelector extends StatefulWidget {
 }
 
 class _PosDateRangeSelectorState extends State<PosDateRangeSelector> {
-  late DatePeriod _period = widget.initialPeriod;
+  DatePeriod _period = DatePeriod.day;
   int _offset = 0;
   DateTime? _customFrom;
   DateTime? _customTo;
 
+  static const _minYear = 2000;
+
   @override
   void initState() {
     super.initState();
+    _period = widget.initialPeriod;
     WidgetsBinding.instance.addPostFrameCallback((_) => _emitRange());
   }
 
   void _emitRange() {
     final (from, to) = _computeRange();
-    widget.onChanged(from, to);
+    widget.onChanged(from, to, _period);
   }
 
   (DateTime, DateTime) _computeRange() {
@@ -85,23 +88,27 @@ class _PosDateRangeSelectorState extends State<PosDateRangeSelector> {
         final dateStr = DateFormat.yMd(locale).format(from);
         if (_offset == 0) return (l.periodToday, dateStr);
         if (_offset == -1) return (l.periodYesterday, dateStr);
+        if (_offset == 1) return (l.periodTomorrow, dateStr);
         final dayName = DateFormat.EEEE(locale).format(from);
         return ('${dayName[0].toUpperCase()}${dayName.substring(1)} $dateStr', null);
       case DatePeriod.week:
         final rangeStr = '${DateFormat.Md(locale).format(from)} — ${DateFormat.yMd(locale).format(to)}';
         if (_offset == 0) return (l.periodThisWeek, rangeStr);
         if (_offset == -1) return (l.periodLastWeek, rangeStr);
+        if (_offset == 1) return (l.periodNextWeek, rangeStr);
         return (rangeStr, null);
       case DatePeriod.month:
         final monthStr = DateFormat.yMMMM(locale).format(from);
         final capitalized = '${monthStr[0].toUpperCase()}${monthStr.substring(1)}';
         if (_offset == 0) return (l.periodThisMonth, capitalized);
         if (_offset == -1) return (l.periodLastMonth, capitalized);
+        if (_offset == 1) return (l.periodNextMonth, capitalized);
         return (capitalized, null);
       case DatePeriod.year:
         final yearStr = '${from.year}';
         if (_offset == 0) return (l.periodThisYear, yearStr);
         if (_offset == -1) return (l.periodLastYear, yearStr);
+        if (_offset == 1) return (l.periodNextYear, yearStr);
         return (yearStr, null);
       case DatePeriod.custom:
         if (_customFrom != null && _customTo != null) {
@@ -125,35 +132,39 @@ class _PosDateRangeSelectorState extends State<PosDateRangeSelector> {
   }
 
   void _navigate(int delta) {
-    setState(() => _offset += delta);
+    final newOffset = _offset + delta;
+    final now = DateTime.now();
+    // Guard against navigating before _minYear
+    if (_period == DatePeriod.year && now.year + newOffset < _minYear) return;
+    setState(() => _offset = newOffset);
     _emitRange();
   }
 
   Future<void> _pickCustomRange() async {
     final now = DateTime.now();
-    final firstDate = DateTime(now.year - 5);
-    final lastDate = DateTime(now.year + 1, 12, 31);
+    final firstDate = DateTime(_minYear);
+    final lastDate = widget.allowFuture
+        ? DateTime(now.year + 1, 12, 31)
+        : DateTime(now.year, now.month, now.day);
 
-    final from = await showDatePicker(
+    final initialFrom = _customFrom ?? now;
+    final initialTo = _customTo ?? initialFrom;
+
+    final range = await showDateRangePicker(
       context: context,
-      initialDate: _customFrom ?? now,
+      initialDateRange: DateTimeRange(
+        start: initialFrom.isAfter(lastDate) ? lastDate : initialFrom,
+        end: initialTo.isAfter(lastDate) ? lastDate : initialTo,
+      ),
       firstDate: firstDate,
       lastDate: lastDate,
     );
-    if (from == null || !mounted) return;
-
-    final to = await showDatePicker(
-      context: context,
-      initialDate: from,
-      firstDate: from,
-      lastDate: lastDate,
-    );
-    if (to == null || !mounted) return;
+    if (range == null || !mounted) return;
 
     setState(() {
       _period = DatePeriod.custom;
-      _customFrom = from;
-      _customTo = to;
+      _customFrom = range.start;
+      _customTo = range.end;
     });
     _emitRange();
   }
@@ -243,34 +254,43 @@ class _PosDateRangeSelectorState extends State<PosDateRangeSelector> {
       (DatePeriod.custom, l.periodCustom),
     ];
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        // Single row when wide enough; two rows otherwise
-        if (constraints.maxWidth >= 600) {
-          return Row(
-            children: [
-              Expanded(
-                flex: 3,
-                child: _buildNavigation(theme, isCustom, primary, secondary),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                flex: 4,
-                child: Row(children: _buildChips(chips, expanded: true)),
-              ),
-            ],
-          );
-        }
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            // Single row when wide enough; two rows otherwise
+            if (constraints.maxWidth >= 560) {
+              return Row(
+                children: [
+                  Expanded(
+                    flex: 3,
+                    child: _buildNavigation(theme, isCustom, primary, secondary),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    flex: 4,
+                    child: Row(children: _buildChips(chips, expanded: true)),
+                  ),
+                ],
+              );
+            }
 
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(children: _buildChips(chips, expanded: true)),
-            const SizedBox(height: 12),
-            _buildNavigation(theme, isCustom, primary, secondary),
-          ],
-        );
-      },
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(children: _buildChips(chips, expanded: true)),
+                const SizedBox(height: 12),
+                _buildNavigation(theme, isCustom, primary, secondary),
+              ],
+            );
+          },
+        ),
+      ),
     );
   }
 }

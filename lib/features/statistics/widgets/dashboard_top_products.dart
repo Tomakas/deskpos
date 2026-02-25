@@ -24,10 +24,13 @@ class DashboardTopProducts extends StatelessWidget {
     final l = context.l10n;
     final theme = Theme.of(context);
 
+    final sorted = [...products]..sort((a, b) => byRevenue
+        ? b.revenue.compareTo(a.revenue)
+        : b.quantity.compareTo(a.quantity));
     final maxRevenue =
-        products.fold<int>(0, (m, p) => math.max(m, p.revenue));
+        sorted.fold<int>(0, (m, p) => math.max(m, p.revenue));
     final maxQty =
-        products.fold<double>(0, (m, p) => math.max(m, p.quantity));
+        sorted.fold<double>(0, (m, p) => math.max(m, p.quantity));
     final maxValue = byRevenue ? maxRevenue.toDouble() : maxQty;
 
     return Column(
@@ -55,7 +58,7 @@ class DashboardTopProducts extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 12),
-        for (final product in products)
+        for (final product in sorted)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 3),
             child: Row(

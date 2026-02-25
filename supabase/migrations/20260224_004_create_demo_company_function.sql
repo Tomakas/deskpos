@@ -81,6 +81,9 @@ DECLARE
   v_guests         int;
   v_bill_discount_pct   int;
   v_bill_discount_amt   int;
+  v_loyalty_discount_amount int;
+  v_voucher_discount_amount int;
+  v_loyalty_points_earned   int;
 
   -- Order processing
   v_orders         jsonb;
@@ -279,8 +282,9 @@ BEGIN
     v_now, v_now
   );
 
-  INSERT INTO company_settings (id, company_id, locale, client_created_at, client_updated_at)
-  VALUES (v_settings_id, v_company_id, p_locale, v_now, v_now);
+  INSERT INTO company_settings (id, company_id, locale, loyalty_earn_rate, loyalty_point_value,
+                               client_created_at, client_updated_at)
+  VALUES (v_settings_id, v_company_id, p_locale, 1000, 100, v_now, v_now);
 
   -- ========================================================================
   -- STEP 4: Tax rates
@@ -837,7 +841,7 @@ BEGIN
     v_display_id,
     v_company_id,
     v_register_id,
-    'DSP-001',
+    '100001',
     CASE p_locale WHEN 'cs' THEN 'Zákaznický displej' ELSE 'Customer Display' END,
     CASE p_locale WHEN 'cs' THEN 'Vítejte!' ELSE 'Welcome!' END,
     'customerDisplay'::display_device_type,
@@ -1343,6 +1347,15 @@ BEGIN
         v_tip_total := v_tip_total + COALESCE((v_payment->>'tip')::int, 0);
       END LOOP;
 
+      -- Loyalty & voucher calculations
+      v_loyalty_discount_amount := COALESCE((v_bill->>'loyalty_points_used')::int, 0) * 100;
+      v_voucher_discount_amount := COALESCE((v_bill->>'voucher_discount_amount')::int, 0);
+      IF v_bill_status = 'paid' AND v_customer_id IS NOT NULL THEN
+        v_loyalty_points_earned := (v_total_gross / 1000)::int;
+      ELSE
+        v_loyalty_points_earned := 0;
+      END IF;
+
       -- Insert bill
       INSERT INTO bills (id, company_id, customer_id, section_id, table_id,
                          register_id, last_register_id, register_session_id, opened_by_user_id,
@@ -1350,6 +1363,7 @@ BEGIN
                          subtotal_gross, subtotal_net, discount_amount, discount_type,
                          tax_total, total_gross, paid_amount,
                          loyalty_points_used,
+                         loyalty_discount_amount, voucher_discount_amount, loyalty_points_earned,
                          voucher_id,
                          opened_at, closed_at,
                          client_created_at, client_updated_at)
@@ -1370,6 +1384,7 @@ BEGIN
         v_tax_total::int, v_total_gross::int,
         CASE WHEN v_bill_status IN ('paid', 'refunded') THEN v_paid_amount::int ELSE 0 END,
         COALESCE((v_bill->>'loyalty_points_used')::int, 0),
+        v_loyalty_discount_amount, v_voucher_discount_amount, v_loyalty_points_earned,
         CASE WHEN v_bill->>'voucher_ref' IS NOT NULL
           THEN (SELECT id FROM _ref_map WHERE ref = v_bill->>'voucher_ref')
           ELSE NULL
@@ -1378,6 +1393,21 @@ BEGIN
         CASE WHEN v_bill_status IN ('paid', 'cancelled', 'refunded') THEN v_bill_time + interval '2 minutes' ELSE NULL END,
         v_bill_time, v_bill_time
       );
+
+      -- Update voucher if bill references one
+      v_voucher_ref := v_bill->>'voucher_ref';
+      IF v_voucher_ref IS NOT NULL THEN
+        v_voucher_id := (SELECT id FROM _ref_map WHERE ref = v_voucher_ref);
+        IF v_voucher_id IS NOT NULL THEN
+          UPDATE vouchers SET
+            used_count = used_count + 1,
+            redeemed_at = CASE WHEN used_count + 1 >= max_uses THEN v_bill_time ELSE redeemed_at END,
+            redeemed_on_bill_id = v_bill_id,
+            status = CASE WHEN used_count + 1 >= max_uses THEN 'redeemed'::voucher_status ELSE status END,
+            client_updated_at = v_bill_time
+          WHERE id = v_voucher_id;
+        END IF;
+      END IF;
 
       -- ----------------------------------------------------------------
       -- Payments

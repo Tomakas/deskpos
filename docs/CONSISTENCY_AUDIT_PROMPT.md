@@ -755,8 +755,8 @@ Pokračuj na FÁZI 5.
 
 **Checklist:**
 
-- [ ] **Import pořadí:** Je konzistentní? Doporučené: `dart:` → `package:flutter/` → `package:třetí_strana/` → `package:epos/` → relativní. Vypiš soubory kde pořadí neodpovídá.
-- [ ] **Relativní vs absolutní:** Je konzistentní styl? Mix `import '../...'` a `import 'package:epos/...'`? Vypiš.
+- [ ] **Import pořadí:** Je konzistentní? Doporučené: `dart:` → `package:flutter/` → `package:třetí_strana/` → `package:maty/` → relativní. Vypiš soubory kde pořadí neodpovídá.
+- [ ] **Relativní vs absolutní:** Je konzistentní styl? Mix `import '../...'` a `import 'package:maty/...'`? Vypiš.
 - [ ] **Třídní struktura:** Přečti 5 StatefulWidget souborů a 5 Repository souborů. Je pořadí členů konzistentní?
   - Widgety: fields → constructor → initState → dispose → build → private methods
   - Repositories: fields → constructor → public methods → private methods

@@ -125,7 +125,7 @@
 ## 2026-02-22 (evening) — v0.5.0
 
 ### Build & Distribution
-- **Windows installer**: Přidán Inno Setup skript (`windows/installer/deskpos.iss`) — generuje `DeskPOS-x.y.z-Setup.exe`
+- **Windows installer**: Přidán Inno Setup skript (`windows/installer/maty.iss`) — generuje `Maty-x.y.z-Setup.exe`
 - **VC++ Redistributable bundling**: Instalátor automaticky nainstaluje VC++ Runtime (MSVCP140.dll, VCRUNTIME140.dll) pokud na cílovém stroji chybí — uživatel o tom neví
 - **CI/CD**: GitHub Actions workflow rozšířen o stažení VC++ Redistributable, build instalátoru přes Inno Setup, upload jako artifact
 - **Dokumentace**: Sekce "Windows distribuce" přidána do PROJECT.md

@@ -1,9 +1,9 @@
 {
   "@@locale": "en",
 
-  "appTitle": "EPOS",
+  "appTitle": "Maty",
 
-  "onboardingTitle": "Welcome to EPOS",
+  "onboardingTitle": "Welcome to Maty",
   "onboardingCreateCompany": "Create New Company",
   "onboardingJoinCompany": "Join Company",
   "onboardingJoinCompanyDisabled": "Available from version 3.0",
@@ -1002,8 +1002,9 @@
   "billDetailShowOnDisplay": "Customer Display",
 
   "onboardingCustomerDisplay": "Customer Display",
+  "onboardingCustomerDisplaySubtitle": "This device will serve as a customer display after connecting.",
   "onboardingCreateDemo": "Create Demo",
-  "onboardingCreateDemoSubtitle": "Complete demo company with 3 months of history \u2022 auto-deletes after 24h",
+  "onboardingCreateDemoSubtitle": "Complete demo company with three months of history.",
   "demoDialogTitle": "Create Demo Company",
   "demoDialogInfo": "Demo auto-deletes after 24 hours",
   "demoDialogCreate": "Create",
@@ -1153,6 +1154,10 @@
   "periodLastMonth": "Last month",
   "periodThisYear": "This year",
   "periodLastYear": "Last year",
+  "periodTomorrow": "Tomorrow",
+  "periodNextWeek": "Next week",
+  "periodNextMonth": "Next month",
+  "periodNextYear": "Next year",
 
   "statsTitle": "Statistics",
   "statsTabReceipts": "Receipts",
@@ -1458,7 +1463,7 @@
   "dashboardBillCount": "Bills",
   "dashboardAverage": "Average",
   "dashboardTips": "Tips",
-  "dashboardShowComparison": "Compare",
+  "dashboardPrevPeriod": "Previous period:",
   "dashboardRevenueOverTime": "Revenue over time",
   "dashboardPaymentMethods": "Payment methods",
   "dashboardCategories": "Categories",

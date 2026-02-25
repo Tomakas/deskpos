@@ -1,4 +1,4 @@
-package com.example.deskpos
+package com.example.maty
 
 import io.flutter.embedding.android.FlutterActivity
 

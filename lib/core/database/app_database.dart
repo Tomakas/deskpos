@@ -112,7 +112,7 @@ class AppDatabase extends _$AppDatabase {
   static LazyDatabase _openConnection() {
     return LazyDatabase(() async {
       final dir = await getApplicationDocumentsDirectory();
-      final file = File(p.join(dir.path, 'epos_database.sqlite'));
+      final file = File(p.join(dir.path, 'maty_database.sqlite'));
       return NativeDatabase.createInBackground(file);
     });
   }

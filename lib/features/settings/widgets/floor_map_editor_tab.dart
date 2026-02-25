@@ -397,7 +397,16 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
             _selectedIsTable = false;
           }),
           onDoubleTap: () => _showEditElementDialog(context, elem),
-          child: _EditorElementCell(element: elem),
+          child: Stack(
+            children: [
+              const Positioned.fill(
+                child: ColoredBox(color: Colors.transparent),
+              ),
+              Positioned.fill(
+                child: _EditorElementCell(element: elem),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -455,6 +464,33 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
                 border: Border.all(color: primary, width: 2),
                 borderRadius: BorderRadius.circular(4),
               ),
+            ),
+          ),
+        ),
+      // Edit button
+      if (!_isResizing)
+        Positioned(
+          left: left + width - 12,
+          top: top - 12,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              if (_selectedIsTable) {
+                final t = placedTables.where((t) => t.id == _selectedId).firstOrNull;
+                if (t != null) _showEditTableDialog(context, allTables, placedTables, t);
+              } else {
+                final e = placedElements.where((e) => e.id == _selectedId).firstOrNull;
+                if (e != null) _showEditElementDialog(context, e);
+              }
+            },
+            child: Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                color: primary,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.edit, size: 14, color: Colors.white),
             ),
           ),
         ),
@@ -724,7 +760,7 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
     int width = 3;
     int height = 3;
     var shape = TableShape.rectangle;
-    String? tableColor;
+    String? tableColor = '#78909C';
     int tableFontSize = 14;
     int tableFillStyle = 1;
     int tableBorderStyle = 1;
@@ -733,7 +769,7 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
     final nameController = TextEditingController(text: defaultName);
     // Element fields
     final labelController = TextEditingController();
-    String? elementColor;
+    String? elementColor = '#78909C';
     int elemWidth = 2;
     int elemHeight = 2;
     var elemShape = TableShape.rectangle;
@@ -947,6 +983,7 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
                     PosColorPalette(
                       selectedColor: elementColor,
                       onColorSelected: (c) => setDialogState(() => elementColor = c),
+
                     ),
                     const SizedBox(height: 4),
                     _StyleChipRow(

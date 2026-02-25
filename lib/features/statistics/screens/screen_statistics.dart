@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import '../../../core/data/enums/bill_status.dart';
 import '../../../core/data/enums/discount_type.dart';
@@ -184,6 +185,7 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
   // Date range
   DateTime? _from;
   DateTime? _to;
+  DatePeriod _datePeriod = DatePeriod.day;
 
   // Search
   final _searchCtrl = TextEditingController();
@@ -224,7 +226,6 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
 
   // Dashboard
   DashboardData? _dashboardData;
-  bool _dashboardShowComparison = false;
   bool _dashboardTopProductByRevenue = false;
 
   @override
@@ -657,10 +658,33 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
         .where((p) => p.amount > 0)
         .fold(0, (s, p) => s + p.tipIncludedAmount);
 
-    // 3. Previous period
-    final duration = _to!.difference(_from!);
-    final prevTo = _from!.subtract(const Duration(milliseconds: 1));
-    final prevFrom = prevTo.subtract(duration);
+    // 3. Previous period (calendar-aware)
+    final DateTime prevFrom;
+    final DateTime prevTo;
+    switch (_datePeriod) {
+      case DatePeriod.day:
+        final d = DateTime(_from!.year, _from!.month, _from!.day - 1);
+        prevFrom = d;
+        prevTo = DateTime(d.year, d.month, d.day, 23, 59, 59, 999);
+      case DatePeriod.week:
+        final d = _from!.subtract(const Duration(days: 7));
+        prevFrom = d;
+        prevTo = DateTime(d.year, d.month, d.day + 6, 23, 59, 59, 999);
+      case DatePeriod.month:
+        final m = DateTime(_from!.year, _from!.month - 1);
+        final lastDay = DateTime(m.year, m.month + 1, 0);
+        prevFrom = DateTime(m.year, m.month, 1);
+        prevTo = DateTime(lastDay.year, lastDay.month, lastDay.day, 23, 59, 59, 999);
+      case DatePeriod.year:
+        final y = _from!.year - 1;
+        prevFrom = DateTime(y, 1, 1);
+        prevTo = DateTime(y, 12, 31, 23, 59, 59, 999);
+      case DatePeriod.custom:
+        final duration = _to!.difference(_from!);
+        prevTo = _from!.subtract(const Duration(milliseconds: 1));
+        prevFrom = DateTime(prevTo.year, prevTo.month, prevTo.day)
+            .subtract(Duration(days: duration.inDays));
+    }
     final prevBills = await billRepo.getPaidOrRefundedInRange(companyId, prevFrom, prevTo);
     if (!mounted) return;
     final prevPaid = prevBills.where((b) => b.status == BillStatus.paid).toList();
@@ -679,48 +703,74 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
         .where((p) => p.amount > 0)
         .fold(0, (s, p) => s + (p.tipIncludedAmount as int));
 
-    // 4. Revenue over time — group by day or hour
-    final isMultiDay = _to!.difference(_from!).inHours > 24;
+    // 4. Revenue over time — group by hour, day, or month
+    final locale = ref.read(appLocaleProvider).value ?? 'cs';
+    final rangeDays = _to!.difference(_from!).inDays;
     final revenueMap = <String, int>{};
+
+    // Technical key for grouping (locale-independent)
+    String Function(DateTime dt) groupKey;
+    if (rangeDays <= 1) {
+      groupKey = (dt) => '${dt.hour}';
+    } else if (rangeDays <= 90) {
+      groupKey = (dt) => '${dt.year}-${dt.month}-${dt.day}';
+    } else {
+      groupKey = (dt) => '${dt.year}-${dt.month}';
+    }
+
     for (final bill in bills) {
       final dt = bill.closedAt ?? bill.openedAt;
       final sign = bill.status == BillStatus.refunded ? -1 : 1;
-      final key = isMultiDay
-          ? '${dt.month}/${dt.day}'
-          : '${dt.hour}:00';
+      final key = groupKey(dt);
       revenueMap[key] = (revenueMap[key] ?? 0) + bill.totalGross * sign;
     }
-    // Build sorted entries
+
+    // Build sorted entries with locale-aware labels
     List<RevenueBarEntry> revenueEntries;
-    if (isMultiDay) {
-      // Generate all days in range
-      final dayMap = <String, int>{};
-      var cursor = DateTime(_from!.year, _from!.month, _from!.day);
-      final endDay = DateTime(_to!.year, _to!.month, _to!.day);
-      while (!cursor.isAfter(endDay)) {
-        final key = '${cursor.month}/${cursor.day}';
-        dayMap[key] = revenueMap[key] ?? 0;
-        cursor = cursor.add(const Duration(days: 1));
-      }
-      revenueEntries = dayMap.entries
-          .map((e) => RevenueBarEntry(label: e.key, value: e.value))
-          .toList();
-    } else {
-      // Generate all hours in range
+    if (rangeDays <= 1) {
+      final fmt = DateFormat.Hm(locale); // e.g. "14:00"
       final hourMap = <int, int>{};
       for (int h = _from!.hour; h <= _to!.hour && h < 24; h++) {
-        hourMap[h] = revenueMap['$h:00'] ?? 0;
+        hourMap[h] = revenueMap['$h'] ?? 0;
       }
-      // If from.hour > to.hour (shouldn't happen in practice but be safe)
       if (hourMap.isEmpty) {
         for (int h = 0; h < 24; h++) {
-          final val = revenueMap['$h:00'];
+          final val = revenueMap['$h'];
           if (val != null) hourMap[h] = val;
         }
       }
-      revenueEntries = hourMap.entries
-          .map((e) => RevenueBarEntry(label: '${e.key}:00', value: e.value))
-          .toList();
+      revenueEntries = hourMap.entries.map((e) {
+        final dt = DateTime(_from!.year, _from!.month, _from!.day, e.key);
+        return RevenueBarEntry(label: fmt.format(dt), value: e.value);
+      }).toList();
+    } else if (rangeDays <= 90) {
+      final fmt = DateFormat.Md(locale); // e.g. "1. 2." (cs) or "2/1" (en)
+      final entries = <RevenueBarEntry>[];
+      var cursor = DateTime(_from!.year, _from!.month, _from!.day);
+      final endDay = DateTime(_to!.year, _to!.month, _to!.day);
+      while (!cursor.isAfter(endDay)) {
+        final key = '${cursor.year}-${cursor.month}-${cursor.day}';
+        entries.add(RevenueBarEntry(
+          label: fmt.format(cursor),
+          value: revenueMap[key] ?? 0,
+        ));
+        cursor = cursor.add(const Duration(days: 1));
+      }
+      revenueEntries = entries;
+    } else {
+      final fmt = DateFormat.yMMM(locale); // e.g. "led 2026" (cs) or "Jan 2026" (en)
+      final entries = <RevenueBarEntry>[];
+      var cursor = DateTime(_from!.year, _from!.month);
+      final endMonth = DateTime(_to!.year, _to!.month);
+      while (!cursor.isAfter(endMonth)) {
+        final key = '${cursor.year}-${cursor.month}';
+        entries.add(RevenueBarEntry(
+          label: fmt.format(cursor),
+          value: revenueMap[key] ?? 0,
+        ));
+        cursor = DateTime(cursor.year, cursor.month + 1);
+      }
+      revenueEntries = entries;
     }
 
     // 5. Payment method donut
@@ -1127,9 +1177,10 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
     _loadData();
   }
 
-  void _onDateRangeChanged(DateTime from, DateTime to) {
+  void _onDateRangeChanged(DateTime from, DateTime to, DatePeriod period) {
     _from = from;
     _to = to;
+    _datePeriod = period;
     _loadData();
   }
 
@@ -2144,14 +2195,10 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
     }
     return DashboardTab(
       data: _dashboardData!,
-      showComparison: _dashboardShowComparison,
-      onComparisonChanged: (v) =>
-          setState(() => _dashboardShowComparison = v),
       topProductByRevenue: _dashboardTopProductByRevenue,
       onTopProductToggleChanged: (v) =>
           setState(() => _dashboardTopProductByRevenue = v),
       moneyFormatter: ref.money,
-      dateFormatter: ref.fmtDate,
     );
   }
 
