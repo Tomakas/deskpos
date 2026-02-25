@@ -6942,6 +6942,144 @@ abstract class AppLocalizations {
   /// **'Zpět'**
   String get currencySelectorBack;
 
+  /// No description provided for @statsTabDashboard.
+  ///
+  /// In cs, this message translates to:
+  /// **'Přehled'**
+  String get statsTabDashboard;
+
+  /// No description provided for @dashboardRevenue.
+  ///
+  /// In cs, this message translates to:
+  /// **'Tržba'**
+  String get dashboardRevenue;
+
+  /// No description provided for @dashboardBillCount.
+  ///
+  /// In cs, this message translates to:
+  /// **'Účty'**
+  String get dashboardBillCount;
+
+  /// No description provided for @dashboardAverage.
+  ///
+  /// In cs, this message translates to:
+  /// **'Průměr'**
+  String get dashboardAverage;
+
+  /// No description provided for @dashboardTips.
+  ///
+  /// In cs, this message translates to:
+  /// **'Spropitné'**
+  String get dashboardTips;
+
+  /// No description provided for @dashboardShowComparison.
+  ///
+  /// In cs, this message translates to:
+  /// **'Porovnat'**
+  String get dashboardShowComparison;
+
+  /// No description provided for @dashboardRevenueOverTime.
+  ///
+  /// In cs, this message translates to:
+  /// **'Tržba v čase'**
+  String get dashboardRevenueOverTime;
+
+  /// No description provided for @dashboardPaymentMethods.
+  ///
+  /// In cs, this message translates to:
+  /// **'Platební metody'**
+  String get dashboardPaymentMethods;
+
+  /// No description provided for @dashboardCategories.
+  ///
+  /// In cs, this message translates to:
+  /// **'Kategorie'**
+  String get dashboardCategories;
+
+  /// No description provided for @dashboardTopProducts.
+  ///
+  /// In cs, this message translates to:
+  /// **'Top 10 produktů'**
+  String get dashboardTopProducts;
+
+  /// No description provided for @dashboardByQuantity.
+  ///
+  /// In cs, this message translates to:
+  /// **'Množství'**
+  String get dashboardByQuantity;
+
+  /// No description provided for @dashboardByRevenue.
+  ///
+  /// In cs, this message translates to:
+  /// **'Tržba'**
+  String get dashboardByRevenue;
+
+  /// No description provided for @dashboardHeatmap.
+  ///
+  /// In cs, this message translates to:
+  /// **'Týdenní vzorec'**
+  String get dashboardHeatmap;
+
+  /// No description provided for @heatmapMon.
+  ///
+  /// In cs, this message translates to:
+  /// **'Po'**
+  String get heatmapMon;
+
+  /// No description provided for @heatmapTue.
+  ///
+  /// In cs, this message translates to:
+  /// **'Út'**
+  String get heatmapTue;
+
+  /// No description provided for @heatmapWed.
+  ///
+  /// In cs, this message translates to:
+  /// **'St'**
+  String get heatmapWed;
+
+  /// No description provided for @heatmapThu.
+  ///
+  /// In cs, this message translates to:
+  /// **'Čt'**
+  String get heatmapThu;
+
+  /// No description provided for @heatmapFri.
+  ///
+  /// In cs, this message translates to:
+  /// **'Pá'**
+  String get heatmapFri;
+
+  /// No description provided for @heatmapSat.
+  ///
+  /// In cs, this message translates to:
+  /// **'So'**
+  String get heatmapSat;
+
+  /// No description provided for @heatmapSun.
+  ///
+  /// In cs, this message translates to:
+  /// **'Ne'**
+  String get heatmapSun;
+
+  /// No description provided for @heatmapLow.
+  ///
+  /// In cs, this message translates to:
+  /// **'Nízká'**
+  String get heatmapLow;
+
+  /// No description provided for @heatmapHigh.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vysoká'**
+  String get heatmapHigh;
+
+  /// No description provided for @dashboardOther.
+  ///
+  /// In cs, this message translates to:
+  /// **'Ostatní'**
+  String get dashboardOther;
+
   /// No description provided for @wizardDemoMode.
   ///
   /// In cs, this message translates to:

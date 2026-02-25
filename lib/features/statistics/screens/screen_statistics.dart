@@ -23,12 +23,14 @@ import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_table.dart';
 import '../../bills/providers/z_report_providers.dart';
 import '../../bills/widgets/dialog_z_report.dart';
+import '../models/dashboard_data.dart';
+import '../widgets/dashboard_tab.dart';
 
 // ---------------------------------------------------------------------------
 // Section enum
 // ---------------------------------------------------------------------------
 
-enum _StatSection { receipts, sales, orders, shifts, zReports, tips }
+enum _StatSection { dashboard, receipts, sales, orders, shifts, zReports, tips }
 
 // ---------------------------------------------------------------------------
 // Sort enums
@@ -176,7 +178,7 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
   static const _sections = _StatSection.values;
 
   late TabController _tabController;
-  _StatSection _section = _StatSection.receipts;
+  _StatSection _section = _StatSection.dashboard;
   bool _loading = false;
 
   // Date range
@@ -220,6 +222,11 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
   List<_TipRow> _tipRows = [];
   List<_OrderRow> _orderRows = [];
 
+  // Dashboard
+  DashboardData? _dashboardData;
+  bool _dashboardShowComparison = false;
+  bool _dashboardTopProductByRevenue = false;
+
   @override
   void initState() {
     super.initState();
@@ -255,6 +262,8 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
     }
 
     switch (_section) {
+      case _StatSection.dashboard:
+        await _loadDashboard(company.id);
       case _StatSection.receipts:
         await _loadReceipts(company.id);
       case _StatSection.sales:
@@ -618,6 +627,320 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
     setState(() => _tipRows = rows);
   }
 
+  Future<void> _loadDashboard(String companyId) async {
+    final billRepo = ref.read(billRepositoryProvider);
+    final paymentRepo = ref.read(paymentRepositoryProvider);
+    final paymentMethodRepo = ref.read(paymentMethodRepositoryProvider);
+    final orderRepo = ref.read(orderRepositoryProvider);
+    final modifierRepo = ref.read(orderItemModifierRepositoryProvider);
+    final itemRepo = ref.read(itemRepositoryProvider);
+    final categoryRepo = ref.read(categoryRepositoryProvider);
+
+    // 1. Load bills (paid + refunded) for current period
+    final bills = await billRepo.getPaidOrRefundedInRange(companyId, _from!, _to!);
+    if (!mounted) return;
+
+    // 2. Summary cards — current period
+    final paidBills = bills.where((b) => b.status == BillStatus.paid).toList();
+    final refundedBills = bills.where((b) => b.status == BillStatus.refunded).toList();
+    final paidRevenue = paidBills.fold(0, (s, b) => s + b.totalGross);
+    final refundedRevenue = refundedBills.fold(0, (s, b) => s + b.totalGross);
+    final totalRevenue = paidRevenue - refundedRevenue;
+    final billCount = paidBills.length;
+    final averageBill = billCount > 0 ? totalRevenue ~/ billCount : 0;
+
+    // Tips from payments
+    final billIds = bills.map((b) => b.id).toList();
+    final payments = await paymentRepo.getByBillIds(billIds);
+    if (!mounted) return;
+    final totalTips = payments
+        .where((p) => p.amount > 0)
+        .fold(0, (s, p) => s + p.tipIncludedAmount);
+
+    // 3. Previous period
+    final duration = _to!.difference(_from!);
+    final prevTo = _from!.subtract(const Duration(milliseconds: 1));
+    final prevFrom = prevTo.subtract(duration);
+    final prevBills = await billRepo.getPaidOrRefundedInRange(companyId, prevFrom, prevTo);
+    if (!mounted) return;
+    final prevPaid = prevBills.where((b) => b.status == BillStatus.paid).toList();
+    final prevRefunded = prevBills.where((b) => b.status == BillStatus.refunded).toList();
+    final prevPaidRev = prevPaid.fold(0, (s, b) => s + b.totalGross);
+    final prevRefRev = prevRefunded.fold(0, (s, b) => s + b.totalGross);
+    final prevTotalRevenue = prevPaidRev - prevRefRev;
+    final prevBillCount = prevPaid.length;
+    final prevAverageBill = prevBillCount > 0 ? prevTotalRevenue ~/ prevBillCount : 0;
+    final prevBillIds = prevBills.map((b) => b.id).toList();
+    final prevPayments = prevBillIds.isEmpty
+        ? <dynamic>[]
+        : await paymentRepo.getByBillIds(prevBillIds);
+    if (!mounted) return;
+    final prevTotalTips = prevPayments
+        .where((p) => p.amount > 0)
+        .fold(0, (s, p) => s + (p.tipIncludedAmount as int));
+
+    // 4. Revenue over time — group by day or hour
+    final isMultiDay = _to!.difference(_from!).inHours > 24;
+    final revenueMap = <String, int>{};
+    for (final bill in bills) {
+      final dt = bill.closedAt ?? bill.openedAt;
+      final sign = bill.status == BillStatus.refunded ? -1 : 1;
+      final key = isMultiDay
+          ? '${dt.month}/${dt.day}'
+          : '${dt.hour}:00';
+      revenueMap[key] = (revenueMap[key] ?? 0) + bill.totalGross * sign;
+    }
+    // Build sorted entries
+    List<RevenueBarEntry> revenueEntries;
+    if (isMultiDay) {
+      // Generate all days in range
+      final dayMap = <String, int>{};
+      var cursor = DateTime(_from!.year, _from!.month, _from!.day);
+      final endDay = DateTime(_to!.year, _to!.month, _to!.day);
+      while (!cursor.isAfter(endDay)) {
+        final key = '${cursor.month}/${cursor.day}';
+        dayMap[key] = revenueMap[key] ?? 0;
+        cursor = cursor.add(const Duration(days: 1));
+      }
+      revenueEntries = dayMap.entries
+          .map((e) => RevenueBarEntry(label: e.key, value: e.value))
+          .toList();
+    } else {
+      // Generate all hours in range
+      final hourMap = <int, int>{};
+      for (int h = _from!.hour; h <= _to!.hour && h < 24; h++) {
+        hourMap[h] = revenueMap['$h:00'] ?? 0;
+      }
+      // If from.hour > to.hour (shouldn't happen in practice but be safe)
+      if (hourMap.isEmpty) {
+        for (int h = 0; h < 24; h++) {
+          final val = revenueMap['$h:00'];
+          if (val != null) hourMap[h] = val;
+        }
+      }
+      revenueEntries = hourMap.entries
+          .map((e) => RevenueBarEntry(label: '${e.key}:00', value: e.value))
+          .toList();
+    }
+
+    // 5. Payment method donut
+    final allMethods = await paymentMethodRepo.getAll(companyId);
+    if (!mounted) return;
+    final methodNameMap = {for (final m in allMethods) m.id: m.name};
+    final pmMap = <String, int>{};
+    for (final p in payments) {
+      if (p.amount <= 0) continue; // skip refund payments
+      final name = methodNameMap[p.paymentMethodId] ?? '-';
+      pmMap[name] = (pmMap[name] ?? 0) + p.amount;
+    }
+    final pmEntries = pmMap.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    final pmDonut = _capDonutEntries(pmEntries, context);
+
+    // 6. Category donut + Top products
+    // Load order items
+    final allCategories = await categoryRepo.watchAll(companyId).first;
+    if (!mounted) return;
+    final catMap = {for (final c in allCategories) c.id: c.name};
+
+    final orders = billIds.isEmpty
+        ? <dynamic>[]
+        : await orderRepo.getOrdersByBillIds(billIds);
+    if (!mounted) return;
+    final activeOrderIdSet = orders
+        .where((o) => o.status != PrepStatus.cancelled && o.status != PrepStatus.voided)
+        .map((o) => o.id)
+        .toSet();
+    final stornoOrderIds = orders
+        .where((o) => o.isStorno)
+        .map((o) => o.id)
+        .toSet();
+
+    final allItems = billIds.isEmpty
+        ? <OrderItemModel>[]
+        : await orderRepo.getOrderItemsByBillIds(billIds);
+    if (!mounted) return;
+    final items = allItems.where((i) =>
+        activeOrderIdSet.contains(i.orderId) &&
+        i.status != PrepStatus.cancelled &&
+        i.status != PrepStatus.voided).toList();
+
+    // Load modifiers
+    final itemIdList = items.map((i) => i.id).toList();
+    final allMods = itemIdList.isEmpty
+        ? <OrderItemModifierModel>[]
+        : await modifierRepo.getByOrderItemIds(itemIdList);
+    if (!mounted) return;
+    final modsByItem = <String, List<OrderItemModifierModel>>{};
+    for (final mod in allMods) {
+      modsByItem.putIfAbsent(mod.orderItemId, () => []).add(mod);
+    }
+
+    // Resolve itemId → categoryName
+    final catalogItemIds = items.map((i) => i.itemId).toSet();
+    final itemCategoryMap = <String, String>{};
+    for (final catalogId in catalogItemIds) {
+      final catalogItem = await itemRepo.getById(catalogId, includeDeleted: true);
+      if (catalogItem != null && catalogItem.categoryId != null) {
+        itemCategoryMap[catalogId] = catMap[catalogItem.categoryId!] ?? '';
+      }
+    }
+    if (!mounted) return;
+
+    // Aggregate categories and products
+    final catRevMap = <String, int>{};
+    final prodMap = <String, (double qty, int revenue)>{};
+    for (final item in items) {
+      final isStorno = stornoOrderIds.contains(item.orderId);
+      final sign = isStorno ? -1 : 1;
+
+      int itemSubtotal = (item.salePriceAtt * item.quantity).round();
+      final itemMods = modsByItem[item.id] ?? [];
+      for (final mod in itemMods) {
+        itemSubtotal += (mod.unitPrice * mod.quantity * item.quantity).round();
+      }
+
+      int itemDiscount = 0;
+      if (item.discount > 0) {
+        if (item.discountType == DiscountType.percent) {
+          itemDiscount = (itemSubtotal * item.discount / 10000).round();
+        } else {
+          itemDiscount = item.discount;
+        }
+      }
+
+      final itemTotal = (itemSubtotal - itemDiscount - item.voucherDiscount) * sign;
+      final qty = item.quantity * sign;
+
+      // Category
+      final category = itemCategoryMap[item.itemId] ?? '';
+      if (category.isNotEmpty) {
+        catRevMap[category] = (catRevMap[category] ?? 0) + itemTotal;
+      }
+
+      // Product
+      final existing = prodMap[item.itemName];
+      if (existing != null) {
+        prodMap[item.itemName] = (existing.$1 + qty, existing.$2 + itemTotal);
+      } else {
+        prodMap[item.itemName] = (qty, itemTotal);
+      }
+    }
+
+    // Category donut
+    final catEntries = catRevMap.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    final catDonut = _capDonutEntries(catEntries, context);
+
+    // Top 10 products
+    final productEntries = prodMap.entries.toList()
+      ..sort((a, b) => b.value.$2.compareTo(a.value.$2));
+    final topProducts = productEntries.take(10).map((e) => TopProductEntry(
+      name: e.key,
+      quantity: e.value.$1,
+      revenue: e.value.$2,
+    )).toList();
+
+    // 7. Heatmap — 7×24 grid
+    final heatmapData = List.generate(7, (_) => List.filled(24, 0.0));
+    // Count how many of each weekday appear in the range
+    final weekdayCounts = List.filled(7, 0);
+    var dayCursor = DateTime(_from!.year, _from!.month, _from!.day);
+    final dayEnd = DateTime(_to!.year, _to!.month, _to!.day);
+    while (!dayCursor.isAfter(dayEnd)) {
+      weekdayCounts[dayCursor.weekday - 1]++;
+      dayCursor = dayCursor.add(const Duration(days: 1));
+    }
+
+    // Sum revenue per (weekday, hour)
+    final heatmapSums = List.generate(7, (_) => List.filled(24, 0.0));
+    for (final bill in paidBills) {
+      final dt = bill.closedAt ?? bill.openedAt;
+      final day = dt.weekday - 1; // 0=Mon
+      final hour = dt.hour;
+      heatmapSums[day][hour] += bill.totalGross.toDouble();
+    }
+    for (final bill in refundedBills) {
+      final dt = bill.closedAt ?? bill.openedAt;
+      final day = dt.weekday - 1;
+      final hour = dt.hour;
+      heatmapSums[day][hour] -= bill.totalGross.toDouble();
+    }
+
+    // Divide by weekday count for averages
+    for (int d = 0; d < 7; d++) {
+      for (int h = 0; h < 24; h++) {
+        if (weekdayCounts[d] > 0) {
+          heatmapData[d][h] = heatmapSums[d][h] / weekdayCounts[d];
+        }
+      }
+    }
+
+    setState(() {
+      _dashboardData = DashboardData(
+        totalRevenue: totalRevenue,
+        billCount: billCount,
+        averageBill: averageBill,
+        totalTips: totalTips,
+        prevTotalRevenue: prevTotalRevenue,
+        prevBillCount: prevBillCount,
+        prevAverageBill: prevAverageBill,
+        prevTotalTips: prevTotalTips,
+        revenueByPeriod: revenueEntries,
+        paymentMethodBreakdown: pmDonut,
+        categoryBreakdown: catDonut,
+        topProducts: topProducts,
+        heatmapData: heatmapData,
+      );
+    });
+  }
+
+  /// Caps a list of (name, value) entries to top 5 + "Other" for donut charts.
+  /// Assigns theme-derived colors.
+  List<DonutEntry> _capDonutEntries(
+    List<MapEntry<String, int>> entries,
+    BuildContext context,
+  ) {
+    final theme = Theme.of(context);
+    final colors = [
+      theme.colorScheme.primary,
+      theme.colorScheme.secondary,
+      theme.colorScheme.tertiary,
+      theme.colorScheme.primary.withValues(alpha: 0.6),
+      theme.colorScheme.secondary.withValues(alpha: 0.6),
+      theme.colorScheme.tertiary.withValues(alpha: 0.6),
+    ];
+
+    final l = context.l10n;
+
+    if (entries.length <= 6) {
+      return [
+        for (int i = 0; i < entries.length; i++)
+          DonutEntry(
+            label: entries[i].key,
+            value: entries[i].value,
+            color: colors[i % colors.length],
+          ),
+      ];
+    }
+
+    final top5 = entries.take(5).toList();
+    final otherValue = entries.skip(5).fold(0, (s, e) => s + e.value);
+    return [
+      for (int i = 0; i < top5.length; i++)
+        DonutEntry(
+          label: top5[i].key,
+          value: top5[i].value,
+          color: colors[i],
+        ),
+      DonutEntry(
+        label: l.dashboardOther,
+        value: otherValue,
+        color: colors[5],
+      ),
+    ];
+  }
+
   // ---------------------------------------------------------------------------
   // Filtering + sorting
   // ---------------------------------------------------------------------------
@@ -817,6 +1140,8 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
   void _showSortMenu() {
     final l = context.l10n;
     switch (_section) {
+      case _StatSection.dashboard:
+        return;
       case _StatSection.receipts:
         _showSortPopup<_ReceiptSort>(
           fields: [
@@ -1357,6 +1682,8 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
     List<(String, String)> rows;
 
     switch (_section) {
+      case _StatSection.dashboard:
+        return;
       case _StatSection.receipts:
         final data = _filteredReceipts;
         final total = data.fold(0, (s, b) => s + b.totalGross);
@@ -1728,6 +2055,7 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
         bottom: TabBar(
           controller: _tabController,
           tabs: [
+            Tab(text: l.statsTabDashboard),
             Tab(text: l.statsTabReceipts),
             Tab(text: l.statsTabSales),
             Tab(text: l.statsTabOrders),
@@ -1748,31 +2076,32 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
               l10n: l,
             ),
           ),
-          // Toolbar
-          PosTableToolbar(
-            searchController: _searchCtrl,
-            searchHint: l.searchHint,
-            onSearchChanged: (v) => setState(() => _query = v),
-            trailing: [
-              if (_sectionHasFilter)
-                IconButton(
-                  icon: Icon(
-                    Icons.filter_alt_outlined,
-                    color: _hasActiveFilter ? Theme.of(context).colorScheme.primary : null,
+          // Toolbar (hidden for dashboard)
+          if (_section != _StatSection.dashboard)
+            PosTableToolbar(
+              searchController: _searchCtrl,
+              searchHint: l.searchHint,
+              onSearchChanged: (v) => setState(() => _query = v),
+              trailing: [
+                if (_sectionHasFilter)
+                  IconButton(
+                    icon: Icon(
+                      Icons.filter_alt_outlined,
+                      color: _hasActiveFilter ? Theme.of(context).colorScheme.primary : null,
+                    ),
+                    onPressed: _showFilterDialog,
                   ),
-                  onPressed: _showFilterDialog,
+                IconButton(
+                  key: _sortButtonKey,
+                  icon: const Icon(Icons.swap_vert),
+                  onPressed: _showSortMenu,
                 ),
-              IconButton(
-                key: _sortButtonKey,
-                icon: const Icon(Icons.swap_vert),
-                onPressed: _showSortMenu,
-              ),
-              IconButton(
-                icon: const Icon(Icons.functions),
-                onPressed: _showSummary,
-              ),
-            ],
-          ),
+                IconButton(
+                  icon: const Icon(Icons.functions),
+                  onPressed: _showSummary,
+                ),
+              ],
+            ),
           // Table
           Expanded(
             child: _loading
@@ -1791,6 +2120,8 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
   Widget _buildTable() {
     final l = context.l10n;
     switch (_section) {
+      case _StatSection.dashboard:
+        return _buildDashboard();
       case _StatSection.receipts:
         return _buildReceiptsTable(l);
       case _StatSection.sales:
@@ -1804,6 +2135,24 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
       case _StatSection.tips:
         return _buildTipsTable(l);
     }
+  }
+
+  Widget _buildDashboard() {
+    final l = context.l10n;
+    if (_dashboardData == null) {
+      return Center(child: Text(l.statsEmpty));
+    }
+    return DashboardTab(
+      data: _dashboardData!,
+      showComparison: _dashboardShowComparison,
+      onComparisonChanged: (v) =>
+          setState(() => _dashboardShowComparison = v),
+      topProductByRevenue: _dashboardTopProductByRevenue,
+      onTopProductToggleChanged: (v) =>
+          setState(() => _dashboardTopProductByRevenue = v),
+      moneyFormatter: ref.money,
+      dateFormatter: ref.fmtDate,
+    );
   }
 
   Widget _buildReceiptsTable(dynamic l) {

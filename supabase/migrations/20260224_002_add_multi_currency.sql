@@ -58,3 +58,6 @@ CREATE TRIGGER trg_company_currencies_broadcast
 CREATE TRIGGER trg_session_currency_cash_broadcast
   AFTER INSERT OR UPDATE ON session_currency_cash
   FOR EACH ROW EXECUTE FUNCTION broadcast_sync_change();
+
+-- Index for session-scoped queries (SessionCurrencyCashRepository)
+CREATE INDEX idx_session_currency_cash_session ON session_currency_cash(register_session_id);

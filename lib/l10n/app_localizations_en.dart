@@ -3554,6 +3554,75 @@ class AppLocalizationsEn extends AppLocalizations {
   String get currencySelectorBack => 'Back';
 
   @override
+  String get statsTabDashboard => 'Dashboard';
+
+  @override
+  String get dashboardRevenue => 'Revenue';
+
+  @override
+  String get dashboardBillCount => 'Bills';
+
+  @override
+  String get dashboardAverage => 'Average';
+
+  @override
+  String get dashboardTips => 'Tips';
+
+  @override
+  String get dashboardShowComparison => 'Compare';
+
+  @override
+  String get dashboardRevenueOverTime => 'Revenue over time';
+
+  @override
+  String get dashboardPaymentMethods => 'Payment methods';
+
+  @override
+  String get dashboardCategories => 'Categories';
+
+  @override
+  String get dashboardTopProducts => 'Top 10 products';
+
+  @override
+  String get dashboardByQuantity => 'Quantity';
+
+  @override
+  String get dashboardByRevenue => 'Revenue';
+
+  @override
+  String get dashboardHeatmap => 'Weekly pattern';
+
+  @override
+  String get heatmapMon => 'Mon';
+
+  @override
+  String get heatmapTue => 'Tue';
+
+  @override
+  String get heatmapWed => 'Wed';
+
+  @override
+  String get heatmapThu => 'Thu';
+
+  @override
+  String get heatmapFri => 'Fri';
+
+  @override
+  String get heatmapSat => 'Sat';
+
+  @override
+  String get heatmapSun => 'Sun';
+
+  @override
+  String get heatmapLow => 'Low';
+
+  @override
+  String get heatmapHigh => 'High';
+
+  @override
+  String get dashboardOther => 'Other';
+
+  @override
   String get wizardDemoMode => 'Demo mode';
 
   @override

@@ -3549,6 +3549,75 @@ class AppLocalizationsCs extends AppLocalizations {
   String get currencySelectorBack => 'Zpět';
 
   @override
+  String get statsTabDashboard => 'Přehled';
+
+  @override
+  String get dashboardRevenue => 'Tržba';
+
+  @override
+  String get dashboardBillCount => 'Účty';
+
+  @override
+  String get dashboardAverage => 'Průměr';
+
+  @override
+  String get dashboardTips => 'Spropitné';
+
+  @override
+  String get dashboardShowComparison => 'Porovnat';
+
+  @override
+  String get dashboardRevenueOverTime => 'Tržba v čase';
+
+  @override
+  String get dashboardPaymentMethods => 'Platební metody';
+
+  @override
+  String get dashboardCategories => 'Kategorie';
+
+  @override
+  String get dashboardTopProducts => 'Top 10 produktů';
+
+  @override
+  String get dashboardByQuantity => 'Množství';
+
+  @override
+  String get dashboardByRevenue => 'Tržba';
+
+  @override
+  String get dashboardHeatmap => 'Týdenní vzorec';
+
+  @override
+  String get heatmapMon => 'Po';
+
+  @override
+  String get heatmapTue => 'Út';
+
+  @override
+  String get heatmapWed => 'St';
+
+  @override
+  String get heatmapThu => 'Čt';
+
+  @override
+  String get heatmapFri => 'Pá';
+
+  @override
+  String get heatmapSat => 'So';
+
+  @override
+  String get heatmapSun => 'Ne';
+
+  @override
+  String get heatmapLow => 'Nízká';
+
+  @override
+  String get heatmapHigh => 'Vysoká';
+
+  @override
+  String get dashboardOther => 'Ostatní';
+
+  @override
   String get wizardDemoMode => 'Režim dema';
 
   @override
