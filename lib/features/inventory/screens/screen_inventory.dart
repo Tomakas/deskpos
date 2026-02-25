@@ -17,10 +17,12 @@ import '../../../core/utils/unit_type_l10n.dart';
 import '../../../core/widgets/highlighted_text.dart';
 import '../../../core/widgets/pos_table.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../bills/widgets/dialog_bill_detail.dart';
 import '../widgets/dialog_inventory.dart';
 import '../widgets/dialog_inventory_result.dart';
 import '../widgets/dialog_inventory_type.dart';
 import '../widgets/dialog_stock_document.dart';
+import '../widgets/dialog_stock_document_detail.dart';
 
 // --- Sort field enums ---
 
@@ -29,6 +31,8 @@ enum _LevelsSortField { name, quantity, price, value }
 enum _DocumentsSortField { date, number, type, amount }
 
 enum _MovementsSortField { date, item, quantity }
+
+enum _MovementSourceFilter { all, sale, document }
 
 // --- Shared helper ---
 
@@ -69,6 +73,7 @@ class _ScreenInventoryState extends ConsumerState<ScreenInventory> {
 
   // Filters — Movements
   StockMovementDirection? _filterDirection;
+  _MovementSourceFilter _filterMovementSource = _MovementSourceFilter.all;
   Set<String> _filterMovementCategoryIds = {};
 
   // Sort — Levels
@@ -114,7 +119,7 @@ class _ScreenInventoryState extends ConsumerState<ScreenInventory> {
     return switch (_tabIndex) {
       0 => _filterBelowMin || _filterZeroStock || _filterLevelCategoryIds.isNotEmpty,
       1 => _filterDocTypes.isNotEmpty,
-      2 => _filterDirection != null || _filterMovementCategoryIds.isNotEmpty,
+      2 => _filterDirection != null || _filterMovementSource != _MovementSourceFilter.all || _filterMovementCategoryIds.isNotEmpty,
       _ => false,
     };
   }
@@ -231,6 +236,7 @@ class _ScreenInventoryState extends ConsumerState<ScreenInventory> {
                 companyId: company.id,
                 query: _query,
                 filterDirection: _filterDirection,
+                filterSource: _filterMovementSource,
                 filterCategoryIds: _filterMovementCategoryIds,
                 sortField: _movementsSortField,
                 sortAsc: _movementsSortAsc,
@@ -478,13 +484,14 @@ class _ScreenInventoryState extends ConsumerState<ScreenInventory> {
     if (company == null) return;
 
     var direction = _filterDirection;
+    var source = _filterMovementSource;
     var categoryIds = Set<String>.from(_filterMovementCategoryIds);
 
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) {
-          final hasFilters = direction != null || categoryIds.isNotEmpty;
+          final hasFilters = direction != null || source != _MovementSourceFilter.all || categoryIds.isNotEmpty;
           return AlertDialog(
             title: Text(l.filterTitle),
             content: SingleChildScrollView(
@@ -508,6 +515,32 @@ class _ScreenInventoryState extends ConsumerState<ScreenInventory> {
                         RadioListTile<StockMovementDirection?>(
                           title: Text(l.inventoryFilterOutbound),
                           value: StockMovementDirection.outbound,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Divider(),
+                  ListTile(
+                    title: Text(l.inventoryFilterSource, style: Theme.of(ctx).textTheme.titleSmall),
+                    dense: true,
+                  ),
+                  RadioGroup<_MovementSourceFilter>(
+                    groupValue: source,
+                    onChanged: (v) => setDialogState(() => source = v!),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        RadioListTile<_MovementSourceFilter>(
+                          title: Text(l.filterAll),
+                          value: _MovementSourceFilter.all,
+                        ),
+                        RadioListTile<_MovementSourceFilter>(
+                          title: Text(l.inventoryFilterSourceSale),
+                          value: _MovementSourceFilter.sale,
+                        ),
+                        RadioListTile<_MovementSourceFilter>(
+                          title: Text(l.inventoryFilterSourceDocument),
+                          value: _MovementSourceFilter.document,
                         ),
                       ],
                     ),
@@ -549,6 +582,7 @@ class _ScreenInventoryState extends ConsumerState<ScreenInventory> {
                   onPressed: () {
                     setState(() {
                       _filterDirection = null;
+                      _filterMovementSource = _MovementSourceFilter.all;
                       _filterMovementCategoryIds = {};
                     });
                     Navigator.of(ctx).pop();
@@ -563,6 +597,7 @@ class _ScreenInventoryState extends ConsumerState<ScreenInventory> {
                 onPressed: () {
                   setState(() {
                     _filterDirection = direction;
+                    _filterMovementSource = source;
                     _filterMovementCategoryIds = categoryIds;
                   });
                   Navigator.of(ctx).pop();
@@ -719,7 +754,7 @@ class _StockLevelsTab extends ConsumerWidget {
           }).toList();
         }
         if (filterZeroStock) {
-          levels = levels.where((item) => item.quantity == 0).toList();
+          levels = levels.where((item) => item.quantity <= 0).toList();
         }
         if (filterCategoryIds.isNotEmpty) {
           levels = levels.where((item) =>
@@ -898,13 +933,13 @@ class _StockDocumentsTab extends ConsumerWidget {
 
             return PosTable<StockDocumentModel>(
               columns: [
+                PosColumn(label: l.documentColumnDate, flex: 2, cellBuilder: (doc) => Text(ref.fmtDateTime(doc.documentDate), overflow: TextOverflow.ellipsis)),
                 PosColumn(
                   label: l.documentColumnNumber,
                   flex: 2,
                   cellBuilder: (doc) => HighlightedText(doc.documentNumber, query: query, overflow: TextOverflow.ellipsis),
                 ),
                 PosColumn(label: l.documentColumnType, flex: 2, cellBuilder: (doc) => Text(_documentTypeLabel(l, doc.type), overflow: TextOverflow.ellipsis)),
-                PosColumn(label: l.documentColumnDate, flex: 2, cellBuilder: (doc) => Text(ref.fmtDateTime(doc.documentDate), overflow: TextOverflow.ellipsis)),
                 PosColumn(
                   label: l.documentColumnSupplier,
                   flex: 2,
@@ -930,6 +965,16 @@ class _StockDocumentsTab extends ConsumerWidget {
               ],
               items: documents,
               emptyMessage: l.documentNoDocuments,
+              onRowTap: (doc) {
+                showDialog(
+                  context: context,
+                  builder: (_) => DialogStockDocumentDetail(
+                    documentId: doc.id,
+                    document: doc,
+                    supplierName: doc.supplierId != null ? supplierMap[doc.supplierId] : null,
+                  ),
+                );
+              },
             );
           },
         );
@@ -945,6 +990,7 @@ class _StockMovementsTab extends ConsumerWidget {
     required this.companyId,
     required this.query,
     required this.filterDirection,
+    required this.filterSource,
     required this.filterCategoryIds,
     required this.sortField,
     required this.sortAsc,
@@ -953,6 +999,7 @@ class _StockMovementsTab extends ConsumerWidget {
   final String companyId;
   final String query;
   final StockMovementDirection? filterDirection;
+  final _MovementSourceFilter filterSource;
   final Set<String> filterCategoryIds;
   final _MovementsSortField sortField;
   final bool sortAsc;
@@ -971,6 +1018,12 @@ class _StockMovementsTab extends ConsumerWidget {
         if (filterDirection != null) {
           movements = movements.where((m) => m.movement.direction == filterDirection).toList();
         }
+        // Filter by source
+        if (filterSource == _MovementSourceFilter.sale) {
+          movements = movements.where((m) => m.billId != null).toList();
+        } else if (filterSource == _MovementSourceFilter.document) {
+          movements = movements.where((m) => m.movement.stockDocumentId != null).toList();
+        }
         if (filterCategoryIds.isNotEmpty) {
           movements = movements.where((m) =>
             m.categoryId != null && filterCategoryIds.contains(m.categoryId),
@@ -981,7 +1034,8 @@ class _StockMovementsTab extends ConsumerWidget {
         if (query.isNotEmpty) {
           movements = movements.where((m) {
             return normalizeSearch(m.itemName).contains(query) ||
-                (m.documentNumber != null && normalizeSearch(m.documentNumber!).contains(query));
+                (m.documentNumber != null && normalizeSearch(m.documentNumber!).contains(query)) ||
+                (m.billNumber != null && normalizeSearch(m.billNumber!).contains(query));
           }).toList();
         }
 
@@ -1035,10 +1089,27 @@ class _StockMovementsTab extends ConsumerWidget {
               },
             ),
             PosColumn(
+              label: l.inventoryColumnPurchasePrice,
+              flex: 2,
+              numeric: true,
+              cellBuilder: (item) {
+                if (item.movement.purchasePrice == null) return const Text('-', textAlign: TextAlign.right);
+                final isInbound = item.movement.direction == StockMovementDirection.inbound;
+                final total = (item.movement.purchasePrice! * item.movement.quantity).round();
+                final signed = isInbound ? total : -total;
+                return Text(
+                  ref.moneyValue(signed),
+                  textAlign: TextAlign.right,
+                );
+              },
+            ),
+            PosColumn(
               label: l.movementColumnType,
               flex: 2,
+              headerAlign: TextAlign.center,
               cellBuilder: (item) => Text(
                 _movementTypeLabel(l, item),
+                textAlign: TextAlign.center,
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -1046,7 +1117,7 @@ class _StockMovementsTab extends ConsumerWidget {
               label: l.movementColumnDocument,
               flex: 2,
               cellBuilder: (item) => HighlightedText(
-                item.documentNumber ?? '-',
+                item.documentNumber ?? item.billNumber ?? '-',
                 query: query,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -1054,6 +1125,21 @@ class _StockMovementsTab extends ConsumerWidget {
           ],
           items: movements,
           emptyMessage: l.movementNoMovements,
+          onRowTap: (item) {
+            if (item.movement.stockDocumentId != null) {
+              showDialog(
+                context: context,
+                builder: (_) => DialogStockDocumentDetail(
+                  documentId: item.movement.stockDocumentId!,
+                ),
+              );
+            } else if (item.billId != null) {
+              showDialog(
+                context: context,
+                builder: (_) => DialogBillDetail(billId: item.billId!),
+              );
+            }
+          },
         );
       },
     );

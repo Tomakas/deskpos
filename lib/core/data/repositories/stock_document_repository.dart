@@ -255,6 +255,13 @@ class StockDocumentRepository {
     }
   }
 
+  /// Watches a single stock document by ID.
+  Stream<StockDocumentModel?> watchById(String id) {
+    return (_db.select(_db.stockDocuments)..where((t) => t.id.equals(id)))
+        .watchSingleOrNull()
+        .map((row) => row != null ? stockDocumentFromEntity(row) : null);
+  }
+
   /// Watches stock documents for a warehouse, ordered by date descending.
   Stream<List<StockDocumentModel>> watchByWarehouse(String companyId, String warehouseId) {
     return (_db.select(_db.stockDocuments)

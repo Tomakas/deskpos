@@ -243,7 +243,7 @@ class _DialogInventoryResultState extends ConsumerState<DialogInventoryResult> {
         const SizedBox(height: 16),
         // Buttons
         PosDialogActions(
-          leading: TextButton.icon(
+          leading: OutlinedButton.icon(
             onPressed: _printing ? null : () => _printResults(context),
             icon: const Icon(Icons.print_outlined),
             label: Text(l.inventoryResultPrint),

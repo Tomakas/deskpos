@@ -12,6 +12,7 @@ abstract class StockMovementModel with _$StockMovementModel implements CompanySc
     required String id,
     required String companyId,
     String? stockDocumentId,
+    String? billId,
     required String itemId,
     required double quantity,
     int? purchasePrice,

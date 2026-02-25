@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-02-25 — Negative Stock Policy
+
+### Features
+- **Negative stock policy** — configurable per-company policy (allow/warn/block) controlling whether sales can drive stock below zero
+- Pre-check in `OrderRepository._deductStockForOrder` aggregates demand across items, recipe ingredients, and modifiers before deduction
+- `block` shows error dialog and prevents order creation; `warn` shows confirm dialog with option to proceed; `allow` preserves existing behavior (no check)
+- **Per-item override** — nullable `negativeStockPolicy` field on items; when null, inherits company default. Shared recipe ingredients use the strictest policy across contributing items
+- Settings UI: dropdown in Security tab for company-level policy
+- Catalog UI: dropdown in item edit dialog (visible only when stock-tracked), 4 options: Default (company) / Allow / Warn / Block
+
+### Database
+- `company_settings.negative_stock_policy` (TEXT, NOT NULL, default 'allow')
+- `items.negative_stock_policy` (TEXT, nullable)
+- Supabase migrations: `20260225_008`, `20260225_009`
+
+### Known limitations
+- Offline concurrency: two offline registers can sell the last unit simultaneously — check is best-effort on local device
+- Partial order groups: if first group succeeds but second fails, first is already deducted
+
 ## 2026-02-25 (late night) — TMR Audit
 
 ### Code fixes

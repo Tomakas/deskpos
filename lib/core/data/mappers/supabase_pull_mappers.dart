@@ -81,6 +81,11 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
         manufacturerId: Value(json['manufacturer_id'] as String?),
         supplierId: Value(json['supplier_id'] as String?),
         parentId: Value(json['parent_id'] as String?),
+        negativeStockPolicy: Value(
+          json['negative_stock_policy'] != null
+              ? NegativeStockPolicy.values.byName(json['negative_stock_policy'] as String)
+              : null,
+        ),
         createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
         updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
         deletedAt: Value(_parseDateTime(json['deleted_at'])),
@@ -433,6 +438,11 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
         loyaltyEarnRate: Value(json['loyalty_earn_rate'] as int? ?? 0),
         loyaltyPointValue: Value(json['loyalty_point_value'] as int? ?? 0),
         locale: Value(json['locale'] as String? ?? 'cs'),
+        negativeStockPolicy: Value(
+          json['negative_stock_policy'] != null
+              ? NegativeStockPolicy.values.byName(json['negative_stock_policy'] as String)
+              : NegativeStockPolicy.allow,
+        ),
         createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
         updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
         deletedAt: Value(_parseDateTime(json['deleted_at'])),
@@ -568,7 +578,7 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
         gridRows: Value(json['grid_rows'] as int? ?? 5),
         gridCols: Value(json['grid_cols'] as int? ?? 8),
         displayCartJson: Value(json['display_cart_json'] as String?),
-        sellMode: Value(_enumFromName(SellMode.values, json['sell_mode'] ?? 'gastro')),
+        sellMode: Value(SellMode.values.asNameMap()[json['sell_mode'] as String?] ?? SellMode.gastro),
         createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
         updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
         deletedAt: Value(_parseDateTime(json['deleted_at'])),
@@ -806,6 +816,7 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
         id: Value(json['id'] as String),
         companyId: Value(json['company_id'] as String),
         stockDocumentId: Value(json['stock_document_id'] as String?),
+        billId: Value(json['bill_id'] as String?),
         itemId: Value(json['item_id'] as String),
         quantity: Value((json['quantity'] as num).toDouble()),
         purchasePrice: Value(json['purchase_price'] as int?),

@@ -1025,7 +1025,7 @@ Všechny aktivní tabulky obsahují společné sync sloupce (viz [SyncColumnsMix
 
 | Tabulka | Sloupce |
 |---------|---------|
-| **items** | id (T), company_id →companies, category_id →categories?, name (T), description (T?), item_type (T — ItemType), sku (T?), alt_sku (T?), unit_price (I), sale_tax_rate_id →tax_rates?, purchase_price (I?), purchase_tax_rate_id →tax_rates?, is_sellable (B, default true), is_active (B, default true), is_on_sale (B, default true), is_stock_tracked (B, default false), min_quantity (R?), unit (T — UnitType, default ks), manufacturer_id →manufacturers?, supplier_id →suppliers?, parent_id →items? |
+| **items** | id (T), company_id →companies, category_id →categories?, name (T), description (T?), item_type (T — ItemType), sku (T?), alt_sku (T?), unit_price (I), sale_tax_rate_id →tax_rates?, purchase_price (I?), purchase_tax_rate_id →tax_rates?, is_sellable (B, default true), is_active (B, default true), is_on_sale (B, default true), is_stock_tracked (B, default false), min_quantity (R?), unit (T — UnitType, default ks), manufacturer_id →manufacturers?, supplier_id →suppliers?, parent_id →items?, negative_stock_policy (T — NegativeStockPolicy?) |
 | **categories** | id (T), company_id →companies, name (T), parent_id →categories?, is_active (B, default true) |
 | **suppliers** | id (T), company_id →companies, supplier_name (T), contact_person (T?), email (T?), phone (T?) |
 | **manufacturers** | id (T), company_id →companies, name (T) |
@@ -1042,7 +1042,7 @@ Všechny aktivní tabulky obsahují společné sync sloupce (viz [SyncColumnsMix
 | Tabulka | Sloupce |
 |---------|---------|
 | **companies** | id (T), name (T), status (T — CompanyStatus), business_id (T?), address (T?), phone (T?), email (T?), vat_number (T?), country (T?), city (T?), postal_code (T?), timezone (T?), business_type (T?), default_currency_id →currencies, auth_user_id (T — uuid na Supabase, FK na auth.users), is_demo (B, default false), demo_expires_at (DT?) |
-| **company_settings** | id (T), company_id →companies, require_pin_on_switch (B, default true), auto_lock_timeout_minutes (I?), loyalty_earn_rate (I, default 0), loyalty_point_value (I, default 0), locale (T, default 'cs') |
+| **company_settings** | id (T), company_id →companies, require_pin_on_switch (B, default true), auto_lock_timeout_minutes (I?), loyalty_earn_rate (I, default 0), loyalty_point_value (I, default 0), locale (T, default 'cs'), negative_stock_policy (T — NegativeStockPolicy, default 'allow') |
 | **users** | id (T), company_id →companies, auth_user_id (T?), username (T), full_name (T), email (T?), phone (T?), pin_hash (T), pin_enabled (B, default true), role_id →roles, is_active (B, default true) |
 | **roles** | id (T), name (T — RoleName enum) |
 | **permissions** | id (T), code (T), name (T), description (T?), category (T) |
@@ -1214,6 +1214,7 @@ Klientské timestampy se ukládají v **UTC**.
 | `VoucherStatus` | `VoucherModel` | active, redeemed, expired, cancelled |
 | `VoucherDiscountScope` | `VoucherModel` | bill, product, category |
 | `DisplayDeviceType` | `DisplayDeviceModel` | customerDisplay, kds |
+| `NegativeStockPolicy` | `CompanySettingsModel`, `ItemModel` (nullable) | allow, warn, block — company-level default + optional per-item override (null = inherit company). Na Supabase uložen jako TEXT (bez PG enum) |
 | `SellMode` | `RegisterModel` | gastro, retail — na Supabase uložen jako TEXT (bez PG enum), validace pouze na klientovi. UI label: cs „Gastro" / „Maloobchod", en „Gastro" / „Retail" |
 
 ##### ENUMs rozšíření (přidají se s příslušnými tabulkami)
@@ -2043,7 +2044,8 @@ stateDiagram-v2
 
 - **Query:** watchByBill, watchByCompany, watchOrderItems, getOrderItems, getOrderItemsByBill, watchLastOrderTimesByCompany
 - **Business:** createOrderWithItems (s orderNotes a item notes + automatický stock odpis), updateStatus (s automatickým reversal stock při cancelled/voided), markReady, markDelivered, cancelOrder, voidOrder, updateItemStatus (per-item status s odvozeným order status), voidItem (void jedné položky + storno order), updateOrderNotes, updateItemNotes, updateItemDiscount, clearVoucherDiscounts (vynuluje `voucherDiscount` na všech položkách účtu, enqueue + přepočet totálů — pro odebrání voucheru), reassignOrdersToBill (přesun všech objednávek mezi účty — pro merge), splitItemsToNewOrder (vytvoření nové objednávky na cílovém účtu a přesun vybraných položek — pro split; automaticky zruší zdrojové objednávky bez zbývajících položek)
-- **Stock deduction:** Po `createOrderWithItems` automaticky volá `_deductStockForOrder` mimo hlavní transakci (po úspěšném insertu objednávky) — pro každý `isStockTracked` item vytvoří `stock_movement` (bez stock_document_id). Směr dle ceny: záporná cena položky → inbound (přírůstek skladu, např. vratná láhev), kladná → outbound (odpis). Receptury (`item_type == recipe`): rozpad přes `product_recipes`, odečtení ingrediencí místo receptury samotné (vždy outbound). Po zpracování hlavní položky se iterují její modifikátory — pro každý stock-tracked modifikátor se vytvoří vlastní stock_movement (qty modifikátoru × qty hlavní položky, směr dle ceny modifikátoru).
+- **Stock deduction:** Po `createOrderWithItems` automaticky volá `_deductStockForOrder` uvnitř transakce — pro každý `isStockTracked` item vytvoří `stock_movement` (bez stock_document_id). Směr dle ceny: záporná cena položky → inbound (přírůstek skladu, např. vratná láhev), kladná → outbound (odpis). Receptury (`item_type == recipe`): rozpad přes `product_recipes`, odečtení ingrediencí místo receptury samotné (vždy outbound). Po zpracování hlavní položky se iterují její modifikátory — pro každý stock-tracked modifikátor se vytvoří vlastní stock_movement (qty modifikátoru × qty hlavní položky, směr dle ceny modifikátoru).
+- **Negative stock policy:** Před vlastním odečtem probíhá pre-check dle `NegativeStockPolicy` (allow/warn/block). Efektivní politika = `item.negativeStockPolicy ?? companySettings.negativeStockPolicy`. Pre-check agreguje demand mapu (itemId → qty + name + policy), sdílené ingredience receptů používají nejpřísnější politiku. Při nedostatku zásob: `block` → `InsufficientStockException` (isWarningOnly: false), `warn` → `InsufficientStockException` (isWarningOnly: true), `allow` → žádná kontrola. UI sell screen zobrazí error dialog (block) nebo confirm dialog s možností pokračovat (warn, retry se `skipStockCheck: true`). Limitace: check je best-effort na lokálním zařízení — dva offline registry mohou prodat poslední kus současně.
 - **Stock reversal:** Při `updateStatus` do cancelled/voided volá `_reverseStockForOrder` — vytvoří reverzní movements (opačný směr dle ceny) pro hlavní položky i jejich modifikátory. `_reverseStockForSingleItem` (při voidItem) reverzuje jednu položku včetně jejích modifikátorů přes `orderItemModifierRepo.getByOrderItem()`.
 - **Závislosti:** Injektovaný `SyncQueueRepository`, volitelné `StockLevelRepository`, `StockMovementRepository` a `OrderItemModifierRepository` (pro stock odpis/reversal včetně modifikátorů)
 - **Sync:** Ruční enqueue — `_enqueueOrder`, `_enqueueOrderItem`. createOrderWithItems enqueueuje order + všechny items. updateStatus enqueueuje order + všechny items (delegující metody cancelOrder, voidOrder, markReady, markDelivered automaticky pokryty přes updateStatus).
@@ -3179,7 +3181,7 @@ Layout: **7 tabů** (scrollovatelné)
 |-----|-------|
 | Firma | Editační formulář: název firmy, IČO, DIČ, adresa, telefon, e-mail + tlačítko Uložit |
 | Uživatelé | DataTable se správou uživatelů (jméno, username, role, aktivní, akce), dialog pro přidání/editaci, soft-delete |
-| Zabezpečení | Toggle PIN při přepínání obsluhy, dropdown auto-lock timeout |
+| Zabezpečení | Toggle PIN při přepínání obsluhy, dropdown auto-lock timeout, dropdown negative stock policy (allow/warn/block) |
 | Cloud | Embedded `ScreenCloudAuth` — sign-in, zobrazení připojeného emailu. Tlačítko „Smazat data" vyvolá wipe Edge Function → sign out → smazání lokální DB → onboarding |
 | Daňové sazby | CRUD daňové sazby (název, typ, sazba %, výchozí) |
 | Platební metody | CRUD platební metody (název, typ dropdown, aktivní) |

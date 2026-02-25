@@ -7849,6 +7849,19 @@ class $CompanySettingsTable extends CompanySettings
     defaultValue: const Constant('cs'),
   );
   @override
+  late final GeneratedColumnWithTypeConverter<NegativeStockPolicy, String>
+  negativeStockPolicy =
+      GeneratedColumn<String>(
+        'negative_stock_policy',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultValue: Constant(NegativeStockPolicy.allow.name),
+      ).withConverter<NegativeStockPolicy>(
+        $CompanySettingsTable.$converternegativeStockPolicy,
+      );
+  @override
   List<GeneratedColumn> get $columns => [
     lastSyncedAt,
     version,
@@ -7864,6 +7877,7 @@ class $CompanySettingsTable extends CompanySettings
     loyaltyEarnRate,
     loyaltyPointValue,
     locale,
+    negativeStockPolicy,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -8048,6 +8062,13 @@ class $CompanySettingsTable extends CompanySettings
         DriftSqlType.string,
         data['${effectivePrefix}locale'],
       )!,
+      negativeStockPolicy: $CompanySettingsTable.$converternegativeStockPolicy
+          .fromSql(
+            attachedDatabase.typeMapping.read(
+              DriftSqlType.string,
+              data['${effectivePrefix}negative_stock_policy'],
+            )!,
+          ),
     );
   }
 
@@ -8055,6 +8076,11 @@ class $CompanySettingsTable extends CompanySettings
   $CompanySettingsTable createAlias(String alias) {
     return $CompanySettingsTable(attachedDatabase, alias);
   }
+
+  static JsonTypeConverter2<NegativeStockPolicy, String, String>
+  $converternegativeStockPolicy = const EnumNameConverter<NegativeStockPolicy>(
+    NegativeStockPolicy.values,
+  );
 }
 
 class CompanySetting extends DataClass implements Insertable<CompanySetting> {
@@ -8072,6 +8098,7 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
   final int loyaltyEarnRate;
   final int loyaltyPointValue;
   final String locale;
+  final NegativeStockPolicy negativeStockPolicy;
   const CompanySetting({
     this.lastSyncedAt,
     required this.version,
@@ -8087,6 +8114,7 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
     required this.loyaltyEarnRate,
     required this.loyaltyPointValue,
     required this.locale,
+    required this.negativeStockPolicy,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -8115,6 +8143,13 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
     map['loyalty_earn_rate'] = Variable<int>(loyaltyEarnRate);
     map['loyalty_point_value'] = Variable<int>(loyaltyPointValue);
     map['locale'] = Variable<String>(locale);
+    {
+      map['negative_stock_policy'] = Variable<String>(
+        $CompanySettingsTable.$converternegativeStockPolicy.toSql(
+          negativeStockPolicy,
+        ),
+      );
+    }
     return map;
   }
 
@@ -8144,6 +8179,7 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
       loyaltyEarnRate: Value(loyaltyEarnRate),
       loyaltyPointValue: Value(loyaltyPointValue),
       locale: Value(locale),
+      negativeStockPolicy: Value(negativeStockPolicy),
     );
   }
 
@@ -8169,6 +8205,8 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
       loyaltyEarnRate: serializer.fromJson<int>(json['loyaltyEarnRate']),
       loyaltyPointValue: serializer.fromJson<int>(json['loyaltyPointValue']),
       locale: serializer.fromJson<String>(json['locale']),
+      negativeStockPolicy: $CompanySettingsTable.$converternegativeStockPolicy
+          .fromJson(serializer.fromJson<String>(json['negativeStockPolicy'])),
     );
   }
   @override
@@ -8189,6 +8227,11 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
       'loyaltyEarnRate': serializer.toJson<int>(loyaltyEarnRate),
       'loyaltyPointValue': serializer.toJson<int>(loyaltyPointValue),
       'locale': serializer.toJson<String>(locale),
+      'negativeStockPolicy': serializer.toJson<String>(
+        $CompanySettingsTable.$converternegativeStockPolicy.toJson(
+          negativeStockPolicy,
+        ),
+      ),
     };
   }
 
@@ -8207,6 +8250,7 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
     int? loyaltyEarnRate,
     int? loyaltyPointValue,
     String? locale,
+    NegativeStockPolicy? negativeStockPolicy,
   }) => CompanySetting(
     lastSyncedAt: lastSyncedAt.present ? lastSyncedAt.value : this.lastSyncedAt,
     version: version ?? this.version,
@@ -8228,6 +8272,7 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
     loyaltyEarnRate: loyaltyEarnRate ?? this.loyaltyEarnRate,
     loyaltyPointValue: loyaltyPointValue ?? this.loyaltyPointValue,
     locale: locale ?? this.locale,
+    negativeStockPolicy: negativeStockPolicy ?? this.negativeStockPolicy,
   );
   CompanySetting copyWithCompanion(CompanySettingsCompanion data) {
     return CompanySetting(
@@ -8259,6 +8304,9 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
           ? data.loyaltyPointValue.value
           : this.loyaltyPointValue,
       locale: data.locale.present ? data.locale.value : this.locale,
+      negativeStockPolicy: data.negativeStockPolicy.present
+          ? data.negativeStockPolicy.value
+          : this.negativeStockPolicy,
     );
   }
 
@@ -8278,7 +8326,8 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
           ..write('autoLockTimeoutMinutes: $autoLockTimeoutMinutes, ')
           ..write('loyaltyEarnRate: $loyaltyEarnRate, ')
           ..write('loyaltyPointValue: $loyaltyPointValue, ')
-          ..write('locale: $locale')
+          ..write('locale: $locale, ')
+          ..write('negativeStockPolicy: $negativeStockPolicy')
           ..write(')'))
         .toString();
   }
@@ -8299,6 +8348,7 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
     loyaltyEarnRate,
     loyaltyPointValue,
     locale,
+    negativeStockPolicy,
   );
   @override
   bool operator ==(Object other) =>
@@ -8317,7 +8367,8 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
           other.autoLockTimeoutMinutes == this.autoLockTimeoutMinutes &&
           other.loyaltyEarnRate == this.loyaltyEarnRate &&
           other.loyaltyPointValue == this.loyaltyPointValue &&
-          other.locale == this.locale);
+          other.locale == this.locale &&
+          other.negativeStockPolicy == this.negativeStockPolicy);
 }
 
 class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
@@ -8335,6 +8386,7 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
   final Value<int> loyaltyEarnRate;
   final Value<int> loyaltyPointValue;
   final Value<String> locale;
+  final Value<NegativeStockPolicy> negativeStockPolicy;
   final Value<int> rowid;
   const CompanySettingsCompanion({
     this.lastSyncedAt = const Value.absent(),
@@ -8351,6 +8403,7 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
     this.loyaltyEarnRate = const Value.absent(),
     this.loyaltyPointValue = const Value.absent(),
     this.locale = const Value.absent(),
+    this.negativeStockPolicy = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   CompanySettingsCompanion.insert({
@@ -8368,6 +8421,7 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
     this.loyaltyEarnRate = const Value.absent(),
     this.loyaltyPointValue = const Value.absent(),
     this.locale = const Value.absent(),
+    this.negativeStockPolicy = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        companyId = Value(companyId);
@@ -8386,6 +8440,7 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
     Expression<int>? loyaltyEarnRate,
     Expression<int>? loyaltyPointValue,
     Expression<String>? locale,
+    Expression<String>? negativeStockPolicy,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -8405,6 +8460,8 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
       if (loyaltyEarnRate != null) 'loyalty_earn_rate': loyaltyEarnRate,
       if (loyaltyPointValue != null) 'loyalty_point_value': loyaltyPointValue,
       if (locale != null) 'locale': locale,
+      if (negativeStockPolicy != null)
+        'negative_stock_policy': negativeStockPolicy,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -8424,6 +8481,7 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
     Value<int>? loyaltyEarnRate,
     Value<int>? loyaltyPointValue,
     Value<String>? locale,
+    Value<NegativeStockPolicy>? negativeStockPolicy,
     Value<int>? rowid,
   }) {
     return CompanySettingsCompanion(
@@ -8442,6 +8500,7 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
       loyaltyEarnRate: loyaltyEarnRate ?? this.loyaltyEarnRate,
       loyaltyPointValue: loyaltyPointValue ?? this.loyaltyPointValue,
       locale: locale ?? this.locale,
+      negativeStockPolicy: negativeStockPolicy ?? this.negativeStockPolicy,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -8493,6 +8552,13 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
     if (locale.present) {
       map['locale'] = Variable<String>(locale.value);
     }
+    if (negativeStockPolicy.present) {
+      map['negative_stock_policy'] = Variable<String>(
+        $CompanySettingsTable.$converternegativeStockPolicy.toSql(
+          negativeStockPolicy.value,
+        ),
+      );
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -8516,6 +8582,7 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
           ..write('loyaltyEarnRate: $loyaltyEarnRate, ')
           ..write('loyaltyPointValue: $loyaltyPointValue, ')
           ..write('locale: $locale, ')
+          ..write('negativeStockPolicy: $negativeStockPolicy, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -11485,6 +11552,18 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
     requiredDuringInsert: false,
   );
   @override
+  late final GeneratedColumnWithTypeConverter<NegativeStockPolicy?, String>
+  negativeStockPolicy =
+      GeneratedColumn<String>(
+        'negative_stock_policy',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      ).withConverter<NegativeStockPolicy?>(
+        $ItemsTable.$converternegativeStockPolicyn,
+      );
+  @override
   List<GeneratedColumn> get $columns => [
     lastSyncedAt,
     version,
@@ -11514,6 +11593,7 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
     manufacturerId,
     supplierId,
     parentId,
+    negativeStockPolicy,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -11843,6 +11923,12 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
         DriftSqlType.string,
         data['${effectivePrefix}parent_id'],
       ),
+      negativeStockPolicy: $ItemsTable.$converternegativeStockPolicyn.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}negative_stock_policy'],
+        ),
+      ),
     );
   }
 
@@ -11855,6 +11941,14 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
       const EnumNameConverter<ItemType>(ItemType.values);
   static JsonTypeConverter2<UnitType, String, String> $converterunit =
       const EnumNameConverter<UnitType>(UnitType.values);
+  static JsonTypeConverter2<NegativeStockPolicy, String, String>
+  $converternegativeStockPolicy = const EnumNameConverter<NegativeStockPolicy>(
+    NegativeStockPolicy.values,
+  );
+  static JsonTypeConverter2<NegativeStockPolicy?, String?, String?>
+  $converternegativeStockPolicyn = JsonTypeConverter2.asNullable(
+    $converternegativeStockPolicy,
+  );
 }
 
 class Item extends DataClass implements Insertable<Item> {
@@ -11886,6 +11980,7 @@ class Item extends DataClass implements Insertable<Item> {
   final String? manufacturerId;
   final String? supplierId;
   final String? parentId;
+  final NegativeStockPolicy? negativeStockPolicy;
   const Item({
     this.lastSyncedAt,
     required this.version,
@@ -11915,6 +12010,7 @@ class Item extends DataClass implements Insertable<Item> {
     this.manufacturerId,
     this.supplierId,
     this.parentId,
+    this.negativeStockPolicy,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -11983,6 +12079,11 @@ class Item extends DataClass implements Insertable<Item> {
     if (!nullToAbsent || parentId != null) {
       map['parent_id'] = Variable<String>(parentId);
     }
+    if (!nullToAbsent || negativeStockPolicy != null) {
+      map['negative_stock_policy'] = Variable<String>(
+        $ItemsTable.$converternegativeStockPolicyn.toSql(negativeStockPolicy),
+      );
+    }
     return map;
   }
 
@@ -12044,6 +12145,9 @@ class Item extends DataClass implements Insertable<Item> {
       parentId: parentId == null && nullToAbsent
           ? const Value.absent()
           : Value(parentId),
+      negativeStockPolicy: negativeStockPolicy == null && nullToAbsent
+          ? const Value.absent()
+          : Value(negativeStockPolicy),
     );
   }
 
@@ -12087,6 +12191,9 @@ class Item extends DataClass implements Insertable<Item> {
       manufacturerId: serializer.fromJson<String?>(json['manufacturerId']),
       supplierId: serializer.fromJson<String?>(json['supplierId']),
       parentId: serializer.fromJson<String?>(json['parentId']),
+      negativeStockPolicy: $ItemsTable.$converternegativeStockPolicyn.fromJson(
+        serializer.fromJson<String?>(json['negativeStockPolicy']),
+      ),
     );
   }
   @override
@@ -12125,6 +12232,9 @@ class Item extends DataClass implements Insertable<Item> {
       'manufacturerId': serializer.toJson<String?>(manufacturerId),
       'supplierId': serializer.toJson<String?>(supplierId),
       'parentId': serializer.toJson<String?>(parentId),
+      'negativeStockPolicy': serializer.toJson<String?>(
+        $ItemsTable.$converternegativeStockPolicyn.toJson(negativeStockPolicy),
+      ),
     };
   }
 
@@ -12157,6 +12267,7 @@ class Item extends DataClass implements Insertable<Item> {
     Value<String?> manufacturerId = const Value.absent(),
     Value<String?> supplierId = const Value.absent(),
     Value<String?> parentId = const Value.absent(),
+    Value<NegativeStockPolicy?> negativeStockPolicy = const Value.absent(),
   }) => Item(
     lastSyncedAt: lastSyncedAt.present ? lastSyncedAt.value : this.lastSyncedAt,
     version: version ?? this.version,
@@ -12198,6 +12309,9 @@ class Item extends DataClass implements Insertable<Item> {
         : this.manufacturerId,
     supplierId: supplierId.present ? supplierId.value : this.supplierId,
     parentId: parentId.present ? parentId.value : this.parentId,
+    negativeStockPolicy: negativeStockPolicy.present
+        ? negativeStockPolicy.value
+        : this.negativeStockPolicy,
   );
   Item copyWithCompanion(ItemsCompanion data) {
     return Item(
@@ -12255,6 +12369,9 @@ class Item extends DataClass implements Insertable<Item> {
           ? data.supplierId.value
           : this.supplierId,
       parentId: data.parentId.present ? data.parentId.value : this.parentId,
+      negativeStockPolicy: data.negativeStockPolicy.present
+          ? data.negativeStockPolicy.value
+          : this.negativeStockPolicy,
     );
   }
 
@@ -12288,7 +12405,8 @@ class Item extends DataClass implements Insertable<Item> {
           ..write('minQuantity: $minQuantity, ')
           ..write('manufacturerId: $manufacturerId, ')
           ..write('supplierId: $supplierId, ')
-          ..write('parentId: $parentId')
+          ..write('parentId: $parentId, ')
+          ..write('negativeStockPolicy: $negativeStockPolicy')
           ..write(')'))
         .toString();
   }
@@ -12323,6 +12441,7 @@ class Item extends DataClass implements Insertable<Item> {
     manufacturerId,
     supplierId,
     parentId,
+    negativeStockPolicy,
   ]);
   @override
   bool operator ==(Object other) =>
@@ -12355,7 +12474,8 @@ class Item extends DataClass implements Insertable<Item> {
           other.minQuantity == this.minQuantity &&
           other.manufacturerId == this.manufacturerId &&
           other.supplierId == this.supplierId &&
-          other.parentId == this.parentId);
+          other.parentId == this.parentId &&
+          other.negativeStockPolicy == this.negativeStockPolicy);
 }
 
 class ItemsCompanion extends UpdateCompanion<Item> {
@@ -12387,6 +12507,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
   final Value<String?> manufacturerId;
   final Value<String?> supplierId;
   final Value<String?> parentId;
+  final Value<NegativeStockPolicy?> negativeStockPolicy;
   final Value<int> rowid;
   const ItemsCompanion({
     this.lastSyncedAt = const Value.absent(),
@@ -12417,6 +12538,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     this.manufacturerId = const Value.absent(),
     this.supplierId = const Value.absent(),
     this.parentId = const Value.absent(),
+    this.negativeStockPolicy = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ItemsCompanion.insert({
@@ -12448,6 +12570,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     this.manufacturerId = const Value.absent(),
     this.supplierId = const Value.absent(),
     this.parentId = const Value.absent(),
+    this.negativeStockPolicy = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        companyId = Value(companyId),
@@ -12483,6 +12606,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     Expression<String>? manufacturerId,
     Expression<String>? supplierId,
     Expression<String>? parentId,
+    Expression<String>? negativeStockPolicy,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -12514,6 +12638,8 @@ class ItemsCompanion extends UpdateCompanion<Item> {
       if (manufacturerId != null) 'manufacturer_id': manufacturerId,
       if (supplierId != null) 'supplier_id': supplierId,
       if (parentId != null) 'parent_id': parentId,
+      if (negativeStockPolicy != null)
+        'negative_stock_policy': negativeStockPolicy,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -12547,6 +12673,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     Value<String?>? manufacturerId,
     Value<String?>? supplierId,
     Value<String?>? parentId,
+    Value<NegativeStockPolicy?>? negativeStockPolicy,
     Value<int>? rowid,
   }) {
     return ItemsCompanion(
@@ -12578,6 +12705,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
       manufacturerId: manufacturerId ?? this.manufacturerId,
       supplierId: supplierId ?? this.supplierId,
       parentId: parentId ?? this.parentId,
+      negativeStockPolicy: negativeStockPolicy ?? this.negativeStockPolicy,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -12673,6 +12801,13 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     if (parentId.present) {
       map['parent_id'] = Variable<String>(parentId.value);
     }
+    if (negativeStockPolicy.present) {
+      map['negative_stock_policy'] = Variable<String>(
+        $ItemsTable.$converternegativeStockPolicyn.toSql(
+          negativeStockPolicy.value,
+        ),
+      );
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -12710,6 +12845,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
           ..write('manufacturerId: $manufacturerId, ')
           ..write('supplierId: $supplierId, ')
           ..write('parentId: $parentId, ')
+          ..write('negativeStockPolicy: $negativeStockPolicy, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -33990,6 +34126,15 @@ class $StockMovementsTable extends StockMovements
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _billIdMeta = const VerificationMeta('billId');
+  @override
+  late final GeneratedColumn<String> billId = GeneratedColumn<String>(
+    'bill_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _itemIdMeta = const VerificationMeta('itemId');
   @override
   late final GeneratedColumn<String> itemId = GeneratedColumn<String>(
@@ -34057,6 +34202,7 @@ class $StockMovementsTable extends StockMovements
     id,
     companyId,
     stockDocumentId,
+    billId,
     itemId,
     quantity,
     purchasePrice,
@@ -34148,6 +34294,12 @@ class $StockMovementsTable extends StockMovements
         ),
       );
     }
+    if (data.containsKey('bill_id')) {
+      context.handle(
+        _billIdMeta,
+        billId.isAcceptableOrUnknown(data['bill_id']!, _billIdMeta),
+      );
+    }
     if (data.containsKey('item_id')) {
       context.handle(
         _itemIdMeta,
@@ -34222,6 +34374,10 @@ class $StockMovementsTable extends StockMovements
         DriftSqlType.string,
         data['${effectivePrefix}stock_document_id'],
       ),
+      billId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}bill_id'],
+      ),
       itemId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}item_id'],
@@ -34282,6 +34438,7 @@ class StockMovement extends DataClass implements Insertable<StockMovement> {
   final String id;
   final String companyId;
   final String? stockDocumentId;
+  final String? billId;
   final String itemId;
   final double quantity;
   final int? purchasePrice;
@@ -34298,6 +34455,7 @@ class StockMovement extends DataClass implements Insertable<StockMovement> {
     required this.id,
     required this.companyId,
     this.stockDocumentId,
+    this.billId,
     required this.itemId,
     required this.quantity,
     this.purchasePrice,
@@ -34326,6 +34484,9 @@ class StockMovement extends DataClass implements Insertable<StockMovement> {
     map['company_id'] = Variable<String>(companyId);
     if (!nullToAbsent || stockDocumentId != null) {
       map['stock_document_id'] = Variable<String>(stockDocumentId);
+    }
+    if (!nullToAbsent || billId != null) {
+      map['bill_id'] = Variable<String>(billId);
     }
     map['item_id'] = Variable<String>(itemId);
     map['quantity'] = Variable<double>(quantity);
@@ -34369,6 +34530,9 @@ class StockMovement extends DataClass implements Insertable<StockMovement> {
       stockDocumentId: stockDocumentId == null && nullToAbsent
           ? const Value.absent()
           : Value(stockDocumentId),
+      billId: billId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(billId),
       itemId: Value(itemId),
       quantity: Value(quantity),
       purchasePrice: purchasePrice == null && nullToAbsent
@@ -34397,6 +34561,7 @@ class StockMovement extends DataClass implements Insertable<StockMovement> {
       id: serializer.fromJson<String>(json['id']),
       companyId: serializer.fromJson<String>(json['companyId']),
       stockDocumentId: serializer.fromJson<String?>(json['stockDocumentId']),
+      billId: serializer.fromJson<String?>(json['billId']),
       itemId: serializer.fromJson<String>(json['itemId']),
       quantity: serializer.fromJson<double>(json['quantity']),
       purchasePrice: serializer.fromJson<int?>(json['purchasePrice']),
@@ -34424,6 +34589,7 @@ class StockMovement extends DataClass implements Insertable<StockMovement> {
       'id': serializer.toJson<String>(id),
       'companyId': serializer.toJson<String>(companyId),
       'stockDocumentId': serializer.toJson<String?>(stockDocumentId),
+      'billId': serializer.toJson<String?>(billId),
       'itemId': serializer.toJson<String>(itemId),
       'quantity': serializer.toJson<double>(quantity),
       'purchasePrice': serializer.toJson<int?>(purchasePrice),
@@ -34449,6 +34615,7 @@ class StockMovement extends DataClass implements Insertable<StockMovement> {
     String? id,
     String? companyId,
     Value<String?> stockDocumentId = const Value.absent(),
+    Value<String?> billId = const Value.absent(),
     String? itemId,
     double? quantity,
     Value<int?> purchasePrice = const Value.absent(),
@@ -34471,6 +34638,7 @@ class StockMovement extends DataClass implements Insertable<StockMovement> {
     stockDocumentId: stockDocumentId.present
         ? stockDocumentId.value
         : this.stockDocumentId,
+    billId: billId.present ? billId.value : this.billId,
     itemId: itemId ?? this.itemId,
     quantity: quantity ?? this.quantity,
     purchasePrice: purchasePrice.present
@@ -34501,6 +34669,7 @@ class StockMovement extends DataClass implements Insertable<StockMovement> {
       stockDocumentId: data.stockDocumentId.present
           ? data.stockDocumentId.value
           : this.stockDocumentId,
+      billId: data.billId.present ? data.billId.value : this.billId,
       itemId: data.itemId.present ? data.itemId.value : this.itemId,
       quantity: data.quantity.present ? data.quantity.value : this.quantity,
       purchasePrice: data.purchasePrice.present
@@ -34526,6 +34695,7 @@ class StockMovement extends DataClass implements Insertable<StockMovement> {
           ..write('id: $id, ')
           ..write('companyId: $companyId, ')
           ..write('stockDocumentId: $stockDocumentId, ')
+          ..write('billId: $billId, ')
           ..write('itemId: $itemId, ')
           ..write('quantity: $quantity, ')
           ..write('purchasePrice: $purchasePrice, ')
@@ -34547,6 +34717,7 @@ class StockMovement extends DataClass implements Insertable<StockMovement> {
     id,
     companyId,
     stockDocumentId,
+    billId,
     itemId,
     quantity,
     purchasePrice,
@@ -34567,6 +34738,7 @@ class StockMovement extends DataClass implements Insertable<StockMovement> {
           other.id == this.id &&
           other.companyId == this.companyId &&
           other.stockDocumentId == this.stockDocumentId &&
+          other.billId == this.billId &&
           other.itemId == this.itemId &&
           other.quantity == this.quantity &&
           other.purchasePrice == this.purchasePrice &&
@@ -34585,6 +34757,7 @@ class StockMovementsCompanion extends UpdateCompanion<StockMovement> {
   final Value<String> id;
   final Value<String> companyId;
   final Value<String?> stockDocumentId;
+  final Value<String?> billId;
   final Value<String> itemId;
   final Value<double> quantity;
   final Value<int?> purchasePrice;
@@ -34602,6 +34775,7 @@ class StockMovementsCompanion extends UpdateCompanion<StockMovement> {
     this.id = const Value.absent(),
     this.companyId = const Value.absent(),
     this.stockDocumentId = const Value.absent(),
+    this.billId = const Value.absent(),
     this.itemId = const Value.absent(),
     this.quantity = const Value.absent(),
     this.purchasePrice = const Value.absent(),
@@ -34620,6 +34794,7 @@ class StockMovementsCompanion extends UpdateCompanion<StockMovement> {
     required String id,
     required String companyId,
     this.stockDocumentId = const Value.absent(),
+    this.billId = const Value.absent(),
     required String itemId,
     required double quantity,
     this.purchasePrice = const Value.absent(),
@@ -34642,6 +34817,7 @@ class StockMovementsCompanion extends UpdateCompanion<StockMovement> {
     Expression<String>? id,
     Expression<String>? companyId,
     Expression<String>? stockDocumentId,
+    Expression<String>? billId,
     Expression<String>? itemId,
     Expression<double>? quantity,
     Expression<int>? purchasePrice,
@@ -34660,6 +34836,7 @@ class StockMovementsCompanion extends UpdateCompanion<StockMovement> {
       if (id != null) 'id': id,
       if (companyId != null) 'company_id': companyId,
       if (stockDocumentId != null) 'stock_document_id': stockDocumentId,
+      if (billId != null) 'bill_id': billId,
       if (itemId != null) 'item_id': itemId,
       if (quantity != null) 'quantity': quantity,
       if (purchasePrice != null) 'purchase_price': purchasePrice,
@@ -34681,6 +34858,7 @@ class StockMovementsCompanion extends UpdateCompanion<StockMovement> {
     Value<String>? id,
     Value<String>? companyId,
     Value<String?>? stockDocumentId,
+    Value<String?>? billId,
     Value<String>? itemId,
     Value<double>? quantity,
     Value<int?>? purchasePrice,
@@ -34699,6 +34877,7 @@ class StockMovementsCompanion extends UpdateCompanion<StockMovement> {
       id: id ?? this.id,
       companyId: companyId ?? this.companyId,
       stockDocumentId: stockDocumentId ?? this.stockDocumentId,
+      billId: billId ?? this.billId,
       itemId: itemId ?? this.itemId,
       quantity: quantity ?? this.quantity,
       purchasePrice: purchasePrice ?? this.purchasePrice,
@@ -34742,6 +34921,9 @@ class StockMovementsCompanion extends UpdateCompanion<StockMovement> {
     if (stockDocumentId.present) {
       map['stock_document_id'] = Variable<String>(stockDocumentId.value);
     }
+    if (billId.present) {
+      map['bill_id'] = Variable<String>(billId.value);
+    }
     if (itemId.present) {
       map['item_id'] = Variable<String>(itemId.value);
     }
@@ -34782,6 +34964,7 @@ class StockMovementsCompanion extends UpdateCompanion<StockMovement> {
           ..write('id: $id, ')
           ..write('companyId: $companyId, ')
           ..write('stockDocumentId: $stockDocumentId, ')
+          ..write('billId: $billId, ')
           ..write('itemId: $itemId, ')
           ..write('quantity: $quantity, ')
           ..write('purchasePrice: $purchasePrice, ')
@@ -42865,6 +43048,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     'idx_stock_movements_item',
     'CREATE INDEX idx_stock_movements_item ON stock_movements (item_id)',
   );
+  late final Index idxStockMovementsBill = Index(
+    'idx_stock_movements_bill',
+    'CREATE INDEX idx_stock_movements_bill ON stock_movements (bill_id)',
+  );
   late final Index idxSuppliersCompanyUpdated = Index(
     'idx_suppliers_company_updated',
     'CREATE INDEX idx_suppliers_company_updated ON suppliers (company_id, updated_at)',
@@ -42994,6 +43181,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     idxStockMovementsCompanyUpdated,
     idxStockMovementsDocument,
     idxStockMovementsItem,
+    idxStockMovementsBill,
     idxSuppliersCompanyUpdated,
     idxSyncQueueCompanyStatus,
     idxSyncQueueEntity,
@@ -46443,6 +46631,7 @@ typedef $$CompanySettingsTableCreateCompanionBuilder =
       Value<int> loyaltyEarnRate,
       Value<int> loyaltyPointValue,
       Value<String> locale,
+      Value<NegativeStockPolicy> negativeStockPolicy,
       Value<int> rowid,
     });
 typedef $$CompanySettingsTableUpdateCompanionBuilder =
@@ -46461,6 +46650,7 @@ typedef $$CompanySettingsTableUpdateCompanionBuilder =
       Value<int> loyaltyEarnRate,
       Value<int> loyaltyPointValue,
       Value<String> locale,
+      Value<NegativeStockPolicy> negativeStockPolicy,
       Value<int> rowid,
     });
 
@@ -46542,6 +46732,16 @@ class $$CompanySettingsTableFilterComposer
     column: $table.locale,
     builder: (column) => ColumnFilters(column),
   );
+
+  ColumnWithTypeConverterFilters<
+    NegativeStockPolicy,
+    NegativeStockPolicy,
+    String
+  >
+  get negativeStockPolicy => $composableBuilder(
+    column: $table.negativeStockPolicy,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
 }
 
 class $$CompanySettingsTableOrderingComposer
@@ -46622,6 +46822,11 @@ class $$CompanySettingsTableOrderingComposer
     column: $table.locale,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get negativeStockPolicy => $composableBuilder(
+    column: $table.negativeStockPolicy,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$CompanySettingsTableAnnotationComposer
@@ -46688,6 +46893,12 @@ class $$CompanySettingsTableAnnotationComposer
 
   GeneratedColumn<String> get locale =>
       $composableBuilder(column: $table.locale, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<NegativeStockPolicy, String>
+  get negativeStockPolicy => $composableBuilder(
+    column: $table.negativeStockPolicy,
+    builder: (column) => column,
+  );
 }
 
 class $$CompanySettingsTableTableManager
@@ -46741,6 +46952,8 @@ class $$CompanySettingsTableTableManager
                 Value<int> loyaltyEarnRate = const Value.absent(),
                 Value<int> loyaltyPointValue = const Value.absent(),
                 Value<String> locale = const Value.absent(),
+                Value<NegativeStockPolicy> negativeStockPolicy =
+                    const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => CompanySettingsCompanion(
                 lastSyncedAt: lastSyncedAt,
@@ -46757,6 +46970,7 @@ class $$CompanySettingsTableTableManager
                 loyaltyEarnRate: loyaltyEarnRate,
                 loyaltyPointValue: loyaltyPointValue,
                 locale: locale,
+                negativeStockPolicy: negativeStockPolicy,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -46775,6 +46989,8 @@ class $$CompanySettingsTableTableManager
                 Value<int> loyaltyEarnRate = const Value.absent(),
                 Value<int> loyaltyPointValue = const Value.absent(),
                 Value<String> locale = const Value.absent(),
+                Value<NegativeStockPolicy> negativeStockPolicy =
+                    const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => CompanySettingsCompanion.insert(
                 lastSyncedAt: lastSyncedAt,
@@ -46791,6 +47007,7 @@ class $$CompanySettingsTableTableManager
                 loyaltyEarnRate: loyaltyEarnRate,
                 loyaltyPointValue: loyaltyPointValue,
                 locale: locale,
+                negativeStockPolicy: negativeStockPolicy,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -48139,6 +48356,7 @@ typedef $$ItemsTableCreateCompanionBuilder =
       Value<String?> manufacturerId,
       Value<String?> supplierId,
       Value<String?> parentId,
+      Value<NegativeStockPolicy?> negativeStockPolicy,
       Value<int> rowid,
     });
 typedef $$ItemsTableUpdateCompanionBuilder =
@@ -48171,6 +48389,7 @@ typedef $$ItemsTableUpdateCompanionBuilder =
       Value<String?> manufacturerId,
       Value<String?> supplierId,
       Value<String?> parentId,
+      Value<NegativeStockPolicy?> negativeStockPolicy,
       Value<int> rowid,
     });
 
@@ -48323,6 +48542,16 @@ class $$ItemsTableFilterComposer extends Composer<_$AppDatabase, $ItemsTable> {
     column: $table.parentId,
     builder: (column) => ColumnFilters(column),
   );
+
+  ColumnWithTypeConverterFilters<
+    NegativeStockPolicy?,
+    NegativeStockPolicy,
+    String
+  >
+  get negativeStockPolicy => $composableBuilder(
+    column: $table.negativeStockPolicy,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
 }
 
 class $$ItemsTableOrderingComposer
@@ -48473,6 +48702,11 @@ class $$ItemsTableOrderingComposer
     column: $table.parentId,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get negativeStockPolicy => $composableBuilder(
+    column: $table.negativeStockPolicy,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$ItemsTableAnnotationComposer
@@ -48593,6 +48827,12 @@ class $$ItemsTableAnnotationComposer
 
   GeneratedColumn<String> get parentId =>
       $composableBuilder(column: $table.parentId, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<NegativeStockPolicy?, String>
+  get negativeStockPolicy => $composableBuilder(
+    column: $table.negativeStockPolicy,
+    builder: (column) => column,
+  );
 }
 
 class $$ItemsTableTableManager
@@ -48651,6 +48891,8 @@ class $$ItemsTableTableManager
                 Value<String?> manufacturerId = const Value.absent(),
                 Value<String?> supplierId = const Value.absent(),
                 Value<String?> parentId = const Value.absent(),
+                Value<NegativeStockPolicy?> negativeStockPolicy =
+                    const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ItemsCompanion(
                 lastSyncedAt: lastSyncedAt,
@@ -48681,6 +48923,7 @@ class $$ItemsTableTableManager
                 manufacturerId: manufacturerId,
                 supplierId: supplierId,
                 parentId: parentId,
+                negativeStockPolicy: negativeStockPolicy,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -48713,6 +48956,8 @@ class $$ItemsTableTableManager
                 Value<String?> manufacturerId = const Value.absent(),
                 Value<String?> supplierId = const Value.absent(),
                 Value<String?> parentId = const Value.absent(),
+                Value<NegativeStockPolicy?> negativeStockPolicy =
+                    const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ItemsCompanion.insert(
                 lastSyncedAt: lastSyncedAt,
@@ -48743,6 +48988,7 @@ class $$ItemsTableTableManager
                 manufacturerId: manufacturerId,
                 supplierId: supplierId,
                 parentId: parentId,
+                negativeStockPolicy: negativeStockPolicy,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -58329,6 +58575,7 @@ typedef $$StockMovementsTableCreateCompanionBuilder =
       required String id,
       required String companyId,
       Value<String?> stockDocumentId,
+      Value<String?> billId,
       required String itemId,
       required double quantity,
       Value<int?> purchasePrice,
@@ -58348,6 +58595,7 @@ typedef $$StockMovementsTableUpdateCompanionBuilder =
       Value<String> id,
       Value<String> companyId,
       Value<String?> stockDocumentId,
+      Value<String?> billId,
       Value<String> itemId,
       Value<double> quantity,
       Value<int?> purchasePrice,
@@ -58412,6 +58660,11 @@ class $$StockMovementsTableFilterComposer
 
   ColumnFilters<String> get stockDocumentId => $composableBuilder(
     column: $table.stockDocumentId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get billId => $composableBuilder(
+    column: $table.billId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -58510,6 +58763,11 @@ class $$StockMovementsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get billId => $composableBuilder(
+    column: $table.billId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get itemId => $composableBuilder(
     column: $table.itemId,
     builder: (column) => ColumnOrderings(column),
@@ -58583,6 +58841,9 @@ class $$StockMovementsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get billId =>
+      $composableBuilder(column: $table.billId, builder: (column) => column);
+
   GeneratedColumn<String> get itemId =>
       $composableBuilder(column: $table.itemId, builder: (column) => column);
 
@@ -58648,6 +58909,7 @@ class $$StockMovementsTableTableManager
                 Value<String> id = const Value.absent(),
                 Value<String> companyId = const Value.absent(),
                 Value<String?> stockDocumentId = const Value.absent(),
+                Value<String?> billId = const Value.absent(),
                 Value<String> itemId = const Value.absent(),
                 Value<double> quantity = const Value.absent(),
                 Value<int?> purchasePrice = const Value.absent(),
@@ -58666,6 +58928,7 @@ class $$StockMovementsTableTableManager
                 id: id,
                 companyId: companyId,
                 stockDocumentId: stockDocumentId,
+                billId: billId,
                 itemId: itemId,
                 quantity: quantity,
                 purchasePrice: purchasePrice,
@@ -58685,6 +58948,7 @@ class $$StockMovementsTableTableManager
                 required String id,
                 required String companyId,
                 Value<String?> stockDocumentId = const Value.absent(),
+                Value<String?> billId = const Value.absent(),
                 required String itemId,
                 required double quantity,
                 Value<int?> purchasePrice = const Value.absent(),
@@ -58703,6 +58967,7 @@ class $$StockMovementsTableTableManager
                 id: id,
                 companyId: companyId,
                 stockDocumentId: stockDocumentId,
+                billId: billId,
                 itemId: itemId,
                 quantity: quantity,
                 purchasePrice: purchasePrice,

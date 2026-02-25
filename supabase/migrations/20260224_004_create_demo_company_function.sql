@@ -239,6 +239,7 @@ BEGIN
   INSERT INTO companies (
     id, name, status, default_currency_id, auth_user_id,
     business_id, vat_number, email, phone, address, city, postal_code, country,
+    timezone, business_type,
     client_created_at, client_updated_at
   )
   VALUES (
@@ -279,12 +280,15 @@ BEGIN
       WHEN 'cs' THEN 'CZ'
       ELSE 'AT'
     END,
+    CASE p_locale WHEN 'cs' THEN 'Europe/Prague' ELSE 'Europe/Vienna' END,
+    p_mode,
     v_now, v_now
   );
 
   INSERT INTO company_settings (id, company_id, locale, loyalty_earn_rate, loyalty_point_value,
+                               auto_lock_timeout_minutes,
                                client_created_at, client_updated_at)
-  VALUES (v_settings_id, v_company_id, p_locale, 1000, 100, v_now, v_now);
+  VALUES (v_settings_id, v_company_id, p_locale, 1000, 100, 5, v_now, v_now);
 
   -- ========================================================================
   -- STEP 4: Tax rates
@@ -1204,7 +1208,7 @@ BEGIN
             v_oi_id := gen_random_uuid()::text;
             INSERT INTO order_items (id, company_id, order_id, item_id, item_name, quantity,
                                      sale_price_att, sale_tax_rate_att, sale_tax_amount, unit,
-                                     discount, discount_type,
+                                     discount, discount_type, notes,
                                      status,
                                      prep_started_at, ready_at, delivered_at,
                                      client_created_at, client_updated_at)
@@ -1221,6 +1225,7 @@ BEGIN
                 WHEN v_item_disc_amt IS NOT NULL AND v_item_disc_amt > 0 THEN 'absolute'::discount_type
                 ELSE NULL
               END,
+              v_item->>'notes',
               v_item_status::prep_status,
               CASE WHEN v_item_status IN ('delivered', 'ready') THEN v_bill_time ELSE NULL END,
               CASE WHEN v_item_status IN ('delivered', 'ready') THEN v_bill_time ELSE NULL END,
@@ -1234,6 +1239,7 @@ BEGIN
               v_order_net   := v_order_net + v_item_net;
               v_order_tax   := v_order_tax + v_item_tax;
               v_order_count := v_order_count + v_qty;
+
             END IF;
 
             -- Process modifiers for this item
@@ -1358,7 +1364,7 @@ BEGIN
       END IF;
 
       -- Insert bill
-      INSERT INTO bills (id, company_id, customer_id, section_id, table_id,
+      INSERT INTO bills (id, company_id, customer_id, customer_name, section_id, table_id,
                          register_id, last_register_id, register_session_id, opened_by_user_id,
                          bill_number, number_of_guests, is_takeaway, status, currency_id,
                          subtotal_gross, subtotal_net, discount_amount, discount_type,
@@ -1369,7 +1375,9 @@ BEGIN
                          opened_at, closed_at,
                          client_created_at, client_updated_at)
       VALUES (
-        v_bill_id, v_company_id, v_customer_id, v_section_id, v_table_id,
+        v_bill_id, v_company_id, v_customer_id,
+        CASE WHEN v_customer_id IS NOT NULL THEN (SELECT first_name || ' ' || last_name FROM customers WHERE id = v_customer_id) ELSE NULL END,
+        v_section_id, v_table_id,
         v_register_id, v_register_id, v_session_id, v_order_user,
         'B-' || lpad(v_bill_counter::text, 4, '0'),
         v_guests, v_is_takeaway,
@@ -1411,6 +1419,22 @@ BEGIN
       END IF;
 
       -- ----------------------------------------------------------------
+      -- Stock movements from sales (outbound for stock-tracked items)
+      -- ----------------------------------------------------------------
+      INSERT INTO stock_movements (id, company_id, bill_id, item_id,
+                                   quantity, direction,
+                                   client_created_at, client_updated_at)
+      SELECT gen_random_uuid()::text, v_company_id, v_bill_id, oi.item_id,
+             oi.quantity::double precision, 'outbound'::stock_movement_direction,
+             v_bill_time, v_bill_time
+      FROM order_items oi
+      JOIN orders o ON o.id = oi.order_id
+      JOIN items i ON i.id = oi.item_id
+      WHERE o.bill_id = v_bill_id
+        AND oi.status != 'voided'
+        AND i.is_stock_tracked = true;
+
+      -- ----------------------------------------------------------------
       -- Payments
       -- ----------------------------------------------------------------
       IF v_bill_status IN ('paid', 'refunded') AND v_payments IS NOT NULL THEN
@@ -1427,6 +1451,7 @@ BEGIN
                                 payment_method_id, amount, paid_at, currency_id,
                                 tip_included_amount,
                                 foreign_currency_id, foreign_amount, exchange_rate,
+                                card_last4, transaction_id, payment_provider, authorization_code,
                                 client_created_at, client_updated_at)
           VALUES (
             v_pay_id, v_company_id, v_bill_id, v_register_id, v_session_id, v_order_user,
@@ -1440,6 +1465,10 @@ BEGIN
             END,
             (v_payment->>'foreign_amount')::int,
             (v_payment->>'exchange_rate')::double precision,
+            CASE WHEN v_pay_method_ref = 'pm:card' THEN lpad((floor(random() * 10000))::int::text, 4, '0') ELSE NULL END,
+            CASE WHEN v_pay_method_ref = 'pm:card' THEN 'TXN-' || upper(substr(md5(v_pay_id), 1, 8)) ELSE NULL END,
+            CASE WHEN v_pay_method_ref = 'pm:card' THEN 'SumUp' ELSE NULL END,
+            CASE WHEN v_pay_method_ref = 'pm:card' THEN upper(substr(md5(v_pay_id || 'auth'), 1, 6)) ELSE NULL END,
             v_bill_time + interval '1 minute',
             v_bill_time + interval '1 minute'
           );
@@ -1493,7 +1522,7 @@ BEGIN
         END LOOP;
 
         INSERT INTO stock_documents (id, company_id, warehouse_id, supplier_id, user_id,
-                                     document_number, type, total_amount, document_date,
+                                     document_number, type, note, total_amount, document_date,
                                      client_created_at, client_updated_at)
         VALUES (
           v_sdoc_id, v_company_id, v_warehouse_id,
@@ -1504,6 +1533,7 @@ BEGIN
           v_morning_user,
           upper(v_sdoc_type) || '-' || lpad(v_stock_doc_counter::text, 3, '0'),
           v_sdoc_type::stock_document_type,
+          CASE p_locale WHEN 'cs' THEN v_sdoc->>'note_cs' ELSE v_sdoc->>'note_en' END,
           v_sdoc_total::int,
           v_day_date,
           v_session_open + ((v_sdoc->>'time_offset_minutes')::int || ' minutes')::interval,
@@ -1688,8 +1718,7 @@ BEGIN
     SUM(CASE WHEN sm.direction = 'inbound' THEN sm.quantity ELSE -sm.quantity END),
     v_now, v_now
   FROM stock_movements sm
-  JOIN stock_documents sd ON sd.id = sm.stock_document_id
-  WHERE sd.company_id = v_company_id
+  WHERE sm.company_id = v_company_id
   GROUP BY sm.item_id
   HAVING SUM(CASE WHEN sm.direction = 'inbound' THEN sm.quantity ELSE -sm.quantity END) != 0;
 

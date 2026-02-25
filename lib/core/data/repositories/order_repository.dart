@@ -7,6 +7,7 @@ import '../../database/app_database.dart';
 import '../../logging/app_logger.dart';
 import '../enums/discount_type.dart';
 import '../enums/item_type.dart';
+import '../enums/negative_stock_policy.dart';
 import '../enums/prep_status.dart';
 import '../enums/stock_movement_direction.dart';
 import '../enums/unit_type.dart';
@@ -44,6 +45,8 @@ class OrderRepository {
     required List<OrderItemInput> items,
     String? orderNotes,
     String? registerId,
+    NegativeStockPolicy negativeStockPolicy = NegativeStockPolicy.allow,
+    bool skipStockCheck = false,
   }) async {
     try {
       final now = DateTime.now();
@@ -142,12 +145,17 @@ class OrderRepository {
           await _enqueueOrderItem('insert', orderItemFromEntity(item));
         }
         // Stock deduction for stock-tracked items (inside transaction for atomicity)
-        await _deductStockForOrder(companyId, items);
+        await _deductStockForOrder(companyId, items,
+            billId: billId,
+            companyPolicy: negativeStockPolicy,
+            skipStockCheck: skipStockCheck);
 
         return o;
       });
 
       return Success(order);
+    } on InsufficientStockException {
+      rethrow;
     } catch (e, s) {
       AppLogger.error('Failed to create order', error: e, stackTrace: s);
       return Failure('Failed to create order: $e');
@@ -263,7 +271,7 @@ class OrderRepository {
 
       // Reverse stock deduction on cancel/void
       if (status == PrepStatus.cancelled || status == PrepStatus.voided) {
-        await _reverseStockForOrder(order.companyId, itemEntities);
+        await _reverseStockForOrder(order.companyId, itemEntities, billId: order.billId);
       }
 
       return Success(order);
@@ -347,8 +355,11 @@ class OrderRepository {
 
         // 3. Stock reversal if cancelled/voided
         if (newStatus == PrepStatus.cancelled || newStatus == PrepStatus.voided) {
+          final orderEntity = await (_db.select(_db.orders)
+                ..where((t) => t.id.equals(orderId)))
+              .getSingle();
           await _reverseStockForSingleItem(
-              itemEntity.companyId, itemEntity);
+              itemEntity.companyId, itemEntity, billId: orderEntity.billId);
         }
 
         // 4. Derive order status from all items
@@ -481,7 +492,7 @@ class OrderRepository {
         );
 
         // 4. Stock reversal for this single item
-        await _reverseStockForSingleItem(companyId, itemEntity);
+        await _reverseStockForSingleItem(companyId, itemEntity, billId: orderEntity.billId);
 
         // 5. Create storno order
         final stornoOrderId = const Uuid().v7();
@@ -951,7 +962,7 @@ class OrderRepository {
   }
 
   /// Reverses stock for a single order item (used by voidItem).
-  Future<void> _reverseStockForSingleItem(String companyId, OrderItem item) async {
+  Future<void> _reverseStockForSingleItem(String companyId, OrderItem item, {String? billId}) async {
     if (stockLevelRepo == null || stockMovementRepo == null) return;
 
     final warehouse = await (_db.select(_db.warehouses)
@@ -977,6 +988,7 @@ class OrderRepository {
           itemId: recipe.componentProductId,
           quantity: componentQty,
           direction: StockMovementDirection.inbound,
+          billId: billId,
         );
       }
     } else {
@@ -986,6 +998,7 @@ class OrderRepository {
         itemId: itemDef.id,
         quantity: item.quantity,
         direction: _stockDirectionForReversal(item.salePriceAtt),
+        billId: billId,
       );
     }
 
@@ -1005,6 +1018,7 @@ class OrderRepository {
           itemId: modItem.id,
           quantity: modQty,
           direction: _stockDirectionForReversal(mod.unitPrice),
+          billId: billId,
         );
       }
     }
@@ -1260,10 +1274,15 @@ class OrderRepository {
 
   /// Deducts stock for each stock-tracked item in the order.
   /// For recipes: decomposes into ingredients and deducts those.
+  /// When [companyPolicy] is not [NegativeStockPolicy.allow] and [skipStockCheck]
+  /// is false, validates stock availability before deduction.
   Future<void> _deductStockForOrder(
     String companyId,
-    List<OrderItemInput> items,
-  ) async {
+    List<OrderItemInput> items, {
+    String? billId,
+    NegativeStockPolicy companyPolicy = NegativeStockPolicy.allow,
+    bool skipStockCheck = false,
+  }) async {
     if (stockLevelRepo == null || stockMovementRepo == null) return;
 
     // Get default warehouse
@@ -1272,6 +1291,112 @@ class OrderRepository {
         .getSingleOrNull();
     if (warehouse == null) return; // No warehouse yet, skip deduction
 
+    // --- Pre-check: aggregate demand and validate stock levels ---
+    if (!skipStockCheck) {
+      // Map<itemId, (quantity, name, effectivePolicy)>
+      final demand = <String, (double quantity, String name, NegativeStockPolicy policy)>{};
+
+      void addDemand(String itemId, String itemName, double qty,
+          NegativeStockPolicy effectivePolicy) {
+        final existing = demand[itemId];
+        if (existing != null) {
+          demand[itemId] = (
+            existing.$1 + qty,
+            existing.$2,
+            _strictestPolicy(existing.$3, effectivePolicy),
+          );
+        } else {
+          demand[itemId] = (qty, itemName, effectivePolicy);
+        }
+      }
+
+      for (final orderItem in items) {
+        final item = await (_db.select(_db.items)
+              ..where((t) => t.id.equals(orderItem.itemId)))
+            .getSingleOrNull();
+        if (item == null || !item.isStockTracked) continue;
+
+        // Per-item override falls back to company policy
+        final effectivePolicy = item.negativeStockPolicy ?? companyPolicy;
+        if (effectivePolicy == NegativeStockPolicy.allow) continue;
+
+        if (item.itemType == ItemType.recipe) {
+          // Recipe: policy from parent recipe item applies to all ingredients
+          final recipes = await (_db.select(_db.productRecipes)
+                ..where((t) => t.parentProductId.equals(item.id) & t.deletedAt.isNull()))
+              .get();
+          for (final recipe in recipes) {
+            final component = await (_db.select(_db.items)
+                  ..where((t) => t.id.equals(recipe.componentProductId)))
+                .getSingleOrNull();
+            final componentName = component?.name ?? recipe.componentProductId;
+            addDemand(recipe.componentProductId, componentName,
+                recipe.quantityRequired * orderItem.quantity, effectivePolicy);
+          }
+        } else {
+          final direction = _stockDirectionForSale(orderItem.salePriceAtt);
+          if (direction == StockMovementDirection.outbound) {
+            addDemand(item.id, orderItem.itemName, orderItem.quantity,
+                effectivePolicy);
+          }
+        }
+
+        // Modifiers
+        for (final mod in orderItem.modifiers) {
+          final modItem = await (_db.select(_db.items)
+                ..where((t) => t.id.equals(mod.modifierItemId)))
+              .getSingleOrNull();
+          if (modItem == null || !modItem.isStockTracked) continue;
+          final modPolicy = modItem.negativeStockPolicy ?? companyPolicy;
+          if (modPolicy == NegativeStockPolicy.allow) continue;
+          final direction = _stockDirectionForSale(mod.unitPrice);
+          if (direction == StockMovementDirection.outbound) {
+            addDemand(modItem.id, mod.modifierItemName,
+                mod.quantity * orderItem.quantity, modPolicy);
+          }
+        }
+      }
+
+      // Check stock levels against demand — separate block vs warn shortages
+      final blockShortages = <StockShortage>[];
+      final warnShortages = <StockShortage>[];
+      for (final entry in demand.entries) {
+        final levelResult = await stockLevelRepo!.getOrCreate(
+          companyId: companyId,
+          warehouseId: warehouse.id,
+          itemId: entry.key,
+        );
+        if (levelResult case Success(value: final level)) {
+          if (level.quantity < entry.value.$1) {
+            final shortage = StockShortage(
+              itemId: entry.key,
+              itemName: entry.value.$2,
+              needed: entry.value.$1,
+              available: level.quantity,
+            );
+            if (entry.value.$3 == NegativeStockPolicy.block) {
+              blockShortages.add(shortage);
+            } else {
+              warnShortages.add(shortage);
+            }
+          }
+        }
+      }
+
+      if (blockShortages.isNotEmpty) {
+        throw InsufficientStockException(
+          [...blockShortages, ...warnShortages],
+          isWarningOnly: false,
+        );
+      } else if (warnShortages.isNotEmpty) {
+        throw InsufficientStockException(
+          warnShortages,
+          isWarningOnly: true,
+        );
+      }
+    }
+
+    // --- Actual deduction ---
     for (final orderItem in items) {
       final item = await (_db.select(_db.items)
             ..where((t) => t.id.equals(orderItem.itemId)))
@@ -1291,6 +1416,7 @@ class OrderRepository {
             itemId: recipe.componentProductId,
             quantity: componentQty,
             direction: StockMovementDirection.outbound,
+            billId: billId,
           );
         }
       } else {
@@ -1300,6 +1426,7 @@ class OrderRepository {
           itemId: item.id,
           quantity: orderItem.quantity,
           direction: _stockDirectionForSale(orderItem.salePriceAtt),
+          billId: billId,
         );
       }
 
@@ -1317,6 +1444,7 @@ class OrderRepository {
           itemId: modItem.id,
           quantity: modQty,
           direction: _stockDirectionForSale(mod.unitPrice),
+          billId: billId,
         );
       }
     }
@@ -1325,8 +1453,9 @@ class OrderRepository {
   /// Reverses stock deduction when an order is cancelled or voided.
   Future<void> _reverseStockForOrder(
     String companyId,
-    List<OrderItem> orderItemEntities,
-  ) async {
+    List<OrderItem> orderItemEntities, {
+    String? billId,
+  }) async {
     if (stockLevelRepo == null || stockMovementRepo == null) return;
 
     final warehouse = await (_db.select(_db.warehouses)
@@ -1353,6 +1482,7 @@ class OrderRepository {
             itemId: recipe.componentProductId,
             quantity: componentQty,
             direction: StockMovementDirection.inbound,
+            billId: billId,
           );
         }
       } else {
@@ -1362,6 +1492,7 @@ class OrderRepository {
           itemId: item.id,
           quantity: orderItem.quantity,
           direction: _stockDirectionForReversal(orderItem.salePriceAtt),
+          billId: billId,
         );
       }
 
@@ -1381,10 +1512,23 @@ class OrderRepository {
             itemId: modItem.id,
             quantity: modQty,
             direction: _stockDirectionForReversal(mod.unitPrice),
+            billId: billId,
           );
         }
       }
     }
+  }
+
+  /// Returns the stricter of two negative stock policies.
+  static NegativeStockPolicy _strictestPolicy(
+      NegativeStockPolicy a, NegativeStockPolicy b) {
+    if (a == NegativeStockPolicy.block || b == NegativeStockPolicy.block) {
+      return NegativeStockPolicy.block;
+    }
+    if (a == NegativeStockPolicy.warn || b == NegativeStockPolicy.warn) {
+      return NegativeStockPolicy.warn;
+    }
+    return NegativeStockPolicy.allow;
   }
 
   /// Returns outbound for positive prices (normal sale deduction),
@@ -1407,6 +1551,7 @@ class OrderRepository {
     required String itemId,
     required double quantity,
     required StockMovementDirection direction,
+    String? billId,
   }) async {
     final now = DateTime.now();
     final movementId = const Uuid().v7();
@@ -1416,6 +1561,7 @@ class OrderRepository {
       companyId: companyId,
       itemId: itemId,
       quantity: quantity,
+      billId: billId,
       direction: direction,
       createdAt: now,
       updatedAt: now,
@@ -1500,4 +1646,27 @@ class OrderItemModifierInput {
   final int unitPrice;
   final int taxRate;
   final int taxAmount;
+}
+
+class InsufficientStockException implements Exception {
+  final List<StockShortage> shortages;
+  final bool isWarningOnly;
+  InsufficientStockException(this.shortages, {this.isWarningOnly = false});
+
+  @override
+  String toString() =>
+      shortages.map((s) => '${s.itemName}: ${s.needed} / ${s.available}').join('\n');
+}
+
+class StockShortage {
+  final String itemId;
+  final String itemName;
+  final double needed;
+  final double available;
+  const StockShortage({
+    required this.itemId,
+    required this.itemName,
+    required this.needed,
+    required this.available,
+  });
 }

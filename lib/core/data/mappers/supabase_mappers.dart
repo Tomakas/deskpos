@@ -133,6 +133,7 @@ Map<String, dynamic> itemToSupabaseJson(ItemModel m) => {
       'manufacturer_id': m.manufacturerId,
       'supplier_id': m.supplierId,
       'parent_id': m.parentId,
+      'negative_stock_policy': m.negativeStockPolicy?.name,
     };
 
 Map<String, dynamic> supplierToSupabaseJson(SupplierModel m) => {
@@ -443,6 +444,7 @@ Map<String, dynamic> companySettingsToSupabaseJson(CompanySettingsModel m) => {
       'loyalty_earn_rate': m.loyaltyEarnRate,
       'loyalty_point_value': m.loyaltyPointValue,
       'locale': m.locale,
+      'negative_stock_policy': m.negativeStockPolicy.name,
     };
 
 Map<String, dynamic> companyToSupabaseJson(CompanyModel m) => {
@@ -673,6 +675,7 @@ Map<String, dynamic> stockMovementToSupabaseJson(StockMovementModel m) => {
         deletedAt: m.deletedAt,
       ),
       'stock_document_id': m.stockDocumentId,
+      'bill_id': m.billId,
       'item_id': m.itemId,
       'quantity': m.quantity,
       'purchase_price': m.purchasePrice,

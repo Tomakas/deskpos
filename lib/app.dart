@@ -53,7 +53,7 @@ class MatyApp extends ConsumerWidget {
         ),
       ),
       chipTheme: const ChipThemeData(
-        padding: EdgeInsets.symmetric(horizontal: 6),
+        padding: EdgeInsets.symmetric(horizontal: 6, vertical: 8),
         labelPadding: EdgeInsets.zero,
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(

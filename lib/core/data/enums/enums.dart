@@ -6,6 +6,7 @@ export 'company_status.dart';
 export 'hardware_type.dart';
 export 'item_type.dart';
 export 'layout_item_type.dart';
+export 'negative_stock_policy.dart';
 export 'payment_type.dart';
 export 'prep_status.dart';
 export 'purchase_price_strategy.dart';

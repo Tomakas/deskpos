@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ItemModel {
 
- String get id; String get companyId; String? get categoryId; String get name; String? get description; ItemType get itemType; String? get sku; int get unitPrice; String? get saleTaxRateId; bool get isSellable; bool get isActive; UnitType get unit; String? get altSku; int? get purchasePrice; String? get purchaseTaxRateId; bool get isOnSale; bool get isStockTracked; double? get minQuantity; String? get manufacturerId; String? get supplierId; String? get parentId; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+ String get id; String get companyId; String? get categoryId; String get name; String? get description; ItemType get itemType; String? get sku; int get unitPrice; String? get saleTaxRateId; bool get isSellable; bool get isActive; UnitType get unit; String? get altSku; int? get purchasePrice; String? get purchaseTaxRateId; bool get isOnSale; bool get isStockTracked; double? get minQuantity; String? get manufacturerId; String? get supplierId; String? get parentId; NegativeStockPolicy? get negativeStockPolicy; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
 /// Create a copy of ItemModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $ItemModelCopyWith<ItemModel> get copyWith => _$ItemModelCopyWithImpl<ItemModel>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ItemModel&&(identical(other.id, id) || other.id == id)&&(identical(other.companyId, companyId) || other.companyId == companyId)&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.itemType, itemType) || other.itemType == itemType)&&(identical(other.sku, sku) || other.sku == sku)&&(identical(other.unitPrice, unitPrice) || other.unitPrice == unitPrice)&&(identical(other.saleTaxRateId, saleTaxRateId) || other.saleTaxRateId == saleTaxRateId)&&(identical(other.isSellable, isSellable) || other.isSellable == isSellable)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.unit, unit) || other.unit == unit)&&(identical(other.altSku, altSku) || other.altSku == altSku)&&(identical(other.purchasePrice, purchasePrice) || other.purchasePrice == purchasePrice)&&(identical(other.purchaseTaxRateId, purchaseTaxRateId) || other.purchaseTaxRateId == purchaseTaxRateId)&&(identical(other.isOnSale, isOnSale) || other.isOnSale == isOnSale)&&(identical(other.isStockTracked, isStockTracked) || other.isStockTracked == isStockTracked)&&(identical(other.minQuantity, minQuantity) || other.minQuantity == minQuantity)&&(identical(other.manufacturerId, manufacturerId) || other.manufacturerId == manufacturerId)&&(identical(other.supplierId, supplierId) || other.supplierId == supplierId)&&(identical(other.parentId, parentId) || other.parentId == parentId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ItemModel&&(identical(other.id, id) || other.id == id)&&(identical(other.companyId, companyId) || other.companyId == companyId)&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.itemType, itemType) || other.itemType == itemType)&&(identical(other.sku, sku) || other.sku == sku)&&(identical(other.unitPrice, unitPrice) || other.unitPrice == unitPrice)&&(identical(other.saleTaxRateId, saleTaxRateId) || other.saleTaxRateId == saleTaxRateId)&&(identical(other.isSellable, isSellable) || other.isSellable == isSellable)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.unit, unit) || other.unit == unit)&&(identical(other.altSku, altSku) || other.altSku == altSku)&&(identical(other.purchasePrice, purchasePrice) || other.purchasePrice == purchasePrice)&&(identical(other.purchaseTaxRateId, purchaseTaxRateId) || other.purchaseTaxRateId == purchaseTaxRateId)&&(identical(other.isOnSale, isOnSale) || other.isOnSale == isOnSale)&&(identical(other.isStockTracked, isStockTracked) || other.isStockTracked == isStockTracked)&&(identical(other.minQuantity, minQuantity) || other.minQuantity == minQuantity)&&(identical(other.manufacturerId, manufacturerId) || other.manufacturerId == manufacturerId)&&(identical(other.supplierId, supplierId) || other.supplierId == supplierId)&&(identical(other.parentId, parentId) || other.parentId == parentId)&&(identical(other.negativeStockPolicy, negativeStockPolicy) || other.negativeStockPolicy == negativeStockPolicy)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 
 @override
-int get hashCode => Object.hashAll([runtimeType,id,companyId,categoryId,name,description,itemType,sku,unitPrice,saleTaxRateId,isSellable,isActive,unit,altSku,purchasePrice,purchaseTaxRateId,isOnSale,isStockTracked,minQuantity,manufacturerId,supplierId,parentId,createdAt,updatedAt,deletedAt]);
+int get hashCode => Object.hashAll([runtimeType,id,companyId,categoryId,name,description,itemType,sku,unitPrice,saleTaxRateId,isSellable,isActive,unit,altSku,purchasePrice,purchaseTaxRateId,isOnSale,isStockTracked,minQuantity,manufacturerId,supplierId,parentId,negativeStockPolicy,createdAt,updatedAt,deletedAt]);
 
 @override
 String toString() {
-  return 'ItemModel(id: $id, companyId: $companyId, categoryId: $categoryId, name: $name, description: $description, itemType: $itemType, sku: $sku, unitPrice: $unitPrice, saleTaxRateId: $saleTaxRateId, isSellable: $isSellable, isActive: $isActive, unit: $unit, altSku: $altSku, purchasePrice: $purchasePrice, purchaseTaxRateId: $purchaseTaxRateId, isOnSale: $isOnSale, isStockTracked: $isStockTracked, minQuantity: $minQuantity, manufacturerId: $manufacturerId, supplierId: $supplierId, parentId: $parentId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'ItemModel(id: $id, companyId: $companyId, categoryId: $categoryId, name: $name, description: $description, itemType: $itemType, sku: $sku, unitPrice: $unitPrice, saleTaxRateId: $saleTaxRateId, isSellable: $isSellable, isActive: $isActive, unit: $unit, altSku: $altSku, purchasePrice: $purchasePrice, purchaseTaxRateId: $purchaseTaxRateId, isOnSale: $isOnSale, isStockTracked: $isStockTracked, minQuantity: $minQuantity, manufacturerId: $manufacturerId, supplierId: $supplierId, parentId: $parentId, negativeStockPolicy: $negativeStockPolicy, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $ItemModelCopyWith<$Res>  {
   factory $ItemModelCopyWith(ItemModel value, $Res Function(ItemModel) _then) = _$ItemModelCopyWithImpl;
 @useResult
 $Res call({
- String id, String companyId, String? categoryId, String name, String? description, ItemType itemType, String? sku, int unitPrice, String? saleTaxRateId, bool isSellable, bool isActive, UnitType unit, String? altSku, int? purchasePrice, String? purchaseTaxRateId, bool isOnSale, bool isStockTracked, double? minQuantity, String? manufacturerId, String? supplierId, String? parentId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String companyId, String? categoryId, String name, String? description, ItemType itemType, String? sku, int unitPrice, String? saleTaxRateId, bool isSellable, bool isActive, UnitType unit, String? altSku, int? purchasePrice, String? purchaseTaxRateId, bool isOnSale, bool isStockTracked, double? minQuantity, String? manufacturerId, String? supplierId, String? parentId, NegativeStockPolicy? negativeStockPolicy, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -62,7 +62,7 @@ class _$ItemModelCopyWithImpl<$Res>
 
 /// Create a copy of ItemModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? companyId = null,Object? categoryId = freezed,Object? name = null,Object? description = freezed,Object? itemType = null,Object? sku = freezed,Object? unitPrice = null,Object? saleTaxRateId = freezed,Object? isSellable = null,Object? isActive = null,Object? unit = null,Object? altSku = freezed,Object? purchasePrice = freezed,Object? purchaseTaxRateId = freezed,Object? isOnSale = null,Object? isStockTracked = null,Object? minQuantity = freezed,Object? manufacturerId = freezed,Object? supplierId = freezed,Object? parentId = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? companyId = null,Object? categoryId = freezed,Object? name = null,Object? description = freezed,Object? itemType = null,Object? sku = freezed,Object? unitPrice = null,Object? saleTaxRateId = freezed,Object? isSellable = null,Object? isActive = null,Object? unit = null,Object? altSku = freezed,Object? purchasePrice = freezed,Object? purchaseTaxRateId = freezed,Object? isOnSale = null,Object? isStockTracked = null,Object? minQuantity = freezed,Object? manufacturerId = freezed,Object? supplierId = freezed,Object? parentId = freezed,Object? negativeStockPolicy = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,companyId: null == companyId ? _self.companyId : companyId // ignore: cast_nullable_to_non_nullable
@@ -85,7 +85,8 @@ as bool,minQuantity: freezed == minQuantity ? _self.minQuantity : minQuantity //
 as double?,manufacturerId: freezed == manufacturerId ? _self.manufacturerId : manufacturerId // ignore: cast_nullable_to_non_nullable
 as String?,supplierId: freezed == supplierId ? _self.supplierId : supplierId // ignore: cast_nullable_to_non_nullable
 as String?,parentId: freezed == parentId ? _self.parentId : parentId // ignore: cast_nullable_to_non_nullable
-as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as String?,negativeStockPolicy: freezed == negativeStockPolicy ? _self.negativeStockPolicy : negativeStockPolicy // ignore: cast_nullable_to_non_nullable
+as NegativeStockPolicy?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
@@ -173,10 +174,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String companyId,  String? categoryId,  String name,  String? description,  ItemType itemType,  String? sku,  int unitPrice,  String? saleTaxRateId,  bool isSellable,  bool isActive,  UnitType unit,  String? altSku,  int? purchasePrice,  String? purchaseTaxRateId,  bool isOnSale,  bool isStockTracked,  double? minQuantity,  String? manufacturerId,  String? supplierId,  String? parentId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String companyId,  String? categoryId,  String name,  String? description,  ItemType itemType,  String? sku,  int unitPrice,  String? saleTaxRateId,  bool isSellable,  bool isActive,  UnitType unit,  String? altSku,  int? purchasePrice,  String? purchaseTaxRateId,  bool isOnSale,  bool isStockTracked,  double? minQuantity,  String? manufacturerId,  String? supplierId,  String? parentId,  NegativeStockPolicy? negativeStockPolicy,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ItemModel() when $default != null:
-return $default(_that.id,_that.companyId,_that.categoryId,_that.name,_that.description,_that.itemType,_that.sku,_that.unitPrice,_that.saleTaxRateId,_that.isSellable,_that.isActive,_that.unit,_that.altSku,_that.purchasePrice,_that.purchaseTaxRateId,_that.isOnSale,_that.isStockTracked,_that.minQuantity,_that.manufacturerId,_that.supplierId,_that.parentId,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.companyId,_that.categoryId,_that.name,_that.description,_that.itemType,_that.sku,_that.unitPrice,_that.saleTaxRateId,_that.isSellable,_that.isActive,_that.unit,_that.altSku,_that.purchasePrice,_that.purchaseTaxRateId,_that.isOnSale,_that.isStockTracked,_that.minQuantity,_that.manufacturerId,_that.supplierId,_that.parentId,_that.negativeStockPolicy,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   return orElse();
 
 }
@@ -194,10 +195,10 @@ return $default(_that.id,_that.companyId,_that.categoryId,_that.name,_that.descr
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String companyId,  String? categoryId,  String name,  String? description,  ItemType itemType,  String? sku,  int unitPrice,  String? saleTaxRateId,  bool isSellable,  bool isActive,  UnitType unit,  String? altSku,  int? purchasePrice,  String? purchaseTaxRateId,  bool isOnSale,  bool isStockTracked,  double? minQuantity,  String? manufacturerId,  String? supplierId,  String? parentId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String companyId,  String? categoryId,  String name,  String? description,  ItemType itemType,  String? sku,  int unitPrice,  String? saleTaxRateId,  bool isSellable,  bool isActive,  UnitType unit,  String? altSku,  int? purchasePrice,  String? purchaseTaxRateId,  bool isOnSale,  bool isStockTracked,  double? minQuantity,  String? manufacturerId,  String? supplierId,  String? parentId,  NegativeStockPolicy? negativeStockPolicy,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
 switch (_that) {
 case _ItemModel():
-return $default(_that.id,_that.companyId,_that.categoryId,_that.name,_that.description,_that.itemType,_that.sku,_that.unitPrice,_that.saleTaxRateId,_that.isSellable,_that.isActive,_that.unit,_that.altSku,_that.purchasePrice,_that.purchaseTaxRateId,_that.isOnSale,_that.isStockTracked,_that.minQuantity,_that.manufacturerId,_that.supplierId,_that.parentId,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.companyId,_that.categoryId,_that.name,_that.description,_that.itemType,_that.sku,_that.unitPrice,_that.saleTaxRateId,_that.isSellable,_that.isActive,_that.unit,_that.altSku,_that.purchasePrice,_that.purchaseTaxRateId,_that.isOnSale,_that.isStockTracked,_that.minQuantity,_that.manufacturerId,_that.supplierId,_that.parentId,_that.negativeStockPolicy,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -214,10 +215,10 @@ return $default(_that.id,_that.companyId,_that.categoryId,_that.name,_that.descr
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String companyId,  String? categoryId,  String name,  String? description,  ItemType itemType,  String? sku,  int unitPrice,  String? saleTaxRateId,  bool isSellable,  bool isActive,  UnitType unit,  String? altSku,  int? purchasePrice,  String? purchaseTaxRateId,  bool isOnSale,  bool isStockTracked,  double? minQuantity,  String? manufacturerId,  String? supplierId,  String? parentId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String companyId,  String? categoryId,  String name,  String? description,  ItemType itemType,  String? sku,  int unitPrice,  String? saleTaxRateId,  bool isSellable,  bool isActive,  UnitType unit,  String? altSku,  int? purchasePrice,  String? purchaseTaxRateId,  bool isOnSale,  bool isStockTracked,  double? minQuantity,  String? manufacturerId,  String? supplierId,  String? parentId,  NegativeStockPolicy? negativeStockPolicy,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _ItemModel() when $default != null:
-return $default(_that.id,_that.companyId,_that.categoryId,_that.name,_that.description,_that.itemType,_that.sku,_that.unitPrice,_that.saleTaxRateId,_that.isSellable,_that.isActive,_that.unit,_that.altSku,_that.purchasePrice,_that.purchaseTaxRateId,_that.isOnSale,_that.isStockTracked,_that.minQuantity,_that.manufacturerId,_that.supplierId,_that.parentId,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.companyId,_that.categoryId,_that.name,_that.description,_that.itemType,_that.sku,_that.unitPrice,_that.saleTaxRateId,_that.isSellable,_that.isActive,_that.unit,_that.altSku,_that.purchasePrice,_that.purchaseTaxRateId,_that.isOnSale,_that.isStockTracked,_that.minQuantity,_that.manufacturerId,_that.supplierId,_that.parentId,_that.negativeStockPolicy,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   return null;
 
 }
@@ -229,7 +230,7 @@ return $default(_that.id,_that.companyId,_that.categoryId,_that.name,_that.descr
 
 
 class _ItemModel implements ItemModel {
-  const _ItemModel({required this.id, required this.companyId, this.categoryId, required this.name, this.description, required this.itemType, this.sku, required this.unitPrice, this.saleTaxRateId, this.isSellable = true, this.isActive = true, required this.unit, this.altSku, this.purchasePrice, this.purchaseTaxRateId, this.isOnSale = true, this.isStockTracked = false, this.minQuantity, this.manufacturerId, this.supplierId, this.parentId, required this.createdAt, required this.updatedAt, this.deletedAt});
+  const _ItemModel({required this.id, required this.companyId, this.categoryId, required this.name, this.description, required this.itemType, this.sku, required this.unitPrice, this.saleTaxRateId, this.isSellable = true, this.isActive = true, required this.unit, this.altSku, this.purchasePrice, this.purchaseTaxRateId, this.isOnSale = true, this.isStockTracked = false, this.minQuantity, this.manufacturerId, this.supplierId, this.parentId, this.negativeStockPolicy, required this.createdAt, required this.updatedAt, this.deletedAt});
   
 
 @override final  String id;
@@ -253,6 +254,7 @@ class _ItemModel implements ItemModel {
 @override final  String? manufacturerId;
 @override final  String? supplierId;
 @override final  String? parentId;
+@override final  NegativeStockPolicy? negativeStockPolicy;
 @override final  DateTime createdAt;
 @override final  DateTime updatedAt;
 @override final  DateTime? deletedAt;
@@ -267,16 +269,16 @@ _$ItemModelCopyWith<_ItemModel> get copyWith => __$ItemModelCopyWithImpl<_ItemMo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ItemModel&&(identical(other.id, id) || other.id == id)&&(identical(other.companyId, companyId) || other.companyId == companyId)&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.itemType, itemType) || other.itemType == itemType)&&(identical(other.sku, sku) || other.sku == sku)&&(identical(other.unitPrice, unitPrice) || other.unitPrice == unitPrice)&&(identical(other.saleTaxRateId, saleTaxRateId) || other.saleTaxRateId == saleTaxRateId)&&(identical(other.isSellable, isSellable) || other.isSellable == isSellable)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.unit, unit) || other.unit == unit)&&(identical(other.altSku, altSku) || other.altSku == altSku)&&(identical(other.purchasePrice, purchasePrice) || other.purchasePrice == purchasePrice)&&(identical(other.purchaseTaxRateId, purchaseTaxRateId) || other.purchaseTaxRateId == purchaseTaxRateId)&&(identical(other.isOnSale, isOnSale) || other.isOnSale == isOnSale)&&(identical(other.isStockTracked, isStockTracked) || other.isStockTracked == isStockTracked)&&(identical(other.minQuantity, minQuantity) || other.minQuantity == minQuantity)&&(identical(other.manufacturerId, manufacturerId) || other.manufacturerId == manufacturerId)&&(identical(other.supplierId, supplierId) || other.supplierId == supplierId)&&(identical(other.parentId, parentId) || other.parentId == parentId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ItemModel&&(identical(other.id, id) || other.id == id)&&(identical(other.companyId, companyId) || other.companyId == companyId)&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.itemType, itemType) || other.itemType == itemType)&&(identical(other.sku, sku) || other.sku == sku)&&(identical(other.unitPrice, unitPrice) || other.unitPrice == unitPrice)&&(identical(other.saleTaxRateId, saleTaxRateId) || other.saleTaxRateId == saleTaxRateId)&&(identical(other.isSellable, isSellable) || other.isSellable == isSellable)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.unit, unit) || other.unit == unit)&&(identical(other.altSku, altSku) || other.altSku == altSku)&&(identical(other.purchasePrice, purchasePrice) || other.purchasePrice == purchasePrice)&&(identical(other.purchaseTaxRateId, purchaseTaxRateId) || other.purchaseTaxRateId == purchaseTaxRateId)&&(identical(other.isOnSale, isOnSale) || other.isOnSale == isOnSale)&&(identical(other.isStockTracked, isStockTracked) || other.isStockTracked == isStockTracked)&&(identical(other.minQuantity, minQuantity) || other.minQuantity == minQuantity)&&(identical(other.manufacturerId, manufacturerId) || other.manufacturerId == manufacturerId)&&(identical(other.supplierId, supplierId) || other.supplierId == supplierId)&&(identical(other.parentId, parentId) || other.parentId == parentId)&&(identical(other.negativeStockPolicy, negativeStockPolicy) || other.negativeStockPolicy == negativeStockPolicy)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 
 @override
-int get hashCode => Object.hashAll([runtimeType,id,companyId,categoryId,name,description,itemType,sku,unitPrice,saleTaxRateId,isSellable,isActive,unit,altSku,purchasePrice,purchaseTaxRateId,isOnSale,isStockTracked,minQuantity,manufacturerId,supplierId,parentId,createdAt,updatedAt,deletedAt]);
+int get hashCode => Object.hashAll([runtimeType,id,companyId,categoryId,name,description,itemType,sku,unitPrice,saleTaxRateId,isSellable,isActive,unit,altSku,purchasePrice,purchaseTaxRateId,isOnSale,isStockTracked,minQuantity,manufacturerId,supplierId,parentId,negativeStockPolicy,createdAt,updatedAt,deletedAt]);
 
 @override
 String toString() {
-  return 'ItemModel(id: $id, companyId: $companyId, categoryId: $categoryId, name: $name, description: $description, itemType: $itemType, sku: $sku, unitPrice: $unitPrice, saleTaxRateId: $saleTaxRateId, isSellable: $isSellable, isActive: $isActive, unit: $unit, altSku: $altSku, purchasePrice: $purchasePrice, purchaseTaxRateId: $purchaseTaxRateId, isOnSale: $isOnSale, isStockTracked: $isStockTracked, minQuantity: $minQuantity, manufacturerId: $manufacturerId, supplierId: $supplierId, parentId: $parentId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'ItemModel(id: $id, companyId: $companyId, categoryId: $categoryId, name: $name, description: $description, itemType: $itemType, sku: $sku, unitPrice: $unitPrice, saleTaxRateId: $saleTaxRateId, isSellable: $isSellable, isActive: $isActive, unit: $unit, altSku: $altSku, purchasePrice: $purchasePrice, purchaseTaxRateId: $purchaseTaxRateId, isOnSale: $isOnSale, isStockTracked: $isStockTracked, minQuantity: $minQuantity, manufacturerId: $manufacturerId, supplierId: $supplierId, parentId: $parentId, negativeStockPolicy: $negativeStockPolicy, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -287,7 +289,7 @@ abstract mixin class _$ItemModelCopyWith<$Res> implements $ItemModelCopyWith<$Re
   factory _$ItemModelCopyWith(_ItemModel value, $Res Function(_ItemModel) _then) = __$ItemModelCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String companyId, String? categoryId, String name, String? description, ItemType itemType, String? sku, int unitPrice, String? saleTaxRateId, bool isSellable, bool isActive, UnitType unit, String? altSku, int? purchasePrice, String? purchaseTaxRateId, bool isOnSale, bool isStockTracked, double? minQuantity, String? manufacturerId, String? supplierId, String? parentId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String companyId, String? categoryId, String name, String? description, ItemType itemType, String? sku, int unitPrice, String? saleTaxRateId, bool isSellable, bool isActive, UnitType unit, String? altSku, int? purchasePrice, String? purchaseTaxRateId, bool isOnSale, bool isStockTracked, double? minQuantity, String? manufacturerId, String? supplierId, String? parentId, NegativeStockPolicy? negativeStockPolicy, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -304,7 +306,7 @@ class __$ItemModelCopyWithImpl<$Res>
 
 /// Create a copy of ItemModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? companyId = null,Object? categoryId = freezed,Object? name = null,Object? description = freezed,Object? itemType = null,Object? sku = freezed,Object? unitPrice = null,Object? saleTaxRateId = freezed,Object? isSellable = null,Object? isActive = null,Object? unit = null,Object? altSku = freezed,Object? purchasePrice = freezed,Object? purchaseTaxRateId = freezed,Object? isOnSale = null,Object? isStockTracked = null,Object? minQuantity = freezed,Object? manufacturerId = freezed,Object? supplierId = freezed,Object? parentId = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? companyId = null,Object? categoryId = freezed,Object? name = null,Object? description = freezed,Object? itemType = null,Object? sku = freezed,Object? unitPrice = null,Object? saleTaxRateId = freezed,Object? isSellable = null,Object? isActive = null,Object? unit = null,Object? altSku = freezed,Object? purchasePrice = freezed,Object? purchaseTaxRateId = freezed,Object? isOnSale = null,Object? isStockTracked = null,Object? minQuantity = freezed,Object? manufacturerId = freezed,Object? supplierId = freezed,Object? parentId = freezed,Object? negativeStockPolicy = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_ItemModel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,companyId: null == companyId ? _self.companyId : companyId // ignore: cast_nullable_to_non_nullable
@@ -327,7 +329,8 @@ as bool,minQuantity: freezed == minQuantity ? _self.minQuantity : minQuantity //
 as double?,manufacturerId: freezed == manufacturerId ? _self.manufacturerId : manufacturerId // ignore: cast_nullable_to_non_nullable
 as String?,supplierId: freezed == supplierId ? _self.supplierId : supplierId // ignore: cast_nullable_to_non_nullable
 as String?,parentId: freezed == parentId ? _self.parentId : parentId // ignore: cast_nullable_to_non_nullable
-as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as String?,negativeStockPolicy: freezed == negativeStockPolicy ? _self.negativeStockPolicy : negativeStockPolicy // ignore: cast_nullable_to_non_nullable
+as NegativeStockPolicy?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,

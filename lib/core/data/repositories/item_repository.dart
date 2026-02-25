@@ -65,6 +65,7 @@ class ItemRepository
         manufacturerId: Value(m.manufacturerId),
         supplierId: Value(m.supplierId),
         parentId: Value(m.parentId),
+        negativeStockPolicy: Value(m.negativeStockPolicy),
         updatedAt: Value(DateTime.now()),
       );
 

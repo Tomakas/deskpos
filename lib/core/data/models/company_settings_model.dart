@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../enums/negative_stock_policy.dart';
 import 'company_scoped_model.dart';
 
 part 'company_settings_model.freezed.dart';
@@ -14,6 +15,7 @@ abstract class CompanySettingsModel with _$CompanySettingsModel implements Compa
     @Default(0) int loyaltyEarnRate,
     @Default(0) int loyaltyPointValue,
     @Default('cs') String locale,
+    @Default(NegativeStockPolicy.allow) NegativeStockPolicy negativeStockPolicy,
     required DateTime createdAt,
     required DateTime updatedAt,
     DateTime? deletedAt,

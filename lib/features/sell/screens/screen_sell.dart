@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/data/enums/display_device_type.dart';
+import '../../../core/data/enums/negative_stock_policy.dart';
 import '../../../core/data/enums/sell_mode.dart';
 import '../../../core/data/enums/item_type.dart';
 import '../../../core/data/enums/unit_type.dart';
@@ -29,6 +30,7 @@ import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/formatters.dart';
 import '../../../core/utils/formatting_ext.dart';
 import '../../../core/utils/unit_type_l10n.dart';
 import '../../../core/widgets/pos_color_palette.dart';
@@ -1144,6 +1146,13 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
 
       final orderRepo = ref.read(orderRepositoryProvider);
       final billRepo = ref.read(billRepositoryProvider);
+
+      final settingsRepo = ref.read(companySettingsRepositoryProvider);
+      final settings = await settingsRepo.getByCompany(company.id);
+      if (!mounted) return;
+      final negativeStockPolicy =
+          settings?.negativeStockPolicy ?? NegativeStockPolicy.allow;
+
       bool anySuccess = false;
 
       for (var i = 0; i < groups.length; i++) {
@@ -1153,17 +1162,41 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
         if (!mounted) return;
         final register = await ref.read(activeRegisterProvider.future);
         if (!mounted) return;
-        final result = await orderRepo.createOrderWithItems(
-          companyId: company.id,
-          billId: widget.billId!,
-          userId: user.id,
-          orderNumber: orderNumber,
-          items: orderItems,
-          orderNotes: i == 0 ? _orderNotes : null,
-          registerId: register?.id,
-        );
-        if (result is Success<OrderModel>) {
-          anySuccess = true;
+        try {
+          final result = await orderRepo.createOrderWithItems(
+            companyId: company.id,
+            billId: widget.billId!,
+            userId: user.id,
+            orderNumber: orderNumber,
+            items: orderItems,
+            orderNotes: i == 0 ? _orderNotes : null,
+            registerId: register?.id,
+            negativeStockPolicy: negativeStockPolicy,
+          );
+          if (result is Success<OrderModel>) {
+            anySuccess = true;
+          }
+        } on InsufficientStockException catch (e) {
+          if (!context.mounted) return;
+          final stockResult = await _handleStockException(context, e);
+          if (stockResult == _StockAction.retry) {
+            final retryResult = await orderRepo.createOrderWithItems(
+              companyId: company.id,
+              billId: widget.billId!,
+              userId: user.id,
+              orderNumber: orderNumber,
+              items: orderItems,
+              orderNotes: i == 0 ? _orderNotes : null,
+              registerId: register?.id,
+              negativeStockPolicy: negativeStockPolicy,
+              skipStockCheck: true,
+            );
+            if (retryResult is Success<OrderModel>) {
+              anySuccess = true;
+            }
+          } else {
+            break;
+          }
         }
       }
 
@@ -1188,6 +1221,12 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
       final billRepo = ref.read(billRepositoryProvider);
       final orderRepo = ref.read(orderRepositoryProvider);
       final sectionRepo = ref.read(sectionRepositoryProvider);
+
+      final settingsRepo = ref.read(companySettingsRepositoryProvider);
+      final settings = await settingsRepo.getByCompany(company.id);
+      if (!mounted) return;
+      final negativeStockPolicy =
+          settings?.negativeStockPolicy ?? NegativeStockPolicy.allow;
 
       // Create bill on-demand
       final sections = await sectionRepo.watchAll(company.id).first;
@@ -1214,21 +1253,50 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
 
       // Create order(s)
       final groups = _splitCartIntoGroups();
+      bool stockFailed = false;
       for (var i = 0; i < groups.length; i++) {
         final orderNumber = await _nextOrderNumber(ref);
         if (!mounted) return;
         final orderItems = await _buildOrderItemsFromGroup(ref, groups[i]);
         if (!mounted) return;
-        await orderRepo.createOrderWithItems(
-          companyId: company.id,
-          billId: billId,
-          userId: user.id,
-          orderNumber: orderNumber,
-          items: orderItems,
-          orderNotes: i == 0 ? _orderNotes : null,
-          registerId: register?.id,
-        );
+        try {
+          await orderRepo.createOrderWithItems(
+            companyId: company.id,
+            billId: billId,
+            userId: user.id,
+            orderNumber: orderNumber,
+            items: orderItems,
+            orderNotes: i == 0 ? _orderNotes : null,
+            registerId: register?.id,
+            negativeStockPolicy: negativeStockPolicy,
+          );
+        } on InsufficientStockException catch (e) {
+          if (!context.mounted) return;
+          final stockResult = await _handleStockException(context, e);
+          if (stockResult == _StockAction.retry) {
+            await orderRepo.createOrderWithItems(
+              companyId: company.id,
+              billId: billId,
+              userId: user.id,
+              orderNumber: orderNumber,
+              items: orderItems,
+              orderNotes: i == 0 ? _orderNotes : null,
+              registerId: register?.id,
+              negativeStockPolicy: negativeStockPolicy,
+              skipStockCheck: true,
+            );
+          } else {
+            stockFailed = true;
+            break;
+          }
+        }
       }
+
+      if (stockFailed) {
+        await billRepo.cancelBill(billId, userId: user.id);
+        return;
+      }
+
       await billRepo.updateTotals(billId);
 
       if (!context.mounted) return;
@@ -1285,6 +1353,12 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
       final sectionRepo = ref.read(sectionRepositoryProvider);
       final orderRepo = ref.read(orderRepositoryProvider);
 
+      final settingsRepo = ref.read(companySettingsRepositoryProvider);
+      final settings = await settingsRepo.getByCompany(company.id);
+      if (!mounted) return;
+      final negativeStockPolicy =
+          settings?.negativeStockPolicy ?? NegativeStockPolicy.allow;
+
       // Resolve default section
       final sections = await sectionRepo.watchAll(company.id).first;
       if (!mounted) return;
@@ -1310,21 +1384,50 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
 
       // Create order(s) with cart items
       final groups = _splitCartIntoGroups();
+      bool stockFailed = false;
       for (var i = 0; i < groups.length; i++) {
         final orderNumber = await _nextOrderNumber(ref);
         if (!mounted) return;
         final orderItems = await _buildOrderItemsFromGroup(ref, groups[i]);
         if (!mounted) return;
-        await orderRepo.createOrderWithItems(
-          companyId: company.id,
-          billId: bill.id,
-          userId: user.id,
-          orderNumber: orderNumber,
-          items: orderItems,
-          orderNotes: i == 0 ? _orderNotes : null,
-          registerId: register?.id,
-        );
+        try {
+          await orderRepo.createOrderWithItems(
+            companyId: company.id,
+            billId: bill.id,
+            userId: user.id,
+            orderNumber: orderNumber,
+            items: orderItems,
+            orderNotes: i == 0 ? _orderNotes : null,
+            registerId: register?.id,
+            negativeStockPolicy: negativeStockPolicy,
+          );
+        } on InsufficientStockException catch (e) {
+          if (!context.mounted) return;
+          final stockResult = await _handleStockException(context, e);
+          if (stockResult == _StockAction.retry) {
+            await orderRepo.createOrderWithItems(
+              companyId: company.id,
+              billId: bill.id,
+              userId: user.id,
+              orderNumber: orderNumber,
+              items: orderItems,
+              orderNotes: i == 0 ? _orderNotes : null,
+              registerId: register?.id,
+              negativeStockPolicy: negativeStockPolicy,
+              skipStockCheck: true,
+            );
+          } else {
+            stockFailed = true;
+            break;
+          }
+        }
       }
+
+      if (stockFailed) {
+        await billRepo.cancelBill(bill.id, userId: user.id);
+        return;
+      }
+
       await billRepo.updateTotals(bill.id);
 
       if (!context.mounted) return;
@@ -1336,6 +1439,141 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
+  }
+
+  /// Shows a structured stock shortage dialog.
+  /// Returns [_StockAction.retry] when the user confirms a warning,
+  /// [_StockAction.stop] otherwise.
+  Future<_StockAction> _handleStockException(
+      BuildContext context, InsufficientStockException e) async {
+    if (e.isWarningOnly) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) {
+          final l = ctx.l10n;
+          return PosDialogShell(
+            title: l.stockWarningTitle,
+            children: [
+              _StockShortageTable(shortages: e.shortages, isWarning: true),
+              PosDialogActions(
+                actions: [
+                  OutlinedButton(
+                    onPressed: () => Navigator.of(ctx).pop(false),
+                    child: Text(l.actionCancel),
+                  ),
+                  FilledButton(
+                    onPressed: () => Navigator.of(ctx).pop(true),
+                    child: Text(l.stockWarningContinue),
+                  ),
+                ],
+              ),
+            ],
+          );
+        },
+      );
+      return confirmed == true ? _StockAction.retry : _StockAction.stop;
+    } else {
+      await showDialog<void>(
+        context: context,
+        builder: (ctx) {
+          final l = ctx.l10n;
+          return PosDialogShell(
+            title: l.stockInsufficientTitle,
+            children: [
+              _StockShortageTable(shortages: e.shortages, isWarning: false),
+              PosDialogActions(
+                actions: [
+                  FilledButton(
+                    onPressed: () => Navigator.of(ctx).pop(),
+                    child: Text(l.actionClose),
+                  ),
+                ],
+              ),
+            ],
+          );
+        },
+      );
+      return _StockAction.stop;
+    }
+  }
+}
+
+enum _StockAction { retry, stop }
+
+class _StockShortageTable extends StatelessWidget {
+  const _StockShortageTable({
+    required this.shortages,
+    required this.isWarning,
+  });
+  final List<StockShortage> shortages;
+  final bool isWarning;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    final theme = Theme.of(context);
+    final locale = Localizations.localeOf(context).toLanguageTag();
+
+    String qty(double v) => formatQuantity(v, locale);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Table(
+        columnWidths: {
+          0: const FlexColumnWidth(2),
+          1: const FlexColumnWidth(1),
+          2: const FlexColumnWidth(1),
+          if (isWarning) 3: const FlexColumnWidth(1),
+        },
+        children: [
+          TableRow(
+            children: [
+              _headerCell(l.stockColumnItem, theme),
+              _headerCell(l.stockColumnRequired, theme, align: TextAlign.right),
+              _headerCell(l.stockColumnAvailable, theme, align: TextAlign.right),
+              if (isWarning)
+                _headerCell(l.stockColumnAfter, theme, align: TextAlign.right),
+            ],
+          ),
+          for (final s in shortages)
+            TableRow(
+              children: [
+                _dataCell(s.itemName, theme),
+                _dataCell(qty(s.needed), theme,
+                    align: TextAlign.right),
+                _dataCell(qty(s.available), theme,
+                    align: TextAlign.right,
+                    color: theme.colorScheme.error),
+                if (isWarning)
+                  _dataCell(qty(s.available - s.needed), theme,
+                      align: TextAlign.right,
+                      color: theme.colorScheme.error),
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _headerCell(String text, ThemeData theme, {TextAlign? align}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Text(text,
+          textAlign: align,
+          style: theme.textTheme.labelSmall
+              ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+    );
+  }
+
+  Widget _dataCell(String text, ThemeData theme,
+      {TextAlign? align, Color? color}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Text(text,
+          textAlign: align,
+          style: theme.textTheme.bodyMedium
+              ?.copyWith(color: color)),
+    );
   }
 }
 

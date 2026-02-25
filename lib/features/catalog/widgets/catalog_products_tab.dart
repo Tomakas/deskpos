@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../core/data/enums/item_type.dart';
+import '../../../core/data/enums/negative_stock_policy.dart';
 import '../../../core/data/enums/unit_type.dart';
 import '../../../core/data/models/category_model.dart';
 import '../../../core/data/models/item_model.dart';
@@ -408,6 +409,7 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
     var isActive = existing?.isActive ?? true;
     var isOnSale = existing?.isOnSale ?? true;
     var isStockTracked = existing?.isStockTracked ?? false;
+    var negativeStockPolicy = existing?.negativeStockPolicy;
     final minQuantityCtrl = TextEditingController(
         text: existing?.minQuantity?.toString() ?? '');
     var supplierId = existing?.supplierId;
@@ -621,6 +623,23 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
                 decoration: InputDecoration(labelText: l.inventoryColumnMinQuantity),
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
               ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<NegativeStockPolicy?>(
+                initialValue: negativeStockPolicy,
+                decoration: InputDecoration(labelText: l.fieldNegativeStockPolicy),
+                items: [
+                  DropdownMenuItem<NegativeStockPolicy?>(
+                    value: null,
+                    child: Text(l.negativeStockPolicyDefault),
+                  ),
+                  for (final p in NegativeStockPolicy.values)
+                    DropdownMenuItem<NegativeStockPolicy?>(
+                      value: p,
+                      child: Text(_policyLabel(l, p)),
+                    ),
+                ],
+                onChanged: (v) => setDialogState(() => negativeStockPolicy = v),
+              ),
             ],
             // Variants section — only for existing products
             if (existing != null && existing.itemType == ItemType.product)
@@ -688,6 +707,7 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
         purchaseTaxRateId: purchaseTaxRateId,
         isOnSale: isOnSale,
         isStockTracked: isStockTracked,
+        negativeStockPolicy: negativeStockPolicy,
         minQuantity: minQuantityValue,
         manufacturerId: manufacturerId,
         supplierId: supplierId,
@@ -711,6 +731,7 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
         purchaseTaxRateId: purchaseTaxRateId,
         isOnSale: isOnSale,
         isStockTracked: isStockTracked,
+        negativeStockPolicy: negativeStockPolicy,
         minQuantity: minQuantityValue,
         manufacturerId: manufacturerId,
         supplierId: supplierId,
@@ -721,6 +742,13 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
     }
   }
 
+  String _policyLabel(AppLocalizations l, NegativeStockPolicy policy) {
+    return switch (policy) {
+      NegativeStockPolicy.allow => l.negativeStockPolicyAllow,
+      NegativeStockPolicy.warn => l.negativeStockPolicyWarn,
+      NegativeStockPolicy.block => l.negativeStockPolicyBlock,
+    };
+  }
 }
 
 class _VariantsExpansionTile extends ConsumerWidget {

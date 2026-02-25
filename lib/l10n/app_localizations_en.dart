@@ -1535,6 +1535,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get stockDocumentPrice => 'Purchase Price';
 
   @override
+  String get stockDocumentDetailTitle => 'Document Detail';
+
+  @override
   String get stockDocumentSave => 'Save Document';
 
   @override
@@ -3741,6 +3744,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get inventoryFilterCategory => 'Category';
 
   @override
+  String get inventoryFilterSource => 'Source';
+
+  @override
+  String get inventoryFilterSourceSale => 'Sale';
+
+  @override
+  String get inventoryFilterSourceDocument => 'Documents';
+
+  @override
   String get inventorySortName => 'Name';
 
   @override
@@ -3766,4 +3778,43 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get inventorySortItem => 'Item';
+
+  @override
+  String get settingsNegativeStockPolicy => 'Negative stock policy';
+
+  @override
+  String get negativeStockPolicyAllow => 'Allow';
+
+  @override
+  String get negativeStockPolicyWarn => 'Warn';
+
+  @override
+  String get negativeStockPolicyBlock => 'Block';
+
+  @override
+  String get stockInsufficientTitle => 'Insufficient stock';
+
+  @override
+  String get stockWarningTitle => 'Stock warning';
+
+  @override
+  String get stockWarningContinue => 'Continue';
+
+  @override
+  String get negativeStockPolicyDefault => 'Default (company setting)';
+
+  @override
+  String get fieldNegativeStockPolicy => 'Negative stock override';
+
+  @override
+  String get stockColumnItem => 'Item';
+
+  @override
+  String get stockColumnRequired => 'Order';
+
+  @override
+  String get stockColumnAvailable => 'In stock';
+
+  @override
+  String get stockColumnAfter => 'After sale';
 }

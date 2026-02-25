@@ -21,6 +21,7 @@ import 'inventory_pdf_builder.dart';
 import 'pdf_font_loader.dart';
 import 'receipt_data.dart';
 import 'receipt_pdf_builder.dart';
+import 'stock_document_pdf_builder.dart';
 import 'voucher_pdf_builder.dart';
 import 'z_report_pdf_builder.dart';
 
@@ -276,6 +277,22 @@ class PrintingService {
     final bold = await fontLoader.bold;
 
     return InventoryPdfBuilder(
+      data: data,
+      labels: labels,
+      regular: regular,
+      bold: bold,
+    ).build();
+  }
+
+  Future<Uint8List> generateStockDocumentPdf(
+    StockDocumentPdfData data,
+    StockDocumentPdfLabels labels,
+  ) async {
+    final fontLoader = PdfFontLoader.instance;
+    final regular = await fontLoader.regular;
+    final bold = await fontLoader.bold;
+
+    return StockDocumentPdfBuilder(
       data: data,
       labels: labels,
       regular: regular,

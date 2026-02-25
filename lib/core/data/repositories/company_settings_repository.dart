@@ -55,6 +55,7 @@ class CompanySettingsRepository
         loyaltyEarnRate: Value(m.loyaltyEarnRate),
         loyaltyPointValue: Value(m.loyaltyPointValue),
         locale: Value(m.locale),
+        negativeStockPolicy: Value(m.negativeStockPolicy),
         updatedAt: Value(DateTime.now()),
       );
 

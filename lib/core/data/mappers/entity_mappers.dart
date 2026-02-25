@@ -121,6 +121,7 @@ CompanySettingsModel companySettingsFromEntity(CompanySetting e) => CompanySetti
       loyaltyEarnRate: e.loyaltyEarnRate,
       locale: e.locale,
       loyaltyPointValue: e.loyaltyPointValue,
+      negativeStockPolicy: e.negativeStockPolicy,
       createdAt: e.createdAt,
       updatedAt: e.updatedAt,
       deletedAt: e.deletedAt,
@@ -135,6 +136,7 @@ CompanySettingsCompanion companySettingsToCompanion(CompanySettingsModel m) =>
       loyaltyEarnRate: Value(m.loyaltyEarnRate),
       loyaltyPointValue: Value(m.loyaltyPointValue),
       locale: Value(m.locale),
+      negativeStockPolicy: Value(m.negativeStockPolicy),
     );
 
 // --- Currency ---
@@ -276,6 +278,7 @@ ItemModel itemFromEntity(Item e) => ItemModel(
       manufacturerId: e.manufacturerId,
       supplierId: e.supplierId,
       parentId: e.parentId,
+      negativeStockPolicy: e.negativeStockPolicy,
       createdAt: e.createdAt,
       updatedAt: e.updatedAt,
       deletedAt: e.deletedAt,
@@ -303,6 +306,7 @@ ItemsCompanion itemToCompanion(ItemModel m) => ItemsCompanion.insert(
       manufacturerId: Value(m.manufacturerId),
       supplierId: Value(m.supplierId),
       parentId: Value(m.parentId),
+      negativeStockPolicy: Value(m.negativeStockPolicy),
     );
 
 // --- TaxRate ---
@@ -921,6 +925,7 @@ StockMovementModel stockMovementFromEntity(StockMovement e) => StockMovementMode
       id: e.id,
       companyId: e.companyId,
       stockDocumentId: e.stockDocumentId,
+      billId: e.billId,
       itemId: e.itemId,
       quantity: e.quantity,
       purchasePrice: e.purchasePrice,
@@ -936,6 +941,7 @@ StockMovementsCompanion stockMovementToCompanion(StockMovementModel m) =>
       id: m.id,
       companyId: m.companyId,
       stockDocumentId: Value(m.stockDocumentId),
+      billId: Value(m.billId),
       itemId: m.itemId,
       quantity: m.quantity,
       purchasePrice: Value(m.purchasePrice),

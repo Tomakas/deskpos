@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$StockMovementModel {
 
- String get id; String get companyId; String? get stockDocumentId; String get itemId; double get quantity; int? get purchasePrice; StockMovementDirection get direction; PurchasePriceStrategy? get purchasePriceStrategy; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+ String get id; String get companyId; String? get stockDocumentId; String? get billId; String get itemId; double get quantity; int? get purchasePrice; StockMovementDirection get direction; PurchasePriceStrategy? get purchasePriceStrategy; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
 /// Create a copy of StockMovementModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $StockMovementModelCopyWith<StockMovementModel> get copyWith => _$StockMovementM
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is StockMovementModel&&(identical(other.id, id) || other.id == id)&&(identical(other.companyId, companyId) || other.companyId == companyId)&&(identical(other.stockDocumentId, stockDocumentId) || other.stockDocumentId == stockDocumentId)&&(identical(other.itemId, itemId) || other.itemId == itemId)&&(identical(other.quantity, quantity) || other.quantity == quantity)&&(identical(other.purchasePrice, purchasePrice) || other.purchasePrice == purchasePrice)&&(identical(other.direction, direction) || other.direction == direction)&&(identical(other.purchasePriceStrategy, purchasePriceStrategy) || other.purchasePriceStrategy == purchasePriceStrategy)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is StockMovementModel&&(identical(other.id, id) || other.id == id)&&(identical(other.companyId, companyId) || other.companyId == companyId)&&(identical(other.stockDocumentId, stockDocumentId) || other.stockDocumentId == stockDocumentId)&&(identical(other.billId, billId) || other.billId == billId)&&(identical(other.itemId, itemId) || other.itemId == itemId)&&(identical(other.quantity, quantity) || other.quantity == quantity)&&(identical(other.purchasePrice, purchasePrice) || other.purchasePrice == purchasePrice)&&(identical(other.direction, direction) || other.direction == direction)&&(identical(other.purchasePriceStrategy, purchasePriceStrategy) || other.purchasePriceStrategy == purchasePriceStrategy)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,companyId,stockDocumentId,itemId,quantity,purchasePrice,direction,purchasePriceStrategy,createdAt,updatedAt,deletedAt);
+int get hashCode => Object.hash(runtimeType,id,companyId,stockDocumentId,billId,itemId,quantity,purchasePrice,direction,purchasePriceStrategy,createdAt,updatedAt,deletedAt);
 
 @override
 String toString() {
-  return 'StockMovementModel(id: $id, companyId: $companyId, stockDocumentId: $stockDocumentId, itemId: $itemId, quantity: $quantity, purchasePrice: $purchasePrice, direction: $direction, purchasePriceStrategy: $purchasePriceStrategy, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'StockMovementModel(id: $id, companyId: $companyId, stockDocumentId: $stockDocumentId, billId: $billId, itemId: $itemId, quantity: $quantity, purchasePrice: $purchasePrice, direction: $direction, purchasePriceStrategy: $purchasePriceStrategy, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $StockMovementModelCopyWith<$Res>  {
   factory $StockMovementModelCopyWith(StockMovementModel value, $Res Function(StockMovementModel) _then) = _$StockMovementModelCopyWithImpl;
 @useResult
 $Res call({
- String id, String companyId, String? stockDocumentId, String itemId, double quantity, int? purchasePrice, StockMovementDirection direction, PurchasePriceStrategy? purchasePriceStrategy, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String companyId, String? stockDocumentId, String? billId, String itemId, double quantity, int? purchasePrice, StockMovementDirection direction, PurchasePriceStrategy? purchasePriceStrategy, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -62,11 +62,12 @@ class _$StockMovementModelCopyWithImpl<$Res>
 
 /// Create a copy of StockMovementModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? companyId = null,Object? stockDocumentId = freezed,Object? itemId = null,Object? quantity = null,Object? purchasePrice = freezed,Object? direction = null,Object? purchasePriceStrategy = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? companyId = null,Object? stockDocumentId = freezed,Object? billId = freezed,Object? itemId = null,Object? quantity = null,Object? purchasePrice = freezed,Object? direction = null,Object? purchasePriceStrategy = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,companyId: null == companyId ? _self.companyId : companyId // ignore: cast_nullable_to_non_nullable
 as String,stockDocumentId: freezed == stockDocumentId ? _self.stockDocumentId : stockDocumentId // ignore: cast_nullable_to_non_nullable
+as String?,billId: freezed == billId ? _self.billId : billId // ignore: cast_nullable_to_non_nullable
 as String?,itemId: null == itemId ? _self.itemId : itemId // ignore: cast_nullable_to_non_nullable
 as String,quantity: null == quantity ? _self.quantity : quantity // ignore: cast_nullable_to_non_nullable
 as double,purchasePrice: freezed == purchasePrice ? _self.purchasePrice : purchasePrice // ignore: cast_nullable_to_non_nullable
@@ -160,10 +161,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String companyId,  String? stockDocumentId,  String itemId,  double quantity,  int? purchasePrice,  StockMovementDirection direction,  PurchasePriceStrategy? purchasePriceStrategy,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String companyId,  String? stockDocumentId,  String? billId,  String itemId,  double quantity,  int? purchasePrice,  StockMovementDirection direction,  PurchasePriceStrategy? purchasePriceStrategy,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _StockMovementModel() when $default != null:
-return $default(_that.id,_that.companyId,_that.stockDocumentId,_that.itemId,_that.quantity,_that.purchasePrice,_that.direction,_that.purchasePriceStrategy,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.companyId,_that.stockDocumentId,_that.billId,_that.itemId,_that.quantity,_that.purchasePrice,_that.direction,_that.purchasePriceStrategy,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   return orElse();
 
 }
@@ -181,10 +182,10 @@ return $default(_that.id,_that.companyId,_that.stockDocumentId,_that.itemId,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String companyId,  String? stockDocumentId,  String itemId,  double quantity,  int? purchasePrice,  StockMovementDirection direction,  PurchasePriceStrategy? purchasePriceStrategy,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String companyId,  String? stockDocumentId,  String? billId,  String itemId,  double quantity,  int? purchasePrice,  StockMovementDirection direction,  PurchasePriceStrategy? purchasePriceStrategy,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
 switch (_that) {
 case _StockMovementModel():
-return $default(_that.id,_that.companyId,_that.stockDocumentId,_that.itemId,_that.quantity,_that.purchasePrice,_that.direction,_that.purchasePriceStrategy,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.companyId,_that.stockDocumentId,_that.billId,_that.itemId,_that.quantity,_that.purchasePrice,_that.direction,_that.purchasePriceStrategy,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -201,10 +202,10 @@ return $default(_that.id,_that.companyId,_that.stockDocumentId,_that.itemId,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String companyId,  String? stockDocumentId,  String itemId,  double quantity,  int? purchasePrice,  StockMovementDirection direction,  PurchasePriceStrategy? purchasePriceStrategy,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String companyId,  String? stockDocumentId,  String? billId,  String itemId,  double quantity,  int? purchasePrice,  StockMovementDirection direction,  PurchasePriceStrategy? purchasePriceStrategy,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _StockMovementModel() when $default != null:
-return $default(_that.id,_that.companyId,_that.stockDocumentId,_that.itemId,_that.quantity,_that.purchasePrice,_that.direction,_that.purchasePriceStrategy,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.companyId,_that.stockDocumentId,_that.billId,_that.itemId,_that.quantity,_that.purchasePrice,_that.direction,_that.purchasePriceStrategy,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   return null;
 
 }
@@ -216,12 +217,13 @@ return $default(_that.id,_that.companyId,_that.stockDocumentId,_that.itemId,_tha
 
 
 class _StockMovementModel implements StockMovementModel {
-  const _StockMovementModel({required this.id, required this.companyId, this.stockDocumentId, required this.itemId, required this.quantity, this.purchasePrice, required this.direction, this.purchasePriceStrategy, required this.createdAt, required this.updatedAt, this.deletedAt});
+  const _StockMovementModel({required this.id, required this.companyId, this.stockDocumentId, this.billId, required this.itemId, required this.quantity, this.purchasePrice, required this.direction, this.purchasePriceStrategy, required this.createdAt, required this.updatedAt, this.deletedAt});
   
 
 @override final  String id;
 @override final  String companyId;
 @override final  String? stockDocumentId;
+@override final  String? billId;
 @override final  String itemId;
 @override final  double quantity;
 @override final  int? purchasePrice;
@@ -241,16 +243,16 @@ _$StockMovementModelCopyWith<_StockMovementModel> get copyWith => __$StockMoveme
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _StockMovementModel&&(identical(other.id, id) || other.id == id)&&(identical(other.companyId, companyId) || other.companyId == companyId)&&(identical(other.stockDocumentId, stockDocumentId) || other.stockDocumentId == stockDocumentId)&&(identical(other.itemId, itemId) || other.itemId == itemId)&&(identical(other.quantity, quantity) || other.quantity == quantity)&&(identical(other.purchasePrice, purchasePrice) || other.purchasePrice == purchasePrice)&&(identical(other.direction, direction) || other.direction == direction)&&(identical(other.purchasePriceStrategy, purchasePriceStrategy) || other.purchasePriceStrategy == purchasePriceStrategy)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _StockMovementModel&&(identical(other.id, id) || other.id == id)&&(identical(other.companyId, companyId) || other.companyId == companyId)&&(identical(other.stockDocumentId, stockDocumentId) || other.stockDocumentId == stockDocumentId)&&(identical(other.billId, billId) || other.billId == billId)&&(identical(other.itemId, itemId) || other.itemId == itemId)&&(identical(other.quantity, quantity) || other.quantity == quantity)&&(identical(other.purchasePrice, purchasePrice) || other.purchasePrice == purchasePrice)&&(identical(other.direction, direction) || other.direction == direction)&&(identical(other.purchasePriceStrategy, purchasePriceStrategy) || other.purchasePriceStrategy == purchasePriceStrategy)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,companyId,stockDocumentId,itemId,quantity,purchasePrice,direction,purchasePriceStrategy,createdAt,updatedAt,deletedAt);
+int get hashCode => Object.hash(runtimeType,id,companyId,stockDocumentId,billId,itemId,quantity,purchasePrice,direction,purchasePriceStrategy,createdAt,updatedAt,deletedAt);
 
 @override
 String toString() {
-  return 'StockMovementModel(id: $id, companyId: $companyId, stockDocumentId: $stockDocumentId, itemId: $itemId, quantity: $quantity, purchasePrice: $purchasePrice, direction: $direction, purchasePriceStrategy: $purchasePriceStrategy, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'StockMovementModel(id: $id, companyId: $companyId, stockDocumentId: $stockDocumentId, billId: $billId, itemId: $itemId, quantity: $quantity, purchasePrice: $purchasePrice, direction: $direction, purchasePriceStrategy: $purchasePriceStrategy, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -261,7 +263,7 @@ abstract mixin class _$StockMovementModelCopyWith<$Res> implements $StockMovemen
   factory _$StockMovementModelCopyWith(_StockMovementModel value, $Res Function(_StockMovementModel) _then) = __$StockMovementModelCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String companyId, String? stockDocumentId, String itemId, double quantity, int? purchasePrice, StockMovementDirection direction, PurchasePriceStrategy? purchasePriceStrategy, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String companyId, String? stockDocumentId, String? billId, String itemId, double quantity, int? purchasePrice, StockMovementDirection direction, PurchasePriceStrategy? purchasePriceStrategy, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -278,11 +280,12 @@ class __$StockMovementModelCopyWithImpl<$Res>
 
 /// Create a copy of StockMovementModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? companyId = null,Object? stockDocumentId = freezed,Object? itemId = null,Object? quantity = null,Object? purchasePrice = freezed,Object? direction = null,Object? purchasePriceStrategy = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? companyId = null,Object? stockDocumentId = freezed,Object? billId = freezed,Object? itemId = null,Object? quantity = null,Object? purchasePrice = freezed,Object? direction = null,Object? purchasePriceStrategy = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_StockMovementModel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,companyId: null == companyId ? _self.companyId : companyId // ignore: cast_nullable_to_non_nullable
 as String,stockDocumentId: freezed == stockDocumentId ? _self.stockDocumentId : stockDocumentId // ignore: cast_nullable_to_non_nullable
+as String?,billId: freezed == billId ? _self.billId : billId // ignore: cast_nullable_to_non_nullable
 as String?,itemId: null == itemId ? _self.itemId : itemId // ignore: cast_nullable_to_non_nullable
 as String,quantity: null == quantity ? _self.quantity : quantity // ignore: cast_nullable_to_non_nullable
 as double,purchasePrice: freezed == purchasePrice ? _self.purchasePrice : purchasePrice // ignore: cast_nullable_to_non_nullable

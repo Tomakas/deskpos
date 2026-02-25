@@ -3050,6 +3050,12 @@ abstract class AppLocalizations {
   /// **'Nákupní cena'**
   String get stockDocumentPrice;
 
+  /// No description provided for @stockDocumentDetailTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Detail dokladu'**
+  String get stockDocumentDetailTitle;
+
   /// No description provided for @stockDocumentSave.
   ///
   /// In cs, this message translates to:
@@ -7314,6 +7320,24 @@ abstract class AppLocalizations {
   /// **'Kategorie'**
   String get inventoryFilterCategory;
 
+  /// No description provided for @inventoryFilterSource.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zdroj'**
+  String get inventoryFilterSource;
+
+  /// No description provided for @inventoryFilterSourceSale.
+  ///
+  /// In cs, this message translates to:
+  /// **'Prodej'**
+  String get inventoryFilterSourceSale;
+
+  /// No description provided for @inventoryFilterSourceDocument.
+  ///
+  /// In cs, this message translates to:
+  /// **'Doklady'**
+  String get inventoryFilterSourceDocument;
+
   /// No description provided for @inventorySortName.
   ///
   /// In cs, this message translates to:
@@ -7367,6 +7391,84 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Položka'**
   String get inventorySortItem;
+
+  /// No description provided for @settingsNegativeStockPolicy.
+  ///
+  /// In cs, this message translates to:
+  /// **'Politika záporných zásob'**
+  String get settingsNegativeStockPolicy;
+
+  /// No description provided for @negativeStockPolicyAllow.
+  ///
+  /// In cs, this message translates to:
+  /// **'Povolit'**
+  String get negativeStockPolicyAllow;
+
+  /// No description provided for @negativeStockPolicyWarn.
+  ///
+  /// In cs, this message translates to:
+  /// **'Upozornit'**
+  String get negativeStockPolicyWarn;
+
+  /// No description provided for @negativeStockPolicyBlock.
+  ///
+  /// In cs, this message translates to:
+  /// **'Blokovat'**
+  String get negativeStockPolicyBlock;
+
+  /// No description provided for @stockInsufficientTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Nedostatek zásob'**
+  String get stockInsufficientTitle;
+
+  /// No description provided for @stockWarningTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Upozornění na zásoby'**
+  String get stockWarningTitle;
+
+  /// No description provided for @stockWarningContinue.
+  ///
+  /// In cs, this message translates to:
+  /// **'Pokračovat'**
+  String get stockWarningContinue;
+
+  /// No description provided for @negativeStockPolicyDefault.
+  ///
+  /// In cs, this message translates to:
+  /// **'Výchozí (nastavení firmy)'**
+  String get negativeStockPolicyDefault;
+
+  /// No description provided for @fieldNegativeStockPolicy.
+  ///
+  /// In cs, this message translates to:
+  /// **'Přepsat politiku zásob'**
+  String get fieldNegativeStockPolicy;
+
+  /// No description provided for @stockColumnItem.
+  ///
+  /// In cs, this message translates to:
+  /// **'Položka'**
+  String get stockColumnItem;
+
+  /// No description provided for @stockColumnRequired.
+  ///
+  /// In cs, this message translates to:
+  /// **'Objednávka'**
+  String get stockColumnRequired;
+
+  /// No description provided for @stockColumnAvailable.
+  ///
+  /// In cs, this message translates to:
+  /// **'Skladem'**
+  String get stockColumnAvailable;
+
+  /// No description provided for @stockColumnAfter.
+  ///
+  /// In cs, this message translates to:
+  /// **'Po prodeji'**
+  String get stockColumnAfter;
 }
 
 class _AppLocalizationsDelegate

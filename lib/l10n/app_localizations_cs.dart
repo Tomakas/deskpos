@@ -1533,6 +1533,9 @@ class AppLocalizationsCs extends AppLocalizations {
   String get stockDocumentPrice => 'Nákupní cena';
 
   @override
+  String get stockDocumentDetailTitle => 'Detail dokladu';
+
+  @override
   String get stockDocumentSave => 'Uložit doklad';
 
   @override
@@ -3737,6 +3740,15 @@ class AppLocalizationsCs extends AppLocalizations {
   String get inventoryFilterCategory => 'Kategorie';
 
   @override
+  String get inventoryFilterSource => 'Zdroj';
+
+  @override
+  String get inventoryFilterSourceSale => 'Prodej';
+
+  @override
+  String get inventoryFilterSourceDocument => 'Doklady';
+
+  @override
   String get inventorySortName => 'Název';
 
   @override
@@ -3762,4 +3774,43 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get inventorySortItem => 'Položka';
+
+  @override
+  String get settingsNegativeStockPolicy => 'Politika záporných zásob';
+
+  @override
+  String get negativeStockPolicyAllow => 'Povolit';
+
+  @override
+  String get negativeStockPolicyWarn => 'Upozornit';
+
+  @override
+  String get negativeStockPolicyBlock => 'Blokovat';
+
+  @override
+  String get stockInsufficientTitle => 'Nedostatek zásob';
+
+  @override
+  String get stockWarningTitle => 'Upozornění na zásoby';
+
+  @override
+  String get stockWarningContinue => 'Pokračovat';
+
+  @override
+  String get negativeStockPolicyDefault => 'Výchozí (nastavení firmy)';
+
+  @override
+  String get fieldNegativeStockPolicy => 'Přepsat politiku zásob';
+
+  @override
+  String get stockColumnItem => 'Položka';
+
+  @override
+  String get stockColumnRequired => 'Objednávka';
+
+  @override
+  String get stockColumnAvailable => 'Skladem';
+
+  @override
+  String get stockColumnAfter => 'Po prodeji';
 }

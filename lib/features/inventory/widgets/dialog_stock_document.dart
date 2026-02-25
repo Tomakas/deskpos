@@ -79,58 +79,6 @@ class _DialogStockDocumentState extends ConsumerState<DialogStockDocument> {
       maxWidth: 700,
       maxHeight: 700,
       children: [
-        // Supplier dropdown (receipt only)
-        if (isReceipt) ...[
-          StreamBuilder<List<SupplierModel>>(
-            stream: ref
-                .watch(supplierRepositoryProvider)
-                .watchAll(widget.companyId),
-            builder: (context, snap) {
-              final suppliers = snap.data ?? [];
-              return DropdownButtonFormField<String>(
-                decoration: InputDecoration(labelText: l.stockDocumentSupplier),
-                initialValue: _selectedSupplierId,
-                items: [
-                  DropdownMenuItem<String>(value: null, child: Text('-')),
-                  ...suppliers.map(
-                    (s) => DropdownMenuItem(
-                      value: s.id,
-                      child: Text(s.supplierName),
-                    ),
-                  ),
-                ],
-                onChanged: (v) => setState(() => _selectedSupplierId = v),
-              );
-            },
-          ),
-          const SizedBox(height: 12),
-
-          // Price strategy dropdown
-          DropdownButtonFormField<PurchasePriceStrategy>(
-            decoration: InputDecoration(
-              labelText: l.stockDocumentPriceStrategy,
-            ),
-            initialValue: _documentStrategy,
-            items: PurchasePriceStrategy.values.map((s) {
-              return DropdownMenuItem(
-                value: s,
-                child: Text(_strategyLabel(l, s)),
-              );
-            }).toList(),
-            onChanged: (v) {
-              if (v != null) setState(() => _documentStrategy = v);
-            },
-          ),
-          const SizedBox(height: 12),
-        ],
-
-        // Note field
-        TextField(
-          controller: _noteController,
-          decoration: InputDecoration(labelText: l.stockDocumentNote),
-        ),
-        const SizedBox(height: 12),
-
         // Document date + time
         Row(
           children: [
@@ -150,6 +98,64 @@ class _DialogStockDocumentState extends ConsumerState<DialogStockDocument> {
               ),
             ),
           ],
+        ),
+        const SizedBox(height: 12),
+
+        // Supplier + price strategy (receipt only)
+        if (isReceipt) ...[
+          Row(
+            children: [
+              Expanded(
+                child: StreamBuilder<List<SupplierModel>>(
+                  stream: ref
+                      .watch(supplierRepositoryProvider)
+                      .watchAll(widget.companyId),
+                  builder: (context, snap) {
+                    final suppliers = snap.data ?? [];
+                    return DropdownButtonFormField<String>(
+                      decoration: InputDecoration(labelText: l.stockDocumentSupplier),
+                      initialValue: _selectedSupplierId,
+                      items: [
+                        DropdownMenuItem<String>(value: null, child: Text('-')),
+                        ...suppliers.map(
+                          (s) => DropdownMenuItem(
+                            value: s.id,
+                            child: Text(s.supplierName),
+                          ),
+                        ),
+                      ],
+                      onChanged: (v) => setState(() => _selectedSupplierId = v),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: DropdownButtonFormField<PurchasePriceStrategy>(
+                  decoration: InputDecoration(
+                    labelText: l.stockDocumentPriceStrategy,
+                  ),
+                  initialValue: _documentStrategy,
+                  items: PurchasePriceStrategy.values.map((s) {
+                    return DropdownMenuItem(
+                      value: s,
+                      child: Text(_strategyLabel(l, s)),
+                    );
+                  }).toList(),
+                  onChanged: (v) {
+                    if (v != null) setState(() => _documentStrategy = v);
+                  },
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+        ],
+
+        // Note field
+        TextField(
+          controller: _noteController,
+          decoration: InputDecoration(labelText: l.stockDocumentNote),
         ),
         const SizedBox(height: 16),
 

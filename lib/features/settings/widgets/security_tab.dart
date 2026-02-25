@@ -3,10 +3,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/data/enums/negative_stock_policy.dart';
 import '../../../core/data/models/company_settings_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../l10n/app_localizations.dart';
 
 class SecurityTab extends ConsumerStatefulWidget {
   const SecurityTab({super.key});
@@ -113,8 +115,43 @@ class _SecurityTabState extends ConsumerState<SecurityTab> {
               ),
             ),
           ),
+          ListTile(
+            title: Text(l.settingsNegativeStockPolicy),
+            trailing: SizedBox(
+              width: 160,
+              child: DropdownButtonFormField<NegativeStockPolicy>(
+                initialValue: _settings!.negativeStockPolicy,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  contentPadding:
+                      EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                ),
+                items: [
+                  for (final policy in NegativeStockPolicy.values)
+                    DropdownMenuItem<NegativeStockPolicy>(
+                      value: policy,
+                      child: Text(_policyLabel(l, policy)),
+                    ),
+                ],
+                onChanged: (value) {
+                  if (value != null) {
+                    _updateSettings(
+                        _settings!.copyWith(negativeStockPolicy: value));
+                  }
+                },
+              ),
+            ),
+          ),
         ],
       ),
     );
+  }
+
+  String _policyLabel(AppLocalizations l, NegativeStockPolicy policy) {
+    return switch (policy) {
+      NegativeStockPolicy.allow => l.negativeStockPolicyAllow,
+      NegativeStockPolicy.warn => l.negativeStockPolicyWarn,
+      NegativeStockPolicy.block => l.negativeStockPolicyBlock,
+    };
   }
 }

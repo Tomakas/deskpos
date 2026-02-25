@@ -42,6 +42,27 @@ class StockMovementRepository {
         .map((rows) => rows.map(stockMovementFromEntity).toList());
   }
 
+  /// Watches all movements for a document with item names (for detail dialog).
+  Stream<List<StockMovementWithItem>> watchByDocumentWithItems(String documentId) {
+    final query = _db.select(_db.stockMovements).join([
+      innerJoin(_db.items, _db.items.id.equalsExp(_db.stockMovements.itemId)),
+    ])
+      ..where(_db.stockMovements.stockDocumentId.equals(documentId) &
+          _db.stockMovements.deletedAt.isNull())
+      ..orderBy([OrderingTerm.asc(_db.stockMovements.createdAt)]);
+
+    return query.watch().map((rows) => rows.map((row) {
+          final movement = stockMovementFromEntity(row.readTable(_db.stockMovements));
+          final item = row.readTable(_db.items);
+          return StockMovementWithItem(
+            movement: movement,
+            itemName: item.name,
+            unit: item.unit,
+            categoryId: item.categoryId,
+          );
+        }).toList());
+  }
+
   /// Gets all movements for an item (for future history view).
   Future<List<StockMovementModel>> getByItem(String companyId, String itemId) async {
     final entities = await (_db.select(_db.stockMovements)
@@ -86,6 +107,10 @@ class StockMovementRepository {
         _db.stockDocuments,
         _db.stockDocuments.id.equalsExp(_db.stockMovements.stockDocumentId),
       ),
+      leftOuterJoin(
+        _db.bills,
+        _db.bills.id.equalsExp(_db.stockMovements.billId),
+      ),
     ])
       ..where(whereExpr)
       ..orderBy([OrderingTerm.desc(_db.stockMovements.createdAt)]);
@@ -94,12 +119,15 @@ class StockMovementRepository {
           final movement = stockMovementFromEntity(row.readTable(_db.stockMovements));
           final item = row.readTable(_db.items);
           final doc = row.readTableOrNull(_db.stockDocuments);
+          final bill = row.readTableOrNull(_db.bills);
           return StockMovementWithItem(
             movement: movement,
             itemName: item.name,
             unit: item.unit,
             documentType: doc?.type,
             documentNumber: doc?.documentNumber,
+            billId: bill?.id,
+            billNumber: bill?.billNumber,
             categoryId: item.categoryId,
           );
         }).toList());
@@ -126,6 +154,8 @@ class StockMovementWithItem {
     required this.unit,
     this.documentType,
     this.documentNumber,
+    this.billId,
+    this.billNumber,
     this.categoryId,
   });
 
@@ -134,5 +164,7 @@ class StockMovementWithItem {
   final UnitType unit;
   final StockDocumentType? documentType;
   final String? documentNumber;
+  final String? billId;
+  final String? billNumber;
   final String? categoryId;
 }
