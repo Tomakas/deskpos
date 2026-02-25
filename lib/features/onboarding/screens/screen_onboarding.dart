@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -747,22 +749,39 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
     if (dialogContext.mounted) Navigator.of(dialogContext).pop();
 
     final progressNotifier = ValueNotifier<String>(l.wizardDemoCreating);
+    final errorNotifier = ValueNotifier<String?>(null);
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => PopScope(
+      builder: (dialogCtx) => PopScope(
         canPop: false,
-        child: ValueListenableBuilder<String>(
-          valueListenable: progressNotifier,
-          builder: (_, status, _) => AlertDialog(
-            content: Row(
-              children: [
-                const CircularProgressIndicator(),
-                const SizedBox(width: 24),
-                Expanded(child: Text(status)),
-              ],
-            ),
-          ),
+        child: ValueListenableBuilder<String?>(
+          valueListenable: errorNotifier,
+          builder: (_, error, __) {
+            if (error != null) {
+              return AlertDialog(
+                content: SelectableText(error),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(dialogCtx).pop(),
+                    child: Text(l.actionClose),
+                  ),
+                ],
+              );
+            }
+            return ValueListenableBuilder<String>(
+              valueListenable: progressNotifier,
+              builder: (_, status, __) => AlertDialog(
+                content: Row(
+                  children: [
+                    const CircularProgressIndicator(),
+                    const SizedBox(width: 24),
+                    Expanded(child: Text(status)),
+                  ],
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
@@ -791,14 +810,25 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
 
       if (!mounted) return;
 
-      final result = response.data as Map<String, dynamic>;
+      final raw = response.data;
+      final Map<String, dynamic> result;
+      if (raw is Map<String, dynamic>) {
+        result = raw;
+      } else if (raw is String) {
+        result = jsonDecode(raw) as Map<String, dynamic>;
+      } else {
+        throw Exception('Unexpected response type: ${raw.runtimeType}');
+      }
 
       if (result['ok'] != true) {
         throw Exception(result['message'] ?? 'Demo data creation failed');
       }
 
-      final companyId = result['company_id'] as String;
-      final registerId = result['register_id'] as String;
+      final companyId = result['company_id'] as String?;
+      final registerId = result['register_id'] as String?;
+      if (companyId == null || registerId == null) {
+        throw Exception('Missing company_id or register_id in response');
+      }
 
       // 4. Pull all company data from server
       progressNotifier.value = l.wizardDemoDownloading;
@@ -815,6 +845,7 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
           createdAt: DateTime.now(),
         ),
       );
+      if (!mounted) return;
 
       // 6. Insert completed sync_queue marker (prevents _initialPush
       //    from re-pushing all pulled demo data back to server)
@@ -846,7 +877,7 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
     } catch (e, s) {
       AppLogger.error('Demo onboarding failed', error: e, stackTrace: s);
       if (!mounted) return;
-      Navigator.of(context).pop(); // Close progress dialog
+      errorNotifier.value = '$e\n\n$s';
     }
   }
 }

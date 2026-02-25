@@ -1,5 +1,9 @@
 PROVEĎ následující audit projektu.
 
+> **PŘEDPOKLAD:** Tento audit MUSÍ běžet v čisté konverzaci (`/clear`).
+> Nespouštěj společně s jiným auditem (DOC_AUDIT apod.) ve stejné session.
+> Pokud kontext obsahuje předchozí práci, nejprve použij `/clear`.
+
 ### Architektura auditu — Trojitá redundance
 
 Audit používá architekturu **Triple Modular Redundancy (TMR)** pro maximální spolehlivost:
@@ -28,18 +32,22 @@ Audit používá architekturu **Triple Modular Redundancy (TMR)** pro maximáln�
        ▼               ▼               ▼
 ┌─────────────────────────────────────────────────────┐
 │          FÁZE SLOUČENÍ — Merge & Verify              │
-│                 (hlavní konverzace)                   │
+│            (DELEGOVANÁ na merge agenta)               │
 │                                                      │
+│  Hlavní konverzace spustí JEDNOHO merge agenta,     │
+│  který přečte výstupy α/β/γ ze souborů a provede:   │
 │  1. Sloučit a deduplikovat nálezy ze všech 3 agentů │
 │  2. Klasifikovat shodu (3/3, 2/3, 1/3 agentů)      │
 │  3. Re-verifikovat sporné nálezy (1/3 unikátní)     │
 │  4. Potvrzené → do reportu                          │
 │  5. Vyvrácené → do sekce zamítnutých                │
+│  6. Zapsat FINÁLNÍ REPORT do souboru                │
 └──────────────────────┬──────────────────────────────┘
                        │
                        ▼
 ┌─────────────────────────────────────────────────────┐
-│   FINÁLNÍ REPORT (pouze re-verifikované nálezy)     │
+│  Hlavní konverzace přečte POUZE finální report      │
+│  a zobrazí souhrn uživateli                         │
 └─────────────────────────────────────────────────────┘
 ```
 
@@ -49,7 +57,7 @@ Audit používá architekturu **Triple Modular Redundancy (TMR)** pro maximáln�
 2. **Nezávislost** — Agenti nevidí výsledky ostatních. Každý pracuje izolovaně.
 3. **Vlastní podagenti (POVINNÉ)** — Každý agent **MUSÍ** spouštět vlastní podagenty pro delegaci práce. Audit vyžaduje čtení 80+ souborů a spouštění SQL dotazů — bez podagentů kontext nestačí na dokončení všech fází. Agent sám provádí pouze koordinaci, FÁZI 2 (Supabase MCP) a FÁZI 4 (křížová validace). Vše ostatní deleguje na podagenty.
 4. **Supabase MCP** — Každý agent má přístup k MCP nástrojům a provádí vlastní Supabase analýzu nezávisle.
-5. **Sloučení až na konci** — Hlavní konverzace sloučí výsledky teprve po dokončení všech 3 agentů.
+5. **Sloučení až na konci** — Po dokončení všech 3 agentů se spustí **merge agent** (sub-agent), který přečte výstupy ze souborů, sloučí a re-verifikuje. Hlavní konverzace NEČTE jednotlivé reporty — čte jen finální výstup merge agenta.
 
 ### Jak spustit 3 agenty
 
@@ -92,7 +100,7 @@ Proveď **kompletní, důkladnou a podrobnou analýzu** celého Maty projektu. A
 4. **U každého nálezu uveď**: co je špatně, proč je to problém, konkrétní dopad, a navrhované řešení.
 5. **Porovnávej kód s dokumentací** (`PROJECT.md`, `CLAUDE.md`). Rozpor mezi kódem a dokumentací je nález — reportuj jako STŘEDNÍ+ závažnost. Neurčuj, kdo má pravdu (kód nebo docs), ale jasně popiš co se liší a kde. **VÝJIMKA:** Neimplementované plánované features z budoucích etap nejsou rozpory — viz "Známé vzory — NE BUG" bod 9.
 6. **Analýzu Supabase** proveď přes MCP nástroje (execute_sql, list_tables, get_advisors) — nikdy nehádej stav serveru.
-7. **Spouštěj podagenty** pro delegaci analytické práce — je to POVINNÉ (viz sekce "Povinné rozdělení podagentů"). Bez podagentů ti dojde kontext před dokončením analýzy.
+7. **Spouštěj podagenty** — je to POVINNÉ (viz sekce "Povinné rozdělení podagentů").
 8. **Generovaný kód VYLÚČ z analýzy** — soubory `*.g.dart` a `*.freezed.dart` jsou automaticky generované `build_runner`em. NEANALYZUJ je, NEHLÁŠEJ v nich nálezy, NEPOČÍTEJ je do code quality metrik. Jediná relevantní kontrola: je generovaný kód aktuální vůči zdrojovým definicím (viz 3.7.1).
 
 ### Verifikační protokol (POVINNÝ)
@@ -172,13 +180,7 @@ Nikdy nehlásaj KRITICKÉ bez confidence level CONFIRMED.
 
 ### Povinné rozdělení podagentů (interní pro každého agenta)
 
-Každý agent (α/β/γ) **MUSÍ** svou práci rozdělit na podagenty. Audit vyžaduje čtení ~80+ souborů, spouštění SQL dotazů a křížovou validaci — to překračuje kontextové okno jednoho agenta. Bez podagentů analýza skončí neúplná.
-
-**Strategie:** Agent sám slouží jako koordinátor — spouští podagenty, sbírá jejich výstupy a kompiluje finální report. Agent NEČTE zdrojové soubory přímo (kromě FÁZE 2 a 4), veškeré čtení a analýzu deleguje.
-
-**Strategie podagentů:**
-
-Agent MUSÍ delegovat analytickou práci na podagenty. Konkrétní dělení je na agentovi, ale MUSÍ splnit:
+Agent slouží jako koordinátor — spouští podagenty, sbírá výstupy a kompiluje report. Agent NEČTE zdrojové soubory přímo (kromě FÁZE 2 a 4), vše deleguje. Konkrétní dělení je na agentovi, ale MUSÍ splnit:
 
 1. Minimálně 4 paralelní podagenty pro FÁZI 3 (klient je příliš velký pro jednoho)
 2. FÁZE 2 (Supabase MCP) provádí agent přímo
@@ -853,7 +855,9 @@ Přečti `PROJECT.md` **celý** (po částech). Pro každou sekci hledej:
 
 ### Výstupní formát agenta
 
-Každý agent vrátí **stručný** report — seznam nálezů, nic víc:
+Každý agent vrátí report — seznam nálezů. Report **MUSÍ být zapsán do souboru** (cesta bude specifikována v promptu, typicky `/tmp/tmr-audit/agent_[id].md`).
+
+**Stručnost:** U nálezů KRITICKÉ a VYSOKÉ uváděj plný formát s důkazy. U STŘEDNÍ uváděj důkaz jen pokud je netriviální. U NÍZKÉ a INFO zkrať na 2-3 řádky (bez bloku Verifikace/Důkaz) — merge agent si v případě potřeby dohledá detail sám.
 
 ```
 # REPORT AGENTA [α/β/γ]
@@ -873,29 +877,49 @@ Počet nálezů: KRITICKÉ: X | VYSOKÉ: X | STŘEDNÍ: X | NÍZKÉ: X
 
 ---
 
-## FÁZE SLOUČENÍ — Merge & Verify (hlavní konverzace)
+## FÁZE SLOUČENÍ — Merge & Verify (DELEGOVANÁ na merge agenta)
 
-Po dokončení všech 3 agentů hlavní konverzace (pokud agent nedokončil do 15 minut, pracuj s dostupnými výstupy — 2/3 stačí pro validní audit):
+**Proč merge agent:** Tři agent reporty mají dohromady ~1000 řádků. Čtení všech tří do hlavní konverzace vyčerpá kontext a znemožní re-verifikaci. Proto se merge provádí v dedikovaném sub-agentovi, který má čistý kontext.
 
-### Krok 1: Sběr a deduplikace
-- Slouč všechny nálezy do jedné tabulky
-- Identifikuj duplikáty (shodný soubor + řádek, nebo shodný koncept jinak formulovaný)
-- Pro duplikáty: vezmi nejvyšší důvěryhodnost (confidence), ne nejvyšší závažnost
+Po dokončení všech 3 agentů (pokud agent nedokončil do 15 minut, pracuj s dostupnými výstupy — 2/3 stačí pro validní audit):
 
-### Krok 2: Klasifikace shody
+### Hlavní konverzace spustí merge agenta
 
-| Shoda | Akce |
-|-------|------|
-| 3/3 agentů shodně | → Přijat bez dalšího ověření |
-| 2/3 shodně, 1 odlišně | → Přijat, přezkoumej závažnost |
-| 1/3 unikátní nález | → POVINNÁ re-verifikace čtením kódu |
-| 2/3+ říká NE BUG | → Zamítnut, uveď v sekci zamítnutých |
+Spusť **jeden foreground agent** (Task tool) s tímto zadáním:
 
-### Krok 3: Re-verifikace sporných nálezů
-Pouze nálezy z kategorie „1/3 unikátní" podléhají re-verifikaci. Postup: přečti zdrojový kód → ověř proti „Známé vzory" → rozhodnutí Přijat/Zamítnut.
+> Jsi merge agent pro TMR audit. Tvým úkolem je sloučit výstupy 3 nezávislých auditorů do jednoho finálního reportu.
+>
+> **Vstupní soubory:** `/tmp/tmr-audit/agent_alpha.md`, `/tmp/tmr-audit/agent_beta.md`, `/tmp/tmr-audit/agent_gamma.md`
+> **Výstupní soubor:** `/tmp/tmr-audit/FINAL_REPORT.md`
+>
+> **Postup:**
+>
+> 1. **Sběr a deduplikace** — přečti všechny 3 reporty. Identifikuj duplikáty (shodný soubor + řádek, nebo shodný koncept jinak formulovaný). Pro duplikáty vezmi nejvyšší důvěryhodnost (confidence), ne nejvyšší závažnost.
+>
+> 2. **Klasifikace shody:**
+>    - 3/3 agentů shodně → Přijat bez dalšího ověření
+>    - 2/3 shodně, 1 odlišně → Přijat, přezkoumej závažnost
+>    - 1/3 unikátní nález → POVINNÁ re-verifikace čtením zdrojového kódu
+>    - 2/3+ říká NE BUG → Zamítnut, uveď v sekci zamítnutých
+>
+> 3. **Re-verifikace sporných nálezů** — pouze 1/3 unikátní nálezy. Přečti zdrojový kód, ověř proti „Známé vzory" (viz níže), rozhodnutí Přijat/Zamítnut.
+>
+> 4. **Zapiš finální report** do `/tmp/tmr-audit/FINAL_REPORT.md` ve formátu definovaném v sekci FINÁLNÍ REPORT.
+>
+> Žádné nové nálezy z merge fáze — pouze sloučení a verifikace existujících.
 
-### Krok 4: Finální report
-Pouze re-verifikované nálezy. Žádné nové nálezy z merge fáze.
+**Do promptu merge agenta vlož také:**
+- Sekci "Známé vzory — NE BUG" (pro re-verifikaci)
+- Sekci "Časté false positive traps"
+- Sekci "Definice závažností"
+- Formát finálního reportu
+
+### Po dokončení merge agenta
+
+Hlavní konverzace:
+1. Přečte **POUZE** `/tmp/tmr-audit/FINAL_REPORT.md` (ne jednotlivé agent reporty)
+2. Zobrazí uživateli stručný souhrn (počet nálezů per závažnost, top 3 rizika)
+3. Nabídne možnost zobrazit celý report nebo řešit jednotlivé nálezy
 
 ---
 
