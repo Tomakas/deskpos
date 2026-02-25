@@ -101,7 +101,9 @@ class _LogTabState extends State<LogTab> {
       final file = File(path);
       if (await file.exists()) await file.writeAsString('');
       if (mounted) setState(() => _logContent = '');
-    } catch (_) {}
+    } catch (e) {
+      AppLogger.warn('Failed to clear log file', error: e);
+    }
   }
 
   Future<void> _exportLogs() async {
