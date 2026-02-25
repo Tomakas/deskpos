@@ -5,7 +5,7 @@ import '../enums/layout_item_type.dart';
 part 'layout_item_model.freezed.dart';
 
 @freezed
-class LayoutItemModel with _$LayoutItemModel {
+abstract class LayoutItemModel with _$LayoutItemModel {
   const factory LayoutItemModel({
     required String id,
     required String companyId,

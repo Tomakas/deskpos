@@ -18,6 +18,7 @@ import '../../../core/utils/permission_l10n.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/search_utils.dart';
+import '../../../core/widgets/highlighted_text.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_table.dart';
@@ -87,8 +88,8 @@ class _UsersTabState extends ConsumerState<UsersTab> {
                 Expanded(
                   child: PosTable<UserModel>(
                     columns: [
-                      PosColumn(label: l.fieldName, flex: 3, cellBuilder: (user) => Text(user.fullName, overflow: TextOverflow.ellipsis)),
-                      PosColumn(label: l.fieldUsername, flex: 2, cellBuilder: (user) => Text(user.username, overflow: TextOverflow.ellipsis)),
+                      PosColumn(label: l.fieldName, flex: 3, cellBuilder: (user) => HighlightedText(user.fullName, query: _query, overflow: TextOverflow.ellipsis)),
+                      PosColumn(label: l.fieldUsername, flex: 2, cellBuilder: (user) => HighlightedText(user.username, query: _query, overflow: TextOverflow.ellipsis)),
                       PosColumn(
                         label: l.fieldRole,
                         flex: 2,

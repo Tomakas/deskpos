@@ -1,16 +1,13 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/database_provider.dart';
 import '../../../core/data/providers/sync_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/logging/app_logger.dart';
+import '../../../core/platform/platform_io.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
@@ -190,13 +187,8 @@ class CloudTab extends ConsumerWidget {
       // Close the database connection
       await db.close();
 
-      // Delete the database file (and WAL/SHM companions)
-      final dir = await getApplicationDocumentsDirectory();
-      final basePath = p.join(dir.path, 'maty_database.sqlite');
-      for (final suffix in ['', '-wal', '-shm', '-journal']) {
-        final file = File('$basePath$suffix');
-        if (await file.exists()) await file.delete();
-      }
+      // Delete the database files
+      await deleteDatabaseFiles('maty_database');
 
       // Invalidate providers — marks them dirty for next read (no sync rebuild).
       // appInitProvider re-resolves company/user state from the fresh DB.

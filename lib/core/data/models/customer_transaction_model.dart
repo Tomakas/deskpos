@@ -5,7 +5,7 @@ import 'company_scoped_model.dart';
 part 'customer_transaction_model.freezed.dart';
 
 @freezed
-class CustomerTransactionModel with _$CustomerTransactionModel implements CompanyScopedModel {
+abstract class CustomerTransactionModel with _$CustomerTransactionModel implements CompanyScopedModel {
   const factory CustomerTransactionModel({
     required String id,
     required String companyId,

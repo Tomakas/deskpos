@@ -3,7 +3,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'register_session_model.freezed.dart';
 
 @freezed
-class RegisterSessionModel with _$RegisterSessionModel {
+abstract class RegisterSessionModel with _$RegisterSessionModel {
   const factory RegisterSessionModel({
     required String id,
     required String companyId,

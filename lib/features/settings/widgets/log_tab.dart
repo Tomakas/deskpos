@@ -1,12 +1,11 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/logging/app_logger.dart';
+import '../../../core/platform/platform_io.dart';
 import '../../../core/utils/file_opener.dart';
 
 class LogTab extends StatefulWidget {
@@ -47,13 +46,16 @@ class _LogTabState extends State<LogTab> {
       return;
     }
     try {
-      final file = File(path);
-      if (!await file.exists()) {
+      if (!await fileExists(path)) {
         if (mounted) setState(() { _logContent = ''; _loading = false; });
         return;
       }
 
-      final bytes = await file.readAsBytes();
+      final bytes = await readFileBytes(path);
+      if (bytes == null || bytes.isEmpty) {
+        if (mounted) setState(() { _logContent = ''; _loading = false; });
+        return;
+      }
 
       // Take last 200 KB to skip null-byte corruption at the beginning
       var startOffset = 0;
@@ -68,7 +70,7 @@ class _LogTabState extends State<LogTab> {
 
       // Filter out null bytes and decode
       final filtered = bytes.sublist(startOffset).where((b) => b != 0).toList();
-      var content = utf8.decode(filtered, allowMalformed: true);
+      var content = String.fromCharCodes(filtered);
 
       // Limit to last N lines
       final lines = content.split('\n');
@@ -99,8 +101,7 @@ class _LogTabState extends State<LogTab> {
     final path = AppLogger.logFilePath;
     if (path == null) return;
     try {
-      final file = File(path);
-      if (await file.exists()) await file.writeAsString('');
+      if (await fileExists(path)) await writeFile(path, '');
       if (mounted) setState(() => _logContent = '');
     } catch (e) {
       AppLogger.warn('Failed to clear log file', error: e);
@@ -110,9 +111,9 @@ class _LogTabState extends State<LogTab> {
   Future<void> _exportLogs() async {
     final logPath = AppLogger.logFilePath;
     if (logPath == null) return;
-    final file = File(logPath);
-    if (!await file.exists()) return;
-    await FileOpener.share(logPath);
+    final bytes = await readFileBytes(logPath);
+    if (bytes == null || bytes.isEmpty) return;
+    await FileOpener.shareBytes('epos_app.log', bytes);
   }
 
   @override

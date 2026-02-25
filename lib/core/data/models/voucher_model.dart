@@ -9,7 +9,7 @@ import 'company_scoped_model.dart';
 part 'voucher_model.freezed.dart';
 
 @freezed
-class VoucherModel with _$VoucherModel implements CompanyScopedModel {
+abstract class VoucherModel with _$VoucherModel implements CompanyScopedModel {
   const factory VoucherModel({
     required String id,
     required String companyId,

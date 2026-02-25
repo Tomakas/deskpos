@@ -5,7 +5,7 @@ import 'company_scoped_model.dart';
 part 'item_modifier_group_model.freezed.dart';
 
 @freezed
-class ItemModifierGroupModel with _$ItemModifierGroupModel implements CompanyScopedModel {
+abstract class ItemModifierGroupModel with _$ItemModifierGroupModel implements CompanyScopedModel {
   const factory ItemModifierGroupModel({
     required String id,
     required String companyId,

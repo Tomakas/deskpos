@@ -8,6 +8,7 @@ import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/search_utils.dart';
+import '../../../core/widgets/highlighted_text.dart';
 import '../../../core/widgets/pos_color_palette.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
@@ -61,7 +62,7 @@ class _SectionsTabState extends ConsumerState<SectionsTab> {
             Expanded(
               child: PosTable<SectionModel>(
                 columns: [
-                  PosColumn(label: l.fieldName, flex: 3, cellBuilder: (s) => Text(s.name, overflow: TextOverflow.ellipsis)),
+                  PosColumn(label: l.fieldName, flex: 3, cellBuilder: (s) => HighlightedText(s.name, query: _query, overflow: TextOverflow.ellipsis)),
                   PosColumn(
                     label: l.fieldColor,
                     flex: 1,

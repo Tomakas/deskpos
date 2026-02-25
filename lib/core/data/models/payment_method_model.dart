@@ -6,7 +6,7 @@ import 'company_scoped_model.dart';
 part 'payment_method_model.freezed.dart';
 
 @freezed
-class PaymentMethodModel with _$PaymentMethodModel implements CompanyScopedModel {
+abstract class PaymentMethodModel with _$PaymentMethodModel implements CompanyScopedModel {
   const factory PaymentMethodModel({
     required String id,
     required String companyId,

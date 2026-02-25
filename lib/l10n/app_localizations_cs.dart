@@ -3650,4 +3650,10 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get wizardDemoInfo => 'Demo vytvoří 4 uživatele, všichni s PINem 1111';
+
+  @override
+  String get ordersSortAsc => 'Od nejstarších';
+
+  @override
+  String get ordersSortDesc => 'Od nejnovějších';
 }

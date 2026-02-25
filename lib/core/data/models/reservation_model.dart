@@ -6,7 +6,7 @@ import 'company_scoped_model.dart';
 part 'reservation_model.freezed.dart';
 
 @freezed
-class ReservationModel with _$ReservationModel implements CompanyScopedModel {
+abstract class ReservationModel with _$ReservationModel implements CompanyScopedModel {
   const factory ReservationModel({
     required String id,
     required String companyId,

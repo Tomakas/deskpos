@@ -5,7 +5,7 @@ import '../enums/cash_movement_type.dart';
 part 'cash_movement_model.freezed.dart';
 
 @freezed
-class CashMovementModel with _$CashMovementModel {
+abstract class CashMovementModel with _$CashMovementModel {
   const factory CashMovementModel({
     required String id,
     required String companyId,

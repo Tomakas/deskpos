@@ -6,7 +6,7 @@ import 'company_scoped_model.dart';
 part 'map_element_model.freezed.dart';
 
 @freezed
-class MapElementModel with _$MapElementModel implements CompanyScopedModel {
+abstract class MapElementModel with _$MapElementModel implements CompanyScopedModel {
   const factory MapElementModel({
     required String id,
     required String companyId,

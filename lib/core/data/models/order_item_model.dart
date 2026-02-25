@@ -7,7 +7,7 @@ import '../enums/unit_type.dart';
 part 'order_item_model.freezed.dart';
 
 @freezed
-class OrderItemModel with _$OrderItemModel {
+abstract class OrderItemModel with _$OrderItemModel {
   const factory OrderItemModel({
     required String id,
     required String companyId,

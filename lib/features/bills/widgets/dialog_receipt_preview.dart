@@ -1,8 +1,5 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:path_provider/path_provider.dart';
 
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/printing_providers.dart';
@@ -55,12 +52,7 @@ Future<void> showReceiptPrintDialog(
       return;
     }
     final pdfBytes = await service.generateReceiptPdf(data, labels);
-
-    final dir = await getTemporaryDirectory();
-    if (!dir.existsSync()) dir.createSync(recursive: true);
-    final file = File('${dir.path}/receipt_$billId.pdf');
-    await file.writeAsBytes(pdfBytes);
-    await FileOpener.share(file.path);
+    await FileOpener.shareBytes('receipt_$billId.pdf', pdfBytes);
   } catch (e, s) {
     AppLogger.error('Failed to print receipt', error: e, stackTrace: s);
   }

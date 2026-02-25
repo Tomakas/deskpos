@@ -5,7 +5,7 @@ import 'company_scoped_model.dart';
 part 'user_model.freezed.dart';
 
 @freezed
-class UserModel with _$UserModel implements CompanyScopedModel {
+abstract class UserModel with _$UserModel implements CompanyScopedModel {
   const factory UserModel({
     required String id,
     required String companyId,

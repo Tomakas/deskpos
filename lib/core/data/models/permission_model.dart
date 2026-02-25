@@ -3,7 +3,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'permission_model.freezed.dart';
 
 @freezed
-class PermissionModel with _$PermissionModel {
+abstract class PermissionModel with _$PermissionModel {
   const factory PermissionModel({
     required String id,
     required String code,

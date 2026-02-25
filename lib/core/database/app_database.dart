@@ -1,9 +1,7 @@
-import 'dart:io';
-
 import 'package:drift/drift.dart';
-import 'package:drift/native.dart';
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
+import 'package:drift_flutter/drift_flutter.dart';
+
+import '../logging/app_logger.dart';
 
 import '../data/enums/enums.dart';
 import 'tables/bills.dart';
@@ -109,11 +107,19 @@ class AppDatabase extends _$AppDatabase {
   @override
   int get schemaVersion => 1;
 
-  static LazyDatabase _openConnection() {
-    return LazyDatabase(() async {
-      final dir = await getApplicationDocumentsDirectory();
-      final file = File(p.join(dir.path, 'maty_database.sqlite'));
-      return NativeDatabase.createInBackground(file);
-    });
+  static QueryExecutor _openConnection() {
+    return driftDatabase(
+      name: 'maty_database',
+      web: DriftWebOptions(
+        sqlite3Wasm: Uri.parse('sqlite3.wasm'),
+        driftWorker: Uri.parse('drift_worker.js'),
+        onResult: (result) {
+          AppLogger.info(
+            'Drift web storage: ${result.chosenImplementation}',
+            tag: 'DB',
+          );
+        },
+      ),
+    );
   }
 }

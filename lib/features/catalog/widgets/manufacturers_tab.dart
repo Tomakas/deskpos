@@ -8,6 +8,7 @@ import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/search_utils.dart';
+import '../../../core/widgets/highlighted_text.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_table.dart';
@@ -60,7 +61,7 @@ class _ManufacturersTabState extends ConsumerState<ManufacturersTab> {
             Expanded(
               child: PosTable<ManufacturerModel>(
                 columns: [
-                  PosColumn(label: l.fieldName, cellBuilder: (m) => Text(m.name, overflow: TextOverflow.ellipsis)),
+                  PosColumn(label: l.fieldName, cellBuilder: (m) => HighlightedText(m.name, query: _query, overflow: TextOverflow.ellipsis)),
                 ],
                 items: filtered,
                 onRowTap: (m) => _showEditDialog(context, ref, m),

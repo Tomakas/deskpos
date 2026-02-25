@@ -11,7 +11,9 @@ import '../../../core/data/repositories/stock_level_repository.dart';
 import '../../../core/data/repositories/stock_movement_repository.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/utils/formatting_ext.dart';
+import '../../../core/utils/search_utils.dart';
 import '../../../core/utils/unit_type_l10n.dart';
+import '../../../core/widgets/highlighted_text.dart';
 import '../../../core/widgets/pos_table.dart';
 import '../../../l10n/app_localizations.dart';
 import '../widgets/dialog_inventory.dart';
@@ -427,7 +429,7 @@ class _StockMovementsTabState extends ConsumerState<_StockMovementsTab> {
               isDense: true,
               border: const OutlineInputBorder(),
             ),
-            onChanged: (v) => setState(() => _query = v.toLowerCase()),
+            onChanged: (v) => setState(() => _query = normalizeSearch(v)),
           ),
         ),
         // Movements table
@@ -440,8 +442,8 @@ class _StockMovementsTabState extends ConsumerState<_StockMovementsTab> {
               var movements = snap.data ?? [];
               if (_query.isNotEmpty) {
                 movements = movements.where((m) {
-                  return m.itemName.toLowerCase().contains(_query) ||
-                      (m.documentNumber?.toLowerCase().contains(_query) ?? false);
+                  return normalizeSearch(m.itemName).contains(_query) ||
+                      (m.documentNumber != null && normalizeSearch(m.documentNumber!).contains(_query));
                 }).toList();
               }
 
@@ -458,8 +460,9 @@ class _StockMovementsTabState extends ConsumerState<_StockMovementsTab> {
                   PosColumn(
                     label: l.movementColumnItem,
                     flex: 3,
-                    cellBuilder: (item) => Text(
+                    cellBuilder: (item) => HighlightedText(
                       item.itemName,
+                      query: _query,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
@@ -493,8 +496,9 @@ class _StockMovementsTabState extends ConsumerState<_StockMovementsTab> {
                   PosColumn(
                     label: l.movementColumnDocument,
                     flex: 2,
-                    cellBuilder: (item) => Text(
+                    cellBuilder: (item) => HighlightedText(
                       item.documentNumber ?? '-',
+                      query: _query,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),

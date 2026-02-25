@@ -6,7 +6,7 @@ import '../enums/discount_type.dart';
 part 'bill_model.freezed.dart';
 
 @freezed
-class BillModel with _$BillModel {
+abstract class BillModel with _$BillModel {
   const factory BillModel({
     required String id,
     required String companyId,

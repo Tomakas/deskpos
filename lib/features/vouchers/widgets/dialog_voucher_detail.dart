@@ -1,8 +1,5 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:path_provider/path_provider.dart';
 
 import '../../../core/data/enums/voucher_discount_scope.dart';
 import '../../../core/data/enums/voucher_status.dart';
@@ -211,12 +208,7 @@ class _DialogVoucherDetailState extends ConsumerState<DialogVoucherDetail> {
 
       final bytes = await ref.read(printingServiceProvider)
           .generateVoucherPdf(data, labels);
-
-      final dir = await getTemporaryDirectory();
-      if (!dir.existsSync()) dir.createSync(recursive: true);
-      final file = File('${dir.path}/voucher_${voucher.code}.pdf');
-      await file.writeAsBytes(bytes);
-      await FileOpener.share(file.path);
+      await FileOpener.shareBytes('voucher_${voucher.code}.pdf', bytes);
     } catch (e, s) {
       AppLogger.error('Failed to print voucher', error: e, stackTrace: s);
     } finally {

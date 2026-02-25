@@ -8,6 +8,7 @@ import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/search_utils.dart';
+import '../../../core/widgets/highlighted_text.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_table.dart';
@@ -64,10 +65,10 @@ class _SuppliersTabState extends ConsumerState<SuppliersTab> {
             Expanded(
               child: PosTable<SupplierModel>(
                 columns: [
-                  PosColumn(label: l.fieldSupplierName, flex: 3, cellBuilder: (s) => Text(s.supplierName, overflow: TextOverflow.ellipsis)),
-                  PosColumn(label: l.fieldContactPerson, flex: 2, cellBuilder: (s) => Text(s.contactPerson ?? '-', overflow: TextOverflow.ellipsis)),
-                  PosColumn(label: l.fieldEmail, flex: 2, cellBuilder: (s) => Text(s.email ?? '-', overflow: TextOverflow.ellipsis)),
-                  PosColumn(label: l.fieldPhone, flex: 2, cellBuilder: (s) => Text(s.phone ?? '-', overflow: TextOverflow.ellipsis)),
+                  PosColumn(label: l.fieldSupplierName, flex: 3, cellBuilder: (s) => HighlightedText(s.supplierName, query: _query, overflow: TextOverflow.ellipsis)),
+                  PosColumn(label: l.fieldContactPerson, flex: 2, cellBuilder: (s) => HighlightedText(s.contactPerson ?? '-', query: _query, overflow: TextOverflow.ellipsis)),
+                  PosColumn(label: l.fieldEmail, flex: 2, cellBuilder: (s) => HighlightedText(s.email ?? '-', query: _query, overflow: TextOverflow.ellipsis)),
+                  PosColumn(label: l.fieldPhone, flex: 2, cellBuilder: (s) => HighlightedText(s.phone ?? '-', query: _query, overflow: TextOverflow.ellipsis)),
                 ],
                 items: filtered,
                 onRowTap: (s) => _showEditDialog(context, ref, s),

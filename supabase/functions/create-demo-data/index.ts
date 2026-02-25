@@ -8,11 +8,24 @@ const serviceClient = createClient(supabaseUrl, serviceRoleKey);
 
 const JSON_HEADERS = { "Content-Type": "application/json" };
 
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
+};
+
 function respond(body: Record<string, unknown>, status = 200) {
-  return new Response(JSON.stringify(body), { status, headers: JSON_HEADERS });
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...JSON_HEADERS, ...corsHeaders },
+  });
 }
 
 Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
+
   try {
     // --- Authenticate ---
     const authHeader = req.headers.get("Authorization");
@@ -111,7 +124,7 @@ Deno.serve(async (req) => {
     console.error("create-demo-data error:", error);
     return new Response(
       JSON.stringify({ ok: false, message: String(error) }),
-      { status: 500, headers: JSON_HEADERS },
+      { status: 500, headers: { ...JSON_HEADERS, ...corsHeaders } },
     );
   }
 });

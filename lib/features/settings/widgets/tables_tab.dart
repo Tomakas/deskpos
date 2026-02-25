@@ -9,6 +9,7 @@ import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/search_utils.dart';
+import '../../../core/widgets/highlighted_text.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_table.dart';
@@ -77,12 +78,13 @@ class _TablesTabState extends ConsumerState<TablesTab> {
                 Expanded(
                   child: PosTable<TableModel>(
                     columns: [
-                      PosColumn(label: l.fieldName, flex: 3, cellBuilder: (t) => Text(t.name, overflow: TextOverflow.ellipsis)),
+                      PosColumn(label: l.fieldName, flex: 3, cellBuilder: (t) => HighlightedText(t.name, query: _query, overflow: TextOverflow.ellipsis)),
                       PosColumn(
                         label: l.fieldSection,
                         flex: 2,
-                        cellBuilder: (t) => Text(
+                        cellBuilder: (t) => HighlightedText(
                           sections.where((s) => s.id == t.sectionId).firstOrNull?.name ?? '-',
+                          query: _query,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),

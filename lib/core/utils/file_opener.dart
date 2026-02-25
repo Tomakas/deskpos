@@ -1,17 +1,11 @@
-import 'dart:io';
-
-import 'package:share_plus/share_plus.dart';
+import '../platform/platform_io.dart';
 
 /// Cross-platform file opener/sharer.
 ///
 /// On macOS: opens with the default system application.
-/// On other platforms: uses the system share sheet.
+/// On other native platforms: uses the system share sheet.
+/// On web: triggers a browser download.
 abstract final class FileOpener {
-  static Future<void> share(String filePath) async {
-    if (Platform.isMacOS) {
-      await Process.run('open', [filePath]);
-    } else {
-      await Share.shareXFiles([XFile(filePath)]);
-    }
-  }
+  static Future<void> shareBytes(String filename, List<int> bytes) =>
+      saveAndOpen(filename, bytes);
 }

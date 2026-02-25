@@ -5,7 +5,7 @@ import 'company_scoped_model.dart';
 part 'product_recipe_model.freezed.dart';
 
 @freezed
-class ProductRecipeModel with _$ProductRecipeModel implements CompanyScopedModel {
+abstract class ProductRecipeModel with _$ProductRecipeModel implements CompanyScopedModel {
   const factory ProductRecipeModel({
     required String id,
     required String companyId,

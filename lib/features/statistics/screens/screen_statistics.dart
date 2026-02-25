@@ -18,6 +18,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatting_ext.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/utils/search_utils.dart';
+import '../../../core/widgets/highlighted_text.dart';
 import '../../../core/widgets/pos_date_range_selector.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
@@ -2218,12 +2219,12 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
         PosColumn(
           label: l.statsColumnBillNumber,
           flex: 8,
-          cellBuilder: (b) => Text(b.billNumber),
+          cellBuilder: (b) => HighlightedText(b.billNumber, query: _query),
         ),
         PosColumn(
           label: l.statsColumnCustomer,
           flex: 15,
-          cellBuilder: (b) => Text(_customerDisplayName(b), overflow: TextOverflow.ellipsis),
+          cellBuilder: (b) => HighlightedText(_customerDisplayName(b), query: _query, overflow: TextOverflow.ellipsis),
         ),
         PosColumn(
           label: l.statsColumnPaymentMethod,
@@ -2255,12 +2256,12 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
         PosColumn(
           label: l.statsColumnItemName,
           flex: 16,
-          cellBuilder: (r) => Text(r.itemName, overflow: TextOverflow.ellipsis),
+          cellBuilder: (r) => HighlightedText(r.itemName, query: _query, overflow: TextOverflow.ellipsis),
         ),
         PosColumn(
           label: l.statsColumnCategory,
           flex: 10,
-          cellBuilder: (r) => Text(r.categoryName, overflow: TextOverflow.ellipsis),
+          cellBuilder: (r) => HighlightedText(r.categoryName, query: _query, overflow: TextOverflow.ellipsis),
         ),
         PosColumn(
           label: l.statsColumnQty,
@@ -2308,12 +2309,12 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
         PosColumn(
           label: l.statsColumnOrderNumber,
           flex: 8,
-          cellBuilder: (r) => Text(r.orderNumber),
+          cellBuilder: (r) => HighlightedText(r.orderNumber, query: _query),
         ),
         PosColumn(
           label: l.zReportColumnUser,
           flex: 12,
-          cellBuilder: (r) => Text(r.userName, overflow: TextOverflow.ellipsis),
+          cellBuilder: (r) => HighlightedText(r.userName, query: _query, overflow: TextOverflow.ellipsis),
         ),
         PosColumn(
           label: l.statsColumnQty,
@@ -2365,7 +2366,7 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
         PosColumn(
           label: l.shiftsColumnUser,
           flex: 15,
-          cellBuilder: (r) => Text(r.userName, overflow: TextOverflow.ellipsis),
+          cellBuilder: (r) => HighlightedText(r.userName, query: _query, overflow: TextOverflow.ellipsis),
         ),
         PosColumn(
           label: l.shiftsColumnLogin,
@@ -2411,12 +2412,12 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
         PosColumn(
           label: l.zReportRegisterColumn,
           flex: 12,
-          cellBuilder: (r) => Text(r.registerName, overflow: TextOverflow.ellipsis),
+          cellBuilder: (r) => HighlightedText(r.registerName, query: _query, overflow: TextOverflow.ellipsis),
         ),
         PosColumn(
           label: l.zReportColumnUser,
           flex: 12,
-          cellBuilder: (r) => Text(r.userName, overflow: TextOverflow.ellipsis),
+          cellBuilder: (r) => HighlightedText(r.userName, query: _query, overflow: TextOverflow.ellipsis),
         ),
         PosColumn(
           label: l.zReportColumnRevenue,
@@ -2458,12 +2459,12 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
         PosColumn(
           label: l.zReportColumnUser,
           flex: 15,
-          cellBuilder: (r) => Text(r.userName, overflow: TextOverflow.ellipsis),
+          cellBuilder: (r) => HighlightedText(r.userName, query: _query, overflow: TextOverflow.ellipsis),
         ),
         PosColumn(
           label: l.statsColumnBill,
           flex: 8,
-          cellBuilder: (r) => Text(r.billNumber),
+          cellBuilder: (r) => HighlightedText(r.billNumber, query: _query),
         ),
         PosColumn(
           label: l.tipStatsColumnAmount,

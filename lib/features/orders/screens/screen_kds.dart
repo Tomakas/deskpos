@@ -16,7 +16,9 @@ import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/utils/formatting_ext.dart';
+import '../../../core/utils/search_utils.dart';
 import '../../../core/utils/unit_type_l10n.dart';
+import '../../../core/widgets/highlighted_text.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import 'package:go_router/go_router.dart';
@@ -36,12 +38,16 @@ class ScreenKds extends ConsumerStatefulWidget {
 
 class _ScreenKdsState extends ConsumerState<ScreenKds> {
   bool _sessionScope = true;
+  bool _sortAscending = false;
+  String _searchQuery = '';
+  final _searchCtrl = TextEditingController();
   Set<PrepStatus> _statusFilter = {
     PrepStatus.created,
     PrepStatus.ready,
   };
   Timer? _ticker;
   bool _isBumping = false;
+  final Map<String, List<OrderItemModel>> _itemsCache = {};
 
   @override
   void initState() {
@@ -55,6 +61,7 @@ class _ScreenKdsState extends ConsumerState<ScreenKds> {
   @override
   void dispose() {
     _ticker?.cancel();
+    _searchCtrl.dispose();
     super.dispose();
   }
 
@@ -75,27 +82,13 @@ class _ScreenKdsState extends ConsumerState<ScreenKds> {
             onPressed: () => Scaffold.of(ctx).openDrawer(),
           ),
         ),
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(l.ordersTitle),
-            PopupMenuButton<bool>(
-              icon: const Icon(Icons.schedule),
-              onSelected: (v) => setState(() => _sessionScope = v),
-              itemBuilder: (_) => [
-                CheckedPopupMenuItem(
-                  value: true,
-                  checked: _sessionScope,
-                  child: Text(l.ordersScopeSession),
-                ),
-                CheckedPopupMenuItem(
-                  value: false,
-                  checked: !_sessionScope,
-                  child: Text(l.ordersScopeAll),
-                ),
-              ],
-            ),
-          ],
+        title: _OrdersToolbar(
+          sessionScope: _sessionScope,
+          onSessionScopeChanged: (v) => setState(() => _sessionScope = v),
+          sortAscending: _sortAscending,
+          onSortChanged: () => setState(() => _sortAscending = !_sortAscending),
+          searchController: _searchCtrl,
+          onSearchChanged: (v) => setState(() => _searchQuery = v),
         ),
         actions: [
           _KdsClockWidget(),
@@ -133,7 +126,8 @@ class _ScreenKdsState extends ConsumerState<ScreenKds> {
                   ),
               builder: (context, snap) {
                 final allOrders = snap.data ?? [];
-                final orders = _applyStatusFilter(allOrders);
+                _ensureItemsLoaded(allOrders);
+                final orders = _applyFilters(allOrders);
 
                 if (orders.isEmpty) {
                   return Center(
@@ -158,6 +152,7 @@ class _ScreenKdsState extends ConsumerState<ScreenKds> {
                   separatorBuilder: (_, _) => const SizedBox(height: 8),
                   itemBuilder: (_, i) => _KdsOrderCard(
                     order: orders[i],
+                    searchQuery: _searchQuery,
                     onBump: () => _bumpOrder(orders[i]),
                     onItemBump: (item) => _bumpItem(orders[i], item),
                     onItemStatusChange: (item, status) =>
@@ -179,9 +174,38 @@ class _ScreenKdsState extends ConsumerState<ScreenKds> {
     );
   }
 
-  List<OrderModel> _applyStatusFilter(List<OrderModel> orders) {
-    if (_statusFilter.isEmpty) return orders;
-    return orders.where((o) => _statusFilter.contains(o.status)).toList();
+  void _ensureItemsLoaded(List<OrderModel> orders) {
+    final orderRepo = ref.read(orderRepositoryProvider);
+    for (final order in orders) {
+      if (_itemsCache.containsKey(order.id)) continue;
+      _itemsCache[order.id] = const []; // mark as loading
+      orderRepo.getOrderItems(order.id).then((items) {
+        if (mounted) setState(() => _itemsCache[order.id] = items);
+      });
+    }
+  }
+
+  List<OrderModel> _applyFilters(List<OrderModel> orders) {
+    var result = _statusFilter.isEmpty
+        ? orders
+        : orders.where((o) => _statusFilter.contains(o.status)).toList();
+
+    if (_searchQuery.isNotEmpty) {
+      final q = normalizeSearch(_searchQuery);
+      result = result
+          .where((o) =>
+              normalizeSearch(o.orderNumber).contains(q) ||
+              (o.notes != null && normalizeSearch(o.notes!).contains(q)) ||
+              (_itemsCache[o.id] ?? [])
+                  .any((item) => normalizeSearch(item.itemName).contains(q)))
+          .toList();
+    }
+
+    result.sort((a, b) => _sortAscending
+        ? a.createdAt.compareTo(b.createdAt)
+        : b.createdAt.compareTo(a.createdAt));
+
+    return result;
   }
 
   /// Bump items with the lowest active status to the next status.
@@ -285,12 +309,14 @@ class _ScreenKdsState extends ConsumerState<ScreenKds> {
 class _KdsOrderCard extends ConsumerWidget {
   const _KdsOrderCard({
     required this.order,
+    required this.searchQuery,
     required this.onBump,
     required this.onItemBump,
     required this.onItemStatusChange,
     required this.onVoidItem,
   });
   final OrderModel order;
+  final String searchQuery;
   final VoidCallback onBump;
   final void Function(OrderItemModel) onItemBump;
   final void Function(OrderItemModel, PrepStatus) onItemStatusChange;
@@ -364,8 +390,9 @@ class _KdsOrderCard extends ConsumerWidget {
                               ),
                             ),
                           Flexible(
-                            child: Text(
+                            child: HighlightedText(
                               order.orderNumber,
+                              query: searchQuery,
                               style: theme.textTheme.titleSmall?.copyWith(
                                 fontWeight: FontWeight.bold,
                               ),
@@ -451,6 +478,7 @@ class _KdsOrderCard extends ConsumerWidget {
                       if (i > 0) const SizedBox(height: 4),
                       _KdsItemCard(
                         item: items[i],
+                        searchQuery: searchQuery,
                         isStorno: isStorno,
                         canVoid: !isStorno && _isItemActive(items[i].status),
                         onBump: () => onItemBump(items[i]),
@@ -464,8 +492,9 @@ class _KdsOrderCard extends ConsumerWidget {
                 // Notes
                 if (order.notes != null && order.notes!.isNotEmpty && !isStorno) ...[
                   const SizedBox(height: 4),
-                  Text(
+                  HighlightedText(
                     order.notes!,
+                    query: searchQuery,
                     style: theme.textTheme.bodySmall?.copyWith(
                       fontStyle: FontStyle.italic,
                       color: theme.colorScheme.onSurfaceVariant,
@@ -516,6 +545,7 @@ class _StornoRef extends ConsumerWidget {
 class _KdsItemCard extends ConsumerWidget {
   const _KdsItemCard({
     required this.item,
+    required this.searchQuery,
     required this.isStorno,
     required this.canVoid,
     required this.onBump,
@@ -523,6 +553,7 @@ class _KdsItemCard extends ConsumerWidget {
     required this.onVoid,
   });
   final OrderItemModel item;
+  final String searchQuery;
   final bool isStorno;
   final bool canVoid;
   final VoidCallback onBump;
@@ -613,8 +644,9 @@ class _KdsItemCard extends ConsumerWidget {
                                 ),
                                 // Item name
                                 Expanded(
-                                  child: Text(
+                                  child: HighlightedText(
                                     item.itemName,
+                                    query: searchQuery,
                                     style: theme.textTheme.bodyMedium?.copyWith(
                                       decoration:
                                           isVoided ? TextDecoration.lineThrough : null,
@@ -953,6 +985,82 @@ Color _urgencyColor(int minutes, AppColorsExtension colors) {
   if (minutes < 5) return colors.success;
   if (minutes < 10) return colors.warning;
   return colors.danger;
+}
+
+// ---------------------------------------------------------------------------
+// Orders Toolbar (scope, sort, search)
+// ---------------------------------------------------------------------------
+class _OrdersToolbar extends StatelessWidget {
+  const _OrdersToolbar({
+    required this.sessionScope,
+    required this.onSessionScopeChanged,
+    required this.sortAscending,
+    required this.onSortChanged,
+    required this.searchController,
+    required this.onSearchChanged,
+  });
+
+  final bool sessionScope;
+  final ValueChanged<bool> onSessionScopeChanged;
+  final bool sortAscending;
+  final VoidCallback onSortChanged;
+  final TextEditingController searchController;
+  final ValueChanged<String> onSearchChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    return Row(
+      children: [
+        Text(l.ordersTitle, style: Theme.of(context).textTheme.titleLarge),
+        const SizedBox(width: 16),
+        Expanded(
+          child: SizedBox(
+            height: 36,
+            child: TextField(
+              controller: searchController,
+              onChanged: onSearchChanged,
+              decoration: InputDecoration(
+                hintText: l.searchHint,
+                prefixIcon: const Icon(Icons.search, size: 20),
+                suffixIcon: searchController.text.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear, size: 20),
+                        onPressed: () {
+                          searchController.clear();
+                          onSearchChanged('');
+                        },
+                      )
+                    : null,
+                border: const OutlineInputBorder(),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        ChoiceChip(
+          label: Text(l.ordersScopeSession),
+          selected: sessionScope,
+          onSelected: (_) => onSessionScopeChanged(true),
+        ),
+        const SizedBox(width: 4),
+        ChoiceChip(
+          label: Text(l.ordersScopeAll),
+          selected: !sessionScope,
+          onSelected: (_) => onSessionScopeChanged(false),
+        ),
+        const SizedBox(width: 4),
+        IconButton(
+          icon: Icon(sortAscending
+              ? Icons.arrow_upward
+              : Icons.arrow_downward),
+          tooltip: sortAscending ? l.ordersSortAsc : l.ordersSortDesc,
+          onPressed: onSortChanged,
+        ),
+      ],
+    );
+  }
 }
 
 // ---------------------------------------------------------------------------

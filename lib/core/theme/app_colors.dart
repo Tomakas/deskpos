@@ -32,6 +32,8 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
     required this.positive,
     required this.balanced,
     required this.surplus,
+    // Search
+    required this.searchHighlight,
   });
 
   // Action
@@ -65,6 +67,9 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
   final Color balanced;
   final Color surplus;
 
+  // Search
+  final Color searchHighlight;
+
   @override
   AppColorsExtension copyWith({
     Color? success,
@@ -88,6 +93,7 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
     Color? positive,
     Color? balanced,
     Color? surplus,
+    Color? searchHighlight,
   }) {
     return AppColorsExtension(
       success: success ?? this.success,
@@ -111,6 +117,7 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
       positive: positive ?? this.positive,
       balanced: balanced ?? this.balanced,
       surplus: surplus ?? this.surplus,
+      searchHighlight: searchHighlight ?? this.searchHighlight,
     );
   }
 
@@ -139,6 +146,7 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
       positive: Color.lerp(positive, other.positive, t)!,
       balanced: Color.lerp(balanced, other.balanced, t)!,
       surplus: Color.lerp(surplus, other.surplus, t)!,
+      searchHighlight: Color.lerp(searchHighlight, other.searchHighlight, t)!,
     );
   }
 }
@@ -170,6 +178,8 @@ const lightAppColors = AppColorsExtension(
   positive: Colors.green,
   balanced: Colors.green,
   surplus: Colors.blue,
+  // Search
+  searchHighlight: Color(0x449C27B0),
 );
 
 // ---------------------------------------------------------------------------

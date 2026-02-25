@@ -1,7 +1,7 @@
 name: maty
 description: "Maty — offline-first POS system"
 publish_to: 'none'
-version: 0.6.1
+version: 0.6.2
 
 environment:
   sdk: ^3.10.8
@@ -17,11 +17,12 @@ dependencies:
   flutter_riverpod: ^2.6.1
 
   # Database
-  drift: ^2.22.1
+  drift: ^2.30.0
+  drift_flutter: ^0.2.8
   sqlite3_flutter_libs: ^0.5.28
 
   # Immutable models
-  freezed_annotation: ^2.4.4
+  freezed_annotation: ^3.1.0
 
   # Routing
   go_router: ^14.8.1
@@ -44,6 +45,7 @@ dependencies:
   shared_preferences: ^2.3.4
   share_plus: ^10.1.4
   package_info_plus: ^8.0.0
+  web: ^1.1.0
 
 dev_dependencies:
   flutter_test:
@@ -52,8 +54,8 @@ dev_dependencies:
 
   # Code generation
   build_runner: ^2.4.14
-  drift_dev: ^2.22.3
-  freezed: ^2.5.8
+  drift_dev: ^2.30.0
+  freezed: ^3.2.5
 
 flutter:
   uses-material-design: true

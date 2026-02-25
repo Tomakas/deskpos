@@ -5,7 +5,7 @@ import '../enums/display_device_type.dart';
 part 'display_device_model.freezed.dart';
 
 @freezed
-class DisplayDeviceModel with _$DisplayDeviceModel {
+abstract class DisplayDeviceModel with _$DisplayDeviceModel {
   const factory DisplayDeviceModel({
     required String id,
     required String companyId,

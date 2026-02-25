@@ -12,6 +12,7 @@ import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/utils/formatting_ext.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/search_utils.dart';
+import '../../../core/widgets/highlighted_text.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_table.dart';
@@ -66,7 +67,7 @@ class _CatalogModifiersTabState extends ConsumerState<CatalogModifiersTab> {
               child: PosTable<ModifierGroupModel>(
                 items: filtered,
                 columns: [
-                  PosColumn(label: l.modifierGroupName, flex: 3, cellBuilder: (g) => Text(g.name)),
+                  PosColumn(label: l.modifierGroupName, flex: 3, cellBuilder: (g) => HighlightedText(g.name, query: _query)),
                   PosColumn(label: l.minSelections, flex: 1, cellBuilder: (g) => Text('${g.minSelections}')),
                   PosColumn(label: l.maxSelections, flex: 1, cellBuilder: (g) => Text(g.maxSelections?.toString() ?? l.unlimited)),
                 ],

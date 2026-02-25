@@ -7,7 +7,7 @@ import 'company_scoped_model.dart';
 part 'stock_movement_model.freezed.dart';
 
 @freezed
-class StockMovementModel with _$StockMovementModel implements CompanyScopedModel {
+abstract class StockMovementModel with _$StockMovementModel implements CompanyScopedModel {
   const factory StockMovementModel({
     required String id,
     required String companyId,

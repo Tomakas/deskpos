@@ -13,6 +13,7 @@ import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/utils/formatting_ext.dart';
 import '../../../core/utils/search_utils.dart';
+import '../../../core/widgets/highlighted_text.dart';
 import '../../../core/widgets/pos_table.dart';
 
 class TaxRatesTab extends ConsumerStatefulWidget {
@@ -63,7 +64,7 @@ class _TaxRatesTabState extends ConsumerState<TaxRatesTab> {
             Expanded(
               child: PosTable<TaxRateModel>(
                 columns: [
-                  PosColumn(label: l.fieldName, flex: 3, cellBuilder: (tr) => Text(tr.label, overflow: TextOverflow.ellipsis)),
+                  PosColumn(label: l.fieldName, flex: 3, cellBuilder: (tr) => HighlightedText(tr.label, query: _query, overflow: TextOverflow.ellipsis)),
                   PosColumn(label: l.fieldType, flex: 2, cellBuilder: (tr) => Text(_typeLabel(l, tr.type), overflow: TextOverflow.ellipsis)),
                   PosColumn(label: l.fieldRate, flex: 1, cellBuilder: (tr) => Text(ref.fmtPercent(tr.rate / 100, maxDecimals: 0), overflow: TextOverflow.ellipsis)),
                   PosColumn(

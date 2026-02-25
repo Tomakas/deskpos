@@ -12,6 +12,7 @@ import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatting_ext.dart';
 import '../../../core/utils/search_utils.dart';
+import '../../../core/widgets/highlighted_text.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_table.dart';
@@ -84,7 +85,7 @@ class _RecipesTabState extends ConsumerState<RecipesTab> {
                       PosColumn(
                         label: l.fieldParentProduct,
                         flex: 2,
-                        cellBuilder: (entry) => Text(itemMap[entry.key]?.name ?? '-', overflow: TextOverflow.ellipsis),
+                        cellBuilder: (entry) => HighlightedText(itemMap[entry.key]?.name ?? '-', query: _query, overflow: TextOverflow.ellipsis),
                       ),
                       PosColumn(
                         label: l.recipeComponents,

@@ -7145,6 +7145,18 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Demo vytvoří 4 uživatele, všichni s PINem 1111'**
   String get wizardDemoInfo;
+
+  /// No description provided for @ordersSortAsc.
+  ///
+  /// In cs, this message translates to:
+  /// **'Od nejstarších'**
+  String get ordersSortAsc;
+
+  /// No description provided for @ordersSortDesc.
+  ///
+  /// In cs, this message translates to:
+  /// **'Od nejnovějších'**
+  String get ordersSortDesc;
 }
 
 class _AppLocalizationsDelegate

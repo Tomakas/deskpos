@@ -3655,4 +3655,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get wizardDemoInfo => 'Demo creates 4 users, all with PIN 1111';
+
+  @override
+  String get ordersSortAsc => 'Oldest first';
+
+  @override
+  String get ordersSortDesc => 'Newest first';
 }

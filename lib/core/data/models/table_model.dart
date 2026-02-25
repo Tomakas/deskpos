@@ -6,7 +6,7 @@ import 'company_scoped_model.dart';
 part 'table_model.freezed.dart';
 
 @freezed
-class TableModel with _$TableModel implements CompanyScopedModel {
+abstract class TableModel with _$TableModel implements CompanyScopedModel {
   const factory TableModel({
     required String id,
     required String companyId,

@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'dart:io';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,13 +9,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/auth/auth_service.dart';
 import '../../../core/auth/pin_helper.dart';
-import '../../../core/data/models/user_model.dart';
+import '../../../core/data/enums/role_name.dart';
 import '../../../core/data/enums/sell_mode.dart';
+import '../../../core/data/models/role_model.dart';
+import '../../../core/data/models/user_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../core/platform/platform_io.dart';
 import '../../../core/widgets/pos_numpad.dart';
 
 enum _LoginMode { pos, kds }
@@ -34,6 +37,7 @@ class _ScreenLoginState extends ConsumerState<ScreenLogin> {
   Timer? _lockTimer;
   UserModel? _selectedUser;
   List<UserModel> _users = [];
+  List<RoleModel> _roles = [];
   bool _loaded = false;
   bool _isLoggingIn = false;
   _LoginMode _selectedMode = _LoginMode.pos;
@@ -64,8 +68,12 @@ class _ScreenLoginState extends ConsumerState<ScreenLogin> {
 
     final users = await userRepo.getActiveUsers(company.id);
     if (!mounted) return;
+    final roleRepo = ref.read(roleRepositoryProvider);
+    final roles = await roleRepo.watchAll().first;
+    if (!mounted) return;
     setState(() {
       _users = users;
+      _roles = roles;
       _loaded = true;
     });
   }
@@ -105,6 +113,17 @@ class _ScreenLoginState extends ConsumerState<ScreenLogin> {
     );
   }
 
+  String? _resolveRoleLabel(AppLocalizations l, String roleId) {
+    final role = _roles.where((r) => r.id == roleId).firstOrNull;
+    if (role == null) return null;
+    return switch (role.name) {
+      RoleName.helper => l.roleHelper,
+      RoleName.operator => l.roleOperator,
+      RoleName.manager => l.roleManager,
+      RoleName.admin => l.roleAdmin,
+    };
+  }
+
   Widget _buildUserList(AppLocalizations l) {
     if (!_loaded) {
       return const CircularProgressIndicator();
@@ -115,34 +134,48 @@ class _ScreenLoginState extends ConsumerState<ScreenLogin> {
       children: [
         Text(l.loginTitle, style: Theme.of(context).textTheme.headlineMedium),
         const SizedBox(height: 32),
-        ..._users.map((user) => Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: OutlinedButton(
-                  onPressed: () => setState(() {
-                    _selectedUser = user;
-                    _error = null;
-                    _pinCtrl.clear();
-                  }),
-                  child: Text(user.fullName),
+        ..._users.map((user) {
+          final roleLabel = _resolveRoleLabel(l, user.roleId);
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: OutlinedButton(
+                onPressed: () => setState(() {
+                  _selectedUser = user;
+                  _error = null;
+                  _pinCtrl.clear();
+                }),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(user.fullName),
+                    if (roleLabel != null)
+                      Text(
+                        roleLabel,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.normal,
+                          fontStyle: FontStyle.italic,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                        ),
+                      ),
+                  ],
                 ),
               ),
-            )),
+            ),
+          );
+        }),
         const SizedBox(height: 24),
         _buildModeDropdown(l),
-        const SizedBox(height: 24),
-        TextButton(
-          onPressed: () {
-            if (Platform.isMacOS || Platform.isWindows || Platform.isLinux) {
-              exit(0);
-            } else {
-              SystemNavigator.pop();
-            }
-          },
-          child: Text(l.actionExitApp),
-        ),
+        if (!kIsWeb) ...[
+          const SizedBox(height: 24),
+          TextButton(
+            onPressed: () => exitApp(),
+            child: Text(l.actionExitApp),
+          ),
+        ],
       ],
     );
   }

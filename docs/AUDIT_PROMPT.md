@@ -31,11 +31,10 @@ Audit používá architekturu **Triple Modular Redundancy (TMR)** pro maximáln�
 │                 (hlavní konverzace)                   │
 │                                                      │
 │  1. Sloučit a deduplikovat nálezy ze všech 3 agentů │
-│  2. KAŽDÝ nález (i od 1 agenta) nezávisle           │
-│     re-verifikovat čtením zdrojového kódu / SQL     │
-│  3. Potvrzené → do reportu                          │
-│  4. Vyvrácené → do sekce zamítnutých                │
-│  5. Vyhodnotit kvalitu analýzy každého agenta        │
+│  2. Klasifikovat shodu (3/3, 2/3, 1/3 agentů)      │
+│  3. Re-verifikovat sporné nálezy (1/3 unikátní)     │
+│  4. Potvrzené → do reportu                          │
+│  5. Vyvrácené → do sekce zamítnutých                │
 └──────────────────────┬──────────────────────────────┘
                        │
                        ▼
@@ -94,6 +93,7 @@ Proveď **kompletní, důkladnou a podrobnou analýzu** celého Maty projektu. A
 5. **Porovnávej kód s dokumentací** (`PROJECT.md`, `CLAUDE.md`). Rozpor mezi kódem a dokumentací je nález — reportuj jako STŘEDNÍ+ závažnost. Neurčuj, kdo má pravdu (kód nebo docs), ale jasně popiš co se liší a kde. **VÝJIMKA:** Neimplementované plánované features z budoucích etap nejsou rozpory — viz "Známé vzory — NE BUG" bod 9.
 6. **Analýzu Supabase** proveď přes MCP nástroje (execute_sql, list_tables, get_advisors) — nikdy nehádej stav serveru.
 7. **Spouštěj podagenty** pro delegaci analytické práce — je to POVINNÉ (viz sekce "Povinné rozdělení podagentů"). Bez podagentů ti dojde kontext před dokončením analýzy.
+8. **Generovaný kód VYLÚČ z analýzy** — soubory `*.g.dart` a `*.freezed.dart` jsou automaticky generované `build_runner`em. NEANALYZUJ je, NEHLÁŠEJ v nich nálezy, NEPOČÍTEJ je do code quality metrik. Jediná relevantní kontrola: je generovaný kód aktuální vůči zdrojovým definicím (viz 3.7.1).
 
 ### Verifikační protokol (POVINNÝ)
 
@@ -127,6 +127,13 @@ Před reportováním nálezu ověř, že NEJDE o jeden z těchto známých vzor�
 13. **Tranzitivní permission dependency graf** — automatický grant prerequisites a revoke dependents při editaci uživatelských oprávnění je záměrný design. Graf v `permission_implications.dart` definuje 1:N vztahy (permission → required permissions). NEREPORTUJ automatické změny oprávnění jako „neočekávané side effects".
 14. **Jednosměrné tabulky bez `enforce_lww`** — tabulky, které fungují jako append-only záznamy nebo jednosměrné logy (sync_queue, session_currency_cash, cash_movements apod.), záměrně nemají LWW trigger. NEREPORTUJ, pokud je absence LWW konzistentní s jednosměrným charakterem tabulky.
 15. **Realtime broadcast nested payload** — Supabase Broadcast from Database posílá payload v nested struktuře `payload['payload']`. Dvojitý unwrap je konvence Supabase Realtime, ne chyba. NEREPORTUJ jako code smell.
+16. **Duální repozitářový vzor** — V projektu existují dvě kategorie repozitářů: a) Jednoduché CRUD repozitáře dědící z `BaseCompanyScopedRepository` (~25 ks) s generickým create/update/delete/enqueueAll. b) Komplexní workflow repozitáře psané manuálně (~17 ks — BillRepository, OrderRepository, RegisterSessionRepository, PaymentRepository, ShiftRepository, atd.) — mají vlastní sync logiku a NEDĚDÍ z base třídy, protože jejich mutace zahrnují více tabulek. NEREPORTUJ absenci dědění z BaseCompanyScopedRepository u manuálních repozitářů. Reportuj POUZE pokud manuální repozitář CHYBÍ outbox enqueue u mutací.
+17. **PaymentRepository je read-only** — Platby se vytvářejí prostřednictvím `BillRepository.recordPayment()` a `BillRepository.refundBill()`. PaymentRepository obsahuje pouze read metody (watchByBill, getByBill, getByBillIds). NEREPORTUJ absenci write metod nebo syncQueueRepo.
+18. **SharedPreferences pro device-local konfiguraci** — SharedPreferences se používá pro device-specifická nastavení (device_id, display_code, display_type, login_mode), která se NESYNCHRONIZUJÍ. Toto NENÍ porušení pravidla „žádný přímý DB přístup mimo repozitáře" — pravidlo se týká Drift a Supabase.
+19. **appDatabaseProvider v onboardingu** — Onboarding screen přistupuje k DB přímo pro: a) čtení default tax rate při demo seedu, b) insert do device_registrations (lokální tabulka). Toto jsou jednorázové operace před plným nastavením DI. Reportuj max jako NÍZKÉ s kontextem.
+20. **Supabase edge function volání v UI** — Volání `Supabase.instance.client.functions.invoke()` v onboarding screenu je jednorázová serverová operace, ne běžný data access pattern. NEREPORTUJ jako „direct Supabase access".
+21. **Globální tabulky se nepushují při initial push** — currencies, roles, permissions, role_permissions jsou server-authoritative. Initial push je pushuje jen pokud je firma nová (vlastní je). Jinak se stahují ze serveru při pull. NEREPORTUJ absenci v initial push jako bug.
+22. **Platform-specifický kód** — `Platform.isMacOS`, `Platform.isWindows`, `kIsWeb` kontroly v `lib/core/platform/` a podmíněných importech jsou standardní Flutter multiplatformní vzor. NEREPORTUJ jako code smell. Reportuj POUZE pokud platform check chybí tam, kde by měl být.
 
 ### Definice závažností (STRIKTNÍ)
 
@@ -144,6 +151,7 @@ Před reportováním nálezu ověř, že NEJDE o jeden z těchto známých vzor�
 
 ```
 ### [ZÁVAŽNOST] Název nálezu
+**Confidence:** CONFIRMED / LIKELY / SUSPECTED
 **Verifikace:** Jak jsem ověřil, že jde o skutečný problém (ne domněnku).
 **Důkaz:** Přesná citace kódu/SQL výsledku, který problém potvrzuje.
 **Soubor:** `cesta/soubor.dart:řádek`
@@ -152,10 +160,15 @@ Před reportováním nálezu ověř, že NEJDE o jeden z těchto známých vzor�
 **Řešení:** Jak to opravit (konkrétní kroky).
 ```
 
-**Pokud si nejsi 100% jistý**, zda jde o skutečný problém:
-- Sniž závažnost o jeden stupeň
-- Přidej poznámku „VYŽADUJE RUČNÍ OVĚŘENÍ" s popisem, co přesně ověřit
-- Nikdy nehlásaj KRITICKÉ bez důkazu
+**Confidence level (povinné u každého nálezu):**
+
+| Level | Definice | Dopad na závažnost |
+|-------|----------|--------------------|
+| **CONFIRMED** | Ověřen čtením kódu + SQL, reprodukovatelný scénář | Plná závažnost |
+| **LIKELY** | Silné indicie, ale ne 100% jistota | Závažnost −1 stupeň |
+| **SUSPECTED** | Na základě vzoru/konvence, nepodařilo se reprodukovat | Max STŘEDNÍ, vždy s „VYŽADUJE RUČNÍ OVĚŘENÍ" |
+
+Nikdy nehlásaj KRITICKÉ bez confidence level CONFIRMED.
 
 ### Povinné rozdělení podagentů (interní pro každého agenta)
 
@@ -163,24 +176,47 @@ Každý agent (α/β/γ) **MUSÍ** svou práci rozdělit na podagenty. Audit vy�
 
 **Strategie:** Agent sám slouží jako koordinátor — spouští podagenty, sbírá jejich výstupy a kompiluje finální report. Agent NEČTE zdrojové soubory přímo (kromě FÁZE 2 a 4), veškeré čtení a analýzu deleguje.
 
-**Povinné podagenty (spouštěj paralelně kde je to možné):**
+**Strategie podagentů:**
+
+Agent MUSÍ delegovat analytickou práci na podagenty. Konkrétní dělení je na agentovi, ale MUSÍ splnit:
+
+1. Minimálně 4 paralelní podagenty pro FÁZI 3 (klient je příliš velký pro jednoho)
+2. FÁZE 2 (Supabase MCP) provádí agent přímo
+3. FÁZE 4 (křížová validace) provádí agent přímo (potřebuje data z FÁZE 2)
+4. Každý podagent vrací strukturovaný výstup (viz formát níže)
+5. Agent koordinuje a kompiluje finální report
+
+Doporučené dělení (agent může upravit):
 
 1. **Podagent: Sběr kontextu** — FÁZE 1 (přečte PROJECT.md, CLAUDE.md, CHANGELOG, pubspec, main.dart, app.dart, strom souborů). Vrátí souhrn klíčových informací, ne celý obsah.
-2. **Podagent: Repositories + Business logika** — FÁZE 3.1, 3.11 (architektura repozitářů, workflow integrita, server-client guard konzistence)
-3. **Podagent: Sync engine + Mappers** — FÁZE 3.2, mappers (sync tabulky, pull/push/broadcast, realtime, LWW, mapper kompletnost)
-4. **Podagent: Auth + Security + Permissions + Routing + Providers** — FÁZE 3.3, 3.5, 3.6, seed service (PIN, sessions, permission systém, dependency graf, route guards)
-5. **Podagent: UI (všechny screeny a widgety)** — FÁZE 3.4
-6. **Podagent: Code quality + Drift tabulky + Testy** — FÁZE 3.7, 3.8, Drift table definitions
-7. **Podagent: Best practices + Konzistence** — FÁZE 3.9, 3.10
-8. **Podagent: Dokumentace vs implementace** — FÁZE 5
+2. **Podagent: Repositories + Business logika + Sync + Mappers** — FÁZE 3.1, 3.2, 3.11 (architektura repozitářů, sync engine, mappery, workflow integrita)
+3. **Podagent: Auth + Security + Permissions + Routing + Providers** — FÁZE 3.3, 3.5, 3.6 (PIN, sessions, permission systém, dependency graf, route guards)
+4. **Podagent: UI — screeny a widgety** — FÁZE 3.4 (rozděl na 2+ podagenty pokud > 30 screenů)
+5. **Podagent: Code quality + Best practices + Konzistence** — FÁZE 3.7, 3.8, 3.9, 3.10, Drift table definitions
+6. **Podagent: Dokumentace vs implementace** — FÁZE 5
 
 **Agent provádí PŘÍMO (ne v podagentech):**
 - FÁZE 2 (Supabase MCP) — vyžaduje MCP nástroje a koordinaci dat
 - FÁZE 4 (křížová validace Drift ↔ Supabase) — vyžaduje data z FÁZE 2 + výstupy podagentů
 
-### Žádné vynechávání — kompletní audit je povinný
+### Kompletnost analýzy a prioritizace
 
-Agent NESMÍ vynechat žádnou fázi ani sekci z důvodu nedostatku kontextu. Pokud agent zjistí, že mu kontext nestačí, MUSÍ problém řešit dalším dělením práce na menší podagenty — nikdy ne vynecháním nebo zkrácením analýzy. Každá fáze a každý checklist bod musí být pokryt.
+Agent MUSÍ pokrýt všechny fáze. Pokud kontextové okno nestačí, řeš dalším dělením na menší podagenty. Pokud ani to nepomůže, dodržuj prioritní pořadí:
+
+1. **Priorita 1 (NESMÍ chybět):** FÁZE 2, 4 (Supabase, křížová validace — nejvyšší hodnota)
+2. **Priorita 2 (NEMĚLO BY chybět):** FÁZE 3.1–3.3 (repositories, sync, auth)
+3. **Priorita 3 (MĚLO BY být):** FÁZE 3.4–3.6 (UI, providers, routing)
+4. **Priorita 4 (NICE TO HAVE):** FÁZE 3.7–3.13, 5 (code quality, konzistence, docs)
+
+Pokud agent nemůže dokončit nižší prioritu, MUSÍ:
+- Explicitně uvést, které sekce nebyly pokryty
+- Uvést důvod (kontextové okno, příliš mnoho souborů, MCP timeout)
+- Pokrytí priority 1 a 2 je MINIMÁLNÍ akceptovatelný výstup
+
+Pokud podagent při analýze jedné oblasti najde > 15 nálezů:
+1. Zaznamenej prvních 15 seřazených dle závažnosti
+2. Přidej poznámku „Oblast vyžaduje detailní dedikovaný audit"
+3. Pokračuj na další oblast — nepokrývej jednu oblast na úkor ostatních
 
 ---
 
@@ -309,7 +345,51 @@ WHERE t.schemaname = 'public'
 - `get_advisors(type: "security")` — bezpečnostní doporučení
 - `get_advisors(type: "performance")` — výkonnostní doporučení
 
-#### 2.6 Supabase audit checklist
+#### 2.6 Edge Functions (TypeScript)
+
+Přečti a analyzuj **KAŽDÝ** soubor v `supabase/functions/*/index.ts`:
+
+**Ingest (`supabase/functions/ingest/index.ts`):**
+- [ ] ALLOWED_TABLES — obsahuje všechny company-scoped tabulky? Žádná nechybí? Žádná navíc?
+- [ ] Company ownership — ověřuje se `companies.auth_user_id = JWT uid`? Kontroluje se `deleted_at IS NULL`?
+- [ ] FK violation handling — vrací `error_type: "transient"` při 23503? Loguje jako `fk_pending`?
+- [ ] Idempotency — ověřuje se `idempotency_key`? Duplicitní requesty nevedou k duplikátním zápisům?
+- [ ] Upsert — používá se `onConflict: "id"`? Jsou pokryty všechny sloupce payloadu?
+- [ ] LWW conflict — zachytává `P0001` error a vrací `error_type: "lww_conflict"`?
+- [ ] CORS — jsou headers nastaveny pro web platformu?
+
+**Wipe (`supabase/functions/wipe/index.ts`):**
+- [ ] Autorizace — JWT povinný? Firma odvozena z JWT (ne z client-supplied ID)?
+- [ ] Pořadí mazání — FK dependency order (children first)?
+- [ ] Kompletnost — jsou smazány VŠECHNY company-scoped tabulky? (porovnej se seznamem tabulek)
+- [ ] Globální tabulky — NEJSOU mazány? (currencies, roles, permissions, role_permissions)
+
+**Create-demo-data (`supabase/functions/create-demo-data/index.ts`):**
+- [ ] Autorizace — JWT (anon nebo registered)?
+- [ ] Abuse guard — kontrola, že user nemá existující firmu?
+- [ ] RPC parametry — locale, mode, currency_code, company_name předávány správně?
+- [ ] Demo flags — is_demo=true, demo_expires_at nastaveny?
+
+**Reset-db (`supabase/functions/reset-db/index.ts`):**
+- [ ] NENÍ přístupná v produkci — auth přes X-Reset-Secret header, ne JWT?
+- [ ] Zachovává globální data?
+
+#### 2.7 SQL funkce — bezpečnost
+
+Pro KAŽDOU `SECURITY DEFINER` funkci (identifikované v 2.4):
+- [ ] Má `SET search_path = 'public'` (ochrana proti search_path injection)?
+- [ ] Přijímá pouze nezbytné parametry?
+- [ ] Vrací pouze nezbytná data (ne `SELECT *`)?
+- [ ] `create_demo_company` — race conditions? FK integrita generovaných dat?
+- [ ] `guard_last_admin` — je logika neobejitelná (i přes service_role)?
+- [ ] `lookup_display_device_by_code` — vrací jen omezená pole (ne celý záznam)?
+
+#### 2.8 Supabase migrace — konzistence
+
+- [ ] Jsou VŠECHNY migrace v `supabase/migrations/` aplikované na serveru? (porovnej `list_migrations` s lokálním adresářem)
+- [ ] pg_cron job pro demo cleanup — je nastaven a aktivní?
+
+#### 2.9 Supabase audit checklist
 
 Pro každou tabulku ověř (globální tabulky jako currencies, roles, permissions, role_permissions mají odlišná pravidla — typicky `true` pro authenticated):
 
@@ -356,6 +436,11 @@ Přečti a analyzuj **každý** soubor v těchto adresářích:
 - [ ] Konzistence: pokud Drift tabulka má sloupec X, má ho i model, mapper push i mapper pull?
 - [ ] Typ safety: jsou `as String`, `as int` casty ošetřeny pro null/chybějící klíče?
 - [ ] Enum konverze: odpovídají Dart enum hodnoty Supabase enum hodnotám (1:1 shoda)?
+
+**Business logika mimo core repositories:**
+- [ ] `ZReportService` (`lib/features/bills/services/z_report_service.dart`) — korektnost výpočtů (tržby, DPH breakdown, spropitné, slevy, cash reconciliation)? Per-register vs venue-wide agregace?
+- [ ] `VoucherDiscountCalculator` (`lib/core/data/utils/voucher_discount_calculator.dart`) — korektnost algoritmu (scope filtering, effective unit price, greedy allocation, proportional split)? Edge cases (nulová cena, prázdné položky)?
+- [ ] `session_helpers` (`lib/features/shared/session_helpers.dart`) — sdílená logika pro logout, session close — je kompletní a bezpečná?
 
 **Modely** (`lib/core/data/models/*.dart`):
 - [ ] Odpovídají Freezed modely sloupcům v Drift tabulkách?
@@ -452,6 +537,29 @@ Checklist:
 - [ ] **Agregační screeny** — pokud existují screeny s komplexní agregací dat (statistiky, sales breakdown, Z-reporty), jsou výpočty korektní? Ošetřují edge cases (storno položky, slevy, modifikátory, multi-currency)? Jsou dostatečně výkonné pro velké objemy dat?
 - [ ] **Datový pipeline** — propagují se nové sloupce/fieldy (unit type, foreign currency, modifier metadata) kompletně celým UI řetězcem? (cart → order → KDS → bill → receipt → statistiky)
 
+**Tisk a PDF** (`lib/core/printing/`):
+- [ ] ReceiptPdfBuilder — jsou výpočty na účtence konzistentní s BillModel? (subtotal, slevy, DPH, total, zaokrouhlení, spropitné)
+- [ ] ReceiptData — mapování z BillModel/OrderModel/PaymentModel — pokrývá všechny sloupce?
+- [ ] ZReportPdfBuilder — kopíruje strukturu DialogZReport? Jsou výpočty identické?
+- [ ] InventoryPdfBuilder — korektní zobrazení skladových dat?
+- [ ] Multi-currency — jsou částky v cizí měně správně formátované na účtence?
+- [ ] PrintingService — platformové chování (macOS: open, mobile: share)?
+
+**Zákaznický displej a párování:**
+- [ ] BroadcastChannel (`lib/core/sync/broadcast_channel.dart`) — join/leave lifecycle, error handling při odpojení?
+- [ ] PairingConfirmationListener (`lib/core/widgets/pairing_confirmation_listener.dart`) — race conditions (více požadavků současně)?
+- [ ] ScreenCustomerDisplay — korektnost zobrazení módů (idle, cart, active, thank-you)?
+- [ ] ScreenDisplayCode — 6-digit kód, timeout, retry logika?
+- [ ] DisplayDeviceRepository — manual sync pattern — je outbox správně zaregistrován?
+- [ ] `display_devices` RLS — INSERT/UPDATE policies pro pairing flow?
+- [ ] RPC `lookup_display_device_by_code` — SECURITY DEFINER, anon access, vrací jen omezená pole?
+
+**Lokalizace** (`lib/l10n/`):
+- [ ] Párování klíčů — mají `app_cs.arb` a `app_en.arb` identickou sadu klíčů?
+- [ ] Plural formy — jsou plural/select ICU formáty správné pro oba jazyky?
+- [ ] Parametrizované řetězce — jsou `{parametry}` konzistentní mezi jazyky?
+- [ ] Kompletnost — jsou nově přidané features (demo, voucher, multi-currency, customer display, statistiky) pokryty v obou jazycích?
+
 #### 3.5 Providery a state management
 
 Přečti: `lib/core/data/providers/*.dart`
@@ -498,6 +606,8 @@ Toto zachytí kategorie problémů, které manuální review nemůže efektivně
 - [ ] Hardcoded absolutní cesty — existují `File('/Users/...')` nebo podobné? (Grep: `File('`)
 - [ ] DRY violations — existuje nově přidaný nebo existující kód, který duplikuje funkce z `lib/core/utils/`? Hledej duplicitní normalizace, formátování, validace, helpery rozstříkané po repositories/screens místo centralizace v utils. (Grep: klíčová slova jako `normalize`, `format`, `charMap`, `diacriticMap` mimo `utils/`)
 - [ ] Utility reuse — jsou všechny helper funkce v repositories/screens/services skutečně doménově specifické, nebo patří do sdílených utils? Každá privátní funkce `_foo()` v repository, která nemá vazbu na konkrétní entitu, je kandidát na extrakci do utils.
+- [ ] `SnackBar` / `ScaffoldMessenger` — projekt záměrně NEPOUŽÍVÁ snackbary (viz CLAUDE.md). Existují výskyty? (Grep: `SnackBar|ScaffoldMessenger|showSnackBar`)
+- [ ] `Supabase.instance.client` mimo datovou vrstvu — přímý přístup k Supabase mimo repositories/providers/services? (Grep: `Supabase.instance` v `lib/features/` — výjimky: onboarding edge function volání, viz Známé vzory bod 20)
 
 #### 3.8 Testy
 
@@ -557,7 +667,7 @@ Analyzuj celý codebase na konzistenci zápisu. Nekonzistence **mezi soubory** j
 
 **Architekturní konzistence (nejvyšší priorita):**
 - [ ] Repository architektura — kolik repozitářů dědí z `BaseCompanyScopedRepository` a kolik je psáno manuálně? Je dualita záměrná (komplex vs CRUD) nebo náhodná? Vypiš obě skupiny.
-- [ ] Transaction boundaries — je `_enqueue()` / `_syncQueueRepo.enqueue()` voláno UVNITŘ nebo VNITŘKU transakcí konzistentně? Porovnej `BaseCompanyScopedRepository` (uvnitř) vs `BillRepository` (vně). Reportuj jako systematickou nekonzistenci.
+- [ ] Transaction boundaries — je `_enqueue()` / `_syncQueueRepo.enqueue()` voláno UVNITŘ transakce u VŠECH repozitářů, které provádějí mutace? Zkontroluj SKUTEČNÝ kód (nespoléhej na předpoklady). Nález jen pokud existuje KONKRÉTNÍ repozitář, kde enqueue je MIMO transakci.
 - [ ] Result wrapping — vracejí všechny veřejné write metody `Result<T>`, nebo některé přímo throwují? Je vzor pro čtení (read) konzistentní se zápisem (write)?
 - [ ] Dependency injection — jsou závislosti přijímány jako `required` v konstruktoru konzistentně, nebo existují mix `required` + optional/nullable pro stejnou závislost (např. `syncQueueRepo`) v různých repozitářích?
 
@@ -625,6 +735,21 @@ Pro každý netriviální business workflow (platba, storno, refund, stock movem
 - [ ] **Session lifecycle** — otevření/zavření registrové session: jsou všechny peněžní toky (opening cash, closing cash, expected cash, difference) správně počítány? Pokud existuje multi-currency cash tracking, jsou per-currency záznamy vytvářeny/uzavírány konzistentně?
 - [ ] **Zamykání konfigurace** — existují business pravidla, která zamykají konfiguraci po prvním použití (např. default měna po prvním účtu, aktivní register po první session)? Je zamykání implementováno na klientu i serveru?
 
+#### 3.12 Logging infrastruktura
+
+Přečti `lib/core/logging/`:
+- [ ] LogFileWriter — rotace logů? Maximální velikost souboru?
+- [ ] Obsahují logy citlivé informace (PIN hashe, tokeny, hesla)? (Grep v AppLogger voláních)
+- [ ] Web vs native implementace — je web stub dostatečný?
+- [ ] LogTab v Settings — zobrazuje logy uživatelům, jsou filtrovány citlivé informace?
+
+#### 3.13 Platformová kompatibilita
+
+Přečti `lib/core/platform/`:
+- [ ] Conditional export — fungují všechny implementace (native, web, stub)?
+- [ ] `saveAndOpen` — platformově specifické chování (macOS: Process.run, mobile: SharePlus)?
+- [ ] `deleteDatabaseFiles` — maže WAL/SHM/journal soubory?
+
 ---
 
 ### FÁZE 4 — Křížová validace (Drift ↔ Supabase ↔ Modely ↔ Mappery)
@@ -636,8 +761,8 @@ Jako **první krok** než začneš per-column srovnání:
 1. Vypiš **VŠECHNY** tabulky z Drift (`app_database.dart` — `@DriftDatabase(tables: [...])`)
 2. Vypiš **VŠECHNY** tabulky ze Supabase (MCP `list_tables` nebo `information_schema.tables`)
 3. Porovnej oba seznamy — hledej tabulky, které existují **POUZE na jedné straně**
-4. Tabulky pouze v Drift = **KRITICKÉ** (sync pull/push crash)
-5. Tabulky pouze v Supabase = **VYSOKÉ** (data se nesynchronizují)
+4. Tabulky pouze v Drift — NEJPRVE ověř, zda je tabulka v `tableDependencyOrder` (`sync_service.dart`). Pokud ANO a na Supabase neexistuje = **KRITICKÉ** (sync pull/push crash). Pokud NE (např. `device_registrations`, `sync_metadata`, `sync_queue`) = lokální tabulka, **NE NÁLEZ**.
+5. Tabulky pouze v Supabase = **VYSOKÉ** (data se nesynchronizují) — pokud nejde o infrastrukturní tabulky (např. `audit_log`, `seed_demo_data`).
 
 Pozn: Identifikuj **local-only tabulky** (existují pouze v Drift, záměrně se nesynchronizují — typicky sync metadata, device registrations apod.) a **infrastrukturní tabulky** (existují na obou stranách, ale mají odlišné schéma — typicky sync outbox). Tyto tabulky NEREPORTUJ jako „chybějící na Supabase". Porovnej je zvlášť s ohledem na jejich specifický účel.
 
@@ -738,6 +863,7 @@ Počet nálezů: KRITICKÉ: X | VYSOKÉ: X | STŘEDNÍ: X | NÍZKÉ: X
 ## Nálezy
 
 ### [ZÁVAŽNOST] Název nálezu
+**Confidence:** CONFIRMED / LIKELY / SUSPECTED
 **Soubor:** `cesta/soubor.dart:řádek`
 **Problém:** 1-2 věty — co je špatně a jaký je dopad.
 **Řešení:** 1-2 věty — jak opravit.
@@ -749,11 +875,27 @@ Počet nálezů: KRITICKÉ: X | VYSOKÉ: X | STŘEDNÍ: X | NÍZKÉ: X
 
 ## FÁZE SLOUČENÍ — Merge & Verify (hlavní konverzace)
 
-Po dokončení všech 3 agentů hlavní konverzace:
+Po dokončení všech 3 agentů hlavní konverzace (pokud agent nedokončil do 15 minut, pracuj s dostupnými výstupy — 2/3 stačí pro validní audit):
 
-1. **Sloučí a deduplikuje** nálezy ze všech 3 agentů (totéž různě formulované = jeden nález)
-2. **Re-verifikuje každý nález** — přečte zdrojový kód/spustí SQL a ověří, že problém skutečně existuje. Zkontroluje proti "Známé vzory — NE BUG". Falešné nálezy vyřadí.
-3. **Sestaví finální report** z potvrzených nálezů
+### Krok 1: Sběr a deduplikace
+- Slouč všechny nálezy do jedné tabulky
+- Identifikuj duplikáty (shodný soubor + řádek, nebo shodný koncept jinak formulovaný)
+- Pro duplikáty: vezmi nejvyšší důvěryhodnost (confidence), ne nejvyšší závažnost
+
+### Krok 2: Klasifikace shody
+
+| Shoda | Akce |
+|-------|------|
+| 3/3 agentů shodně | → Přijat bez dalšího ověření |
+| 2/3 shodně, 1 odlišně | → Přijat, přezkoumej závažnost |
+| 1/3 unikátní nález | → POVINNÁ re-verifikace čtením kódu |
+| 2/3+ říká NE BUG | → Zamítnut, uveď v sekci zamítnutých |
+
+### Krok 3: Re-verifikace sporných nálezů
+Pouze nálezy z kategorie „1/3 unikátní" podléhají re-verifikaci. Postup: přečti zdrojový kód → ověř proti „Známé vzory" → rozhodnutí Přijat/Zamítnut.
+
+### Krok 4: Finální report
+Pouze re-verifikované nálezy. Žádné nové nálezy z merge fáze.
 
 ---
 
@@ -761,18 +903,52 @@ Po dokončení všech 3 agentů hlavní konverzace:
 
 Stručný, akční report. Žádné srovnávání agentů, žádné detailní tabulky zamítnutých nálezů.
 
+### Metadata
+- Datum auditu, codebase stats (počet .dart souborů, řádků, tabulek)
+- Stav agentů: α [KOMPLETNÍ/NEKOMPLETNÍ], β [...], γ [...]
+- Pokrytí: X/Y fází plně pokryto
+
 ### Souhrn
 - 2-3 věty o celkovém stavu projektu
 - Počet nálezů per závažnost
+- Top 3 rizikové oblasti
 
 ### Nálezy k řešení
 
-Seřazené od nejkritičtějších. **Toto je primární výstup celého auditu.**
+Seřazené do kategorií. **Toto je primární výstup celého auditu.**
+
+**Bezpečnost** (RLS, auth, permissions, tenant isolation)
+**Korektnost & Sync** (bugy, chybějící mappery, broken workflows)
+**Výkon** (N+1, chybějící indexy, zbytečné rebuildy)
+**Kvalita kódu & Konzistence** (styl, best practices)
+**Dokumentace** (PROJECT.md vs realita)
 
 ```
 ### [ZÁVAŽNOST] Název nálezu
+**Confidence:** CONFIRMED / LIKELY / SUSPECTED
 **Problém:** Co je špatně a jaký je dopad.
 **Řešení:** Jak opravit.
-**Rizika opravy** Odhad rizikovosti opravy
+**Rizika opravy:** Odhad rizikovosti opravy.
 ```
+
+### Zamítnuté nálezy (stručně)
+
+| Nález | Agenti | Důvod zamítnutí |
+|-------|--------|-----------------|
+
+### Nepokryté oblasti
+
+Seznam sekcí, které žádný agent nedokončil (pokud existují).
+
+---
+
+## Časté false positive traps — PŘEČTI PŘED REPORTOVÁNÍM
+
+1. **„Chybějící enqueueAll u repozitáře X"** — Ověř, zda X je BaseCompanyScopedRepository (má enqueueAll z base třídy) nebo manuální (enqueue se řeší v `sync_lifecycle_manager._initialPush` přes `_enqueueCompanyTable`).
+2. **„Direct DB access v UI"** — Ověř, zda jde o: a) SharedPreferences (device-local, není DB), b) appDatabaseProvider v onboardingu (před DI), c) appDatabaseProvider pro lokální tabulku (device_registrations). Pouze skutečný Drift select/insert/update/delete doménových dat v screen/widget je nález.
+3. **„Neshodný typ text vs uuid"** — NIKDY nereportuj. Známý vzor bod 1.
+4. **„Transaction boundary nekonzistence"** — NEPŘEDPOKLÁDEJ, že BillRepository má enqueue mimo transakci. Přečti skutečný kód.
+5. **„Chybějící globální tabulky v initial push"** — Globální tabulky jsou server-authoritative, client je nepushuje (kromě onboarding nové firmy, kde se seedují na serveru).
+6. **„FutureBuilder s inline future"** — Ověř, jestli future není cachovaná v instanční proměnné (vzor `_cachedKey` + `_future` pattern v `dialog_bill_detail.dart`).
+7. **„N+1 query v StreamBuilder"** — StreamBuilder s per-row streamem NENÍ N+1 problém (streamy jsou lazy a reaktivní). N+1 je POUZE: `for (final x in list) { await repo.method(x); }` v async kontextu.
 

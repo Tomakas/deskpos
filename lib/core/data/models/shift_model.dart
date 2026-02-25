@@ -3,7 +3,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'shift_model.freezed.dart';
 
 @freezed
-class ShiftModel with _$ShiftModel {
+abstract class ShiftModel with _$ShiftModel {
   const factory ShiftModel({
     required String id,
     required String companyId,

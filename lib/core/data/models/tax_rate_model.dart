@@ -6,7 +6,7 @@ import 'company_scoped_model.dart';
 part 'tax_rate_model.freezed.dart';
 
 @freezed
-class TaxRateModel with _$TaxRateModel implements CompanyScopedModel {
+abstract class TaxRateModel with _$TaxRateModel implements CompanyScopedModel {
   const factory TaxRateModel({
     required String id,
     required String companyId,

@@ -1487,5 +1487,8 @@
   "wizardDemoMode": "Režim dema",
   "wizardDemoCreating": "Vytváření demo dat...",
   "wizardDemoDownloading": "Stahování dat...",
-  "wizardDemoInfo": "Demo vytvoří 4 uživatele, všichni s PINem 1111"
+  "wizardDemoInfo": "Demo vytvoří 4 uživatele, všichni s PINem 1111",
+
+  "ordersSortAsc": "Od nejstarších",
+  "ordersSortDesc": "Od nejnovějších"
 }

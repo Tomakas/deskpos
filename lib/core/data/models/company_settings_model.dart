@@ -5,7 +5,7 @@ import 'company_scoped_model.dart';
 part 'company_settings_model.freezed.dart';
 
 @freezed
-class CompanySettingsModel with _$CompanySettingsModel implements CompanyScopedModel {
+abstract class CompanySettingsModel with _$CompanySettingsModel implements CompanyScopedModel {
   const factory CompanySettingsModel({
     required String id,
     required String companyId,

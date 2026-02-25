@@ -1487,5 +1487,8 @@
   "wizardDemoMode": "Demo mode",
   "wizardDemoCreating": "Creating demo data...",
   "wizardDemoDownloading": "Downloading data...",
-  "wizardDemoInfo": "Demo creates 4 users, all with PIN 1111"
+  "wizardDemoInfo": "Demo creates 4 users, all with PIN 1111",
+
+  "ordersSortAsc": "Oldest first",
+  "ordersSortDesc": "Newest first"
 }

@@ -5,7 +5,7 @@ import 'company_scoped_model.dart';
 part 'warehouse_model.freezed.dart';
 
 @freezed
-class WarehouseModel with _$WarehouseModel implements CompanyScopedModel {
+abstract class WarehouseModel with _$WarehouseModel implements CompanyScopedModel {
   const factory WarehouseModel({
     required String id,
     required String companyId,

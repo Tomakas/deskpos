@@ -1,8 +1,5 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:path_provider/path_provider.dart';
 
 import '../../../core/data/models/currency_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
@@ -266,11 +263,7 @@ class DialogZReport extends ConsumerWidget {
                           final labels = _buildLabels(context, ref);
                           final bytes = await ref.read(printingServiceProvider)
                               .generateZReportPdf(data, labels);
-                          final dir = await getTemporaryDirectory();
-                          if (!dir.existsSync()) dir.createSync(recursive: true);
-                          final file = File('${dir.path}/z_report_${data.sessionId}.pdf');
-                          await file.writeAsBytes(bytes);
-                          await FileOpener.share(file.path);
+                          await FileOpener.shareBytes('z_report_${data.sessionId}.pdf', bytes);
                         } catch (e, s) {
                           AppLogger.error('Failed to print Z-report', error: e, stackTrace: s);
                         }

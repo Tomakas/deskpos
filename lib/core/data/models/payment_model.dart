@@ -3,7 +3,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'payment_model.freezed.dart';
 
 @freezed
-class PaymentModel with _$PaymentModel {
+abstract class PaymentModel with _$PaymentModel {
   const factory PaymentModel({
     required String id,
     required String companyId,

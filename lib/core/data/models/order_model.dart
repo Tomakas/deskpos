@@ -5,7 +5,7 @@ import '../enums/prep_status.dart';
 part 'order_model.freezed.dart';
 
 @freezed
-class OrderModel with _$OrderModel {
+abstract class OrderModel with _$OrderModel {
   const factory OrderModel({
     required String id,
     required String companyId,

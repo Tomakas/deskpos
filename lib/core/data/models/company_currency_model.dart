@@ -5,7 +5,7 @@ import 'company_scoped_model.dart';
 part 'company_currency_model.freezed.dart';
 
 @freezed
-class CompanyCurrencyModel with _$CompanyCurrencyModel implements CompanyScopedModel {
+abstract class CompanyCurrencyModel with _$CompanyCurrencyModel implements CompanyScopedModel {
   const factory CompanyCurrencyModel({
     required String id,
     required String companyId,

@@ -1,8 +1,5 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:path_provider/path_provider.dart';
 
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/printing_providers.dart';
@@ -303,12 +300,10 @@ class _DialogInventoryResultState extends ConsumerState<DialogInventoryResult> {
 
       final bytes = await ref.read(printingServiceProvider)
           .generateInventoryPdf(data, labels);
-
-      final dir = await getTemporaryDirectory();
-      if (!dir.existsSync()) dir.createSync(recursive: true);
-      final file = File('${dir.path}/inventory_results_${DateTime.now().millisecondsSinceEpoch}.pdf');
-      await file.writeAsBytes(bytes);
-      await FileOpener.share(file.path);
+      await FileOpener.shareBytes(
+        'inventory_results_${DateTime.now().millisecondsSinceEpoch}.pdf',
+        bytes,
+      );
     } catch (e, s) {
       AppLogger.error('Failed to print inventory results', error: e, stackTrace: s);
     } finally {

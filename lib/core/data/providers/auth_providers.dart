@@ -1,13 +1,10 @@
-import 'dart:io';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../auth/auth_service.dart';
+import '../../platform/platform_io.dart';
 import '../../auth/session_manager.dart';
 import '../models/company_model.dart';
 import '../models/currency_model.dart';
@@ -33,15 +30,24 @@ final seedServiceProvider = Provider<SeedService>((ref) {
 });
 
 /// Persistent device UUID — identifies this physical device across sessions.
-/// Stored in a file next to the database.
+/// Stored in SharedPreferences (migrated from legacy file on first run).
 final deviceIdProvider = FutureProvider<String>((ref) async {
-  final dir = await getApplicationDocumentsDirectory();
-  final file = File(p.join(dir.path, 'epos_device_id.txt'));
-  if (file.existsSync()) {
-    return file.readAsStringSync().trim();
+  final prefs = await SharedPreferences.getInstance();
+
+  // 1. Check new storage (SharedPreferences)
+  final existing = prefs.getString('device_id');
+  if (existing != null) return existing;
+
+  // 2. Migrate from legacy file (native only, no-op on web)
+  final legacyId = await readDeviceIdFromLegacyFile();
+  if (legacyId != null) {
+    await prefs.setString('device_id', legacyId);
+    return legacyId;
   }
+
+  // 3. New device (web or fresh native install)
   final id = const Uuid().v7();
-  await file.writeAsString(id);
+  await prefs.setString('device_id', id);
   return id;
 });
 

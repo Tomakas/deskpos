@@ -10,6 +10,7 @@ import '../../../core/utils/formatters.dart';
 import '../../../core/utils/formatting_ext.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/search_utils.dart';
+import '../../../core/widgets/highlighted_text.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_table.dart';
@@ -67,10 +68,10 @@ class _CustomersTabState extends ConsumerState<CustomersTab> {
             Expanded(
               child: PosTable<CustomerModel>(
                 columns: [
-                  PosColumn(label: l.customerFirstName, flex: 2, cellBuilder: (c) => Text(c.firstName, overflow: TextOverflow.ellipsis)),
-                  PosColumn(label: l.customerLastName, flex: 2, cellBuilder: (c) => Text(c.lastName, overflow: TextOverflow.ellipsis)),
-                  PosColumn(label: l.customerEmail, flex: 2, cellBuilder: (c) => Text(c.email ?? '-', overflow: TextOverflow.ellipsis)),
-                  PosColumn(label: l.customerPhone, flex: 2, cellBuilder: (c) => Text(c.phone ?? '-', overflow: TextOverflow.ellipsis)),
+                  PosColumn(label: l.customerFirstName, flex: 2, cellBuilder: (c) => HighlightedText(c.firstName, query: _query, overflow: TextOverflow.ellipsis)),
+                  PosColumn(label: l.customerLastName, flex: 2, cellBuilder: (c) => HighlightedText(c.lastName, query: _query, overflow: TextOverflow.ellipsis)),
+                  PosColumn(label: l.customerEmail, flex: 2, cellBuilder: (c) => HighlightedText(c.email ?? '-', query: _query, overflow: TextOverflow.ellipsis)),
+                  PosColumn(label: l.customerPhone, flex: 2, cellBuilder: (c) => HighlightedText(c.phone ?? '-', query: _query, overflow: TextOverflow.ellipsis)),
                   PosColumn(label: l.customerPoints, flex: 1, cellBuilder: (c) => Text(c.points.toString(), overflow: TextOverflow.ellipsis)),
                   PosColumn(label: l.customerCredit, flex: 1, cellBuilder: (c) => Text(
                     ref.moneyValue(c.credit),

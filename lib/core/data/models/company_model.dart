@@ -5,7 +5,7 @@ import '../enums/company_status.dart';
 part 'company_model.freezed.dart';
 
 @freezed
-class CompanyModel with _$CompanyModel {
+abstract class CompanyModel with _$CompanyModel {
   const factory CompanyModel({
     required String id,
     required String name,

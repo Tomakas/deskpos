@@ -19,6 +19,7 @@ import '../../../core/utils/formatters.dart';
 import '../../../core/utils/formatting_ext.dart';
 import '../../../core/utils/search_utils.dart';
 import '../../../core/utils/unit_type_l10n.dart';
+import '../../../core/widgets/highlighted_text.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_table.dart';
@@ -164,12 +165,13 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
                             Expanded(
                               child: PosTable<ItemModel>(
                                 columns: [
-                                  PosColumn(label: l.fieldName, flex: 3, cellBuilder: (item) => Text(item.name, overflow: TextOverflow.ellipsis)),
+                                  PosColumn(label: l.fieldName, flex: 3, cellBuilder: (item) => HighlightedText(item.name, query: _query, overflow: TextOverflow.ellipsis)),
                                   PosColumn(
                                     label: l.fieldCategory,
                                     flex: 2,
-                                    cellBuilder: (item) => Text(
+                                    cellBuilder: (item) => HighlightedText(
                                       categories.where((c) => c.id == item.categoryId).firstOrNull?.name ?? '-',
+                                      query: _query,
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
