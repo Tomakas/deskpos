@@ -100,6 +100,7 @@ class StockMovementRepository {
             unit: item.unit,
             documentType: doc?.type,
             documentNumber: doc?.documentNumber,
+            categoryId: item.categoryId,
           );
         }).toList());
   }
@@ -125,6 +126,7 @@ class StockMovementWithItem {
     required this.unit,
     this.documentType,
     this.documentNumber,
+    this.categoryId,
   });
 
   final StockMovementModel movement;
@@ -132,4 +134,5 @@ class StockMovementWithItem {
   final UnitType unit;
   final StockDocumentType? documentType;
   final String? documentNumber;
+  final String? categoryId;
 }

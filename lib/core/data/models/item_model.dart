@@ -26,6 +26,7 @@ abstract class ItemModel with _$ItemModel implements CompanyScopedModel {
     String? purchaseTaxRateId,
     @Default(true) bool isOnSale,
     @Default(false) bool isStockTracked,
+    double? minQuantity,
     String? manufacturerId,
     String? supplierId,
     String? parentId,

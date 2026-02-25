@@ -77,6 +77,7 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
         purchaseTaxRateId: Value(json['purchase_tax_rate_id'] as String?),
         isOnSale: Value(json['is_on_sale'] as bool? ?? true),
         isStockTracked: Value(json['is_stock_tracked'] as bool? ?? false),
+        minQuantity: Value(json['min_quantity'] != null ? (json['min_quantity'] as num).toDouble() : null),
         manufacturerId: Value(json['manufacturer_id'] as String?),
         supplierId: Value(json['supplier_id'] as String?),
         parentId: Value(json['parent_id'] as String?),

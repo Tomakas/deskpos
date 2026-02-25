@@ -47,46 +47,56 @@ class CloudTab extends ConsumerWidget {
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Text(
-              l.cloudDeleteLocalDataDescription,
-              style: theme.textTheme.bodySmall,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: SizedBox(
-              height: 48,
-              child: OutlinedButton(
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: theme.colorScheme.error,
-                  side: BorderSide(color: theme.colorScheme.error),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l.cloudDeleteLocalDataDescription,
+                        style: theme.textTheme.bodySmall,
+                      ),
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        height: 48,
+                        child: OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: theme.colorScheme.error,
+                            side: BorderSide(color: theme.colorScheme.error),
+                          ),
+                          onPressed: () => _deleteLocalData(context, ref),
+                          child: Text(l.cloudDeleteLocalData),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                onPressed: () => _deleteLocalData(context, ref),
-                child: Text(l.cloudDeleteLocalData),
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Text(
-              l.cloudDeleteAllDataDescription,
-              style: theme.textTheme.bodySmall,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: SizedBox(
-              height: 48,
-              child: FilledButton(
-                style: FilledButton.styleFrom(
-                  backgroundColor: theme.colorScheme.error,
+                const SizedBox(width: 24),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l.cloudDeleteAllDataDescription,
+                        style: theme.textTheme.bodySmall,
+                      ),
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        height: 48,
+                        child: FilledButton(
+                          style: FilledButton.styleFrom(
+                            backgroundColor: theme.colorScheme.error,
+                          ),
+                          onPressed: () => _deleteAllData(context, ref),
+                          child: Text(l.cloudDeleteAllData),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                onPressed: () => _deleteAllData(context, ref),
-                child: Text(l.cloudDeleteAllData),
-              ),
+              ],
             ),
           ),
         ],

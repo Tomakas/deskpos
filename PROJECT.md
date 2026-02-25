@@ -248,7 +248,7 @@ Kompletní multi-register POS architektura: device binding, CRUD pokladen s plat
 - **Task3.37** ✅ Schéma + device binding — lokální tabulka `device_registrations` (nesync) pro vazbu zařízení↔pokladna. Rozšíření `registers` (name, register_number, parent_register_id), `register_sessions` (bill_counter), `orders` (register_id), `payments` (register_id). Provider `activeRegisterProvider` (vrací null pokud není device binding). `DeviceRegistrationRepository` (bind/unbind/getForCompany).
 - **Task3.38** ✅ CRUD pokladen + payment enforcement — `RegistersTab` (PosTable s add/edit/delete, HardwareType, parent register, payment flags) přesunuto do `ScreenVenueSettings` (4. tab). `ScreenRegisterSettings` má 2 taby (Režim, Prodej). `DialogPayment` filtruje platební metody dle `register.allowCash/Card/Transfer/Credit/Voucher/Other`. `DialogVoucherCreate` respektuje `allowRefunds`. Režim zařízení (POS/KDS/Customer Display) se volí v ScreenRegisterSettings nebo přímo na login obrazovce (KDS).
 - **Task3.39** ✅ Z-report per register + cash handover — `CashMovementType.handover` pro mobile→local předání hotovosti. `ZReportService.buildVenueZReport` (agregace N sessions s per-register breakdowns). `RegisterSessionRepository` rozšíření: billCounter increment, getClosedSessions. `DialogZReport` zobrazuje per-register breakdown. `DialogZReportList` filtrování dle registeru.
-- **Task3.40** ✅ Supabase Realtime <2s sync — `RealtimeService` subscribuje Broadcast from Database na kanálu `sync:{companyId}` (server-side triggers na 36 tabulkách volají `realtime.send()`). LWW merge přes `insertOnConflictUpdate` v `SyncService.mergeRow`. Reconnect → okamžitý `pullAll` (flag `_wasSubscribed`). Dual sync: Broadcast from Database (primární, ~1-2s) + polling 30s (fallback). Immediate outbox flush přes `SyncQueueRepository.onEnqueue` → `OutboxProcessor.nudge()`.
+- **Task3.40** ✅ Supabase Realtime <2s sync — `RealtimeService` subscribuje Broadcast from Database na kanálu `sync:{companyId}` (server-side triggers na 38 tabulkách volají `realtime.send()`). LWW merge přes `insertOnConflictUpdate` v `SyncService.mergeRow`. Reconnect → okamžitý `pullAll` (flag `_wasSubscribed`). Dual sync: Broadcast from Database (primární, ~1-2s) + polling 30s (fallback). Immediate outbox flush přes `SyncQueueRepository.onEnqueue` → `OutboxProcessor.nudge()`.
 - **Task3.41** ✅ KDS (Kitchen Display System) — route `/kds`, volba režimu na login obrazovce (POS/KDS radio). Touch-optimized seznam karet s objednávkami, live clock v AppBar, Drawer s logout. Status filter chips (4 filtry vč. storno), per-item a full-order bump (created→ready→delivered), prev-status undo, item void (long press). `_isBumping` guard proti double-tap. Session scope popup menu. Funkčně téměř identický s ScreenOrders — sdílí ceny, modifikátory, poznámky, storno zobrazení, urgency timer.
 - **Task3.42** ✅ Customer Display — route `/customer-display` (idle/active via `?code=` query param). Read-only zákaznická obrazovka pro sekundární monitor. Register-centric architektura: displej sleduje `activeBillId` a `displayCartJson` na registru (sync přes outbox). Idle mód (jméno firmy + konfigurovatelný uvítací text z `welcomeText`), cart preview mód (položky z `displayCartJson` před submitnutím objednávky), active mód (reálné objednávky + totaly), ThankYou mód (5s po zaplacení, pak návrat na idle). Discount výpočet z `subtotalGross - totalGross + roundingAmount`. Storno ordery a voided/cancelled položky filtrovány. Tlačítko „Zák. displej" v DialogBillDetail pro manuální odeslání účtu na displej (toggle s eye ikonou). Triple-tap na idle obrazovce pro odpárování displeje (skrytá akce).
 - **Task3.43** ✅ Display Devices + Pairing — nová tabulka `display_devices` (id, company_id, parent_register_id, code, name, welcome_text, type, is_active) s `DisplayDeviceType` enum (customerDisplay, kds). `DisplayDeviceModel` (Freezed), `DisplayDeviceRepository` (manual sync pattern), entity/supabase/pull mappers, sync registrace. `ScreenDisplayCode` — 6-digit kód pro spárování displeje s pokladnou. `PairingConfirmationListener` — modální overlay na hlavní pokladně pro potvrzení/zamítnutí párovací žádosti. `BroadcastChannel` wrapper pro Supabase Realtime broadcast (join/send/leave). Párovací protokol: displej odešle `pairing_request` přes broadcast kanál `pairing:{companyId}`, hlavní pokladna zobrazí potvrzovací dialog, odpověď `pairing_confirmed`/`pairing_rejected` zpět přes broadcast. Retry každých 5s, timeout 60s. Vstup přes ScreenOnboarding → "Customer Display" → `/display-code?type=customer_display`.
@@ -746,6 +746,7 @@ Deklarativní routing s auth guardem:
 /settings/company    → ScreenCompanySettings (Firma, Uživatelé, Zabezpečení, Cloud, Daň. sazby, Plat. metody, Log) — vyžaduje settings_company.*
 /settings/venue      → ScreenVenueSettings (Sekce, Stoly, Mapa podlaží, Pokladny) — vyžaduje settings_venue.*
 /settings/register   → ScreenRegisterSettings (Režim, Prodej) — vyžaduje settings_register.*
+/settings            → ScreenSettingsUnified (Firma / Provozovna / Pokladna — top-level taby, každý s vnitřními taby) — vyžaduje settings_company.* nebo settings_venue.* nebo settings_register.*
 /catalog             → ScreenCatalog (7 tabů: Produkty, Kategorie, Skupiny modifikátorů, Dodavatelé, Výrobci, Receptury, Zákazníci) — vyžaduje products.*
 /inventory           → ScreenInventory (3 taby: Zásoby, Doklady, Pohyby) + akční tlačítka (Příjemka, Výdejka, Oprava, Inventura) — vyžaduje stock.*
 /orders              → ScreenOrders (přehled objednávek, kartový seznam, filtry, akce) — vyžaduje orders.view
@@ -784,7 +785,7 @@ lib/
 │   ├── database/                      # Drift databáze
 │   │   ├── app_database.dart          # @DriftDatabase (45 tabulek)
 │   │   └── tables/                    # Definice tabulek (46 souborů: 45 tabulek + mixin)
-│   ├── widgets/                       # PosTable<T>, PosTableToolbar, PosDialogShell, PosDialogActions, PosDialogTheme, PosNumpad, LockOverlay, InactivityDetector, PosColorPalette, PairingConfirmationListener, PosDateRangeSelector
+│   ├── widgets/                       # PosTable<T>, PosTableToolbar, PosDialogShell, PosDialogActions, PosDialogTheme, PosNumpad, LockOverlay, InactivityDetector, PosColorPalette, PairingConfirmationListener, PosDateRangeSelector, HighlightedText
 │   ├── utils/                         # search_utils.dart, formatters.dart, formatting_ext.dart, file_opener.dart, unit_type_l10n.dart, permission_l10n.dart, permission_implications.dart
 │   ├── printing/                      # PdfFontLoader, ReceiptData, ReceiptPdfBuilder, ZReportPdfBuilder, InventoryPdfBuilder, VoucherPdfBuilder, PrintingService
 │   ├── routing/                       # GoRouter + auth guard (app_router.dart)
@@ -847,7 +848,7 @@ Každá entita v `core/data/` se skládá z následujících souborů:
 ### Core Widgets (`lib/core/widgets/`)
 
 #### PosTable<T>
-Generický unifikovaný tabulkový widget používaný napříč celou aplikací (35 použití ve 20 souborech).
+Generický unifikovaný tabulkový widget používaný napříč celou aplikací (33 použití v 25 souborech).
 Nahrazuje individuální DataTable implementace konzistentním API.
 
 - `PosColumn<T>` — definice sloupce: label, flex/width, cellBuilder, numeric
@@ -864,7 +865,7 @@ Sjednocený dialogový systém s 4 sdílenými building blocks:
 - **`PosDialogActions`** — řada akčních tlačítek v `Row > [Expanded > SizedBox(height) > action]`. Parametry: actions, height (44), spacing (8)
 - **`PosNumpad`** — sdílený numpad se dvěma velikostmi (large/compact), konfigurovatelnými tlačítky (clear, dot, bottomLeftChild). Použito v 10 obrazovkách (login, lock, switch user, opening cash, cash movement, loyalty, credit, discount, change total, voucher create)
 
-Migrace: 29 dialogů celkem, z toho 25 migrovaných na sdílené widgety, 4 ponechané s vlastním layoutem (bill_detail, payment, grid_editor, cash_journal).
+Migrace: 31 dialogů celkem, z toho 27 migrovaných na sdílené widgety, 4 ponechané s vlastním layoutem (bill_detail, payment, grid_editor, cash_journal).
 
 #### Další core widgety
 - `LockOverlay` — overlay pro auto-lock po neaktivitě
@@ -873,7 +874,7 @@ Migrace: 29 dialogů celkem, z toho 25 migrovaných na sdílené widgety, 4 pone
 
 **Dva vzory outbox zápisu:**
 - **Konfigurační entity** (company_settings, sections, categories, items, tables, map_elements, payment_methods, tax_rates, users, suppliers, manufacturers, product_recipes, warehouses, reservations, vouchers, customers, customer_transactions, modifier_groups, modifier_group_items, item_modifier_groups, order_item_modifiers, company_currencies, session_currency_cash): Dědí z `BaseCompanyScopedRepository<T>` — automatický outbox zápis v transakci s CRUD operací. Výjimka: `order_item_modifiers` není v `companyRepos` pro initial push — enqueuují se při vytvoření objednávky.
-- **Prodejní a provozní entity** (bills, orders, order_items, payments, registers, register_sessions, cash_movements, layout_items, user_permissions, shifts, stock_levels, stock_documents, stock_movements, display_devices): Vlastní repozitáře s injektovaným `SyncQueueRepository` a explicitním `_enqueue*` voláním po každé mutaci. Ruční přístup — business metody (createOrderWithItems, recordPayment, cancelBill cascade, openSession, closeSession, applyRoleToUser, createDocument, adjustQuantity) nepasují do CRUD patternu base repository.
+- **Prodejní a provozní entity** (bills, orders, order_items, payments, registers, register_sessions, cash_movements, layout_items, user_permissions, shifts, stock_levels, stock_documents, stock_movements, display_devices): Vlastní repozitáře s injektovaným `SyncQueueRepository` a explicitním `_enqueue*` voláním po každé mutaci. Ruční přístup — business metody (createOrderWithItems, recordPayment, cancelBill cascade, openSession, closeSession, applyRoleToUser, createDocument, adjustQuantity) nepasují do CRUD patternu base repository. **Výjimky:** `payments` a `order_items` nemají vlastní sync repozitáře — jejich enqueue je delegován na nadřazené repozitáře (`BillRepository._enqueuePayment`, `OrderRepository._enqueueOrderItem` / `BillRepository._enqueueOrderItem`).
 - **Lokální entity** (device_registrations): Nesynchronizované — `DeviceRegistrationRepository` pracuje přímo s Drift DB bez outbox/sync.
 
 ---
@@ -1024,7 +1025,7 @@ Všechny aktivní tabulky obsahují společné sync sloupce (viz [SyncColumnsMix
 
 | Tabulka | Sloupce |
 |---------|---------|
-| **items** | id (T), company_id →companies, category_id →categories?, name (T), description (T?), item_type (T — ItemType), sku (T?), alt_sku (T?), unit_price (I), sale_tax_rate_id →tax_rates?, purchase_price (I?), purchase_tax_rate_id →tax_rates?, is_sellable (B, default true), is_active (B, default true), is_on_sale (B, default true), is_stock_tracked (B, default false), unit (T — UnitType, default ks), manufacturer_id →manufacturers?, supplier_id →suppliers?, parent_id →items? |
+| **items** | id (T), company_id →companies, category_id →categories?, name (T), description (T?), item_type (T — ItemType), sku (T?), alt_sku (T?), unit_price (I), sale_tax_rate_id →tax_rates?, purchase_price (I?), purchase_tax_rate_id →tax_rates?, is_sellable (B, default true), is_active (B, default true), is_on_sale (B, default true), is_stock_tracked (B, default false), min_quantity (R?), unit (T — UnitType, default ks), manufacturer_id →manufacturers?, supplier_id →suppliers?, parent_id →items? |
 | **categories** | id (T), company_id →companies, name (T), parent_id →categories?, is_active (B, default true) |
 | **suppliers** | id (T), company_id →companies, supplier_name (T), contact_person (T?), email (T?), phone (T?) |
 | **manufacturers** | id (T), company_id →companies, name (T) |
@@ -1389,14 +1390,15 @@ graph TD
     DRAIN --> OUT[OutboxProcessor.start - 5s interval]
     DRAIN --> AUTO[SyncService.startAutoSync - 30s interval]
     LOGOUT[Logout] --> |stop| SYNC
-    ONLINE[Connectivity restored] --> |restart + forceSyncNow| SYNC
+    %% Connectivity restored → restart: plánováno (dosud neimplementováno)
 ```
 
 **Klíčové vlastnosti:**
 - Sync se **nespouští** dokud se uživatel nepřihlásí
 - Při logoutu se sync zastaví
-- Crash recovery probíhá při startu aplikace
+- Crash recovery: `resetStuck()` + `resetFailed()` + `deleteCompleted()` při startu aplikace
 - **Drain loop:** Po `_initialPush` se v cyklu (max 50 iterací × 500 entries) volá `processQueue(limit: 500)` a `countPending()`, dokud se fronta nevyprázdní — teprve poté se spustí periodické timery
+- Po drain loop se spustí `OutboxProcessor.start()`, `SyncService.startAutoSync()` a `RealtimeService.start()`
 - Při selhání startu se zavolá `_stopServices()` pro cleanup částečně spuštěných služeb
 
 ### Realtime Sync — Broadcast from Database
@@ -1447,7 +1449,7 @@ graph TD
 4. Repository vrátí úspěch UI (okamžitě)
 5. **Asynchronně** `OutboxProcessor` zpracuje frontu — odešle payload do Ingest Edge Function
 6. Ingest EF provede `upsert` do PostgreSQL přes `service_role`
-7. PostgreSQL trigger `set_server_timestamps()` nastaví `updated_at = now()` (watermark pro pull)
+7. PostgreSQL trigger `set_server_timestamps()` nastaví `updated_at = now()` (watermark pro pull) — aktivní na 43 tabulkách (42 doménových + sync_queue)
 8. PostgreSQL trigger `broadcast_sync_change()` odešle řádek přes `realtime.send()` do kanálu `sync:{companyId}`
 9. Ostatní zařízení přijmou broadcast → `RealtimeService._handleBroadcast` → `SyncService.mergeRow` (LWW)
 
@@ -1719,7 +1721,7 @@ stateDiagram-v2
     [*] --> opened: createBill()
     opened --> paid: recordPayment() — plná platba
     opened --> cancelled: cancelBill()
-    paid --> refunded: refundBill() (E3.2)
+    paid --> refunded: refundBill() / refundItem() (E3.2)
     paid --> [*]
     refunded --> [*]
     cancelled --> [*]
@@ -1756,6 +1758,8 @@ stateDiagram-v2
 | `delivered` | Doručeno zákazníkovi (`delivered_at` se nastaví) | (finální stav) |
 | `cancelled` | Zrušeno před přípravou | (finální stav) |
 | `voided` | Stornováno | (finální stav) |
+
+> **Pozn.:** `markReady()` a `markDelivered()` delegují na `updateStatus()`, který nemá guard na zdrojový stav — přechody jsou vynucovány UI vrstvou (KDS/Orders screen), ne repository vrstvou. `cancelOrder()` a `voidOrder()` mají explicitní guardy.
 
 **Void jednotlivé položky (od E3.8):** `voidItem(orderId, orderItemId)` — void jedné položky v orderu (ne celého orderu). Vytvoří storno order (`is_storno: true`, `storno_source_order_id` → originál, order number `X{N}-{XXXX}` kde N=register_number). Pokud se voidnou všechny položky v orderu → auto-void celý order.
 
@@ -2314,7 +2318,7 @@ Dialog se zobrazí po kliknutí na „Vytvořit Demo":
 8. Sync marker `_marker/demo_onboarding` (zabrání `_initialPush` re-push demo dat zpět na server)
 9. Clear `pendingLocaleProvider`, invalidate `appInitProvider`, navigate na `/login`
 
-> **Error handling:** Selhání v kroku 2 se zobrazí inline v demo dialogu. Selhání v krocích 3–8 (po zavření demo dialogu) zavře progress dialog a zobrazí `SnackBar` s chybovou hláškou.
+> **Error handling:** Selhání v kroku 2 se zobrazí inline v demo dialogu. Selhání v krocích 3–8 (po zavření demo dialogu) zavře progress dialog a zobrazí inline chybovou hlášku v demo dialogu.
 
 **Demo firma obsahuje:**
 - Kompletní firemní údaje (IČO, DIČ, email, telefon, adresa, město, PSČ, země — fiktivní, lokalizované)
@@ -3021,7 +3025,7 @@ Layout: **80/20 horizontální split**
 - **Řada 1:** RYCHLÝ ÚČET (tonal, → `/sell`) + VYTVOŘIT ÚČET (tonal, → DialogNewBill). Oba disabled bez aktivní session.
 - **Řada 2:** POKLADNÍ DENÍK (tonal, → DialogCashJournal, disabled bez session) + KATALOG (tonal, → `/catalog`, vyžaduje `products.*`)
 - **Řada 3:** OBJEDNÁVKY (tonal, → `/orders`, vyžaduje `orders.view`) + REZERVACE (tonal, → DialogReservationsList)
-- **Řada 4:** SKLAD (tonal, → `/inventory`) + DALŠÍ (tonal, PopupMenuButton: Statistiky → `/statistics`; Vouchery → `/vouchers`; Nastavení firmy → `/settings/company`; Nastavení provozovny → `/settings/venue`; Nastavení pokladny → `/settings/register`). Vouchery a Nastavení vyžadují příslušná oprávnění.
+- **Řada 4:** SKLAD (tonal, → `/inventory`) + DALŠÍ (tonal, PopupMenuButton: Statistiky → `/statistics`; Vouchery → `/vouchers`; Nastavení → `/settings`). Vouchery a Nastavení vyžadují příslušná oprávnění.
 - **Řada 5:** MAPA (tonal, toggle seznam/mapa — přepíná mezi tabulkou a FloorMapView) + Session toggle:
   - Žádná aktivní session → **"Otevřít"** (zelená, FilledButton) → DialogOpeningCash
   - Aktivní session → **"Uzavřít"** (tonal) → DialogClosingSession
@@ -3162,6 +3166,10 @@ Layout: **20/80 horizontální split**
 - **Rozměry gridu:** Uloženy v tabulce `registers` (`grid_rows`, `grid_cols`). Výchozí 5×8 (seed).
 
 Grid konfigurace je uložena v tabulce `layout_items` (viz [Schéma](#layout-grid)).
+
+#### ScreenSettingsUnified (`/settings`)
+
+Unified settings screen s top-level taby (Firma / Provozovna / Pokladna). Každý top-level tab obsahuje vnitřní taby odpovídající příslušné screen. Přístup vyžaduje alespoň jedno oprávnění z `settings_company.*`, `settings_venue.*` nebo `settings_register.*`.
 
 #### ScreenCompanySettings (`/settings/company`)
 
@@ -3367,20 +3375,20 @@ Displej běží na samostatném zařízení a sleduje stav registru přes Supaba
 - `active_bill_id` — ID účtu k zobrazení (nastavuje ScreenSell nebo tlačítko „Zák. displej" v DialogBillDetail)
 - `display_cart_json` — JSON pole košíku pro preview před submitnutím objednávky
 
-**Data flow:**
+**Data flow (Supabase Broadcast):**
 ```
-ScreenSell → registerRepo.setDisplayCart(registerId, json) → outbox → Supabase → Customer Display device
-ScreenSell → registerRepo.setActiveBill(registerId, billId) → outbox → Supabase → Customer Display device
+ScreenSell → BroadcastChannel.send(DisplayItems/DisplayMessage/DisplayIdle) → Supabase Broadcast → Customer Display device
 ```
 
-**4 stavy displeje:**
+Komunikace probíhá přes sealed class `CustomerDisplayContent` (`lib/core/data/models/customer_display_content.dart`) serializovanou do JSON pro Supabase Broadcast kanál `display:{deviceCode}`.
 
-1. **Idle** (`activeBillId == null`): Jméno firmy + konfigurovatelný uvítací text (z `welcomeText` display device, uložený v SharedPreferences)
-2. **Cart preview** (`activeBillId != null`, žádné reálné objednávky, `displayCartJson` přítomný): Položky z JSON preview košíku s počítanými totaly
-3. **Active** (`activeBillId != null`, existují reálné objednávky): Položky z orders + order_items, filtruje storno ordery a voided/cancelled položky. Totaly z bill modelu.
-4. **Thank You** (bill.status == paid): Ikona ✓, zaplacená částka, poděkování. Po 5s timer → `setActiveBill(null)` → návrat na idle.
+**3 stavy displeje** (sealed class varianty):
 
-**Active mód layout:**
+1. **DisplayIdle**: Jméno firmy + konfigurovatelný uvítací text (z `welcomeText` display device, uložený v SharedPreferences). Výchozí stav.
+2. **DisplayItems**: Položky košíku s cenami, modifikátory, mezisoučtem, slevou a celkem. Pokrývá jak preview košíku, tak reálné objednávky — ScreenSell serializuje aktuální stav do `DisplayItems` a posílá přes broadcast.
+3. **DisplayMessage**: Textová zpráva s volitelným `messageType` ('success', 'info') a `autoClearAfterMs`. Thank You zpráva = `DisplayMessage(messageType: 'success', autoClearAfterMs: 10000)` → po 10s se displej vrátí na `DisplayIdle`.
+
+**DisplayItems layout:**
 ```
 ┌──────────────────────────────────────────────────────────┐
 │  Vaše objednávka                           B-001          │
@@ -3398,21 +3406,20 @@ ScreenSell → registerRepo.setActiveBill(registerId, billId) → outbox → Sup
 
 **Funkce:**
 - Header: nadpis + bill number (primaryContainer barva)
-- Položky: Buď z `displayCartJson` (preview) nebo StreamBuilder na orders + order_items (reálné objednávky)
+- Položky: z `DisplayItems.items` (seznam `DisplayItem` s name, quantity, unitPrice, totalPrice, unitLabel, notes, modifiers)
 - Totaly: subtotal, discount (pokud > 0, zelená barva), celkem (bold heading)
-- Discount výpočet: `subtotalGross - totalGross + roundingAmount` (ne raw `discountAmount` — ten ukládá basis points pro procentní slevy)
 - Ceny formátovány jako `XXX,-` (celé koruny)
 - Triple-tap na idle uvítacím textu → odpárování displeje a návrat na onboarding (skrytá akce, bez viditelného tlačítka)
 - Live clock v AppBar — datum a čas aktualizovaný každou sekundu
 
-**Manuální ovládání z DialogBillDetail:**
-Tlačítko „Zák. displej" v pravém panelu s toggle logikou (eye/eye-off ikona dle aktuálního stavu). Nastavuje/maže `activeBillId` na registru. Při zavření dialogu se `activeBillId` automaticky vyčistí pokud byl nastaven tímto dialogem.
-
 **ScreenSell integrace:**
-- `_syncCartToDisplay()` — serializuje košík do JSON, zapisuje do `registers.displayCartJson` s 300ms debounce
-- `_clearDisplayCart()` — maže `displayCartJson` při submit/platbě/dispose
-- `_setActiveBill()` — nastavuje `activeBillId` při otevření sell screen
-- `_clearActiveBill()` — maže `activeBillId` v dispose (kromě úspěšné platby — ThankYou timer to vyčistí)
+- Při změně košíku serializuje stav do `DisplayItems` a posílá přes `BroadcastChannel`
+- Při dokončení prodeje posílá `DisplayMessage` (thank you, auto-clear 10s)
+- Při odchodu ze screen posílá `DisplayIdle`
+- Debounce 300ms na změny košíku
+
+**Manuální ovládání z DialogBillDetail:**
+Tlačítko „Zák. displej" v pravém panelu s toggle logikou (eye/eye-off ikona dle aktuálního stavu).
 
 **Přístup:** Route `/customer-display` (s volitelným `?code=` query param), bez permission guardu.
 

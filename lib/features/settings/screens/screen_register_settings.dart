@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../widgets/mode_tab.dart';
+import '../widgets/peripherals_tab.dart';
 import '../widgets/register_tab.dart';
 
 class ScreenRegisterSettings extends ConsumerWidget {
@@ -13,7 +14,7 @@ class ScreenRegisterSettings extends ConsumerWidget {
     final l = context.l10n;
 
     return DefaultTabController(
-      length: 2,
+      length: 3,
       child: Scaffold(
         appBar: AppBar(
           title: Text(l.settingsRegisterTitle),
@@ -21,6 +22,7 @@ class ScreenRegisterSettings extends ConsumerWidget {
             tabs: [
               Tab(text: l.modeTitle),
               Tab(text: l.sellTitle),
+              Tab(text: l.peripheralsTitle),
             ],
           ),
         ),
@@ -28,6 +30,7 @@ class ScreenRegisterSettings extends ConsumerWidget {
           children: [
             ModeTab(),
             RegisterTab(),
+            PeripheralsTab(),
           ],
         ),
       ),

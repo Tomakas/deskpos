@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/data/enums/stock_document_type.dart';
 import '../../../core/data/enums/stock_movement_direction.dart';
+import '../../../core/data/models/category_model.dart';
 import '../../../core/data/models/stock_document_model.dart';
 import '../../../core/data/models/supplier_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
@@ -21,6 +22,25 @@ import '../widgets/dialog_inventory_result.dart';
 import '../widgets/dialog_inventory_type.dart';
 import '../widgets/dialog_stock_document.dart';
 
+// --- Sort field enums ---
+
+enum _LevelsSortField { name, quantity, price, value }
+
+enum _DocumentsSortField { date, number, type, amount }
+
+enum _MovementsSortField { date, item, quantity }
+
+// --- Shared helper ---
+
+String _documentTypeLabel(AppLocalizations l, StockDocumentType type) {
+  return switch (type) {
+    StockDocumentType.receipt => l.documentTypeReceipt,
+    StockDocumentType.waste => l.documentTypeWaste,
+    StockDocumentType.inventory => l.documentTypeInventory,
+    StockDocumentType.correction => l.documentTypeCorrection,
+  };
+}
+
 class ScreenInventory extends ConsumerStatefulWidget {
   const ScreenInventory({super.key});
 
@@ -28,17 +48,40 @@ class ScreenInventory extends ConsumerStatefulWidget {
   ConsumerState<ScreenInventory> createState() => _ScreenInventoryState();
 }
 
-class _ScreenInventoryState extends ConsumerState<ScreenInventory>
-    with SingleTickerProviderStateMixin {
+class _ScreenInventoryState extends ConsumerState<ScreenInventory> {
   String? _warehouseId;
   bool _initialized = false;
-  late TabController _tabController;
 
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 3, vsync: this);
-  }
+  // Tab
+  int _tabIndex = 0;
+
+  // Search
+  final _searchController = TextEditingController();
+  String _query = '';
+
+  // Filters — Levels
+  bool _filterBelowMin = false;
+  bool _filterZeroStock = false;
+  Set<String> _filterLevelCategoryIds = {};
+
+  // Filters — Documents
+  Set<StockDocumentType> _filterDocTypes = {};
+
+  // Filters — Movements
+  StockMovementDirection? _filterDirection;
+  Set<String> _filterMovementCategoryIds = {};
+
+  // Sort — Levels
+  _LevelsSortField _levelsSortField = _LevelsSortField.name;
+  bool _levelsSortAsc = true;
+
+  // Sort — Documents
+  _DocumentsSortField _documentsSortField = _DocumentsSortField.date;
+  bool _documentsSortAsc = false;
+
+  // Sort — Movements
+  _MovementsSortField _movementsSortField = _MovementsSortField.date;
+  bool _movementsSortAsc = false;
 
   @override
   void didChangeDependencies() {
@@ -50,7 +93,7 @@ class _ScreenInventoryState extends ConsumerState<ScreenInventory>
 
   @override
   void dispose() {
-    _tabController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -67,6 +110,15 @@ class _ScreenInventoryState extends ConsumerState<ScreenInventory>
     }
   }
 
+  bool get _hasActiveFilters {
+    return switch (_tabIndex) {
+      0 => _filterBelowMin || _filterZeroStock || _filterLevelCategoryIds.isNotEmpty,
+      1 => _filterDocTypes.isNotEmpty,
+      2 => _filterDirection != null || _filterMovementCategoryIds.isNotEmpty,
+      _ => false,
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
@@ -79,86 +131,496 @@ class _ScreenInventoryState extends ConsumerState<ScreenInventory>
       );
     }
 
+    final tabs = [l.inventoryTabLevels, l.inventoryTabDocuments, l.inventoryTabMovements];
+
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: [
-            Text(l.inventoryTitle),
-            const SizedBox(width: 16),
-            Expanded(
-              child: SizedBox(
-                height: 40,
-                child: FilledButton.icon(
-                  onPressed: () => _openStockDocument(context, StockDocumentType.receipt),
-                  icon: const Icon(Icons.add_box_outlined),
-                  label: Text(l.inventoryReceipt),
-                ),
-              ),
+        title: Text(l.inventoryTitle),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: FilledButton.icon(
+              onPressed: () => _showNewDocumentDialog(context),
+              icon: const Icon(Icons.add),
+              label: Text(l.inventoryNewDocument),
             ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: SizedBox(
-                height: 40,
-                child: FilledButton.tonalIcon(
-                  onPressed: () => _openStockDocument(context, StockDocumentType.waste),
-                  icon: const Icon(Icons.remove_circle_outline),
-                  label: Text(l.inventoryWaste),
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: SizedBox(
-                height: 40,
-                child: FilledButton.tonalIcon(
-                  onPressed: () => _openStockDocument(context, StockDocumentType.correction),
-                  icon: const Icon(Icons.edit_outlined),
-                  label: Text(l.inventoryCorrection),
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: SizedBox(
-                height: 40,
-                child: FilledButton.tonalIcon(
-                  onPressed: () => _openInventoryDialog(context),
-                  icon: const Icon(Icons.fact_check_outlined),
-                  label: Text(l.inventoryInventory),
-                ),
-              ),
-            ),
-          ],
-        ),
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: [
-            Tab(text: l.inventoryTabLevels),
-            Tab(text: l.inventoryTabDocuments),
-            Tab(text: l.inventoryTabMovements),
-          ],
-        ),
+          ),
+        ],
       ),
       body: Column(
         children: [
-          // Tab content
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
+          // Toolbar
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
               children: [
-                _StockLevelsTab(
-                  companyId: company.id,
-                  warehouseId: _warehouseId!,
+                // Tab chips
+                for (final (i, label) in tabs.indexed) ...[
+                  if (i > 0) const SizedBox(width: 8),
+                  FilterChip(
+                    label: Text(label),
+                    selected: _tabIndex == i,
+                    onSelected: (_) => setState(() => _tabIndex = i),
+                  ),
+                ],
+                const SizedBox(width: 16),
+                // Search
+                Expanded(
+                  child: SizedBox(
+                    height: 40,
+                    child: TextField(
+                      controller: _searchController,
+                      decoration: InputDecoration(
+                        hintText: l.searchHint,
+                        prefixIcon: const Icon(Icons.search),
+                        suffixIcon: _query.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.close),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  setState(() => _query = '');
+                                },
+                              )
+                            : null,
+                        isDense: true,
+                        border: const OutlineInputBorder(),
+                        contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                      ),
+                      onChanged: (v) => setState(() => _query = normalizeSearch(v)),
+                    ),
+                  ),
                 ),
-                _StockDocumentsTab(
-                  companyId: company.id,
-                  warehouseId: _warehouseId!,
+                const SizedBox(width: 8),
+                // Filter
+                IconButton(
+                  icon: const Icon(Icons.filter_alt_outlined),
+                  onPressed: _showFilterDialog,
+                  color: _hasActiveFilters ? Theme.of(context).colorScheme.primary : null,
                 ),
-                _StockMovementsTab(
-                  companyId: company.id,
+                // Sort
+                PopupMenuButton<String>(
+                  icon: const Icon(Icons.swap_vert),
+                  onSelected: _onSortSelected,
+                  itemBuilder: (_) => _buildSortMenuItems(l),
                 ),
               ],
             ),
+          ),
+          // Tab content
+          Expanded(
+            child: switch (_tabIndex) {
+              0 => _StockLevelsTab(
+                companyId: company.id,
+                warehouseId: _warehouseId!,
+                query: _query,
+                filterBelowMin: _filterBelowMin,
+                filterZeroStock: _filterZeroStock,
+                filterCategoryIds: _filterLevelCategoryIds,
+                sortField: _levelsSortField,
+                sortAsc: _levelsSortAsc,
+              ),
+              1 => _StockDocumentsTab(
+                companyId: company.id,
+                warehouseId: _warehouseId!,
+                query: _query,
+                filterDocTypes: _filterDocTypes,
+                sortField: _documentsSortField,
+                sortAsc: _documentsSortAsc,
+              ),
+              2 => _StockMovementsTab(
+                companyId: company.id,
+                query: _query,
+                filterDirection: _filterDirection,
+                filterCategoryIds: _filterMovementCategoryIds,
+                sortField: _movementsSortField,
+                sortAsc: _movementsSortAsc,
+              ),
+              _ => const SizedBox.shrink(),
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  // --- Sort menu ---
+
+  List<PopupMenuEntry<String>> _buildSortMenuItems(AppLocalizations l) {
+    return switch (_tabIndex) {
+      0 => [
+        _sortMenuItem('levels_name', l.inventorySortName, _levelsSortField == _LevelsSortField.name, _levelsSortAsc),
+        _sortMenuItem('levels_quantity', l.inventorySortQuantity, _levelsSortField == _LevelsSortField.quantity, _levelsSortAsc),
+        _sortMenuItem('levels_price', l.inventorySortPrice, _levelsSortField == _LevelsSortField.price, _levelsSortAsc),
+        _sortMenuItem('levels_value', l.inventorySortValue, _levelsSortField == _LevelsSortField.value, _levelsSortAsc),
+      ],
+      1 => [
+        _sortMenuItem('docs_date', l.inventorySortDate, _documentsSortField == _DocumentsSortField.date, _documentsSortAsc),
+        _sortMenuItem('docs_number', l.inventorySortNumber, _documentsSortField == _DocumentsSortField.number, _documentsSortAsc),
+        _sortMenuItem('docs_type', l.inventorySortType, _documentsSortField == _DocumentsSortField.type, _documentsSortAsc),
+        _sortMenuItem('docs_amount', l.inventorySortAmount, _documentsSortField == _DocumentsSortField.amount, _documentsSortAsc),
+      ],
+      2 => [
+        _sortMenuItem('moves_date', l.inventorySortDate, _movementsSortField == _MovementsSortField.date, _movementsSortAsc),
+        _sortMenuItem('moves_item', l.inventorySortItem, _movementsSortField == _MovementsSortField.item, _movementsSortAsc),
+        _sortMenuItem('moves_quantity', l.inventorySortQuantity, _movementsSortField == _MovementsSortField.quantity, _movementsSortAsc),
+      ],
+      _ => [],
+    };
+  }
+
+  PopupMenuItem<String> _sortMenuItem(String value, String label, bool isActive, bool isAsc) {
+    return PopupMenuItem(
+      value: value,
+      child: Row(
+        children: [
+          if (isActive)
+            Icon(isAsc ? Icons.arrow_upward : Icons.arrow_downward, size: 16)
+          else
+            const SizedBox(width: 16),
+          const SizedBox(width: 8),
+          Text(label, style: isActive ? const TextStyle(fontWeight: FontWeight.bold) : null),
+        ],
+      ),
+    );
+  }
+
+  void _onSortSelected(String value) {
+    setState(() {
+      switch (value) {
+        case 'levels_name':
+          if (_levelsSortField == _LevelsSortField.name) { _levelsSortAsc = !_levelsSortAsc; } else { _levelsSortField = _LevelsSortField.name; _levelsSortAsc = true; }
+        case 'levels_quantity':
+          if (_levelsSortField == _LevelsSortField.quantity) { _levelsSortAsc = !_levelsSortAsc; } else { _levelsSortField = _LevelsSortField.quantity; _levelsSortAsc = false; }
+        case 'levels_price':
+          if (_levelsSortField == _LevelsSortField.price) { _levelsSortAsc = !_levelsSortAsc; } else { _levelsSortField = _LevelsSortField.price; _levelsSortAsc = false; }
+        case 'levels_value':
+          if (_levelsSortField == _LevelsSortField.value) { _levelsSortAsc = !_levelsSortAsc; } else { _levelsSortField = _LevelsSortField.value; _levelsSortAsc = false; }
+        case 'docs_date':
+          if (_documentsSortField == _DocumentsSortField.date) { _documentsSortAsc = !_documentsSortAsc; } else { _documentsSortField = _DocumentsSortField.date; _documentsSortAsc = false; }
+        case 'docs_number':
+          if (_documentsSortField == _DocumentsSortField.number) { _documentsSortAsc = !_documentsSortAsc; } else { _documentsSortField = _DocumentsSortField.number; _documentsSortAsc = true; }
+        case 'docs_type':
+          if (_documentsSortField == _DocumentsSortField.type) { _documentsSortAsc = !_documentsSortAsc; } else { _documentsSortField = _DocumentsSortField.type; _documentsSortAsc = true; }
+        case 'docs_amount':
+          if (_documentsSortField == _DocumentsSortField.amount) { _documentsSortAsc = !_documentsSortAsc; } else { _documentsSortField = _DocumentsSortField.amount; _documentsSortAsc = false; }
+        case 'moves_date':
+          if (_movementsSortField == _MovementsSortField.date) { _movementsSortAsc = !_movementsSortAsc; } else { _movementsSortField = _MovementsSortField.date; _movementsSortAsc = false; }
+        case 'moves_item':
+          if (_movementsSortField == _MovementsSortField.item) { _movementsSortAsc = !_movementsSortAsc; } else { _movementsSortField = _MovementsSortField.item; _movementsSortAsc = true; }
+        case 'moves_quantity':
+          if (_movementsSortField == _MovementsSortField.quantity) { _movementsSortAsc = !_movementsSortAsc; } else { _movementsSortField = _MovementsSortField.quantity; _movementsSortAsc = false; }
+      }
+    });
+  }
+
+  // --- Filter dialogs ---
+
+  void _showFilterDialog() {
+    final l = context.l10n;
+    switch (_tabIndex) {
+      case 0:
+        _showLevelsFilterDialog(l);
+      case 1:
+        _showDocumentsFilterDialog(l);
+      case 2:
+        _showMovementsFilterDialog(l);
+    }
+  }
+
+  void _showLevelsFilterDialog(AppLocalizations l) {
+    final company = ref.read(currentCompanyProvider);
+    if (company == null) return;
+
+    var belowMin = _filterBelowMin;
+    var zeroStock = _filterZeroStock;
+    var categoryIds = Set<String>.from(_filterLevelCategoryIds);
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) {
+          final hasFilters = belowMin || zeroStock || categoryIds.isNotEmpty;
+          return AlertDialog(
+            title: Text(l.filterTitle),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SwitchListTile(
+                    title: Text(l.inventoryFilterBelowMin),
+                    value: belowMin,
+                    onChanged: (v) => setDialogState(() => belowMin = v),
+                  ),
+                  SwitchListTile(
+                    title: Text(l.inventoryFilterZeroStock),
+                    value: zeroStock,
+                    onChanged: (v) => setDialogState(() => zeroStock = v),
+                  ),
+                  const Divider(),
+                  ListTile(
+                    title: Text(l.inventoryFilterCategory, style: Theme.of(ctx).textTheme.titleSmall),
+                    dense: true,
+                  ),
+                  StreamBuilder<List<CategoryModel>>(
+                    stream: ref.read(categoryRepositoryProvider).watchAll(company.id),
+                    builder: (ctx, snap) {
+                      final categories = snap.data ?? [];
+                      return Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          for (final cat in categories)
+                            CheckboxListTile(
+                              title: Text(cat.name),
+                              value: categoryIds.contains(cat.id),
+                              onChanged: (v) => setDialogState(() {
+                                if (v == true) {
+                                  categoryIds.add(cat.id);
+                                } else {
+                                  categoryIds.remove(cat.id);
+                                }
+                              }),
+                            ),
+                        ],
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              if (hasFilters)
+                OutlinedButton(
+                  onPressed: () {
+                    setState(() {
+                      _filterBelowMin = false;
+                      _filterZeroStock = false;
+                      _filterLevelCategoryIds = {};
+                    });
+                    Navigator.of(ctx).pop();
+                  },
+                  child: Text(l.filterReset),
+                ),
+              OutlinedButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: Text(l.actionCancel),
+              ),
+              FilledButton(
+                onPressed: () {
+                  setState(() {
+                    _filterBelowMin = belowMin;
+                    _filterZeroStock = zeroStock;
+                    _filterLevelCategoryIds = categoryIds;
+                  });
+                  Navigator.of(ctx).pop();
+                },
+                child: Text(l.actionConfirm),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  void _showDocumentsFilterDialog(AppLocalizations l) {
+    var docTypes = Set<StockDocumentType>.from(_filterDocTypes);
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: Text(l.inventoryFilterDocType),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (final type in StockDocumentType.values)
+                CheckboxListTile(
+                  title: Text(_documentTypeLabel(l, type)),
+                  value: docTypes.contains(type),
+                  onChanged: (v) => setDialogState(() {
+                    if (v == true) {
+                      docTypes.add(type);
+                    } else {
+                      docTypes.remove(type);
+                    }
+                  }),
+                ),
+            ],
+          ),
+          actions: [
+            if (docTypes.isNotEmpty)
+              OutlinedButton(
+                onPressed: () {
+                  setState(() => _filterDocTypes = {});
+                  Navigator.of(ctx).pop();
+                },
+                child: Text(l.filterReset),
+              ),
+            OutlinedButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: Text(l.actionCancel),
+            ),
+            FilledButton(
+              onPressed: () {
+                setState(() => _filterDocTypes = docTypes);
+                Navigator.of(ctx).pop();
+              },
+              child: Text(l.actionConfirm),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showMovementsFilterDialog(AppLocalizations l) {
+    final company = ref.read(currentCompanyProvider);
+    if (company == null) return;
+
+    var direction = _filterDirection;
+    var categoryIds = Set<String>.from(_filterMovementCategoryIds);
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) {
+          final hasFilters = direction != null || categoryIds.isNotEmpty;
+          return AlertDialog(
+            title: Text(l.filterTitle),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  RadioGroup<StockMovementDirection?>(
+                    groupValue: direction,
+                    onChanged: (v) => setDialogState(() => direction = v),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        RadioListTile<StockMovementDirection?>(
+                          title: Text(l.filterAll),
+                          value: null,
+                        ),
+                        RadioListTile<StockMovementDirection?>(
+                          title: Text(l.inventoryFilterInbound),
+                          value: StockMovementDirection.inbound,
+                        ),
+                        RadioListTile<StockMovementDirection?>(
+                          title: Text(l.inventoryFilterOutbound),
+                          value: StockMovementDirection.outbound,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Divider(),
+                  ListTile(
+                    title: Text(l.inventoryFilterCategory, style: Theme.of(ctx).textTheme.titleSmall),
+                    dense: true,
+                  ),
+                  StreamBuilder<List<CategoryModel>>(
+                    stream: ref.read(categoryRepositoryProvider).watchAll(company.id),
+                    builder: (ctx, snap) {
+                      final categories = snap.data ?? [];
+                      return Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          for (final cat in categories)
+                            CheckboxListTile(
+                              title: Text(cat.name),
+                              value: categoryIds.contains(cat.id),
+                              onChanged: (v) => setDialogState(() {
+                                if (v == true) {
+                                  categoryIds.add(cat.id);
+                                } else {
+                                  categoryIds.remove(cat.id);
+                                }
+                              }),
+                            ),
+                        ],
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              if (hasFilters)
+                OutlinedButton(
+                  onPressed: () {
+                    setState(() {
+                      _filterDirection = null;
+                      _filterMovementCategoryIds = {};
+                    });
+                    Navigator.of(ctx).pop();
+                  },
+                  child: Text(l.filterReset),
+                ),
+              OutlinedButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: Text(l.actionCancel),
+              ),
+              FilledButton(
+                onPressed: () {
+                  setState(() {
+                    _filterDirection = direction;
+                    _filterMovementCategoryIds = categoryIds;
+                  });
+                  Navigator.of(ctx).pop();
+                },
+                child: Text(l.actionConfirm),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  // --- Stock document & inventory dialogs ---
+
+  void _showNewDocumentDialog(BuildContext context) {
+    final l = context.l10n;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => SimpleDialog(
+        title: Text(l.inventoryNewDocumentTitle),
+        children: [
+          _DocumentTypeOption(
+            icon: Icons.add_box_outlined,
+            title: l.inventoryReceipt,
+            subtitle: l.inventoryReceiptDesc,
+            onTap: () {
+              Navigator.of(ctx).pop();
+              _openStockDocument(context, StockDocumentType.receipt);
+            },
+          ),
+          _DocumentTypeOption(
+            icon: Icons.remove_circle_outline,
+            title: l.inventoryWaste,
+            subtitle: l.inventoryWasteDesc,
+            onTap: () {
+              Navigator.of(ctx).pop();
+              _openStockDocument(context, StockDocumentType.waste);
+            },
+          ),
+          _DocumentTypeOption(
+            icon: Icons.edit_outlined,
+            title: l.inventoryCorrection,
+            subtitle: l.inventoryCorrectionDesc,
+            onTap: () {
+              Navigator.of(ctx).pop();
+              _openStockDocument(context, StockDocumentType.correction);
+            },
+          ),
+          _DocumentTypeOption(
+            icon: Icons.fact_check_outlined,
+            title: l.inventoryInventory,
+            subtitle: l.inventoryInventoryDesc,
+            onTap: () {
+              Navigator.of(ctx).pop();
+              _openInventoryDialog(context);
+            },
           ),
         ],
       ),
@@ -219,9 +681,25 @@ class _ScreenInventoryState extends ConsumerState<ScreenInventory>
 // --- Stock Levels Tab ---
 
 class _StockLevelsTab extends ConsumerWidget {
-  const _StockLevelsTab({required this.companyId, required this.warehouseId});
+  const _StockLevelsTab({
+    required this.companyId,
+    required this.warehouseId,
+    required this.query,
+    required this.filterBelowMin,
+    required this.filterZeroStock,
+    required this.filterCategoryIds,
+    required this.sortField,
+    required this.sortAsc,
+  });
+
   final String companyId;
   final String warehouseId;
+  final String query;
+  final bool filterBelowMin;
+  final bool filterZeroStock;
+  final Set<String> filterCategoryIds;
+  final _LevelsSortField sortField;
+  final bool sortAsc;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -230,7 +708,43 @@ class _StockLevelsTab extends ConsumerWidget {
     return StreamBuilder<List<StockLevelWithItem>>(
       stream: ref.watch(stockLevelRepositoryProvider).watchByWarehouse(companyId, warehouseId),
       builder: (context, snap) {
-        final levels = snap.data ?? [];
+        final allLevels = snap.data ?? [];
+        var levels = allLevels;
+
+        // Filter
+        if (filterBelowMin) {
+          levels = levels.where((item) {
+            final minQty = item.minQuantity;
+            return minQty != null && item.quantity < minQty;
+          }).toList();
+        }
+        if (filterZeroStock) {
+          levels = levels.where((item) => item.quantity == 0).toList();
+        }
+        if (filterCategoryIds.isNotEmpty) {
+          levels = levels.where((item) =>
+            item.categoryId != null && filterCategoryIds.contains(item.categoryId),
+          ).toList();
+        }
+
+        // Search
+        if (query.isNotEmpty) {
+          levels = levels.where((item) =>
+            normalizeSearch(item.itemName).contains(query),
+          ).toList();
+        }
+
+        // Sort
+        levels = List.of(levels);
+        levels.sort((a, b) {
+          final cmp = switch (sortField) {
+            _LevelsSortField.name => a.itemName.compareTo(b.itemName),
+            _LevelsSortField.quantity => a.quantity.compareTo(b.quantity),
+            _LevelsSortField.price => (a.purchasePrice ?? 0).compareTo(b.purchasePrice ?? 0),
+            _LevelsSortField.value => ((a.purchasePrice ?? 0) * a.quantity).compareTo((b.purchasePrice ?? 0) * b.quantity),
+          };
+          return sortAsc ? cmp : -cmp;
+        });
 
         int totalValue = 0;
         for (final item in levels) {
@@ -241,7 +755,11 @@ class _StockLevelsTab extends ConsumerWidget {
 
         return PosTable<StockLevelWithItem>(
           columns: [
-            PosColumn(label: l.inventoryColumnItem, flex: 3, cellBuilder: (item) => Text(item.itemName, overflow: TextOverflow.ellipsis)),
+            PosColumn(
+              label: l.inventoryColumnItem,
+              flex: 3,
+              cellBuilder: (item) => HighlightedText(item.itemName, query: query, overflow: TextOverflow.ellipsis),
+            ),
             PosColumn(label: l.inventoryColumnUnit, flex: 1, headerAlign: TextAlign.center, cellBuilder: (item) => Text(localizedUnitType(l, item.unit), textAlign: TextAlign.center)),
             PosColumn(
               label: l.inventoryColumnQuantity,
@@ -252,7 +770,7 @@ class _StockLevelsTab extends ConsumerWidget {
                 final minQty = item.minQuantity;
                 final isBelowMin = minQty != null && qty < minQty;
                 return Text(
-                  _formatQuantity(qty, ref),
+                  ref.fmtQty(qty),
                   textAlign: TextAlign.center,
                   style: isBelowMin
                       ? TextStyle(
@@ -268,7 +786,7 @@ class _StockLevelsTab extends ConsumerWidget {
               flex: 1,
               headerAlign: TextAlign.center,
               cellBuilder: (item) => Text(
-                item.minQuantity != null ? _formatQuantity(item.minQuantity!, ref) : '-',
+                item.minQuantity != null ? ref.fmtQty(item.minQuantity!) : '-',
                 textAlign: TextAlign.center,
               ),
             ),
@@ -313,17 +831,26 @@ class _StockLevelsTab extends ConsumerWidget {
       },
     );
   }
-
-  String _formatQuantity(double value, WidgetRef ref) => ref.fmtQty(value);
-
 }
 
 // --- Stock Documents Tab ---
 
 class _StockDocumentsTab extends ConsumerWidget {
-  const _StockDocumentsTab({required this.companyId, required this.warehouseId});
+  const _StockDocumentsTab({
+    required this.companyId,
+    required this.warehouseId,
+    required this.query,
+    required this.filterDocTypes,
+    required this.sortField,
+    required this.sortAsc,
+  });
+
   final String companyId;
   final String warehouseId;
+  final String query;
+  final Set<StockDocumentType> filterDocTypes;
+  final _DocumentsSortField sortField;
+  final bool sortAsc;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -332,7 +859,7 @@ class _StockDocumentsTab extends ConsumerWidget {
     return StreamBuilder<List<StockDocumentModel>>(
       stream: ref.watch(stockDocumentRepositoryProvider).watchByWarehouse(companyId, warehouseId),
       builder: (context, docSnap) {
-        final documents = docSnap.data ?? [];
+        final allDocuments = docSnap.data ?? [];
 
         // Resolve supplier names
         return StreamBuilder<List<SupplierModel>>(
@@ -341,20 +868,56 @@ class _StockDocumentsTab extends ConsumerWidget {
             final suppliers = suppSnap.data ?? [];
             final supplierMap = {for (final s in suppliers) s.id: s.supplierName};
 
+            var documents = allDocuments;
+
+            // Filter by doc type
+            if (filterDocTypes.isNotEmpty) {
+              documents = documents.where((doc) => filterDocTypes.contains(doc.type)).toList();
+            }
+
+            // Search
+            if (query.isNotEmpty) {
+              documents = documents.where((doc) {
+                return normalizeSearch(doc.documentNumber).contains(query) ||
+                    (doc.supplierId != null && normalizeSearch(supplierMap[doc.supplierId] ?? '').contains(query)) ||
+                    (doc.note != null && normalizeSearch(doc.note!).contains(query));
+              }).toList();
+            }
+
+            // Sort
+            documents = List.of(documents);
+            documents.sort((a, b) {
+              final cmp = switch (sortField) {
+                _DocumentsSortField.date => a.documentDate.compareTo(b.documentDate),
+                _DocumentsSortField.number => a.documentNumber.compareTo(b.documentNumber),
+                _DocumentsSortField.type => a.type.index.compareTo(b.type.index),
+                _DocumentsSortField.amount => a.totalAmount.compareTo(b.totalAmount),
+              };
+              return sortAsc ? cmp : -cmp;
+            });
+
             return PosTable<StockDocumentModel>(
               columns: [
-                PosColumn(label: l.documentColumnNumber, flex: 2, cellBuilder: (doc) => Text(doc.documentNumber, overflow: TextOverflow.ellipsis)),
+                PosColumn(
+                  label: l.documentColumnNumber,
+                  flex: 2,
+                  cellBuilder: (doc) => HighlightedText(doc.documentNumber, query: query, overflow: TextOverflow.ellipsis),
+                ),
                 PosColumn(label: l.documentColumnType, flex: 2, cellBuilder: (doc) => Text(_documentTypeLabel(l, doc.type), overflow: TextOverflow.ellipsis)),
                 PosColumn(label: l.documentColumnDate, flex: 2, cellBuilder: (doc) => Text(ref.fmtDateTime(doc.documentDate), overflow: TextOverflow.ellipsis)),
                 PosColumn(
                   label: l.documentColumnSupplier,
                   flex: 2,
-                  cellBuilder: (doc) => Text(
-                    doc.supplierId != null ? (supplierMap[doc.supplierId] ?? '-') : '-',
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  cellBuilder: (doc) {
+                    final name = doc.supplierId != null ? (supplierMap[doc.supplierId] ?? '-') : '-';
+                    return HighlightedText(name, query: query, overflow: TextOverflow.ellipsis);
+                  },
                 ),
-                PosColumn(label: l.documentColumnNote, flex: 2, cellBuilder: (doc) => Text(doc.note ?? '-', overflow: TextOverflow.ellipsis)),
+                PosColumn(
+                  label: l.documentColumnNote,
+                  flex: 2,
+                  cellBuilder: (doc) => HighlightedText(doc.note ?? '-', query: query, overflow: TextOverflow.ellipsis),
+                ),
                 PosColumn(
                   label: l.documentColumnTotal,
                   flex: 1,
@@ -373,143 +936,126 @@ class _StockDocumentsTab extends ConsumerWidget {
       },
     );
   }
-
-  String _documentTypeLabel(AppLocalizations l, StockDocumentType type) {
-    return switch (type) {
-      StockDocumentType.receipt => l.documentTypeReceipt,
-      StockDocumentType.waste => l.documentTypeWaste,
-      StockDocumentType.inventory => l.documentTypeInventory,
-      StockDocumentType.correction => l.documentTypeCorrection,
-    };
-  }
 }
 
 // --- Stock Movements Tab ---
 
-class _StockMovementsTab extends ConsumerStatefulWidget {
-  const _StockMovementsTab({required this.companyId});
+class _StockMovementsTab extends ConsumerWidget {
+  const _StockMovementsTab({
+    required this.companyId,
+    required this.query,
+    required this.filterDirection,
+    required this.filterCategoryIds,
+    required this.sortField,
+    required this.sortAsc,
+  });
+
   final String companyId;
+  final String query;
+  final StockMovementDirection? filterDirection;
+  final Set<String> filterCategoryIds;
+  final _MovementsSortField sortField;
+  final bool sortAsc;
 
   @override
-  ConsumerState<_StockMovementsTab> createState() => _StockMovementsTabState();
-}
-
-class _StockMovementsTabState extends ConsumerState<_StockMovementsTab> {
-  final _searchController = TextEditingController();
-  String _query = '';
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
 
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: TextField(
-            controller: _searchController,
-            decoration: InputDecoration(
-              hintText: l.searchHint,
-              prefixIcon: const Icon(Icons.search),
-              suffixIcon: _query.isNotEmpty
-                  ? IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () {
-                        _searchController.clear();
-                        setState(() => _query = '');
-                      },
-                    )
-                  : null,
-              isDense: true,
-              border: const OutlineInputBorder(),
-            ),
-            onChanged: (v) => setState(() => _query = normalizeSearch(v)),
-          ),
-        ),
-        // Movements table
-        Expanded(
-          child: StreamBuilder<List<StockMovementWithItem>>(
-            stream: ref.watch(stockMovementRepositoryProvider).watchByCompany(
-                  widget.companyId,
-                ),
-            builder: (context, snap) {
-              var movements = snap.data ?? [];
-              if (_query.isNotEmpty) {
-                movements = movements.where((m) {
-                  return normalizeSearch(m.itemName).contains(_query) ||
-                      (m.documentNumber != null && normalizeSearch(m.documentNumber!).contains(_query));
-                }).toList();
-              }
+    return StreamBuilder<List<StockMovementWithItem>>(
+      stream: ref.watch(stockMovementRepositoryProvider).watchByCompany(companyId),
+      builder: (context, snap) {
+        final allMovements = snap.data ?? [];
+        var movements = allMovements;
 
-              return PosTable<StockMovementWithItem>(
-                columns: [
-                  PosColumn(
-                    label: l.movementColumnDate,
-                    flex: 2,
-                    cellBuilder: (item) => Text(
-                      ref.fmtDateTime(item.movement.createdAt),
-                      overflow: TextOverflow.ellipsis,
-                    ),
+        // Filter by direction
+        if (filterDirection != null) {
+          movements = movements.where((m) => m.movement.direction == filterDirection).toList();
+        }
+        if (filterCategoryIds.isNotEmpty) {
+          movements = movements.where((m) =>
+            m.categoryId != null && filterCategoryIds.contains(m.categoryId),
+          ).toList();
+        }
+
+        // Search
+        if (query.isNotEmpty) {
+          movements = movements.where((m) {
+            return normalizeSearch(m.itemName).contains(query) ||
+                (m.documentNumber != null && normalizeSearch(m.documentNumber!).contains(query));
+          }).toList();
+        }
+
+        // Sort
+        movements = List.of(movements);
+        movements.sort((a, b) {
+          final cmp = switch (sortField) {
+            _MovementsSortField.date => a.movement.createdAt.compareTo(b.movement.createdAt),
+            _MovementsSortField.item => a.itemName.compareTo(b.itemName),
+            _MovementsSortField.quantity => a.movement.quantity.compareTo(b.movement.quantity),
+          };
+          return sortAsc ? cmp : -cmp;
+        });
+
+        return PosTable<StockMovementWithItem>(
+          columns: [
+            PosColumn(
+              label: l.movementColumnDate,
+              flex: 2,
+              cellBuilder: (item) => Text(
+                ref.fmtDateTime(item.movement.createdAt),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            PosColumn(
+              label: l.movementColumnItem,
+              flex: 3,
+              cellBuilder: (item) => HighlightedText(
+                item.itemName,
+                query: query,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            PosColumn(
+              label: l.movementColumnQuantity,
+              flex: 1,
+              headerAlign: TextAlign.center,
+              cellBuilder: (item) {
+                final isInbound = item.movement.direction == StockMovementDirection.inbound;
+                final sign = isInbound ? '+' : '-';
+                return Text(
+                  '$sign${ref.fmtQty(item.movement.quantity)}',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: isInbound
+                        ? Theme.of(context).colorScheme.primary
+                        : Theme.of(context).colorScheme.error,
+                    fontWeight: FontWeight.bold,
                   ),
-                  PosColumn(
-                    label: l.movementColumnItem,
-                    flex: 3,
-                    cellBuilder: (item) => HighlightedText(
-                      item.itemName,
-                      query: _query,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  PosColumn(
-                    label: l.movementColumnQuantity,
-                    flex: 1,
-                    headerAlign: TextAlign.center,
-                    cellBuilder: (item) {
-                      final isInbound = item.movement.direction == StockMovementDirection.inbound;
-                      final sign = isInbound ? '+' : '-';
-                      return Text(
-                        '$sign${_formatQuantity(item.movement.quantity, ref)}',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: isInbound
-                              ? Theme.of(context).colorScheme.primary
-                              : Theme.of(context).colorScheme.error,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      );
-                    },
-                  ),
-                  PosColumn(
-                    label: l.movementColumnType,
-                    flex: 2,
-                    cellBuilder: (item) => Text(
-                      _movementTypeLabel(l, item),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  PosColumn(
-                    label: l.movementColumnDocument,
-                    flex: 2,
-                    cellBuilder: (item) => HighlightedText(
-                      item.documentNumber ?? '-',
-                      query: _query,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-                items: movements,
-                emptyMessage: l.movementNoMovements,
-              );
-            },
-          ),
-        ),
-      ],
+                );
+              },
+            ),
+            PosColumn(
+              label: l.movementColumnType,
+              flex: 2,
+              cellBuilder: (item) => Text(
+                _movementTypeLabel(l, item),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            PosColumn(
+              label: l.movementColumnDocument,
+              flex: 2,
+              cellBuilder: (item) => HighlightedText(
+                item.documentNumber ?? '-',
+                query: query,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+          items: movements,
+          emptyMessage: l.movementNoMovements,
+        );
+      },
     );
   }
 
@@ -526,6 +1072,47 @@ class _StockMovementsTabState extends ConsumerState<_StockMovementsTab> {
         ? l.movementTypeSale
         : l.movementTypeReversal;
   }
+}
 
-  String _formatQuantity(double value, WidgetRef ref) => ref.fmtQty(value);
+// --- Document type selection option ---
+
+class _DocumentTypeOption extends StatelessWidget {
+  const _DocumentTypeOption({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return SimpleDialogOption(
+      onPressed: onTap,
+      child: Row(
+        children: [
+          Icon(icon, size: 28),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: Theme.of(context).textTheme.titleSmall),
+                Text(
+                  subtitle,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

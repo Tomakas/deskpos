@@ -13,6 +13,7 @@ import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/utils/formatters.dart';
+import '../../../core/utils/formatting_ext.dart';
 import '../../../core/utils/unit_type_l10n.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
@@ -40,6 +41,16 @@ class _DialogStockDocumentState extends ConsumerState<DialogStockDocument> {
   final _noteController = TextEditingController();
   final _lines = <_LineItem>[];
   bool _saving = false;
+  late DateTime _selectedDate;
+  late TimeOfDay _selectedTime;
+
+  @override
+  void initState() {
+    super.initState();
+    final now = DateTime.now();
+    _selectedDate = now;
+    _selectedTime = TimeOfDay.fromDateTime(now);
+  }
 
   @override
   void dispose() {
@@ -117,6 +128,28 @@ class _DialogStockDocumentState extends ConsumerState<DialogStockDocument> {
         TextField(
           controller: _noteController,
           decoration: InputDecoration(labelText: l.stockDocumentNote),
+        ),
+        const SizedBox(height: 12),
+
+        // Document date + time
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: _pickDate,
+                icon: const Icon(Icons.calendar_today, size: 18),
+                label: Text(ref.fmtDate(_selectedDate)),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: _pickTime,
+                icon: const Icon(Icons.access_time, size: 18),
+                label: Text(_selectedTime.format(context)),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 16),
 
@@ -289,6 +322,36 @@ class _DialogStockDocumentState extends ConsumerState<DialogStockDocument> {
     );
   }
 
+  DateTime get _combinedDateTime => DateTime(
+        _selectedDate.year,
+        _selectedDate.month,
+        _selectedDate.day,
+        _selectedTime.hour,
+        _selectedTime.minute,
+      );
+
+  Future<void> _pickDate() async {
+    final result = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+    );
+    if (result != null && mounted) {
+      setState(() => _selectedDate = result);
+    }
+  }
+
+  Future<void> _pickTime() async {
+    final result = await showTimePicker(
+      context: context,
+      initialTime: _selectedTime,
+    );
+    if (result != null && mounted) {
+      setState(() => _selectedTime = result);
+    }
+  }
+
   Future<void> _save(BuildContext context) async {
     setState(() => _saving = true);
 
@@ -328,6 +391,7 @@ class _DialogStockDocumentState extends ConsumerState<DialogStockDocument> {
           documentStrategy: isReceipt ? _documentStrategy : null,
           supplierId: _selectedSupplierId,
           note: _noteController.text.isEmpty ? null : _noteController.text,
+          documentDate: _combinedDateTime,
           lines: lines,
         );
 

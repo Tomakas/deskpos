@@ -11440,6 +11440,17 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _minQuantityMeta = const VerificationMeta(
+    'minQuantity',
+  );
+  @override
+  late final GeneratedColumn<double> minQuantity = GeneratedColumn<double>(
+    'min_quantity',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _manufacturerIdMeta = const VerificationMeta(
     'manufacturerId',
   );
@@ -11499,6 +11510,7 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
     purchaseTaxRateId,
     isOnSale,
     isStockTracked,
+    minQuantity,
     manufacturerId,
     supplierId,
     parentId,
@@ -11676,6 +11688,15 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
         ),
       );
     }
+    if (data.containsKey('min_quantity')) {
+      context.handle(
+        _minQuantityMeta,
+        minQuantity.isAcceptableOrUnknown(
+          data['min_quantity']!,
+          _minQuantityMeta,
+        ),
+      );
+    }
     if (data.containsKey('manufacturer_id')) {
       context.handle(
         _manufacturerIdMeta,
@@ -11806,6 +11827,10 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
         DriftSqlType.bool,
         data['${effectivePrefix}is_stock_tracked'],
       )!,
+      minQuantity: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}min_quantity'],
+      ),
       manufacturerId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}manufacturer_id'],
@@ -11857,6 +11882,7 @@ class Item extends DataClass implements Insertable<Item> {
   final String? purchaseTaxRateId;
   final bool isOnSale;
   final bool isStockTracked;
+  final double? minQuantity;
   final String? manufacturerId;
   final String? supplierId;
   final String? parentId;
@@ -11885,6 +11911,7 @@ class Item extends DataClass implements Insertable<Item> {
     this.purchaseTaxRateId,
     required this.isOnSale,
     required this.isStockTracked,
+    this.minQuantity,
     this.manufacturerId,
     this.supplierId,
     this.parentId,
@@ -11944,6 +11971,9 @@ class Item extends DataClass implements Insertable<Item> {
     }
     map['is_on_sale'] = Variable<bool>(isOnSale);
     map['is_stock_tracked'] = Variable<bool>(isStockTracked);
+    if (!nullToAbsent || minQuantity != null) {
+      map['min_quantity'] = Variable<double>(minQuantity);
+    }
     if (!nullToAbsent || manufacturerId != null) {
       map['manufacturer_id'] = Variable<String>(manufacturerId);
     }
@@ -12002,6 +12032,9 @@ class Item extends DataClass implements Insertable<Item> {
           : Value(purchaseTaxRateId),
       isOnSale: Value(isOnSale),
       isStockTracked: Value(isStockTracked),
+      minQuantity: minQuantity == null && nullToAbsent
+          ? const Value.absent()
+          : Value(minQuantity),
       manufacturerId: manufacturerId == null && nullToAbsent
           ? const Value.absent()
           : Value(manufacturerId),
@@ -12050,6 +12083,7 @@ class Item extends DataClass implements Insertable<Item> {
       ),
       isOnSale: serializer.fromJson<bool>(json['isOnSale']),
       isStockTracked: serializer.fromJson<bool>(json['isStockTracked']),
+      minQuantity: serializer.fromJson<double?>(json['minQuantity']),
       manufacturerId: serializer.fromJson<String?>(json['manufacturerId']),
       supplierId: serializer.fromJson<String?>(json['supplierId']),
       parentId: serializer.fromJson<String?>(json['parentId']),
@@ -12087,6 +12121,7 @@ class Item extends DataClass implements Insertable<Item> {
       'purchaseTaxRateId': serializer.toJson<String?>(purchaseTaxRateId),
       'isOnSale': serializer.toJson<bool>(isOnSale),
       'isStockTracked': serializer.toJson<bool>(isStockTracked),
+      'minQuantity': serializer.toJson<double?>(minQuantity),
       'manufacturerId': serializer.toJson<String?>(manufacturerId),
       'supplierId': serializer.toJson<String?>(supplierId),
       'parentId': serializer.toJson<String?>(parentId),
@@ -12118,6 +12153,7 @@ class Item extends DataClass implements Insertable<Item> {
     Value<String?> purchaseTaxRateId = const Value.absent(),
     bool? isOnSale,
     bool? isStockTracked,
+    Value<double?> minQuantity = const Value.absent(),
     Value<String?> manufacturerId = const Value.absent(),
     Value<String?> supplierId = const Value.absent(),
     Value<String?> parentId = const Value.absent(),
@@ -12156,6 +12192,7 @@ class Item extends DataClass implements Insertable<Item> {
         : this.purchaseTaxRateId,
     isOnSale: isOnSale ?? this.isOnSale,
     isStockTracked: isStockTracked ?? this.isStockTracked,
+    minQuantity: minQuantity.present ? minQuantity.value : this.minQuantity,
     manufacturerId: manufacturerId.present
         ? manufacturerId.value
         : this.manufacturerId,
@@ -12208,6 +12245,9 @@ class Item extends DataClass implements Insertable<Item> {
       isStockTracked: data.isStockTracked.present
           ? data.isStockTracked.value
           : this.isStockTracked,
+      minQuantity: data.minQuantity.present
+          ? data.minQuantity.value
+          : this.minQuantity,
       manufacturerId: data.manufacturerId.present
           ? data.manufacturerId.value
           : this.manufacturerId,
@@ -12245,6 +12285,7 @@ class Item extends DataClass implements Insertable<Item> {
           ..write('purchaseTaxRateId: $purchaseTaxRateId, ')
           ..write('isOnSale: $isOnSale, ')
           ..write('isStockTracked: $isStockTracked, ')
+          ..write('minQuantity: $minQuantity, ')
           ..write('manufacturerId: $manufacturerId, ')
           ..write('supplierId: $supplierId, ')
           ..write('parentId: $parentId')
@@ -12278,6 +12319,7 @@ class Item extends DataClass implements Insertable<Item> {
     purchaseTaxRateId,
     isOnSale,
     isStockTracked,
+    minQuantity,
     manufacturerId,
     supplierId,
     parentId,
@@ -12310,6 +12352,7 @@ class Item extends DataClass implements Insertable<Item> {
           other.purchaseTaxRateId == this.purchaseTaxRateId &&
           other.isOnSale == this.isOnSale &&
           other.isStockTracked == this.isStockTracked &&
+          other.minQuantity == this.minQuantity &&
           other.manufacturerId == this.manufacturerId &&
           other.supplierId == this.supplierId &&
           other.parentId == this.parentId);
@@ -12340,6 +12383,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
   final Value<String?> purchaseTaxRateId;
   final Value<bool> isOnSale;
   final Value<bool> isStockTracked;
+  final Value<double?> minQuantity;
   final Value<String?> manufacturerId;
   final Value<String?> supplierId;
   final Value<String?> parentId;
@@ -12369,6 +12413,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     this.purchaseTaxRateId = const Value.absent(),
     this.isOnSale = const Value.absent(),
     this.isStockTracked = const Value.absent(),
+    this.minQuantity = const Value.absent(),
     this.manufacturerId = const Value.absent(),
     this.supplierId = const Value.absent(),
     this.parentId = const Value.absent(),
@@ -12399,6 +12444,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     this.purchaseTaxRateId = const Value.absent(),
     this.isOnSale = const Value.absent(),
     this.isStockTracked = const Value.absent(),
+    this.minQuantity = const Value.absent(),
     this.manufacturerId = const Value.absent(),
     this.supplierId = const Value.absent(),
     this.parentId = const Value.absent(),
@@ -12433,6 +12479,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     Expression<String>? purchaseTaxRateId,
     Expression<bool>? isOnSale,
     Expression<bool>? isStockTracked,
+    Expression<double>? minQuantity,
     Expression<String>? manufacturerId,
     Expression<String>? supplierId,
     Expression<String>? parentId,
@@ -12463,6 +12510,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
       if (purchaseTaxRateId != null) 'purchase_tax_rate_id': purchaseTaxRateId,
       if (isOnSale != null) 'is_on_sale': isOnSale,
       if (isStockTracked != null) 'is_stock_tracked': isStockTracked,
+      if (minQuantity != null) 'min_quantity': minQuantity,
       if (manufacturerId != null) 'manufacturer_id': manufacturerId,
       if (supplierId != null) 'supplier_id': supplierId,
       if (parentId != null) 'parent_id': parentId,
@@ -12495,6 +12543,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     Value<String?>? purchaseTaxRateId,
     Value<bool>? isOnSale,
     Value<bool>? isStockTracked,
+    Value<double?>? minQuantity,
     Value<String?>? manufacturerId,
     Value<String?>? supplierId,
     Value<String?>? parentId,
@@ -12525,6 +12574,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
       purchaseTaxRateId: purchaseTaxRateId ?? this.purchaseTaxRateId,
       isOnSale: isOnSale ?? this.isOnSale,
       isStockTracked: isStockTracked ?? this.isStockTracked,
+      minQuantity: minQuantity ?? this.minQuantity,
       manufacturerId: manufacturerId ?? this.manufacturerId,
       supplierId: supplierId ?? this.supplierId,
       parentId: parentId ?? this.parentId,
@@ -12611,6 +12661,9 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     if (isStockTracked.present) {
       map['is_stock_tracked'] = Variable<bool>(isStockTracked.value);
     }
+    if (minQuantity.present) {
+      map['min_quantity'] = Variable<double>(minQuantity.value);
+    }
     if (manufacturerId.present) {
       map['manufacturer_id'] = Variable<String>(manufacturerId.value);
     }
@@ -12653,6 +12706,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
           ..write('purchaseTaxRateId: $purchaseTaxRateId, ')
           ..write('isOnSale: $isOnSale, ')
           ..write('isStockTracked: $isStockTracked, ')
+          ..write('minQuantity: $minQuantity, ')
           ..write('manufacturerId: $manufacturerId, ')
           ..write('supplierId: $supplierId, ')
           ..write('parentId: $parentId, ')
@@ -48081,6 +48135,7 @@ typedef $$ItemsTableCreateCompanionBuilder =
       Value<String?> purchaseTaxRateId,
       Value<bool> isOnSale,
       Value<bool> isStockTracked,
+      Value<double?> minQuantity,
       Value<String?> manufacturerId,
       Value<String?> supplierId,
       Value<String?> parentId,
@@ -48112,6 +48167,7 @@ typedef $$ItemsTableUpdateCompanionBuilder =
       Value<String?> purchaseTaxRateId,
       Value<bool> isOnSale,
       Value<bool> isStockTracked,
+      Value<double?> minQuantity,
       Value<String?> manufacturerId,
       Value<String?> supplierId,
       Value<String?> parentId,
@@ -48245,6 +48301,11 @@ class $$ItemsTableFilterComposer extends Composer<_$AppDatabase, $ItemsTable> {
 
   ColumnFilters<bool> get isStockTracked => $composableBuilder(
     column: $table.isStockTracked,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get minQuantity => $composableBuilder(
+    column: $table.minQuantity,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -48393,6 +48454,11 @@ class $$ItemsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<double> get minQuantity => $composableBuilder(
+    column: $table.minQuantity,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get manufacturerId => $composableBuilder(
     column: $table.manufacturerId,
     builder: (column) => ColumnOrderings(column),
@@ -48510,6 +48576,11 @@ class $$ItemsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<double> get minQuantity => $composableBuilder(
+    column: $table.minQuantity,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get manufacturerId => $composableBuilder(
     column: $table.manufacturerId,
     builder: (column) => column,
@@ -48576,6 +48647,7 @@ class $$ItemsTableTableManager
                 Value<String?> purchaseTaxRateId = const Value.absent(),
                 Value<bool> isOnSale = const Value.absent(),
                 Value<bool> isStockTracked = const Value.absent(),
+                Value<double?> minQuantity = const Value.absent(),
                 Value<String?> manufacturerId = const Value.absent(),
                 Value<String?> supplierId = const Value.absent(),
                 Value<String?> parentId = const Value.absent(),
@@ -48605,6 +48677,7 @@ class $$ItemsTableTableManager
                 purchaseTaxRateId: purchaseTaxRateId,
                 isOnSale: isOnSale,
                 isStockTracked: isStockTracked,
+                minQuantity: minQuantity,
                 manufacturerId: manufacturerId,
                 supplierId: supplierId,
                 parentId: parentId,
@@ -48636,6 +48709,7 @@ class $$ItemsTableTableManager
                 Value<String?> purchaseTaxRateId = const Value.absent(),
                 Value<bool> isOnSale = const Value.absent(),
                 Value<bool> isStockTracked = const Value.absent(),
+                Value<double?> minQuantity = const Value.absent(),
                 Value<String?> manufacturerId = const Value.absent(),
                 Value<String?> supplierId = const Value.absent(),
                 Value<String?> parentId = const Value.absent(),
@@ -48665,6 +48739,7 @@ class $$ItemsTableTableManager
                 purchaseTaxRateId: purchaseTaxRateId,
                 isOnSale: isOnSale,
                 isStockTracked: isStockTracked,
+                minQuantity: minQuantity,
                 manufacturerId: manufacturerId,
                 supplierId: supplierId,
                 parentId: parentId,

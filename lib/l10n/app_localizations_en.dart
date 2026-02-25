@@ -1496,6 +1496,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get inventoryNoItems => 'No tracked items';
 
   @override
+  String get inventoryNewDocument => 'New Document';
+
+  @override
+  String get inventoryNewDocumentTitle => 'Select Document Type';
+
+  @override
+  String get inventoryReceiptDesc => 'Record incoming goods from a supplier';
+
+  @override
+  String get inventoryWasteDesc => 'Write off damaged or expired goods';
+
+  @override
+  String get inventoryCorrectionDesc => 'Manually adjust stock quantities';
+
+  @override
+  String get inventoryInventoryDesc => 'Physical stock count and comparison';
+
+  @override
   String get stockDocumentTitle => 'Stock Document';
 
   @override
@@ -3661,4 +3679,91 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ordersSortDesc => 'Newest first';
+
+  @override
+  String get peripheralsTitle => 'Peripherals';
+
+  @override
+  String get peripheralsScanner => 'Scanner';
+
+  @override
+  String get peripheralsScannerConnection => 'Connection';
+
+  @override
+  String get peripheralsScannerEnabled => 'Scanner enabled';
+
+  @override
+  String get peripheralsCashDrawer => 'Cash Drawer';
+
+  @override
+  String get peripheralsCashDrawerOpenOnPayment => 'Open on payment';
+
+  @override
+  String get peripheralsCashDrawerConnection => 'Connection';
+
+  @override
+  String get peripheralsPrinter => 'Receipt Printer';
+
+  @override
+  String get peripheralsPrinterConnection => 'Connection';
+
+  @override
+  String get peripheralsPrinterAutoPrint => 'Auto-print receipt';
+
+  @override
+  String get peripheralsTerminal => 'Payment Terminal';
+
+  @override
+  String get peripheralsTerminalConnection => 'Connection';
+
+  @override
+  String get peripheralsNotConfigured => 'Not configured';
+
+  @override
+  String get inventoryFilterBelowMin => 'Below minimum';
+
+  @override
+  String get inventoryFilterZeroStock => 'Zero stock';
+
+  @override
+  String get inventoryFilterDocType => 'Document type';
+
+  @override
+  String get inventoryFilterDirection => 'Direction';
+
+  @override
+  String get inventoryFilterInbound => 'Inbound';
+
+  @override
+  String get inventoryFilterOutbound => 'Outbound';
+
+  @override
+  String get inventoryFilterCategory => 'Category';
+
+  @override
+  String get inventorySortName => 'Name';
+
+  @override
+  String get inventorySortQuantity => 'Quantity';
+
+  @override
+  String get inventorySortPrice => 'Purchase price';
+
+  @override
+  String get inventorySortValue => 'Total value';
+
+  @override
+  String get inventorySortDate => 'Date';
+
+  @override
+  String get inventorySortNumber => 'Number';
+
+  @override
+  String get inventorySortType => 'Type';
+
+  @override
+  String get inventorySortAmount => 'Amount';
+
+  @override
+  String get inventorySortItem => 'Item';
 }

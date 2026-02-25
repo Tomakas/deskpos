@@ -600,7 +600,7 @@ BEGIN
   LOOP
     INSERT INTO items (id, company_id, category_id, name, description, item_type, sku, unit_price,
                        sale_tax_rate_id, is_sellable, is_active, unit, alt_sku, purchase_price,
-                       purchase_tax_rate_id, is_stock_tracked, manufacturer_id, supplier_id, parent_id,
+                       purchase_tax_rate_id, is_stock_tracked, min_quantity, manufacturer_id, supplier_id, parent_id,
                        client_created_at, client_updated_at)
     VALUES (
       (SELECT id FROM _ref_map WHERE ref = v_rec.ref),
@@ -628,6 +628,7 @@ BEGIN
         ELSE NULL
       END,
       COALESCE((v_rec.data->>'is_stock_tracked')::boolean, false),
+      (v_rec.data->>'min_quantity')::double precision,
       CASE WHEN v_rec.data->>'manufacturer_ref' IS NOT NULL
         THEN (SELECT id FROM _ref_map WHERE ref = v_rec.data->>'manufacturer_ref')
         ELSE NULL

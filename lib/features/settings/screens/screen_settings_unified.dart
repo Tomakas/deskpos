@@ -11,6 +11,7 @@ import '../widgets/log_tab.dart';
 import '../widgets/mode_tab.dart';
 import '../widgets/payment_methods_tab.dart';
 import '../widgets/register_tab.dart';
+import '../widgets/peripherals_tab.dart';
 import '../widgets/registers_tab.dart';
 import '../widgets/sections_tab.dart';
 import '../widgets/security_tab.dart';
@@ -130,7 +131,7 @@ class _ScreenSettingsUnifiedState extends ConsumerState<ScreenSettingsUnified>
       case _TopTab.venue:
         return 4;
       case _TopTab.register:
-        return 2;
+        return 3;
     }
   }
 
@@ -213,6 +214,7 @@ class _ScreenSettingsUnifiedState extends ConsumerState<ScreenSettingsUnified>
         return [
           Tab(text: l.modeTitle),
           Tab(text: l.sellTitle),
+          Tab(text: l.peripheralsTitle),
         ];
     }
   }
@@ -240,6 +242,7 @@ class _ScreenSettingsUnifiedState extends ConsumerState<ScreenSettingsUnified>
         return const [
           ModeTab(),
           RegisterTab(),
+          PeripheralsTab(),
         ];
     }
   }

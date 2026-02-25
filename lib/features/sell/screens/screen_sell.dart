@@ -897,8 +897,8 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     ItemModel selectedItem = item;
     if (item.itemType == ItemType.product) {
       final variants = await ref.read(itemRepositoryProvider).watchVariants(item.id).first;
+      if (!mounted) return;
       if (variants.isNotEmpty) {
-        if (!mounted) return;
         final selected = await _showVariantPickerDialog(item, variants);
         if (selected == null || !mounted) return;
         selectedItem = selected;

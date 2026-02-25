@@ -140,7 +140,7 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
                               trailing: [
                                 IconButton(
                                   icon: Icon(
-                                    Icons.filter_list,
+                                    Icons.filter_alt_outlined,
                                     color: _hasActiveFilters
                                         ? theme.colorScheme.primary
                                         : null,
@@ -408,6 +408,8 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
     var isActive = existing?.isActive ?? true;
     var isOnSale = existing?.isOnSale ?? true;
     var isStockTracked = existing?.isStockTracked ?? false;
+    final minQuantityCtrl = TextEditingController(
+        text: existing?.minQuantity?.toString() ?? '');
     var supplierId = existing?.supplierId;
     var manufacturerId = existing?.manufacturerId;
     var purchaseTaxRateId = existing?.purchaseTaxRateId;
@@ -612,6 +614,14 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
               value: isStockTracked,
               onChanged: (v) => setDialogState(() => isStockTracked = v),
             ),
+            if (isStockTracked) ...[
+              const SizedBox(height: 12),
+              TextField(
+                controller: minQuantityCtrl,
+                decoration: InputDecoration(labelText: l.inventoryColumnMinQuantity),
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              ),
+            ],
             // Variants section — only for existing products
             if (existing != null && existing.itemType == ItemType.product)
               _VariantsExpansionTile(
@@ -654,6 +664,9 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
     final purchasePriceCents = purchasePriceCtrl.text.trim().isNotEmpty
         ? parseMoney(purchasePriceCtrl.text, currency)
         : null;
+    final minQuantityValue = minQuantityCtrl.text.trim().isNotEmpty
+        ? double.tryParse(minQuantityCtrl.text.trim().replaceAll(',', '.'))
+        : null;
 
     final descriptionValue = descriptionCtrl.text.trim().isNotEmpty ? descriptionCtrl.text.trim() : null;
     final skuValue = skuCtrl.text.trim().isNotEmpty ? skuCtrl.text.trim() : null;
@@ -675,6 +688,7 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
         purchaseTaxRateId: purchaseTaxRateId,
         isOnSale: isOnSale,
         isStockTracked: isStockTracked,
+        minQuantity: minQuantityValue,
         manufacturerId: manufacturerId,
         supplierId: supplierId,
         parentId: parentId,
@@ -697,6 +711,7 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
         purchaseTaxRateId: purchaseTaxRateId,
         isOnSale: isOnSale,
         isStockTracked: isStockTracked,
+        minQuantity: minQuantityValue,
         manufacturerId: manufacturerId,
         supplierId: supplierId,
         parentId: parentId,

@@ -1,5 +1,36 @@
 # Changelog
 
+## 2026-02-25 (late night) — TMR Audit
+
+### Code fixes
+- Fixed `wipe/index.ts`: added `.is("deleted_at", null)` to company lookup (prevented finding soft-deleted companies)
+- Fixed `screen_sell.dart`: moved mounted check before `variants.isNotEmpty` block to guard async gap when variants is empty
+
+### Documentation
+- **PROJECT.md Task3.40**: Fixed stale broadcast trigger count (36 → 38)
+- **PROJECT.md demo error handling**: Replaced incorrect SnackBar reference with "inline chybovou hlášku" (no SnackBar in code, contradicted no-notification rule)
+- **PROJECT.md PosTable**: Updated usage count from (35/20 files) to (33/25 files)
+
+## 2026-02-25 (night) — Documentation Audit v2
+
+### Documentation
+- **PROJECT.md audit v2**: 22 findings (0 critical, 1 high, 7 medium, 9 low, 5 doc debt)
+- **Customer Display**: Rewrote state section — 3 sealed class variants (DisplayIdle, DisplayItems, DisplayMessage) via Supabase Broadcast, replaced stale 4-state activeBillId-driven description
+- **Dialog count**: 29 → 31 (27 migrated + 4 custom layout)
+- **Sync lifecycle**: Removed non-existent "Connectivity restored → forceSyncNow" edge, added missing steps (resetFailed, deleteCompleted, RealtimeService.start)
+- **BillStatus diagram**: Added refundItem() path for paid → refunded
+- **PrepStatus**: Added note about markReady/markDelivered having no source-state guards
+- **Routes**: Added `/settings` → ScreenSettingsUnified with permission guards
+- **Prodejní entity**: Clarified payments/order_items sync delegation to parent repos
+- **set_server_timestamps**: Corrected scope to 43 tables (42 domain + sync_queue)
+- **Core widgets**: Added HighlightedText to file tree
+- **DALŠÍ menu**: Updated to use unified `/settings` route
+
+### Code fixes
+- Fixed stale comment in `realtime_service.dart` (36 → 38 tables)
+- Fixed misleading permission code in `permission_providers.dart` comment (`orders.void` → `orders.void_item`)
+- Renamed duplicate migration `20260225_003_update_demo_function.sql` → `20260225_004_update_demo_function.sql`
+
 ## 2026-02-25 (evening) — Documentation Audit
 
 ### Documentation

@@ -837,7 +837,7 @@ class _RightPanel extends ConsumerWidget {
                         mainAxisSize: MainAxisSize.min,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.inventory_2, size: 18),
+                          const Icon(Icons.warehouse, size: 18),
                           const SizedBox(width: 6),
                           Flexible(child: Text(l.billsInventory, style: const TextStyle(fontSize: 12))),
                         ],

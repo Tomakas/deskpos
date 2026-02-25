@@ -61,6 +61,7 @@ class ItemRepository
         purchaseTaxRateId: Value(m.purchaseTaxRateId),
         isOnSale: Value(m.isOnSale),
         isStockTracked: Value(m.isStockTracked),
+        minQuantity: Value(m.minQuantity),
         manufacturerId: Value(m.manufacturerId),
         supplierId: Value(m.supplierId),
         parentId: Value(m.parentId),

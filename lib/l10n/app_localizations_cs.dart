@@ -1493,6 +1493,25 @@ class AppLocalizationsCs extends AppLocalizations {
   String get inventoryNoItems => 'Žádné sledované položky';
 
   @override
+  String get inventoryNewDocument => 'Nový doklad';
+
+  @override
+  String get inventoryNewDocumentTitle => 'Typ dokladu';
+
+  @override
+  String get inventoryReceiptDesc => 'Záznam příjmu zboží od dodavatele';
+
+  @override
+  String get inventoryWasteDesc => 'Odpis poškozených nebo prošlých položek';
+
+  @override
+  String get inventoryCorrectionDesc => 'Ruční úprava stavů na skladě';
+
+  @override
+  String get inventoryInventoryDesc =>
+      'Fyzická inventura a porovnání se systémem';
+
+  @override
   String get stockDocumentTitle => 'Skladový doklad';
 
   @override
@@ -3656,4 +3675,91 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get ordersSortDesc => 'Od nejnovějších';
+
+  @override
+  String get peripheralsTitle => 'Periferie';
+
+  @override
+  String get peripheralsScanner => 'Skener';
+
+  @override
+  String get peripheralsScannerConnection => 'Připojení';
+
+  @override
+  String get peripheralsScannerEnabled => 'Skener aktivní';
+
+  @override
+  String get peripheralsCashDrawer => 'Pokladní zásuvka';
+
+  @override
+  String get peripheralsCashDrawerOpenOnPayment => 'Otevřít při platbě';
+
+  @override
+  String get peripheralsCashDrawerConnection => 'Připojení';
+
+  @override
+  String get peripheralsPrinter => 'Tiskárna účtenek';
+
+  @override
+  String get peripheralsPrinterConnection => 'Připojení';
+
+  @override
+  String get peripheralsPrinterAutoPrint => 'Automatický tisk účtenky';
+
+  @override
+  String get peripheralsTerminal => 'Platební terminál';
+
+  @override
+  String get peripheralsTerminalConnection => 'Připojení';
+
+  @override
+  String get peripheralsNotConfigured => 'Nenastaveno';
+
+  @override
+  String get inventoryFilterBelowMin => 'Pod minimem';
+
+  @override
+  String get inventoryFilterZeroStock => 'Nulové zásoby';
+
+  @override
+  String get inventoryFilterDocType => 'Typ dokumentu';
+
+  @override
+  String get inventoryFilterDirection => 'Směr';
+
+  @override
+  String get inventoryFilterInbound => 'Příjem';
+
+  @override
+  String get inventoryFilterOutbound => 'Výdej';
+
+  @override
+  String get inventoryFilterCategory => 'Kategorie';
+
+  @override
+  String get inventorySortName => 'Název';
+
+  @override
+  String get inventorySortQuantity => 'Množství';
+
+  @override
+  String get inventorySortPrice => 'Nák. cena';
+
+  @override
+  String get inventorySortValue => 'Celková hodnota';
+
+  @override
+  String get inventorySortDate => 'Datum';
+
+  @override
+  String get inventorySortNumber => 'Číslo';
+
+  @override
+  String get inventorySortType => 'Typ';
+
+  @override
+  String get inventorySortAmount => 'Částka';
+
+  @override
+  String get inventorySortItem => 'Položka';
 }

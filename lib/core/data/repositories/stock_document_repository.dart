@@ -57,6 +57,7 @@ class StockDocumentRepository {
     PurchasePriceStrategy? documentStrategy,
     String? supplierId,
     String? note,
+    DateTime? documentDate,
     required List<StockDocumentLine> lines,
   }) async {
     try {
@@ -84,7 +85,7 @@ class StockDocumentRepository {
           purchasePriceStrategy: documentStrategy,
           note: note,
           totalAmount: 0, // will update after processing lines
-          documentDate: now,
+          documentDate: documentDate ?? now,
           createdAt: now,
           updatedAt: now,
         );
@@ -168,6 +169,7 @@ class StockDocumentRepository {
     required String userId,
     required List<InventoryLine> inventoryLines,
     String? note,
+    DateTime? documentDate,
   }) async {
     // Convert inventory lines to document lines with direction based on difference
     final lines = <StockDocumentLine>[];
@@ -202,7 +204,7 @@ class StockDocumentRepository {
           type: StockDocumentType.inventory,
           note: note,
           totalAmount: 0,
-          documentDate: now,
+          documentDate: documentDate ?? now,
           createdAt: now,
           updatedAt: now,
         );

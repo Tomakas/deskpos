@@ -283,15 +283,22 @@ class _CompanyInfoTabState extends ConsumerState<CompanyInfoTab> {
                         : null,
                   ),
                   const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _businessIdCtrl,
-                    decoration: InputDecoration(labelText: l.wizardBusinessId),
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _vatNumberCtrl,
-                    decoration:
-                        InputDecoration(labelText: l.companyFieldVatNumber),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: _businessIdCtrl,
+                          decoration: InputDecoration(labelText: l.wizardBusinessId),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: TextFormField(
+                          controller: _vatNumberCtrl,
+                          decoration: InputDecoration(labelText: l.companyFieldVatNumber),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 12),
                   TextFormField(
@@ -299,14 +306,22 @@ class _CompanyInfoTabState extends ConsumerState<CompanyInfoTab> {
                     decoration: InputDecoration(labelText: l.wizardAddress),
                   ),
                   const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _phoneCtrl,
-                    decoration: InputDecoration(labelText: l.wizardPhone),
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _emailCtrl,
-                    decoration: InputDecoration(labelText: l.wizardEmail),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: _phoneCtrl,
+                          decoration: InputDecoration(labelText: l.wizardPhone),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: TextFormField(
+                          controller: _emailCtrl,
+                          decoration: InputDecoration(labelText: l.wizardEmail),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 16),
                   Align(

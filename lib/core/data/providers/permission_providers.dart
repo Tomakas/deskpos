@@ -15,7 +15,7 @@ final userPermissionCodesProvider = StreamProvider<Set<String>>((ref) {
       );
 });
 
-/// O(1) permission check: hasPermissionProvider('orders.void')
+/// O(1) permission check: hasPermissionProvider('orders.void_item')
 final hasPermissionProvider = Provider.family<bool, String>((ref, code) {
   final permsAsync = ref.watch(userPermissionCodesProvider);
   return permsAsync.whenOrNull(data: (codes) => codes.contains(code)) ?? false;

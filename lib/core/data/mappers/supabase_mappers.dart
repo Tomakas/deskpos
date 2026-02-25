@@ -129,6 +129,7 @@ Map<String, dynamic> itemToSupabaseJson(ItemModel m) => {
       'purchase_tax_rate_id': m.purchaseTaxRateId,
       'is_on_sale': m.isOnSale,
       'is_stock_tracked': m.isStockTracked,
+      'min_quantity': m.minQuantity,
       'manufacturer_id': m.manufacturerId,
       'supplier_id': m.supplierId,
       'parent_id': m.parentId,

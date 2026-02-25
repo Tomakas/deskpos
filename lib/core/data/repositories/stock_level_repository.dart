@@ -200,7 +200,8 @@ class StockLevelRepository {
             unit: item.unit,
             purchasePrice: item.purchasePrice,
             quantity: level?.quantity ?? 0.0,
-            minQuantity: level?.minQuantity,
+            minQuantity: item.minQuantity,
+            categoryId: item.categoryId,
           );
         }).toList());
   }
@@ -228,6 +229,7 @@ class StockLevelWithItem {
     this.purchasePrice,
     required this.quantity,
     this.minQuantity,
+    this.categoryId,
   });
 
   final StockLevelModel? stockLevel;
@@ -237,4 +239,5 @@ class StockLevelWithItem {
   final int? purchasePrice;
   final double quantity;
   final double? minQuantity;
+  final String? categoryId;
 }

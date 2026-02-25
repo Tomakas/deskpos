@@ -38,6 +38,46 @@ class _DialogInventoryResultState extends ConsumerState<DialogInventoryResult> {
   bool _applied = false;
   bool _applying = false;
   bool _printing = false;
+  late DateTime _selectedDate;
+  late TimeOfDay _selectedTime;
+
+  @override
+  void initState() {
+    super.initState();
+    final now = DateTime.now();
+    _selectedDate = now;
+    _selectedTime = TimeOfDay.fromDateTime(now);
+  }
+
+  DateTime get _combinedDateTime => DateTime(
+        _selectedDate.year,
+        _selectedDate.month,
+        _selectedDate.day,
+        _selectedTime.hour,
+        _selectedTime.minute,
+      );
+
+  Future<void> _pickDate() async {
+    final result = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+    );
+    if (result != null && mounted) {
+      setState(() => _selectedDate = result);
+    }
+  }
+
+  Future<void> _pickTime() async {
+    final result = await showTimePicker(
+      context: context,
+      initialTime: _selectedTime,
+    );
+    if (result != null && mounted) {
+      setState(() => _selectedTime = result);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -121,6 +161,27 @@ class _DialogInventoryResultState extends ConsumerState<DialogInventoryResult> {
               ],
             ),
           ),
+        const SizedBox(height: 8),
+        // Document date + time
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: _applied ? null : _pickDate,
+                icon: const Icon(Icons.calendar_today, size: 18),
+                label: Text(ref.fmtDate(_selectedDate)),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: _applied ? null : _pickTime,
+                icon: const Icon(Icons.access_time, size: 18),
+                label: Text(_selectedTime.format(context)),
+              ),
+            ),
+          ],
+        ),
         const SizedBox(height: 8),
         // Diff table
         Expanded(
@@ -221,6 +282,7 @@ class _DialogInventoryResultState extends ConsumerState<DialogInventoryResult> {
       warehouseId: widget.warehouseId,
       userId: user.id,
       inventoryLines: inventoryLines,
+      documentDate: _combinedDateTime,
     );
 
     if (!mounted) return;

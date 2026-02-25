@@ -94,6 +94,7 @@ Deno.serve(async (req) => {
       .from("companies")
       .select("id")
       .eq("auth_user_id", user.id)
+      .is("deleted_at", null)
       .maybeSingle();
 
     if (companyError) {

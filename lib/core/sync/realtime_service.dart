@@ -7,7 +7,7 @@ import '../logging/app_logger.dart';
 import 'sync_service.dart';
 
 /// Subscribes to Supabase Broadcast from Database for company-scoped tables.
-/// Server-side triggers on 36 tables fire realtime.send() into channel
+/// Server-side triggers on 38 tables fire realtime.send() into channel
 /// sync:{companyId}. When a broadcast arrives, delegates to
 /// [SyncService.mergeRow] for LWW merge.
 /// The 30s polling in SyncService remains as a fallback.

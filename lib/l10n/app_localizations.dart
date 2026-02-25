@@ -2972,6 +2972,42 @@ abstract class AppLocalizations {
   /// **'Žádné sledované položky'**
   String get inventoryNoItems;
 
+  /// No description provided for @inventoryNewDocument.
+  ///
+  /// In cs, this message translates to:
+  /// **'Nový doklad'**
+  String get inventoryNewDocument;
+
+  /// No description provided for @inventoryNewDocumentTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Typ dokladu'**
+  String get inventoryNewDocumentTitle;
+
+  /// No description provided for @inventoryReceiptDesc.
+  ///
+  /// In cs, this message translates to:
+  /// **'Záznam příjmu zboží od dodavatele'**
+  String get inventoryReceiptDesc;
+
+  /// No description provided for @inventoryWasteDesc.
+  ///
+  /// In cs, this message translates to:
+  /// **'Odpis poškozených nebo prošlých položek'**
+  String get inventoryWasteDesc;
+
+  /// No description provided for @inventoryCorrectionDesc.
+  ///
+  /// In cs, this message translates to:
+  /// **'Ruční úprava stavů na skladě'**
+  String get inventoryCorrectionDesc;
+
+  /// No description provided for @inventoryInventoryDesc.
+  ///
+  /// In cs, this message translates to:
+  /// **'Fyzická inventura a porovnání se systémem'**
+  String get inventoryInventoryDesc;
+
   /// No description provided for @stockDocumentTitle.
   ///
   /// In cs, this message translates to:
@@ -7157,6 +7193,180 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Od nejnovějších'**
   String get ordersSortDesc;
+
+  /// No description provided for @peripheralsTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Periferie'**
+  String get peripheralsTitle;
+
+  /// No description provided for @peripheralsScanner.
+  ///
+  /// In cs, this message translates to:
+  /// **'Skener'**
+  String get peripheralsScanner;
+
+  /// No description provided for @peripheralsScannerConnection.
+  ///
+  /// In cs, this message translates to:
+  /// **'Připojení'**
+  String get peripheralsScannerConnection;
+
+  /// No description provided for @peripheralsScannerEnabled.
+  ///
+  /// In cs, this message translates to:
+  /// **'Skener aktivní'**
+  String get peripheralsScannerEnabled;
+
+  /// No description provided for @peripheralsCashDrawer.
+  ///
+  /// In cs, this message translates to:
+  /// **'Pokladní zásuvka'**
+  String get peripheralsCashDrawer;
+
+  /// No description provided for @peripheralsCashDrawerOpenOnPayment.
+  ///
+  /// In cs, this message translates to:
+  /// **'Otevřít při platbě'**
+  String get peripheralsCashDrawerOpenOnPayment;
+
+  /// No description provided for @peripheralsCashDrawerConnection.
+  ///
+  /// In cs, this message translates to:
+  /// **'Připojení'**
+  String get peripheralsCashDrawerConnection;
+
+  /// No description provided for @peripheralsPrinter.
+  ///
+  /// In cs, this message translates to:
+  /// **'Tiskárna účtenek'**
+  String get peripheralsPrinter;
+
+  /// No description provided for @peripheralsPrinterConnection.
+  ///
+  /// In cs, this message translates to:
+  /// **'Připojení'**
+  String get peripheralsPrinterConnection;
+
+  /// No description provided for @peripheralsPrinterAutoPrint.
+  ///
+  /// In cs, this message translates to:
+  /// **'Automatický tisk účtenky'**
+  String get peripheralsPrinterAutoPrint;
+
+  /// No description provided for @peripheralsTerminal.
+  ///
+  /// In cs, this message translates to:
+  /// **'Platební terminál'**
+  String get peripheralsTerminal;
+
+  /// No description provided for @peripheralsTerminalConnection.
+  ///
+  /// In cs, this message translates to:
+  /// **'Připojení'**
+  String get peripheralsTerminalConnection;
+
+  /// No description provided for @peripheralsNotConfigured.
+  ///
+  /// In cs, this message translates to:
+  /// **'Nenastaveno'**
+  String get peripheralsNotConfigured;
+
+  /// No description provided for @inventoryFilterBelowMin.
+  ///
+  /// In cs, this message translates to:
+  /// **'Pod minimem'**
+  String get inventoryFilterBelowMin;
+
+  /// No description provided for @inventoryFilterZeroStock.
+  ///
+  /// In cs, this message translates to:
+  /// **'Nulové zásoby'**
+  String get inventoryFilterZeroStock;
+
+  /// No description provided for @inventoryFilterDocType.
+  ///
+  /// In cs, this message translates to:
+  /// **'Typ dokumentu'**
+  String get inventoryFilterDocType;
+
+  /// No description provided for @inventoryFilterDirection.
+  ///
+  /// In cs, this message translates to:
+  /// **'Směr'**
+  String get inventoryFilterDirection;
+
+  /// No description provided for @inventoryFilterInbound.
+  ///
+  /// In cs, this message translates to:
+  /// **'Příjem'**
+  String get inventoryFilterInbound;
+
+  /// No description provided for @inventoryFilterOutbound.
+  ///
+  /// In cs, this message translates to:
+  /// **'Výdej'**
+  String get inventoryFilterOutbound;
+
+  /// No description provided for @inventoryFilterCategory.
+  ///
+  /// In cs, this message translates to:
+  /// **'Kategorie'**
+  String get inventoryFilterCategory;
+
+  /// No description provided for @inventorySortName.
+  ///
+  /// In cs, this message translates to:
+  /// **'Název'**
+  String get inventorySortName;
+
+  /// No description provided for @inventorySortQuantity.
+  ///
+  /// In cs, this message translates to:
+  /// **'Množství'**
+  String get inventorySortQuantity;
+
+  /// No description provided for @inventorySortPrice.
+  ///
+  /// In cs, this message translates to:
+  /// **'Nák. cena'**
+  String get inventorySortPrice;
+
+  /// No description provided for @inventorySortValue.
+  ///
+  /// In cs, this message translates to:
+  /// **'Celková hodnota'**
+  String get inventorySortValue;
+
+  /// No description provided for @inventorySortDate.
+  ///
+  /// In cs, this message translates to:
+  /// **'Datum'**
+  String get inventorySortDate;
+
+  /// No description provided for @inventorySortNumber.
+  ///
+  /// In cs, this message translates to:
+  /// **'Číslo'**
+  String get inventorySortNumber;
+
+  /// No description provided for @inventorySortType.
+  ///
+  /// In cs, this message translates to:
+  /// **'Typ'**
+  String get inventorySortType;
+
+  /// No description provided for @inventorySortAmount.
+  ///
+  /// In cs, this message translates to:
+  /// **'Částka'**
+  String get inventorySortAmount;
+
+  /// No description provided for @inventorySortItem.
+  ///
+  /// In cs, this message translates to:
+  /// **'Položka'**
+  String get inventorySortItem;
 }
 
 class _AppLocalizationsDelegate
