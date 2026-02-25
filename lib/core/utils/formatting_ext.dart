@@ -53,4 +53,16 @@ extension FormattingExtension on WidgetRef {
 
   /// Formats short date + time (e.g., "5. 2. 14:30").
   String fmtDateTimeShort(DateTime dt) => formatDateTimeShort(dt, _locale());
+
+  /// Formats quantity — locale-aware, trailing zeros dropped.
+  String fmtQty(double value, {int maxDecimals = 2}) =>
+      formatQuantity(value, _locale(), maxDecimals: maxDecimals);
+
+  /// Formats decimal with fixed precision — locale-aware.
+  String fmtDecimal(double value, {int decimalPlaces = 2}) =>
+      formatDecimal(value, _locale(), decimalPlaces: decimalPlaces);
+
+  /// Formats percentage — locale-aware, trailing zeros dropped, appends " %".
+  String fmtPercent(double percent, {int maxDecimals = 1}) =>
+      formatPercent(percent, _locale(), maxDecimals: maxDecimals);
 }

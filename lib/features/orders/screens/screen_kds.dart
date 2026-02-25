@@ -600,7 +600,7 @@ class _KdsItemCard extends ConsumerWidget {
                                 SizedBox(
                                   width: 32,
                                   child: Text(
-                                    '${item.quantity.toStringAsFixed(item.quantity == item.quantity.roundToDouble() ? 0 : 1)} ${localizedUnitType(l, item.unit)}',
+                                    '${ref.fmtQty(item.quantity, maxDecimals: 1)} ${localizedUnitType(l, item.unit)}',
                                     style: theme.textTheme.bodyMedium?.copyWith(
                                       fontWeight: FontWeight.bold,
                                       decoration:

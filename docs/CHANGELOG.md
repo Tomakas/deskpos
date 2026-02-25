@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-02-25 (evening) — Documentation Audit
+
+### Documentation
+- **PROJECT.md audit**: 35 findings fixed (1 critical, 3 high, 13 medium, 18 low)
+- **Table count cascade**: All stale counts updated after multi-currency tables addition — 40→42 domain, 43→45 active, 36→38 company-scoped, 41→43 repos, 43→45 models
+- **Supabase section**: Added `seed_demo_data` to server-only tables (total 45), fixed broadcast trigger count (38), added `sync_operation`/`sync_status` PG enums, documented `audit_log` schema, fixed enforce_lww scope (all 42 domain tables), corrected RLS global tables description (anon access)
+- **Edge Functions**: Added `create-demo-data` and fixed `reset-db` (is in repo), now 4 total
+- **Schema defaults**: Added missing defaults for `order_items.unit`, `order_items.voucher_discount`, `items.unit`, `tables.grid_row/grid_col`, `map_elements.grid_row/grid_col`, `stock_levels.quantity`, `layout_items.page`
+- **ScreenStatistics**: Updated to 7 tabs (added Dashboard), reordered tabs, moved Milestone 4.1 to partially implemented
+- **Quick Sale**: Documented retail mode, cart separators, customer display integration, numberOfGuests
+- **guard_last_admin**: Noted migration not yet deployed to server
+- **PaymentType/RoleName**: Added PG sort order notes
+- **File tree**: Added `PosDateRangeSelector`, utils files, `ScreenCloudAuth`, `statistics/` feature folder
+- **BaseCompanyScopedRepository**: Added `company_currencies`, `session_currency_cash`, documented `order_item_modifiers` exception
+
 ## 2026-02-25 — Onboarding Redesign + Demo Flow
 
 ### Demo Company Flow

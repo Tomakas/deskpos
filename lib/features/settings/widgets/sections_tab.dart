@@ -7,16 +7,31 @@ import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/search_utils.dart';
 import '../../../core/widgets/pos_color_palette.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_table.dart';
 
-class SectionsTab extends ConsumerWidget {
+class SectionsTab extends ConsumerStatefulWidget {
   const SectionsTab({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SectionsTab> createState() => _SectionsTabState();
+}
+
+class _SectionsTabState extends ConsumerState<SectionsTab> {
+  final _searchCtrl = TextEditingController();
+  String _query = '';
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l = context.l10n;
     final company = ref.watch(currentCompanyProvider);
     if (company == null) return const SizedBox.shrink();
@@ -25,12 +40,19 @@ class SectionsTab extends ConsumerWidget {
       stream: ref.watch(sectionRepositoryProvider).watchAll(company.id),
       builder: (context, snap) {
         final sections = snap.data ?? [];
+        final filtered = sections.where((s) {
+          if (_query.isEmpty) return true;
+          return normalizeSearch(s.name).contains(_query);
+        }).toList();
         return Column(
           children: [
             PosTableToolbar(
+              searchController: _searchCtrl,
+              searchHint: l.searchHint,
+              onSearchChanged: (v) => setState(() => _query = normalizeSearch(v)),
               trailing: [
                 FilledButton.icon(
-                  onPressed: () => _showEditDialog(context, ref, null),
+                  onPressed: () => _showEditDialog(context, null),
                   icon: const Icon(Icons.add),
                   label: Text(l.actionAdd),
                 ),
@@ -80,17 +102,17 @@ class SectionsTab extends ConsumerWidget {
                       children: [
                         IconButton(
                           icon: const Icon(Icons.edit, size: 20),
-                          onPressed: () => _showEditDialog(context, ref, s),
+                          onPressed: () => _showEditDialog(context, s),
                         ),
                         IconButton(
                           icon: const Icon(Icons.delete, size: 20),
-                          onPressed: () => _delete(context, ref, s),
+                          onPressed: () => _delete(context, s),
                         ),
                       ],
                     ),
                   ),
                 ],
-                items: sections,
+                items: filtered,
               ),
             ),
           ],
@@ -99,7 +121,7 @@ class SectionsTab extends ConsumerWidget {
     );
   }
 
-  Future<void> _showEditDialog(BuildContext context, WidgetRef ref, SectionModel? existing) async {
+  Future<void> _showEditDialog(BuildContext context, SectionModel? existing) async {
     final l = context.l10n;
     final nameCtrl = TextEditingController(text: existing?.name ?? '');
     String? selectedColor = existing?.color;
@@ -180,7 +202,7 @@ class SectionsTab extends ConsumerWidget {
     }
   }
 
-  Future<void> _delete(BuildContext context, WidgetRef ref, SectionModel section) async {
+  Future<void> _delete(BuildContext context, SectionModel section) async {
     if (!await confirmDelete(context, context.l10n) || !context.mounted) return;
     await ref.read(sectionRepositoryProvider).delete(section.id);
   }

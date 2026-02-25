@@ -2,6 +2,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/utils/formatters.dart';
 import '../models/dashboard_data.dart';
 
 class DashboardDonutCharts extends StatelessWidget {
@@ -10,11 +11,13 @@ class DashboardDonutCharts extends StatelessWidget {
     required this.paymentMethods,
     required this.categories,
     required this.moneyFormatter,
+    required this.locale,
   });
 
   final List<DonutEntry> paymentMethods;
   final List<DonutEntry> categories;
   final String Function(int) moneyFormatter;
+  final String locale;
 
   @override
   Widget build(BuildContext context) {
@@ -29,6 +32,7 @@ class DashboardDonutCharts extends StatelessWidget {
               title: l.dashboardPaymentMethods,
               entries: paymentMethods,
               moneyFormatter: moneyFormatter,
+              locale: locale,
             ),
           ),
         if (paymentMethods.isNotEmpty && categories.isNotEmpty)
@@ -39,6 +43,7 @@ class DashboardDonutCharts extends StatelessWidget {
               title: l.dashboardCategories,
               entries: categories,
               moneyFormatter: moneyFormatter,
+              locale: locale,
             ),
           ),
       ],
@@ -51,11 +56,13 @@ class _DonutSection extends StatelessWidget {
     required this.title,
     required this.entries,
     required this.moneyFormatter,
+    required this.locale,
   });
 
   final String title;
   final List<DonutEntry> entries;
   final String Function(int) moneyFormatter;
+  final String locale;
 
   @override
   Widget build(BuildContext context) {
@@ -108,8 +115,8 @@ class _DonutSection extends StatelessWidget {
                 ),
                 Text(
                   total > 0
-                      ? '${(entry.value / total * 100).toStringAsFixed(1)} %'
-                      : '0.0 %',
+                      ? formatPercent(entry.value / total * 100, locale)
+                      : '0 %',
                   style: const TextStyle(fontSize: 12),
                 ),
               ],

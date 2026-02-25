@@ -11,13 +11,29 @@ import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
+import '../../../core/utils/formatting_ext.dart';
+import '../../../core/utils/search_utils.dart';
 import '../../../core/widgets/pos_table.dart';
 
-class TaxRatesTab extends ConsumerWidget {
+class TaxRatesTab extends ConsumerStatefulWidget {
   const TaxRatesTab({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<TaxRatesTab> createState() => _TaxRatesTabState();
+}
+
+class _TaxRatesTabState extends ConsumerState<TaxRatesTab> {
+  final _searchCtrl = TextEditingController();
+  String _query = '';
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l = context.l10n;
     final company = ref.watch(currentCompanyProvider);
     if (company == null) return const SizedBox.shrink();
@@ -26,12 +42,19 @@ class TaxRatesTab extends ConsumerWidget {
       stream: ref.watch(taxRateRepositoryProvider).watchAll(company.id),
       builder: (context, snap) {
         final taxRates = snap.data ?? [];
+        final filtered = taxRates.where((tr) {
+          if (_query.isEmpty) return true;
+          return normalizeSearch(tr.label).contains(_query);
+        }).toList();
         return Column(
           children: [
             PosTableToolbar(
+              searchController: _searchCtrl,
+              searchHint: l.searchHint,
+              onSearchChanged: (v) => setState(() => _query = normalizeSearch(v)),
               trailing: [
                 FilledButton.icon(
-                  onPressed: () => _showEditDialog(context, ref, null),
+                  onPressed: () => _showEditDialog(context, null),
                   icon: const Icon(Icons.add),
                   label: Text(l.actionAdd),
                 ),
@@ -42,7 +65,7 @@ class TaxRatesTab extends ConsumerWidget {
                 columns: [
                   PosColumn(label: l.fieldName, flex: 3, cellBuilder: (tr) => Text(tr.label, overflow: TextOverflow.ellipsis)),
                   PosColumn(label: l.fieldType, flex: 2, cellBuilder: (tr) => Text(_typeLabel(l, tr.type), overflow: TextOverflow.ellipsis)),
-                  PosColumn(label: l.fieldRate, flex: 1, cellBuilder: (tr) => Text('${(tr.rate / 100).toStringAsFixed(0)}%', overflow: TextOverflow.ellipsis)),
+                  PosColumn(label: l.fieldRate, flex: 1, cellBuilder: (tr) => Text(ref.fmtPercent(tr.rate / 100, maxDecimals: 0), overflow: TextOverflow.ellipsis)),
                   PosColumn(
                     label: l.fieldDefault,
                     flex: 1,
@@ -60,17 +83,17 @@ class TaxRatesTab extends ConsumerWidget {
                       children: [
                         IconButton(
                           icon: const Icon(Icons.edit, size: 20),
-                          onPressed: () => _showEditDialog(context, ref, tr),
+                          onPressed: () => _showEditDialog(context, tr),
                         ),
                         IconButton(
                           icon: const Icon(Icons.delete, size: 20),
-                          onPressed: () => _delete(context, ref, tr),
+                          onPressed: () => _delete(context, tr),
                         ),
                       ],
                     ),
                   ),
                 ],
-                items: taxRates,
+                items: filtered,
               ),
             ),
           ],
@@ -88,7 +111,7 @@ class TaxRatesTab extends ConsumerWidget {
     };
   }
 
-  Future<void> _showEditDialog(BuildContext context, WidgetRef ref, TaxRateModel? existing) async {
+  Future<void> _showEditDialog(BuildContext context, TaxRateModel? existing) async {
     final l = context.l10n;
     final labelCtrl = TextEditingController(text: existing?.label ?? '');
     final rateCtrl = TextEditingController(
@@ -175,7 +198,7 @@ class TaxRatesTab extends ConsumerWidget {
     }
   }
 
-  Future<void> _delete(BuildContext context, WidgetRef ref, TaxRateModel taxRate) async {
+  Future<void> _delete(BuildContext context, TaxRateModel taxRate) async {
     if (!await confirmDelete(context, context.l10n) || !context.mounted) return;
     await ref.read(taxRateRepositoryProvider).delete(taxRate.id);
   }

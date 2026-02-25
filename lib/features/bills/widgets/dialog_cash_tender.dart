@@ -8,6 +8,7 @@ import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
+import '../../../core/utils/formatting_ext.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_numpad.dart';
@@ -266,7 +267,7 @@ class _DialogCashTenderState extends ConsumerState<DialogCashTender> {
             ),
             if (_isForeign)
               Text(
-                '(${_fmtPay(_amountDueInPayCurrency)} × ${widget.exchangeRate!.toStringAsFixed(2)})',
+                '(${_fmtPay(_amountDueInPayCurrency)} × ${ref.fmtDecimal(widget.exchangeRate!)})',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onPrimaryContainer.withValues(
                     alpha: 0.7,
@@ -306,7 +307,7 @@ class _DialogCashTenderState extends ConsumerState<DialogCashTender> {
     return Text(
       l.cashTenderConversion(
         _fmtPay(_receivedMinor),
-        widget.exchangeRate!.toStringAsFixed(2),
+        ref.fmtDecimal(widget.exchangeRate!),
         _fmtBase(_receivedInBase),
       ),
       textAlign: TextAlign.center,

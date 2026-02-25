@@ -22,9 +22,8 @@ class DialogZReport extends ConsumerWidget {
   const DialogZReport({super.key, required this.data});
   final ZReportData data;
 
-  String _fmtTaxRate(int basisPoints) {
-    final pct = basisPoints / 100;
-    return pct == pct.roundToDouble() ? '${pct.round()}%' : '${pct.toStringAsFixed(1)}%';
+  String _fmtTaxRate(int basisPoints, String locale) {
+    return formatPercent(basisPoints / 100, locale);
   }
 
   ZReportLabels _buildLabels(BuildContext context, WidgetRef ref) {
@@ -133,7 +132,7 @@ class DialogZReport extends ConsumerWidget {
                       padding: const EdgeInsets.symmetric(vertical: 2),
                       child: Row(
                         children: [
-                          SizedBox(width: 60, child: Text(_fmtTaxRate(row.taxRatePercent), style: theme.textTheme.bodyMedium)),
+                          SizedBox(width: 60, child: Text(_fmtTaxRate(row.taxRatePercent, ref.watch(appLocaleProvider).value ?? 'cs'), style: theme.textTheme.bodyMedium)),
                           Expanded(child: Text(ref.money(row.netAmount), textAlign: TextAlign.right, style: theme.textTheme.bodyMedium)),
                           Expanded(child: Text(ref.money(row.taxAmount), textAlign: TextAlign.right, style: theme.textTheme.bodyMedium)),
                           Expanded(child: Text(ref.money(row.grossAmount), textAlign: TextAlign.right, style: theme.textTheme.bodyMedium)),

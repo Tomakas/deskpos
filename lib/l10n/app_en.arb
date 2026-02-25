@@ -286,6 +286,8 @@
   "settingsVenueTitle": "Venue Settings",
   "settingsRegisterTitle": "Register Settings",
   "settingsTabCompany": "Company",
+  "settingsTabInfo": "Info",
+  "settingsTabVenue": "Venue",
   "settingsTabRegister": "Register",
   "settingsTabUsers": "Users",
   "settingsTabLog": "Log",

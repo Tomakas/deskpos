@@ -23,13 +23,11 @@ class ReceiptPdfBuilder {
   static const double _pageWidth = 226; // 80mm in points
   static const double _margin = 8;
 
-  String _fmtMoney(int amount) => formatMoneyForPrint(amount, data.currency);
+  String _fmtMoney(int amount) =>
+      formatMoneyForPrint(amount, data.currency, appLocale: labels.locale);
 
   String _fmtTaxRate(int basisPoints) {
-    final pct = basisPoints / 100;
-    return pct == pct.roundToDouble()
-        ? '${pct.round()}%'
-        : '${pct.toStringAsFixed(1)}%';
+    return formatPercent(basisPoints / 100, labels.locale);
   }
 
   Future<Uint8List> build() async {
@@ -272,7 +270,7 @@ class ReceiptPdfBuilder {
                 pw.Padding(
                   padding: const pw.EdgeInsets.only(left: 12),
                   child: pw.Text(
-                    '${_fmtForeignPayment(p)} × ${p.exchangeRate?.toStringAsFixed(2) ?? '?'}',
+                    '${_fmtForeignPayment(p)} × ${p.exchangeRate != null ? formatDecimal(p.exchangeRate!, labels.locale) : '?'}',
                     style: smallStyle,
                   ),
                 ),
@@ -302,8 +300,7 @@ class ReceiptPdfBuilder {
   }
 
   String _fmtQty(double qty, String unitLabel) {
-    if (qty == qty.roundToDouble()) return '${qty.round()} $unitLabel';
-    return '${qty.toStringAsFixed(2)} $unitLabel';
+    return '${formatQuantity(qty, labels.locale)} $unitLabel';
   }
 
   pw.Widget _divider() {
@@ -336,6 +333,6 @@ class ReceiptPdfBuilder {
       name: '', decimalPlaces: p.foreignDecimalPlaces ?? 2,
       createdAt: DateTime.now(), updatedAt: DateTime.now(),
     );
-    return formatMoneyForPrint(p.foreignAmount!, cur);
+    return formatMoneyForPrint(p.foreignAmount!, cur, appLocale: labels.locale);
   }
 }

@@ -10,6 +10,7 @@ import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/formatting_ext.dart';
 import '../../../core/utils/search_utils.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
@@ -112,10 +113,7 @@ class _RecipesTabState extends ConsumerState<RecipesTab> {
     );
   }
 
-  String _formatQty(double value) {
-    if (value == value.roundToDouble()) return value.toInt().toString();
-    return value.toStringAsFixed(2);
-  }
+  String _formatQty(double value) => ref.fmtQty(value);
 
   Future<void> _showRecipeDialog(
     BuildContext context,

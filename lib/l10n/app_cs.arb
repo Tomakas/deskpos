@@ -286,6 +286,8 @@
   "settingsVenueTitle": "Nastavení provozovny",
   "settingsRegisterTitle": "Nastavení pokladny",
   "settingsTabCompany": "Firma",
+  "settingsTabInfo": "Info",
+  "settingsTabVenue": "Provozovna",
   "settingsTabRegister": "Pokladna",
   "settingsTabUsers": "Uživatelé",
   "settingsTabLog": "Log",

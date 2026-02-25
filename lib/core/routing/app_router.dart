@@ -17,6 +17,7 @@ import '../../features/sell/screens/screen_sell.dart';
 import '../../features/statistics/screens/screen_statistics.dart';
 import '../../features/settings/screens/screen_register_settings.dart';
 import '../../features/settings/screens/screen_settings.dart';
+import '../../features/settings/screens/screen_settings_unified.dart';
 import '../../features/settings/screens/screen_venue_settings.dart';
 import '../data/enums/sell_mode.dart';
 import '../data/providers/auth_providers.dart';
@@ -111,6 +112,17 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => ScreenCustomerDisplay(
           code: state.uri.queryParameters['code'],
         ),
+      ),
+      GoRoute(
+        path: '/settings',
+        redirect: (context, state) {
+          final canCompany = ref.read(hasAnyPermissionInGroupProvider('settings_company'));
+          final canVenue = ref.read(hasAnyPermissionInGroupProvider('settings_venue'));
+          final canRegister = ref.read(hasAnyPermissionInGroupProvider('settings_register'));
+          if (!canCompany && !canVenue && !canRegister) return _homeRoute(ref);
+          return null;
+        },
+        builder: (context, state) => const ScreenSettingsUnified(),
       ),
       GoRoute(
         path: '/settings/company',

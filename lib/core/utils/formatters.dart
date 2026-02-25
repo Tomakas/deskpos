@@ -7,26 +7,6 @@ import '../logging/app_logger.dart';
 // Currency formatting
 // ---------------------------------------------------------------------------
 
-/// Returns the numeric locale for a given currency code.
-/// Currency determines numeric format (separators, symbol position).
-/// For EUR, the app locale is used as secondary signal since EUR formatting
-/// varies by country.
-String _currencyLocale(String currencyCode, {String appLocale = 'cs'}) {
-  return switch (currencyCode) {
-    'CZK' => 'cs',
-    'USD' => 'en_US',
-    'PLN' => 'pl',
-    'HUF' => 'hu',
-    'EUR' => switch (appLocale) {
-        'en' => 'en_IE',
-        'de' => 'de',
-        'sk' => 'sk',
-        _ => 'cs', // default: Czech formatting for EUR
-      },
-    _ => 'en_US',
-  };
-}
-
 int _pow10(int exp) {
   int result = 1;
   for (var i = 0; i < exp; i++) {
@@ -52,7 +32,7 @@ final _fallbackCurrency = CurrencyModel(
 /// [minorUnits] — amount in smallest unit (haléře for CZK, cents for EUR/USD,
 ///                grosze for PLN, whole forints for HUF)
 /// [currency]  — CurrencyModel with code, symbol, decimalPlaces
-/// [appLocale] — app locale for EUR formatting disambiguation
+/// [appLocale] — app locale that determines numeric format (separators)
 String formatMoney(
   int minorUnits,
   CurrencyModel? currency, {
@@ -65,13 +45,14 @@ String formatMoney(
   final divisor = c.decimalPlaces > 0 ? _pow10(c.decimalPlaces) : 1;
   final amount = minorUnits / divisor;
 
-  final formatter = NumberFormat.currency(
-    locale: _currencyLocale(c.code, appLocale: appLocale),
-    symbol: c.symbol,
+  final formatter = NumberFormat.decimalPatternDigits(
+    locale: appLocale,
     decimalDigits: c.decimalPlaces,
   );
 
-  return formatter.format(amount);
+  final symbol = c.symbol;
+  if (symbol.isEmpty) return formatter.format(amount);
+  return '${formatter.format(amount)} $symbol';
 }
 
 /// Formats without symbol — for table cells where the symbol is in the header.
@@ -85,7 +66,7 @@ String formatMoneyValue(
   final amount = minorUnits / divisor;
 
   final formatter = NumberFormat.decimalPatternDigits(
-    locale: _currencyLocale(c.code, appLocale: appLocale),
+    locale: appLocale,
     decimalDigits: c.decimalPlaces,
   );
 
@@ -211,6 +192,44 @@ String formatTimeForPrint(DateTime dt, String locale) {
   return formatTime(dt, locale)
       .replaceAll('\u00A0', ' ')
       .replaceAll('\u202F', ' ');
+}
+
+// ---------------------------------------------------------------------------
+// Number formatting (quantities, decimals, percentages)
+// ---------------------------------------------------------------------------
+
+/// Formats a quantity — drops trailing zeros.
+/// 5.0 → "5", 2.5 → "2,5" (cs) / "2.5" (en), 1.75 → "1,75" / "1.75"
+String formatQuantity(double value, String locale, {int maxDecimals = 2}) {
+  if (value == value.roundToDouble() && maxDecimals >= 0) {
+    return value.round().toString();
+  }
+  final fmt = NumberFormat.decimalPattern(locale)
+    ..maximumFractionDigits = maxDecimals
+    ..minimumFractionDigits = 0;
+  return fmt.format(value);
+}
+
+/// Formats a decimal with fixed precision.
+/// 25.50 → "25,50" (cs) / "25.50" (en)
+String formatDecimal(double value, String locale, {int decimalPlaces = 2}) {
+  final fmt = NumberFormat.decimalPatternDigits(
+    locale: locale,
+    decimalDigits: decimalPlaces,
+  );
+  return fmt.format(value);
+}
+
+/// Formats a percentage value — drops trailing zeros, appends " %".
+/// 21.0 → "21 %", 10.5 → "10,5 %" (cs) / "10.5 %" (en)
+String formatPercent(double percent, String locale, {int maxDecimals = 1}) {
+  if (percent == percent.roundToDouble()) {
+    return '${percent.round()} %';
+  }
+  final fmt = NumberFormat.decimalPattern(locale)
+    ..maximumFractionDigits = maxDecimals
+    ..minimumFractionDigits = 0;
+  return '${fmt.format(percent)} %';
 }
 
 // ---------------------------------------------------------------------------

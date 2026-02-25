@@ -21,13 +21,11 @@ class ZReportPdfBuilder {
   final pw.Font regular;
   final pw.Font bold;
 
-  String _fmtMoney(int amount) => formatMoneyForPrint(amount, labels.currency);
+  String _fmtMoney(int amount) =>
+      formatMoneyForPrint(amount, labels.currency, appLocale: labels.locale);
 
   String _fmtTaxRate(int basisPoints) {
-    final pct = basisPoints / 100;
-    return pct == pct.roundToDouble()
-        ? '${pct.round()}%'
-        : '${pct.toStringAsFixed(1)}%';
+    return formatPercent(basisPoints / 100, labels.locale);
   }
 
   Future<Uint8List> build() async {

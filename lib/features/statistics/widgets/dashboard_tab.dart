@@ -15,12 +15,16 @@ class DashboardTab extends StatelessWidget {
     required this.topProductByRevenue,
     required this.onTopProductToggleChanged,
     required this.moneyFormatter,
+    required this.qtyFormatter,
+    required this.locale,
   });
 
   final DashboardData data;
   final bool topProductByRevenue;
   final ValueChanged<bool> onTopProductToggleChanged;
   final String Function(int) moneyFormatter;
+  final String Function(double) qtyFormatter;
+  final String locale;
 
   @override
   Widget build(BuildContext context) {
@@ -68,6 +72,7 @@ class DashboardTab extends StatelessWidget {
                   paymentMethods: data.paymentMethodBreakdown,
                   categories: data.categoryBreakdown,
                   moneyFormatter: moneyFormatter,
+                  locale: locale,
                 ),
               ),
             ),
@@ -82,6 +87,7 @@ class DashboardTab extends StatelessWidget {
                   byRevenue: topProductByRevenue,
                   onToggleChanged: onTopProductToggleChanged,
                   moneyFormatter: moneyFormatter,
+                  qtyFormatter: qtyFormatter,
                 ),
               ),
             ),

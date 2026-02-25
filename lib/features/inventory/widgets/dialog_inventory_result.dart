@@ -316,8 +316,5 @@ class _DialogInventoryResultState extends ConsumerState<DialogInventoryResult> {
     }
   }
 
-  String _formatQuantity(double value) {
-    if (value == value.roundToDouble()) return value.toInt().toString();
-    return value.toStringAsFixed(2);
-  }
+  String _formatQuantity(double value) => ref.fmtQty(value);
 }

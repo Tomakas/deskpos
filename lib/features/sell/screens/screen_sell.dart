@@ -435,9 +435,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
                         );
                       }
                       final item = entry as _CartItem;
-                      final qty = item.quantity.toStringAsFixed(
-                        item.quantity == item.quantity.roundToDouble() ? 0 : 1,
-                      );
+                      final qty = ref.fmtQty(item.quantity, maxDecimals: 1);
                       return InkWell(
                         borderRadius: BorderRadius.circular(8),
                         onTap: () => _showItemNoteDialog(context, item),
@@ -1418,9 +1416,7 @@ class _ItemNoteDialogState extends ConsumerState<_ItemNoteDialog> {
     final l = context.l10n;
     final theme = Theme.of(context);
     final item = widget.item;
-    final qtyStr = _quantity == _quantity.roundToDouble()
-        ? '${_quantity.toInt()}'
-        : _quantity.toStringAsFixed(1);
+    final qtyStr = ref.fmtQty(_quantity, maxDecimals: 1);
     final totalPrice = (item.effectiveUnitPrice * _quantity).round();
 
     return PosDialogShell(
@@ -1694,9 +1690,9 @@ class _RetailMenuButton extends ConsumerWidget {
     final canCatalog = ref.watch(hasAnyPermissionInGroupProvider('products'));
     final canInventory = ref.watch(hasAnyPermissionInGroupProvider('stock'));
     final canVouchers = ref.watch(hasAnyPermissionInGroupProvider('vouchers'));
-    final canCompanySettings = ref.watch(hasAnyPermissionInGroupProvider('settings_company'));
-    final canVenueSettings = ref.watch(hasAnyPermissionInGroupProvider('settings_venue'));
-    final canRegisterSettings = ref.watch(hasAnyPermissionInGroupProvider('settings_register'));
+    final canSettings = ref.watch(hasAnyPermissionInGroupProvider('settings_company')) ||
+        ref.watch(hasAnyPermissionInGroupProvider('settings_venue')) ||
+        ref.watch(hasAnyPermissionInGroupProvider('settings_register'));
     final sessionAsync = ref.watch(activeRegisterSessionProvider);
     final hasSession = sessionAsync.valueOrNull != null;
 
@@ -1749,22 +1745,10 @@ class _RetailMenuButton extends ConsumerWidget {
         ),
         const PopupMenuDivider(),
         PopupMenuItem(
-          value: 'company-settings',
-          enabled: canCompanySettings,
+          value: 'settings',
+          enabled: canSettings,
           height: 48,
-          child: Text(l.moreCompanySettings),
-        ),
-        PopupMenuItem(
-          value: 'venue-settings',
-          enabled: canVenueSettings,
-          height: 48,
-          child: Text(l.moreVenueSettings),
-        ),
-        PopupMenuItem(
-          value: 'register-settings',
-          enabled: canRegisterSettings,
-          height: 48,
-          child: Text(l.moreRegisterSettings),
+          child: Text(l.settingsTitle),
         ),
         const PopupMenuDivider(),
         PopupMenuItem(
@@ -1804,12 +1788,8 @@ class _RetailMenuButton extends ConsumerWidget {
         if (context.mounted) context.push('/inventory');
       case 'vouchers':
         if (context.mounted) context.push('/vouchers');
-      case 'company-settings':
-        if (context.mounted) context.push('/settings/company');
-      case 'venue-settings':
-        if (context.mounted) context.push('/settings/venue');
-      case 'register-settings':
-        if (context.mounted) context.push('/settings/register');
+      case 'settings':
+        if (context.mounted) context.push('/settings');
       case 'logout':
         await helpers.performLogout(context, ref);
     }

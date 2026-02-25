@@ -86,11 +86,11 @@ class InventoryPdfBuilder {
   static const double _pageWidth = 226; // 80mm in points
   static const double _margin = 8;
 
-  String _fmtMoney(int amount) => formatMoneyForPrint(amount, data.currency);
+  String _fmtMoney(int amount) =>
+      formatMoneyForPrint(amount, data.currency, appLocale: labels.locale);
 
   String _fmtQty(double value) {
-    if (value == value.roundToDouble()) return value.toInt().toString();
-    return value.toStringAsFixed(2);
+    return formatQuantity(value, labels.locale);
   }
 
   Future<Uint8List> build() {

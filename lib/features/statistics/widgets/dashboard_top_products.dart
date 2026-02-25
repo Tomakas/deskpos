@@ -12,12 +12,14 @@ class DashboardTopProducts extends StatelessWidget {
     required this.byRevenue,
     required this.onToggleChanged,
     required this.moneyFormatter,
+    required this.qtyFormatter,
   });
 
   final List<TopProductEntry> products;
   final bool byRevenue;
   final ValueChanged<bool> onToggleChanged;
   final String Function(int) moneyFormatter;
+  final String Function(double) qtyFormatter;
 
   @override
   Widget build(BuildContext context) {
@@ -101,9 +103,7 @@ class DashboardTopProducts extends StatelessWidget {
                 SizedBox(
                   width: 50,
                   child: Text(
-                    product.quantity == product.quantity.roundToDouble()
-                        ? '${product.quantity.round()}'
-                        : product.quantity.toStringAsFixed(1),
+                    qtyFormatter(product.quantity),
                     textAlign: TextAlign.right,
                     style: TextStyle(
                       fontSize: 12,

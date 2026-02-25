@@ -250,7 +250,7 @@ class _StockLevelsTab extends ConsumerWidget {
                 final minQty = item.minQuantity;
                 final isBelowMin = minQty != null && qty < minQty;
                 return Text(
-                  _formatQuantity(qty),
+                  _formatQuantity(qty, ref),
                   textAlign: TextAlign.center,
                   style: isBelowMin
                       ? TextStyle(
@@ -266,7 +266,7 @@ class _StockLevelsTab extends ConsumerWidget {
               flex: 1,
               headerAlign: TextAlign.center,
               cellBuilder: (item) => Text(
-                item.minQuantity != null ? _formatQuantity(item.minQuantity!) : '-',
+                item.minQuantity != null ? _formatQuantity(item.minQuantity!, ref) : '-',
                 textAlign: TextAlign.center,
               ),
             ),
@@ -312,10 +312,7 @@ class _StockLevelsTab extends ConsumerWidget {
     );
   }
 
-  String _formatQuantity(double value) {
-    if (value == value.roundToDouble()) return value.toInt().toString();
-    return value.toStringAsFixed(2);
-  }
+  String _formatQuantity(double value, WidgetRef ref) => ref.fmtQty(value);
 
 }
 
@@ -474,7 +471,7 @@ class _StockMovementsTabState extends ConsumerState<_StockMovementsTab> {
                       final isInbound = item.movement.direction == StockMovementDirection.inbound;
                       final sign = isInbound ? '+' : '-';
                       return Text(
-                        '$sign${_formatQuantity(item.movement.quantity)}',
+                        '$sign${_formatQuantity(item.movement.quantity, ref)}',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: isInbound
@@ -526,8 +523,5 @@ class _StockMovementsTabState extends ConsumerState<_StockMovementsTab> {
         : l.movementTypeReversal;
   }
 
-  String _formatQuantity(double value) {
-    if (value == value.roundToDouble()) return value.toInt().toString();
-    return value.toStringAsFixed(2);
-  }
+  String _formatQuantity(double value, WidgetRef ref) => ref.fmtQty(value);
 }

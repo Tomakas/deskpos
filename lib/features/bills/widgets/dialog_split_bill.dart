@@ -233,10 +233,7 @@ class _DialogSplitBillState extends ConsumerState<DialogSplitBill> {
   }) {
     final item = pi.item;
     final displayQty = pi.displayQty;
-    final isInteger = displayQty == displayQty.roundToDouble();
-    final qtyStr = isInteger
-        ? '${displayQty.toInt()}\u00d7'
-        : '${displayQty.toStringAsFixed(1)}\u00d7';
+    final qtyStr = '${ref.fmtQty(displayQty, maxDecimals: 1)}\u00d7';
     final lineTotal = _displayTotal(item, displayQty);
     final mods = _modsByItem[item.id] ?? [];
 

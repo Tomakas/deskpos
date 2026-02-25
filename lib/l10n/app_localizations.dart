@@ -1382,6 +1382,18 @@ abstract class AppLocalizations {
   /// **'Firma'**
   String get settingsTabCompany;
 
+  /// No description provided for @settingsTabInfo.
+  ///
+  /// In cs, this message translates to:
+  /// **'Info'**
+  String get settingsTabInfo;
+
+  /// No description provided for @settingsTabVenue.
+  ///
+  /// In cs, this message translates to:
+  /// **'Provozovna'**
+  String get settingsTabVenue;
+
   /// No description provided for @settingsTabRegister.
   ///
   /// In cs, this message translates to:

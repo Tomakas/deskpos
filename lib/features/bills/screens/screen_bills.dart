@@ -124,7 +124,7 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
                 onQuickBill: hasSession ? () => _createQuickBill(context) : null,
                 onToggleSession: () => _toggleSession(context, hasSession),
                 onCashMovement: hasSession ? () => _showCashMovement(context) : null,
-                onReservations: () => _showReservations(context),
+                onSettings: () => context.push('/settings'),
               ),
             ),
           ),
@@ -253,12 +253,6 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
     }
   }
 
-  void _showReservations(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (_) => const DialogReservationsList(),
-    );
-  }
 }
 
 // ---------------------------------------------------------------------------
@@ -762,7 +756,7 @@ class _RightPanel extends ConsumerWidget {
     required this.onQuickBill,
     required this.onToggleSession,
     required this.onCashMovement,
-    required this.onReservations,
+    required this.onSettings,
   });
 
   final UserModel? activeUser;
@@ -777,7 +771,7 @@ class _RightPanel extends ConsumerWidget {
   final VoidCallback? onQuickBill;
   final VoidCallback onToggleSession;
   final VoidCallback? onCashMovement;
-  final VoidCallback onReservations;
+  final VoidCallback? onSettings;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -804,6 +798,8 @@ class _RightPanel extends ConsumerWidget {
           _ButtonRow(
             left: l.billsQuickBill,
             right: l.billsNewBill,
+            leftIcon: Icons.flash_on,
+            rightIcon: Icons.note_add,
             onLeft: onQuickBill,
             onRight: onNewBill,
           ),
@@ -811,15 +807,21 @@ class _RightPanel extends ConsumerWidget {
           _ButtonRow(
             left: l.billsCashJournal,
             right: l.moreCatalog,
+            leftIcon: Icons.payments,
+            rightIcon: Icons.category,
             onLeft: onCashMovement,
             onRight: canCatalog ? () => context.push('/catalog') : null,
           ),
-          // Row 3: OBJEDNÁVKY | REZERVACE
+          // Row 3: OBJEDNÁVKY | NASTAVENÍ
           _ButtonRow(
             left: l.ordersTitle,
-            right: l.moreReservations,
+            right: l.settingsTitle,
+            leftIcon: Icons.receipt_long,
+            rightIcon: Icons.settings,
             onLeft: () => context.push('/orders'),
-            onRight: onReservations,
+            onRight: canCompanySettings || canVenueSettings || canRegisterSettings
+                ? onSettings
+                : null,
           ),
           // Row 4: SKLAD | DALŠÍ (→ menu near button)
           Padding(
@@ -831,7 +833,15 @@ class _RightPanel extends ConsumerWidget {
                     height: 54,
                     child: FilledButton.tonal(
                       onPressed: () => context.push('/inventory'),
-                      child: Text(l.billsInventory, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12)),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.inventory_2, size: 18),
+                          const SizedBox(width: 6),
+                          Flexible(child: Text(l.billsInventory, style: const TextStyle(fontSize: 12))),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -845,11 +855,16 @@ class _RightPanel extends ConsumerWidget {
                           btnContext,
                           canStats: canStats,
                           canVouchers: canVouchers,
-                          canCompanySettings: canCompanySettings,
-                          canVenueSettings: canVenueSettings,
-                          canRegisterSettings: canRegisterSettings,
                         ),
-                        child: Text(l.billsMore, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12)),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.more_horiz, size: 18),
+                            const SizedBox(width: 6),
+                            Flexible(child: Text(l.billsMore, style: const TextStyle(fontSize: 12))),
+                          ],
+                        ),
                       );
                     }),
                   ),
@@ -858,13 +873,68 @@ class _RightPanel extends ConsumerWidget {
             ),
           ),
           // Row 5: MAPA/SEZNAM | UZÁVĚRKA
-          _ButtonRow(
-            left: showMap ? l.billsTableList : l.billsTableMap,
-            right: l.registerSessionClose,
-            onLeft: onToggleMap,
-            onRight: onToggleSession,
-            rightHighlight: !hasSession,
-            rightLabel: hasSession ? l.registerSessionClose : l.registerSessionStart,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            child: Row(
+              children: [
+                Expanded(
+                  child: SizedBox(
+                    height: 54,
+                    child: OutlinedButton(
+                      onPressed: onToggleMap,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(showMap ? Icons.list : Icons.map, size: 18),
+                          const SizedBox(width: 6),
+                          Flexible(child: Text(
+                            showMap ? l.billsTableList : l.billsTableMap,
+                            style: const TextStyle(fontSize: 12),
+                          )),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: SizedBox(
+                    height: 54,
+                    child: hasSession
+                        ? OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Theme.of(context).colorScheme.error,
+                              side: BorderSide(color: Theme.of(context).colorScheme.error),
+                            ),
+                            onPressed: onToggleSession,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.lock, size: 18),
+                                const SizedBox(width: 6),
+                                Flexible(child: Text(l.registerSessionClose, style: const TextStyle(fontSize: 12))),
+                              ],
+                            ),
+                          )
+                        : FilledButton(
+                            style: PosButtonStyles.confirm(context),
+                            onPressed: onToggleSession,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.lock_open, size: 18),
+                                const SizedBox(width: 6),
+                                Flexible(child: Text(l.registerSessionStart, style: const TextStyle(fontSize: 12))),
+                              ],
+                            ),
+                          ),
+                  ),
+                ),
+              ],
+            ),
           ),
           // Info panel
           Expanded(
@@ -882,6 +952,8 @@ class _RightPanel extends ConsumerWidget {
           _ButtonRow(
             left: l.actionSwitchUser,
             right: l.actionLogout,
+            leftIcon: Icons.swap_horiz,
+            rightIcon: Icons.logout,
             onLeft: onSwitchUser,
             onRight: onLogout,
             rightDanger: true,
@@ -912,17 +984,32 @@ class _ButtonRow extends StatelessWidget {
     required this.right,
     required this.onLeft,
     required this.onRight,
-    this.rightHighlight = false,
+    this.leftIcon,
+    this.rightIcon,
     this.rightDanger = false,
-    this.rightLabel,
   });
   final String left;
   final String right;
   final VoidCallback? onLeft;
   final VoidCallback? onRight;
-  final bool rightHighlight;
+  final IconData? leftIcon;
+  final IconData? rightIcon;
   final bool rightDanger;
-  final String? rightLabel;
+
+  static Widget _buildChild(String label, IconData? icon) {
+    if (icon == null) {
+      return Text(label, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12));
+    }
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(icon, size: 18),
+        const SizedBox(width: 6),
+        Flexible(child: Text(label, style: const TextStyle(fontSize: 12))),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -935,7 +1022,7 @@ class _ButtonRow extends StatelessWidget {
               height: 54,
               child: FilledButton.tonal(
                 onPressed: onLeft,
-                child: Text(left, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12)),
+                child: _buildChild(left, leftIcon),
               ),
             ),
           ),
@@ -943,25 +1030,19 @@ class _ButtonRow extends StatelessWidget {
           Expanded(
             child: SizedBox(
               height: 54,
-              child: rightHighlight
-                  ? FilledButton(
-                      style: PosButtonStyles.confirm(context),
+              child: rightDanger
+                  ? OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Theme.of(context).colorScheme.error,
+                        side: BorderSide(color: Theme.of(context).colorScheme.error),
+                      ),
                       onPressed: onRight,
-                      child: Text(rightLabel ?? right, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12)),
+                      child: _buildChild(right, rightIcon),
                     )
-                  : rightDanger
-                      ? OutlinedButton(
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: Theme.of(context).colorScheme.error,
-                            side: BorderSide(color: Theme.of(context).colorScheme.error),
-                          ),
-                          onPressed: onRight,
-                          child: Text(rightLabel ?? right, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12)),
-                        )
-                      : FilledButton.tonal(
-                          onPressed: onRight,
-                          child: Text(rightLabel ?? right, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12)),
-                        ),
+                  : FilledButton.tonal(
+                      onPressed: onRight,
+                      child: _buildChild(right, rightIcon),
+                    ),
             ),
           ),
         ],
@@ -974,9 +1055,6 @@ void _showMoreMenu(
   BuildContext btnContext, {
   required bool canStats,
   required bool canVouchers,
-  required bool canCompanySettings,
-  required bool canVenueSettings,
-  required bool canRegisterSettings,
 }) {
   final l = btnContext.l10n;
   final button = btnContext.findRenderObject()! as RenderBox;
@@ -993,25 +1071,22 @@ void _showMoreMenu(
     context: btnContext,
     position: position,
     items: [
-      PopupMenuItem(value: 'statistics', enabled: canStats, height: 48, child: Text(l.moreStatistics)),
-      PopupMenuItem(value: 'vouchers', enabled: canVouchers, height: 48, child: Text(l.vouchersTitle)),
-      PopupMenuItem(value: 'company-settings', enabled: canCompanySettings, height: 48, child: Text(l.moreCompanySettings)),
-      PopupMenuItem(value: 'venue-settings', enabled: canVenueSettings, height: 48, child: Text(l.moreVenueSettings)),
-      PopupMenuItem(value: 'register-settings', enabled: canRegisterSettings, height: 48, child: Text(l.moreRegisterSettings)),
+      PopupMenuItem(value: 'statistics', enabled: canStats, height: 48, child: Row(children: [const Icon(Icons.bar_chart, size: 20), const SizedBox(width: 12), Text(l.moreStatistics)])),
+      PopupMenuItem(value: 'vouchers', enabled: canVouchers, height: 48, child: Row(children: [const Icon(Icons.card_giftcard, size: 20), const SizedBox(width: 12), Text(l.vouchersTitle)])),
+      PopupMenuItem(value: 'reservations', height: 48, child: Row(children: [const Icon(Icons.event_seat, size: 20), const SizedBox(width: 12), Text(l.moreReservations)])),
     ],
   ).then((value) {
     if (value == null || !btnContext.mounted) return;
     switch (value) {
       case 'statistics':
         btnContext.push('/statistics');
-      case 'company-settings':
-        btnContext.push('/settings/company');
-      case 'venue-settings':
-        btnContext.push('/settings/venue');
-      case 'register-settings':
-        btnContext.push('/settings/register');
       case 'vouchers':
         btnContext.push('/vouchers');
+      case 'reservations':
+        showDialog(
+          context: btnContext,
+          builder: (_) => const DialogReservationsList(),
+        );
     }
   });
 }

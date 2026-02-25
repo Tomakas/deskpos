@@ -526,7 +526,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
                   SizedBox(
                     width: 44,
                     child: Text(
-                      '${item.quantity.toStringAsFixed(item.quantity == item.quantity.roundToDouble() ? 0 : 1)} ${localizedUnitType(context.l10n, item.unit)}',
+                      '${ref.fmtQty(item.quantity, maxDecimals: 1)} ${localizedUnitType(context.l10n, item.unit)}',
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ),
@@ -1503,7 +1503,7 @@ class _OrderSection extends ConsumerWidget {
                               SizedBox(
                                 width: 36,
                                 child: Text(
-                                  '${item.quantity.toStringAsFixed(item.quantity == item.quantity.roundToDouble() ? 0 : 1)} ${localizedUnitType(context.l10n, item.unit)}',
+                                  '${ref.fmtQty(item.quantity, maxDecimals: 1)} ${localizedUnitType(context.l10n, item.unit)}',
                                   style: Theme.of(context).textTheme.bodySmall,
                                 ),
                               ),

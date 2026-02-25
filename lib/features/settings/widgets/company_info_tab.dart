@@ -372,31 +372,87 @@ class _CompanyInfoTabState extends ConsumerState<CompanyInfoTab> {
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: [
-                  for (final (i, currency) in _currencies.indexed) ...[
-                    if (i > 0) const SizedBox(width: 8),
-                    Expanded(
-                      child: SizedBox(
-                        height: 40,
-                        child: FilterChip(
-                          label: SizedBox(
-                            width: double.infinity,
-                            child: Text(
-                              '${currency.code} (${currency.symbol})',
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                          selected: ref.watch(currentCompanyProvider)?.defaultCurrencyId == currency.id,
-                          onSelected: _currencyLocked && ref.watch(currentCompanyProvider)?.defaultCurrencyId != currency.id
-                              ? null
-                              : (_) => _updateCurrency(currency.id),
+              child: Builder(builder: (context) {
+                final defaultId = ref.watch(currentCompanyProvider)?.defaultCurrencyId;
+                final defaultCurrencyModel = _currencies.where((c) => c.id == defaultId).firstOrNull;
+                final currentCurrency = ref.watch(currentCurrencyProvider).value;
+
+                final children = <Widget>[];
+
+                // Default currency chip
+                if (_currencyLocked) {
+                  children.add(FilterChip(
+                    label: Text(defaultCurrencyModel != null
+                        ? '${defaultCurrencyModel.code} (${defaultCurrencyModel.symbol})'
+                        : '-'),
+                    selected: true,
+                    onSelected: null,
+                  ));
+                } else {
+                  for (final (i, currency) in _currencies.indexed) {
+                    if (i > 0) children.add(const SizedBox(width: 8));
+                    children.add(FilterChip(
+                      label: Text('${currency.code} (${currency.symbol})'),
+                      selected: defaultId == currency.id,
+                      onSelected: (_) => _updateCurrency(currency.id),
+                    ));
+                  }
+                }
+
+                // Alternative currencies inline
+                for (final cc in _altCurrencies) {
+                  final currency = _currencies.where((c) => c.id == cc.currencyId).firstOrNull;
+                  if (currency == null) continue;
+                  children.addAll([
+                    const SizedBox(width: 12),
+                    Text(currency.code, style: Theme.of(context).textTheme.bodyMedium),
+                    const SizedBox(width: 4),
+                    SizedBox(
+                      width: 80,
+                      child: TextField(
+                        controller: _rateControllers[cc.id],
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        decoration: InputDecoration(
+                          suffixText: currentCurrency?.code ?? '',
+                          isDense: true,
                         ),
+                        onChanged: (v) {
+                          final rate = double.tryParse(v);
+                          if (rate != null && rate > 0) {
+                            final ccRepo = ref.read(companyCurrencyRepositoryProvider);
+                            ccRepo.update(cc.copyWith(
+                              exchangeRate: rate,
+                              updatedAt: DateTime.now(),
+                            ));
+                          }
+                        },
                       ),
                     ),
-                  ],
-                ],
-              ),
+                    IconButton(
+                      icon: const Icon(Icons.close, size: 18),
+                      onPressed: () {
+                        final ccRepo = ref.read(companyCurrencyRepositoryProvider);
+                        ccRepo.delete(cc.id);
+                      },
+                      iconSize: 18,
+                      constraints: const BoxConstraints(),
+                      padding: const EdgeInsets.all(4),
+                    ),
+                  ]);
+                }
+
+                // Add currency button
+                children.addAll([
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: const Icon(Icons.add_circle_outline),
+                    onPressed: _addAlternativeCurrency,
+                    tooltip: l.settingsAddCurrency,
+                  ),
+                ]);
+
+                return Row(children: children);
+              }),
             ),
             if (_currencyLocked)
               Padding(
@@ -408,75 +464,6 @@ class _CompanyInfoTabState extends ConsumerState<CompanyInfoTab> {
                   ),
                 ),
               ),
-          ],
-          // Alternative currencies section
-          if (_settingsInitialized) ...[
-            const SizedBox(height: 16),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Text(
-                l.settingsAlternativeCurrencies,
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-            ),
-            for (final cc in _altCurrencies) ...[
-              () {
-                final currency = _currencies.where((c) => c.id == cc.currencyId).firstOrNull;
-                if (currency == null) return const SizedBox.shrink();
-                final defaultCurrency = ref.watch(currentCurrencyProvider).value;
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  child: Row(
-                    children: [
-                      SizedBox(
-                        width: 100,
-                        child: Text(
-                          l.settingsExchangeRateLabel(currency.code),
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      SizedBox(
-                        width: 120,
-                        child: TextField(
-                          controller: _rateControllers[cc.id],
-                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                          decoration: InputDecoration(
-                            suffixText: defaultCurrency?.code ?? '',
-                            isDense: true,
-                          ),
-                          onChanged: (v) {
-                            final rate = double.tryParse(v);
-                            if (rate != null && rate > 0) {
-                              final ccRepo = ref.read(companyCurrencyRepositoryProvider);
-                              ccRepo.update(cc.copyWith(
-                                exchangeRate: rate,
-                                updatedAt: DateTime.now(),
-                              ));
-                            }
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      IconButton(
-                        icon: const Icon(Icons.delete_outline),
-                        onPressed: () {
-                          final ccRepo = ref.read(companyCurrencyRepositoryProvider);
-                          ccRepo.delete(cc.id);
-                        },
-                      ),
-                    ],
-                  ),
-                );
-              }(),
-            ],
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: OutlinedButton(
-                onPressed: _addAlternativeCurrency,
-                child: Text(l.settingsAddCurrency),
-              ),
-            ),
           ],
           const SizedBox(height: 24),
           // Loyalty section
@@ -493,24 +480,32 @@ class _CompanyInfoTabState extends ConsumerState<CompanyInfoTab> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  TextField(
-                    controller: _earnCtrl,
-                    decoration: InputDecoration(labelText: l.loyaltyEarnRate(ref.money(parseMoney('100', ref.watch(currentCurrencyProvider).value)))),
-                    keyboardType: TextInputType.number,
-                    onChanged: (v) {
-                      final value = int.tryParse(v) ?? 0;
-                      _updateSettings(_settings!.copyWith(loyaltyEarnRate: value));
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: _pointValueCtrl,
-                    decoration: InputDecoration(labelText: l.loyaltyPointValue),
-                    keyboardType: TextInputType.number,
-                    onChanged: (v) {
-                      final value = int.tryParse(v) ?? 0;
-                      _updateSettings(_settings!.copyWith(loyaltyPointValue: value));
-                    },
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _earnCtrl,
+                          decoration: InputDecoration(labelText: l.loyaltyEarnRate(ref.money(parseMoney('100', ref.watch(currentCurrencyProvider).value)))),
+                          keyboardType: TextInputType.number,
+                          onChanged: (v) {
+                            final value = int.tryParse(v) ?? 0;
+                            _updateSettings(_settings!.copyWith(loyaltyEarnRate: value));
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: TextField(
+                          controller: _pointValueCtrl,
+                          decoration: InputDecoration(labelText: l.loyaltyPointValue),
+                          keyboardType: TextInputType.number,
+                          onChanged: (v) {
+                            final value = int.tryParse(v) ?? 0;
+                            _updateSettings(_settings!.copyWith(loyaltyPointValue: value));
+                          },
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 12),
                   Text(

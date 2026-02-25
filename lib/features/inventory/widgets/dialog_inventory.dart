@@ -11,6 +11,7 @@ import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/repositories/stock_level_repository.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/logging/app_logger.dart';
+import '../../../core/utils/formatting_ext.dart';
 import '../../../core/printing/inventory_pdf_builder.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/file_opener.dart';
@@ -301,10 +302,5 @@ class _DialogInventoryState extends ConsumerState<DialogInventory> {
     Navigator.pop(context, lines);
   }
 
-  String _formatQuantity(double value) {
-    if (value == value.roundToDouble()) {
-      return value.toInt().toString();
-    }
-    return value.toStringAsFixed(2);
-  }
+  String _formatQuantity(double value) => ref.fmtQty(value);
 }

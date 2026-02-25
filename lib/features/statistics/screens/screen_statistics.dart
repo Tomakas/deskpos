@@ -1780,7 +1780,7 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
       case _StatSection.shifts:
         final data = _filteredShifts;
         final totalDuration = data.fold(Duration.zero, (s, r) => s + r.duration);
-        final totalHours = (totalDuration.inMinutes / 60).toStringAsFixed(1);
+        final totalHours = ref.fmtDecimal(totalDuration.inMinutes / 60, decimalPlaces: 1);
         final avgDuration = data.isEmpty
             ? Duration.zero
             : Duration(minutes: totalDuration.inMinutes ~/ data.length);
@@ -1951,7 +1951,7 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
                 children: [
                   Expanded(
                     child: Text(
-                      '${item.quantity == item.quantity.roundToDouble() ? '${item.quantity.round()}' : item.quantity.toStringAsFixed(2)}\u00d7 ${item.itemName}',
+                      '${ref.fmtQty(item.quantity)}\u00d7 ${item.itemName}',
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
@@ -2044,7 +2044,7 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
                 children: [
                   Expanded(
                     child: Text(
-                      '${item.quantity == item.quantity.roundToDouble() ? '${item.quantity.round()}' : item.quantity.toStringAsFixed(2)}\u00d7 ${item.itemName}',
+                      '${ref.fmtQty(item.quantity)}\u00d7 ${item.itemName}',
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
@@ -2199,6 +2199,8 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
       onTopProductToggleChanged: (v) =>
           setState(() => _dashboardTopProductByRevenue = v),
       moneyFormatter: ref.money,
+      qtyFormatter: ref.fmtQty,
+      locale: ref.watch(appLocaleProvider).value ?? 'cs',
     );
   }
 
@@ -2265,7 +2267,7 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
           flex: 5,
           numeric: true,
           cellBuilder: (r) => Text(
-            r.qty == r.qty.roundToDouble() ? '${r.qty.round()}' : r.qty.toStringAsFixed(2),
+            ref.fmtQty(r.qty),
             textAlign: TextAlign.right,
           ),
         ),
@@ -2279,7 +2281,7 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
           label: l.statsColumnTax,
           flex: 6,
           numeric: true,
-          cellBuilder: (r) => Text('${(r.taxRate / 100).toStringAsFixed(0)} %', textAlign: TextAlign.right),
+          cellBuilder: (r) => Text(ref.fmtPercent(r.taxRate / 100, maxDecimals: 0), textAlign: TextAlign.right),
         ),
         PosColumn(
           label: l.statsColumnTotal,

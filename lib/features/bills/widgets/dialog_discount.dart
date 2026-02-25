@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/data/enums/discount_type.dart';
+import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/utils/formatters.dart';
 import '../../../core/utils/formatting_ext.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
@@ -55,8 +57,7 @@ class _DialogDiscountState extends ConsumerState<DialogDiscount> {
       (widget.referenceAmount * _cappedPercent / 10000).round();
 
   String _formatPercent(int basisPoints) {
-    if (basisPoints % 100 == 0) return '${basisPoints ~/ 100}';
-    return (basisPoints / 100).toStringAsFixed(2);
+    return formatQuantity(basisPoints / 100, ref.watch(appLocaleProvider).value ?? 'cs', maxDecimals: 2);
   }
 
   void _onDot() {

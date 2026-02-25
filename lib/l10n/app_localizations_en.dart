@@ -679,6 +679,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsTabCompany => 'Company';
 
   @override
+  String get settingsTabInfo => 'Info';
+
+  @override
+  String get settingsTabVenue => 'Venue';
+
+  @override
   String get settingsTabRegister => 'Register';
 
   @override
