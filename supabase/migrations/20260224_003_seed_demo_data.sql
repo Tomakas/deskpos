@@ -671,3 +671,9 @@ INSERT INTO seed_demo_data (locale, mode, entity_type, ref, data) VALUES
 
 INSERT INTO seed_demo_data (locale, mode, entity_type, ref, data) VALUES
 (NULL,'_all','_schedule','schedule:default','{"days_back":90,"work_days":["mon","tue","wed","thu","fri","sat"],"week_pattern":["day:regular","day:regular","day:regular","day:regular","day:busy","day:busy"],"overrides":{"85":"day:feat_stock","78":"day:feat_discounts","71":"day:feat_storno","64":"day:feat_vouchers","57":"day:feat_loyalty","50":"day:feat_split_tips","43":"day:feat_modifiers","36":"day:feat_reservations","29":"day:feat_multicurrency","22":"day:feat_cash_ops","15":"day:feat_stock","8":"day:feat_takeaway","1":"day:light","0":"day:today_open"}}');
+
+-- ============================================================================
+-- RLS — block all client access (anon + authenticated)
+-- ============================================================================
+-- SECURITY DEFINER functions (create_demo_company) bypass RLS automatically.
+ALTER TABLE seed_demo_data ENABLE ROW LEVEL SECURITY;

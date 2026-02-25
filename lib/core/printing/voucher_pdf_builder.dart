@@ -27,6 +27,7 @@ class VoucherPdfData {
 
 class VoucherPdfLabels {
   const VoucherPdfLabels({
+    required this.title,
     required this.type,
     required this.value,
     required this.scope,
@@ -35,6 +36,7 @@ class VoucherPdfLabels {
     required this.note,
   });
 
+  final String title;
   final String type;
   final String value;
   final String scope;
@@ -78,7 +80,7 @@ class VoucherPdfBuilder {
           ],
           pw.Divider(thickness: 0.5),
           pw.SizedBox(height: 4),
-          pw.Text('VOUCHER', style: headerStyle),
+          pw.Text(labels.title, style: headerStyle),
           pw.SizedBox(height: 8),
           pw.Text(data.code, style: codeStyle),
           pw.SizedBox(height: 8),

@@ -460,8 +460,6 @@ Map<String, dynamic> companyToSupabaseJson(CompanyModel m) => {
       'business_type': m.businessType,
       'default_currency_id': m.defaultCurrencyId,
       'auth_user_id': m.authUserId,
-      'is_demo': m.isDemo,
-      'demo_expires_at': toIso8601Utc(m.demoExpiresAt),
       'client_created_at': toIso8601Utc(m.createdAt),
       'client_updated_at': toIso8601Utc(m.updatedAt),
       'deleted_at': toIso8601Utc(m.deletedAt),

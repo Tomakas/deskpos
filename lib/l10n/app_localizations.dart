@@ -4244,6 +4244,12 @@ abstract class AppLocalizations {
   /// **'Tisk'**
   String get voucherPrint;
 
+  /// No description provided for @voucherPdfTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'VOUCHER'**
+  String get voucherPdfTitle;
+
   /// No description provided for @voucherCancel.
   ///
   /// In cs, this message translates to:

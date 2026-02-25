@@ -2157,6 +2157,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get voucherPrint => 'Print';
 
   @override
+  String get voucherPdfTitle => 'VOUCHER';
+
+  @override
   String get voucherCancel => 'Cancel Voucher';
 
   @override

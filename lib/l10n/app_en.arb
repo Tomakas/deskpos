@@ -888,6 +888,7 @@
   "voucherMinOrderValue": "Min. Order Value",
   "voucherSell": "Sell",
   "voucherPrint": "Print",
+  "voucherPdfTitle": "VOUCHER",
   "voucherCancel": "Cancel Voucher",
   "voucherRedeem": "Redeem",
   "voucherEnterCode": "Enter voucher code",

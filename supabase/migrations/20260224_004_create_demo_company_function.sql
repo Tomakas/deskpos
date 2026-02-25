@@ -16,6 +16,7 @@ CREATE OR REPLACE FUNCTION create_demo_company(
 ) RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = 'public'
 AS $$
 DECLARE
   -- IDs

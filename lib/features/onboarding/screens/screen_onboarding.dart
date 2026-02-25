@@ -841,14 +841,6 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
       AppLogger.error('Demo onboarding failed', error: e, stackTrace: s);
       if (!mounted) return;
       Navigator.of(context).pop(); // Close progress dialog
-      if (!mounted) return;
-      // Show error so it's not silently swallowed
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Demo failed: $e'),
-          duration: const Duration(seconds: 10),
-        ),
-      );
     }
   }
 }

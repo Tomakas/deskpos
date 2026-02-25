@@ -306,7 +306,7 @@ class _GroupItemTile extends ConsumerWidget {
           contentPadding: EdgeInsets.zero,
           title: Text(item.name),
           subtitle: groupItem.isDefault
-              ? Text('Default', style: theme.textTheme.bodySmall)
+              ? Text(context.l10n.fieldDefault, style: theme.textTheme.bodySmall)
               : null,
           trailing: Row(
             mainAxisSize: MainAxisSize.min,

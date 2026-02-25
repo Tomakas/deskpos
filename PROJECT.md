@@ -1177,8 +1177,8 @@ Klientské timestampy se ukládají v **UTC**.
 
 #### RLS a přístupová politika
 
-- **Anon přístup**: `currencies` (read-only SELECT policy pro PUBLIC), `lookup_display_device_by_code` RPC (SECURITY DEFINER, vrací 4 pole pro pairing flow), `get_my_company_ids` RPC (SECURITY DEFINER)
-- `roles`, `permissions`, `role_permissions` jsou **read-only pro authenticated**
+- **Anon přístup**: `lookup_display_device_by_code` RPC (SECURITY DEFINER, vrací 4 pole pro pairing flow), `get_my_company_ids` RPC (SECURITY DEFINER)
+- **Authenticated read-only**: `currencies`, `roles`, `permissions`, `role_permissions` — read-only SELECT policy pro authenticated
 - `display_devices` má navíc INSERT a UPDATE RLS politiky (company-scoped) pro přímé zápisy mimo ingest Edge Function (pairing flow)
 - Sync tabulky vyžadují authenticated + company-scope policy
 

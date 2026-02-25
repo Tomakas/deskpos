@@ -888,6 +888,7 @@
   "voucherMinOrderValue": "Min. hodnota účtu",
   "voucherSell": "Prodat",
   "voucherPrint": "Tisk",
+  "voucherPdfTitle": "VOUCHER",
   "voucherCancel": "Zrušit voucher",
   "voucherRedeem": "Uplatnit",
   "voucherEnterCode": "Zadejte kód voucheru",

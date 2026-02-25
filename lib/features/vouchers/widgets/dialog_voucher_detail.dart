@@ -200,6 +200,7 @@ class _DialogVoucherDetailState extends ConsumerState<DialogVoucherDetail> {
       );
 
       final labels = VoucherPdfLabels(
+        title: l.voucherPdfTitle,
         type: l.filterTitle,
         value: l.voucherValue,
         scope: l.voucherDiscount,
