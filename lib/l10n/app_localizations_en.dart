@@ -2498,7 +2498,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get demoDialogTitle => 'Create Demo Company';
 
   @override
-  String get demoDialogInfo => 'Demo auto-deletes after 24 hours';
+  String get demoDialogInfo => 'Demo auto-deletes after 6 hours';
 
   @override
   String get demoDialogCreate => 'Create';

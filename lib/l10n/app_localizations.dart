@@ -4901,7 +4901,7 @@ abstract class AppLocalizations {
   /// No description provided for @demoDialogInfo.
   ///
   /// In cs, this message translates to:
-  /// **'Demo se automaticky smaže po 24 hodinách'**
+  /// **'Demo se automaticky smaže po 6 hodinách'**
   String get demoDialogInfo;
 
   /// No description provided for @demoDialogCreate.

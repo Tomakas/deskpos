@@ -2496,7 +2496,7 @@ class AppLocalizationsCs extends AppLocalizations {
   String get demoDialogTitle => 'Vytvořit demo firmu';
 
   @override
-  String get demoDialogInfo => 'Demo se automaticky smaže po 24 hodinách';
+  String get demoDialogInfo => 'Demo se automaticky smaže po 6 hodinách';
 
   @override
   String get demoDialogCreate => 'Vytvořit';

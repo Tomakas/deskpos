@@ -240,6 +240,7 @@ BEGIN
     id, name, status, default_currency_id, auth_user_id,
     business_id, vat_number, email, phone, address, city, postal_code, country,
     timezone, business_type,
+    is_demo, demo_expires_at,
     client_created_at, client_updated_at
   )
   VALUES (
@@ -282,6 +283,7 @@ BEGIN
     END,
     CASE p_locale WHEN 'cs' THEN 'Europe/Prague' ELSE 'Europe/Vienna' END,
     p_mode,
+    true, v_now + interval '6 hours',
     v_now, v_now
   );
 
