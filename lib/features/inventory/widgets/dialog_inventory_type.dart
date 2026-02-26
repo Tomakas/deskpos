@@ -42,6 +42,7 @@ class _DialogInventoryTypeState extends ConsumerState<DialogInventoryType> {
     return PosDialogShell(
       title: l.inventoryTypeTitle,
       maxWidth: 480,
+      scrollable: true,
       children: [
         ListTile(
           leading: const Icon(Icons.select_all),
@@ -89,26 +90,27 @@ class _DialogInventoryTypeState extends ConsumerState<DialogInventoryType> {
       title: l.inventoryTypeTitle,
       maxWidth: 480,
       maxHeight: 600,
+      expandHeight: true,
+      bottomActions: PosDialogActions(
+        actions: [
+          OutlinedButton(
+            onPressed: () => setState(() {
+              _selectedType = null;
+              _selectedIds.clear();
+            }),
+            child: Text(l.actionCancel),
+          ),
+          FilledButton(
+            onPressed: _selectedIds.isEmpty ? null : _onContinue,
+            child: Text(l.inventoryTypeContinue),
+          ),
+        ],
+      ),
       children: [
         Expanded(
           child: _buildEntityList(),
         ),
         const SizedBox(height: 16),
-        PosDialogActions(
-          actions: [
-            OutlinedButton(
-              onPressed: () => setState(() {
-                _selectedType = null;
-                _selectedIds.clear();
-              }),
-              child: Text(l.actionCancel),
-            ),
-            FilledButton(
-              onPressed: _selectedIds.isEmpty ? null : _onContinue,
-              child: Text(l.inventoryTypeContinue),
-            ),
-          ],
-        ),
       ],
     );
   }

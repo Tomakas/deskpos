@@ -239,14 +239,13 @@ class _ScreenKdsState extends ConsumerState<ScreenKds> {
       context: context,
       builder: (_) => PosDialogShell(
         title: l.orderItemStornoConfirm,
-        children: [
-          PosDialogActions(
-            actions: [
-              OutlinedButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
-              FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
-            ],
-          ),
-        ],
+        bottomActions: PosDialogActions(
+          actions: [
+            OutlinedButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
+            FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
+          ],
+        ),
+        children: const [],
       ),
     );
     if (confirmed != true || !context.mounted) return;

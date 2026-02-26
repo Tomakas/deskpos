@@ -299,6 +299,15 @@ class _DialogGridEditorState extends ConsumerState<DialogGridEditor> {
       builder: (_) => PosDialogShell(
         title: l.gridEditorTitle,
         maxWidth: 400,
+        scrollable: true,
+        bottomActions: PosDialogActions(
+          actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(l.actionCancel),
+            ),
+          ],
+        ),
         children: [
           SizedBox(
             height: 44,
@@ -329,14 +338,6 @@ class _DialogGridEditorState extends ConsumerState<DialogGridEditor> {
             ),
           ),
           const SizedBox(height: 16),
-          PosDialogActions(
-            actions: [
-              OutlinedButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(l.actionCancel),
-              ),
-            ],
-          ),
         ],
       ),
     );
@@ -399,20 +400,21 @@ class _DialogGridEditorState extends ConsumerState<DialogGridEditor> {
       builder: (_) => PosDialogShell(
         title: l.gridEditorColor,
         maxWidth: 400,
+        scrollable: true,
+        bottomActions: PosDialogActions(
+          actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(l.actionCancel),
+            ),
+          ],
+        ),
         children: [
           PosColorPalette(
             selectedColor: null,
             onColorSelected: (color) => Navigator.pop(context, color),
           ),
           const SizedBox(height: 16),
-          PosDialogActions(
-            actions: [
-              OutlinedButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(l.actionCancel),
-              ),
-            ],
-          ),
         ],
       ),
     );

@@ -76,6 +76,7 @@ class _DialogShiftsListState extends ConsumerState<DialogShiftsList> {
       title: l.shiftsListTitle,
       titleStyle: theme.textTheme.headlineSmall,
       maxWidth: 640,
+      scrollable: true,
       children: [
         // Date filter row
         Row(
@@ -131,15 +132,15 @@ class _DialogShiftsListState extends ConsumerState<DialogShiftsList> {
           ),
         ),
         const SizedBox(height: 16),
-        PosDialogActions(
-          actions: [
-            OutlinedButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(l.actionClose),
-            ),
-          ],
-        ),
       ],
+      bottomActions: PosDialogActions(
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l.actionClose),
+          ),
+        ],
+      ),
     );
   }
 }

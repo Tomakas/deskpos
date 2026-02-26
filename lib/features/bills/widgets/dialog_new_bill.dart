@@ -60,6 +60,44 @@ class _DialogNewBillState extends ConsumerState<DialogNewBill> {
             fontWeight: FontWeight.bold,
           ),
       maxWidth: 420,
+      scrollable: true,
+      bottomActions: PosDialogActions(
+        expanded: true,
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l.actionCancel),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(context, NewBillResult(
+                sectionId: _selectedSectionId,
+                tableId: _selectedTableId,
+                numberOfGuests: _guestCount,
+                customerId: _selectedCustomer?.id,
+                customerName: _selectedCustomer != null ? null : _customerName,
+                navigateToSell: false,
+              ));
+            },
+            child: Text(l.newBillSave),
+          ),
+          if (widget.title == null)
+            FilledButton(
+              style: PosButtonStyles.confirm(context),
+              onPressed: () {
+                Navigator.pop(context, NewBillResult(
+                  sectionId: _selectedSectionId,
+                  tableId: _selectedTableId,
+                  numberOfGuests: _guestCount,
+                  customerId: _selectedCustomer?.id,
+                  customerName: _selectedCustomer != null ? null : _customerName,
+                  navigateToSell: true,
+                ));
+              },
+              child: Text(l.newBillOrder),
+            ),
+        ],
+      ),
       children: [
         StreamBuilder<List<SectionModel>>(
             stream: ref.watch(sectionRepositoryProvider).watchAll(company.id),
@@ -235,45 +273,6 @@ class _DialogNewBillState extends ConsumerState<DialogNewBill> {
                             });
                           },
                         ),
-                      ),
-                      const SizedBox(height: 24),
-                      // Bottom buttons
-                      PosDialogActions(
-                        expanded: true,
-                        actions: [
-                          OutlinedButton(
-                            onPressed: () => Navigator.pop(context),
-                            child: Text(l.actionCancel),
-                          ),
-                          FilledButton(
-                            onPressed: () {
-                              Navigator.pop(context, NewBillResult(
-                                sectionId: _selectedSectionId,
-                                tableId: _selectedTableId,
-                                numberOfGuests: _guestCount,
-                                customerId: _selectedCustomer?.id,
-                                customerName: _selectedCustomer != null ? null : _customerName,
-                                navigateToSell: false,
-                              ));
-                            },
-                            child: Text(l.newBillSave),
-                          ),
-                          if (widget.title == null)
-                            FilledButton(
-                              style: PosButtonStyles.confirm(context),
-                              onPressed: () {
-                                Navigator.pop(context, NewBillResult(
-                                  sectionId: _selectedSectionId,
-                                  tableId: _selectedTableId,
-                                  numberOfGuests: _guestCount,
-                                  customerId: _selectedCustomer?.id,
-                                  customerName: _selectedCustomer != null ? null : _customerName,
-                                  navigateToSell: true,
-                                ));
-                              },
-                              child: Text(l.newBillOrder),
-                            ),
-                        ],
                       ),
                     ],
                   );

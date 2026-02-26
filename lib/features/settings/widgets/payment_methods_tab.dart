@@ -102,6 +102,13 @@ class PaymentMethodsTab extends ConsumerWidget {
         builder: (ctx, setDialogState) => PosDialogShell(
           title: existing == null ? l.actionAdd : l.actionEdit,
           maxWidth: 350,
+          scrollable: true,
+          bottomActions: PosDialogActions(
+            actions: [
+              OutlinedButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.actionCancel)),
+              FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.actionSave)),
+            ],
+          ),
           children: [
             TextField(
               controller: nameCtrl,
@@ -126,12 +133,6 @@ class PaymentMethodsTab extends ConsumerWidget {
               onChanged: (v) => setDialogState(() => isActive = v),
             ),
             const SizedBox(height: 24),
-            PosDialogActions(
-              actions: [
-                OutlinedButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.actionCancel)),
-                FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.actionSave)),
-              ],
-            ),
           ],
         ),
       ),

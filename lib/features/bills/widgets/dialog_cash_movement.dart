@@ -89,6 +89,7 @@ class _DialogCashMovementState extends ConsumerState<DialogCashMovement> {
       builder: (dialogContext) => PosDialogShell(
         title: l.cashMovementNoteTitle,
         maxWidth: 400,
+        scrollable: true,
         children: [
           TextField(
             controller: ctrl,
@@ -100,19 +101,19 @@ class _DialogCashMovementState extends ConsumerState<DialogCashMovement> {
             autofocus: true,
           ),
           const SizedBox(height: 16),
-          PosDialogActions(
-            actions: [
-              OutlinedButton(
-                onPressed: () => Navigator.pop(dialogContext),
-                child: Text(l.actionCancel),
-              ),
-              FilledButton(
-                onPressed: () => Navigator.pop(dialogContext, ctrl.text),
-                child: Text(l.actionSave),
-              ),
-            ],
-          ),
         ],
+        bottomActions: PosDialogActions(
+          actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: Text(l.actionCancel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, ctrl.text),
+              child: Text(l.actionSave),
+            ),
+          ],
+        ),
       ),
     );
     ctrl.dispose();
@@ -142,30 +143,29 @@ class _DialogCashMovementState extends ConsumerState<DialogCashMovement> {
         // Numpad + action buttons
         _buildNumpadAndActions(theme, l),
         const SizedBox(height: 16),
-        // Bottom: Cancel + Note
-        PosDialogActions(
-          expanded: true,
-          actions: [
-            OutlinedButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(l.actionCancel),
-            ),
-            FilledButton.tonal(
-              onPressed: _showNoteDialog,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(l.cashMovementNote),
-                  if (_note != null) ...[
-                    const SizedBox(width: 4),
-                    Icon(Icons.check, size: 16, color: theme.colorScheme.primary),
-                  ],
-                ],
-              ),
-            ),
-          ],
-        ),
       ],
+      bottomActions: PosDialogActions(
+        expanded: true,
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l.actionCancel),
+          ),
+          FilledButton.tonal(
+            onPressed: _showNoteDialog,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(l.cashMovementNote),
+                if (_note != null) ...[
+                  const SizedBox(width: 4),
+                  Icon(Icons.check, size: 16, color: theme.colorScheme.primary),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 

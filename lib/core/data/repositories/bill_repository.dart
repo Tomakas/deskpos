@@ -296,6 +296,14 @@ class BillRepository {
     String processedByUserId,
   ) async {
     try {
+      // Idempotency guard: prevent double-deduction
+      final existingBill = await (_db.select(_db.bills)
+            ..where((t) => t.id.equals(billId)))
+          .getSingle();
+      if (existingBill.loyaltyPointsUsed > 0) {
+        return const Failure('Loyalty discount already applied');
+      }
+
       final loyaltyDiscountAmount = pointsToUse * pointValue;
 
       final billEntity = await _db.transaction(() async {

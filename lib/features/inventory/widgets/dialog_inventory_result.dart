@@ -113,6 +113,24 @@ class _DialogInventoryResultState extends ConsumerState<DialogInventoryResult> {
       title: l.inventoryResultTitle,
       maxWidth: 700,
       maxHeight: 700,
+      expandHeight: true,
+      bottomActions: PosDialogActions(
+        leading: OutlinedButton.icon(
+          onPressed: _printing ? null : () => _printResults(context),
+          icon: const Icon(Icons.print_outlined),
+          label: Text(l.inventoryResultPrint),
+        ),
+        actions: [
+          FilledButton(
+            onPressed: (_applied || _applying) ? null : () => _applyToStock(context),
+            child: Text(_applied ? l.inventoryResultApplied : l.inventoryResultApply),
+          ),
+          OutlinedButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l.inventoryResultClose),
+          ),
+        ],
+      ),
       children: [
         // Summary section
         if (surplusCount > 0)
@@ -241,24 +259,6 @@ class _DialogInventoryResultState extends ConsumerState<DialogInventoryResult> {
           ),
         ),
         const SizedBox(height: 16),
-        // Buttons
-        PosDialogActions(
-          leading: OutlinedButton.icon(
-            onPressed: _printing ? null : () => _printResults(context),
-            icon: const Icon(Icons.print_outlined),
-            label: Text(l.inventoryResultPrint),
-          ),
-          actions: [
-            FilledButton(
-              onPressed: (_applied || _applying) ? null : () => _applyToStock(context),
-              child: Text(_applied ? l.inventoryResultApplied : l.inventoryResultApply),
-            ),
-            OutlinedButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(l.inventoryResultClose),
-            ),
-          ],
-        ),
       ],
     );
   }

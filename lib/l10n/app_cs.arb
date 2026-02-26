@@ -1502,6 +1502,9 @@
 
   "ordersSortAsc": "Od nejstarších",
   "ordersSortDesc": "Od nejnovějších",
+  "ordersSortByTime": "Čas",
+  "ordersSortByNumber": "Číslo",
+  "ordersSortByStatus": "Stav",
 
   "peripheralsTitle": "Periferie",
   "peripheralsScanner": "Skener",
@@ -1548,5 +1551,27 @@
   "stockColumnItem": "Položka",
   "stockColumnRequired": "Objednávka",
   "stockColumnAvailable": "Skladem",
-  "stockColumnAfter": "Po prodeji"
+  "stockColumnAfter": "Po prodeji",
+
+  "dataTitle": "Data",
+  "dataExport": "Export",
+  "dataExportDescription": "Export obchodních dat (produkty, zákazníci, objednávky) do souboru pro přenos nebo archivaci.",
+  "dataImport": "Import",
+  "dataImportDescription": "Import dat z dříve exportovaného souboru.",
+  "dataBackup": "Záloha",
+  "dataBackupDescription": "Vytvoření kompletní zálohy lokální databáze.",
+  "dataRestore": "Obnova",
+  "dataRestoreDescription": "Obnovení lokální databáze ze záložního souboru.",
+
+  "catalogSortName": "Název",
+  "catalogSortPrice": "Cena",
+  "catalogSortType": "Typ",
+  "catalogSortMinSelections": "Min. výběr",
+  "catalogSortLastName": "Příjmení",
+  "catalogSortPoints": "Body",
+  "catalogSortCredit": "Kredit",
+  "catalogSortLastVisit": "Poslední návštěva",
+  "catalogFilterActive": "Aktivní",
+  "catalogFilterHasPoints": "Má body",
+  "catalogFilterHasCredit": "Má kredit"
 }

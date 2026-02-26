@@ -137,26 +137,25 @@ class _DialogLoyaltyRedeemState extends ConsumerState<DialogLoyaltyRedeem> {
           ),
         ),
         const SizedBox(height: 16),
-        // Bottom
-        PosDialogActions(
-          expanded: true,
-          actions: [
-            OutlinedButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(l.actionCancel),
-            ),
-            FilledButton.tonal(
-              onPressed: _useMax,
-              child: Text(l.loyaltyMaxPoints(_maxPoints)),
-            ),
-            FilledButton(
-              style: PosButtonStyles.confirm(context),
-              onPressed: _isValid && !_isProcessing ? _confirm : null,
-              child: Text(l.paymentConfirm),
-            ),
-          ],
-        ),
       ],
+      bottomActions: PosDialogActions(
+        expanded: true,
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l.actionCancel),
+          ),
+          FilledButton.tonal(
+            onPressed: _useMax,
+            child: Text(l.loyaltyMaxPoints(_maxPoints)),
+          ),
+          FilledButton(
+            style: PosButtonStyles.confirm(context),
+            onPressed: _isValid && !_isProcessing ? _confirm : null,
+            child: Text(l.loyaltyRedeem),
+          ),
+        ],
+      ),
     );
   }
 }

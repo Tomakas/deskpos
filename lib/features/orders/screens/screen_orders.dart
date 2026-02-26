@@ -29,8 +29,11 @@ class ScreenOrders extends ConsumerStatefulWidget {
   ConsumerState<ScreenOrders> createState() => _ScreenOrdersState();
 }
 
+enum _OrderSortField { time, number, status }
+
 class _ScreenOrdersState extends ConsumerState<ScreenOrders> {
   bool _sessionScope = true;
+  _OrderSortField _sortField = _OrderSortField.time;
   bool _sortAscending = false;
   String _searchQuery = '';
   final _searchCtrl = TextEditingController();
@@ -69,8 +72,12 @@ class _ScreenOrdersState extends ConsumerState<ScreenOrders> {
         title: _OrdersToolbar(
           sessionScope: _sessionScope,
           onSessionScopeChanged: (v) => setState(() => _sessionScope = v),
+          sortField: _sortField,
           sortAscending: _sortAscending,
-          onSortChanged: () => setState(() => _sortAscending = !_sortAscending),
+          onSortChanged: (field, ascending) => setState(() {
+            _sortField = field;
+            _sortAscending = ascending;
+          }),
           searchController: _searchCtrl,
           onSearchChanged: (v) => setState(() => _searchQuery = v),
         ),
@@ -157,9 +164,14 @@ class _ScreenOrdersState extends ConsumerState<ScreenOrders> {
           .toList();
     }
 
-    result.sort((a, b) => _sortAscending
-        ? a.createdAt.compareTo(b.createdAt)
-        : b.createdAt.compareTo(a.createdAt));
+    result.sort((a, b) {
+      final cmp = switch (_sortField) {
+        _OrderSortField.time => a.createdAt.compareTo(b.createdAt),
+        _OrderSortField.number => a.orderNumber.compareTo(b.orderNumber),
+        _OrderSortField.status => a.status.index.compareTo(b.status.index),
+      };
+      return _sortAscending ? cmp : -cmp;
+    });
 
     return result;
   }
@@ -207,14 +219,13 @@ class _ScreenOrdersState extends ConsumerState<ScreenOrders> {
       context: context,
       builder: (_) => PosDialogShell(
         title: l.orderItemStornoConfirm,
-        children: [
-          PosDialogActions(
-            actions: [
-              OutlinedButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
-              FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
-            ],
-          ),
-        ],
+        bottomActions: PosDialogActions(
+          actions: [
+            OutlinedButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
+            FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
+          ],
+        ),
+        children: const [],
       ),
     );
     if (confirmed != true || !context.mounted) return;
@@ -872,8 +883,9 @@ class _OrdersClockWidgetState extends ConsumerState<_OrdersClockWidget> {
   @override
   Widget build(BuildContext context) {
     return Text(
-      '${ref.fmtDate(_now)}  ${ref.fmtTimeSeconds(_now)}',
+      ref.fmtTimeSeconds(_now),
       style: Theme.of(context).textTheme.titleMedium,
+      overflow: TextOverflow.ellipsis,
     );
   }
 }
@@ -924,6 +936,7 @@ class _OrdersToolbar extends StatelessWidget {
   const _OrdersToolbar({
     required this.sessionScope,
     required this.onSessionScopeChanged,
+    required this.sortField,
     required this.sortAscending,
     required this.onSortChanged,
     required this.searchController,
@@ -932,8 +945,9 @@ class _OrdersToolbar extends StatelessWidget {
 
   final bool sessionScope;
   final ValueChanged<bool> onSessionScopeChanged;
+  final _OrderSortField sortField;
   final bool sortAscending;
-  final VoidCallback onSortChanged;
+  final void Function(_OrderSortField field, bool ascending) onSortChanged;
   final TextEditingController searchController;
   final ValueChanged<String> onSearchChanged;
 
@@ -968,25 +982,55 @@ class _OrdersToolbar extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(width: 12),
-        ChoiceChip(
-          label: Text(l.ordersScopeSession),
-          selected: sessionScope,
-          onSelected: (_) => onSessionScopeChanged(true),
-        ),
         const SizedBox(width: 4),
-        ChoiceChip(
-          label: Text(l.ordersScopeAll),
-          selected: !sessionScope,
-          onSelected: (_) => onSessionScopeChanged(false),
+        PopupMenuButton<bool>(
+          icon: Icon(
+            Icons.filter_alt_outlined,
+            color: !sessionScope ? Theme.of(context).colorScheme.primary : null,
+          ),
+          onSelected: onSessionScopeChanged,
+          itemBuilder: (_) => [
+            CheckedPopupMenuItem(
+              value: true,
+              checked: sessionScope,
+              child: Text(l.ordersScopeSession),
+            ),
+            CheckedPopupMenuItem(
+              value: false,
+              checked: !sessionScope,
+              child: Text(l.ordersScopeAll),
+            ),
+          ],
         ),
-        const SizedBox(width: 4),
-        IconButton(
-          icon: Icon(sortAscending
-              ? Icons.arrow_upward
-              : Icons.arrow_downward),
-          tooltip: sortAscending ? l.ordersSortAsc : l.ordersSortDesc,
-          onPressed: onSortChanged,
+        PopupMenuButton<_OrderSortField>(
+          icon: const Icon(Icons.swap_vert),
+          onSelected: (field) {
+            if (field == sortField) {
+              onSortChanged(field, !sortAscending);
+            } else {
+              onSortChanged(field, field == _OrderSortField.time ? false : true);
+            }
+          },
+          itemBuilder: (_) => [
+            for (final entry in {
+              _OrderSortField.time: l.ordersSortByTime,
+              _OrderSortField.number: l.ordersSortByNumber,
+              _OrderSortField.status: l.ordersSortByStatus,
+            }.entries)
+              PopupMenuItem(
+                value: entry.key,
+                child: Row(
+                  children: [
+                    if (entry.key == sortField)
+                      Icon(sortAscending ? Icons.arrow_upward : Icons.arrow_downward, size: 16)
+                    else
+                      const SizedBox(width: 16),
+                    const SizedBox(width: 8),
+                    Text(entry.value, style: entry.key == sortField ? const TextStyle(fontWeight: FontWeight.bold) : null),
+                  ],
+                ),
+              ),
+          ],
         ),
       ],
     );

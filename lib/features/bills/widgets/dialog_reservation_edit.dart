@@ -203,6 +203,24 @@ class _DialogReservationEditState extends ConsumerState<DialogReservationEdit> {
       titleStyle: theme.textTheme.headlineSmall,
       maxWidth: 480,
       scrollable: true,
+      bottomActions: PosDialogActions(
+        actions: [
+          if (_isEdit)
+            OutlinedButton(
+              onPressed: !_isProcessing ? _delete : null,
+              style: PosButtonStyles.destructiveOutlined(context),
+              child: Text(l.reservationDelete),
+            ),
+          OutlinedButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l.actionCancel),
+          ),
+          FilledButton(
+            onPressed: !_isProcessing ? _save : null,
+            child: Text(l.reservationSave),
+          ),
+        ],
+      ),
       children: [
         // Customer name
                 TextField(
@@ -315,25 +333,6 @@ class _DialogReservationEditState extends ConsumerState<DialogReservationEdit> {
                   const SizedBox(height: 16),
                 ],
 
-                // Actions
-                PosDialogActions(
-                  actions: [
-                    if (_isEdit)
-                      OutlinedButton(
-                        onPressed: !_isProcessing ? _delete : null,
-                        style: PosButtonStyles.destructiveOutlined(context),
-                        child: Text(l.reservationDelete),
-                      ),
-                    OutlinedButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: Text(l.actionCancel),
-                    ),
-                    FilledButton(
-                      onPressed: !_isProcessing ? _save : null,
-                      child: Text(l.reservationSave),
-                    ),
-                  ],
-                ),
               ],
     );
   }

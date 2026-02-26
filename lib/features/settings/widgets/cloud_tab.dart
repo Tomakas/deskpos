@@ -139,23 +139,24 @@ class CloudTab extends ConsumerWidget {
       context: context,
       builder: (ctx) => PosDialogShell(
         title: title,
+        scrollable: true,
         children: [
           Text(message),
           const SizedBox(height: 24),
-          PosDialogActions(
-            actions: [
-              OutlinedButton(
-                onPressed: () => Navigator.pop(ctx, false),
-                child: Text(l.actionCancel),
-              ),
-              FilledButton(
-                style: PosButtonStyles.destructiveFilled(ctx),
-                onPressed: () => Navigator.pop(ctx, true),
-                child: Text(confirm),
-              ),
-            ],
-          ),
         ],
+        bottomActions: PosDialogActions(
+          actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(l.actionCancel),
+            ),
+            FilledButton(
+              style: PosButtonStyles.destructiveFilled(ctx),
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(confirm),
+            ),
+          ],
+        ),
       ),
     );
   }

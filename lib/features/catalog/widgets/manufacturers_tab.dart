@@ -13,6 +13,8 @@ import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_table.dart';
 
+enum _ManufacturersSortField { name }
+
 class ManufacturersTab extends ConsumerStatefulWidget {
   const ManufacturersTab({super.key});
 
@@ -23,6 +25,10 @@ class ManufacturersTab extends ConsumerStatefulWidget {
 class _ManufacturersTabState extends ConsumerState<ManufacturersTab> {
   final _searchCtrl = TextEditingController();
   String _query = '';
+
+  // Sort state
+  _ManufacturersSortField _sortField = _ManufacturersSortField.name;
+  bool _sortAsc = true;
 
   @override
   void dispose() {
@@ -43,7 +49,13 @@ class _ManufacturersTabState extends ConsumerState<ManufacturersTab> {
         final filtered = manufacturers.where((m) {
           if (_query.isEmpty) return true;
           return normalizeSearch(m.name).contains(_query);
-        }).toList();
+        }).toList()
+          ..sort((a, b) {
+            final cmp = switch (_sortField) {
+              _ManufacturersSortField.name => a.name.compareTo(b.name),
+            };
+            return _sortAsc ? cmp : -cmp;
+          });
         return Column(
           children: [
             PosTableToolbar(
@@ -51,6 +63,38 @@ class _ManufacturersTabState extends ConsumerState<ManufacturersTab> {
               searchHint: l.searchHint,
               onSearchChanged: (v) => setState(() => _query = normalizeSearch(v)),
               trailing: [
+                PopupMenuButton<_ManufacturersSortField>(
+                  icon: const Icon(Icons.swap_vert),
+                  onSelected: (field) {
+                    if (field == _sortField) {
+                      setState(() => _sortAsc = !_sortAsc);
+                    } else {
+                      setState(() {
+                        _sortField = field;
+                        _sortAsc = true;
+                      });
+                    }
+                  },
+                  itemBuilder: (_) => [
+                    for (final entry in {
+                      _ManufacturersSortField.name: l.catalogSortName,
+                    }.entries)
+                      PopupMenuItem(
+                        value: entry.key,
+                        child: Row(
+                          children: [
+                            if (entry.key == _sortField)
+                              Icon(_sortAsc ? Icons.arrow_upward : Icons.arrow_downward, size: 16)
+                            else
+                              const SizedBox(width: 16),
+                            const SizedBox(width: 8),
+                            Text(entry.value, style: entry.key == _sortField ? const TextStyle(fontWeight: FontWeight.bold) : null),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(width: 8),
                 FilledButton.icon(
                   onPressed: () => _showEditDialog(context, ref, null),
                   icon: const Icon(Icons.add),
@@ -83,29 +127,30 @@ class _ManufacturersTabState extends ConsumerState<ManufacturersTab> {
       builder: (_) => PosDialogShell(
         title: existing == null ? l.actionAdd : l.actionEdit,
         maxWidth: 350,
+        scrollable: true,
+        bottomActions: PosDialogActions(
+          leading: existing != null
+              ? OutlinedButton(
+                  style: PosButtonStyles.destructiveOutlined(context),
+                  onPressed: () async {
+                    if (!await confirmDelete(context, l) || !context.mounted) return;
+                    await ref.read(manufacturerRepositoryProvider).delete(existing.id);
+                    if (context.mounted) Navigator.pop(context);
+                  },
+                  child: Text(l.actionDelete),
+                )
+              : null,
+          actions: [
+            OutlinedButton(onPressed: () => Navigator.pop(context, false), child: Text(l.actionCancel)),
+            FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(l.actionSave)),
+          ],
+        ),
         children: [
           TextField(
             controller: nameCtrl,
             decoration: InputDecoration(labelText: l.fieldName),
           ),
           const SizedBox(height: 24),
-          PosDialogActions(
-            leading: existing != null
-                ? OutlinedButton(
-                    style: PosButtonStyles.destructiveOutlined(context),
-                    onPressed: () async {
-                      if (!await confirmDelete(context, l) || !context.mounted) return;
-                      await ref.read(manufacturerRepositoryProvider).delete(existing.id);
-                      if (context.mounted) Navigator.pop(context);
-                    },
-                    child: Text(l.actionDelete),
-                  )
-                : null,
-            actions: [
-              OutlinedButton(onPressed: () => Navigator.pop(context, false), child: Text(l.actionCancel)),
-              FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(l.actionSave)),
-            ],
-          ),
         ],
       ),
     );

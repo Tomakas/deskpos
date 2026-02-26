@@ -785,6 +785,30 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
             title: isElementMode ? l.floorMapAddElement : l.floorMapAddTable,
             maxWidth: 400,
             scrollable: true,
+            bottomActions: PosDialogActions(
+              actions: [
+                OutlinedButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: Text(l.actionCancel),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.pop(ctx, _PlaceResult(
+                    isElement: isElementMode,
+                    tableId: null,
+                    name: !isElementMode ? nameController.text.trim() : null,
+                    width: isElementMode ? elemWidth : width,
+                    height: isElementMode ? elemHeight : height,
+                    shape: isElementMode ? elemShape : shape,
+                    label: isElementMode ? labelController.text.trim() : null,
+                    color: isElementMode ? elementColor : tableColor,
+                    fontSize: isElementMode ? elemFontSize : tableFontSize,
+                    fillStyle: isElementMode ? elemFillStyle : tableFillStyle,
+                    borderStyle: isElementMode ? elemBorderStyle : tableBorderStyle,
+                  )),
+                  child: Text(l.actionSave),
+                ),
+              ],
+            ),
             children: [
                   // Segment: Table / Element
                   Row(
@@ -1024,30 +1048,6 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
                     ),
                   ],
                   const SizedBox(height: 24),
-                  PosDialogActions(
-                    actions: [
-                      OutlinedButton(
-                        onPressed: () => Navigator.pop(ctx),
-                        child: Text(l.actionCancel),
-                      ),
-                      FilledButton(
-                        onPressed: () => Navigator.pop(ctx, _PlaceResult(
-                          isElement: isElementMode,
-                          tableId: null,
-                          name: !isElementMode ? nameController.text.trim() : null,
-                          width: isElementMode ? elemWidth : width,
-                          height: isElementMode ? elemHeight : height,
-                          shape: isElementMode ? elemShape : shape,
-                          label: isElementMode ? labelController.text.trim() : null,
-                          color: isElementMode ? elementColor : tableColor,
-                          fontSize: isElementMode ? elemFontSize : tableFontSize,
-                          fillStyle: isElementMode ? elemFillStyle : tableFillStyle,
-                          borderStyle: isElementMode ? elemBorderStyle : tableBorderStyle,
-                        )),
-                        child: Text(l.actionSave),
-                      ),
-                    ],
-                  ),
                 ],
           );
         },
@@ -1129,6 +1129,34 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
             title: l.floorMapEditTable,
             maxWidth: 400,
             scrollable: true,
+            bottomActions: PosDialogActions(
+              leading: OutlinedButton(
+                style: PosButtonStyles.destructiveOutlined(ctx),
+                onPressed: () async {
+                  if (await confirmDelete(ctx, l) && ctx.mounted) Navigator.pop(ctx, const _EditResult(remove: true));
+                },
+                child: Text(l.floorMapRemoveTable),
+              ),
+              actions: [
+                OutlinedButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: Text(l.actionCancel),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.pop(ctx, _EditResult(
+                    name: nameController.text.trim(),
+                    width: width,
+                    height: height,
+                    shape: shape,
+                    color: tableColor,
+                    fontSize: fontSize,
+                    fillStyle: fillStyle,
+                    borderStyle: borderStyle,
+                  )),
+                  child: Text(l.actionSave),
+                ),
+              ],
+            ),
             children: [
                   TextField(
                     controller: nameController,
@@ -1229,34 +1257,6 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
                     ],
                   ),
                   const SizedBox(height: 24),
-                  PosDialogActions(
-                    leading: OutlinedButton(
-                      style: PosButtonStyles.destructiveOutlined(ctx),
-                      onPressed: () async {
-                        if (await confirmDelete(ctx, l) && ctx.mounted) Navigator.pop(ctx, const _EditResult(remove: true));
-                      },
-                      child: Text(l.floorMapRemoveTable),
-                    ),
-                    actions: [
-                      OutlinedButton(
-                        onPressed: () => Navigator.pop(ctx),
-                        child: Text(l.actionCancel),
-                      ),
-                      FilledButton(
-                        onPressed: () => Navigator.pop(ctx, _EditResult(
-                          name: nameController.text.trim(),
-                          width: width,
-                          height: height,
-                          shape: shape,
-                          color: tableColor,
-                          fontSize: fontSize,
-                          fillStyle: fillStyle,
-                          borderStyle: borderStyle,
-                        )),
-                        child: Text(l.actionSave),
-                      ),
-                    ],
-                  ),
                 ],
           );
         },
@@ -1307,6 +1307,34 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
             title: l.floorMapEditElement,
             maxWidth: 400,
             scrollable: true,
+            bottomActions: PosDialogActions(
+              leading: OutlinedButton(
+                style: PosButtonStyles.destructiveOutlined(ctx),
+                onPressed: () async {
+                  if (await confirmDelete(ctx, l) && ctx.mounted) Navigator.pop(ctx, const _EditElementResult(remove: true));
+                },
+                child: Text(l.floorMapRemoveElement),
+              ),
+              actions: [
+                OutlinedButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: Text(l.actionCancel),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.pop(ctx, _EditElementResult(
+                    label: labelController.text.trim(),
+                    color: elementColor,
+                    fontSize: fontSize,
+                    fillStyle: fillStyle,
+                    borderStyle: borderStyle,
+                    width: width,
+                    height: height,
+                    shape: shape,
+                  )),
+                  child: Text(l.actionSave),
+                ),
+              ],
+            ),
             children: [
                   TextField(
                     controller: labelController,
@@ -1407,34 +1435,6 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
                     ],
                   ),
                   const SizedBox(height: 24),
-                  PosDialogActions(
-                    leading: OutlinedButton(
-                      style: PosButtonStyles.destructiveOutlined(ctx),
-                      onPressed: () async {
-                        if (await confirmDelete(ctx, l) && ctx.mounted) Navigator.pop(ctx, const _EditElementResult(remove: true));
-                      },
-                      child: Text(l.floorMapRemoveElement),
-                    ),
-                    actions: [
-                      OutlinedButton(
-                        onPressed: () => Navigator.pop(ctx),
-                        child: Text(l.actionCancel),
-                      ),
-                      FilledButton(
-                        onPressed: () => Navigator.pop(ctx, _EditElementResult(
-                          label: labelController.text.trim(),
-                          color: elementColor,
-                          fontSize: fontSize,
-                          fillStyle: fillStyle,
-                          borderStyle: borderStyle,
-                          width: width,
-                          height: height,
-                          shape: shape,
-                        )),
-                        child: Text(l.actionSave),
-                      ),
-                    ],
-                  ),
                 ],
           );
         },

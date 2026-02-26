@@ -14,6 +14,7 @@ import '../../features/vouchers/screens/screen_vouchers.dart';
 import '../../features/onboarding/screens/screen_connect_company.dart';
 import '../../features/onboarding/screens/screen_onboarding.dart';
 import '../../features/sell/screens/screen_sell.dart';
+import '../../features/data/screens/screen_data.dart';
 import '../../features/statistics/screens/screen_statistics.dart';
 import '../../features/settings/screens/screen_register_settings.dart';
 import '../../features/settings/screens/screen_settings.dart';
@@ -190,6 +191,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           return null;
         },
         builder: (context, state) => const ScreenVouchers(),
+      ),
+      GoRoute(
+        path: '/data',
+        builder: (context, state) => const ScreenData(),
       ),
       GoRoute(
         path: '/statistics',

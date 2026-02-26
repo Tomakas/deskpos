@@ -86,8 +86,8 @@ class _DialogSplitBillState extends ConsumerState<DialogSplitBill> {
           ),
         ),
         const SizedBox(height: 16),
-        _buildActions(context, l),
       ],
+      bottomActions: _buildActions(context, l),
     );
   }
 

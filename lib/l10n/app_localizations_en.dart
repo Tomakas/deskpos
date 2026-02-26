@@ -3697,6 +3697,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ordersSortDesc => 'Newest first';
 
   @override
+  String get ordersSortByTime => 'Time';
+
+  @override
+  String get ordersSortByNumber => 'Number';
+
+  @override
+  String get ordersSortByStatus => 'Status';
+
+  @override
   String get peripheralsTitle => 'Peripherals';
 
   @override
@@ -3830,4 +3839,68 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get stockColumnAfter => 'After sale';
+
+  @override
+  String get dataTitle => 'Data';
+
+  @override
+  String get dataExport => 'Export';
+
+  @override
+  String get dataExportDescription =>
+      'Export business data (products, customers, orders) to a file for transfer or archival.';
+
+  @override
+  String get dataImport => 'Import';
+
+  @override
+  String get dataImportDescription =>
+      'Import data from a previously exported file.';
+
+  @override
+  String get dataBackup => 'Backup';
+
+  @override
+  String get dataBackupDescription =>
+      'Create a full backup of the local database.';
+
+  @override
+  String get dataRestore => 'Restore';
+
+  @override
+  String get dataRestoreDescription =>
+      'Restore the local database from a backup file.';
+
+  @override
+  String get catalogSortName => 'Name';
+
+  @override
+  String get catalogSortPrice => 'Price';
+
+  @override
+  String get catalogSortType => 'Type';
+
+  @override
+  String get catalogSortMinSelections => 'Min. selections';
+
+  @override
+  String get catalogSortLastName => 'Last name';
+
+  @override
+  String get catalogSortPoints => 'Points';
+
+  @override
+  String get catalogSortCredit => 'Credit';
+
+  @override
+  String get catalogSortLastVisit => 'Last visit';
+
+  @override
+  String get catalogFilterActive => 'Active';
+
+  @override
+  String get catalogFilterHasPoints => 'Has points';
+
+  @override
+  String get catalogFilterHasCredit => 'Has credit';
 }

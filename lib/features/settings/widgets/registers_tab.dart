@@ -440,6 +440,18 @@ class RegistersTab extends ConsumerWidget {
           title: existing == null ? l.modePOS : l.actionEdit,
           maxWidth: 400,
           scrollable: true,
+          bottomActions: PosDialogActions(
+            actions: [
+              OutlinedButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: Text(l.actionCancel),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: Text(l.actionSave),
+              ),
+            ],
+          ),
           children: [
             TextField(
               controller: nameCtrl,
@@ -520,18 +532,6 @@ class RegistersTab extends ConsumerWidget {
                   setDialogState(() => allowRefunds = v),
             ),
             const SizedBox(height: 24),
-            PosDialogActions(
-              actions: [
-                OutlinedButton(
-                  onPressed: () => Navigator.pop(ctx, false),
-                  child: Text(l.actionCancel),
-                ),
-                FilledButton(
-                  onPressed: () => Navigator.pop(ctx, true),
-                  child: Text(l.actionSave),
-                ),
-              ],
-            ),
           ],
         ),
       ),
@@ -617,6 +617,21 @@ class RegistersTab extends ConsumerWidget {
         builder: (ctx, setDialogState) => PosDialogShell(
           title: _displayTypeLabel(l, type),
           maxWidth: 400,
+          scrollable: true,
+          bottomActions: PosDialogActions(
+            actions: [
+              OutlinedButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: Text(l.actionCancel),
+              ),
+              FilledButton(
+                onPressed: isCustomerDisplay && parentRegisterId == null
+                    ? null
+                    : () => Navigator.pop(ctx, true),
+                child: Text(l.actionSave),
+              ),
+            ],
+          ),
           children: [
             TextField(
               controller: nameCtrl,
@@ -644,20 +659,6 @@ class RegistersTab extends ConsumerWidget {
               ),
             ],
             const SizedBox(height: 24),
-            PosDialogActions(
-              actions: [
-                OutlinedButton(
-                  onPressed: () => Navigator.pop(ctx, false),
-                  child: Text(l.actionCancel),
-                ),
-                FilledButton(
-                  onPressed: isCustomerDisplay && parentRegisterId == null
-                      ? null
-                      : () => Navigator.pop(ctx, true),
-                  child: Text(l.actionSave),
-                ),
-              ],
-            ),
           ],
         ),
       ),
@@ -694,6 +695,19 @@ class RegistersTab extends ConsumerWidget {
         builder: (ctx, setDialogState) => PosDialogShell(
           title: _displayTypeLabel(l, device.type),
           maxWidth: 400,
+          scrollable: true,
+          bottomActions: PosDialogActions(
+            actions: [
+              OutlinedButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: Text(l.actionCancel),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: Text(l.actionSave),
+              ),
+            ],
+          ),
           children: [
             TextField(
               controller: nameCtrl,
@@ -715,18 +729,6 @@ class RegistersTab extends ConsumerWidget {
               contentPadding: EdgeInsets.zero,
             ),
             const SizedBox(height: 24),
-            PosDialogActions(
-              actions: [
-                OutlinedButton(
-                  onPressed: () => Navigator.pop(ctx, false),
-                  child: Text(l.actionCancel),
-                ),
-                FilledButton(
-                  onPressed: () => Navigator.pop(ctx, true),
-                  child: Text(l.actionSave),
-                ),
-              ],
-            ),
           ],
         ),
       ),

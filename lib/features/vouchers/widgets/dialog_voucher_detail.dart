@@ -77,6 +77,7 @@ class _DialogVoucherDetailState extends ConsumerState<DialogVoucherDetail> {
       titleStyle: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
       maxWidth: 400,
       padding: const EdgeInsets.all(20),
+      scrollable: true,
       children: [
         _row(l.filterTitle, _typeLabel(voucher.type, l)),
         _row(l.reservationStatus, _statusLabel(voucher.status, l)),
@@ -100,26 +101,26 @@ class _DialogVoucherDetailState extends ConsumerState<DialogVoucherDetail> {
           _row(l.voucherCreatedBy, _createdByName!),
         _row(l.voucherNote, voucher.note ?? '-'),
         const SizedBox(height: 16),
-        PosDialogActions(
-          leading: OutlinedButton.icon(
-            onPressed: _printing ? null : () => _printVoucher(context),
-            icon: const Icon(Icons.print_outlined),
-            label: Text(l.voucherPrint),
-          ),
-          actions: [
-            OutlinedButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(l.actionClose),
-            ),
-            if (voucher.status == VoucherStatus.active)
-              FilledButton(
-                style: PosButtonStyles.destructiveFilled(context),
-                onPressed: () => _cancelVoucher(context, ref),
-                child: Text(l.voucherCancel),
-              ),
-          ],
-        ),
       ],
+      bottomActions: PosDialogActions(
+        leading: OutlinedButton.icon(
+          onPressed: _printing ? null : () => _printVoucher(context),
+          icon: const Icon(Icons.print_outlined),
+          label: Text(l.voucherPrint),
+        ),
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l.actionClose),
+          ),
+          if (voucher.status == VoucherStatus.active)
+            FilledButton(
+              style: PosButtonStyles.destructiveFilled(context),
+              onPressed: () => _cancelVoucher(context, ref),
+              child: Text(l.voucherCancel),
+            ),
+        ],
+      ),
     );
   }
 

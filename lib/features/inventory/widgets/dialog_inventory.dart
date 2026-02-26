@@ -184,24 +184,24 @@ class _DialogInventoryState extends ConsumerState<DialogInventory> {
           ),
         ),
         const SizedBox(height: 16),
-        PosDialogActions(
-          leading: OutlinedButton.icon(
-            onPressed: _printing ? null : () => _printTemplate(context),
-            icon: const Icon(Icons.print_outlined),
-            label: Text(l.inventoryPrintTemplate),
-          ),
-          actions: [
-            OutlinedButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(l.actionCancel),
-            ),
-            FilledButton(
-              onPressed: () => _save(context),
-              child: Text(l.inventoryDialogSave),
-            ),
-          ],
-        ),
       ],
+      bottomActions: PosDialogActions(
+        leading: OutlinedButton.icon(
+          onPressed: _printing ? null : () => _printTemplate(context),
+          icon: const Icon(Icons.print_outlined),
+          label: Text(l.inventoryPrintTemplate),
+        ),
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l.actionCancel),
+          ),
+          FilledButton(
+            onPressed: () => _save(context),
+            child: Text(l.inventoryDialogSave),
+          ),
+        ],
+      ),
     );
   }
 

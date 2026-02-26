@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-02-26 (night) — Loyalty Redemption in Payment Dialog
+
+### Features
+- **Loyalty redemption moved to payment dialog** — "Uplatnit body" removed from `DialogBillDetail` right panel; now accessible via "Další akce" sub-view in `DialogPayment` left sidebar (same toggle pattern as currency selector)
+- **"Další akce" button** — enabled only when actions are available (currently: loyalty); disabled when no customer, 0 points, loyalty already applied, partial payment made, or loyalty program not configured
+- **Pre-loaded loyalty settings** — `_loyaltyPointValue` and `_loyaltyEarnRate` loaded once in `initState`, eliminating duplicate `companySettingsRepository.getOrCreate` call from `_pay()`
+
+### Fixes
+- **Idempotency guard on `applyLoyaltyDiscount`** — repository-level check prevents double-deduction if method is called twice (race condition or UI bug); returns `Failure` if `loyaltyPointsUsed > 0`
+
+---
+
 ## 2026-02-26 (evening) — Section Sort Order
 
 ### Features

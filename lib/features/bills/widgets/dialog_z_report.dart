@@ -84,6 +84,27 @@ class DialogZReport extends ConsumerWidget {
       titleStyle: theme.textTheme.headlineSmall,
       maxWidth: 520,
       scrollable: true,
+      bottomActions: PosDialogActions(
+        actions: [
+          OutlinedButton(
+            onPressed: () async {
+              try {
+                final labels = _buildLabels(context, ref);
+                final bytes = await ref.read(printingServiceProvider)
+                    .generateZReportPdf(data, labels);
+                await FileOpener.shareBytes('z_report_${data.sessionId}.pdf', bytes);
+              } catch (e, s) {
+                AppLogger.error('Failed to print Z-report', error: e, stackTrace: s);
+              }
+            },
+            child: Text(l.zReportPrint),
+          ),
+          FilledButton.tonal(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l.zReportClose),
+          ),
+        ],
+      ),
       children: [
         // --- Session info ---
                 Text(l.zReportSessionInfo, style: theme.textTheme.titleSmall),
@@ -254,28 +275,6 @@ class DialogZReport extends ConsumerWidget {
                   const SizedBox(height: 16),
                 ],
 
-                // --- Actions ---
-                PosDialogActions(
-                  actions: [
-                    OutlinedButton(
-                      onPressed: () async {
-                        try {
-                          final labels = _buildLabels(context, ref);
-                          final bytes = await ref.read(printingServiceProvider)
-                              .generateZReportPdf(data, labels);
-                          await FileOpener.shareBytes('z_report_${data.sessionId}.pdf', bytes);
-                        } catch (e, s) {
-                          AppLogger.error('Failed to print Z-report', error: e, stackTrace: s);
-                        }
-                      },
-                      child: Text(l.zReportPrint),
-                    ),
-                    FilledButton.tonal(
-                      onPressed: () => Navigator.pop(context),
-                      child: Text(l.zReportClose),
-                    ),
-                  ],
-                ),
               ],
     );
   }

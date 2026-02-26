@@ -216,30 +216,29 @@ class _DialogCashTenderState extends ConsumerState<DialogCashTender> {
         // 4. Vrátit / Zbývá / Prázdný stav
         _buildChangeLine(theme, l),
         const SizedBox(height: 16),
-        // 5. Akce
-        PosDialogActions(
-          expanded: true,
-          actions: [
-            OutlinedButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(l.cashTenderSkip),
-            ),
-            FilledButton(
-              style: PosButtonStyles.confirm(context),
-              onPressed: _coversAmount && _receivedMinor > 0
-                  ? () => Navigator.pop(
-                        context,
-                        CashTenderResult(
-                          receivedAmount: _receivedMinor,
-                          changeAmount: _changeAmount,
-                        ),
-                      )
-                  : null,
-              child: Text(l.actionConfirm),
-            ),
-          ],
-        ),
       ],
+      bottomActions: PosDialogActions(
+        expanded: true,
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l.cashTenderSkip),
+          ),
+          FilledButton(
+            style: PosButtonStyles.confirm(context),
+            onPressed: _coversAmount && _receivedMinor > 0
+                ? () => Navigator.pop(
+                      context,
+                      CashTenderResult(
+                        receivedAmount: _receivedMinor,
+                        changeAmount: _changeAmount,
+                      ),
+                    )
+                : null,
+            child: Text(l.actionConfirm),
+          ),
+        ],
+      ),
     );
   }
 

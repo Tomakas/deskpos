@@ -142,15 +142,15 @@ class _DialogCustomerCreditState extends ConsumerState<DialogCustomerCredit> {
           child: _buildTransactionHistory(context),
         ),
         const SizedBox(height: 16),
-        SizedBox(
-          width: double.infinity,
-          height: PosDialogTheme.actionHeight,
-          child: OutlinedButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l.actionClose),
-          ),
-        ),
       ],
+      bottomActions: SizedBox(
+        width: double.infinity,
+        height: PosDialogTheme.actionHeight,
+        child: OutlinedButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(l.actionClose),
+        ),
+      ),
     );
   }
 

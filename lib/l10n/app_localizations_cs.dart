@@ -3693,6 +3693,15 @@ class AppLocalizationsCs extends AppLocalizations {
   String get ordersSortDesc => 'Od nejnovějších';
 
   @override
+  String get ordersSortByTime => 'Čas';
+
+  @override
+  String get ordersSortByNumber => 'Číslo';
+
+  @override
+  String get ordersSortByStatus => 'Stav';
+
+  @override
   String get peripheralsTitle => 'Periferie';
 
   @override
@@ -3826,4 +3835,68 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get stockColumnAfter => 'Po prodeji';
+
+  @override
+  String get dataTitle => 'Data';
+
+  @override
+  String get dataExport => 'Export';
+
+  @override
+  String get dataExportDescription =>
+      'Export obchodních dat (produkty, zákazníci, objednávky) do souboru pro přenos nebo archivaci.';
+
+  @override
+  String get dataImport => 'Import';
+
+  @override
+  String get dataImportDescription =>
+      'Import dat z dříve exportovaného souboru.';
+
+  @override
+  String get dataBackup => 'Záloha';
+
+  @override
+  String get dataBackupDescription =>
+      'Vytvoření kompletní zálohy lokální databáze.';
+
+  @override
+  String get dataRestore => 'Obnova';
+
+  @override
+  String get dataRestoreDescription =>
+      'Obnovení lokální databáze ze záložního souboru.';
+
+  @override
+  String get catalogSortName => 'Název';
+
+  @override
+  String get catalogSortPrice => 'Cena';
+
+  @override
+  String get catalogSortType => 'Typ';
+
+  @override
+  String get catalogSortMinSelections => 'Min. výběr';
+
+  @override
+  String get catalogSortLastName => 'Příjmení';
+
+  @override
+  String get catalogSortPoints => 'Body';
+
+  @override
+  String get catalogSortCredit => 'Kredit';
+
+  @override
+  String get catalogSortLastVisit => 'Poslední návštěva';
+
+  @override
+  String get catalogFilterActive => 'Aktivní';
+
+  @override
+  String get catalogFilterHasPoints => 'Má body';
+
+  @override
+  String get catalogFilterHasCredit => 'Má kredit';
 }

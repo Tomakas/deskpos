@@ -21,6 +21,7 @@ import '../../../core/utils/formatters.dart';
 import '../../../core/utils/formatting_ext.dart';
 import 'dialog_cash_tender.dart';
 import 'dialog_change_total.dart';
+import 'dialog_loyalty_redeem.dart';
 
 class DialogPayment extends ConsumerStatefulWidget {
   const DialogPayment({
@@ -40,12 +41,15 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
   bool _printReceipt = true;
   bool _showOtherPayments = false;
   bool _showCurrencySelector = false;
+  bool _showMoreActions = false;
   late BillModel _bill;
   int? _customAmount;
   int? _customForeignAmount;
   CustomerModel? _customer;
   Future<List<PaymentMethodModel>>? _paymentMethodsFuture;
   Stream<List<PaymentMethodModel>>? _paymentMethodsStream;
+  int _loyaltyPointValue = 0;
+  int _loyaltyEarnRate = 0;
 
   // Foreign currency state
   String? _selectedForeignCurrencyId;
@@ -63,6 +67,7 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
       _paymentMethodsFuture = ref.read(paymentMethodRepositoryProvider).getAll(company.id);
       _paymentMethodsStream = ref.read(paymentMethodRepositoryProvider).watchAll(company.id);
       _loadForeignCurrencies(company.id);
+      _loadLoyaltySettings(company.id);
     }
   }
 
@@ -89,6 +94,26 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
       setState(() => _customer = customer);
     }
   }
+
+  Future<void> _loadLoyaltySettings(String companyId) async {
+    final settings = await ref.read(companySettingsRepositoryProvider).getOrCreate(companyId);
+    if (mounted) {
+      setState(() {
+        _loyaltyPointValue = settings.loyaltyPointValue;
+        _loyaltyEarnRate = settings.loyaltyEarnRate;
+      });
+    }
+  }
+
+  bool get _hasMoreActions => _canRedeemLoyalty;
+
+  bool get _canRedeemLoyalty =>
+      _customer != null &&
+      _customer!.points > 0 &&
+      _bill.loyaltyPointsUsed == 0 &&
+      _bill.paidAmount == 0 &&
+      _loyaltyPointValue > 0 &&
+      !_processing;
 
   int get _remaining => _bill.totalGross - _bill.paidAmount;
 
@@ -117,43 +142,45 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
                 padding: const EdgeInsets.all(12),
                 child: _showCurrencySelector
                     ? _buildCurrencySelector(context, l)
-                    : Column(
-                        children: [
-                          Expanded(
-                            child: _SideButton(
-                              label: _selectedForeignCurrencyId != null
-                                  ? '${_selectedForeignCurrencyDetail!.code} (${_selectedForeignCurrencyDetail!.symbol})'
-                                  : l.paymentOtherCurrency,
-                              onPressed: _availableForeignCurrencies.isNotEmpty
-                                  ? () {
-                                      if (_selectedForeignCurrencyId != null) {
-                                        _clearForeignCurrency();
-                                      } else {
-                                        setState(() => _showCurrencySelector = true);
-                                      }
-                                    }
-                                  : null,
-                            ),
+                    : _showMoreActions
+                        ? _buildMoreActions(context, l)
+                        : Column(
+                            children: [
+                              Expanded(
+                                child: _SideButton(
+                                  label: _selectedForeignCurrencyId != null
+                                      ? '${_selectedForeignCurrencyDetail!.code} (${_selectedForeignCurrencyDetail!.symbol})'
+                                      : l.paymentOtherCurrency,
+                                  onPressed: _availableForeignCurrencies.isNotEmpty
+                                      ? () {
+                                          if (_selectedForeignCurrencyId != null) {
+                                            _clearForeignCurrency();
+                                          } else {
+                                            setState(() => _showCurrencySelector = true);
+                                          }
+                                        }
+                                      : null,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Expanded(child: _SideButton(label: l.paymentEet, onPressed: null)),
+                              const SizedBox(height: 8),
+                              Expanded(
+                                child: _SideButton(
+                                  label: l.paymentMoreActions,
+                                  onPressed: _hasMoreActions ? () => setState(() => _showMoreActions = true) : null,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Expanded(
+                                child: _SideButton(
+                                  label: l.actionCancel,
+                                  onPressed: () => Navigator.pop(context, _bill.paidAmount > widget.bill.paidAmount),
+                                  color: context.appColors.danger,
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 8),
-                          Expanded(child: _SideButton(label: l.paymentEet, onPressed: null)),
-                          const SizedBox(height: 8),
-                          Expanded(
-                            child: _SideButton(
-                              label: l.paymentMoreActions,
-                              onPressed: null,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Expanded(
-                            child: _SideButton(
-                              label: l.actionCancel,
-                              onPressed: () => Navigator.pop(context, _bill.paidAmount > widget.bill.paidAmount),
-                              color: context.appColors.danger,
-                            ),
-                          ),
-                        ],
-                      ),
               ),
             ),
               // Center — bill info + payments list
@@ -181,19 +208,22 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
                       ),
                       if (_customer != null) ...[
                         const SizedBox(height: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            '${_customer!.firstName} ${_customer!.lastName} | ${l.loyaltyCustomerInfo(
-                              _customer!.points,
-                              ref.money(_customer!.credit),
-                            )}',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              fontWeight: FontWeight.bold,
+                        GestureDetector(
+                          onTap: _canRedeemLoyalty ? () => _redeemLoyalty(context) : null,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              '${_customer!.firstName} ${_customer!.lastName} | ${l.loyaltyCustomerInfo(
+                                _customer!.points,
+                                ref.money(_customer!.credit),
+                              )}',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ),
@@ -537,6 +567,62 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
     );
   }
 
+  Widget _buildMoreActions(BuildContext context, dynamic l) {
+    return Column(
+      children: [
+        Expanded(
+          child: _SideButton(
+            label: l.loyaltyRedeem,
+            onPressed: _canRedeemLoyalty ? () => _redeemLoyalty(context) : null,
+          ),
+        ),
+        const SizedBox(height: 8),
+        const Expanded(child: SizedBox.shrink()),
+        const SizedBox(height: 8),
+        const Expanded(child: SizedBox.shrink()),
+        const SizedBox(height: 8),
+        Expanded(
+          child: _SideButton(
+            label: l.wizardBack,
+            onPressed: () => setState(() => _showMoreActions = false),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _redeemLoyalty(BuildContext context) async {
+    if (!_canRedeemLoyalty) return;
+    setState(() => _processing = true);
+    try {
+      final freshCustomer = await ref.read(customerRepositoryProvider)
+          .getById(_bill.customerId!, includeDeleted: true);
+      if (!mounted || freshCustomer == null || freshCustomer.points <= 0) return;
+
+      final result = await showDialog<bool>(
+        context: context,
+        builder: (_) => DialogLoyaltyRedeem(
+          bill: _bill,
+          customer: freshCustomer,
+          pointValue: _loyaltyPointValue,
+        ),
+      );
+      if (result == true && mounted) {
+        final updatedBill = await ref.read(billRepositoryProvider).getById(_bill.id);
+        await _loadCustomer();
+        if (mounted && updatedBill is Success<BillModel>) {
+          setState(() {
+            _bill = updatedBill.value;
+            _customAmount = null;
+            _showMoreActions = false;
+          });
+        }
+      }
+    } finally {
+      if (mounted) setState(() => _processing = false);
+    }
+  }
+
   void _clearForeignCurrency() {
     setState(() {
       _selectedForeignCurrencyId = null;
@@ -666,15 +752,8 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
       effectiveAmount = amount > _remaining ? _remaining : amount;
     }
 
-    // Load loyalty settings for auto-earn
-    int loyaltyEarn = 0;
-    final company = ref.read(currentCompanyProvider);
-    if (company != null && _bill.customerId != null) {
-      final settingsRepo = ref.read(companySettingsRepositoryProvider);
-      final settings = await settingsRepo.getOrCreate(company.id);
-      if (!mounted) return;
-      loyaltyEarn = settings.loyaltyEarnRate;
-    }
+    // Use pre-loaded loyalty earn rate
+    final loyaltyEarn = _bill.customerId != null ? _loyaltyEarnRate : 0;
 
     final repo = ref.read(billRepositoryProvider);
     final register = ref.read(activeRegisterProvider).value;

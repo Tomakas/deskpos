@@ -837,6 +837,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
       builder: (_) => PosDialogShell(
         title: context.l10n.sellNote,
         maxWidth: 380,
+        scrollable: true,
         children: [
           TextField(
             controller: controller,
@@ -848,19 +849,19 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
             ),
           ),
           const SizedBox(height: 16),
-          PosDialogActions(
-            actions: [
-              OutlinedButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(context.l10n.actionCancel),
-              ),
-              FilledButton(
-                onPressed: () => Navigator.pop(context, controller.text),
-                child: Text(context.l10n.actionSave),
-              ),
-            ],
-          ),
         ],
+        bottomActions: PosDialogActions(
+          actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(context.l10n.actionCancel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, controller.text),
+              child: Text(context.l10n.actionSave),
+            ),
+          ],
+        ),
       ),
     );
     if (result != null && mounted) {
@@ -1453,21 +1454,22 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
           final l = ctx.l10n;
           return PosDialogShell(
             title: l.stockWarningTitle,
+            scrollable: true,
             children: [
               _StockShortageTable(shortages: e.shortages, isWarning: true),
-              PosDialogActions(
-                actions: [
-                  OutlinedButton(
-                    onPressed: () => Navigator.of(ctx).pop(false),
-                    child: Text(l.actionCancel),
-                  ),
-                  FilledButton(
-                    onPressed: () => Navigator.of(ctx).pop(true),
-                    child: Text(l.stockWarningContinue),
-                  ),
-                ],
-              ),
             ],
+            bottomActions: PosDialogActions(
+              actions: [
+                OutlinedButton(
+                  onPressed: () => Navigator.of(ctx).pop(false),
+                  child: Text(l.actionCancel),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.of(ctx).pop(true),
+                  child: Text(l.stockWarningContinue),
+                ),
+              ],
+            ),
           );
         },
       );
@@ -1479,17 +1481,18 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
           final l = ctx.l10n;
           return PosDialogShell(
             title: l.stockInsufficientTitle,
+            scrollable: true,
             children: [
               _StockShortageTable(shortages: e.shortages, isWarning: false),
-              PosDialogActions(
-                actions: [
-                  FilledButton(
-                    onPressed: () => Navigator.of(ctx).pop(),
-                    child: Text(l.actionClose),
-                  ),
-                ],
-              ),
             ],
+            bottomActions: PosDialogActions(
+              actions: [
+                FilledButton(
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  child: Text(l.actionClose),
+                ),
+              ],
+            ),
           );
         },
       );
@@ -1708,6 +1711,7 @@ class _ItemNoteDialogState extends ConsumerState<_ItemNoteDialog> {
         ),
       ),
       maxWidth: 380,
+      scrollable: true,
       children: [
         TextField(
           controller: _noteController,
@@ -1719,46 +1723,46 @@ class _ItemNoteDialogState extends ConsumerState<_ItemNoteDialog> {
           ),
         ),
         const SizedBox(height: 16),
-        PosDialogActions(
-          leading: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              OutlinedButton(
-                onPressed: _quantity > 1
-                    ? () => setState(() => _quantity--)
-                    : null,
-                child: const Text('-1'),
-              ),
-              const SizedBox(width: 8),
-              OutlinedButton(
-                onPressed: () => setState(() => _quantity++),
-                child: const Text('+1'),
-              ),
-            ],
-          ),
-          actions: [
+      ],
+      bottomActions: PosDialogActions(
+        leading: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
             OutlinedButton(
-              style: PosButtonStyles.destructiveOutlined(context),
-              onPressed: () => _confirmDelete(context),
-              child: const Icon(Icons.delete_outline),
+              onPressed: _quantity > 1
+                  ? () => setState(() => _quantity--)
+                  : null,
+              child: const Text('-1'),
             ),
+            const SizedBox(width: 8),
             OutlinedButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(l.actionCancel),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(
-                context,
-                _ItemNoteResult(
-                  notes: _noteController.text,
-                  quantity: _quantity,
-                ),
-              ),
-              child: Text(l.actionSave),
+              onPressed: () => setState(() => _quantity++),
+              child: const Text('+1'),
             ),
           ],
         ),
-      ],
+        actions: [
+          OutlinedButton(
+            style: PosButtonStyles.destructiveOutlined(context),
+            onPressed: () => _confirmDelete(context),
+            child: const Icon(Icons.delete_outline),
+          ),
+          OutlinedButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l.actionCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(
+              context,
+              _ItemNoteResult(
+                notes: _noteController.text,
+                quantity: _quantity,
+              ),
+            ),
+            child: Text(l.actionSave),
+          ),
+        ],
+      ),
     );
   }
 
@@ -1769,23 +1773,24 @@ class _ItemNoteDialogState extends ConsumerState<_ItemNoteDialog> {
       builder: (_) => PosDialogShell(
         title: l.actionDelete,
         maxWidth: 340,
+        scrollable: true,
         children: [
           Text(l.sellRemoveFromCart),
           const SizedBox(height: 16),
-          PosDialogActions(
-            actions: [
-              OutlinedButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: Text(l.actionCancel),
-              ),
-              FilledButton(
-                style: PosButtonStyles.destructiveFilled(context),
-                onPressed: () => Navigator.pop(context, true),
-                child: Text(l.actionDelete),
-              ),
-            ],
-          ),
         ],
+        bottomActions: PosDialogActions(
+          actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(l.actionCancel),
+            ),
+            FilledButton(
+              style: PosButtonStyles.destructiveFilled(context),
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(l.actionDelete),
+            ),
+          ],
+        ),
       ),
     );
     if (confirmed == true && context.mounted) {
@@ -1885,24 +1890,23 @@ class _QuantityInputDialogState extends State<_QuantityInputDialog> {
           ),
         ),
         const SizedBox(height: 16),
-        // Actions
-        SizedBox(
-          width: 250,
-          child: PosDialogActions(
-            expanded: true,
-            actions: [
-              OutlinedButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(l.actionCancel),
-              ),
-              FilledButton(
-                onPressed: _confirm,
-                child: Text(l.actionConfirm),
-              ),
-            ],
-          ),
-        ),
       ],
+      bottomActions: SizedBox(
+        width: 250,
+        child: PosDialogActions(
+          expanded: true,
+          actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(l.actionCancel),
+            ),
+            FilledButton(
+              onPressed: _confirm,
+              child: Text(l.actionConfirm),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -1983,6 +1987,11 @@ class _RetailMenuButton extends ConsumerWidget {
           height: 48,
           child: Text(l.vouchersTitle),
         ),
+        PopupMenuItem(
+          value: 'data',
+          height: 48,
+          child: Text(l.dataTitle),
+        ),
         const PopupMenuDivider(),
         PopupMenuItem(
           value: 'settings',
@@ -2028,6 +2037,8 @@ class _RetailMenuButton extends ConsumerWidget {
         if (context.mounted) context.push('/inventory');
       case 'vouchers':
         if (context.mounted) context.push('/vouchers');
+      case 'data':
+        if (context.mounted) context.push('/data');
       case 'settings':
         if (context.mounted) context.push('/settings');
       case 'logout':
@@ -2134,38 +2145,38 @@ class _ModifierSelectionDialogState extends State<_ModifierSelectionDialog> {
           ],
         ),
         const SizedBox(height: 16),
-        PosDialogActions(
-          actions: [
-            OutlinedButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(l.actionCancel),
-            ),
-            FilledButton(
-              onPressed: _isValid
-                  ? () {
-                      final result = <_CartModifier>[];
-                      for (final g in widget.groups) {
-                        final sel = _selections[g.group.id] ?? {};
-                        for (final gi in g.items) {
-                          if (sel.contains(gi.item.id)) {
-                            result.add(_CartModifier(
-                              itemId: gi.item.id,
-                              name: gi.item.name,
-                              unitPrice: gi.item.unitPrice,
-                              saleTaxRateId: gi.item.saleTaxRateId,
-                              modifierGroupId: g.group.id,
-                            ));
-                          }
+      ],
+      bottomActions: PosDialogActions(
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l.actionCancel),
+          ),
+          FilledButton(
+            onPressed: _isValid
+                ? () {
+                    final result = <_CartModifier>[];
+                    for (final g in widget.groups) {
+                      final sel = _selections[g.group.id] ?? {};
+                      for (final gi in g.items) {
+                        if (sel.contains(gi.item.id)) {
+                          result.add(_CartModifier(
+                            itemId: gi.item.id,
+                            name: gi.item.name,
+                            unitPrice: gi.item.unitPrice,
+                            saleTaxRateId: gi.item.saleTaxRateId,
+                            modifierGroupId: g.group.id,
+                          ));
                         }
                       }
-                      Navigator.pop(context, result);
                     }
-                  : null,
-              child: Text(l.actionAdd),
-            ),
-          ],
-        ),
-      ],
+                    Navigator.pop(context, result);
+                  }
+                : null,
+            child: Text(l.actionAdd),
+          ),
+        ],
+      ),
     );
   }
 

@@ -6,6 +6,7 @@ import '../../../core/data/models/customer_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/utils/formatting_ext.dart';
 import '../../../core/theme/app_colors.dart';
@@ -15,6 +16,8 @@ import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_table.dart';
 import 'dialog_customer_credit.dart';
+
+enum _CustomersSortField { lastName, points, credit, lastVisit }
 
 class CustomersTab extends ConsumerStatefulWidget {
   const CustomersTab({super.key});
@@ -27,6 +30,16 @@ class _CustomersTabState extends ConsumerState<CustomersTab> {
   final _searchCtrl = TextEditingController();
   String _query = '';
 
+  // Sort state
+  _CustomersSortField _sortField = _CustomersSortField.lastName;
+  bool _sortAsc = true;
+
+  // Filter state
+  bool _filterHasPoints = false;
+  bool _filterHasCredit = false;
+
+  bool get _hasActiveFilters => _filterHasPoints || _filterHasCredit;
+
   @override
   void dispose() {
     _searchCtrl.dispose();
@@ -36,6 +49,7 @@ class _CustomersTabState extends ConsumerState<CustomersTab> {
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
+    final theme = Theme.of(context);
     final company = ref.watch(currentCompanyProvider);
     if (company == null) return const SizedBox.shrink();
 
@@ -44,13 +58,24 @@ class _CustomersTabState extends ConsumerState<CustomersTab> {
       builder: (context, snap) {
         final customers = snap.data ?? [];
         final filtered = customers.where((c) {
+          if (_filterHasPoints && c.points <= 0) return false;
+          if (_filterHasCredit && c.credit <= 0) return false;
           if (_query.isEmpty) return true;
           final q = _query;
           return normalizeSearch(c.firstName).contains(q)
               || normalizeSearch(c.lastName).contains(q)
               || (c.email != null && normalizeSearch(c.email!).contains(q))
               || (c.phone != null && normalizeSearch(c.phone!).contains(q));
-        }).toList();
+        }).toList()
+          ..sort((a, b) {
+            final cmp = switch (_sortField) {
+              _CustomersSortField.lastName => a.lastName.compareTo(b.lastName),
+              _CustomersSortField.points => a.points.compareTo(b.points),
+              _CustomersSortField.credit => a.credit.compareTo(b.credit),
+              _CustomersSortField.lastVisit => (a.lastVisitDate ?? DateTime(0)).compareTo(b.lastVisitDate ?? DateTime(0)),
+            };
+            return _sortAsc ? cmp : -cmp;
+          });
         return Column(
           children: [
             PosTableToolbar(
@@ -58,6 +83,50 @@ class _CustomersTabState extends ConsumerState<CustomersTab> {
               searchHint: l.searchHint,
               onSearchChanged: (v) => setState(() => _query = normalizeSearch(v)),
               trailing: [
+                IconButton(
+                  icon: Icon(
+                    Icons.filter_alt_outlined,
+                    color: _hasActiveFilters
+                        ? theme.colorScheme.primary
+                        : null,
+                  ),
+                  onPressed: () => _showFilterDialog(context, l),
+                ),
+                PopupMenuButton<_CustomersSortField>(
+                  icon: const Icon(Icons.swap_vert),
+                  onSelected: (field) {
+                    if (field == _sortField) {
+                      setState(() => _sortAsc = !_sortAsc);
+                    } else {
+                      setState(() {
+                        _sortField = field;
+                        _sortAsc = true;
+                      });
+                    }
+                  },
+                  itemBuilder: (_) => [
+                    for (final entry in {
+                      _CustomersSortField.lastName: l.catalogSortLastName,
+                      _CustomersSortField.points: l.catalogSortPoints,
+                      _CustomersSortField.credit: l.catalogSortCredit,
+                      _CustomersSortField.lastVisit: l.catalogSortLastVisit,
+                    }.entries)
+                      PopupMenuItem(
+                        value: entry.key,
+                        child: Row(
+                          children: [
+                            if (entry.key == _sortField)
+                              Icon(_sortAsc ? Icons.arrow_upward : Icons.arrow_downward, size: 16)
+                            else
+                              const SizedBox(width: 16),
+                            const SizedBox(width: 8),
+                            Text(entry.value, style: entry.key == _sortField ? const TextStyle(fontWeight: FontWeight.bold) : null),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(width: 8),
                 FilledButton.icon(
                   onPressed: () => _showEditDialog(context, ref, null),
                   icon: const Icon(Icons.add),
@@ -92,6 +161,53 @@ class _CustomersTabState extends ConsumerState<CustomersTab> {
     );
   }
 
+  Future<void> _showFilterDialog(BuildContext context, AppLocalizations l) async {
+    var hasPoints = _filterHasPoints;
+    var hasCredit = _filterHasCredit;
+
+    await showDialog<void>(
+      context: context,
+      builder: (_) => StatefulBuilder(
+        builder: (ctx, setDialogState) => PosDialogShell(
+          title: l.filterTitle,
+          maxWidth: 350,
+          scrollable: true,
+          bottomActions: PosDialogActions(
+            actions: [
+              OutlinedButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text(l.actionCancel),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: Text(l.actionConfirm),
+              ),
+            ],
+          ),
+          children: [
+            SwitchListTile(
+              title: Text(l.catalogFilterHasPoints),
+              value: hasPoints,
+              onChanged: (v) => setDialogState(() => hasPoints = v),
+            ),
+            SwitchListTile(
+              title: Text(l.catalogFilterHasCredit),
+              value: hasCredit,
+              onChanged: (v) => setDialogState(() => hasCredit = v),
+            ),
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
+
+    if (!mounted) return;
+    setState(() {
+      _filterHasPoints = hasPoints;
+      _filterHasCredit = hasCredit;
+    });
+  }
+
   Future<void> _showEditDialog(BuildContext context, WidgetRef ref, CustomerModel? existing) async {
     final l = context.l10n;
     final firstNameCtrl = TextEditingController(text: existing?.firstName ?? '');
@@ -111,6 +227,23 @@ class _CustomersTabState extends ConsumerState<CustomersTab> {
           title: existing == null ? l.actionAdd : l.actionEdit,
           maxWidth: 400,
           scrollable: true,
+          bottomActions: PosDialogActions(
+            leading: existing != null
+                ? OutlinedButton(
+                    style: PosButtonStyles.destructiveOutlined(ctx),
+                    onPressed: () async {
+                      if (!await confirmDelete(ctx, l) || !ctx.mounted) return;
+                      await ref.read(customerRepositoryProvider).delete(existing.id);
+                      if (ctx.mounted) Navigator.pop(ctx);
+                    },
+                    child: Text(l.actionDelete),
+                  )
+                : null,
+            actions: [
+              OutlinedButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.actionCancel)),
+              FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.actionSave)),
+            ],
+          ),
           children: [
             TextField(
               controller: firstNameCtrl,
@@ -183,23 +316,6 @@ class _CustomersTabState extends ConsumerState<CustomersTab> {
               ),
             ],
             const SizedBox(height: 24),
-            PosDialogActions(
-              leading: existing != null
-                  ? OutlinedButton(
-                      style: PosButtonStyles.destructiveOutlined(ctx),
-                      onPressed: () async {
-                        if (!await confirmDelete(ctx, l) || !ctx.mounted) return;
-                        await ref.read(customerRepositoryProvider).delete(existing.id);
-                        if (ctx.mounted) Navigator.pop(ctx);
-                      },
-                      child: Text(l.actionDelete),
-                    )
-                  : null,
-              actions: [
-                OutlinedButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.actionCancel)),
-                FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.actionSave)),
-              ],
-            ),
           ],
         ),
       ),

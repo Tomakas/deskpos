@@ -1502,6 +1502,9 @@
 
   "ordersSortAsc": "Oldest first",
   "ordersSortDesc": "Newest first",
+  "ordersSortByTime": "Time",
+  "ordersSortByNumber": "Number",
+  "ordersSortByStatus": "Status",
 
   "peripheralsTitle": "Peripherals",
   "peripheralsScanner": "Scanner",
@@ -1548,5 +1551,27 @@
   "stockColumnItem": "Item",
   "stockColumnRequired": "Order",
   "stockColumnAvailable": "In stock",
-  "stockColumnAfter": "After sale"
+  "stockColumnAfter": "After sale",
+
+  "dataTitle": "Data",
+  "dataExport": "Export",
+  "dataExportDescription": "Export business data (products, customers, orders) to a file for transfer or archival.",
+  "dataImport": "Import",
+  "dataImportDescription": "Import data from a previously exported file.",
+  "dataBackup": "Backup",
+  "dataBackupDescription": "Create a full backup of the local database.",
+  "dataRestore": "Restore",
+  "dataRestoreDescription": "Restore the local database from a backup file.",
+
+  "catalogSortName": "Name",
+  "catalogSortPrice": "Price",
+  "catalogSortType": "Type",
+  "catalogSortMinSelections": "Min. selections",
+  "catalogSortLastName": "Last name",
+  "catalogSortPoints": "Points",
+  "catalogSortCredit": "Credit",
+  "catalogSortLastVisit": "Last visit",
+  "catalogFilterActive": "Active",
+  "catalogFilterHasPoints": "Has points",
+  "catalogFilterHasCredit": "Has credit"
 }

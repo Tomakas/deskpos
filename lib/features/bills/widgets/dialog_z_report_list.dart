@@ -72,6 +72,7 @@ class _DialogZReportListState extends ConsumerState<DialogZReportList> {
       title: l.zReportListTitle,
       titleStyle: theme.textTheme.headlineSmall,
       maxWidth: 720,
+      scrollable: true,
       children: [
         // Date filter row
         Row(
@@ -139,20 +140,20 @@ class _DialogZReportListState extends ConsumerState<DialogZReportList> {
           ),
         ),
         const SizedBox(height: 16),
-        PosDialogActions(
-          actions: [
-            if (widget.onVenueReport != null)
-              OutlinedButton(
-                onPressed: () => widget.onVenueReport!(_dateFrom, _dateTo),
-                child: Text(l.zReportVenueReport),
-              ),
-            OutlinedButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(l.actionClose),
-            ),
-          ],
-        ),
       ],
+      bottomActions: PosDialogActions(
+        actions: [
+          if (widget.onVenueReport != null)
+            OutlinedButton(
+              onPressed: () => widget.onVenueReport!(_dateFrom, _dateTo),
+              child: Text(l.zReportVenueReport),
+            ),
+          OutlinedButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l.actionClose),
+          ),
+        ],
+      ),
     );
   }
 }

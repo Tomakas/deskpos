@@ -215,22 +215,23 @@ Future<void> closeSession(BuildContext context, WidgetRef ref) async {
       context: context,
       builder: (dialogContext) => PosDialogShell(
         title: l.closingOpenBillsWarningTitle,
+        scrollable: true,
         children: [
           Text(l.closingOpenBillsWarningMessage(openBillsCount, ref.money(openBillsAmount))),
           const SizedBox(height: 24),
-          PosDialogActions(
-            actions: [
-              OutlinedButton(
-                onPressed: () => Navigator.pop(dialogContext, false),
-                child: Text(l.actionCancel),
-              ),
-              FilledButton(
-                onPressed: () => Navigator.pop(dialogContext, true),
-                child: Text(l.closingOpenBillsContinue),
-              ),
-            ],
-          ),
         ],
+        bottomActions: PosDialogActions(
+          actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: Text(l.actionCancel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: Text(l.closingOpenBillsContinue),
+            ),
+          ],
+        ),
       ),
     );
     if (shouldContinue != true || !context.mounted) return;

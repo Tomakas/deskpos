@@ -30,7 +30,6 @@ import '../../../core/utils/formatting_ext.dart';
 import '../../../core/utils/unit_type_l10n.dart';
 import 'dialog_customer_search.dart';
 import 'dialog_discount.dart';
-import 'dialog_loyalty_redeem.dart';
 import 'dialog_merge_bill.dart';
 import 'dialog_new_bill.dart';
 import 'dialog_payment.dart';
@@ -122,6 +121,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
         final bill = billSnap.data;
         if (bill == null) {
           return const Dialog(
+            insetPadding: EdgeInsets.all(12),
             child: SizedBox(
               width: 700,
               height: 500,
@@ -131,6 +131,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
         }
 
         return Dialog(
+          insetPadding: const EdgeInsets.all(12),
           child: SizedBox(
             width: 750,
             height: 520,
@@ -198,8 +199,6 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
                 ),
                 const SizedBox(height: 2),
                 _buildTotalSpentLine(context, ref, bill, l),
-                if (bill.customerId != null)
-                  _buildCustomerLoyaltyInfo(context, ref, bill),
               ],
             ),
           ),
@@ -234,7 +233,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
                   },
                 ),
                 const SizedBox(height: 2),
-                if (bill.customerId != null)
+                if (bill.customerId != null) ...[
                   FutureBuilder<CustomerModel?>(
                     future: _getCustomerFuture(bill.customerId!),
                     builder: (context, snap) {
@@ -245,8 +244,9 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
                         style: Theme.of(context).textTheme.bodySmall,
                       );
                     },
-                  )
-                else if (bill.customerName != null)
+                  ),
+                  _buildCustomerLoyaltyInfo(context, ref, bill),
+                ] else if (bill.customerName != null)
                   Text(
                     l.billDetailCustomerName(bill.customerName!),
                     style: Theme.of(context).textTheme.bodySmall,
@@ -615,15 +615,6 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
             const SizedBox(height: 4),
             Expanded(
               child: _SideButton(
-                label: l.loyaltyRedeem,
-                onPressed: isOpened && !_isProcessing && bill.customerId != null
-                    ? () => _redeemLoyalty(context, ref, bill)
-                    : null,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Expanded(
-              child: _SideButton(
                 label: bill.voucherId != null ? l.billDetailRemoveVoucher : l.billDetailVoucher,
                 onPressed: isOpened && !_isProcessing
                     ? () => bill.voucherId != null
@@ -822,16 +813,17 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
           builder: (_) => PosDialogShell(
             title: '',
             maxWidth: 400,
+            scrollable: true,
             children: [
               Text(l.billDetailConfirmCancel),
               const SizedBox(height: 16),
-              PosDialogActions(
-                actions: [
-                  OutlinedButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
-                  FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
-                ],
-              ),
             ],
+            bottomActions: PosDialogActions(
+              actions: [
+                OutlinedButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
+                FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
+              ],
+            ),
           ),
         );
         if (confirmed != true) return;
@@ -905,16 +897,17 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
       builder: (ctx) => PosDialogShell(
         title: l.billDetailRemoveDiscount,
         maxWidth: 400,
+        scrollable: true,
         children: [
           Text(l.billDetailRemoveDiscountConfirm),
           const SizedBox(height: 16),
-          PosDialogActions(
-            actions: [
-              OutlinedButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.no)),
-              FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.yes)),
-            ],
-          ),
         ],
+        bottomActions: PosDialogActions(
+          actions: [
+            OutlinedButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.no)),
+            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.yes)),
+          ],
+        ),
       ),
     );
     if (confirmed != true || !mounted) return;
@@ -925,37 +918,6 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
         bill.id,
         DiscountType.absolute,
         0,
-      );
-    } finally {
-      if (mounted) setState(() => _isProcessing = false);
-    }
-  }
-
-  Future<void> _redeemLoyalty(BuildContext context, WidgetRef ref, BillModel bill) async {
-    if (_isProcessing) return;
-    setState(() => _isProcessing = true);
-    try {
-      if (bill.customerId == null) return;
-      final customerRepo = ref.read(customerRepositoryProvider);
-      final customer = await customerRepo.getById(bill.customerId!, includeDeleted: true);
-      if (!mounted) return;
-      if (customer == null || customer.points <= 0) return;
-
-      final company = ref.read(currentCompanyProvider);
-      if (company == null) return;
-
-      final settingsRepo = ref.read(companySettingsRepositoryProvider);
-      final settings = await settingsRepo.getOrCreate(company.id);
-      if (!context.mounted) return;
-      if (settings.loyaltyPointValue <= 0) return;
-
-      await showDialog<bool>(
-        context: context,
-        builder: (_) => DialogLoyaltyRedeem(
-          bill: bill,
-          customer: customer,
-          pointValue: settings.loyaltyPointValue,
-        ),
       );
     } finally {
       if (mounted) setState(() => _isProcessing = false);
@@ -995,15 +957,16 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
           builder: (_) => PosDialogShell(
             title: '',
             maxWidth: 400,
+            scrollable: true,
             children: [
               Text(errorMsg),
               const SizedBox(height: 16),
-              PosDialogActions(
-                actions: [
-                  OutlinedButton(onPressed: () => Navigator.pop(context), child: Text(context.l10n.actionOk)),
-                ],
-              ),
             ],
+            bottomActions: PosDialogActions(
+              actions: [
+                OutlinedButton(onPressed: () => Navigator.pop(context), child: Text(context.l10n.actionOk)),
+              ],
+            ),
           ),
         );
         return;
@@ -1084,16 +1047,17 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
       builder: (ctx) => PosDialogShell(
         title: l.billDetailRemoveVoucher,
         maxWidth: 400,
+        scrollable: true,
         children: [
           Text(l.billDetailRemoveVoucherConfirm),
           const SizedBox(height: 16),
-          PosDialogActions(
-            actions: [
-              OutlinedButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.no)),
-              FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.yes)),
-            ],
-          ),
         ],
+        bottomActions: PosDialogActions(
+          actions: [
+            OutlinedButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.no)),
+            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.yes)),
+          ],
+        ),
       ),
     );
     if (confirmed != true || !mounted) return;
@@ -1317,16 +1281,17 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
         builder: (_) => PosDialogShell(
           title: l.refundTitle,
           maxWidth: 400,
+          scrollable: true,
           children: [
             Text(l.refundConfirmFull),
             const SizedBox(height: 16),
-            PosDialogActions(
-              actions: [
-                OutlinedButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
-                FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
-              ],
-            ),
           ],
+          bottomActions: PosDialogActions(
+            actions: [
+              OutlinedButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
+              FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
+            ],
+          ),
         ),
       );
       if (confirmed != true) return;
@@ -1624,6 +1589,7 @@ class _OrderSection extends ConsumerWidget {
       builder: (_) => PosDialogShell(
         title: context.l10n.sellNote,
         maxWidth: 380,
+        scrollable: true,
         children: [
           TextField(
             controller: controller,
@@ -1635,19 +1601,19 @@ class _OrderSection extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
-          PosDialogActions(
-            actions: [
-              OutlinedButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(context.l10n.actionCancel),
-              ),
-              FilledButton(
-                onPressed: () => Navigator.pop(context, controller.text),
-                child: Text(context.l10n.actionSave),
-              ),
-            ],
-          ),
         ],
+        bottomActions: PosDialogActions(
+          actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(context.l10n.actionCancel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, controller.text),
+              child: Text(context.l10n.actionSave),
+            ),
+          ],
+        ),
       ),
     );
     if (result != null && context.mounted) {
@@ -1665,6 +1631,7 @@ class _OrderSection extends ConsumerWidget {
       builder: (_) => PosDialogShell(
         title: item.itemName,
         maxWidth: 380,
+        scrollable: true,
         children: [
           TextField(
             controller: controller,
@@ -1701,19 +1668,19 @@ class _OrderSection extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
-          PosDialogActions(
-            actions: [
-              OutlinedButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(context.l10n.actionCancel),
-              ),
-              FilledButton(
-                onPressed: () => Navigator.pop(context, controller.text),
-                child: Text(context.l10n.actionSave),
-              ),
-            ],
-          ),
         ],
+        bottomActions: PosDialogActions(
+          actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(context.l10n.actionCancel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, controller.text),
+              child: Text(context.l10n.actionSave),
+            ),
+          ],
+        ),
       ),
     );
     if (result != null && context.mounted) {
@@ -1731,16 +1698,17 @@ class _OrderSection extends ConsumerWidget {
       builder: (_) => PosDialogShell(
         title: '',
         maxWidth: 400,
+        scrollable: true,
         children: [
           Text(l.orderItemStornoConfirm),
           const SizedBox(height: 16),
-          PosDialogActions(
-            actions: [
-              OutlinedButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
-              FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
-            ],
-          ),
         ],
+        bottomActions: PosDialogActions(
+          actions: [
+            OutlinedButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
+            FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
+          ],
+        ),
       ),
     );
     if (confirmed != true || !context.mounted) return;
@@ -1802,16 +1770,17 @@ class _OrderSection extends ConsumerWidget {
       builder: (_) => PosDialogShell(
         title: l.refundTitle,
         maxWidth: 400,
+        scrollable: true,
         children: [
           Text(l.refundConfirmItem),
           const SizedBox(height: 16),
-          PosDialogActions(
-            actions: [
-              OutlinedButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
-              FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
-            ],
-          ),
         ],
+        bottomActions: PosDialogActions(
+          actions: [
+            OutlinedButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
+            FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
+          ],
+        ),
       ),
     );
     if (confirmed != true) return;

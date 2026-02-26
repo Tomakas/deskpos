@@ -78,6 +78,26 @@ class _DialogStockDocumentState extends ConsumerState<DialogStockDocument> {
       title: title,
       maxWidth: 700,
       maxHeight: 700,
+      expandHeight: true,
+      bottomActions: PosDialogActions(
+        leading: OutlinedButton.icon(
+          onPressed: () => _addItem(context),
+          icon: const Icon(Icons.add),
+          label: Text(l.stockDocumentAddItem),
+        ),
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l.actionCancel),
+          ),
+          FilledButton(
+            onPressed: _lines.isEmpty || _saving
+                ? null
+                : () => _save(context),
+            child: Text(l.stockDocumentSave),
+          ),
+        ],
+      ),
       children: [
         // Document date + time
         Row(
@@ -268,27 +288,6 @@ class _DialogStockDocumentState extends ConsumerState<DialogStockDocument> {
                 ),
         ),
         const SizedBox(height: 12),
-
-        // Add item button + save
-        PosDialogActions(
-          leading: OutlinedButton.icon(
-            onPressed: () => _addItem(context),
-            icon: const Icon(Icons.add),
-            label: Text(l.stockDocumentAddItem),
-          ),
-          actions: [
-            OutlinedButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(l.actionCancel),
-            ),
-            FilledButton(
-              onPressed: _lines.isEmpty || _saving
-                  ? null
-                  : () => _save(context),
-              child: Text(l.stockDocumentSave),
-            ),
-          ],
-        ),
       ],
     );
   }

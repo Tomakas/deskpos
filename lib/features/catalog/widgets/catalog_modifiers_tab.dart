@@ -17,6 +17,8 @@ import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_table.dart';
 
+enum _ModifiersSortField { name, minSelections }
+
 class CatalogModifiersTab extends ConsumerStatefulWidget {
   const CatalogModifiersTab({super.key});
 
@@ -27,6 +29,10 @@ class CatalogModifiersTab extends ConsumerStatefulWidget {
 class _CatalogModifiersTabState extends ConsumerState<CatalogModifiersTab> {
   final _searchCtrl = TextEditingController();
   String _query = '';
+
+  // Sort state
+  _ModifiersSortField _sortField = _ModifiersSortField.name;
+  bool _sortAsc = true;
 
   @override
   void dispose() {
@@ -47,7 +53,14 @@ class _CatalogModifiersTabState extends ConsumerState<CatalogModifiersTab> {
         final filtered = groups.where((g) {
           if (_query.isEmpty) return true;
           return normalizeSearch(g.name).contains(_query);
-        }).toList();
+        }).toList()
+          ..sort((a, b) {
+            final cmp = switch (_sortField) {
+              _ModifiersSortField.name => a.name.compareTo(b.name),
+              _ModifiersSortField.minSelections => a.minSelections.compareTo(b.minSelections),
+            };
+            return _sortAsc ? cmp : -cmp;
+          });
 
         return Column(
           children: [
@@ -56,6 +69,39 @@ class _CatalogModifiersTabState extends ConsumerState<CatalogModifiersTab> {
               searchHint: l.searchHint,
               onSearchChanged: (v) => setState(() => _query = normalizeSearch(v)),
               trailing: [
+                PopupMenuButton<_ModifiersSortField>(
+                  icon: const Icon(Icons.swap_vert),
+                  onSelected: (field) {
+                    if (field == _sortField) {
+                      setState(() => _sortAsc = !_sortAsc);
+                    } else {
+                      setState(() {
+                        _sortField = field;
+                        _sortAsc = true;
+                      });
+                    }
+                  },
+                  itemBuilder: (_) => [
+                    for (final entry in {
+                      _ModifiersSortField.name: l.catalogSortName,
+                      _ModifiersSortField.minSelections: l.catalogSortMinSelections,
+                    }.entries)
+                      PopupMenuItem(
+                        value: entry.key,
+                        child: Row(
+                          children: [
+                            if (entry.key == _sortField)
+                              Icon(_sortAsc ? Icons.arrow_upward : Icons.arrow_downward, size: 16)
+                            else
+                              const SizedBox(width: 16),
+                            const SizedBox(width: 8),
+                            Text(entry.value, style: entry.key == _sortField ? const TextStyle(fontWeight: FontWeight.bold) : null),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(width: 8),
                 FilledButton.icon(
                   onPressed: () => _showGroupEditDialog(context, ref, null),
                   icon: const Icon(Icons.add),
@@ -99,6 +145,55 @@ class _CatalogModifiersTabState extends ConsumerState<CatalogModifiersTab> {
         title: existing != null ? l.editModifierGroup : l.addModifierGroup,
         maxWidth: 500,
         scrollable: true,
+        bottomActions: PosDialogActions(
+          leading: existing != null
+              ? OutlinedButton(
+                  style: PosButtonStyles.destructiveOutlined(ctx),
+                  onPressed: () async {
+                    if (!await confirmDelete(ctx, l) || !ctx.mounted) return;
+                    await ref.read(modifierGroupRepositoryProvider).delete(existing.id);
+                    if (ctx.mounted) Navigator.pop(ctx);
+                  },
+                  child: Text(l.deleteModifierGroup),
+                )
+              : null,
+          actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(l.actionCancel),
+            ),
+            FilledButton(
+              onPressed: () async {
+                final name = nameCtrl.text.trim();
+                if (name.isEmpty) return;
+                final min = int.tryParse(minCtrl.text) ?? 0;
+                final max = maxCtrl.text.trim().isEmpty ? null : int.tryParse(maxCtrl.text);
+                final repo = ref.read(modifierGroupRepositoryProvider);
+
+                if (existing != null) {
+                  await repo.update(existing.copyWith(
+                    name: name,
+                    minSelections: min,
+                    maxSelections: max,
+                  ));
+                } else {
+                  final now = DateTime.now();
+                  await repo.create(ModifierGroupModel(
+                    id: const Uuid().v7(),
+                    companyId: company.id,
+                    name: name,
+                    minSelections: min,
+                    maxSelections: max,
+                    createdAt: now,
+                    updatedAt: now,
+                  ));
+                }
+                if (ctx.mounted) Navigator.pop(ctx);
+              },
+              child: Text(l.actionSave),
+            ),
+          ],
+        ),
         children: [
           TextField(
             controller: nameCtrl,
@@ -141,55 +236,6 @@ class _CatalogModifiersTabState extends ConsumerState<CatalogModifiersTab> {
             _GroupItemsSection(group: existing),
           ],
           const SizedBox(height: 24),
-          PosDialogActions(
-            leading: existing != null
-                ? OutlinedButton(
-                    style: PosButtonStyles.destructiveOutlined(ctx),
-                    onPressed: () async {
-                      if (!await confirmDelete(ctx, l) || !ctx.mounted) return;
-                      await ref.read(modifierGroupRepositoryProvider).delete(existing.id);
-                      if (ctx.mounted) Navigator.pop(ctx);
-                    },
-                    child: Text(l.deleteModifierGroup),
-                  )
-                : null,
-            actions: [
-              OutlinedButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: Text(l.actionCancel),
-              ),
-              FilledButton(
-                onPressed: () async {
-                  final name = nameCtrl.text.trim();
-                  if (name.isEmpty) return;
-                  final min = int.tryParse(minCtrl.text) ?? 0;
-                  final max = maxCtrl.text.trim().isEmpty ? null : int.tryParse(maxCtrl.text);
-                  final repo = ref.read(modifierGroupRepositoryProvider);
-
-                  if (existing != null) {
-                    await repo.update(existing.copyWith(
-                      name: name,
-                      minSelections: min,
-                      maxSelections: max,
-                    ));
-                  } else {
-                    final now = DateTime.now();
-                    await repo.create(ModifierGroupModel(
-                      id: const Uuid().v7(),
-                      companyId: company.id,
-                      name: name,
-                      minSelections: min,
-                      maxSelections: max,
-                      createdAt: now,
-                      updatedAt: now,
-                    ));
-                  }
-                  if (ctx.mounted) Navigator.pop(ctx);
-                },
-                child: Text(l.actionSave),
-              ),
-            ],
-          ),
         ],
       ),
     );

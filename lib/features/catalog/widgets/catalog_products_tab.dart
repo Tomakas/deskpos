@@ -26,6 +26,8 @@ import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_table.dart';
 import '../../../l10n/app_localizations.dart';
 
+enum _ProductsSortField { name, price, type }
+
 String _localizedItemType(AppLocalizations l, ItemType type) {
   return switch (type) {
     ItemType.product => l.itemTypeProduct,
@@ -49,6 +51,10 @@ class CatalogProductsTab extends ConsumerStatefulWidget {
 class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
   final _searchCtrl = TextEditingController();
   String _query = '';
+
+  // Sort state
+  _ProductsSortField _sortField = _ProductsSortField.name;
+  bool _sortAsc = true;
 
   // Filter state
   ItemType? _filterItemType;
@@ -130,7 +136,15 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
                           if (catName != null && normalizeSearch(catName).contains(q)) return true;
                           if (normalizeSearch(_localizedItemType(l, item.itemType)).contains(q)) return true;
                           return false;
-                        }).toList();
+                        }).toList()
+                          ..sort((a, b) {
+                            final cmp = switch (_sortField) {
+                              _ProductsSortField.name => a.name.compareTo(b.name),
+                              _ProductsSortField.price => a.unitPrice.compareTo(b.unitPrice),
+                              _ProductsSortField.type => a.itemType.index.compareTo(b.itemType.index),
+                            };
+                            return _sortAsc ? cmp : -cmp;
+                          });
 
                         return Column(
                           children: [
@@ -153,6 +167,39 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
                                     suppliers,
                                     manufacturers,
                                   ),
+                                ),
+                                PopupMenuButton<_ProductsSortField>(
+                                  icon: const Icon(Icons.swap_vert),
+                                  onSelected: (field) {
+                                    if (field == _sortField) {
+                                      setState(() => _sortAsc = !_sortAsc);
+                                    } else {
+                                      setState(() {
+                                        _sortField = field;
+                                        _sortAsc = true;
+                                      });
+                                    }
+                                  },
+                                  itemBuilder: (_) => [
+                                    for (final entry in {
+                                      _ProductsSortField.name: l.catalogSortName,
+                                      _ProductsSortField.price: l.catalogSortPrice,
+                                      _ProductsSortField.type: l.catalogSortType,
+                                    }.entries)
+                                      PopupMenuItem(
+                                        value: entry.key,
+                                        child: Row(
+                                          children: [
+                                            if (entry.key == _sortField)
+                                              Icon(_sortAsc ? Icons.arrow_upward : Icons.arrow_downward, size: 16)
+                                            else
+                                              const SizedBox(width: 16),
+                                            const SizedBox(width: 8),
+                                            Text(entry.value, style: entry.key == _sortField ? const TextStyle(fontWeight: FontWeight.bold) : null),
+                                          ],
+                                        ),
+                                      ),
+                                  ],
                                 ),
                                 const SizedBox(width: 8),
                                 FilledButton.icon(
@@ -264,6 +311,29 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
           title: l.filterTitle,
           maxWidth: 400,
           scrollable: true,
+          bottomActions: PosDialogActions(
+            actions: [
+              OutlinedButton(
+                onPressed: () {
+                  setDialogState(() {
+                    itemType = null;
+                    categoryId = null;
+                    isActive = null;
+                    isOnSale = null;
+                    isStockTracked = null;
+                    supplierId = null;
+                    manufacturerId = null;
+                    resetCount++;
+                  });
+                },
+                child: Text(l.filterReset),
+              ),
+              OutlinedButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text(l.actionClose),
+              ),
+            ],
+          ),
           children: [
             Column(
               key: ValueKey(resetCount),
@@ -340,29 +410,6 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
               ],
             ),
             const SizedBox(height: 24),
-            PosDialogActions(
-              actions: [
-                OutlinedButton(
-                  onPressed: () {
-                    setDialogState(() {
-                      itemType = null;
-                      categoryId = null;
-                      isActive = null;
-                      isOnSale = null;
-                      isStockTracked = null;
-                      supplierId = null;
-                      manufacturerId = null;
-                      resetCount++;
-                    });
-                  },
-                  child: Text(l.filterReset),
-                ),
-                OutlinedButton(
-                  onPressed: () => Navigator.pop(ctx),
-                  child: Text(l.actionClose),
-                ),
-              ],
-            ),
           ],
         ),
       ),
@@ -424,6 +471,23 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
           title: existing == null ? l.actionAdd : l.actionEdit,
           maxWidth: 600,
           scrollable: true,
+          bottomActions: PosDialogActions(
+            leading: existing != null
+                ? OutlinedButton(
+                    style: PosButtonStyles.destructiveOutlined(ctx),
+                    onPressed: () async {
+                      if (!await confirmDelete(ctx, l) || !ctx.mounted) return;
+                      await ref.read(itemRepositoryProvider).delete(existing.id);
+                      if (ctx.mounted) Navigator.pop(ctx);
+                    },
+                    child: Text(l.actionDelete),
+                  )
+                : null,
+            actions: [
+              OutlinedButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.actionCancel)),
+              FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.actionSave)),
+            ],
+          ),
           children: [
             // Row 1: Name + Category
             Row(
@@ -652,23 +716,6 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
             if (existing != null && existing.itemType == ItemType.product)
               _ModifierGroupsExpansionTile(product: existing),
             const SizedBox(height: 24),
-            PosDialogActions(
-              leading: existing != null
-                  ? OutlinedButton(
-                      style: PosButtonStyles.destructiveOutlined(ctx),
-                      onPressed: () async {
-                        if (!await confirmDelete(ctx, l) || !ctx.mounted) return;
-                        await ref.read(itemRepositoryProvider).delete(existing.id);
-                        if (ctx.mounted) Navigator.pop(ctx);
-                      },
-                      child: Text(l.actionDelete),
-                    )
-                  : null,
-              actions: [
-                OutlinedButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.actionCancel)),
-                FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.actionSave)),
-              ],
-            ),
           ],
         ),
       ),
@@ -825,6 +872,19 @@ class _VariantsExpansionTile extends ConsumerWidget {
       builder: (_) => PosDialogShell(
         title: existing == null ? l.addVariant : l.editVariant,
         maxWidth: 400,
+        scrollable: true,
+        bottomActions: PosDialogActions(
+          actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(l.actionCancel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(l.actionSave),
+            ),
+          ],
+        ),
         children: [
           TextField(
             controller: nameCtrl,
@@ -848,18 +908,6 @@ class _VariantsExpansionTile extends ConsumerWidget {
             decoration: InputDecoration(labelText: l.fieldAltSku),
           ),
           const SizedBox(height: 24),
-          PosDialogActions(
-            actions: [
-              OutlinedButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: Text(l.actionCancel),
-              ),
-              FilledButton(
-                onPressed: () => Navigator.pop(context, true),
-                child: Text(l.actionSave),
-              ),
-            ],
-          ),
         ],
       ),
     );

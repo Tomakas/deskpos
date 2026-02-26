@@ -1283,16 +1283,11 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
           child: Row(
             children: [
               if (isActive)
-                Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: Icon(
-                    isActiveDefault ? Icons.arrow_downward : Icons.arrow_upward,
-                    size: 18,
-                  ),
-                )
+                Icon(isActiveDefault ? Icons.arrow_downward : Icons.arrow_upward, size: 16)
               else
-                const SizedBox(width: 26),
-              Text(label),
+                const SizedBox(width: 16),
+              const SizedBox(width: 8),
+              Expanded(child: Text(label)),
             ],
           ),
         );
@@ -1484,24 +1479,24 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
               ],
             ),
             const SizedBox(height: 24),
-            PosDialogActions(actions: [
-              OutlinedButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: Text(l.actionCancel),
-              ),
-              FilledButton(
-                onPressed: () {
-                  setState(() {
-                    _receiptPaymentFilter = selectedMethods;
-                    _receiptTakeawayFilter = selectedTakeaway;
-                    _receiptDiscountFilter = selectedDiscount;
-                  });
-                  Navigator.pop(ctx);
-                },
-                child: Text(l.statsFilterApply),
-              ),
-            ]),
           ],
+          bottomActions: PosDialogActions(actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(l.actionCancel),
+            ),
+            FilledButton(
+              onPressed: () {
+                setState(() {
+                  _receiptPaymentFilter = selectedMethods;
+                  _receiptTakeawayFilter = selectedTakeaway;
+                  _receiptDiscountFilter = selectedDiscount;
+                });
+                Navigator.pop(ctx);
+              },
+              child: Text(l.statsFilterApply),
+            ),
+          ]),
         ),
       ),
     );
@@ -1599,23 +1594,23 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
               ],
             ),
             const SizedBox(height: 24),
-            PosDialogActions(actions: [
-              OutlinedButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: Text(l.actionCancel),
-              ),
-              FilledButton(
-                onPressed: () {
-                  setState(() {
-                    _salesCategoryFilter = selectedCategories;
-                    _salesDiscountFilter = selectedDiscount;
-                  });
-                  Navigator.pop(ctx);
-                },
-                child: Text(l.statsFilterApply),
-              ),
-            ]),
           ],
+          bottomActions: PosDialogActions(actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(l.actionCancel),
+            ),
+            FilledButton(
+              onPressed: () {
+                setState(() {
+                  _salesCategoryFilter = selectedCategories;
+                  _salesDiscountFilter = selectedDiscount;
+                });
+                Navigator.pop(ctx);
+              },
+              child: Text(l.statsFilterApply),
+            ),
+          ]),
         ),
       ),
     );
@@ -1703,23 +1698,23 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
               ],
             ),
             const SizedBox(height: 24),
-            PosDialogActions(actions: [
-              OutlinedButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: Text(l.actionCancel),
-              ),
-              FilledButton(
-                onPressed: () {
-                  setState(() {
-                    _orderStatusFilter = selectedStatuses;
-                    _orderStornoFilter = selectedStorno;
-                  });
-                  Navigator.pop(ctx);
-                },
-                child: Text(l.statsFilterApply),
-              ),
-            ]),
           ],
+          bottomActions: PosDialogActions(actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(l.actionCancel),
+            ),
+            FilledButton(
+              onPressed: () {
+                setState(() {
+                  _orderStatusFilter = selectedStatuses;
+                  _orderStornoFilter = selectedStorno;
+                });
+                Navigator.pop(ctx);
+              },
+              child: Text(l.statsFilterApply),
+            ),
+          ]),
         ),
       ),
     );
@@ -1828,13 +1823,13 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
               ),
             ),
           const SizedBox(height: 16),
-          PosDialogActions(actions: [
-            OutlinedButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(l.actionClose),
-            ),
-          ]),
         ],
+        bottomActions: PosDialogActions(actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l.actionClose),
+          ),
+        ]),
       ),
     );
   }
@@ -1980,13 +1975,13 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
           if (tipTotal > 0)
             _orderDetailRow(l.receiptTip, ref.money(tipTotal)),
           const SizedBox(height: 16),
-          PosDialogActions(actions: [
-            OutlinedButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(l.actionClose),
-            ),
-          ]),
         ],
+        bottomActions: PosDialogActions(actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l.actionClose),
+          ),
+        ]),
       ),
     );
   }
@@ -2055,13 +2050,13 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
               ),
             ),
           const SizedBox(height: 16),
-          PosDialogActions(actions: [
-            OutlinedButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(l.actionClose),
-            ),
-          ]),
         ],
+        bottomActions: PosDialogActions(actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l.actionClose),
+          ),
+        ]),
       ),
     );
   }

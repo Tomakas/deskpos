@@ -97,6 +97,7 @@ class _DialogTipStatisticsState extends ConsumerState<DialogTipStatistics> {
       title: l.tipStatsTitle,
       titleStyle: theme.textTheme.headlineSmall,
       maxWidth: 640,
+      scrollable: true,
       children: [
         PosDateRangeSelector(
           onChanged: _loadData,
@@ -154,15 +155,15 @@ class _DialogTipStatisticsState extends ConsumerState<DialogTipStatistics> {
                 ),
         ),
         const SizedBox(height: 16),
-        PosDialogActions(
-          actions: [
-            OutlinedButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(l.actionClose),
-            ),
-          ],
-        ),
       ],
+      bottomActions: PosDialogActions(
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l.actionClose),
+          ),
+        ],
+      ),
     );
   }
 }

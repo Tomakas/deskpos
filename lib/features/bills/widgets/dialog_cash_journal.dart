@@ -151,18 +151,22 @@ class _DialogCashJournalState extends ConsumerState<DialogCashJournal> {
 
     return PosDialogShell(
       title: l.cashJournalBalance,
+      titleWidget: Text.rich(
+        TextSpan(
+          text: '${l.cashJournalBalance} ',
+          style: theme.textTheme.titleLarge,
+          children: [
+            TextSpan(
+              text: ref.money(widget.currentBalance),
+              style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+      ),
       maxWidth: 800,
+      expandHeight: true,
       padding: const EdgeInsets.all(20),
       children: [
-        // Header: balance
-        Center(
-          child: Text(
-            ref.money(widget.currentBalance),
-            style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-          ),
-        ),
-        const SizedBox(height: 12),
-
         // Filters + add button
         Row(
           children: [
@@ -226,8 +230,7 @@ class _DialogCashJournalState extends ConsumerState<DialogCashJournal> {
         const SizedBox(height: 8),
 
         // Table
-        SizedBox(
-          height: 400,
+        Flexible(
           child: PosTable<_JournalEntry>(
             columns: [
               PosColumn(
@@ -289,17 +292,15 @@ class _DialogCashJournalState extends ConsumerState<DialogCashJournal> {
           ),
         ),
         const SizedBox(height: 12),
-
-        // Close button
-        PosDialogActions(
-          actions: [
-            OutlinedButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(l.actionClose),
-            ),
-          ],
-        ),
       ],
+      bottomActions: PosDialogActions(
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l.actionClose),
+          ),
+        ],
+      ),
     );
   }
 

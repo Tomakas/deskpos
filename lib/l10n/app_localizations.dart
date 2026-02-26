@@ -7224,6 +7224,24 @@ abstract class AppLocalizations {
   /// **'Od nejnovějších'**
   String get ordersSortDesc;
 
+  /// No description provided for @ordersSortByTime.
+  ///
+  /// In cs, this message translates to:
+  /// **'Čas'**
+  String get ordersSortByTime;
+
+  /// No description provided for @ordersSortByNumber.
+  ///
+  /// In cs, this message translates to:
+  /// **'Číslo'**
+  String get ordersSortByNumber;
+
+  /// No description provided for @ordersSortByStatus.
+  ///
+  /// In cs, this message translates to:
+  /// **'Stav'**
+  String get ordersSortByStatus;
+
   /// No description provided for @peripheralsTitle.
   ///
   /// In cs, this message translates to:
@@ -7493,6 +7511,126 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Po prodeji'**
   String get stockColumnAfter;
+
+  /// No description provided for @dataTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Data'**
+  String get dataTitle;
+
+  /// No description provided for @dataExport.
+  ///
+  /// In cs, this message translates to:
+  /// **'Export'**
+  String get dataExport;
+
+  /// No description provided for @dataExportDescription.
+  ///
+  /// In cs, this message translates to:
+  /// **'Export obchodních dat (produkty, zákazníci, objednávky) do souboru pro přenos nebo archivaci.'**
+  String get dataExportDescription;
+
+  /// No description provided for @dataImport.
+  ///
+  /// In cs, this message translates to:
+  /// **'Import'**
+  String get dataImport;
+
+  /// No description provided for @dataImportDescription.
+  ///
+  /// In cs, this message translates to:
+  /// **'Import dat z dříve exportovaného souboru.'**
+  String get dataImportDescription;
+
+  /// No description provided for @dataBackup.
+  ///
+  /// In cs, this message translates to:
+  /// **'Záloha'**
+  String get dataBackup;
+
+  /// No description provided for @dataBackupDescription.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vytvoření kompletní zálohy lokální databáze.'**
+  String get dataBackupDescription;
+
+  /// No description provided for @dataRestore.
+  ///
+  /// In cs, this message translates to:
+  /// **'Obnova'**
+  String get dataRestore;
+
+  /// No description provided for @dataRestoreDescription.
+  ///
+  /// In cs, this message translates to:
+  /// **'Obnovení lokální databáze ze záložního souboru.'**
+  String get dataRestoreDescription;
+
+  /// No description provided for @catalogSortName.
+  ///
+  /// In cs, this message translates to:
+  /// **'Název'**
+  String get catalogSortName;
+
+  /// No description provided for @catalogSortPrice.
+  ///
+  /// In cs, this message translates to:
+  /// **'Cena'**
+  String get catalogSortPrice;
+
+  /// No description provided for @catalogSortType.
+  ///
+  /// In cs, this message translates to:
+  /// **'Typ'**
+  String get catalogSortType;
+
+  /// No description provided for @catalogSortMinSelections.
+  ///
+  /// In cs, this message translates to:
+  /// **'Min. výběr'**
+  String get catalogSortMinSelections;
+
+  /// No description provided for @catalogSortLastName.
+  ///
+  /// In cs, this message translates to:
+  /// **'Příjmení'**
+  String get catalogSortLastName;
+
+  /// No description provided for @catalogSortPoints.
+  ///
+  /// In cs, this message translates to:
+  /// **'Body'**
+  String get catalogSortPoints;
+
+  /// No description provided for @catalogSortCredit.
+  ///
+  /// In cs, this message translates to:
+  /// **'Kredit'**
+  String get catalogSortCredit;
+
+  /// No description provided for @catalogSortLastVisit.
+  ///
+  /// In cs, this message translates to:
+  /// **'Poslední návštěva'**
+  String get catalogSortLastVisit;
+
+  /// No description provided for @catalogFilterActive.
+  ///
+  /// In cs, this message translates to:
+  /// **'Aktivní'**
+  String get catalogFilterActive;
+
+  /// No description provided for @catalogFilterHasPoints.
+  ///
+  /// In cs, this message translates to:
+  /// **'Má body'**
+  String get catalogFilterHasPoints;
+
+  /// No description provided for @catalogFilterHasCredit.
+  ///
+  /// In cs, this message translates to:
+  /// **'Má kredit'**
+  String get catalogFilterHasCredit;
 }
 
 class _AppLocalizationsDelegate

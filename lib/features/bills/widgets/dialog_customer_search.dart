@@ -171,6 +171,7 @@ class _DialogCustomerAssignState extends ConsumerState<_DialogCustomerAssign> {
     return PosDialogShell(
       title: l.billDetailCustomer,
       maxWidth: 420,
+      scrollable: true,
       children: [
         if (_isLoading)
           const Padding(
@@ -198,26 +199,26 @@ class _DialogCustomerAssignState extends ConsumerState<_DialogCustomerAssign> {
             ),
         ],
         const SizedBox(height: 16),
-        PosDialogActions(
-          actions: [
-            if (widget.showRemoveButton)
-              OutlinedButton(
-                style: PosButtonStyles.destructiveOutlined(context),
-                onPressed: () =>
-                    Navigator.pop(context, const _RemoveCustomer()),
-                child: Text(l.customerRemove),
-              ),
-            OutlinedButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(l.actionCancel),
-            ),
-            FilledButton(
-              onPressed: _save,
-              child: Text(l.actionSave),
-            ),
-          ],
-        ),
       ],
+      bottomActions: PosDialogActions(
+        actions: [
+          if (widget.showRemoveButton)
+            OutlinedButton(
+              style: PosButtonStyles.destructiveOutlined(context),
+              onPressed: () =>
+                  Navigator.pop(context, const _RemoveCustomer()),
+              child: Text(l.customerRemove),
+            ),
+          OutlinedButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l.actionCancel),
+          ),
+          FilledButton(
+            onPressed: _save,
+            child: Text(l.actionSave),
+          ),
+        ],
+      ),
     );
   }
 
@@ -349,15 +350,15 @@ class _DialogCustomerDbSearchState
                 ),
         ),
         const SizedBox(height: 8),
-        PosDialogActions(
-          actions: [
-            OutlinedButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(l.actionCancel),
-            ),
-          ],
-        ),
       ],
+      bottomActions: PosDialogActions(
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l.actionCancel),
+          ),
+        ],
+      ),
     );
   }
 

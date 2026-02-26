@@ -150,23 +150,22 @@ class _DialogChangeTotalToPayState extends ConsumerState<DialogChangeTotalToPay>
           ),
         ),
         const SizedBox(height: 16),
-        // Bottom actions
-        PosDialogActions(
-          expanded: true,
-          actions: [
-            OutlinedButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(l.actionCancel),
-            ),
-            FilledButton(
-              onPressed: _amountInMinor > 0
-                  ? () => Navigator.pop(context, _amountInMinor)
-                  : null,
-              child: Text(l.actionConfirm),
-            ),
-          ],
-        ),
       ],
+      bottomActions: PosDialogActions(
+        expanded: true,
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l.actionCancel),
+          ),
+          FilledButton(
+            onPressed: _amountInMinor > 0
+                ? () => Navigator.pop(context, _amountInMinor)
+                : null,
+            child: Text(l.actionConfirm),
+          ),
+        ],
+      ),
     );
   }
 }

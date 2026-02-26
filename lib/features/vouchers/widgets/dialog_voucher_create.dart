@@ -233,31 +233,30 @@ class _DialogVoucherCreateState extends ConsumerState<DialogVoucherCreate> {
           ],
         ),
         const SizedBox(height: 16),
-        // Actions
-        PosDialogActions(
-          expanded: true,
-          actions: [
-            OutlinedButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(l.actionCancel),
-            ),
-            if (_type == VoucherType.discount)
-              FilledButton(
-                onPressed: _rawValue > 0 && _isScopeValid ? _createDiscountVoucher : null,
-                child: Text(l.voucherCreate),
-              )
-            else
-              FilledButton(
-                onPressed: _rawValue > 0 ? () => _confirmAbsolute() : null,
-                child: Text(
-                  _rawValue > 0
-                      ? '${l.voucherSell} ${ref.money(_rawValue)}'
-                      : l.voucherSell,
-                ),
-              ),
-          ],
-        ),
       ],
+      bottomActions: PosDialogActions(
+        expanded: true,
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l.actionCancel),
+          ),
+          if (_type == VoucherType.discount)
+            FilledButton(
+              onPressed: _rawValue > 0 && _isScopeValid ? _createDiscountVoucher : null,
+              child: Text(l.voucherCreate),
+            )
+          else
+            FilledButton(
+              onPressed: _rawValue > 0 ? () => _confirmAbsolute() : null,
+              child: Text(
+                _rawValue > 0
+                    ? '${l.voucherSell} ${ref.money(_rawValue)}'
+                    : l.voucherSell,
+              ),
+            ),
+        ],
+      ),
     );
   }
 

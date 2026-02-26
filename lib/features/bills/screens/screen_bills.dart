@@ -364,44 +364,35 @@ class _SectionTabBar extends ConsumerWidget {
               ],
               if (showSort) ...[
                 const SizedBox(width: 8),
-                SizedBox(
-                  height: 40,
-                  child: PopupMenuButton<_SortField>(
-                      onSelected: (field) {
-                        if (field == sortField) {
-                          onSortChanged(field, !sortAscending);
-                        } else {
-                          onSortChanged(field, true);
-                        }
-                      },
-                      itemBuilder: (_) => [
-                        for (final entry in {
-                          _SortField.table: l.sortByTable,
-                          _SortField.total: l.sortByTotal,
-                          _SortField.lastOrder: l.sortByLastOrder,
-                        }.entries)
-                          PopupMenuItem(
-                            value: entry.key,
-                            child: Row(
-                              children: [
-                                Expanded(child: Text(entry.value)),
-                                if (entry.key == sortField)
-                                  Icon(
-                                    sortAscending ? Icons.arrow_upward : Icons.arrow_downward,
-                                    size: 18,
-                                  ),
-                              ],
-                            ),
-                          ),
-                      ],
-                      child: Chip(
-                        label: Text(l.billsSorting),
-                        avatar: Icon(
-                          sortAscending ? Icons.arrow_upward : Icons.arrow_downward,
-                          size: 16,
+                PopupMenuButton<_SortField>(
+                  icon: const Icon(Icons.swap_vert),
+                  onSelected: (field) {
+                    if (field == sortField) {
+                      onSortChanged(field, !sortAscending);
+                    } else {
+                      onSortChanged(field, true);
+                    }
+                  },
+                  itemBuilder: (_) => [
+                    for (final entry in {
+                      _SortField.table: l.sortByTable,
+                      _SortField.total: l.sortByTotal,
+                      _SortField.lastOrder: l.sortByLastOrder,
+                    }.entries)
+                      PopupMenuItem(
+                        value: entry.key,
+                        child: Row(
+                          children: [
+                            if (entry.key == sortField)
+                              Icon(sortAscending ? Icons.arrow_upward : Icons.arrow_downward, size: 16)
+                            else
+                              const SizedBox(width: 16),
+                            const SizedBox(width: 8),
+                            Expanded(child: Text(entry.value)),
+                          ],
                         ),
                       ),
-                    ),
+                  ],
                 ),
               ],
               // Panel toggle ear – styled as a tab protruding from the panel
@@ -1101,6 +1092,7 @@ void _showMoreMenu(
       PopupMenuItem(value: 'statistics', enabled: canStats, height: 48, child: Row(children: [const Icon(Icons.bar_chart, size: 20), const SizedBox(width: 12), Text(l.moreStatistics)])),
       PopupMenuItem(value: 'vouchers', enabled: canVouchers, height: 48, child: Row(children: [const Icon(Icons.card_giftcard, size: 20), const SizedBox(width: 12), Text(l.vouchersTitle)])),
       PopupMenuItem(value: 'reservations', height: 48, child: Row(children: [const Icon(Icons.event_seat, size: 20), const SizedBox(width: 12), Text(l.moreReservations)])),
+      PopupMenuItem(value: 'data', height: 48, child: Row(children: [const Icon(Icons.sd_card, size: 20), const SizedBox(width: 12), Text(l.dataTitle)])),
     ],
   ).then((value) {
     if (value == null || !btnContext.mounted) return;
@@ -1114,6 +1106,8 @@ void _showMoreMenu(
           context: btnContext,
           builder: (_) => const DialogReservationsList(),
         );
+      case 'data':
+        btnContext.push('/data');
     }
   });
 }

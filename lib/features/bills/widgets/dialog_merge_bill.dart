@@ -95,15 +95,15 @@ class DialogMergeBill extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: 16),
-        PosDialogActions(
-          actions: [
-            OutlinedButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(l.actionCancel),
-            ),
-          ],
-        ),
       ],
+      bottomActions: PosDialogActions(
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l.actionCancel),
+          ),
+        ],
+      ),
     );
   }
 }

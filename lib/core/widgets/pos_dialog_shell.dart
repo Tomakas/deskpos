@@ -16,6 +16,7 @@ class PosDialogShell extends StatelessWidget {
     this.titleStyle,
     this.scrollable = false,
     this.expandHeight = false,
+    this.bottomActions,
   });
 
   final String title;
@@ -27,14 +28,56 @@ class PosDialogShell extends StatelessWidget {
   final TextStyle? titleStyle;
   final bool scrollable;
   final bool expandHeight;
+  final Widget? bottomActions;
 
   @override
   Widget build(BuildContext context) {
     final style = titleStyle ?? Theme.of(context).textTheme.titleLarge;
+    final titleRow = titleWidget != null
+        ? Center(child: titleWidget!)
+        : Center(child: Text(title, style: style));
+
+    // scrollable + bottomActions → title & children scroll, actions pinned
+    if (scrollable && bottomActions != null) {
+      return Dialog(
+        insetPadding: const EdgeInsets.all(12),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: maxWidth,
+            maxHeight: maxHeight ?? double.infinity,
+          ),
+          child: Padding(
+            padding: padding,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Flexible(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        titleRow,
+                        const SizedBox(height: PosDialogTheme.sectionSpacing),
+                        ...children,
+                      ],
+                    ),
+                  ),
+                ),
+                bottomActions!,
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     final content = <Widget>[
-      titleWidget != null ? Center(child: titleWidget!) : Center(child: Text(title, style: style)),
+      titleRow,
       const SizedBox(height: PosDialogTheme.sectionSpacing),
       ...children,
+      ?bottomActions,
     ];
 
     return Dialog(

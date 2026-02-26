@@ -539,16 +539,16 @@ class _UserEditDialogState extends ConsumerState<_UserEditDialog>
           ),
         ),
         const SizedBox(height: 8),
-        PosDialogActions(
-          actions: [
-            OutlinedButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(l.actionCancel),
-            ),
-            FilledButton(onPressed: _save, child: Text(l.actionSave)),
-          ],
-        ),
       ],
+      bottomActions: PosDialogActions(
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l.actionCancel),
+          ),
+          FilledButton(onPressed: _save, child: Text(l.actionSave)),
+        ],
+      ),
     );
   }
 

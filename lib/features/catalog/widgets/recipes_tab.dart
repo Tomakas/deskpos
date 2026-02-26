@@ -17,6 +17,8 @@ import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_table.dart';
 
+enum _RecipesSortField { name }
+
 class RecipesTab extends ConsumerStatefulWidget {
   const RecipesTab({super.key});
 
@@ -27,6 +29,10 @@ class RecipesTab extends ConsumerStatefulWidget {
 class _RecipesTabState extends ConsumerState<RecipesTab> {
   final _searchCtrl = TextEditingController();
   String _query = '';
+
+  // Sort state
+  _RecipesSortField _sortField = _RecipesSortField.name;
+  bool _sortAsc = true;
 
   @override
   void dispose() {
@@ -63,7 +69,13 @@ class _RecipesTabState extends ConsumerState<RecipesTab> {
               if (_query.isEmpty) return true;
               final parentName = itemMap[entry.key]?.name ?? '';
               return normalizeSearch(parentName).contains(_query);
-            }).toList();
+            }).toList()
+              ..sort((a, b) {
+                final cmp = switch (_sortField) {
+                  _RecipesSortField.name => (itemMap[a.key]?.name ?? '').compareTo(itemMap[b.key]?.name ?? ''),
+                };
+                return _sortAsc ? cmp : -cmp;
+              });
 
             return Column(
               children: [
@@ -72,6 +84,38 @@ class _RecipesTabState extends ConsumerState<RecipesTab> {
                   searchHint: l.searchHint,
                   onSearchChanged: (v) => setState(() => _query = normalizeSearch(v)),
                   trailing: [
+                    PopupMenuButton<_RecipesSortField>(
+                      icon: const Icon(Icons.swap_vert),
+                      onSelected: (field) {
+                        if (field == _sortField) {
+                          setState(() => _sortAsc = !_sortAsc);
+                        } else {
+                          setState(() {
+                            _sortField = field;
+                            _sortAsc = true;
+                          });
+                        }
+                      },
+                      itemBuilder: (_) => [
+                        for (final entry in {
+                          _RecipesSortField.name: l.catalogSortName,
+                        }.entries)
+                          PopupMenuItem(
+                            value: entry.key,
+                            child: Row(
+                              children: [
+                                if (entry.key == _sortField)
+                                  Icon(_sortAsc ? Icons.arrow_upward : Icons.arrow_downward, size: 16)
+                                else
+                                  const SizedBox(width: 16),
+                                const SizedBox(width: 8),
+                                Text(entry.value, style: entry.key == _sortField ? const TextStyle(fontWeight: FontWeight.bold) : null),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(width: 8),
                     FilledButton.icon(
                       onPressed: () => _showRecipeDialog(context, ref, items, null, []),
                       icon: const Icon(Icons.add),
@@ -149,6 +193,34 @@ class _RecipesTabState extends ConsumerState<RecipesTab> {
           maxWidth: 500,
           maxHeight: 500,
           expandHeight: true,
+          bottomActions: PosDialogActions(
+            leading: !isNew
+                ? OutlinedButton(
+                    style: PosButtonStyles.destructiveOutlined(ctx),
+                    onPressed: () async {
+                      if (!await confirmDelete(ctx, l) || !ctx.mounted) return;
+                      final repo = ref.read(productRecipeRepositoryProvider);
+                      for (final c in existingComponents) {
+                        await repo.delete(c.id);
+                      }
+                      if (ctx.mounted) Navigator.pop(ctx);
+                    },
+                    child: Text(l.actionDelete),
+                  )
+                : null,
+            actions: [
+              OutlinedButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: Text(l.actionCancel),
+              ),
+              FilledButton(
+                onPressed: parentProductId != null && components.isNotEmpty
+                    ? () => Navigator.pop(ctx, true)
+                    : null,
+                child: Text(l.actionSave),
+              ),
+            ],
+          ),
           children: [
             // Parent product dropdown (locked when editing)
             DropdownButtonFormField<String?>(
@@ -245,34 +317,6 @@ class _RecipesTabState extends ConsumerState<RecipesTab> {
               ),
             ),
             const SizedBox(height: 24),
-            PosDialogActions(
-              leading: !isNew
-                  ? OutlinedButton(
-                      style: PosButtonStyles.destructiveOutlined(ctx),
-                      onPressed: () async {
-                        if (!await confirmDelete(ctx, l) || !ctx.mounted) return;
-                        final repo = ref.read(productRecipeRepositoryProvider);
-                        for (final c in existingComponents) {
-                          await repo.delete(c.id);
-                        }
-                        if (ctx.mounted) Navigator.pop(ctx);
-                      },
-                      child: Text(l.actionDelete),
-                    )
-                  : null,
-              actions: [
-                OutlinedButton(
-                  onPressed: () => Navigator.pop(ctx, false),
-                  child: Text(l.actionCancel),
-                ),
-                FilledButton(
-                  onPressed: parentProductId != null && components.isNotEmpty
-                      ? () => Navigator.pop(ctx, true)
-                      : null,
-                  child: Text(l.actionSave),
-                ),
-              ],
-            ),
           ],
         ),
       ),

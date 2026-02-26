@@ -270,6 +270,7 @@ class _DialogClosingSessionState extends ConsumerState<DialogClosingSession> {
       titleStyle: theme.textTheme.headlineSmall,
       maxWidth: 500,
       scrollable: true,
+      bottomActions: _buildActions(l, theme),
       children: [
         // --- Session info ---
                 _buildSessionInfo(l, theme),
@@ -293,8 +294,6 @@ class _DialogClosingSessionState extends ConsumerState<DialogClosingSession> {
                 _buildClosingCashInput(l, theme),
                 const SizedBox(height: 20),
 
-                // --- Actions ---
-                _buildActions(l, theme),
               ],
     );
   }

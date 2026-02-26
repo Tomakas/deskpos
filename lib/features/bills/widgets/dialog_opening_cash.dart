@@ -198,25 +198,24 @@ class _DialogOpeningCashState extends ConsumerState<DialogOpeningCash> {
             ),
         ],
         const SizedBox(height: 16),
-        // Actions
-        SizedBox(
-          width: 250,
-          child: PosDialogActions(
-            expanded: true,
-            actions: [
-              OutlinedButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(l.actionCancel),
-              ),
-              FilledButton(
-                style: PosButtonStyles.confirm(context),
-                onPressed: _confirm,
-                child: Text(l.openingCashConfirm),
-              ),
-            ],
-          ),
-        ),
       ],
+      bottomActions: SizedBox(
+        width: 250,
+        child: PosDialogActions(
+          expanded: true,
+          actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(l.actionCancel),
+            ),
+            FilledButton(
+              style: PosButtonStyles.confirm(context),
+              onPressed: _confirm,
+              child: Text(l.openingCashConfirm),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

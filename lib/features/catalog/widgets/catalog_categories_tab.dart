@@ -6,12 +6,15 @@ import '../../../core/data/models/category_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/search_utils.dart';
 import '../../../core/widgets/highlighted_text.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_table.dart';
+
+enum _CategoriesSortField { name }
 
 class CatalogCategoriesTab extends ConsumerStatefulWidget {
   const CatalogCategoriesTab({super.key});
@@ -24,6 +27,15 @@ class _CatalogCategoriesTabState extends ConsumerState<CatalogCategoriesTab> {
   final _searchCtrl = TextEditingController();
   String _query = '';
 
+  // Sort state
+  _CategoriesSortField _sortField = _CategoriesSortField.name;
+  bool _sortAsc = true;
+
+  // Filter state
+  bool? _filterActive;
+
+  bool get _hasActiveFilters => _filterActive != null;
+
   @override
   void dispose() {
     _searchCtrl.dispose();
@@ -33,6 +45,7 @@ class _CatalogCategoriesTabState extends ConsumerState<CatalogCategoriesTab> {
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
+    final theme = Theme.of(context);
     final company = ref.watch(currentCompanyProvider);
     if (company == null) return const SizedBox.shrink();
 
@@ -41,9 +54,16 @@ class _CatalogCategoriesTabState extends ConsumerState<CatalogCategoriesTab> {
       builder: (context, snap) {
         final categories = snap.data ?? [];
         final filtered = categories.where((c) {
+          if (_filterActive != null && c.isActive != _filterActive) return false;
           if (_query.isEmpty) return true;
           return normalizeSearch(c.name).contains(_query);
-        }).toList();
+        }).toList()
+          ..sort((a, b) {
+            final cmp = switch (_sortField) {
+              _CategoriesSortField.name => a.name.compareTo(b.name),
+            };
+            return _sortAsc ? cmp : -cmp;
+          });
         return Column(
           children: [
             PosTableToolbar(
@@ -51,6 +71,47 @@ class _CatalogCategoriesTabState extends ConsumerState<CatalogCategoriesTab> {
               searchHint: l.searchHint,
               onSearchChanged: (v) => setState(() => _query = normalizeSearch(v)),
               trailing: [
+                IconButton(
+                  icon: Icon(
+                    Icons.filter_alt_outlined,
+                    color: _hasActiveFilters
+                        ? theme.colorScheme.primary
+                        : null,
+                  ),
+                  onPressed: () => _showFilterDialog(context, l),
+                ),
+                PopupMenuButton<_CategoriesSortField>(
+                  icon: const Icon(Icons.swap_vert),
+                  onSelected: (field) {
+                    if (field == _sortField) {
+                      setState(() => _sortAsc = !_sortAsc);
+                    } else {
+                      setState(() {
+                        _sortField = field;
+                        _sortAsc = true;
+                      });
+                    }
+                  },
+                  itemBuilder: (_) => [
+                    for (final entry in {
+                      _CategoriesSortField.name: l.catalogSortName,
+                    }.entries)
+                      PopupMenuItem(
+                        value: entry.key,
+                        child: Row(
+                          children: [
+                            if (entry.key == _sortField)
+                              Icon(_sortAsc ? Icons.arrow_upward : Icons.arrow_downward, size: 16)
+                            else
+                              const SizedBox(width: 16),
+                            const SizedBox(width: 8),
+                            Text(entry.value, style: entry.key == _sortField ? const TextStyle(fontWeight: FontWeight.bold) : null),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(width: 8),
                 FilledButton.icon(
                   onPressed: () => _showEditDialog(context, ref, categories, null),
                   icon: const Icon(Icons.add),
@@ -93,6 +154,86 @@ class _CatalogCategoriesTabState extends ConsumerState<CatalogCategoriesTab> {
     );
   }
 
+  Future<void> _showFilterDialog(BuildContext context, AppLocalizations l) async {
+    var active = _filterActive;
+
+    await showDialog<void>(
+      context: context,
+      builder: (_) => StatefulBuilder(
+        builder: (ctx, setDialogState) => PosDialogShell(
+          title: l.filterTitle,
+          maxWidth: 350,
+          scrollable: true,
+          bottomActions: PosDialogActions(
+            actions: [
+              OutlinedButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text(l.actionCancel),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: Text(l.actionConfirm),
+              ),
+            ],
+          ),
+          children: [
+            Text(l.catalogFilterActive, style: Theme.of(ctx).textTheme.bodySmall),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: SizedBox(
+                    height: 40,
+                    child: FilterChip(
+                      label: SizedBox(
+                        width: double.infinity,
+                        child: Text(l.filterAll, textAlign: TextAlign.center),
+                      ),
+                      selected: active == null,
+                      onSelected: (_) => setDialogState(() => active = null),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: SizedBox(
+                    height: 40,
+                    child: FilterChip(
+                      label: SizedBox(
+                        width: double.infinity,
+                        child: Text(l.yes, textAlign: TextAlign.center),
+                      ),
+                      selected: active == true,
+                      onSelected: (_) => setDialogState(() => active = true),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: SizedBox(
+                    height: 40,
+                    child: FilterChip(
+                      label: SizedBox(
+                        width: double.infinity,
+                        child: Text(l.no, textAlign: TextAlign.center),
+                      ),
+                      selected: active == false,
+                      onSelected: (_) => setDialogState(() => active = false),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
+
+    if (!mounted) return;
+    setState(() => _filterActive = active);
+  }
+
   Future<void> _showEditDialog(
     BuildContext context,
     WidgetRef ref,
@@ -112,6 +253,24 @@ class _CatalogCategoriesTabState extends ConsumerState<CatalogCategoriesTab> {
         builder: (ctx, setDialogState) => PosDialogShell(
           title: existing == null ? l.actionAdd : l.actionEdit,
           maxWidth: 350,
+          scrollable: true,
+          bottomActions: PosDialogActions(
+            leading: existing != null
+                ? OutlinedButton(
+                    style: PosButtonStyles.destructiveOutlined(ctx),
+                    onPressed: () async {
+                      if (!await confirmDelete(ctx, l) || !ctx.mounted) return;
+                      await ref.read(categoryRepositoryProvider).delete(existing.id);
+                      if (ctx.mounted) Navigator.pop(ctx);
+                    },
+                    child: Text(l.actionDelete),
+                  )
+                : null,
+            actions: [
+              OutlinedButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.actionCancel)),
+              FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.actionSave)),
+            ],
+          ),
           children: [
             TextField(
               controller: nameCtrl,
@@ -135,23 +294,6 @@ class _CatalogCategoriesTabState extends ConsumerState<CatalogCategoriesTab> {
               onChanged: (v) => setDialogState(() => isActive = v),
             ),
             const SizedBox(height: 24),
-            PosDialogActions(
-              leading: existing != null
-                  ? OutlinedButton(
-                      style: PosButtonStyles.destructiveOutlined(ctx),
-                      onPressed: () async {
-                        if (!await confirmDelete(ctx, l) || !ctx.mounted) return;
-                        await ref.read(categoryRepositoryProvider).delete(existing.id);
-                        if (ctx.mounted) Navigator.pop(ctx);
-                      },
-                      child: Text(l.actionDelete),
-                    )
-                  : null,
-              actions: [
-                OutlinedButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.actionCancel)),
-                FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.actionSave)),
-              ],
-            ),
           ],
         ),
       ),

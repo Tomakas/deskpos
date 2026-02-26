@@ -113,47 +113,46 @@ class _DialogDiscountState extends ConsumerState<DialogDiscount> {
           ),
         ),
         const SizedBox(height: 16),
-        // Actions: [currency] [back] [%]
-        PosDialogActions(
-          height: 52,
-          expanded: true,
-          actions: [
-            FilledButton(
-              onPressed: () => Navigator.pop(
-                context,
-                (DiscountType.absolute, _cappedAbsolute),
-              ),
-              child: hasValue
-                  ? Text('-${ref.moneyValue(_cappedAbsolute)} ${ref.currencySymbol}')
-                  : Text(ref.currencySymbol),
-            ),
-            OutlinedButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(l.wizardBack),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(
-                context,
-                (DiscountType.percent, _cappedPercent),
-              ),
-              child: hasValue
-                  ? Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text('${_formatPercent(_cappedPercent)} %'),
-                        Text(
-                          '-${ref.money(_percentEffective)}',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onPrimary,
-                          ),
-                        ),
-                      ],
-                    )
-                  : const Text('%'),
-            ),
-          ],
-        ),
       ],
+      bottomActions: PosDialogActions(
+        height: 52,
+        expanded: true,
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.pop(
+              context,
+              (DiscountType.absolute, _cappedAbsolute),
+            ),
+            child: hasValue
+                ? Text('-${ref.moneyValue(_cappedAbsolute)} ${ref.currencySymbol}')
+                : Text(ref.currencySymbol),
+          ),
+          OutlinedButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l.wizardBack),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(
+              context,
+              (DiscountType.percent, _cappedPercent),
+            ),
+            child: hasValue
+                ? Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text('${_formatPercent(_cappedPercent)} %'),
+                      Text(
+                        '-${ref.money(_percentEffective)}',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onPrimary,
+                        ),
+                      ),
+                    ],
+                  )
+                : const Text('%'),
+          ),
+        ],
+      ),
     );
   }
 }

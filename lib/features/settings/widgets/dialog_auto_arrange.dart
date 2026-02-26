@@ -37,6 +37,27 @@ class _DialogAutoArrangeState extends ConsumerState<DialogAutoArrange> {
     return PosDialogShell(
       title: l.autoArrangeTitle,
       maxWidth: 480,
+      scrollable: true,
+      bottomActions: PosDialogActions(
+        actions: [
+          OutlinedButton(
+            onPressed: _isProcessing ? null : () => Navigator.pop(context),
+            child: Text(l.actionCancel),
+          ),
+          FilledButton(
+            onPressed: _isProcessing
+                ? null
+                : () => _execute(context, ref, registerAsync.value),
+            child: _isProcessing
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Text(l.autoArrangeConfirm),
+          ),
+        ],
+      ),
       children: [
         StreamBuilder<List<CategoryModel>>(
           stream: ref.watch(categoryRepositoryProvider).watchAll(company.id),
@@ -111,26 +132,6 @@ class _DialogAutoArrangeState extends ConsumerState<DialogAutoArrange> {
           },
         ),
         const SizedBox(height: 16),
-        PosDialogActions(
-          actions: [
-            OutlinedButton(
-              onPressed: _isProcessing ? null : () => Navigator.pop(context),
-              child: Text(l.actionCancel),
-            ),
-            FilledButton(
-              onPressed: _isProcessing
-                  ? null
-                  : () => _execute(context, ref, registerAsync.value),
-              child: _isProcessing
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Text(l.autoArrangeConfirm),
-            ),
-          ],
-        ),
       ],
     );
   }

@@ -96,6 +96,21 @@ class _DialogStockDocumentDetailState
               title: doc.documentNumber,
               maxWidth: 700,
               expandHeight: true,
+              bottomActions: PosDialogActions(
+                leading: OutlinedButton.icon(
+                  onPressed: _printing
+                      ? null
+                      : () => _print(context, doc, movements),
+                  icon: const Icon(Icons.print_outlined),
+                  label: Text(l.billDetailPrint),
+                ),
+                actions: [
+                  OutlinedButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text(l.actionClose),
+                  ),
+                ],
+              ),
               children: [
                 _buildHeader(context, doc, l),
                 const SizedBox(height: 8),
@@ -194,21 +209,6 @@ class _DialogStockDocumentDetailState
                   ),
                 ),
                 const SizedBox(height: 16),
-                PosDialogActions(
-                  leading: OutlinedButton.icon(
-                    onPressed: _printing
-                        ? null
-                        : () => _print(context, doc, movements),
-                    icon: const Icon(Icons.print_outlined),
-                    label: Text(l.billDetailPrint),
-                  ),
-                  actions: [
-                    OutlinedButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: Text(l.actionClose),
-                    ),
-                  ],
-                ),
               ],
             );
           },

@@ -79,6 +79,7 @@ class _DialogReservationsListState extends ConsumerState<DialogReservationsList>
       title: l.reservationsTitle,
       titleStyle: theme.textTheme.headlineSmall,
       maxWidth: 800,
+      scrollable: true,
       children: [
         PosDateRangeSelector(
           onChanged: _onDateRangeChanged,
@@ -146,20 +147,20 @@ class _DialogReservationsListState extends ConsumerState<DialogReservationsList>
         ),
 
         const SizedBox(height: 16),
-        PosDialogActions(
-          leading: FilledButton.tonalIcon(
-            onPressed: _openCreateDialog,
-            icon: const Icon(Icons.add, size: 18),
-            label: Text(l.reservationNew),
-          ),
-          actions: [
-            OutlinedButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(l.actionClose),
-            ),
-          ],
-        ),
       ],
+      bottomActions: PosDialogActions(
+        leading: FilledButton.tonalIcon(
+          onPressed: _openCreateDialog,
+          icon: const Icon(Icons.add, size: 18),
+          label: Text(l.reservationNew),
+        ),
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l.actionClose),
+          ),
+        ],
+      ),
     );
   }
 }
