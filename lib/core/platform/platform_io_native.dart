@@ -60,7 +60,7 @@ void exitApp() {
 }
 
 Future<void> deleteDatabaseFiles(String name) async {
-  final dir = await getApplicationDocumentsDirectory();
+  final dir = await getApplicationSupportDirectory();
   final basePath = p.join(dir.path, '$name.sqlite');
   for (final suffix in ['', '-wal', '-shm', '-journal']) {
     final file = File('$basePath$suffix');

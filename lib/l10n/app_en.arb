@@ -62,7 +62,7 @@
 
   "infoPanelDate": "Date",
   "infoPanelStatus": "Register Status",
-  "infoPanelStatusOffline": "Offline",
+  "infoPanelStatusOffline": "Closed",
   "infoPanelActiveUser": "Active Staff",
   "infoPanelLoggedIn": "Other Logins",
 
@@ -1020,6 +1020,7 @@
   "demoDialogTitle": "Create Demo Company",
   "demoDialogInfo": "Demo auto-deletes after 6 hours",
   "demoDialogCreate": "Create",
+  "demoDialogCreating": "Creating demo data, this may take a moment...",
   "onboardingKdsDisplay": "Order Display (KDS)",
 
   "displayCodeTitle": "Enter Code",

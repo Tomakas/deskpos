@@ -35,6 +35,19 @@
 
 ### Documentation
 - **PROJECT.md**: added bill age color system, `billAgeColor` helper, floor map edge positioning, `bill_id` on stock_movements schema, `DialogStockDocumentDetail` + `StockDocumentPdfBuilder`, discount dialog context title, `moveBill` map position clearing, demo function details (search_path, session open cap, random voucher codes), `watchActiveSession` ORDER BY note
+- **PROJECT.md audit** (21 findings — 1 CRITICAL, 1 HIGH, 6 MEDIUM, 6 LOW, 7 DOC DEBT):
+  - Applied 3 missing Supabase migrations (`20260225_008`, `20260225_009`, `20260226_002`) — negative_stock_policy + bill_age thresholds
+  - Enum count 22→23, dialog count 31→32, PosNumpad usage 10→13
+  - PG enum clarification (21 PG + 2 Dart-only TEXT enums)
+  - companyRepos: removed `order_item_modifiers` from config entity list (22 repos), moved to prodejní entity list
+  - ScreenRegisterSettings: 2→3 taby (added Periferie)
+  - ScreenSell toolbar: rewritten (Search IconButton + 5 FilterChips, Oddělit jen gastro, Zpět chip)
+  - Enqueue pattern: "mimo transakci" → "uvnitř transakce"
+  - Seed demo data: rewritten per actual `seed_service.dart` (10 tables, 18 items gastro, corrected categories/supplier/manufacturer names)
+  - Tab labels: Daňové sazby → Daň. sazby, Platební metody → Plat. metody
+  - Server-only tables: added `demo_log`, Supabase count 45→46
+  - Directory tree: added `data/utils/` (voucher_discount_calculator.dart)
+  - Quick Sale: documented `_convertToBill` (Uložit na účet) method behavior
 
 ## 2026-02-25 — Negative Stock Policy
 

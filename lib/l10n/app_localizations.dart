@@ -395,7 +395,7 @@ abstract class AppLocalizations {
   /// No description provided for @infoPanelStatusOffline.
   ///
   /// In cs, this message translates to:
-  /// **'Offline'**
+  /// **'Zavřeno'**
   String get infoPanelStatusOffline;
 
   /// No description provided for @infoPanelActiveUser.
@@ -4909,6 +4909,12 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Vytvořit'**
   String get demoDialogCreate;
+
+  /// No description provided for @demoDialogCreating.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vytváření demo dat, může to chvíli trvat...'**
+  String get demoDialogCreating;
 
   /// No description provided for @onboardingKdsDisplay.
   ///

@@ -62,7 +62,7 @@
 
   "infoPanelDate": "Datum",
   "infoPanelStatus": "Stav pokladny",
-  "infoPanelStatusOffline": "Offline",
+  "infoPanelStatusOffline": "Zavřeno",
   "infoPanelActiveUser": "Aktivní obsluha",
   "infoPanelLoggedIn": "Další přihlášení",
 
@@ -1020,6 +1020,7 @@
   "demoDialogTitle": "Vytvořit demo firmu",
   "demoDialogInfo": "Demo se automaticky smaže po 6 hodinách",
   "demoDialogCreate": "Vytvořit",
+  "demoDialogCreating": "Vytváření demo dat, může to chvíli trvat...",
   "onboardingKdsDisplay": "Objednávkový displej (KDS)",
 
   "displayCodeTitle": "Zadejte kód",

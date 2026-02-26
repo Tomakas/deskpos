@@ -660,6 +660,25 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
                   l.demoDialogInfo,
                   style: Theme.of(dialogContext).textTheme.bodySmall,
                 ),
+                if (demoSubmitting) ...[
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          l.demoDialogCreating,
+                          style: Theme.of(dialogContext).textTheme.bodySmall,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
                 if (demoError != null) ...[
                   const SizedBox(height: 16),
                   Text(

@@ -158,7 +158,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get infoPanelStatus => 'Register Status';
 
   @override
-  String get infoPanelStatusOffline => 'Offline';
+  String get infoPanelStatusOffline => 'Closed';
 
   @override
   String get infoPanelActiveUser => 'Active Staff';
@@ -2502,6 +2502,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get demoDialogCreate => 'Create';
+
+  @override
+  String get demoDialogCreating =>
+      'Creating demo data, this may take a moment...';
 
   @override
   String get onboardingKdsDisplay => 'Order Display (KDS)';

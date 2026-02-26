@@ -158,7 +158,7 @@ class AppLocalizationsCs extends AppLocalizations {
   String get infoPanelStatus => 'Stav pokladny';
 
   @override
-  String get infoPanelStatusOffline => 'Offline';
+  String get infoPanelStatusOffline => 'Zavřeno';
 
   @override
   String get infoPanelActiveUser => 'Aktivní obsluha';
@@ -2500,6 +2500,10 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get demoDialogCreate => 'Vytvořit';
+
+  @override
+  String get demoDialogCreating =>
+      'Vytváření demo dat, může to chvíli trvat...';
 
   @override
   String get onboardingKdsDisplay => 'Objednávkový displej (KDS)';
