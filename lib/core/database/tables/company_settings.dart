@@ -15,6 +15,10 @@ class CompanySettings extends Table with SyncColumnsMixin {
   TextColumn get negativeStockPolicy =>
       textEnum<NegativeStockPolicy>().withDefault(Constant(NegativeStockPolicy.allow.name))();
 
+  // Discount limits (basis points: 2000 = 20.00%)
+  IntColumn get maxItemDiscountPercent => integer().withDefault(const Constant(2000))();
+  IntColumn get maxBillDiscountPercent => integer().withDefault(const Constant(2000))();
+
   // TODO: Add UI for editing these thresholds in company settings screen.
   IntColumn get billAgeWarningMinutes => integer().withDefault(const Constant(15))();
   IntColumn get billAgeDangerMinutes => integer().withDefault(const Constant(30))();

@@ -11,6 +11,15 @@ DateTime? _parseDateTime(dynamic v) {
 
 DateTime _requireDateTime(dynamic v) => DateTime.parse(v as String);
 
+T? _tryEnumFromName<T extends Enum>(List<T> values, dynamic name) {
+  final str = name as String?;
+  if (str == null) return null;
+  for (final v in values) {
+    if (v.name == str) return v;
+  }
+  return null;
+}
+
 T _enumFromName<T extends Enum>(List<T> values, dynamic name) {
   final str = name as String?;
   if (str == null) throw ArgumentError('Null enum name for $T');
@@ -444,6 +453,8 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
               ? NegativeStockPolicy.values.byName(json['negative_stock_policy'] as String)
               : NegativeStockPolicy.allow,
         ),
+        maxItemDiscountPercent: Value(json['max_item_discount_percent'] as int? ?? 2000),
+        maxBillDiscountPercent: Value(json['max_bill_discount_percent'] as int? ?? 2000),
         billAgeWarningMinutes: Value(json['bill_age_warning_minutes'] as int? ?? 15),
         billAgeDangerMinutes: Value(json['bill_age_danger_minutes'] as int? ?? 30),
         billAgeCriticalMinutes: Value(json['bill_age_critical_minutes'] as int? ?? 45),
@@ -469,7 +480,7 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
         city: Value(json['city'] as String?),
         postalCode: Value(json['postal_code'] as String?),
         timezone: Value(json['timezone'] as String?),
-        businessType: Value(json['business_type'] as String?),
+        businessType: Value(_tryEnumFromName(BusinessType.values, json['business_type'])),
         defaultCurrencyId: Value(json['default_currency_id'] as String),
         authUserId: Value(json['auth_user_id'] as String),
         isDemo: Value(json['is_demo'] as bool? ?? false),

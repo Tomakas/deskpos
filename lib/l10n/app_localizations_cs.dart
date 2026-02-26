@@ -1910,6 +1910,15 @@ class AppLocalizationsCs extends AppLocalizations {
       'Věrnostní program je vypnutý (nastavte hodnoty > 0)';
 
   @override
+  String get settingsDiscountLimits => 'Limity slev';
+
+  @override
+  String get settingsMaxItemDiscount => 'Max sleva na položku (%)';
+
+  @override
+  String get settingsMaxBillDiscount => 'Max sleva na účet (%)';
+
+  @override
   String get loyaltyRedeem => 'Uplatnit body';
 
   @override
@@ -3168,19 +3177,19 @@ class AppLocalizationsCs extends AppLocalizations {
   String get permPaymentsAdjustTip => 'Upravit spropitné';
 
   @override
-  String get permDiscountsApplyItem => 'Sleva na položku';
+  String get permDiscountsApplyItemLimited => 'Sleva na položku (limitovaná)';
 
   @override
-  String get permDiscountsApplyBill => 'Sleva na účet';
+  String get permDiscountsApplyItem => 'Sleva na položku (neomezená)';
 
   @override
-  String get permDiscountsCustom => 'Vlastní sleva';
+  String get permDiscountsApplyBillLimited => 'Sleva na účet (limitovaná)';
 
   @override
-  String get permDiscountsPriceOverride => 'Přepsat cenu';
+  String get permDiscountsApplyBill => 'Sleva na účet (neomezená)';
 
   @override
-  String get permDiscountsLoyalty => 'Věrnostní sleva';
+  String get permDiscountsLoyalty => 'Uplatnit věrnostní body';
 
   @override
   String get permRegisterOpenSession => 'Otevřít pokladnu';
@@ -3899,4 +3908,70 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get catalogFilterHasCredit => 'Má kredit';
+
+  @override
+  String get businessTypeLabel => 'Typ podnikání';
+
+  @override
+  String get businessCategoryGastro => 'Gastro';
+
+  @override
+  String get businessCategoryRetail => 'Maloobchod';
+
+  @override
+  String get businessCategoryServices => 'Služby';
+
+  @override
+  String get businessCategoryOther => 'Ostatní';
+
+  @override
+  String get businessTypeRestaurant => 'Restaurace';
+
+  @override
+  String get businessTypeBar => 'Bar';
+
+  @override
+  String get businessTypeCafe => 'Kavárna';
+
+  @override
+  String get businessTypeCanteen => 'Jídelna';
+
+  @override
+  String get businessTypeBistro => 'Bistro';
+
+  @override
+  String get businessTypeBakery => 'Pekárna';
+
+  @override
+  String get businessTypeFoodTruck => 'Food Truck';
+
+  @override
+  String get businessTypeGrocery => 'Potraviny';
+
+  @override
+  String get businessTypeClothing => 'Oblečení';
+
+  @override
+  String get businessTypeElectronics => 'Elektronika';
+
+  @override
+  String get businessTypeGeneralStore => 'Smíšené zboží';
+
+  @override
+  String get businessTypeFlorist => 'Květinářství';
+
+  @override
+  String get businessTypeHairdresser => 'Kadeřnictví';
+
+  @override
+  String get businessTypeBeautySalon => 'Kosmetický salon';
+
+  @override
+  String get businessTypeFitness => 'Fitness';
+
+  @override
+  String get businessTypeAutoService => 'Autoservis';
+
+  @override
+  String get businessTypeOther => 'Ostatní';
 }

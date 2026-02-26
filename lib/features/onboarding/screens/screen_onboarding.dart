@@ -9,6 +9,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../core/auth/pin_helper.dart';
+import '../../../core/data/enums/business_type.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/database_provider.dart';
 import '../../../core/data/providers/sync_providers.dart';
@@ -16,6 +17,7 @@ import '../../../core/data/result.dart';
 import '../../../core/database/app_database.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/logging/app_logger.dart';
+import '../../../core/widgets/business_type_selector.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../l10n/app_localizations.dart';
 
@@ -34,6 +36,8 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
   String _selectedLocale = 'cs';
   String _selectedCurrencyCode = 'CZK';
   String _selectedMode = 'gastro';
+  BusinessCategory? _selectedBusinessCategory;
+  BusinessType? _selectedBusinessType;
 
   // Step 0: Supabase account
   final _authEmailCtrl = TextEditingController();
@@ -346,6 +350,23 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
         keyboardType: TextInputType.phone,
       ),
       const SizedBox(height: 24),
+      BusinessTypeSelector(
+        selectedCategory: _selectedBusinessCategory,
+        selectedType: _selectedBusinessType,
+        onCategoryChanged: (cat) {
+          setState(() {
+            _selectedBusinessCategory = cat;
+            final subtypes = businessTypesByCategory[cat] ?? [];
+            if (subtypes.length == 1) {
+              _selectedBusinessType = subtypes.first;
+            } else {
+              _selectedBusinessType = null;
+            }
+          });
+        },
+        onTypeChanged: (type) => setState(() => _selectedBusinessType = type),
+      ),
+      const SizedBox(height: 24),
       Text(l.wizardCurrency, style: Theme.of(context).textTheme.titleSmall),
       const SizedBox(height: 8),
       Row(
@@ -562,6 +583,7 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
       address: _addressCtrl.text.trim().isEmpty ? null : _addressCtrl.text.trim(),
       email: _emailCtrl.text.trim().isEmpty ? null : _emailCtrl.text.trim(),
       phone: _phoneCtrl.text.trim().isEmpty ? null : _phoneCtrl.text.trim(),
+      businessType: _selectedBusinessType,
       adminFullName: _fullNameCtrl.text.trim(),
       adminUsername: _usernameCtrl.text.trim(),
       adminPin: _pinCtrl.text,

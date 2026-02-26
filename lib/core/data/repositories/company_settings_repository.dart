@@ -56,6 +56,8 @@ class CompanySettingsRepository
         loyaltyPointValue: Value(m.loyaltyPointValue),
         locale: Value(m.locale),
         negativeStockPolicy: Value(m.negativeStockPolicy),
+        maxItemDiscountPercent: Value(m.maxItemDiscountPercent),
+        maxBillDiscountPercent: Value(m.maxBillDiscountPercent),
         billAgeWarningMinutes: Value(m.billAgeWarningMinutes),
         billAgeDangerMinutes: Value(m.billAgeDangerMinutes),
         billAgeCriticalMinutes: Value(m.billAgeCriticalMinutes),

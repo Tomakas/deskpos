@@ -18,6 +18,10 @@ const Map<String, List<String>> _directRequirements = {
   'orders.bump': ['orders.view'],
   'orders.bump_back': ['orders.view'],
 
+  // discounts
+  'discounts.apply_item': ['discounts.apply_item_limited'],
+  'discounts.apply_bill': ['discounts.apply_bill_limited'],
+
   // payments
   'payments.refund': ['payments.accept'],
   'payments.refund_item': ['payments.accept'],

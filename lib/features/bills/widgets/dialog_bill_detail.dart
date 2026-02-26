@@ -18,6 +18,7 @@ import '../../../core/data/models/order_item_modifier_model.dart';
 import '../../../core/data/models/order_model.dart';
 import '../../../core/data/models/table_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
+import '../../../core/data/providers/permission_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/providers/sync_providers.dart';
 import '../../../core/data/result.dart';
@@ -602,16 +603,18 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
               ),
             ),
             const SizedBox(height: 4),
-            Expanded(
-              child: _SideButton(
-                label: bill.discountAmount > 0 ? l.billDetailRemoveDiscount : l.billDetailDiscount,
-                onPressed: isOpened && !_isProcessing
-                    ? () => bill.discountAmount > 0
-                        ? _removeBillDiscount(context, ref, bill)
-                        : _applyBillDiscount(context, ref, bill)
-                    : null,
+            if (ref.watch(hasPermissionProvider('discounts.apply_bill')) ||
+                ref.watch(hasPermissionProvider('discounts.apply_bill_limited')))
+              Expanded(
+                child: _SideButton(
+                  label: bill.discountAmount > 0 ? l.billDetailRemoveDiscount : l.billDetailDiscount,
+                  onPressed: isOpened && !_isProcessing
+                      ? () => bill.discountAmount > 0
+                          ? _removeBillDiscount(context, ref, bill)
+                          : _applyBillDiscount(context, ref, bill)
+                      : null,
+                ),
               ),
-            ),
             const SizedBox(height: 4),
             Expanded(
               child: _SideButton(
@@ -867,6 +870,16 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
     setState(() => _isProcessing = true);
     try {
       final l = context.l10n;
+      final hasUnlimited = ref.read(hasPermissionProvider('discounts.apply_bill'));
+      int? maxPercent;
+      if (!hasUnlimited) {
+        final company = ref.read(currentCompanyProvider);
+        if (company != null) {
+          final settings = await ref.read(companySettingsRepositoryProvider).getOrCreate(company.id);
+          maxPercent = settings.maxBillDiscountPercent;
+        }
+      }
+      if (!mounted) return;
       final result = await showDialog<(DiscountType, int)?>(
         context: context,
         builder: (_) => DialogDiscount(
@@ -874,6 +887,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
           currentDiscount: bill.discountAmount,
           currentDiscountType: bill.discountType ?? DiscountType.absolute,
           referenceAmount: bill.subtotalGross,
+          maxPercent: maxPercent,
         ),
       );
       if (result == null) return;
@@ -1643,17 +1657,19 @@ class _OrderSection extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            height: 40,
-            child: OutlinedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                _editItemDiscount(context, ref, item);
-              },
-              child: Text(context.l10n.billDetailDiscount),
+          if (ref.read(hasPermissionProvider('discounts.apply_item')) ||
+              ref.read(hasPermissionProvider('discounts.apply_item_limited')))
+            SizedBox(
+              width: double.infinity,
+              height: 40,
+              child: OutlinedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _editItemDiscount(context, ref, item);
+                },
+                child: Text(context.l10n.billDetailDiscount),
+              ),
             ),
-          ),
           const SizedBox(height: 8),
           SizedBox(
             width: double.infinity,
@@ -1744,6 +1760,16 @@ class _OrderSection extends ConsumerWidget {
   }
 
   Future<void> _editItemDiscount(BuildContext context, WidgetRef ref, OrderItemModel item) async {
+    final hasUnlimited = ref.read(hasPermissionProvider('discounts.apply_item'));
+    int? maxPercent;
+    if (!hasUnlimited) {
+      final company = ref.read(currentCompanyProvider);
+      if (company != null) {
+        final settings = await ref.read(companySettingsRepositoryProvider).getOrCreate(company.id);
+        maxPercent = settings.maxItemDiscountPercent;
+      }
+    }
+    if (!context.mounted) return;
     final referenceAmount = (item.salePriceAtt * item.quantity).round();
     final result = await showDialog<(DiscountType, int)?>(
       context: context,
@@ -1752,6 +1778,7 @@ class _OrderSection extends ConsumerWidget {
         currentDiscount: item.discount,
         currentDiscountType: item.discountType ?? DiscountType.absolute,
         referenceAmount: referenceAmount,
+        maxPercent: maxPercent,
       ),
     );
     if (result == null) return;

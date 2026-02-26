@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:uuid/uuid.dart';
 
+import '../../../core/data/enums/business_type.dart';
 import '../../../core/data/models/company_currency_model.dart';
 import '../../../core/data/models/company_model.dart';
 import '../../../core/data/models/company_settings_model.dart';
@@ -15,6 +16,7 @@ import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/utils/formatting_ext.dart';
+import '../../../core/widgets/business_type_selector.dart';
 
 class CompanyInfoTab extends ConsumerStatefulWidget {
   const CompanyInfoTab({super.key});
@@ -35,6 +37,8 @@ class _CompanyInfoTabState extends ConsumerState<CompanyInfoTab> {
 
   bool _companyInitialized = false;
   bool _currencyLocked = false;
+  BusinessCategory? _selectedBusinessCategory;
+  BusinessType? _selectedBusinessType;
 
   // Currencies
   List<CurrencyModel> _currencies = [];
@@ -50,6 +54,8 @@ class _CompanyInfoTabState extends ConsumerState<CompanyInfoTab> {
   bool _settingsInitialized = false;
   late final TextEditingController _earnCtrl;
   late final TextEditingController _pointValueCtrl;
+  late final TextEditingController _maxItemDiscountCtrl;
+  late final TextEditingController _maxBillDiscountCtrl;
 
   @override
   void initState() {
@@ -62,6 +68,8 @@ class _CompanyInfoTabState extends ConsumerState<CompanyInfoTab> {
     _emailCtrl = TextEditingController();
     _earnCtrl = TextEditingController();
     _pointValueCtrl = TextEditingController();
+    _maxItemDiscountCtrl = TextEditingController();
+    _maxBillDiscountCtrl = TextEditingController();
     _initCompany();
     _initSettings();
   }
@@ -75,6 +83,8 @@ class _CompanyInfoTabState extends ConsumerState<CompanyInfoTab> {
     _addressCtrl.text = company.address ?? '';
     _phoneCtrl.text = company.phone ?? '';
     _emailCtrl.text = company.email ?? '';
+    _selectedBusinessType = company.businessType;
+    _selectedBusinessCategory = company.businessType?.category;
     _companyInitialized = true;
   }
 
@@ -107,6 +117,12 @@ class _CompanyInfoTabState extends ConsumerState<CompanyInfoTab> {
     if (!mounted) return;
     _earnCtrl.text = settings.loyaltyEarnRate.toString();
     _pointValueCtrl.text = settings.loyaltyPointValue.toString();
+    _maxItemDiscountCtrl.text = (settings.maxItemDiscountPercent / 100).toStringAsFixed(
+      settings.maxItemDiscountPercent % 100 == 0 ? 0 : 2,
+    );
+    _maxBillDiscountCtrl.text = (settings.maxBillDiscountPercent / 100).toStringAsFixed(
+      settings.maxBillDiscountPercent % 100 == 0 ? 0 : 2,
+    );
     setState(() {
       _currencies = currencies;
       _currencyLocked = currencyLocked;
@@ -176,6 +192,8 @@ class _CompanyInfoTabState extends ConsumerState<CompanyInfoTab> {
     _emailCtrl.dispose();
     _earnCtrl.dispose();
     _pointValueCtrl.dispose();
+    _maxItemDiscountCtrl.dispose();
+    _maxBillDiscountCtrl.dispose();
     super.dispose();
   }
 
@@ -237,6 +255,7 @@ class _CompanyInfoTabState extends ConsumerState<CompanyInfoTab> {
           _addressCtrl.text.trim().isEmpty ? null : _addressCtrl.text.trim(),
       phone: _phoneCtrl.text.trim().isEmpty ? null : _phoneCtrl.text.trim(),
       email: _emailCtrl.text.trim().isEmpty ? null : _emailCtrl.text.trim(),
+      businessType: _selectedBusinessType,
     );
 
     final companyRepo = ref.read(companyRepositoryProvider);
@@ -333,6 +352,27 @@ class _CompanyInfoTabState extends ConsumerState<CompanyInfoTab> {
                   ),
                 ],
               ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          // Business type section
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: BusinessTypeSelector(
+              selectedCategory: _selectedBusinessCategory,
+              selectedType: _selectedBusinessType,
+              onCategoryChanged: (cat) {
+                setState(() {
+                  _selectedBusinessCategory = cat;
+                  final subtypes = businessTypesByCategory[cat] ?? [];
+                  if (subtypes.length == 1) {
+                    _selectedBusinessType = subtypes.first;
+                  } else {
+                    _selectedBusinessType = null;
+                  }
+                });
+              },
+              onTypeChanged: (type) => setState(() => _selectedBusinessType = type),
             ),
           ),
           const SizedBox(height: 24),
@@ -533,6 +573,52 @@ class _CompanyInfoTabState extends ConsumerState<CompanyInfoTab> {
                         : l.loyaltyDisabled,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+
+          // Discount limits section
+          if (_settingsInitialized && _settings != null) ...[
+            const SizedBox(height: 24),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Text(
+                l.settingsDiscountLimits,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _maxItemDiscountCtrl,
+                      decoration: InputDecoration(labelText: l.settingsMaxItemDiscount),
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      onChanged: (v) {
+                        final parsed = double.tryParse(v);
+                        if (parsed == null) return;
+                        final basisPoints = (parsed * 100).round().clamp(0, 10000);
+                        _updateSettings(_settings!.copyWith(maxItemDiscountPercent: basisPoints));
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: TextField(
+                      controller: _maxBillDiscountCtrl,
+                      decoration: InputDecoration(labelText: l.settingsMaxBillDiscount),
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      onChanged: (v) {
+                        final parsed = double.tryParse(v);
+                        if (parsed == null) return;
+                        final basisPoints = (parsed * 100).round().clamp(0, 10000);
+                        _updateSettings(_settings!.copyWith(maxBillDiscountPercent: basisPoints));
+                      },
                     ),
                   ),
                 ],

@@ -539,10 +539,10 @@ INSERT INTO seed_demo_data (locale, mode, entity_type, ref, data, sort_order) VA
 
 -- Users (cs)
 INSERT INTO seed_demo_data (locale, mode, entity_type, ref, data, sort_order) VALUES
-('cs','_all','users','usr:admin',   '{"full_name":"Tomáš Barta","username":"tomas","role_ref":"admin","is_auth_user":true}',0),
-('cs','_all','users','usr:manager', '{"full_name":"Marek Novotný","username":"marek","role_ref":"manager"}',1),
-('cs','_all','users','usr:operator','{"full_name":"Martina Malá","username":"martina","role_ref":"operator"}',2),
-('cs','_all','users','usr:helper',  '{"full_name":"Eliška Krásná","username":"eliska","role_ref":"helper"}',3);
+('cs','_all','users','usr:admin',   '{"full_name":"Tomáš Administrátor","username":"tomas","role_ref":"admin","is_auth_user":true}',0),
+('cs','_all','users','usr:manager', '{"full_name":"Marek Manažerský","username":"marek","role_ref":"manager"}',1),
+('cs','_all','users','usr:operator','{"full_name":"Martina Obsluhová","username":"martina","role_ref":"operator"}',2),
+('cs','_all','users','usr:helper',  '{"full_name":"Eliška Brigádnická","username":"eliska","role_ref":"helper"}',3);
 
 -- Customers (cs)
 INSERT INTO seed_demo_data (locale, mode, entity_type, ref, data, sort_order) VALUES
@@ -572,10 +572,10 @@ INSERT INTO seed_demo_data (locale, mode, entity_type, ref, data, sort_order) VA
 
 -- Users (en)
 INSERT INTO seed_demo_data (locale, mode, entity_type, ref, data, sort_order) VALUES
-('en','_all','users','usr:admin',   '{"full_name":"Tom Barrett","username":"tom","role_ref":"admin","is_auth_user":true}',0),
-('en','_all','users','usr:manager', '{"full_name":"Mark Newton","username":"mark","role_ref":"manager"}',1),
-('en','_all','users','usr:operator','{"full_name":"Martha Miller","username":"martha","role_ref":"operator"}',2),
-('en','_all','users','usr:helper',  '{"full_name":"Lisa Craig","username":"lisa","role_ref":"helper"}',3);
+('en','_all','users','usr:admin',   '{"full_name":"Thomas Masters","username":"tom","role_ref":"admin","is_auth_user":true}',0),
+('en','_all','users','usr:manager', '{"full_name":"Mark Foreman","username":"mark","role_ref":"manager"}',1),
+('en','_all','users','usr:operator','{"full_name":"Martha Butler","username":"martha","role_ref":"operator"}',2),
+('en','_all','users','usr:helper',  '{"full_name":"Lisa Minor","username":"lisa","role_ref":"helper"}',3);
 
 -- Customers (en)
 INSERT INTO seed_demo_data (locale, mode, entity_type, ref, data, sort_order) VALUES

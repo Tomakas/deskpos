@@ -1911,6 +1911,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loyaltyDisabled => 'Loyalty program is disabled (set values > 0)';
 
   @override
+  String get settingsDiscountLimits => 'Discount Limits';
+
+  @override
+  String get settingsMaxItemDiscount => 'Max item discount (%)';
+
+  @override
+  String get settingsMaxBillDiscount => 'Max bill discount (%)';
+
+  @override
   String get loyaltyRedeem => 'Redeem Points';
 
   @override
@@ -3172,19 +3181,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get permPaymentsAdjustTip => 'Adjust tip';
 
   @override
-  String get permDiscountsApplyItem => 'Item discount';
+  String get permDiscountsApplyItemLimited => 'Item discount (limited)';
 
   @override
-  String get permDiscountsApplyBill => 'Bill discount';
+  String get permDiscountsApplyItem => 'Item discount (unlimited)';
 
   @override
-  String get permDiscountsCustom => 'Custom discount';
+  String get permDiscountsApplyBillLimited => 'Bill discount (limited)';
 
   @override
-  String get permDiscountsPriceOverride => 'Price override';
+  String get permDiscountsApplyBill => 'Bill discount (unlimited)';
 
   @override
-  String get permDiscountsLoyalty => 'Loyalty discount';
+  String get permDiscountsLoyalty => 'Redeem loyalty points';
 
   @override
   String get permRegisterOpenSession => 'Open register session';
@@ -3903,4 +3912,70 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get catalogFilterHasCredit => 'Has credit';
+
+  @override
+  String get businessTypeLabel => 'Business Type';
+
+  @override
+  String get businessCategoryGastro => 'Gastro';
+
+  @override
+  String get businessCategoryRetail => 'Retail';
+
+  @override
+  String get businessCategoryServices => 'Services';
+
+  @override
+  String get businessCategoryOther => 'Other';
+
+  @override
+  String get businessTypeRestaurant => 'Restaurant';
+
+  @override
+  String get businessTypeBar => 'Bar';
+
+  @override
+  String get businessTypeCafe => 'Cafe';
+
+  @override
+  String get businessTypeCanteen => 'Canteen';
+
+  @override
+  String get businessTypeBistro => 'Bistro';
+
+  @override
+  String get businessTypeBakery => 'Bakery';
+
+  @override
+  String get businessTypeFoodTruck => 'Food Truck';
+
+  @override
+  String get businessTypeGrocery => 'Grocery';
+
+  @override
+  String get businessTypeClothing => 'Clothing';
+
+  @override
+  String get businessTypeElectronics => 'Electronics';
+
+  @override
+  String get businessTypeGeneralStore => 'General Store';
+
+  @override
+  String get businessTypeFlorist => 'Florist';
+
+  @override
+  String get businessTypeHairdresser => 'Hairdresser';
+
+  @override
+  String get businessTypeBeautySalon => 'Beauty Salon';
+
+  @override
+  String get businessTypeFitness => 'Fitness';
+
+  @override
+  String get businessTypeAutoService => 'Auto Service';
+
+  @override
+  String get businessTypeOther => 'Other';
 }

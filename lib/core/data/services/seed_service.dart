@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 import '../../auth/pin_helper.dart';
 import '../../database/app_database.dart';
 import '../../logging/app_logger.dart';
+import '../enums/business_type.dart';
 import '../enums/company_status.dart';
 import '../enums/hardware_type.dart';
 import '../enums/item_type.dart';
@@ -44,6 +45,7 @@ class SeedService {
     String? address,
     String? email,
     String? phone,
+    BusinessType? businessType,
     required String adminFullName,
     required String adminUsername,
     required String adminPin,
@@ -95,6 +97,7 @@ class SeedService {
           address: address,
           email: email,
           phone: phone,
+          businessType: businessType,
           defaultCurrencyId: currencyId,
           authUserId: authUserId,
           createdAt: now,

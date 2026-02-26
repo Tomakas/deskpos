@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 
+import '../../data/enums/business_type.dart';
 import '../../data/enums/company_status.dart';
 import 'sync_columns_mixin.dart';
 
@@ -17,7 +18,7 @@ class Companies extends Table with SyncColumnsMixin {
   TextColumn get city => text().nullable()();
   TextColumn get postalCode => text().nullable()();
   TextColumn get timezone => text().nullable()();
-  TextColumn get businessType => text().nullable()();
+  TextColumn get businessType => textEnum<BusinessType>().nullable()();
   TextColumn get defaultCurrencyId => text()();
   TextColumn get authUserId => text()();
   BoolColumn get isDemo => boolean().withDefault(const Constant(false))();

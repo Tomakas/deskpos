@@ -773,6 +773,11 @@
     }
   },
   "loyaltyDisabled": "Loyalty program is disabled (set values > 0)",
+
+  "settingsDiscountLimits": "Discount Limits",
+  "settingsMaxItemDiscount": "Max item discount (%)",
+  "settingsMaxBillDiscount": "Max bill discount (%)",
+
   "loyaltyRedeem": "Redeem Points",
   "loyaltyAvailablePoints": "Available Points",
   "loyaltyPointsValue": "Value",
@@ -1277,11 +1282,11 @@
   "permPaymentsAcceptTip": "Accept tip",
   "permPaymentsAdjustTip": "Adjust tip",
 
-  "permDiscountsApplyItem": "Item discount",
-  "permDiscountsApplyBill": "Bill discount",
-  "permDiscountsCustom": "Custom discount",
-  "permDiscountsPriceOverride": "Price override",
-  "permDiscountsLoyalty": "Loyalty discount",
+  "permDiscountsApplyItemLimited": "Item discount (limited)",
+  "permDiscountsApplyItem": "Item discount (unlimited)",
+  "permDiscountsApplyBillLimited": "Bill discount (limited)",
+  "permDiscountsApplyBill": "Bill discount (unlimited)",
+  "permDiscountsLoyalty": "Redeem loyalty points",
 
   "permRegisterOpenSession": "Open register session",
   "permRegisterCloseSession": "Close register session",
@@ -1573,5 +1578,28 @@
   "catalogSortLastVisit": "Last visit",
   "catalogFilterActive": "Active",
   "catalogFilterHasPoints": "Has points",
-  "catalogFilterHasCredit": "Has credit"
+  "catalogFilterHasCredit": "Has credit",
+
+  "businessTypeLabel": "Business Type",
+  "businessCategoryGastro": "Gastro",
+  "businessCategoryRetail": "Retail",
+  "businessCategoryServices": "Services",
+  "businessCategoryOther": "Other",
+  "businessTypeRestaurant": "Restaurant",
+  "businessTypeBar": "Bar",
+  "businessTypeCafe": "Cafe",
+  "businessTypeCanteen": "Canteen",
+  "businessTypeBistro": "Bistro",
+  "businessTypeBakery": "Bakery",
+  "businessTypeFoodTruck": "Food Truck",
+  "businessTypeGrocery": "Grocery",
+  "businessTypeClothing": "Clothing",
+  "businessTypeElectronics": "Electronics",
+  "businessTypeGeneralStore": "General Store",
+  "businessTypeFlorist": "Florist",
+  "businessTypeHairdresser": "Hairdresser",
+  "businessTypeBeautySalon": "Beauty Salon",
+  "businessTypeFitness": "Fitness",
+  "businessTypeAutoService": "Auto Service",
+  "businessTypeOther": "Other"
 }

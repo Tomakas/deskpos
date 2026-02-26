@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$CompanyModel {
 
- String get id; String get name; CompanyStatus get status; String? get businessId; String? get address; String? get phone; String? get email; String? get vatNumber; String? get country; String? get city; String? get postalCode; String? get timezone; String? get businessType; String get defaultCurrencyId; String get authUserId; bool get isDemo; DateTime? get demoExpiresAt; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+ String get id; String get name; CompanyStatus get status; String? get businessId; String? get address; String? get phone; String? get email; String? get vatNumber; String? get country; String? get city; String? get postalCode; String? get timezone; BusinessType? get businessType; String get defaultCurrencyId; String get authUserId; bool get isDemo; DateTime? get demoExpiresAt; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
 /// Create a copy of CompanyModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -45,7 +45,7 @@ abstract mixin class $CompanyModelCopyWith<$Res>  {
   factory $CompanyModelCopyWith(CompanyModel value, $Res Function(CompanyModel) _then) = _$CompanyModelCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, CompanyStatus status, String? businessId, String? address, String? phone, String? email, String? vatNumber, String? country, String? city, String? postalCode, String? timezone, String? businessType, String defaultCurrencyId, String authUserId, bool isDemo, DateTime? demoExpiresAt, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String name, CompanyStatus status, String? businessId, String? address, String? phone, String? email, String? vatNumber, String? country, String? city, String? postalCode, String? timezone, BusinessType? businessType, String defaultCurrencyId, String authUserId, bool isDemo, DateTime? demoExpiresAt, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -77,7 +77,7 @@ as String?,city: freezed == city ? _self.city : city // ignore: cast_nullable_to
 as String?,postalCode: freezed == postalCode ? _self.postalCode : postalCode // ignore: cast_nullable_to_non_nullable
 as String?,timezone: freezed == timezone ? _self.timezone : timezone // ignore: cast_nullable_to_non_nullable
 as String?,businessType: freezed == businessType ? _self.businessType : businessType // ignore: cast_nullable_to_non_nullable
-as String?,defaultCurrencyId: null == defaultCurrencyId ? _self.defaultCurrencyId : defaultCurrencyId // ignore: cast_nullable_to_non_nullable
+as BusinessType?,defaultCurrencyId: null == defaultCurrencyId ? _self.defaultCurrencyId : defaultCurrencyId // ignore: cast_nullable_to_non_nullable
 as String,authUserId: null == authUserId ? _self.authUserId : authUserId // ignore: cast_nullable_to_non_nullable
 as String,isDemo: null == isDemo ? _self.isDemo : isDemo // ignore: cast_nullable_to_non_nullable
 as bool,demoExpiresAt: freezed == demoExpiresAt ? _self.demoExpiresAt : demoExpiresAt // ignore: cast_nullable_to_non_nullable
@@ -169,7 +169,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  CompanyStatus status,  String? businessId,  String? address,  String? phone,  String? email,  String? vatNumber,  String? country,  String? city,  String? postalCode,  String? timezone,  String? businessType,  String defaultCurrencyId,  String authUserId,  bool isDemo,  DateTime? demoExpiresAt,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  CompanyStatus status,  String? businessId,  String? address,  String? phone,  String? email,  String? vatNumber,  String? country,  String? city,  String? postalCode,  String? timezone,  BusinessType? businessType,  String defaultCurrencyId,  String authUserId,  bool isDemo,  DateTime? demoExpiresAt,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CompanyModel() when $default != null:
 return $default(_that.id,_that.name,_that.status,_that.businessId,_that.address,_that.phone,_that.email,_that.vatNumber,_that.country,_that.city,_that.postalCode,_that.timezone,_that.businessType,_that.defaultCurrencyId,_that.authUserId,_that.isDemo,_that.demoExpiresAt,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
@@ -190,7 +190,7 @@ return $default(_that.id,_that.name,_that.status,_that.businessId,_that.address,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  CompanyStatus status,  String? businessId,  String? address,  String? phone,  String? email,  String? vatNumber,  String? country,  String? city,  String? postalCode,  String? timezone,  String? businessType,  String defaultCurrencyId,  String authUserId,  bool isDemo,  DateTime? demoExpiresAt,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  CompanyStatus status,  String? businessId,  String? address,  String? phone,  String? email,  String? vatNumber,  String? country,  String? city,  String? postalCode,  String? timezone,  BusinessType? businessType,  String defaultCurrencyId,  String authUserId,  bool isDemo,  DateTime? demoExpiresAt,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
 switch (_that) {
 case _CompanyModel():
 return $default(_that.id,_that.name,_that.status,_that.businessId,_that.address,_that.phone,_that.email,_that.vatNumber,_that.country,_that.city,_that.postalCode,_that.timezone,_that.businessType,_that.defaultCurrencyId,_that.authUserId,_that.isDemo,_that.demoExpiresAt,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
@@ -210,7 +210,7 @@ return $default(_that.id,_that.name,_that.status,_that.businessId,_that.address,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  CompanyStatus status,  String? businessId,  String? address,  String? phone,  String? email,  String? vatNumber,  String? country,  String? city,  String? postalCode,  String? timezone,  String? businessType,  String defaultCurrencyId,  String authUserId,  bool isDemo,  DateTime? demoExpiresAt,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  CompanyStatus status,  String? businessId,  String? address,  String? phone,  String? email,  String? vatNumber,  String? country,  String? city,  String? postalCode,  String? timezone,  BusinessType? businessType,  String defaultCurrencyId,  String authUserId,  bool isDemo,  DateTime? demoExpiresAt,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _CompanyModel() when $default != null:
 return $default(_that.id,_that.name,_that.status,_that.businessId,_that.address,_that.phone,_that.email,_that.vatNumber,_that.country,_that.city,_that.postalCode,_that.timezone,_that.businessType,_that.defaultCurrencyId,_that.authUserId,_that.isDemo,_that.demoExpiresAt,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
@@ -240,7 +240,7 @@ class _CompanyModel implements CompanyModel {
 @override final  String? city;
 @override final  String? postalCode;
 @override final  String? timezone;
-@override final  String? businessType;
+@override final  BusinessType? businessType;
 @override final  String defaultCurrencyId;
 @override final  String authUserId;
 @override@JsonKey() final  bool isDemo;
@@ -279,7 +279,7 @@ abstract mixin class _$CompanyModelCopyWith<$Res> implements $CompanyModelCopyWi
   factory _$CompanyModelCopyWith(_CompanyModel value, $Res Function(_CompanyModel) _then) = __$CompanyModelCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, CompanyStatus status, String? businessId, String? address, String? phone, String? email, String? vatNumber, String? country, String? city, String? postalCode, String? timezone, String? businessType, String defaultCurrencyId, String authUserId, bool isDemo, DateTime? demoExpiresAt, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String name, CompanyStatus status, String? businessId, String? address, String? phone, String? email, String? vatNumber, String? country, String? city, String? postalCode, String? timezone, BusinessType? businessType, String defaultCurrencyId, String authUserId, bool isDemo, DateTime? demoExpiresAt, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -311,7 +311,7 @@ as String?,city: freezed == city ? _self.city : city // ignore: cast_nullable_to
 as String?,postalCode: freezed == postalCode ? _self.postalCode : postalCode // ignore: cast_nullable_to_non_nullable
 as String?,timezone: freezed == timezone ? _self.timezone : timezone // ignore: cast_nullable_to_non_nullable
 as String?,businessType: freezed == businessType ? _self.businessType : businessType // ignore: cast_nullable_to_non_nullable
-as String?,defaultCurrencyId: null == defaultCurrencyId ? _self.defaultCurrencyId : defaultCurrencyId // ignore: cast_nullable_to_non_nullable
+as BusinessType?,defaultCurrencyId: null == defaultCurrencyId ? _self.defaultCurrencyId : defaultCurrencyId // ignore: cast_nullable_to_non_nullable
 as String,authUserId: null == authUserId ? _self.authUserId : authUserId // ignore: cast_nullable_to_non_nullable
 as String,isDemo: null == isDemo ? _self.isDemo : isDemo // ignore: cast_nullable_to_non_nullable
 as bool,demoExpiresAt: freezed == demoExpiresAt ? _self.demoExpiresAt : demoExpiresAt // ignore: cast_nullable_to_non_nullable

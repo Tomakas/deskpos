@@ -3782,6 +3782,24 @@ abstract class AppLocalizations {
   /// **'Věrnostní program je vypnutý (nastavte hodnoty > 0)'**
   String get loyaltyDisabled;
 
+  /// No description provided for @settingsDiscountLimits.
+  ///
+  /// In cs, this message translates to:
+  /// **'Limity slev'**
+  String get settingsDiscountLimits;
+
+  /// No description provided for @settingsMaxItemDiscount.
+  ///
+  /// In cs, this message translates to:
+  /// **'Max sleva na položku (%)'**
+  String get settingsMaxItemDiscount;
+
+  /// No description provided for @settingsMaxBillDiscount.
+  ///
+  /// In cs, this message translates to:
+  /// **'Max sleva na účet (%)'**
+  String get settingsMaxBillDiscount;
+
   /// No description provided for @loyaltyRedeem.
   ///
   /// In cs, this message translates to:
@@ -6206,34 +6224,34 @@ abstract class AppLocalizations {
   /// **'Upravit spropitné'**
   String get permPaymentsAdjustTip;
 
+  /// No description provided for @permDiscountsApplyItemLimited.
+  ///
+  /// In cs, this message translates to:
+  /// **'Sleva na položku (limitovaná)'**
+  String get permDiscountsApplyItemLimited;
+
   /// No description provided for @permDiscountsApplyItem.
   ///
   /// In cs, this message translates to:
-  /// **'Sleva na položku'**
+  /// **'Sleva na položku (neomezená)'**
   String get permDiscountsApplyItem;
+
+  /// No description provided for @permDiscountsApplyBillLimited.
+  ///
+  /// In cs, this message translates to:
+  /// **'Sleva na účet (limitovaná)'**
+  String get permDiscountsApplyBillLimited;
 
   /// No description provided for @permDiscountsApplyBill.
   ///
   /// In cs, this message translates to:
-  /// **'Sleva na účet'**
+  /// **'Sleva na účet (neomezená)'**
   String get permDiscountsApplyBill;
-
-  /// No description provided for @permDiscountsCustom.
-  ///
-  /// In cs, this message translates to:
-  /// **'Vlastní sleva'**
-  String get permDiscountsCustom;
-
-  /// No description provided for @permDiscountsPriceOverride.
-  ///
-  /// In cs, this message translates to:
-  /// **'Přepsat cenu'**
-  String get permDiscountsPriceOverride;
 
   /// No description provided for @permDiscountsLoyalty.
   ///
   /// In cs, this message translates to:
-  /// **'Věrnostní sleva'**
+  /// **'Uplatnit věrnostní body'**
   String get permDiscountsLoyalty;
 
   /// No description provided for @permRegisterOpenSession.
@@ -7631,6 +7649,138 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Má kredit'**
   String get catalogFilterHasCredit;
+
+  /// No description provided for @businessTypeLabel.
+  ///
+  /// In cs, this message translates to:
+  /// **'Typ podnikání'**
+  String get businessTypeLabel;
+
+  /// No description provided for @businessCategoryGastro.
+  ///
+  /// In cs, this message translates to:
+  /// **'Gastro'**
+  String get businessCategoryGastro;
+
+  /// No description provided for @businessCategoryRetail.
+  ///
+  /// In cs, this message translates to:
+  /// **'Maloobchod'**
+  String get businessCategoryRetail;
+
+  /// No description provided for @businessCategoryServices.
+  ///
+  /// In cs, this message translates to:
+  /// **'Služby'**
+  String get businessCategoryServices;
+
+  /// No description provided for @businessCategoryOther.
+  ///
+  /// In cs, this message translates to:
+  /// **'Ostatní'**
+  String get businessCategoryOther;
+
+  /// No description provided for @businessTypeRestaurant.
+  ///
+  /// In cs, this message translates to:
+  /// **'Restaurace'**
+  String get businessTypeRestaurant;
+
+  /// No description provided for @businessTypeBar.
+  ///
+  /// In cs, this message translates to:
+  /// **'Bar'**
+  String get businessTypeBar;
+
+  /// No description provided for @businessTypeCafe.
+  ///
+  /// In cs, this message translates to:
+  /// **'Kavárna'**
+  String get businessTypeCafe;
+
+  /// No description provided for @businessTypeCanteen.
+  ///
+  /// In cs, this message translates to:
+  /// **'Jídelna'**
+  String get businessTypeCanteen;
+
+  /// No description provided for @businessTypeBistro.
+  ///
+  /// In cs, this message translates to:
+  /// **'Bistro'**
+  String get businessTypeBistro;
+
+  /// No description provided for @businessTypeBakery.
+  ///
+  /// In cs, this message translates to:
+  /// **'Pekárna'**
+  String get businessTypeBakery;
+
+  /// No description provided for @businessTypeFoodTruck.
+  ///
+  /// In cs, this message translates to:
+  /// **'Food Truck'**
+  String get businessTypeFoodTruck;
+
+  /// No description provided for @businessTypeGrocery.
+  ///
+  /// In cs, this message translates to:
+  /// **'Potraviny'**
+  String get businessTypeGrocery;
+
+  /// No description provided for @businessTypeClothing.
+  ///
+  /// In cs, this message translates to:
+  /// **'Oblečení'**
+  String get businessTypeClothing;
+
+  /// No description provided for @businessTypeElectronics.
+  ///
+  /// In cs, this message translates to:
+  /// **'Elektronika'**
+  String get businessTypeElectronics;
+
+  /// No description provided for @businessTypeGeneralStore.
+  ///
+  /// In cs, this message translates to:
+  /// **'Smíšené zboží'**
+  String get businessTypeGeneralStore;
+
+  /// No description provided for @businessTypeFlorist.
+  ///
+  /// In cs, this message translates to:
+  /// **'Květinářství'**
+  String get businessTypeFlorist;
+
+  /// No description provided for @businessTypeHairdresser.
+  ///
+  /// In cs, this message translates to:
+  /// **'Kadeřnictví'**
+  String get businessTypeHairdresser;
+
+  /// No description provided for @businessTypeBeautySalon.
+  ///
+  /// In cs, this message translates to:
+  /// **'Kosmetický salon'**
+  String get businessTypeBeautySalon;
+
+  /// No description provided for @businessTypeFitness.
+  ///
+  /// In cs, this message translates to:
+  /// **'Fitness'**
+  String get businessTypeFitness;
+
+  /// No description provided for @businessTypeAutoService.
+  ///
+  /// In cs, this message translates to:
+  /// **'Autoservis'**
+  String get businessTypeAutoService;
+
+  /// No description provided for @businessTypeOther.
+  ///
+  /// In cs, this message translates to:
+  /// **'Ostatní'**
+  String get businessTypeOther;
 }
 
 class _AppLocalizationsDelegate

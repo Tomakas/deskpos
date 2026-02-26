@@ -1,4 +1,5 @@
 export 'bill_status.dart';
+export 'business_type.dart';
 export 'cash_movement_type.dart';
 export 'discount_type.dart';
 export 'display_device_type.dart';

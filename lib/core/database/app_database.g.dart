@@ -3881,17 +3881,15 @@ class $CompaniesTable extends Companies
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _businessTypeMeta = const VerificationMeta(
-    'businessType',
-  );
   @override
-  late final GeneratedColumn<String> businessType = GeneratedColumn<String>(
+  late final GeneratedColumnWithTypeConverter<BusinessType?, String>
+  businessType = GeneratedColumn<String>(
     'business_type',
     aliasedName,
     true,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
-  );
+  ).withConverter<BusinessType?>($CompaniesTable.$converterbusinessTypen);
   static const VerificationMeta _defaultCurrencyIdMeta = const VerificationMeta(
     'defaultCurrencyId',
   );
@@ -4097,15 +4095,6 @@ class $CompaniesTable extends Companies
         timezone.isAcceptableOrUnknown(data['timezone']!, _timezoneMeta),
       );
     }
-    if (data.containsKey('business_type')) {
-      context.handle(
-        _businessTypeMeta,
-        businessType.isAcceptableOrUnknown(
-          data['business_type']!,
-          _businessTypeMeta,
-        ),
-      );
-    }
     if (data.containsKey('default_currency_id')) {
       context.handle(
         _defaultCurrencyIdMeta,
@@ -4230,9 +4219,11 @@ class $CompaniesTable extends Companies
         DriftSqlType.string,
         data['${effectivePrefix}timezone'],
       ),
-      businessType: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}business_type'],
+      businessType: $CompaniesTable.$converterbusinessTypen.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}business_type'],
+        ),
       ),
       defaultCurrencyId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
@@ -4260,6 +4251,14 @@ class $CompaniesTable extends Companies
 
   static JsonTypeConverter2<CompanyStatus, String, String> $converterstatus =
       const EnumNameConverter<CompanyStatus>(CompanyStatus.values);
+  static JsonTypeConverter2<BusinessType, String, String>
+  $converterbusinessType = const EnumNameConverter<BusinessType>(
+    BusinessType.values,
+  );
+  static JsonTypeConverter2<BusinessType?, String?, String?>
+  $converterbusinessTypen = JsonTypeConverter2.asNullable(
+    $converterbusinessType,
+  );
 }
 
 class Company extends DataClass implements Insertable<Company> {
@@ -4282,7 +4281,7 @@ class Company extends DataClass implements Insertable<Company> {
   final String? city;
   final String? postalCode;
   final String? timezone;
-  final String? businessType;
+  final BusinessType? businessType;
   final String defaultCurrencyId;
   final String authUserId;
   final bool isDemo;
@@ -4366,7 +4365,9 @@ class Company extends DataClass implements Insertable<Company> {
       map['timezone'] = Variable<String>(timezone);
     }
     if (!nullToAbsent || businessType != null) {
-      map['business_type'] = Variable<String>(businessType);
+      map['business_type'] = Variable<String>(
+        $CompaniesTable.$converterbusinessTypen.toSql(businessType),
+      );
     }
     map['default_currency_id'] = Variable<String>(defaultCurrencyId);
     map['auth_user_id'] = Variable<String>(authUserId);
@@ -4461,7 +4462,9 @@ class Company extends DataClass implements Insertable<Company> {
       city: serializer.fromJson<String?>(json['city']),
       postalCode: serializer.fromJson<String?>(json['postalCode']),
       timezone: serializer.fromJson<String?>(json['timezone']),
-      businessType: serializer.fromJson<String?>(json['businessType']),
+      businessType: $CompaniesTable.$converterbusinessTypen.fromJson(
+        serializer.fromJson<String?>(json['businessType']),
+      ),
       defaultCurrencyId: serializer.fromJson<String>(json['defaultCurrencyId']),
       authUserId: serializer.fromJson<String>(json['authUserId']),
       isDemo: serializer.fromJson<bool>(json['isDemo']),
@@ -4493,7 +4496,9 @@ class Company extends DataClass implements Insertable<Company> {
       'city': serializer.toJson<String?>(city),
       'postalCode': serializer.toJson<String?>(postalCode),
       'timezone': serializer.toJson<String?>(timezone),
-      'businessType': serializer.toJson<String?>(businessType),
+      'businessType': serializer.toJson<String?>(
+        $CompaniesTable.$converterbusinessTypen.toJson(businessType),
+      ),
       'defaultCurrencyId': serializer.toJson<String>(defaultCurrencyId),
       'authUserId': serializer.toJson<String>(authUserId),
       'isDemo': serializer.toJson<bool>(isDemo),
@@ -4521,7 +4526,7 @@ class Company extends DataClass implements Insertable<Company> {
     Value<String?> city = const Value.absent(),
     Value<String?> postalCode = const Value.absent(),
     Value<String?> timezone = const Value.absent(),
-    Value<String?> businessType = const Value.absent(),
+    Value<BusinessType?> businessType = const Value.absent(),
     String? defaultCurrencyId,
     String? authUserId,
     bool? isDemo,
@@ -4713,7 +4718,7 @@ class CompaniesCompanion extends UpdateCompanion<Company> {
   final Value<String?> city;
   final Value<String?> postalCode;
   final Value<String?> timezone;
-  final Value<String?> businessType;
+  final Value<BusinessType?> businessType;
   final Value<String> defaultCurrencyId;
   final Value<String> authUserId;
   final Value<bool> isDemo;
@@ -4853,7 +4858,7 @@ class CompaniesCompanion extends UpdateCompanion<Company> {
     Value<String?>? city,
     Value<String?>? postalCode,
     Value<String?>? timezone,
-    Value<String?>? businessType,
+    Value<BusinessType?>? businessType,
     Value<String>? defaultCurrencyId,
     Value<String>? authUserId,
     Value<bool>? isDemo,
@@ -4952,7 +4957,9 @@ class CompaniesCompanion extends UpdateCompanion<Company> {
       map['timezone'] = Variable<String>(timezone.value);
     }
     if (businessType.present) {
-      map['business_type'] = Variable<String>(businessType.value);
+      map['business_type'] = Variable<String>(
+        $CompaniesTable.$converterbusinessTypen.toSql(businessType.value),
+      );
     }
     if (defaultCurrencyId.present) {
       map['default_currency_id'] = Variable<String>(defaultCurrencyId.value);
@@ -7861,6 +7868,28 @@ class $CompanySettingsTable extends CompanySettings
       ).withConverter<NegativeStockPolicy>(
         $CompanySettingsTable.$converternegativeStockPolicy,
       );
+  static const VerificationMeta _maxItemDiscountPercentMeta =
+      const VerificationMeta('maxItemDiscountPercent');
+  @override
+  late final GeneratedColumn<int> maxItemDiscountPercent = GeneratedColumn<int>(
+    'max_item_discount_percent',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(2000),
+  );
+  static const VerificationMeta _maxBillDiscountPercentMeta =
+      const VerificationMeta('maxBillDiscountPercent');
+  @override
+  late final GeneratedColumn<int> maxBillDiscountPercent = GeneratedColumn<int>(
+    'max_bill_discount_percent',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(2000),
+  );
   static const VerificationMeta _billAgeWarningMinutesMeta =
       const VerificationMeta('billAgeWarningMinutes');
   @override
@@ -7911,6 +7940,8 @@ class $CompanySettingsTable extends CompanySettings
     loyaltyPointValue,
     locale,
     negativeStockPolicy,
+    maxItemDiscountPercent,
+    maxBillDiscountPercent,
     billAgeWarningMinutes,
     billAgeDangerMinutes,
     billAgeCriticalMinutes,
@@ -8033,6 +8064,24 @@ class $CompanySettingsTable extends CompanySettings
         locale.isAcceptableOrUnknown(data['locale']!, _localeMeta),
       );
     }
+    if (data.containsKey('max_item_discount_percent')) {
+      context.handle(
+        _maxItemDiscountPercentMeta,
+        maxItemDiscountPercent.isAcceptableOrUnknown(
+          data['max_item_discount_percent']!,
+          _maxItemDiscountPercentMeta,
+        ),
+      );
+    }
+    if (data.containsKey('max_bill_discount_percent')) {
+      context.handle(
+        _maxBillDiscountPercentMeta,
+        maxBillDiscountPercent.isAcceptableOrUnknown(
+          data['max_bill_discount_percent']!,
+          _maxBillDiscountPercentMeta,
+        ),
+      );
+    }
     if (data.containsKey('bill_age_warning_minutes')) {
       context.handle(
         _billAgeWarningMinutesMeta,
@@ -8132,6 +8181,14 @@ class $CompanySettingsTable extends CompanySettings
               data['${effectivePrefix}negative_stock_policy'],
             )!,
           ),
+      maxItemDiscountPercent: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}max_item_discount_percent'],
+      )!,
+      maxBillDiscountPercent: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}max_bill_discount_percent'],
+      )!,
       billAgeWarningMinutes: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}bill_age_warning_minutes'],
@@ -8174,6 +8231,8 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
   final int loyaltyPointValue;
   final String locale;
   final NegativeStockPolicy negativeStockPolicy;
+  final int maxItemDiscountPercent;
+  final int maxBillDiscountPercent;
   final int billAgeWarningMinutes;
   final int billAgeDangerMinutes;
   final int billAgeCriticalMinutes;
@@ -8193,6 +8252,8 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
     required this.loyaltyPointValue,
     required this.locale,
     required this.negativeStockPolicy,
+    required this.maxItemDiscountPercent,
+    required this.maxBillDiscountPercent,
     required this.billAgeWarningMinutes,
     required this.billAgeDangerMinutes,
     required this.billAgeCriticalMinutes,
@@ -8231,6 +8292,8 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
         ),
       );
     }
+    map['max_item_discount_percent'] = Variable<int>(maxItemDiscountPercent);
+    map['max_bill_discount_percent'] = Variable<int>(maxBillDiscountPercent);
     map['bill_age_warning_minutes'] = Variable<int>(billAgeWarningMinutes);
     map['bill_age_danger_minutes'] = Variable<int>(billAgeDangerMinutes);
     map['bill_age_critical_minutes'] = Variable<int>(billAgeCriticalMinutes);
@@ -8264,6 +8327,8 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
       loyaltyPointValue: Value(loyaltyPointValue),
       locale: Value(locale),
       negativeStockPolicy: Value(negativeStockPolicy),
+      maxItemDiscountPercent: Value(maxItemDiscountPercent),
+      maxBillDiscountPercent: Value(maxBillDiscountPercent),
       billAgeWarningMinutes: Value(billAgeWarningMinutes),
       billAgeDangerMinutes: Value(billAgeDangerMinutes),
       billAgeCriticalMinutes: Value(billAgeCriticalMinutes),
@@ -8294,6 +8359,12 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
       locale: serializer.fromJson<String>(json['locale']),
       negativeStockPolicy: $CompanySettingsTable.$converternegativeStockPolicy
           .fromJson(serializer.fromJson<String>(json['negativeStockPolicy'])),
+      maxItemDiscountPercent: serializer.fromJson<int>(
+        json['maxItemDiscountPercent'],
+      ),
+      maxBillDiscountPercent: serializer.fromJson<int>(
+        json['maxBillDiscountPercent'],
+      ),
       billAgeWarningMinutes: serializer.fromJson<int>(
         json['billAgeWarningMinutes'],
       ),
@@ -8328,6 +8399,8 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
           negativeStockPolicy,
         ),
       ),
+      'maxItemDiscountPercent': serializer.toJson<int>(maxItemDiscountPercent),
+      'maxBillDiscountPercent': serializer.toJson<int>(maxBillDiscountPercent),
       'billAgeWarningMinutes': serializer.toJson<int>(billAgeWarningMinutes),
       'billAgeDangerMinutes': serializer.toJson<int>(billAgeDangerMinutes),
       'billAgeCriticalMinutes': serializer.toJson<int>(billAgeCriticalMinutes),
@@ -8350,6 +8423,8 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
     int? loyaltyPointValue,
     String? locale,
     NegativeStockPolicy? negativeStockPolicy,
+    int? maxItemDiscountPercent,
+    int? maxBillDiscountPercent,
     int? billAgeWarningMinutes,
     int? billAgeDangerMinutes,
     int? billAgeCriticalMinutes,
@@ -8375,6 +8450,10 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
     loyaltyPointValue: loyaltyPointValue ?? this.loyaltyPointValue,
     locale: locale ?? this.locale,
     negativeStockPolicy: negativeStockPolicy ?? this.negativeStockPolicy,
+    maxItemDiscountPercent:
+        maxItemDiscountPercent ?? this.maxItemDiscountPercent,
+    maxBillDiscountPercent:
+        maxBillDiscountPercent ?? this.maxBillDiscountPercent,
     billAgeWarningMinutes: billAgeWarningMinutes ?? this.billAgeWarningMinutes,
     billAgeDangerMinutes: billAgeDangerMinutes ?? this.billAgeDangerMinutes,
     billAgeCriticalMinutes:
@@ -8413,6 +8492,12 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
       negativeStockPolicy: data.negativeStockPolicy.present
           ? data.negativeStockPolicy.value
           : this.negativeStockPolicy,
+      maxItemDiscountPercent: data.maxItemDiscountPercent.present
+          ? data.maxItemDiscountPercent.value
+          : this.maxItemDiscountPercent,
+      maxBillDiscountPercent: data.maxBillDiscountPercent.present
+          ? data.maxBillDiscountPercent.value
+          : this.maxBillDiscountPercent,
       billAgeWarningMinutes: data.billAgeWarningMinutes.present
           ? data.billAgeWarningMinutes.value
           : this.billAgeWarningMinutes,
@@ -8443,6 +8528,8 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
           ..write('loyaltyPointValue: $loyaltyPointValue, ')
           ..write('locale: $locale, ')
           ..write('negativeStockPolicy: $negativeStockPolicy, ')
+          ..write('maxItemDiscountPercent: $maxItemDiscountPercent, ')
+          ..write('maxBillDiscountPercent: $maxBillDiscountPercent, ')
           ..write('billAgeWarningMinutes: $billAgeWarningMinutes, ')
           ..write('billAgeDangerMinutes: $billAgeDangerMinutes, ')
           ..write('billAgeCriticalMinutes: $billAgeCriticalMinutes')
@@ -8467,6 +8554,8 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
     loyaltyPointValue,
     locale,
     negativeStockPolicy,
+    maxItemDiscountPercent,
+    maxBillDiscountPercent,
     billAgeWarningMinutes,
     billAgeDangerMinutes,
     billAgeCriticalMinutes,
@@ -8490,6 +8579,8 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
           other.loyaltyPointValue == this.loyaltyPointValue &&
           other.locale == this.locale &&
           other.negativeStockPolicy == this.negativeStockPolicy &&
+          other.maxItemDiscountPercent == this.maxItemDiscountPercent &&
+          other.maxBillDiscountPercent == this.maxBillDiscountPercent &&
           other.billAgeWarningMinutes == this.billAgeWarningMinutes &&
           other.billAgeDangerMinutes == this.billAgeDangerMinutes &&
           other.billAgeCriticalMinutes == this.billAgeCriticalMinutes);
@@ -8511,6 +8602,8 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
   final Value<int> loyaltyPointValue;
   final Value<String> locale;
   final Value<NegativeStockPolicy> negativeStockPolicy;
+  final Value<int> maxItemDiscountPercent;
+  final Value<int> maxBillDiscountPercent;
   final Value<int> billAgeWarningMinutes;
   final Value<int> billAgeDangerMinutes;
   final Value<int> billAgeCriticalMinutes;
@@ -8531,6 +8624,8 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
     this.loyaltyPointValue = const Value.absent(),
     this.locale = const Value.absent(),
     this.negativeStockPolicy = const Value.absent(),
+    this.maxItemDiscountPercent = const Value.absent(),
+    this.maxBillDiscountPercent = const Value.absent(),
     this.billAgeWarningMinutes = const Value.absent(),
     this.billAgeDangerMinutes = const Value.absent(),
     this.billAgeCriticalMinutes = const Value.absent(),
@@ -8552,6 +8647,8 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
     this.loyaltyPointValue = const Value.absent(),
     this.locale = const Value.absent(),
     this.negativeStockPolicy = const Value.absent(),
+    this.maxItemDiscountPercent = const Value.absent(),
+    this.maxBillDiscountPercent = const Value.absent(),
     this.billAgeWarningMinutes = const Value.absent(),
     this.billAgeDangerMinutes = const Value.absent(),
     this.billAgeCriticalMinutes = const Value.absent(),
@@ -8574,6 +8671,8 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
     Expression<int>? loyaltyPointValue,
     Expression<String>? locale,
     Expression<String>? negativeStockPolicy,
+    Expression<int>? maxItemDiscountPercent,
+    Expression<int>? maxBillDiscountPercent,
     Expression<int>? billAgeWarningMinutes,
     Expression<int>? billAgeDangerMinutes,
     Expression<int>? billAgeCriticalMinutes,
@@ -8598,6 +8697,10 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
       if (locale != null) 'locale': locale,
       if (negativeStockPolicy != null)
         'negative_stock_policy': negativeStockPolicy,
+      if (maxItemDiscountPercent != null)
+        'max_item_discount_percent': maxItemDiscountPercent,
+      if (maxBillDiscountPercent != null)
+        'max_bill_discount_percent': maxBillDiscountPercent,
       if (billAgeWarningMinutes != null)
         'bill_age_warning_minutes': billAgeWarningMinutes,
       if (billAgeDangerMinutes != null)
@@ -8624,6 +8727,8 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
     Value<int>? loyaltyPointValue,
     Value<String>? locale,
     Value<NegativeStockPolicy>? negativeStockPolicy,
+    Value<int>? maxItemDiscountPercent,
+    Value<int>? maxBillDiscountPercent,
     Value<int>? billAgeWarningMinutes,
     Value<int>? billAgeDangerMinutes,
     Value<int>? billAgeCriticalMinutes,
@@ -8646,6 +8751,10 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
       loyaltyPointValue: loyaltyPointValue ?? this.loyaltyPointValue,
       locale: locale ?? this.locale,
       negativeStockPolicy: negativeStockPolicy ?? this.negativeStockPolicy,
+      maxItemDiscountPercent:
+          maxItemDiscountPercent ?? this.maxItemDiscountPercent,
+      maxBillDiscountPercent:
+          maxBillDiscountPercent ?? this.maxBillDiscountPercent,
       billAgeWarningMinutes:
           billAgeWarningMinutes ?? this.billAgeWarningMinutes,
       billAgeDangerMinutes: billAgeDangerMinutes ?? this.billAgeDangerMinutes,
@@ -8709,6 +8818,16 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
         ),
       );
     }
+    if (maxItemDiscountPercent.present) {
+      map['max_item_discount_percent'] = Variable<int>(
+        maxItemDiscountPercent.value,
+      );
+    }
+    if (maxBillDiscountPercent.present) {
+      map['max_bill_discount_percent'] = Variable<int>(
+        maxBillDiscountPercent.value,
+      );
+    }
     if (billAgeWarningMinutes.present) {
       map['bill_age_warning_minutes'] = Variable<int>(
         billAgeWarningMinutes.value,
@@ -8748,6 +8867,8 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
           ..write('loyaltyPointValue: $loyaltyPointValue, ')
           ..write('locale: $locale, ')
           ..write('negativeStockPolicy: $negativeStockPolicy, ')
+          ..write('maxItemDiscountPercent: $maxItemDiscountPercent, ')
+          ..write('maxBillDiscountPercent: $maxBillDiscountPercent, ')
           ..write('billAgeWarningMinutes: $billAgeWarningMinutes, ')
           ..write('billAgeDangerMinutes: $billAgeDangerMinutes, ')
           ..write('billAgeCriticalMinutes: $billAgeCriticalMinutes, ')
@@ -45034,7 +45155,7 @@ typedef $$CompaniesTableCreateCompanionBuilder =
       Value<String?> city,
       Value<String?> postalCode,
       Value<String?> timezone,
-      Value<String?> businessType,
+      Value<BusinessType?> businessType,
       required String defaultCurrencyId,
       required String authUserId,
       Value<bool> isDemo,
@@ -45062,7 +45183,7 @@ typedef $$CompaniesTableUpdateCompanionBuilder =
       Value<String?> city,
       Value<String?> postalCode,
       Value<String?> timezone,
-      Value<String?> businessType,
+      Value<BusinessType?> businessType,
       Value<String> defaultCurrencyId,
       Value<String> authUserId,
       Value<bool> isDemo,
@@ -45175,9 +45296,10 @@ class $$CompaniesTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get businessType => $composableBuilder(
+  ColumnWithTypeConverterFilters<BusinessType?, BusinessType, String>
+  get businessType => $composableBuilder(
     column: $table.businessType,
-    builder: (column) => ColumnFilters(column),
+    builder: (column) => ColumnWithTypeConverterFilters(column),
   );
 
   ColumnFilters<String> get defaultCurrencyId => $composableBuilder(
@@ -45407,10 +45529,11 @@ class $$CompaniesTableAnnotationComposer
   GeneratedColumn<String> get timezone =>
       $composableBuilder(column: $table.timezone, builder: (column) => column);
 
-  GeneratedColumn<String> get businessType => $composableBuilder(
-    column: $table.businessType,
-    builder: (column) => column,
-  );
+  GeneratedColumnWithTypeConverter<BusinessType?, String> get businessType =>
+      $composableBuilder(
+        column: $table.businessType,
+        builder: (column) => column,
+      );
 
   GeneratedColumn<String> get defaultCurrencyId => $composableBuilder(
     column: $table.defaultCurrencyId,
@@ -45478,7 +45601,7 @@ class $$CompaniesTableTableManager
                 Value<String?> city = const Value.absent(),
                 Value<String?> postalCode = const Value.absent(),
                 Value<String?> timezone = const Value.absent(),
-                Value<String?> businessType = const Value.absent(),
+                Value<BusinessType?> businessType = const Value.absent(),
                 Value<String> defaultCurrencyId = const Value.absent(),
                 Value<String> authUserId = const Value.absent(),
                 Value<bool> isDemo = const Value.absent(),
@@ -45532,7 +45655,7 @@ class $$CompaniesTableTableManager
                 Value<String?> city = const Value.absent(),
                 Value<String?> postalCode = const Value.absent(),
                 Value<String?> timezone = const Value.absent(),
-                Value<String?> businessType = const Value.absent(),
+                Value<BusinessType?> businessType = const Value.absent(),
                 required String defaultCurrencyId,
                 required String authUserId,
                 Value<bool> isDemo = const Value.absent(),
@@ -46846,6 +46969,8 @@ typedef $$CompanySettingsTableCreateCompanionBuilder =
       Value<int> loyaltyPointValue,
       Value<String> locale,
       Value<NegativeStockPolicy> negativeStockPolicy,
+      Value<int> maxItemDiscountPercent,
+      Value<int> maxBillDiscountPercent,
       Value<int> billAgeWarningMinutes,
       Value<int> billAgeDangerMinutes,
       Value<int> billAgeCriticalMinutes,
@@ -46868,6 +46993,8 @@ typedef $$CompanySettingsTableUpdateCompanionBuilder =
       Value<int> loyaltyPointValue,
       Value<String> locale,
       Value<NegativeStockPolicy> negativeStockPolicy,
+      Value<int> maxItemDiscountPercent,
+      Value<int> maxBillDiscountPercent,
       Value<int> billAgeWarningMinutes,
       Value<int> billAgeDangerMinutes,
       Value<int> billAgeCriticalMinutes,
@@ -46961,6 +47088,16 @@ class $$CompanySettingsTableFilterComposer
   get negativeStockPolicy => $composableBuilder(
     column: $table.negativeStockPolicy,
     builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<int> get maxItemDiscountPercent => $composableBuilder(
+    column: $table.maxItemDiscountPercent,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get maxBillDiscountPercent => $composableBuilder(
+    column: $table.maxBillDiscountPercent,
+    builder: (column) => ColumnFilters(column),
   );
 
   ColumnFilters<int> get billAgeWarningMinutes => $composableBuilder(
@@ -47063,6 +47200,16 @@ class $$CompanySettingsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get maxItemDiscountPercent => $composableBuilder(
+    column: $table.maxItemDiscountPercent,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get maxBillDiscountPercent => $composableBuilder(
+    column: $table.maxBillDiscountPercent,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get billAgeWarningMinutes => $composableBuilder(
     column: $table.billAgeWarningMinutes,
     builder: (column) => ColumnOrderings(column),
@@ -47150,6 +47297,16 @@ class $$CompanySettingsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<int> get maxItemDiscountPercent => $composableBuilder(
+    column: $table.maxItemDiscountPercent,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get maxBillDiscountPercent => $composableBuilder(
+    column: $table.maxBillDiscountPercent,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<int> get billAgeWarningMinutes => $composableBuilder(
     column: $table.billAgeWarningMinutes,
     builder: (column) => column,
@@ -47219,6 +47376,8 @@ class $$CompanySettingsTableTableManager
                 Value<String> locale = const Value.absent(),
                 Value<NegativeStockPolicy> negativeStockPolicy =
                     const Value.absent(),
+                Value<int> maxItemDiscountPercent = const Value.absent(),
+                Value<int> maxBillDiscountPercent = const Value.absent(),
                 Value<int> billAgeWarningMinutes = const Value.absent(),
                 Value<int> billAgeDangerMinutes = const Value.absent(),
                 Value<int> billAgeCriticalMinutes = const Value.absent(),
@@ -47239,6 +47398,8 @@ class $$CompanySettingsTableTableManager
                 loyaltyPointValue: loyaltyPointValue,
                 locale: locale,
                 negativeStockPolicy: negativeStockPolicy,
+                maxItemDiscountPercent: maxItemDiscountPercent,
+                maxBillDiscountPercent: maxBillDiscountPercent,
                 billAgeWarningMinutes: billAgeWarningMinutes,
                 billAgeDangerMinutes: billAgeDangerMinutes,
                 billAgeCriticalMinutes: billAgeCriticalMinutes,
@@ -47262,6 +47423,8 @@ class $$CompanySettingsTableTableManager
                 Value<String> locale = const Value.absent(),
                 Value<NegativeStockPolicy> negativeStockPolicy =
                     const Value.absent(),
+                Value<int> maxItemDiscountPercent = const Value.absent(),
+                Value<int> maxBillDiscountPercent = const Value.absent(),
                 Value<int> billAgeWarningMinutes = const Value.absent(),
                 Value<int> billAgeDangerMinutes = const Value.absent(),
                 Value<int> billAgeCriticalMinutes = const Value.absent(),
@@ -47282,6 +47445,8 @@ class $$CompanySettingsTableTableManager
                 loyaltyPointValue: loyaltyPointValue,
                 locale: locale,
                 negativeStockPolicy: negativeStockPolicy,
+                maxItemDiscountPercent: maxItemDiscountPercent,
+                maxBillDiscountPercent: maxBillDiscountPercent,
                 billAgeWarningMinutes: billAgeWarningMinutes,
                 billAgeDangerMinutes: billAgeDangerMinutes,
                 billAgeCriticalMinutes: billAgeCriticalMinutes,

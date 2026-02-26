@@ -17,12 +17,15 @@ class DialogDiscount extends ConsumerStatefulWidget {
     this.currentDiscount = 0,
     this.currentDiscountType = DiscountType.absolute,
     required this.referenceAmount,
+    this.maxPercent,
   });
 
   final String? title;
   final int currentDiscount;
   final DiscountType currentDiscountType;
   final int referenceAmount;
+  /// Optional cap in basis points (e.g. 2000 = 20%). Null = unlimited.
+  final int? maxPercent;
 
   @override
   ConsumerState<DialogDiscount> createState() => _DialogDiscountState();
@@ -47,13 +50,19 @@ class _DialogDiscountState extends ConsumerState<DialogDiscount> {
     return (parsed * 100).round();
   }
 
-  /// Absolute: capped at referenceAmount (minor units).
-  int get _cappedAbsolute =>
-      _discountValue.clamp(0, widget.referenceAmount);
+  /// Absolute: capped at referenceAmount (minor units), and at maxPercent share if set.
+  int get _cappedAbsolute {
+    var cap = widget.referenceAmount;
+    if (widget.maxPercent != null) {
+      final percentCap = (widget.referenceAmount * widget.maxPercent! / 10000).round();
+      if (percentCap < cap) cap = percentCap;
+    }
+    return _discountValue.clamp(0, cap);
+  }
 
-  /// Percent: capped at 10000 (= 100%).
+  /// Percent: capped at maxPercent (or 10000 = 100%).
   int get _cappedPercent =>
-      _discountValue.clamp(0, 10000);
+      _discountValue.clamp(0, widget.maxPercent ?? 10000);
 
   int get _percentEffective =>
       (widget.referenceAmount * _cappedPercent / 10000).round();

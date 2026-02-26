@@ -1,5 +1,29 @@
 # Changelog
 
+## 2026-02-26 (late night) — Tiered Discount Permissions
+
+### Features
+- **Three-tier discount model** — forbidden / limited (capped at company setting) / unlimited; replaces previous flat permission model
+- **Company-level discount limits** — new `max_item_discount_percent` and `max_bill_discount_percent` in company settings (basis points, default 2000 = 20%); configurable in Settings → Company Info → "Discount Limits" section
+- **Permission enforcement in bill detail** — bill discount button hidden when user lacks both `discounts.apply_bill` and `discounts.apply_bill_limited`; item discount button hidden similarly; `DialogDiscount` receives `maxPercent` cap when user has limited-only permission
+- **Loyalty permission enforcement** — `discounts.loyalty` now checked in `DialogPayment._canRedeemLoyalty`; users without this permission cannot redeem loyalty points
+
+### Permissions
+- **Added:** `discounts.apply_item_limited`, `discounts.apply_bill_limited`
+- **Removed:** `discounts.custom`, `discounts.price_override`
+- **Implications:** `discounts.apply_item` implies `apply_item_limited`; `discounts.apply_bill` implies `apply_bill_limited`
+- **Role changes:** operator gets limited-only (62 perms); manager/admin get both limited + unlimited (93/113 perms)
+- **Label renamed:** `discounts.loyalty` — "Věrnostní sleva" → "Uplatnit věrnostní body"
+
+### Database
+- `company_settings`: new columns `max_item_discount_percent`, `max_bill_discount_percent` (integer, NOT NULL, default 2000)
+- Migration `20260226_007_tiered_discount_permissions`
+
+### Documentation
+- `PROJECT.md`: updated company_settings schema, discount permissions catalog, role tables, summary matrix, role progression counts
+
+---
+
 ## 2026-02-26 (night) — Loyalty Redemption in Payment Dialog
 
 ### Features

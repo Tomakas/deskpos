@@ -773,6 +773,11 @@
     }
   },
   "loyaltyDisabled": "Věrnostní program je vypnutý (nastavte hodnoty > 0)",
+
+  "settingsDiscountLimits": "Limity slev",
+  "settingsMaxItemDiscount": "Max sleva na položku (%)",
+  "settingsMaxBillDiscount": "Max sleva na účet (%)",
+
   "loyaltyRedeem": "Uplatnit body",
   "loyaltyAvailablePoints": "Dostupné body",
   "loyaltyPointsValue": "Hodnota",
@@ -1277,11 +1282,11 @@
   "permPaymentsAcceptTip": "Přijmout spropitné",
   "permPaymentsAdjustTip": "Upravit spropitné",
 
-  "permDiscountsApplyItem": "Sleva na položku",
-  "permDiscountsApplyBill": "Sleva na účet",
-  "permDiscountsCustom": "Vlastní sleva",
-  "permDiscountsPriceOverride": "Přepsat cenu",
-  "permDiscountsLoyalty": "Věrnostní sleva",
+  "permDiscountsApplyItemLimited": "Sleva na položku (limitovaná)",
+  "permDiscountsApplyItem": "Sleva na položku (neomezená)",
+  "permDiscountsApplyBillLimited": "Sleva na účet (limitovaná)",
+  "permDiscountsApplyBill": "Sleva na účet (neomezená)",
+  "permDiscountsLoyalty": "Uplatnit věrnostní body",
 
   "permRegisterOpenSession": "Otevřít pokladnu",
   "permRegisterCloseSession": "Uzavřít pokladnu",
@@ -1573,5 +1578,28 @@
   "catalogSortLastVisit": "Poslední návštěva",
   "catalogFilterActive": "Aktivní",
   "catalogFilterHasPoints": "Má body",
-  "catalogFilterHasCredit": "Má kredit"
+  "catalogFilterHasCredit": "Má kredit",
+
+  "businessTypeLabel": "Typ podnikání",
+  "businessCategoryGastro": "Gastro",
+  "businessCategoryRetail": "Maloobchod",
+  "businessCategoryServices": "Služby",
+  "businessCategoryOther": "Ostatní",
+  "businessTypeRestaurant": "Restaurace",
+  "businessTypeBar": "Bar",
+  "businessTypeCafe": "Kavárna",
+  "businessTypeCanteen": "Jídelna",
+  "businessTypeBistro": "Bistro",
+  "businessTypeBakery": "Pekárna",
+  "businessTypeFoodTruck": "Food Truck",
+  "businessTypeGrocery": "Potraviny",
+  "businessTypeClothing": "Oblečení",
+  "businessTypeElectronics": "Elektronika",
+  "businessTypeGeneralStore": "Smíšené zboží",
+  "businessTypeFlorist": "Květinářství",
+  "businessTypeHairdresser": "Kadeřnictví",
+  "businessTypeBeautySalon": "Kosmetický salon",
+  "businessTypeFitness": "Fitness",
+  "businessTypeAutoService": "Autoservis",
+  "businessTypeOther": "Ostatní"
 }

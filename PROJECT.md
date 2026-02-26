@@ -1045,7 +1045,7 @@ Všechny aktivní tabulky obsahují společné sync sloupce (viz [SyncColumnsMix
 | Tabulka | Sloupce |
 |---------|---------|
 | **companies** | id (T), name (T), status (T — CompanyStatus), business_id (T?), address (T?), phone (T?), email (T?), vat_number (T?), country (T?), city (T?), postal_code (T?), timezone (T?), business_type (T?), default_currency_id →currencies, auth_user_id (T — uuid na Supabase, FK na auth.users), is_demo (B, default false), demo_expires_at (DT?) |
-| **company_settings** | id (T), company_id →companies, require_pin_on_switch (B, default true), auto_lock_timeout_minutes (I?), loyalty_earn_rate (I, default 0), loyalty_point_value (I, default 0), locale (T, default 'cs'), negative_stock_policy (T — NegativeStockPolicy, default 'allow'), bill_age_warning_minutes (I, default 15), bill_age_danger_minutes (I, default 30), bill_age_critical_minutes (I, default 45) |
+| **company_settings** | id (T), company_id →companies, require_pin_on_switch (B, default true), auto_lock_timeout_minutes (I?), loyalty_earn_rate (I, default 0), loyalty_point_value (I, default 0), locale (T, default 'cs'), negative_stock_policy (T — NegativeStockPolicy, default 'allow'), max_item_discount_percent (I, default 2000), max_bill_discount_percent (I, default 2000), bill_age_warning_minutes (I, default 15), bill_age_danger_minutes (I, default 30), bill_age_critical_minutes (I, default 45) |
 | **users** | id (T), company_id →companies, auth_user_id (T?), username (T), full_name (T), email (T?), phone (T?), pin_hash (T), pin_enabled (B, default true), role_id →roles, is_active (B, default true) |
 | **roles** | id (T), name (T — RoleName enum) |
 | **permissions** | id (T), code (T), name (T), description (T?), category (T) |
@@ -2411,8 +2411,8 @@ Systém oprávnění funguje **offline-first**. Veškerá data jsou uložena lok
 | Role | Český název | Oprávnění | Popis |
 |------|-------------|:---------:|-------|
 | `helper` | Pomocník / Číšník | 19 | Základní obsluha — objednávky, platby, vidí jen své věci |
-| `operator` | Směnový vedoucí | 63 | Řídí směnu — storna, refundace, slevy, pokladní operace, statistiky (session) |
-| `manager` | Manažer | 92 | Řídí provoz — katalog, sklad, statistiky (historie), zaměstnanci, nastavení provozovny |
+| `operator` | Směnový vedoucí | 62 | Řídí směnu — storna, refundace, slevy (limitované), pokladní operace, statistiky (session) |
+| `manager` | Manažer | 93 | Řídí provoz — slevy (neomezené), katalog, sklad, statistiky (historie), zaměstnanci, nastavení provozovny |
 | `admin` | Administrátor / Majitel | 113 | Plný přístup — systém, daně, data, role, destruktivní akce |
 
 ### Katalog oprávnění (113)
@@ -2483,12 +2483,14 @@ propojené workflow se sdílenými akcemi.
 
 #### Slevy a ceny (`discounts`)
 
+Tříúrovňový model: zakázáno → limitováno → neomezeně. Oprávnění `*_limited` omezuje slevu na maximum definované v `company_settings` (`max_item_discount_percent` / `max_bill_discount_percent`, v setinách procenta, default 2000 = 20 %). Neomezené oprávnění (`apply_item` / `apply_bill`) implikuje limitované — uživatel s neomezeným vždy obdrží i limitované.
+
 | Kód | Název | Popis |
 |-----|-------|-------|
-| `discounts.apply_item` | Sleva na položku | Aplikovat slevu na jednu položku |
-| `discounts.apply_bill` | Sleva na účet | Aplikovat slevu na celý účet |
-| `discounts.custom` | Vlastní sleva | Zadat libovolnou částku nebo procento slevy |
-| `discounts.price_override` | Přepsat cenu | Ručně změnit prodejní cenu položky |
+| `discounts.apply_item_limited` | Sleva na položku (limitovaná) | Aplikovat slevu na jednu položku, omezená na company limit |
+| `discounts.apply_item` | Sleva na položku (neomezená) | Aplikovat slevu na jednu položku bez omezení (implikuje `apply_item_limited`) |
+| `discounts.apply_bill_limited` | Sleva na účet (limitovaná) | Aplikovat slevu na celý účet, omezená na company limit |
+| `discounts.apply_bill` | Sleva na účet (neomezená) | Aplikovat slevu na celý účet bez omezení (implikuje `apply_bill_limited`) |
 | `discounts.loyalty` | Uplatnit věrnostní body | Použít body zákazníka jako slevu |
 
 #### Pokladna (`register`)
@@ -2702,7 +2704,7 @@ Odpovídá obrazovce **Nastavení pokladny** (terminály, hardware, grid, disple
 
 #### Operator (Směnový vedoucí)
 
-> **63 oprávnění.** Vše od helpera + storna, refundace, slevy, pokladní
+> **62 oprávnění.** Vše od helpera + storna, refundace, slevy (limitované na company limit), pokladní
 > operace, odpisy, správa zákazníků a rezervací. Plný detail v objednávkách.
 > Statistiky omezeny na aktuální session (bez date range selectoru).
 > Řídí provoz během směny.
@@ -2711,7 +2713,7 @@ Odpovídá obrazovce **Nastavení pokladny** (terminály, hardware, grid, disple
 |---------|---------------------|:------:|
 | orders | + `view_all`, `view_paid`, `view_cancelled`, `view_detail`, `edit_others`, `void_item`, `void_bill`, `transfer`, `split`, `merge`, `bump_back` | 16 |
 | payments | + `refund`, `refund_item`, `method_voucher`, `method_meal_ticket`, `method_credit`, `skip_cash_dialog`, `adjust_tip` | 11 |
-| discounts | + `apply_item`, `apply_bill`, `custom`, `loyalty` | 4 |
+| discounts | + `apply_item_limited`, `apply_bill_limited`, `loyalty` | 3 |
 | register | + `open_session`, `close_session`, `view_all_sessions`, `cash_in`, `cash_out`, `open_drawer` | 7 |
 | shifts | + `view_all` | 3 |
 | products | + `set_availability` | 2 |
@@ -2726,11 +2728,11 @@ Odpovídá obrazovce **Nastavení pokladny** (terminály, hardware, grid, disple
 | settings_company | — | 0 |
 | settings_venue | — | 0 |
 | settings_register | — | 0 |
-| | **Celkem** | **63** |
+| | **Celkem** | **62** |
 
 #### Manager (Manažer)
 
-> **92 oprávnění.** Vše od operátora + správa katalogu (produkty, kategorie,
+> **93 oprávnění.** Vše od operátora + neomezené slevy, správa katalogu (produkty, kategorie,
 > modifikátory, receptury, dodavatelé, výrobci), skladu (příjem, korekce,
 > inventura, přesun), zaměstnanců, nastavení provozovny a export dat.
 > Plný přístup ke statistikám včetně historie, směn a uzávěrek.
@@ -2740,7 +2742,7 @@ Odpovídá obrazovce **Nastavení pokladny** (terminály, hardware, grid, disple
 |---------|----------------------|:------:|
 | orders | + `reopen` | 17 |
 | payments | — | 11 |
-| discounts | — | 4 |
+| discounts | + `apply_item`, `apply_bill` | 5 |
 | register | — | 7 |
 | shifts | + `manage` | 4 |
 | products | + `view_cost`, `manage`, `manage_categories`, `manage_modifiers`, `manage_recipes`, `manage_suppliers`, `manage_manufacturers` | 9 |
@@ -2755,7 +2757,7 @@ Odpovídá obrazovce **Nastavení pokladny** (terminály, hardware, grid, disple
 | settings_company | — | 0 |
 | settings_venue | + `sections`, `tables`, `floor_plan` | 3 |
 | settings_register | + `grid`, `displays` | 2 |
-| | **Celkem** | **92** |
+| | **Celkem** | **93** |
 
 #### Admin (Administrátor / Majitel)
 
@@ -2767,7 +2769,7 @@ Odpovídá obrazovce **Nastavení pokladny** (terminály, hardware, grid, disple
 |---------|---------------------|:------:|
 | orders | — | 17 |
 | payments | — | 11 |
-| discounts | + `price_override` | 5 |
+| discounts | — | 5 |
 | register | — | 7 |
 | shifts | — | 4 |
 | products | + `manage_purchase_price`, `manage_tax` | 11 |
@@ -2790,7 +2792,7 @@ Odpovídá obrazovce **Nastavení pokladny** (terminály, hardware, grid, disple
 |---------|:-----:|:------:|:--------:|:-------:|:-----:|
 | orders | 17 | 5 | 16 | 17 | 17 |
 | payments | 11 | 4 | 11 | 11 | 11 |
-| discounts | 5 | 0 | 4 | 4 | 5 |
+| discounts | 5 | 0 | 3 | 5 | 5 |
 | register | 7 | 1 | 7 | 7 | 7 |
 | shifts | 4 | 2 | 3 | 4 | 4 |
 | products | 11 | 1 | 2 | 9 | 11 |
@@ -2805,15 +2807,15 @@ Odpovídá obrazovce **Nastavení pokladny** (terminály, hardware, grid, disple
 | settings_company | 7 | 0 | 0 | 0 | 7 |
 | settings_venue | 3 | 0 | 0 | 3 | 3 |
 | settings_register | 7 | 0 | 0 | 2 | 7 |
-| **Celkem** | **113** | **19** | **63** | **92** | **113** |
+| **Celkem** | **113** | **19** | **62** | **93** | **113** |
 
 #### Progrese mezi rolemi
 
 | Přechod | Nových oprávnění | Hlavní oblasti |
 |---------|:----------------:|----------------|
-| helper → operator | +44 | Storna, refundace, slevy, pokladní operace, statistiky (session) |
-| operator → manager | +29 | Katalog, sklad, zaměstnanci, statistiky (historie + směny + uzávěrky), nastavení provozovny |
-| manager → admin | +21 | Systém, daně, ceny, data, role, hardware, destruktivní akce |
+| helper → operator | +43 | Storna, refundace, slevy (limitované), pokladní operace, statistiky (session) |
+| operator → manager | +31 | Slevy (neomezené), katalog, sklad, zaměstnanci, statistiky (historie + směny + uzávěrky), nastavení provozovny |
+| manager → admin | +20 | Systém, daně, ceny, data, role, hardware, destruktivní akce |
 
 ### Přiřazení role uživateli
 

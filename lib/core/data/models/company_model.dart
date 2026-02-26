@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../enums/business_type.dart';
 import '../enums/company_status.dart';
 
 part 'company_model.freezed.dart';
@@ -19,7 +20,7 @@ abstract class CompanyModel with _$CompanyModel {
     String? city,
     String? postalCode,
     String? timezone,
-    String? businessType,
+    BusinessType? businessType,
     required String defaultCurrencyId,
     required String authUserId,
     @Default(false) bool isDemo,

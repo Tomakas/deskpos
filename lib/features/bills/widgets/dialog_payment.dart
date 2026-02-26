@@ -113,6 +113,7 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
       _bill.loyaltyPointsUsed == 0 &&
       _bill.paidAmount == 0 &&
       _loyaltyPointValue > 0 &&
+      ref.read(hasPermissionProvider('discounts.loyalty')) &&
       !_processing;
 
   int get _remaining => _bill.totalGross - _bill.paidAmount;
