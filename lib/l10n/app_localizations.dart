@@ -374,6 +374,12 @@ abstract class AppLocalizations {
   /// **'právě teď'**
   String get billTimeJustNow;
 
+  /// No description provided for @billTimeNoOrder.
+  ///
+  /// In cs, this message translates to:
+  /// **'žádná'**
+  String get billTimeNoOrder;
+
   /// No description provided for @infoPanelDate.
   ///
   /// In cs, this message translates to:
@@ -407,7 +413,7 @@ abstract class AppLocalizations {
   /// No description provided for @actionSwitchUser.
   ///
   /// In cs, this message translates to:
-  /// **'Zamknout / Přepnout'**
+  /// **'Přepnout'**
   String get actionSwitchUser;
 
   /// No description provided for @actionLogout.
@@ -2047,6 +2053,18 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Účet {billNumber} - {tableName}'**
   String paymentBillSubtitle(String billNumber, String tableName);
+
+  /// No description provided for @discountTitleBill.
+  ///
+  /// In cs, this message translates to:
+  /// **'Sleva na celý účet'**
+  String get discountTitleBill;
+
+  /// No description provided for @discountTitleItem.
+  ///
+  /// In cs, this message translates to:
+  /// **'Sleva na položku'**
+  String get discountTitleItem;
 
   /// No description provided for @billDetailDiscount.
   ///

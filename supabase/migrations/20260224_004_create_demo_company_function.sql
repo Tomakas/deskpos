@@ -5,7 +5,7 @@
 --              90 days of history in a single transaction.
 -- ============================================================================
 
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
+CREATE EXTENSION IF NOT EXISTS pgcrypto SCHEMA extensions;
 
 CREATE OR REPLACE FUNCTION create_demo_company(
   p_auth_user_id uuid,
@@ -16,7 +16,7 @@ CREATE OR REPLACE FUNCTION create_demo_company(
 ) RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = 'public'
+SET search_path = public, extensions
 AS $$
 DECLARE
   -- IDs
@@ -782,7 +782,7 @@ BEGIN
     VALUES (
       (SELECT id FROM _ref_map WHERE ref = v_rec.ref),
       v_company_id,
-      v_rec.data->>'code',
+      lpad((floor(random() * 10000))::int::text, 4, '0') || '-' || lpad((floor(random() * 10000))::int::text, 4, '0'),
       (v_rec.data->>'type')::voucher_type,
       (v_rec.data->>'status')::voucher_status,
       (v_rec.data->>'value')::int,
@@ -1687,10 +1687,12 @@ BEGIN
       WHERE id = v_session_id;
     ELSE
       -- Today's open session — just update counters
+      -- Use greatest() because v_session_open may be in the future (> v_now)
+      -- and the INSERT used v_session_open as client_updated_at.
       UPDATE register_sessions SET
         bill_counter = v_bill_counter,
         order_counter = v_order_counter,
-        client_updated_at = v_now
+        client_updated_at = greatest(v_now, v_session_open)
       WHERE id = v_session_id;
 
       -- Update register active_bill_id to the last open bill

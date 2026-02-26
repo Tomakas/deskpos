@@ -7,13 +7,15 @@ import '../../../core/data/enums/bill_status.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/data/enums/table_shape.dart';
 import '../../../core/data/models/bill_model.dart';
+import '../../../core/data/models/company_settings_model.dart';
 import '../../../core/data/models/map_element_model.dart';
 import '../../../core/data/models/section_model.dart';
 import '../../../core/data/models/table_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
-import '../../../core/utils/formatting_ext.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/formatters.dart';
 
 const _gridCols = 32;
 const _gridRows = 20;
@@ -69,6 +71,19 @@ class FloorMapView extends ConsumerWidget {
               ),
               builder: (context, billSnap) {
                 final openBills = billSnap.data ?? [];
+
+                return StreamBuilder<Map<String, DateTime>>(
+                  stream: ref.watch(orderRepositoryProvider).watchLastOrderTimesByCompany(company.id),
+                  builder: (context, orderTimeSnap) {
+                    final lastOrderTimes = orderTimeSnap.data ?? {};
+
+                return StreamBuilder<CompanySettingsModel?>(
+                  stream: ref.watch(companySettingsRepositoryProvider).watchByCompany(company.id),
+                  builder: (context, settingsSnap) {
+                    final settings = settingsSnap.data;
+                    final warnMin = settings?.billAgeWarningMinutes ?? 15;
+                    final dangerMin = settings?.billAgeDangerMinutes ?? 30;
+                    final criticalMin = settings?.billAgeCriticalMinutes ?? 45;
 
                 return StreamBuilder<List<MapElementModel>>(
                   stream: ref.watch(mapElementRepositoryProvider).watchAll(company.id),
@@ -219,12 +234,16 @@ class FloorMapView extends ConsumerWidget {
                                   // Bills as draggable circles
                                   for (final bill in sectionBills)
                                     _buildBillCircle(
-                                      bill,
-                                      placedTables,
-                                      billsByTable,
-                                      cellW,
-                                      cellH,
-                                      billDiameter,
+                                      bill: bill,
+                                      placedTables: placedTables,
+                                      billsByTable: billsByTable,
+                                      cellW: cellW,
+                                      cellH: cellH,
+                                      diameter: billDiameter,
+                                      lastOrderTime: lastOrderTimes[bill.id],
+                                      warningMin: warnMin,
+                                      dangerMin: dangerMin,
+                                      criticalMin: criticalMin,
                                     ),
                                 ],
                               );
@@ -235,6 +254,10 @@ class FloorMapView extends ConsumerWidget {
                     );
                   },
                 );
+                  },
+                );
+                  },
+                );
               },
             );
           },
@@ -243,14 +266,18 @@ class FloorMapView extends ConsumerWidget {
     );
   }
 
-  Widget _buildBillCircle(
-    BillModel bill,
-    List<TableModel> placedTables,
-    Map<String?, List<BillModel>> billsByTable,
-    double cellW,
-    double cellH,
-    double diameter,
-  ) {
+  Widget _buildBillCircle({
+    required BillModel bill,
+    required List<TableModel> placedTables,
+    required Map<String?, List<BillModel>> billsByTable,
+    required double cellW,
+    required double cellH,
+    required double diameter,
+    required DateTime? lastOrderTime,
+    required int warningMin,
+    required int dangerMin,
+    required int criticalMin,
+  }) {
     double centerX;
     double centerY;
 
@@ -264,19 +291,19 @@ class FloorMapView extends ConsumerWidget {
       final tableBills = billsByTable[table.id] ?? [];
       final idx = tableBills.indexOf(bill);
 
-      centerX = (table.gridCol + table.gridWidth / 2) * cellW;
-      centerY = (table.gridRow + table.gridHeight / 2) * cellH;
-
-      if (tableBills.length > 1) {
-        final spacing = min(table.gridWidth * cellW / tableBills.length, diameter);
-        final totalWidth = spacing * (tableBills.length - 1);
-        centerX = (table.gridCol + table.gridWidth / 2) * cellW
-            - totalWidth / 2 + idx * spacing;
-      }
+      final pos = _tableEdgePosition(table, idx, tableBills.length, cellW, cellH);
+      centerX = pos.dx;
+      centerY = pos.dy;
     }
 
     final left = centerX - diameter / 2;
     final top = centerY - diameter / 2;
+    final ageColor = billAgeColor(
+      lastOrderTime,
+      warningMin: warningMin,
+      dangerMin: dangerMin,
+      criticalMin: criticalMin,
+    );
 
     return Positioned(
       left: left,
@@ -293,36 +320,132 @@ class FloorMapView extends ConsumerWidget {
           child: _BillCircle(
             bill: bill,
             diameter: diameter,
+            ageColor: ageColor,
+            hasOrder: lastOrderTime != null,
             opacity: 0.85,
           ),
         ),
         childWhenDragging: IgnorePointer(
           child: Opacity(
             opacity: 0.3,
-            child: _BillCircle(bill: bill, diameter: diameter),
+            child: _BillCircle(
+              bill: bill,
+              diameter: diameter,
+              ageColor: ageColor,
+              hasOrder: lastOrderTime != null,
+            ),
           ),
         ),
         child: GestureDetector(
           onTap: () => onBillTap(bill),
-          child: _BillCircle(bill: bill, diameter: diameter),
+          child: _BillCircle(
+            bill: bill,
+            diameter: diameter,
+            ageColor: ageColor,
+            hasOrder: lastOrderTime != null,
+          ),
         ),
       ),
     );
   }
 }
 
+/// Position a bill's center on the table edge, evenly distributed among [count] bills.
+Offset _tableEdgePosition(
+  TableModel table,
+  int index,
+  int count,
+  double cellW,
+  double cellH,
+) {
+  final cx = (table.gridCol + table.gridWidth / 2) * cellW;
+  final cy = (table.gridRow + table.gridHeight / 2) * cellH;
+  final hw = table.gridWidth * cellW / 2;
+  final hh = table.gridHeight * cellH / 2;
+  final t = index / count;
+
+  if (table.shape == TableShape.round) {
+    final angle = -pi / 2 + t * 2 * pi;
+    return Offset(cx + hw * cos(angle), cy + hh * sin(angle));
+  }
+
+  if (table.shape == TableShape.triangle) {
+    return _polygonEdgePosition([
+      Offset(cx, cy - hh),
+      Offset(cx + hw, cy + hh),
+      Offset(cx - hw, cy + hh),
+    ], t);
+  }
+
+  if (table.shape == TableShape.diamond) {
+    return _polygonEdgePosition([
+      Offset(cx, cy - hh),
+      Offset(cx + hw, cy),
+      Offset(cx, cy + hh),
+      Offset(cx - hw, cy),
+    ], t);
+  }
+
+  // Rectangle: walk the perimeter clockwise from top-center
+  final perim = 4 * (hw + hh);
+  var d = t * perim;
+
+  if (d < hw) return Offset(cx + d, cy - hh);
+  d -= hw;
+  if (d < 2 * hh) return Offset(cx + hw, cy - hh + d);
+  d -= 2 * hh;
+  if (d < 2 * hw) return Offset(cx + hw - d, cy + hh);
+  d -= 2 * hw;
+  if (d < 2 * hh) return Offset(cx - hw, cy + hh - d);
+  d -= 2 * hh;
+  return Offset(cx - hw + d, cy - hh);
+}
+
+Offset _polygonEdgePosition(List<Offset> vertices, double t) {
+  var perimeter = 0.0;
+  final segments = <double>[];
+  for (var i = 0; i < vertices.length; i++) {
+    final segLen = (vertices[(i + 1) % vertices.length] - vertices[i]).distance;
+    segments.add(segLen);
+    perimeter += segLen;
+  }
+
+  var d = t * perimeter;
+  for (var i = 0; i < segments.length; i++) {
+    if (d <= segments[i]) {
+      final from = vertices[i];
+      final to = vertices[(i + 1) % vertices.length];
+      final frac = d / segments[i];
+      return Offset(
+        from.dx + (to.dx - from.dx) * frac,
+        from.dy + (to.dy - from.dy) * frac,
+      );
+    }
+    d -= segments[i];
+  }
+  return vertices.first;
+}
+
 class _BillCircle extends ConsumerWidget {
   const _BillCircle({
     required this.bill,
     required this.diameter,
+    required this.ageColor,
+    required this.hasOrder,
     this.opacity = 1.0,
   });
   final BillModel bill;
   final double diameter;
+  final Color ageColor;
+  final bool hasOrder;
   final double opacity;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = context.l10n;
+    final currency = ref.watch(currentCurrencyProvider).value;
+    final borderColor = Color.lerp(ageColor, Colors.black, 0.25)!;
+
     return Opacity(
       opacity: opacity,
       child: Container(
@@ -330,8 +453,8 @@ class _BillCircle extends ConsumerWidget {
         height: diameter,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: Colors.blue.shade600,
-          border: Border.all(color: Colors.blue.shade800, width: 2),
+          color: ageColor,
+          border: Border.all(color: borderColor, width: 2),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.25),
@@ -340,20 +463,34 @@ class _BillCircle extends ConsumerWidget {
             ),
           ],
         ),
-        child: Center(
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Padding(
-              padding: EdgeInsets.all(diameter * 0.15),
-              child: Text(
-                ref.money(bill.totalGross),
-                style: TextStyle(
-                  fontSize: diameter * 0.3,
+        child: Padding(
+          padding: EdgeInsets.all(diameter * 0.12),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                hasOrder
+                    ? wholeUnitsFromMinor(bill.totalGross, currency).toString()
+                    : l.billTimeNoOrder,
+                style: const TextStyle(
+                  fontSize: 14,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-            ),
+              if (bill.customerName != null && bill.customerName!.isNotEmpty)
+                Text(
+                  bill.customerName!,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Colors.white.withValues(alpha: 0.9),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+            ],
           ),
         ),
       ),

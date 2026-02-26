@@ -622,6 +622,8 @@ class BillRepository {
             tableId: Value(tableId),
             numberOfGuests: Value(numberOfGuests),
             isTakeaway: const Value(false),
+            mapPosX: const Value(null),
+            mapPosY: const Value(null),
             updatedAt: Value(DateTime.now()),
           ),
         );

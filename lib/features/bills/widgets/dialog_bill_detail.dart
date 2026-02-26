@@ -813,25 +813,30 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
     if (_isProcessing) return;
     setState(() => _isProcessing = true);
     try {
-      final confirmed = await showDialog<bool>(
-        context: context,
-        builder: (_) => PosDialogShell(
-          title: '',
-          maxWidth: 400,
-          children: [
-            Text(l.billDetailConfirmCancel),
-            const SizedBox(height: 16),
-            PosDialogActions(
-              actions: [
-                OutlinedButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
-                FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
-              ],
-            ),
-          ],
-        ),
-      );
-      if (confirmed != true) return;
+      // Skip confirmation for empty bills (no orders at all)
+      final orders = await ref.read(orderRepositoryProvider).getOrdersByBillIds([bill.id]);
       if (!mounted) return;
+      if (orders.isNotEmpty) {
+        final confirmed = await showDialog<bool>(
+          context: context,
+          builder: (_) => PosDialogShell(
+            title: '',
+            maxWidth: 400,
+            children: [
+              Text(l.billDetailConfirmCancel),
+              const SizedBox(height: 16),
+              PosDialogActions(
+                actions: [
+                  OutlinedButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
+                  FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
+                ],
+              ),
+            ],
+          ),
+        );
+        if (confirmed != true) return;
+        if (!mounted) return;
+      }
 
       // Reverse voucher redemption before cancelling (items still active)
       if (bill.voucherId != null) {
@@ -869,9 +874,11 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
     if (_isProcessing) return;
     setState(() => _isProcessing = true);
     try {
+      final l = context.l10n;
       final result = await showDialog<(DiscountType, int)?>(
         context: context,
         builder: (_) => DialogDiscount(
+          title: l.discountTitleBill,
           currentDiscount: bill.discountAmount,
           currentDiscountType: bill.discountType ?? DiscountType.absolute,
           referenceAmount: bill.subtotalGross,
@@ -1507,7 +1514,7 @@ class _OrderSection extends ConsumerWidget {
                                   style: Theme.of(context).textTheme.bodySmall,
                                 ),
                               ),
-                              Expanded(child: Text(item.itemName, style: Theme.of(context).textTheme.bodyMedium)),
+                              Expanded(child: Text(item.itemName, overflow: TextOverflow.ellipsis, maxLines: 1, style: Theme.of(context).textTheme.bodyMedium)),
                               SizedBox(
                                 width: 100,
                                 child: () {
@@ -1773,6 +1780,7 @@ class _OrderSection extends ConsumerWidget {
     final result = await showDialog<(DiscountType, int)?>(
       context: context,
       builder: (_) => DialogDiscount(
+        title: context.l10n.discountTitleItem,
         currentDiscount: item.discount,
         currentDiscountType: item.discountType ?? DiscountType.absolute,
         referenceAmount: referenceAmount,

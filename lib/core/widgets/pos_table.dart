@@ -125,10 +125,15 @@ class PosTable<T> extends StatelessWidget {
   }
 
   Widget _wrapColumn(PosColumn<T> col, Widget child) {
+    final content = DefaultTextStyle.merge(
+      overflow: TextOverflow.ellipsis,
+      maxLines: 1,
+      child: child,
+    );
     if (col.width != null) {
-      return SizedBox(width: col.width, child: child);
+      return SizedBox(width: col.width, child: content);
     }
-    return Expanded(flex: col.flex, child: child);
+    return Expanded(flex: col.flex, child: content);
   }
 }
 

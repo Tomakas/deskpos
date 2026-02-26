@@ -445,6 +445,9 @@ Map<String, dynamic> companySettingsToSupabaseJson(CompanySettingsModel m) => {
       'loyalty_point_value': m.loyaltyPointValue,
       'locale': m.locale,
       'negative_stock_policy': m.negativeStockPolicy.name,
+      'bill_age_warning_minutes': m.billAgeWarningMinutes,
+      'bill_age_danger_minutes': m.billAgeDangerMinutes,
+      'bill_age_critical_minutes': m.billAgeCriticalMinutes,
     };
 
 Map<String, dynamic> companyToSupabaseJson(CompanyModel m) => {

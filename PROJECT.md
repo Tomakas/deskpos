@@ -221,7 +221,8 @@ Funkce, které nejsou nezbytné pro základní prodej, ale rozšiřují možnost
 - ✅ Z-report — PDF A4, kopíruje strukturu `DialogZReport` (session info, tržby, DPH, spropitné, slevy, počty účtů, cash reconciliation, směny).
 - ✅ Fonty — bundled Roboto TTF (české diakritické znaky) v `assets/fonts/`.
 - ✅ Voucher — PDF 80mm šířka (thermal receipt styl), tisk z `DialogVoucherDetail`. Obsahuje: název firmy, kód voucheru, typ, hodnota, scope (s názvem produktu/kategorie), max. použití, platnost, poznámka.
-- ✅ Infrastruktura — `lib/core/printing/` (PdfFontLoader, ReceiptData, ReceiptPdfBuilder, ZReportPdfBuilder, InventoryPdfBuilder, VoucherPdfBuilder, PrintingService), provider v `lib/core/data/providers/printing_providers.dart`.
+- ✅ Skladový doklad — PDF A4, hlavička (typ dokladu, číslo, datum, dodavatel, poznámka), tabulka položek (název, množství, jednotka, cena, celkem), celková hodnota.
+- ✅ Infrastruktura — `lib/core/printing/` (PdfFontLoader, ReceiptData, ReceiptPdfBuilder, ZReportPdfBuilder, InventoryPdfBuilder, VoucherPdfBuilder, StockDocumentPdfBuilder, PrintingService), provider v `lib/core/data/providers/printing_providers.dart`.
 - **Task3.30** Tisk reportů — tržby, prodeje dle kategorií/zaměstnanců (backlog)
 - **Výsledek:** Lze tisknout účtenky, denní uzávěrky a vouchery do PDF. Kuchyňské tisky a tisk reportů mimo scope v1.
 
@@ -787,7 +788,7 @@ lib/
 │   │   └── tables/                    # Definice tabulek (46 souborů: 45 tabulek + mixin)
 │   ├── widgets/                       # PosTable<T>, PosTableToolbar, PosDialogShell, PosDialogActions, PosDialogTheme, PosNumpad, LockOverlay, InactivityDetector, PosColorPalette, PairingConfirmationListener, PosDateRangeSelector, HighlightedText
 │   ├── utils/                         # search_utils.dart, formatters.dart, formatting_ext.dart, file_opener.dart, unit_type_l10n.dart, permission_l10n.dart, permission_implications.dart
-│   ├── printing/                      # PdfFontLoader, ReceiptData, ReceiptPdfBuilder, ZReportPdfBuilder, InventoryPdfBuilder, VoucherPdfBuilder, PrintingService
+│   ├── printing/                      # PdfFontLoader, ReceiptData, ReceiptPdfBuilder, ZReportPdfBuilder, InventoryPdfBuilder, VoucherPdfBuilder, StockDocumentPdfBuilder, PrintingService
 │   ├── routing/                       # GoRouter + auth guard (app_router.dart)
 │   ├── network/                       # Supabase konfigurace (URL, anon key)
 │   ├── sync/                          # Sync engine
@@ -817,7 +818,7 @@ lib/
 │   ├── catalog/                       # ScreenCatalog (7 tabů: Produkty, Kategorie, Skupiny modifikátorů, Dodavatelé, Výrobci, Receptury, Zákazníci),
 │   │                                  # DialogCustomerCredit
 │   ├── inventory/                     # ScreenInventory (3 taby: Zásoby, Doklady, Pohyby),
-│   │                                  # DialogStockDocument, DialogInventoryType, DialogInventory, DialogInventoryResult
+│   │                                  # DialogStockDocument, DialogStockDocumentDetail, DialogInventoryType, DialogInventory, DialogInventoryResult
 │   ├── onboarding/                    # ScreenOnboarding, ScreenConnectCompany, ScreenDisplayCode
 │   ├── sell/                          # ScreenSell (grid + košík), ScreenCustomerDisplay (zákaznický displej)
 │   ├── settings/                      # ScreenCompanySettings (7 tabů), ScreenVenueSettings (4 taby),
@@ -853,6 +854,7 @@ Nahrazuje individuální DataTable implementace konzistentním API.
 
 - `PosColumn<T>` — definice sloupce: label, flex/width, cellBuilder, numeric
 - `PosTableToolbar` — doprovodný widget: vyhledávací pole + trailing akce
+- **Text overflow:** `_wrapColumn` obaluje buňky do `DefaultTextStyle.merge(overflow: TextOverflow.ellipsis, maxLines: 1)` — automatický ellipsis pro všechny Text widgety uvnitř buněk
 - Použití: katalog (produkty, kategorie, dodavatelé, výrobci, receptury, zákazníci),
   settings (uživatelé, sekce, stoly, daň. sazby, plat. metody), bills, inventory, shifts
 
@@ -903,13 +905,13 @@ Plánované řešení:
 
 ### Umístění lokální databáze
 
-Databáze se ukládá v adresáři dokumentů aplikace (`getApplicationDocumentsDirectory()` z `path_provider`):
+Databáze se ukládá v adresáři Application Support (`getApplicationSupportDirectory()` z `path_provider`):
 
 ```
-<applicationDocumentsDirectory>/maty_database.sqlite
+<applicationSupportDirectory>/maty_database.sqlite
 ```
 
-Cesta se skládá pomocí `path` package (`p.join(dir.path, 'maty_database.sqlite')`). Na macOS typicky `~/Library/Containers/.../Data/Documents/`, na Android `data/data/<package>/files/`.
+Cesta se skládá pomocí `path` package (`p.join(dir.path, 'maty_database.sqlite')`). Na macOS typicky `~/Library/Application Support/com.example.maty/`, na Android `data/data/<package>/files/`.
 
 ### Mazání lokálních dat (Clean Install)
 
@@ -1042,7 +1044,7 @@ Všechny aktivní tabulky obsahují společné sync sloupce (viz [SyncColumnsMix
 | Tabulka | Sloupce |
 |---------|---------|
 | **companies** | id (T), name (T), status (T — CompanyStatus), business_id (T?), address (T?), phone (T?), email (T?), vat_number (T?), country (T?), city (T?), postal_code (T?), timezone (T?), business_type (T?), default_currency_id →currencies, auth_user_id (T — uuid na Supabase, FK na auth.users), is_demo (B, default false), demo_expires_at (DT?) |
-| **company_settings** | id (T), company_id →companies, require_pin_on_switch (B, default true), auto_lock_timeout_minutes (I?), loyalty_earn_rate (I, default 0), loyalty_point_value (I, default 0), locale (T, default 'cs'), negative_stock_policy (T — NegativeStockPolicy, default 'allow') |
+| **company_settings** | id (T), company_id →companies, require_pin_on_switch (B, default true), auto_lock_timeout_minutes (I?), loyalty_earn_rate (I, default 0), loyalty_point_value (I, default 0), locale (T, default 'cs'), negative_stock_policy (T — NegativeStockPolicy, default 'allow'), bill_age_warning_minutes (I, default 15), bill_age_danger_minutes (I, default 30), bill_age_critical_minutes (I, default 45) |
 | **users** | id (T), company_id →companies, auth_user_id (T?), username (T), full_name (T), email (T?), phone (T?), pin_hash (T), pin_enabled (B, default true), role_id →roles, is_active (B, default true) |
 | **roles** | id (T), name (T — RoleName enum) |
 | **permissions** | id (T), code (T), name (T), description (T?), category (T) |
@@ -1097,12 +1099,12 @@ Všechny aktivní tabulky obsahují společné sync sloupce (viz [SyncColumnsMix
 | **warehouses** | id (T), company_id →companies, name (T), is_default (B, default false), is_active (B, default true) |
 | **stock_levels** | id (T), company_id →companies, warehouse_id →warehouses, item_id →items, quantity (R, default 0.0), min_quantity (R?) |
 | **stock_documents** | id (T), company_id →companies, warehouse_id →warehouses, supplier_id →suppliers?, user_id →users, document_number (T), type (T — StockDocumentType), purchase_price_strategy (T? — PurchasePriceStrategy), note (T?), total_amount (I, default 0), document_date (D) |
-| **stock_movements** | id (T), company_id →companies, stock_document_id →stock_documents?, item_id →items, quantity (R), purchase_price (I?), direction (T — StockMovementDirection), purchase_price_strategy (T? — PurchasePriceStrategy per-item override) |
+| **stock_movements** | id (T), company_id →companies, stock_document_id →stock_documents?, bill_id →bills?, item_id →items, quantity (R), purchase_price (I?), direction (T — StockMovementDirection), purchase_price_strategy (T? — PurchasePriceStrategy per-item override) |
 
 **Pravidla:**
 - `stock_levels` — composite index na `(warehouse_id, item_id)`, lazy created přes `getOrCreate`
 - `stock_documents` — `supplier_id` a `purchase_price_strategy` pouze pro typ `receipt`
-- `stock_movements` — `stock_document_id` nullable: null pro automatické prodejní odpisy, nastaveno pro ruční doklady
+- `stock_movements` — `stock_document_id` nullable: null pro automatické prodejní odpisy, nastaveno pro ruční doklady. `bill_id` nullable: nastaveno pro prodejní odpisy (vazba na účet), null pro dokladové pohyby
 - `purchase_price_strategy` na movements — per-item override, nullable (fallback na strategii dokladu)
 
 ##### Display devices (párování displejů)
@@ -1339,10 +1341,12 @@ Edge Function `create-demo-data` (`supabase/functions/create-demo-data/index.ts`
 5. Vrátí `{ company_id, register_id }`
 
 **SQL funkce `create_demo_company`** (`supabase/migrations/20260224_004_create_demo_company_function.sql`):
+- `SECURITY DEFINER`, `SET search_path = public, extensions` (pgcrypto v extensions schématu)
 - Načítá šablony z tabulky `seed_demo_data` (4 varianty: cs/gastro, cs/retail, en/gastro, en/retail)
-- Generuje: firmu s kompletními údaji (IČO, DIČ, email, telefon, adresa — fiktivní, lokalizované), company_settings, 4 uživatele (PIN 1111), tax rates, payment methods, warehouses, sections, tables, categories, items, modifiers, suppliers, manufacturers, customers, vouchers
+- Generuje: firmu s kompletními údaji (IČO, DIČ, email, telefon, adresa — fiktivní, lokalizované), company_settings, 4 uživatele (PIN 1111), tax rates, payment methods, warehouses, sections, tables, categories, items, modifiers, suppliers, manufacturers, customers, vouchers (kódy `XXXX-XXXX` generovány náhodně v SQL)
 - **90-day history loop:** Pro každý den vytváří register sessions, shifts, bills s orders a payments, cash movements, stock documents, reservations, customer transactions
 - Multi-currency support (cizí měna s manuálním kurzem)
+- **LWW guard:** dnešní session UPDATE používá `greatest(v_now, v_session_open)` pro `client_updated_at` — prevence LWW konfliktu když `v_session_open > v_now`
 
 **Seed data** (`supabase/migrations/20260224_003_seed_demo_data.sql`):
 - Tabulka `seed_demo_data` s 4 variantami dat (locale × mode)
@@ -1665,7 +1669,7 @@ Bill totaly se přepočítávají **po každé změně** (createOrder, cancelOrd
 6. `bill_discount = discount_type == percent ? (subtotal_gross × discount_amount / 10000) : discount_amount`
 7. `bill.total_gross = subtotal_gross - bill_discount - loyalty_discount_amount - voucher_discount_amount + rounding_amount`
 
-**Slevy (od Etapy 3.2):** 2 úrovně — položka (`order_items.discount` + `discount_type`) a účet (`bills.discount_amount` + `discount_type`). `DiscountType` enum: `absolute` (v haléřích) nebo `percent` (v setinách procenta, 10000 = 100%). UI: `DialogDiscount` s přepínačem Kč/%, numpadem a náhledem efektivní slevy. Slevy na úrovni objednávky (Order) neexistují.
+**Slevy (od Etapy 3.2):** 2 úrovně — položka (`order_items.discount` + `discount_type`) a účet (`bills.discount_amount` + `discount_type`). `DiscountType` enum: `absolute` (v haléřích) nebo `percent` (v setinách procenta, 10000 = 100%). UI: `DialogDiscount` s přepínačem Kč/%, numpadem a náhledem efektivní slevy. Kontextový titulek: „Sleva na celý účet" při aplikaci na bill, „Sleva na položku" při aplikaci na item. Slevy na úrovni objednávky (Order) neexistují.
 
 **Voucher slevy — scope-aware výpočet s per-item atribucí:**
 
@@ -2036,7 +2040,7 @@ stateDiagram-v2
 #### BillRepository
 
 - **Query:** watchByCompany (s filtry status/section — filtruje účty podle `tableId` přes tabulky v dané sekci, nebo podle `sectionId` pro účty bez stolu), watchById, watchByStatus, getById, getByCompany
-- **Business:** createBill (atomická transakce: `_generateBillNumber` + INSERT; přijímá volitelný `sectionId` — vždy se nastavuje, i pro rychlý prodej a konverzi na účet kde se resolvuje výchozí sekce), updateTotals (s discount + loyalty + voucher kalkulací), recordPayment (v transakci: vytvoří Payment + aktualizuje Bill + uloží loyaltyPointsEarned, podpora tipAmount pro přeplatky; po transakci: aktualizuje customer.totalSpent + lastVisitDate a přiřadí auto-earned loyalty body), cancelBill (cancel/void jednotlivých orders před transakcí, update bill status + enqueue v transakci, vrácení redeemed loyalty bodů), updateDiscount (bill-level sleva), moveBill (přesun účtu na jiný stůl/sekci — nastaví tableId, numberOfGuests, isTakeaway=false), refundBill (záporné platby za každou orig. platbu + auto CashMovement + reversal earned/redeemed loyalty bodů + reversal totalSpent), refundItem (záporná platba za položku + void item + auto CashMovement + proporcionální reversal earned loyalty bodů + reversal totalSpent; při plném refundu vrátí i redeemed body), mergeBill (přesun všech objednávek na cílový účet přes OrderRepository, zdrojový účet → cancelled), splitBill (přesun vybraných položek na cílový účet přes OrderRepository, přepočet totalů obou účtů), applyLoyaltyDiscount (aplikace slevy z věrnostních bodů), applyVoucher (aplikace voucheru na účet), removeVoucher (odebrání voucheru z účtu), updateCustomer (přiřazení/odebrání zákazníka), updateMapPosition (pozice účtu na mapě), updateCustomerName (jméno zákazníka bez vazby)
+- **Business:** createBill (atomická transakce: `_generateBillNumber` + INSERT; přijímá volitelný `sectionId` — vždy se nastavuje, i pro rychlý prodej a konverzi na účet kde se resolvuje výchozí sekce), updateTotals (s discount + loyalty + voucher kalkulací), recordPayment (v transakci: vytvoří Payment + aktualizuje Bill + uloží loyaltyPointsEarned, podpora tipAmount pro přeplatky; po transakci: aktualizuje customer.totalSpent + lastVisitDate a přiřadí auto-earned loyalty body), cancelBill (cancel/void jednotlivých orders před transakcí, update bill status + enqueue v transakci, vrácení redeemed loyalty bodů), updateDiscount (bill-level sleva), moveBill (přesun účtu na jiný stůl/sekci — nastaví tableId, numberOfGuests, isTakeaway=false, vymaže mapPosX/mapPosY pro snap na nový stůl), refundBill (záporné platby za každou orig. platbu + auto CashMovement + reversal earned/redeemed loyalty bodů + reversal totalSpent), refundItem (záporná platba za položku + void item + auto CashMovement + proporcionální reversal earned loyalty bodů + reversal totalSpent; při plném refundu vrátí i redeemed body), mergeBill (přesun všech objednávek na cílový účet přes OrderRepository, zdrojový účet → cancelled), splitBill (přesun vybraných položek na cílový účet přes OrderRepository, přepočet totalů obou účtů), applyLoyaltyDiscount (aplikace slevy z věrnostních bodů), applyVoucher (aplikace voucheru na účet), removeVoucher (odebrání voucheru z účtu), updateCustomer (přiřazení/odebrání zákazníka), updateMapPosition (pozice účtu na mapě), updateCustomerName (jméno zákazníka bez vazby)
 - **Závislosti:** Injektovaný `OrderRepository` (pro merge/split operace), `CustomerRepository` (pro loyalty body)
 - **Sync:** Injektovaný `SyncQueueRepository`, ruční enqueue — `_enqueueBill`, `_enqueueOrderItem`, `_enqueuePayment`, `_enqueueCashMovement`. Každá mutace po sobě enqueueuje všechny dotčené entity. DB operace v transakcích, enqueue vždy mimo transakci. (Order enqueue řeší `OrderRepository`.)
 
@@ -2121,7 +2125,7 @@ stateDiagram-v2
 
 - **Extends:** `BaseCompanyScopedRepository<VoucherModel>` — automatický CRUD + sync
 - **Query:** watchFiltered (company + volitelný filtr typu a stavu)
-- **Business:** create (generování unikátního kódu, validace, uložení s `createdByUserId`), redeem (inkrementuje `usedCount` o `usesConsumed`, nastaví status/redeemedAt/redeemedOnBillId pokud plně využit), unredeem (dekrementuje `usedCount`, nastaví `status = active` pokud `usedCount < maxUses`, vymaže redeemedAt/redeemedOnBillId), validate (kontrola expirace, stavu, limitu použití, min. hodnoty účtu, zákazníka)
+- **Business:** create (generování unikátního číselného kódu `XXXX-XXXX`, validace, uložení s `createdByUserId`), redeem (inkrementuje `usedCount` o `usesConsumed`, nastaví status/redeemedAt/redeemedOnBillId pokud plně využit), unredeem (dekrementuje `usedCount`, nastaví `status = active` pokud `usedCount < maxUses`, vymaže redeemedAt/redeemedOnBillId), validate (kontrola expirace, stavu, limitu použití, min. hodnoty účtu, zákazníka)
 
 ---
 
@@ -2927,6 +2931,8 @@ POS aplikace je **pracovní nástroj**, ne marketingový produkt. Design optimal
 
 > **Jemné rozlišení:** Pokud jsou dvě primární akce blízko sebe (např. "Vytvořit účet" × "Rychlý účet"), použije se **stejná barva, ale jiná tonalita** (plná vs tónovaná).
 
+**Stáří účtu (bill age):** `AppColors.billAgeColor(lastOrderTime, settings)` — modrá (< warningMinutes), žlutá (warning–danger), oranžová (danger–critical), červená (> critical nebo null). Práhy konfigurovatelné v `company_settings` (default 15/30/45 min). Použito v FloorMapView (kruhy účtů) a ScreenBills (sloupec Poslední objednávka).
+
 ### Specifikace tlačítek
 
 Globální theme (`app.dart` → `_buildTheme`) definuje styl pro `FilledButton`, `OutlinedButton` a `FilterChip` na jednom místě.
@@ -3012,7 +3018,7 @@ Layout: **80/20 horizontální split**
 - **Tabulka:** Stůl, Host, Počet hostů, Celkem, Poslední objednávka (relativní čas), Obsluha
 - **Barva řádku** = status účtu (opened=modrá, paid=zelená, cancelled=růžová, refunded=oranžová v rámci zelené skupiny)
 - **Sloupec Host:** Zobrazuje jméno přiřazeného zákazníka (customer_id → customers)
-- **Sloupec Poslední objednávka:** Relativní čas (< 1min, Xmin, Xh Ym) — aktualizuje se reaktivně ze streamu
+- **Sloupec Poslední objednávka:** Relativní čas (< 1min, Xmin, Xh Ym) — aktualizuje se reaktivně ze streamu. Pro otevřené účty barevně kódováno dle stáří: modrá (< warning), žlutá (warning–danger), oranžová (danger–critical), červená (> critical nebo bez objednávek). Účty bez objednávek zobrazují lokalizovaný text „žádná" červeně
 - **Session scoping:** Při aktivní register session se zobrazují pouze účty patřící do aktuální session (`registerSessionId == activeSession.id`). Bez aktivní session se zobrazují všechny účty.
 - **Bottom bar:** FilterChip pro filtrování podle statusu (Otevřené, Zaplacené, Stornované) — 3 chipy
   - **Výchozí stav:** Pouze "Otevřené" vybrané
@@ -3024,6 +3030,7 @@ Layout: **80/20 horizontální split**
 **Pravý panel (290px, collapsible):**
 - **Skrytí/zobrazení:** Panel je sbalovací (`AnimatedContainer` width 290↔0). Toggle „ucho" (tab-styled) je v pravém okraji section tab baru (chevron ikona).
 
+- **Layout tlačítek:** Vertikální `Column` (ikona nahoře, text dole) — kompaktní, touch-friendly.
 - **Řada 1:** RYCHLÝ ÚČET (tonal, → `/sell`) + VYTVOŘIT ÚČET (tonal, → DialogNewBill). Oba disabled bez aktivní session.
 - **Řada 2:** POKLADNÍ DENÍK (tonal, → DialogCashJournal, disabled bez session) + KATALOG (tonal, → `/catalog`, vyžaduje `products.*`)
 - **Řada 3:** OBJEDNÁVKY (tonal, → `/orders`, vyžaduje `orders.view`) + REZERVACE (tonal, → DialogReservationsList)
@@ -3039,9 +3046,10 @@ Layout: **80/20 horizontální split**
 - Mřížka 32×20 buněk, zobrazení per-sekce (single-select FilterChip nahoře, bez tlačítka Řazení)
 - **Stoly:** Obdélník/ovál dle tvaru, barva dle sekce (25% alfa výplň, 60% alfa obrys), název stolu uprostřed
 - **Dekorativní prvky:** Barevné prvky pod stoly, textové popisky nad stoly (neinteraktivní)
-- **Otevřené účty:** Modré kruhy s částkou (`totalGross ~/ 100,-`) — zobrazují se nad stoly
-  - Pozice: `mapPosX`/`mapPosY` (pokud uloženy), jinak automaticky centrované na stolu
-  - Více účtů na jednom stole: horizontálně rozloženy
+- **Otevřené účty:** Kruhy s částkou (`wholeUnitsFromMinor`) a volitelně jménem zákazníka — zobrazují se nad stoly
+  - Barva kruhu dle stáří poslední objednávky: modrá (< warning), žlutá (warning–danger), oranžová (danger–critical), červená (> critical nebo bez objednávek). Práh konfigurovatelný v `company_settings` (`bill_age_warning/danger/critical_minutes`)
+  - Pozice: `mapPosX`/`mapPosY` (pokud uloženy), jinak automaticky rozmístěny po obvodu tvaru stolu (`_tableEdgePosition` — obdélník, ovál, trojúhelník, kosočtverec)
+  - Více účtů na jednom stole: rovnoměrně rozloženy po hraně stolu
 - **Interakce:**
   - Tap na stůl → vytvoření nového účtu na stole (`onTableTap`)
   - Tap na kruh účtu → otevření DialogBillDetail (`onBillTap`)
@@ -3085,17 +3093,17 @@ Dialog (750×520px) s informacemi o účtu a historií objednávek. 3-řádkový
 |----------|-------|-------|
 | OBJEDNAT | E2 | Navigace na ScreenSell (`/sell/{billId}`) |
 | ZAPLATIT | E2 | Otevře DialogPayment (jen pokud totalGross > 0) |
-| STORNO | E2 | Storno účtu (cancelBill, s potvrzením) |
+| STORNO | E2 | Storno účtu (cancelBill; prázdný účet bez objednávek → okamžité storno bez potvrzení; účet s objednávkami → potvrzovací dialog) |
 | ZAVŘÍT | E2 | Zavře dialog (Navigator.pop) |
 | REFUND | E3.2 | Refund celého účtu (jen pro paid bill, s potvrzením) |
-| SLEVA | E3.2 | Toggle: pokud účet nemá slevu → DialogDiscount; pokud účet má slevu → potvrzovací dialog → odebrání slevy (updateDiscount na 0) |
+| SLEVA | E3.2 | Toggle: pokud účet nemá slevu → DialogDiscount (s kontextovým titulem „Sleva na celý účet" / „Sleva na položku"); pokud účet má slevu → potvrzovací dialog → odebrání slevy (updateDiscount na 0) |
 | ZÁKAZNÍK | E3.7 | Přiřazení zákazníka k účtu (DialogCustomerSearch, jen pro otevřené účty) |
 | PŘESUNOUT | E3.2 | Přesun na jiný stůl (DialogNewBill s předvyplněnými hodnotami → moveBill) |
 | SLOUČIT | E3.2 | Sloučení účtů — DialogMergeBill (výběr cílového otevřeného účtu → mergeBill, zdrojový účet cancelled, otevře se detail cílového) |
 | ROZDĚLIT | E3.2 | Rozdělení účtu — DialogSplitBill (výběr položek, dva režimy: "rozdělit a zaplatit" → nový účet + DialogPayment, "rozdělit na nový účet" → DialogNewBill + nový účet) |
 | SUMÁŘ | E3.2 | Toggle sumář/historie objednávek (seskupené položky dle názvu a ceny) |
 | LOYALTY | E3.7 | Uplatnění věrnostních bodů (DialogLoyaltyRedeem, jen pro otevřené účty s přiřazeným zákazníkem) |
-| VOUCHER | E3.7 | Toggle: pokud účet nemá voucher → DialogVoucherRedeem (zadání kódu → validace → aplikace slevy); pokud účet má voucher → potvrzovací dialog → odebrání voucheru (unredeem uses, clearVoucherDiscounts, removeVoucher) |
+| VOUCHER | E3.7 | Toggle: pokud účet nemá voucher → DialogVoucherRedeem (numpad pro zadání číselného kódu `XXXX-XXXX` → validace → aplikace slevy); pokud účet má voucher → potvrzovací dialog → odebrání voucheru (unredeem uses, clearVoucherDiscounts, removeVoucher) |
 | TISK | E3.7 | Tisk účtenky (DialogReceiptPreview — PDF generace a náhled) |
 
 #### DialogPayment (platba účtu)
@@ -3286,7 +3294,7 @@ Layout: **3 taby + akční tlačítka**
 
 **Tab Zásoby:** DataTable s JOIN na items (StockLevelWithItem). Sloupce: Položka, Jednotka, Množství (červeně pod min), Min.množství, Nákupní cena, Celková hodnota. Footer: celková hodnota skladu.
 
-**Tab Doklady:** DataTable se stock_documents. Sloupce: Číslo dokladu, Typ, Datum, Dodavatel (resolved přes supplier stream), Poznámka, Celkem.
+**Tab Doklady:** DataTable se stock_documents. Sloupce: Číslo dokladu, Typ, Datum, Dodavatel (resolved přes supplier stream), Poznámka, Celkem. Tap na řádek → DialogStockDocumentDetail (hlavička dokladu + tabulka pohybů + tlačítko Tisk).
 
 **Tab Pohyby:** DataTable s historií skladových pohybů (stock_movements) s vyhledáváním.
 

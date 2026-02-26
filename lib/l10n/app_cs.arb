@@ -58,6 +58,7 @@
   "columnLastOrder": "Posl. obj.",
   "columnStaff": "Obsluha",
   "billTimeJustNow": "právě teď",
+  "billTimeNoOrder": "žádná",
 
   "infoPanelDate": "Datum",
   "infoPanelStatus": "Stav pokladny",
@@ -65,7 +66,7 @@
   "infoPanelActiveUser": "Aktivní obsluha",
   "infoPanelLoggedIn": "Další přihlášení",
 
-  "actionSwitchUser": "Zamknout / Přepnout",
+  "actionSwitchUser": "Přepnout",
   "actionLogout": "Odhlásit",
 
   "switchUserTitle": "Přepnout obsluhu",
@@ -420,6 +421,8 @@
     }
   },
 
+  "discountTitleBill": "Sleva na celý účet",
+  "discountTitleItem": "Sleva na položku",
   "billDetailDiscount": "Sleva",
   "billDetailRemoveDiscount": "Zrušit slevu",
   "billDetailRemoveDiscountConfirm": "Odebrat slevu z tohoto účtu?",

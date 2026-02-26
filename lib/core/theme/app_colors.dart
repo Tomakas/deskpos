@@ -239,3 +239,24 @@ Color valueChangeColor(num value, BuildContext context) {
   if (value > 0) return context.appColors.positive;
   return Theme.of(context).colorScheme.error;
 }
+
+/// Returns a color based on how old the last order is.
+///
+/// - null (no order) → red
+/// - ≤ [warningMin] → blue
+/// - ≤ [dangerMin] → amber/yellow
+/// - ≤ [criticalMin] → orange
+/// - > [criticalMin] → red
+Color billAgeColor(
+  DateTime? lastOrderTime, {
+  required int warningMin,
+  required int dangerMin,
+  required int criticalMin,
+}) {
+  if (lastOrderTime == null) return Colors.red;
+  final minutes = DateTime.now().difference(lastOrderTime).inMinutes;
+  if (minutes <= warningMin) return Colors.blue;
+  if (minutes <= dangerMin) return Colors.amber.shade700;
+  if (minutes <= criticalMin) return Colors.orange;
+  return Colors.red;
+}

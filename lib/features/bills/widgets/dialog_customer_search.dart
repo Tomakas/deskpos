@@ -376,16 +376,9 @@ class _DialogCustomerDbSearchState
       itemBuilder: (context, i) {
         final c = customers[i];
         final contactInfo = [c.email, c.phone].whereType<String>().join(' | ');
-        final loyaltyInfo = context.l10n.loyaltyCustomerInfo(
-          c.points,
-          ref.money(c.credit),
-        );
         return ListTile(
           title: Text('${c.firstName} ${c.lastName}'),
-          subtitle: Text(
-            contactInfo.isNotEmpty ? '$contactInfo\n$loyaltyInfo' : loyaltyInfo,
-          ),
-          isThreeLine: contactInfo.isNotEmpty,
+          subtitle: contactInfo.isNotEmpty ? Text(contactInfo) : null,
           onTap: () => Navigator.pop(context, c),
         );
       },

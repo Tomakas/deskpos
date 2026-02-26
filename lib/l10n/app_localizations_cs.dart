@@ -149,6 +149,9 @@ class AppLocalizationsCs extends AppLocalizations {
   String get billTimeJustNow => 'právě teď';
 
   @override
+  String get billTimeNoOrder => 'žádná';
+
+  @override
   String get infoPanelDate => 'Datum';
 
   @override
@@ -164,7 +167,7 @@ class AppLocalizationsCs extends AppLocalizations {
   String get infoPanelLoggedIn => 'Další přihlášení';
 
   @override
-  String get actionSwitchUser => 'Zamknout / Přepnout';
+  String get actionSwitchUser => 'Přepnout';
 
   @override
   String get actionLogout => 'Odhlásit';
@@ -1020,6 +1023,12 @@ class AppLocalizationsCs extends AppLocalizations {
   String paymentBillSubtitle(String billNumber, String tableName) {
     return 'Účet $billNumber - $tableName';
   }
+
+  @override
+  String get discountTitleBill => 'Sleva na celý účet';
+
+  @override
+  String get discountTitleItem => 'Sleva na položku';
 
   @override
   String get billDetailDiscount => 'Sleva';

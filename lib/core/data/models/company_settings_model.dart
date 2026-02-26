@@ -16,6 +16,10 @@ abstract class CompanySettingsModel with _$CompanySettingsModel implements Compa
     @Default(0) int loyaltyPointValue,
     @Default('cs') String locale,
     @Default(NegativeStockPolicy.allow) NegativeStockPolicy negativeStockPolicy,
+    // TODO: Add UI for editing these thresholds in company settings screen.
+    @Default(15) int billAgeWarningMinutes,
+    @Default(30) int billAgeDangerMinutes,
+    @Default(45) int billAgeCriticalMinutes,
     required DateTime createdAt,
     required DateTime updatedAt,
     DateTime? deletedAt,

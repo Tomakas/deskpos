@@ -56,6 +56,9 @@ class CompanySettingsRepository
         loyaltyPointValue: Value(m.loyaltyPointValue),
         locale: Value(m.locale),
         negativeStockPolicy: Value(m.negativeStockPolicy),
+        billAgeWarningMinutes: Value(m.billAgeWarningMinutes),
+        billAgeDangerMinutes: Value(m.billAgeDangerMinutes),
+        billAgeCriticalMinutes: Value(m.billAgeCriticalMinutes),
         updatedAt: Value(DateTime.now()),
       );
 

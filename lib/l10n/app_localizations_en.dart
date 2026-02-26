@@ -149,6 +149,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get billTimeJustNow => 'just now';
 
   @override
+  String get billTimeNoOrder => 'none';
+
+  @override
   String get infoPanelDate => 'Date';
 
   @override
@@ -164,7 +167,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get infoPanelLoggedIn => 'Other Logins';
 
   @override
-  String get actionSwitchUser => 'Lock / Switch';
+  String get actionSwitchUser => 'Switch';
 
   @override
   String get actionLogout => 'Logout';
@@ -1022,6 +1025,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String paymentBillSubtitle(String billNumber, String tableName) {
     return 'Bill $billNumber - $tableName';
   }
+
+  @override
+  String get discountTitleBill => 'Bill discount';
+
+  @override
+  String get discountTitleItem => 'Item discount';
 
   @override
   String get billDetailDiscount => 'Discount';

@@ -2,10 +2,10 @@
 set -euo pipefail
 
 URL="https://rrnvlsguhkelracusofe.supabase.co/functions/v1/reset-db"
-LOCAL_DB="$HOME/Documents/maty_database.sqlite"
+LOCAL_DB_DIR="$HOME/Library/Application Support/com.example.maty"
 
 echo "This will DELETE all company data and auth users from Supabase"
-echo "and remove the local SQLite database ($LOCAL_DB)."
+echo "and remove the local SQLite database in $LOCAL_DB_DIR."
 echo "Global data (currencies, roles, permissions) will be preserved."
 echo ""
 printf "Password: "
@@ -51,9 +51,10 @@ else
   exit 1
 fi
 
-# Remove local SQLite database
+# Remove local SQLite database (includes WAL/SHM files)
+LOCAL_DB="$LOCAL_DB_DIR/maty_database.sqlite"
 if [ -f "$LOCAL_DB" ]; then
-  rm -f "$LOCAL_DB"
+  rm -f "$LOCAL_DB" "$LOCAL_DB-wal" "$LOCAL_DB-shm"
   echo "Local database deleted: $LOCAL_DB"
 else
   echo "Local database not found (already clean)."

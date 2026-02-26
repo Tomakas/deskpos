@@ -1571,6 +1571,8 @@ class _StockShortageTable extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Text(text,
           textAlign: align,
+          overflow: TextOverflow.ellipsis,
+          maxLines: 1,
           style: theme.textTheme.bodyMedium
               ?.copyWith(color: color)),
     );

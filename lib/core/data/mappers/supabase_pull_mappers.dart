@@ -443,6 +443,9 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
               ? NegativeStockPolicy.values.byName(json['negative_stock_policy'] as String)
               : NegativeStockPolicy.allow,
         ),
+        billAgeWarningMinutes: Value(json['bill_age_warning_minutes'] as int? ?? 15),
+        billAgeDangerMinutes: Value(json['bill_age_danger_minutes'] as int? ?? 30),
+        billAgeCriticalMinutes: Value(json['bill_age_critical_minutes'] as int? ?? 45),
         createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
         updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
         deletedAt: Value(_parseDateTime(json['deleted_at'])),

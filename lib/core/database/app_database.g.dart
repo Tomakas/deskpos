@@ -7861,6 +7861,39 @@ class $CompanySettingsTable extends CompanySettings
       ).withConverter<NegativeStockPolicy>(
         $CompanySettingsTable.$converternegativeStockPolicy,
       );
+  static const VerificationMeta _billAgeWarningMinutesMeta =
+      const VerificationMeta('billAgeWarningMinutes');
+  @override
+  late final GeneratedColumn<int> billAgeWarningMinutes = GeneratedColumn<int>(
+    'bill_age_warning_minutes',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(15),
+  );
+  static const VerificationMeta _billAgeDangerMinutesMeta =
+      const VerificationMeta('billAgeDangerMinutes');
+  @override
+  late final GeneratedColumn<int> billAgeDangerMinutes = GeneratedColumn<int>(
+    'bill_age_danger_minutes',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(30),
+  );
+  static const VerificationMeta _billAgeCriticalMinutesMeta =
+      const VerificationMeta('billAgeCriticalMinutes');
+  @override
+  late final GeneratedColumn<int> billAgeCriticalMinutes = GeneratedColumn<int>(
+    'bill_age_critical_minutes',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(45),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     lastSyncedAt,
@@ -7878,6 +7911,9 @@ class $CompanySettingsTable extends CompanySettings
     loyaltyPointValue,
     locale,
     negativeStockPolicy,
+    billAgeWarningMinutes,
+    billAgeDangerMinutes,
+    billAgeCriticalMinutes,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -7997,6 +8033,33 @@ class $CompanySettingsTable extends CompanySettings
         locale.isAcceptableOrUnknown(data['locale']!, _localeMeta),
       );
     }
+    if (data.containsKey('bill_age_warning_minutes')) {
+      context.handle(
+        _billAgeWarningMinutesMeta,
+        billAgeWarningMinutes.isAcceptableOrUnknown(
+          data['bill_age_warning_minutes']!,
+          _billAgeWarningMinutesMeta,
+        ),
+      );
+    }
+    if (data.containsKey('bill_age_danger_minutes')) {
+      context.handle(
+        _billAgeDangerMinutesMeta,
+        billAgeDangerMinutes.isAcceptableOrUnknown(
+          data['bill_age_danger_minutes']!,
+          _billAgeDangerMinutesMeta,
+        ),
+      );
+    }
+    if (data.containsKey('bill_age_critical_minutes')) {
+      context.handle(
+        _billAgeCriticalMinutesMeta,
+        billAgeCriticalMinutes.isAcceptableOrUnknown(
+          data['bill_age_critical_minutes']!,
+          _billAgeCriticalMinutesMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -8069,6 +8132,18 @@ class $CompanySettingsTable extends CompanySettings
               data['${effectivePrefix}negative_stock_policy'],
             )!,
           ),
+      billAgeWarningMinutes: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}bill_age_warning_minutes'],
+      )!,
+      billAgeDangerMinutes: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}bill_age_danger_minutes'],
+      )!,
+      billAgeCriticalMinutes: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}bill_age_critical_minutes'],
+      )!,
     );
   }
 
@@ -8099,6 +8174,9 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
   final int loyaltyPointValue;
   final String locale;
   final NegativeStockPolicy negativeStockPolicy;
+  final int billAgeWarningMinutes;
+  final int billAgeDangerMinutes;
+  final int billAgeCriticalMinutes;
   const CompanySetting({
     this.lastSyncedAt,
     required this.version,
@@ -8115,6 +8193,9 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
     required this.loyaltyPointValue,
     required this.locale,
     required this.negativeStockPolicy,
+    required this.billAgeWarningMinutes,
+    required this.billAgeDangerMinutes,
+    required this.billAgeCriticalMinutes,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -8150,6 +8231,9 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
         ),
       );
     }
+    map['bill_age_warning_minutes'] = Variable<int>(billAgeWarningMinutes);
+    map['bill_age_danger_minutes'] = Variable<int>(billAgeDangerMinutes);
+    map['bill_age_critical_minutes'] = Variable<int>(billAgeCriticalMinutes);
     return map;
   }
 
@@ -8180,6 +8264,9 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
       loyaltyPointValue: Value(loyaltyPointValue),
       locale: Value(locale),
       negativeStockPolicy: Value(negativeStockPolicy),
+      billAgeWarningMinutes: Value(billAgeWarningMinutes),
+      billAgeDangerMinutes: Value(billAgeDangerMinutes),
+      billAgeCriticalMinutes: Value(billAgeCriticalMinutes),
     );
   }
 
@@ -8207,6 +8294,15 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
       locale: serializer.fromJson<String>(json['locale']),
       negativeStockPolicy: $CompanySettingsTable.$converternegativeStockPolicy
           .fromJson(serializer.fromJson<String>(json['negativeStockPolicy'])),
+      billAgeWarningMinutes: serializer.fromJson<int>(
+        json['billAgeWarningMinutes'],
+      ),
+      billAgeDangerMinutes: serializer.fromJson<int>(
+        json['billAgeDangerMinutes'],
+      ),
+      billAgeCriticalMinutes: serializer.fromJson<int>(
+        json['billAgeCriticalMinutes'],
+      ),
     );
   }
   @override
@@ -8232,6 +8328,9 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
           negativeStockPolicy,
         ),
       ),
+      'billAgeWarningMinutes': serializer.toJson<int>(billAgeWarningMinutes),
+      'billAgeDangerMinutes': serializer.toJson<int>(billAgeDangerMinutes),
+      'billAgeCriticalMinutes': serializer.toJson<int>(billAgeCriticalMinutes),
     };
   }
 
@@ -8251,6 +8350,9 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
     int? loyaltyPointValue,
     String? locale,
     NegativeStockPolicy? negativeStockPolicy,
+    int? billAgeWarningMinutes,
+    int? billAgeDangerMinutes,
+    int? billAgeCriticalMinutes,
   }) => CompanySetting(
     lastSyncedAt: lastSyncedAt.present ? lastSyncedAt.value : this.lastSyncedAt,
     version: version ?? this.version,
@@ -8273,6 +8375,10 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
     loyaltyPointValue: loyaltyPointValue ?? this.loyaltyPointValue,
     locale: locale ?? this.locale,
     negativeStockPolicy: negativeStockPolicy ?? this.negativeStockPolicy,
+    billAgeWarningMinutes: billAgeWarningMinutes ?? this.billAgeWarningMinutes,
+    billAgeDangerMinutes: billAgeDangerMinutes ?? this.billAgeDangerMinutes,
+    billAgeCriticalMinutes:
+        billAgeCriticalMinutes ?? this.billAgeCriticalMinutes,
   );
   CompanySetting copyWithCompanion(CompanySettingsCompanion data) {
     return CompanySetting(
@@ -8307,6 +8413,15 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
       negativeStockPolicy: data.negativeStockPolicy.present
           ? data.negativeStockPolicy.value
           : this.negativeStockPolicy,
+      billAgeWarningMinutes: data.billAgeWarningMinutes.present
+          ? data.billAgeWarningMinutes.value
+          : this.billAgeWarningMinutes,
+      billAgeDangerMinutes: data.billAgeDangerMinutes.present
+          ? data.billAgeDangerMinutes.value
+          : this.billAgeDangerMinutes,
+      billAgeCriticalMinutes: data.billAgeCriticalMinutes.present
+          ? data.billAgeCriticalMinutes.value
+          : this.billAgeCriticalMinutes,
     );
   }
 
@@ -8327,7 +8442,10 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
           ..write('loyaltyEarnRate: $loyaltyEarnRate, ')
           ..write('loyaltyPointValue: $loyaltyPointValue, ')
           ..write('locale: $locale, ')
-          ..write('negativeStockPolicy: $negativeStockPolicy')
+          ..write('negativeStockPolicy: $negativeStockPolicy, ')
+          ..write('billAgeWarningMinutes: $billAgeWarningMinutes, ')
+          ..write('billAgeDangerMinutes: $billAgeDangerMinutes, ')
+          ..write('billAgeCriticalMinutes: $billAgeCriticalMinutes')
           ..write(')'))
         .toString();
   }
@@ -8349,6 +8467,9 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
     loyaltyPointValue,
     locale,
     negativeStockPolicy,
+    billAgeWarningMinutes,
+    billAgeDangerMinutes,
+    billAgeCriticalMinutes,
   );
   @override
   bool operator ==(Object other) =>
@@ -8368,7 +8489,10 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
           other.loyaltyEarnRate == this.loyaltyEarnRate &&
           other.loyaltyPointValue == this.loyaltyPointValue &&
           other.locale == this.locale &&
-          other.negativeStockPolicy == this.negativeStockPolicy);
+          other.negativeStockPolicy == this.negativeStockPolicy &&
+          other.billAgeWarningMinutes == this.billAgeWarningMinutes &&
+          other.billAgeDangerMinutes == this.billAgeDangerMinutes &&
+          other.billAgeCriticalMinutes == this.billAgeCriticalMinutes);
 }
 
 class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
@@ -8387,6 +8511,9 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
   final Value<int> loyaltyPointValue;
   final Value<String> locale;
   final Value<NegativeStockPolicy> negativeStockPolicy;
+  final Value<int> billAgeWarningMinutes;
+  final Value<int> billAgeDangerMinutes;
+  final Value<int> billAgeCriticalMinutes;
   final Value<int> rowid;
   const CompanySettingsCompanion({
     this.lastSyncedAt = const Value.absent(),
@@ -8404,6 +8531,9 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
     this.loyaltyPointValue = const Value.absent(),
     this.locale = const Value.absent(),
     this.negativeStockPolicy = const Value.absent(),
+    this.billAgeWarningMinutes = const Value.absent(),
+    this.billAgeDangerMinutes = const Value.absent(),
+    this.billAgeCriticalMinutes = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   CompanySettingsCompanion.insert({
@@ -8422,6 +8552,9 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
     this.loyaltyPointValue = const Value.absent(),
     this.locale = const Value.absent(),
     this.negativeStockPolicy = const Value.absent(),
+    this.billAgeWarningMinutes = const Value.absent(),
+    this.billAgeDangerMinutes = const Value.absent(),
+    this.billAgeCriticalMinutes = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        companyId = Value(companyId);
@@ -8441,6 +8574,9 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
     Expression<int>? loyaltyPointValue,
     Expression<String>? locale,
     Expression<String>? negativeStockPolicy,
+    Expression<int>? billAgeWarningMinutes,
+    Expression<int>? billAgeDangerMinutes,
+    Expression<int>? billAgeCriticalMinutes,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -8462,6 +8598,12 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
       if (locale != null) 'locale': locale,
       if (negativeStockPolicy != null)
         'negative_stock_policy': negativeStockPolicy,
+      if (billAgeWarningMinutes != null)
+        'bill_age_warning_minutes': billAgeWarningMinutes,
+      if (billAgeDangerMinutes != null)
+        'bill_age_danger_minutes': billAgeDangerMinutes,
+      if (billAgeCriticalMinutes != null)
+        'bill_age_critical_minutes': billAgeCriticalMinutes,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -8482,6 +8624,9 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
     Value<int>? loyaltyPointValue,
     Value<String>? locale,
     Value<NegativeStockPolicy>? negativeStockPolicy,
+    Value<int>? billAgeWarningMinutes,
+    Value<int>? billAgeDangerMinutes,
+    Value<int>? billAgeCriticalMinutes,
     Value<int>? rowid,
   }) {
     return CompanySettingsCompanion(
@@ -8501,6 +8646,11 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
       loyaltyPointValue: loyaltyPointValue ?? this.loyaltyPointValue,
       locale: locale ?? this.locale,
       negativeStockPolicy: negativeStockPolicy ?? this.negativeStockPolicy,
+      billAgeWarningMinutes:
+          billAgeWarningMinutes ?? this.billAgeWarningMinutes,
+      billAgeDangerMinutes: billAgeDangerMinutes ?? this.billAgeDangerMinutes,
+      billAgeCriticalMinutes:
+          billAgeCriticalMinutes ?? this.billAgeCriticalMinutes,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -8559,6 +8709,21 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
         ),
       );
     }
+    if (billAgeWarningMinutes.present) {
+      map['bill_age_warning_minutes'] = Variable<int>(
+        billAgeWarningMinutes.value,
+      );
+    }
+    if (billAgeDangerMinutes.present) {
+      map['bill_age_danger_minutes'] = Variable<int>(
+        billAgeDangerMinutes.value,
+      );
+    }
+    if (billAgeCriticalMinutes.present) {
+      map['bill_age_critical_minutes'] = Variable<int>(
+        billAgeCriticalMinutes.value,
+      );
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -8583,6 +8748,9 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
           ..write('loyaltyPointValue: $loyaltyPointValue, ')
           ..write('locale: $locale, ')
           ..write('negativeStockPolicy: $negativeStockPolicy, ')
+          ..write('billAgeWarningMinutes: $billAgeWarningMinutes, ')
+          ..write('billAgeDangerMinutes: $billAgeDangerMinutes, ')
+          ..write('billAgeCriticalMinutes: $billAgeCriticalMinutes, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -46632,6 +46800,9 @@ typedef $$CompanySettingsTableCreateCompanionBuilder =
       Value<int> loyaltyPointValue,
       Value<String> locale,
       Value<NegativeStockPolicy> negativeStockPolicy,
+      Value<int> billAgeWarningMinutes,
+      Value<int> billAgeDangerMinutes,
+      Value<int> billAgeCriticalMinutes,
       Value<int> rowid,
     });
 typedef $$CompanySettingsTableUpdateCompanionBuilder =
@@ -46651,6 +46822,9 @@ typedef $$CompanySettingsTableUpdateCompanionBuilder =
       Value<int> loyaltyPointValue,
       Value<String> locale,
       Value<NegativeStockPolicy> negativeStockPolicy,
+      Value<int> billAgeWarningMinutes,
+      Value<int> billAgeDangerMinutes,
+      Value<int> billAgeCriticalMinutes,
       Value<int> rowid,
     });
 
@@ -46742,6 +46916,21 @@ class $$CompanySettingsTableFilterComposer
     column: $table.negativeStockPolicy,
     builder: (column) => ColumnWithTypeConverterFilters(column),
   );
+
+  ColumnFilters<int> get billAgeWarningMinutes => $composableBuilder(
+    column: $table.billAgeWarningMinutes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get billAgeDangerMinutes => $composableBuilder(
+    column: $table.billAgeDangerMinutes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get billAgeCriticalMinutes => $composableBuilder(
+    column: $table.billAgeCriticalMinutes,
+    builder: (column) => ColumnFilters(column),
+  );
 }
 
 class $$CompanySettingsTableOrderingComposer
@@ -46827,6 +47016,21 @@ class $$CompanySettingsTableOrderingComposer
     column: $table.negativeStockPolicy,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<int> get billAgeWarningMinutes => $composableBuilder(
+    column: $table.billAgeWarningMinutes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get billAgeDangerMinutes => $composableBuilder(
+    column: $table.billAgeDangerMinutes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get billAgeCriticalMinutes => $composableBuilder(
+    column: $table.billAgeCriticalMinutes,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$CompanySettingsTableAnnotationComposer
@@ -46899,6 +47103,21 @@ class $$CompanySettingsTableAnnotationComposer
     column: $table.negativeStockPolicy,
     builder: (column) => column,
   );
+
+  GeneratedColumn<int> get billAgeWarningMinutes => $composableBuilder(
+    column: $table.billAgeWarningMinutes,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get billAgeDangerMinutes => $composableBuilder(
+    column: $table.billAgeDangerMinutes,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get billAgeCriticalMinutes => $composableBuilder(
+    column: $table.billAgeCriticalMinutes,
+    builder: (column) => column,
+  );
 }
 
 class $$CompanySettingsTableTableManager
@@ -46954,6 +47173,9 @@ class $$CompanySettingsTableTableManager
                 Value<String> locale = const Value.absent(),
                 Value<NegativeStockPolicy> negativeStockPolicy =
                     const Value.absent(),
+                Value<int> billAgeWarningMinutes = const Value.absent(),
+                Value<int> billAgeDangerMinutes = const Value.absent(),
+                Value<int> billAgeCriticalMinutes = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => CompanySettingsCompanion(
                 lastSyncedAt: lastSyncedAt,
@@ -46971,6 +47193,9 @@ class $$CompanySettingsTableTableManager
                 loyaltyPointValue: loyaltyPointValue,
                 locale: locale,
                 negativeStockPolicy: negativeStockPolicy,
+                billAgeWarningMinutes: billAgeWarningMinutes,
+                billAgeDangerMinutes: billAgeDangerMinutes,
+                billAgeCriticalMinutes: billAgeCriticalMinutes,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -46991,6 +47216,9 @@ class $$CompanySettingsTableTableManager
                 Value<String> locale = const Value.absent(),
                 Value<NegativeStockPolicy> negativeStockPolicy =
                     const Value.absent(),
+                Value<int> billAgeWarningMinutes = const Value.absent(),
+                Value<int> billAgeDangerMinutes = const Value.absent(),
+                Value<int> billAgeCriticalMinutes = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => CompanySettingsCompanion.insert(
                 lastSyncedAt: lastSyncedAt,
@@ -47008,6 +47236,9 @@ class $$CompanySettingsTableTableManager
                 loyaltyPointValue: loyaltyPointValue,
                 locale: locale,
                 negativeStockPolicy: negativeStockPolicy,
+                billAgeWarningMinutes: billAgeWarningMinutes,
+                billAgeDangerMinutes: billAgeDangerMinutes,
+                billAgeCriticalMinutes: billAgeCriticalMinutes,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

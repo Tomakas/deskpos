@@ -177,17 +177,12 @@ class VoucherRepository
     }
   }
 
-  /// Generate unique voucher code
+  /// Generate unique voucher code (numeric XXXX-XXXX)
   String generateCode(VoucherType type) {
-    const chars = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
+    const chars = '0123456789';
     final rng = Random.secure();
     String block() => List.generate(4, (_) => chars[rng.nextInt(chars.length)]).join();
-    final prefix = switch (type) {
-      VoucherType.gift => 'GIFT',
-      VoucherType.deposit => 'DEP',
-      VoucherType.discount => 'DISC',
-    };
-    return '$prefix-${block()}-${block()}';
+    return '${block()}-${block()}';
   }
 
   /// Watch vouchers by status

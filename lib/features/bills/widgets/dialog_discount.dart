@@ -13,11 +13,13 @@ import '../../../core/widgets/pos_numpad.dart';
 class DialogDiscount extends ConsumerStatefulWidget {
   const DialogDiscount({
     super.key,
+    this.title,
     this.currentDiscount = 0,
     this.currentDiscountType = DiscountType.absolute,
     required this.referenceAmount,
   });
 
+  final String? title;
   final int currentDiscount;
   final DiscountType currentDiscountType;
   final int referenceAmount;
@@ -79,7 +81,7 @@ class _DialogDiscountState extends ConsumerState<DialogDiscount> {
     final hasValue = _discountValue > 0;
 
     return PosDialogShell(
-      title: l.billDetailDiscount,
+      title: widget.title ?? l.billDetailDiscount,
       maxWidth: 340,
       maxHeight: 460,
       expandHeight: true,

@@ -8,6 +8,7 @@ import '../../../core/data/enums/bill_status.dart';
 import '../../../core/data/enums/prep_status.dart';
 import '../../../core/data/enums/sell_mode.dart';
 import '../../../core/data/models/bill_model.dart';
+import '../../../core/data/models/company_settings_model.dart';
 import '../../../core/data/models/customer_model.dart';
 import '../../../core/data/models/order_model.dart';
 import '../../../core/data/models/register_session_model.dart';
@@ -438,6 +439,35 @@ class _SectionTabBar extends ConsumerWidget {
 }
 
 // ---------------------------------------------------------------------------
+// Lookup providers for bills table (avoids 5-deep nested StreamBuilders)
+// ---------------------------------------------------------------------------
+final _tablesLookupProvider = StreamProvider.autoDispose.family<Map<String, TableModel>, String>((ref, companyId) {
+  return ref.watch(tableRepositoryProvider).watchAll(companyId).map((list) {
+    return {for (final t in list) t.id: t};
+  });
+});
+
+final _usersLookupProvider = StreamProvider.autoDispose.family<Map<String, UserModel>, String>((ref, companyId) {
+  return ref.watch(userRepositoryProvider).watchAll(companyId).map((list) {
+    return {for (final u in list) u.id: u};
+  });
+});
+
+final _customersLookupProvider = StreamProvider.autoDispose.family<Map<String, CustomerModel>, String>((ref, companyId) {
+  return ref.watch(customerRepositoryProvider).watchAll(companyId).map((list) {
+    return {for (final c in list) c.id: c};
+  });
+});
+
+final _lastOrderTimesProvider = StreamProvider.autoDispose.family<Map<String, DateTime>, String>((ref, companyId) {
+  return ref.watch(orderRepositoryProvider).watchLastOrderTimesByCompany(companyId);
+});
+
+final _companySettingsProvider = StreamProvider.autoDispose.family<CompanySettingsModel?, String>((ref, companyId) {
+  return ref.watch(companySettingsRepositoryProvider).watchByCompany(companyId);
+});
+
+// ---------------------------------------------------------------------------
 // Resolved bill row data for PosTable
 // ---------------------------------------------------------------------------
 class _ResolvedBill {
@@ -478,6 +508,16 @@ class _BillsTable extends ConsumerWidget {
     final company = ref.watch(currentCompanyProvider);
     if (company == null) return const SizedBox.shrink();
 
+    // Lookup data via Riverpod providers (flat, no nesting)
+    final tableMap = ref.watch(_tablesLookupProvider(company.id)).valueOrNull ?? {};
+    final userMap = ref.watch(_usersLookupProvider(company.id)).valueOrNull ?? {};
+    final customerMap = ref.watch(_customersLookupProvider(company.id)).valueOrNull ?? {};
+    final lastOrderTimes = ref.watch(_lastOrderTimesProvider(company.id)).valueOrNull ?? {};
+    final settings = ref.watch(_companySettingsProvider(company.id)).valueOrNull;
+    final warnMin = settings?.billAgeWarningMinutes ?? 15;
+    final dangerMin = settings?.billAgeDangerMinutes ?? 30;
+    final criticalMin = settings?.billAgeCriticalMinutes ?? 45;
+
     return StreamBuilder<List<BillModel>>(
       stream: ref.watch(billRepositoryProvider).watchByCompany(
         company.id,
@@ -499,113 +539,79 @@ class _BillsTable extends ConsumerWidget {
         }
         final bills = allBills.where((b) => effectiveFilters.contains(b.status)).toList();
 
-        return StreamBuilder<List<TableModel>>(
-          stream: ref.watch(tableRepositoryProvider).watchAll(company.id),
-          builder: (context, tableSnap) {
-            final tableMap = <String, TableModel>{};
-            for (final t in (tableSnap.data ?? [])) {
-              tableMap[t.id] = t;
-            }
+        // Apply sorting
+        bills.sort((a, b) {
+          int cmp;
+          switch (sortField) {
+            case _SortField.table:
+              final nameA = _resolveTableName(a, tableMap, l);
+              final nameB = _resolveTableName(b, tableMap, l);
+              cmp = nameA.compareTo(nameB);
+            case _SortField.total:
+              cmp = a.totalGross.compareTo(b.totalGross);
+            case _SortField.lastOrder:
+              final timeA = lastOrderTimes[a.id];
+              final timeB = lastOrderTimes[b.id];
+              if (timeA == null && timeB == null) {
+                cmp = 0;
+              } else if (timeA == null) {
+                cmp = -1;
+              } else if (timeB == null) {
+                cmp = 1;
+              } else {
+                cmp = timeA.compareTo(timeB);
+              }
+          }
+          return sortAscending ? cmp : -cmp;
+        });
 
-            return StreamBuilder<List<UserModel>>(
-              stream: ref.watch(userRepositoryProvider).watchAll(company.id),
-              builder: (context, userSnap) {
-                final userMap = <String, UserModel>{};
-                for (final u in (userSnap.data ?? [])) {
-                  userMap[u.id] = u;
-                }
+        final resolved = bills.map((bill) {
+          final customer = bill.customerId != null ? customerMap[bill.customerId] : null;
+          return _ResolvedBill(
+            bill: bill,
+            tableName: _resolveTableName(bill, tableMap, l),
+            customerName: customer != null
+                ? '${customer.firstName} ${customer.lastName}'
+                : bill.customerName ?? '',
+            staffName: userMap[bill.openedByUserId]?.username ?? '-',
+            lastOrderTime: lastOrderTimes[bill.id],
+          );
+        }).toList();
 
-                return StreamBuilder<List<CustomerModel>>(
-                  stream: ref.watch(customerRepositoryProvider).watchAll(company.id),
-                  builder: (context, customerSnap) {
-                    final customerMap = <String, CustomerModel>{};
-                    for (final c in (customerSnap.data ?? [])) {
-                      customerMap[c.id] = c;
-                    }
-
-                return StreamBuilder<Map<String, DateTime>>(
-                  stream: ref.watch(orderRepositoryProvider).watchLastOrderTimesByCompany(company.id),
-                  builder: (context, orderTimeSnap) {
-                    final lastOrderTimes = orderTimeSnap.data ?? {};
-
-                    // Apply sorting
-                    bills.sort((a, b) {
-                      int cmp;
-                      switch (sortField) {
-                        case _SortField.table:
-                          final nameA = _resolveTableName(a, tableMap, l);
-                          final nameB = _resolveTableName(b, tableMap, l);
-                          cmp = nameA.compareTo(nameB);
-                        case _SortField.total:
-                          cmp = a.totalGross.compareTo(b.totalGross);
-                        case _SortField.lastOrder:
-                          final timeA = lastOrderTimes[a.id];
-                          final timeB = lastOrderTimes[b.id];
-                          if (timeA == null && timeB == null) {
-                            cmp = 0;
-                          } else if (timeA == null) {
-                            cmp = -1;
-                          } else if (timeB == null) {
-                            cmp = 1;
-                          } else {
-                            cmp = timeA.compareTo(timeB);
-                          }
-                      }
-                      return sortAscending ? cmp : -cmp;
-                    });
-
-                    final resolved = bills.map((bill) {
-                      final customer = bill.customerId != null ? customerMap[bill.customerId] : null;
-                      return _ResolvedBill(
-                        bill: bill,
-                        tableName: _resolveTableName(bill, tableMap, l),
-                        customerName: customer != null
-                            ? '${customer.firstName} ${customer.lastName}'
-                            : bill.customerName ?? '',
-                        staffName: userMap[bill.openedByUserId]?.username ?? '-',
-                        lastOrderTime: lastOrderTimes[bill.id],
-                      );
-                    }).toList();
-
-                    return PosTable<_ResolvedBill>(
-                      columns: [
-                        PosColumn(label: l.columnTable, flex: 2, cellBuilder: (r) => Text(r.tableName)),
-                        PosColumn(label: l.sellCustomer, flex: 2, cellBuilder: (r) => Text(r.customerName)),
-                        PosColumn(label: l.columnGuests, flex: 1, cellBuilder: (r) => Text(r.bill.numberOfGuests > 0 ? '${r.bill.numberOfGuests}' : '')),
-                        PosColumn(
-                          label: l.columnTotal,
-                          flex: 2,
-                          cellBuilder: (r) => r.bill.status == BillStatus.refunded
-                              ? Text(
-                                  ref.money(r.bill.totalGross),
-                                  style: TextStyle(
-                                    decoration: TextDecoration.lineThrough,
-                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                  ),
-                                )
-                              : Text(ref.money(r.bill.totalGross)),
-                        ),
-                        PosColumn(
-                          label: l.columnLastOrder,
-                          flex: 2,
-                          cellBuilder: (r) => _RelativeTimeCell(
-                            time: r.lastOrderTime,
-                            isOpened: r.bill.status == BillStatus.opened,
-                          ),
-                        ),
-                        PosColumn(label: l.columnStaff, flex: 2, cellBuilder: (r) => Text(r.staffName)),
-                      ],
-                      items: resolved,
-                      onRowTap: (r) => onBillTap(r.bill),
-                      rowColor: (r) => r.bill.status.color(context).withValues(alpha: 0.08),
-                    );
-                  },
-                );
-                  },
-                );
-              },
-            );
-          },
+        return PosTable<_ResolvedBill>(
+          columns: [
+            PosColumn(label: l.columnTable, flex: 2, cellBuilder: (r) => Text(r.tableName)),
+            PosColumn(label: l.sellCustomer, flex: 2, cellBuilder: (r) => Text(r.customerName)),
+            PosColumn(label: l.columnGuests, flex: 1, cellBuilder: (r) => Text(r.bill.numberOfGuests > 0 ? '${r.bill.numberOfGuests}' : '')),
+            PosColumn(
+              label: l.columnTotal,
+              flex: 2,
+              cellBuilder: (r) => r.bill.status == BillStatus.refunded
+                  ? Text(
+                      ref.money(r.bill.totalGross),
+                      style: TextStyle(
+                        decoration: TextDecoration.lineThrough,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    )
+                  : Text(ref.money(r.bill.totalGross)),
+            ),
+            PosColumn(
+              label: l.columnLastOrder,
+              flex: 2,
+              cellBuilder: (r) => _RelativeTimeCell(
+                time: r.lastOrderTime,
+                isOpened: r.bill.status == BillStatus.opened,
+                warningMin: warnMin,
+                dangerMin: dangerMin,
+                criticalMin: criticalMin,
+              ),
+            ),
+            PosColumn(label: l.columnStaff, flex: 2, cellBuilder: (r) => Text(r.staffName)),
+          ],
+          items: resolved,
+          onRowTap: (r) => onBillTap(r.bill),
+          rowColor: (r) => r.bill.status.color(context).withValues(alpha: 0.08),
         );
       },
     );
@@ -623,9 +629,18 @@ class _BillsTable extends ConsumerWidget {
 // Relative time cell with auto-refresh timer
 // ---------------------------------------------------------------------------
 class _RelativeTimeCell extends StatefulWidget {
-  const _RelativeTimeCell({required this.time, required this.isOpened});
+  const _RelativeTimeCell({
+    required this.time,
+    required this.isOpened,
+    required this.warningMin,
+    required this.dangerMin,
+    required this.criticalMin,
+  });
   final DateTime? time;
   final bool isOpened;
+  final int warningMin;
+  final int dangerMin;
+  final int criticalMin;
 
   @override
   State<_RelativeTimeCell> createState() => _RelativeTimeCellState();
@@ -673,7 +688,20 @@ class _RelativeTimeCellState extends State<_RelativeTimeCell> {
 
   @override
   Widget build(BuildContext context) {
-    return Text(widget.time != null ? _formatRelativeTime(context, widget.time!) : '');
+    final l = context.l10n;
+    if (!widget.isOpened) {
+      return Text(widget.time != null ? _formatRelativeTime(context, widget.time!) : '');
+    }
+    final color = billAgeColor(
+      widget.time,
+      warningMin: widget.warningMin,
+      dangerMin: widget.dangerMin,
+      criticalMin: widget.criticalMin,
+    );
+    final text = widget.time != null
+        ? _formatRelativeTime(context, widget.time!)
+        : l.billTimeNoOrder;
+    return Text(text, style: TextStyle(color: color, fontWeight: FontWeight.w600));
   }
 }
 
@@ -1000,13 +1028,12 @@ class _ButtonRow extends StatelessWidget {
     if (icon == null) {
       return Text(label, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12));
     }
-    return Row(
+    return Column(
       mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Icon(icon, size: 18),
-        const SizedBox(width: 6),
-        Flexible(child: Text(label, style: const TextStyle(fontSize: 12))),
+        const SizedBox(height: 2),
+        Text(label, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12)),
       ],
     );
   }

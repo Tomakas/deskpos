@@ -58,6 +58,7 @@
   "columnLastOrder": "Last Order",
   "columnStaff": "Staff",
   "billTimeJustNow": "just now",
+  "billTimeNoOrder": "none",
 
   "infoPanelDate": "Date",
   "infoPanelStatus": "Register Status",
@@ -65,7 +66,7 @@
   "infoPanelActiveUser": "Active Staff",
   "infoPanelLoggedIn": "Other Logins",
 
-  "actionSwitchUser": "Lock / Switch",
+  "actionSwitchUser": "Switch",
   "actionLogout": "Logout",
 
   "switchUserTitle": "Switch Staff",
@@ -420,6 +421,8 @@
     }
   },
 
+  "discountTitleBill": "Bill discount",
+  "discountTitleItem": "Item discount",
   "billDetailDiscount": "Discount",
   "billDetailRemoveDiscount": "Remove Discount",
   "billDetailRemoveDiscountConfirm": "Remove discount from this bill?",

@@ -122,6 +122,9 @@ CompanySettingsModel companySettingsFromEntity(CompanySetting e) => CompanySetti
       locale: e.locale,
       loyaltyPointValue: e.loyaltyPointValue,
       negativeStockPolicy: e.negativeStockPolicy,
+      billAgeWarningMinutes: e.billAgeWarningMinutes,
+      billAgeDangerMinutes: e.billAgeDangerMinutes,
+      billAgeCriticalMinutes: e.billAgeCriticalMinutes,
       createdAt: e.createdAt,
       updatedAt: e.updatedAt,
       deletedAt: e.deletedAt,
@@ -137,6 +140,9 @@ CompanySettingsCompanion companySettingsToCompanion(CompanySettingsModel m) =>
       loyaltyPointValue: Value(m.loyaltyPointValue),
       locale: Value(m.locale),
       negativeStockPolicy: Value(m.negativeStockPolicy),
+      billAgeWarningMinutes: Value(m.billAgeWarningMinutes),
+      billAgeDangerMinutes: Value(m.billAgeDangerMinutes),
+      billAgeCriticalMinutes: Value(m.billAgeCriticalMinutes),
     );
 
 // --- Currency ---

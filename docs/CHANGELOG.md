@@ -1,5 +1,37 @@
 # Changelog
 
+## 2026-02-26 — Bill Age Colors, Floor Map Redesign, Voucher Numpad
+
+### Features
+- **Bill age color indicators** — configurable thresholds (warning 15min / danger 30min / critical 45min) in `company_settings`; bills list "Last Order" column and floor map circles change color (blue → yellow → orange → red) based on time since last order
+- **Floor map edge positioning** — bill circles now placed on the perimeter of table shapes (rectangle, round, triangle, diamond) via `_tableEdgePosition`, evenly distributed along edges; circles show customer name below amount
+- **Stock document detail dialog** — new `DialogStockDocumentDetail` with header, movements table, and print button; accessed by tapping a row in the Documents tab
+- **Stock document PDF** — new `StockDocumentPdfBuilder` (A4) with document header, item table, and total
+- **Voucher numpad entry** — `DialogVoucherRedeem` redesigned: `TextField` replaced with `PosNumpad`, digits auto-format with dash after 4th digit, confirm enabled only when 8 digits entered
+- **Voucher numeric codes** — `VoucherRepository.generateCode()` now produces `XXXX-XXXX` (8 digits, dash separator) instead of alphanumeric `GIFT-XXXX-XXXX`
+- **Discount dialog context title** — `DialogDiscount` accepts optional `title` parameter: "Sleva na celý účet" for bill-level, "Sleva na položku" for item-level
+- **Bill cancellation shortcut** — empty bills (no orders) cancel immediately without confirmation dialog
+
+### UI
+- **Bills screen refactored** — flattened 4-level nested `StreamBuilder` into flat Riverpod `StreamProvider.family` providers (`_tablesLookupProvider`, `_usersLookupProvider`, `_customersLookupProvider`, `_lastOrderTimesProvider`)
+- **Button row layout** — right panel buttons changed from horizontal `Row` (icon + text) to vertical `Column` (icon above text)
+- **Customer search simplification** — removed loyalty points and credit from `DialogCustomerSearch` result subtitles
+- **Switch user label** — renamed from "Zamknout / Přepnout" to "Přepnout"
+- **Bill map position clear** — `moveBill` now resets `mapPosX`/`mapPosY` to null so bill snaps to new table edge
+
+### Database
+- `company_settings`: 3 new columns — `bill_age_warning_minutes` (I, default 15), `bill_age_danger_minutes` (I, default 30), `bill_age_critical_minutes` (I, default 45); migration `20260226_002`
+- `stock_movements`: new nullable `bill_id` column (FK → bills) for sales write-off traceability; migration `20260225_007`
+- `registers`: CHECK constraint on `sell_mode` ('gastro'/'retail'); migration `20260225_006`
+- NOT NULL + DEFAULT now() on `client_created_at`/`client_updated_at` for 6 tables (company_currencies, item_modifier_groups, modifier_groups, modifier_group_items, order_item_modifiers, session_currency_cash); migration `20260226_003`
+
+### Supabase
+- **pgcrypto → extensions schema** — `ALTER EXTENSION pgcrypto SET SCHEMA extensions` (security best practice); `create_demo_company` search_path updated to `public, extensions`; migration `20260226_001`
+- **Demo function fixes** — LWW conflict prevention (`greatest(v_now, v_session_open)` for today's session update), random voucher code generation (`XXXX-XXXX` numeric), seed data stripped of hardcoded voucher codes
+
+### Documentation
+- **PROJECT.md**: added bill age color system, `billAgeColor` helper, floor map edge positioning, `bill_id` on stock_movements schema, `DialogStockDocumentDetail` + `StockDocumentPdfBuilder`, discount dialog context title, `moveBill` map position clearing, demo function details (search_path, LWW guard, random voucher codes)
+
 ## 2026-02-25 — Negative Stock Policy
 
 ### Features

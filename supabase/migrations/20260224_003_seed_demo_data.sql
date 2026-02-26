@@ -557,14 +557,14 @@ INSERT INTO seed_demo_data (locale, mode, entity_type, ref, data, sort_order) VA
 
 -- Vouchers (cs) — all types/statuses
 INSERT INTO seed_demo_data (locale, mode, entity_type, ref, data, sort_order) VALUES
-('cs','_all','vouchers','vch:gift_active',   '{"code":"GIFT-001","type":"gift","status":"active","value":50000,"note":"Dárkový poukaz — narozeniny","created_days_back":60}',0),
-('cs','_all','vouchers','vch:gift_redeemed', '{"code":"GIFT-002","type":"gift","status":"redeemed","value":30000,"note":"Vánoční dárek od vedení","created_days_back":45}',1),
-('cs','_all','vouchers','vch:disc_bill_pct', '{"code":"DISC-10PCT","type":"discount","status":"active","value":1000,"discount_type":"percent","discount_scope":"bill","note":"Věrnostní sleva 10%","created_days_back":75}',2),
-('cs','_all','vouchers','vch:disc_prod_abs', '{"code":"DISC-50ABS","type":"discount","status":"active","value":5000,"discount_type":"absolute","discount_scope":"product","created_days_back":55}',3),
-('cs','_all','vouchers','vch:disc_cat',      '{"code":"DISC-CAT15","type":"discount","status":"active","value":1500,"discount_type":"percent","discount_scope":"category","category_ref":"cat:napoje","created_days_back":40}',4),
-('cs','_all','vouchers','vch:deposit',       '{"code":"DEP-001","type":"deposit","status":"active","value":100000,"note":"Záloha na firemní akci","created_days_back":30}',5),
-('cs','_all','vouchers','vch:expired',       '{"code":"GIFT-EXP","type":"gift","status":"expired","value":25000,"note":"Promo akce léto 2025","expires_days_ago":30,"created_days_back":90}',6),
-('cs','_all','vouchers','vch:cancelled',     '{"code":"GIFT-CAN","type":"gift","status":"cancelled","value":20000,"note":"Chybně vystavený","created_days_back":20}',7);
+('cs','_all','vouchers','vch:gift_active',   '{"type":"gift","status":"active","value":50000,"note":"Dárkový poukaz — narozeniny","created_days_back":60}',0),
+('cs','_all','vouchers','vch:gift_redeemed', '{"type":"gift","status":"redeemed","value":30000,"note":"Vánoční dárek od vedení","created_days_back":45}',1),
+('cs','_all','vouchers','vch:disc_bill_pct', '{"type":"discount","status":"active","value":1000,"discount_type":"percent","discount_scope":"bill","note":"Věrnostní sleva 10%","created_days_back":75}',2),
+('cs','_all','vouchers','vch:disc_prod_abs', '{"type":"discount","status":"active","value":5000,"discount_type":"absolute","discount_scope":"product","created_days_back":55}',3),
+('cs','_all','vouchers','vch:disc_cat',      '{"type":"discount","status":"active","value":1500,"discount_type":"percent","discount_scope":"category","category_ref":"cat:napoje","created_days_back":40}',4),
+('cs','_all','vouchers','vch:deposit',       '{"type":"deposit","status":"active","value":100000,"note":"Záloha na firemní akci","created_days_back":30}',5),
+('cs','_all','vouchers','vch:expired',       '{"type":"gift","status":"expired","value":25000,"note":"Promo akce léto 2025","expires_days_ago":30,"created_days_back":90}',6),
+('cs','_all','vouchers','vch:cancelled',     '{"type":"gift","status":"cancelled","value":20000,"note":"Chybně vystavený","created_days_back":20}',7);
 
 -- ============================================================================
 -- SHARED DATA — EN locale (mode='_all')
@@ -590,14 +590,14 @@ INSERT INTO seed_demo_data (locale, mode, entity_type, ref, data, sort_order) VA
 
 -- Vouchers (en) — same codes/values, different locale
 INSERT INTO seed_demo_data (locale, mode, entity_type, ref, data, sort_order) VALUES
-('en','_all','vouchers','vch:gift_active',   '{"code":"GIFT-001","type":"gift","status":"active","value":50000,"note":"Gift voucher — birthday","created_days_back":60}',0),
-('en','_all','vouchers','vch:gift_redeemed', '{"code":"GIFT-002","type":"gift","status":"redeemed","value":30000,"note":"Christmas gift from management","created_days_back":45}',1),
-('en','_all','vouchers','vch:disc_bill_pct', '{"code":"DISC-10PCT","type":"discount","status":"active","value":1000,"discount_type":"percent","discount_scope":"bill","note":"10% loyalty discount","created_days_back":75}',2),
-('en','_all','vouchers','vch:disc_prod_abs', '{"code":"DISC-50ABS","type":"discount","status":"active","value":5000,"discount_type":"absolute","discount_scope":"product","created_days_back":55}',3),
-('en','_all','vouchers','vch:disc_cat',      '{"code":"DISC-CAT15","type":"discount","status":"active","value":1500,"discount_type":"percent","discount_scope":"category","category_ref":"cat:beverages","created_days_back":40}',4),
-('en','_all','vouchers','vch:deposit',       '{"code":"DEP-001","type":"deposit","status":"active","value":100000,"note":"Deposit for company event","created_days_back":30}',5),
-('en','_all','vouchers','vch:expired',       '{"code":"GIFT-EXP","type":"gift","status":"expired","value":25000,"note":"Summer 2025 promo","expires_days_ago":30,"created_days_back":90}',6),
-('en','_all','vouchers','vch:cancelled',     '{"code":"GIFT-CAN","type":"gift","status":"cancelled","value":20000,"note":"Issued by mistake","created_days_back":20}',7);
+('en','_all','vouchers','vch:gift_active',   '{"type":"gift","status":"active","value":50000,"note":"Gift voucher — birthday","created_days_back":60}',0),
+('en','_all','vouchers','vch:gift_redeemed', '{"type":"gift","status":"redeemed","value":30000,"note":"Christmas gift from management","created_days_back":45}',1),
+('en','_all','vouchers','vch:disc_bill_pct', '{"type":"discount","status":"active","value":1000,"discount_type":"percent","discount_scope":"bill","note":"10% loyalty discount","created_days_back":75}',2),
+('en','_all','vouchers','vch:disc_prod_abs', '{"type":"discount","status":"active","value":5000,"discount_type":"absolute","discount_scope":"product","created_days_back":55}',3),
+('en','_all','vouchers','vch:disc_cat',      '{"type":"discount","status":"active","value":1500,"discount_type":"percent","discount_scope":"category","category_ref":"cat:beverages","created_days_back":40}',4),
+('en','_all','vouchers','vch:deposit',       '{"type":"deposit","status":"active","value":100000,"note":"Deposit for company event","created_days_back":30}',5),
+('en','_all','vouchers','vch:expired',       '{"type":"gift","status":"expired","value":25000,"note":"Summer 2025 promo","expires_days_ago":30,"created_days_back":90}',6),
+('en','_all','vouchers','vch:cancelled',     '{"type":"gift","status":"cancelled","value":20000,"note":"Issued by mistake","created_days_back":20}',7);
 
 -- ============================================================================
 -- DAY TEMPLATES (locale=NULL, mode='_all')

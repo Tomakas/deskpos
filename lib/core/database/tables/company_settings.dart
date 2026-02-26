@@ -15,6 +15,11 @@ class CompanySettings extends Table with SyncColumnsMixin {
   TextColumn get negativeStockPolicy =>
       textEnum<NegativeStockPolicy>().withDefault(Constant(NegativeStockPolicy.allow.name))();
 
+  // TODO: Add UI for editing these thresholds in company settings screen.
+  IntColumn get billAgeWarningMinutes => integer().withDefault(const Constant(15))();
+  IntColumn get billAgeDangerMinutes => integer().withDefault(const Constant(30))();
+  IntColumn get billAgeCriticalMinutes => integer().withDefault(const Constant(45))();
+
   @override
   Set<Column> get primaryKey => {id};
 }
