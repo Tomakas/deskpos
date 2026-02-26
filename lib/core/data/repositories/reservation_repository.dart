@@ -49,6 +49,7 @@ class ReservationRepository
         customerPhone: Value(m.customerPhone),
         reservationDate: Value(m.reservationDate),
         partySize: Value(m.partySize),
+        durationMinutes: Value(m.durationMinutes),
         tableId: Value(m.tableId),
         notes: Value(m.notes),
         status: Value(m.status),

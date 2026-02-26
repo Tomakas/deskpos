@@ -1692,12 +1692,13 @@ BEGIN
         END IF;
 
         INSERT INTO reservations (id, company_id, customer_id, customer_name, customer_phone,
-                                  reservation_date, party_size, table_id, notes, status,
+                                  reservation_date, party_size, duration_minutes, table_id, notes, status,
                                   client_created_at, client_updated_at)
         VALUES (
           v_resv_id, v_company_id, v_resv_customer_id, v_resv_customer_name, v_resv_customer_phone,
           v_session_open + ((v_resv->>'time_offset_minutes')::int || ' minutes')::interval,
           (v_resv->>'guests')::int,
+          COALESCE((v_resv->>'duration_minutes')::int, 90),
           CASE WHEN v_resv->>'table_ref' IS NOT NULL
             THEN (SELECT id FROM _ref_map WHERE ref = v_resv->>'table_ref')
             ELSE NULL

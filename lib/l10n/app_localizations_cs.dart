@@ -1884,6 +1884,21 @@ class AppLocalizationsCs extends AppLocalizations {
   String get reservationColumnStatus => 'Stav';
 
   @override
+  String get reservationDuration => 'Doba trvání (min)';
+
+  @override
+  String get reservationViewTable => 'Tabulka';
+
+  @override
+  String get reservationViewChart => 'Graf';
+
+  @override
+  String get reservationChartNoData => 'Žádné rezervace k zobrazení';
+
+  @override
+  String get reservationSectionAll => 'Vše';
+
+  @override
   String get paymentTypeCredit => 'Kredit';
 
   @override

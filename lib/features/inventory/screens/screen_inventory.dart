@@ -182,15 +182,24 @@ class _ScreenInventoryState extends ConsumerState<ScreenInventory> {
                 // Tab chips
                 for (var i = 0; i < allTabs.length; i++) ...[
                   if (i > 0) const SizedBox(width: 8),
-                  FilterChip(
-                    label: Text(allTabs[i].$2),
-                    selected: effectiveTab == i,
-                    onSelected: (_) => setState(() => _tabIndex = i),
+                  Expanded(
+                    child: SizedBox(
+                      height: 40,
+                      child: FilterChip(
+                        label: SizedBox(
+                          width: double.infinity,
+                          child: Text(allTabs[i].$2, textAlign: TextAlign.center),
+                        ),
+                        selected: effectiveTab == i,
+                        onSelected: (_) => setState(() => _tabIndex = i),
+                      ),
+                    ),
                   ),
                 ],
                 const SizedBox(width: 16),
                 // Search
                 Expanded(
+                  flex: 2,
                   child: SizedBox(
                     height: 40,
                     child: TextField(

@@ -781,6 +781,7 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
         customerPhone: Value(json['customer_phone'] as String?),
         reservationDate: Value(_requireDateTime(json['reservation_date'])),
         partySize: Value(json['party_size'] as int? ?? 2),
+        durationMinutes: Value(json['duration_minutes'] as int? ?? 90),
         tableId: Value(json['table_id'] as String?),
         notes: Value(json['notes'] as String?),
         status: Value(_enumFromName(ReservationStatus.values, json['status'])),

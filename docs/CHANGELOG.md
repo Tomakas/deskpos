@@ -1,5 +1,42 @@
 # Changelog
 
+## 2026-02-26 — Reservations Fullscreen Page
+
+### Features
+- **Fullscreen reservations screen:** converted reservations dialog to a dedicated fullscreen page (`/reservations` route) with GoRouter navigation, matching the pattern used by statistics, vouchers, and data screens
+- **AppBar action:** "New reservation" button moved to AppBar actions
+- **Permission guard:** route protected by `venue.reservations_view` permission
+
+---
+
+## 2026-02-26 — Reservation Dialog Improvements
+
+### Features
+- **Wider dialog:** reservations dialog maxWidth increased from 800 to 1100 px for better Gantt readability
+- **Section filter chips:** FilterChip row in chart mode to filter tables by section ("All" + per-section); table view unaffected
+- **Multi-day Gantt:** week and month periods now render a stacked Gantt layout with day headers, shared hour axis, and per-day table rows
+- **All tables shown:** Gantt chart displays all tables from the selected section, including those without reservations (empty rows)
+- **Smart chart selection:** Gantt for day/week/month/custom ≤31 days; bar chart for year/custom >31 days
+
+---
+
+## 2026-02-26 — Reservation Duration & Chart Visualization
+
+### Features
+- **Reservation duration:** added `durationMinutes` field (default 90) to reservation model, edit dialog, and all mappers
+- **Reservation chart toggle:** SegmentedButton (Table/Chart) in reservations dialog to switch between table view and chart visualization
+- **Gantt timeline (daily view):** Stack+Positioned layout with rows per table, colored blocks per reservation status, current-time red indicator, tap-to-edit, tooltip with details
+- **Bar chart (week/month/year):** fl_chart BarChart showing reservation counts per period bucket, with dynamic label interval
+
+### Database
+- Migration `20260226_010_add_reservation_duration`: adds `duration_minutes integer NOT NULL DEFAULT 90` to reservations table
+- Demo seed data updated with varied `duration_minutes` values (60, 90, 120)
+
+### Documentation
+- `PROJECT.md`: updated reservations schema with `duration_minutes` column
+
+---
+
 ## 2026-02-26 — Stock View Permission Split & Permission Guards
 
 ### Permissions

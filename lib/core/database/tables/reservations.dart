@@ -12,6 +12,7 @@ class Reservations extends Table with SyncColumnsMixin {
   TextColumn get customerPhone => text().nullable()();
   DateTimeColumn get reservationDate => dateTime()();
   IntColumn get partySize => integer().withDefault(const Constant(2))();
+  IntColumn get durationMinutes => integer().withDefault(const Constant(90))();
   TextColumn get tableId => text().nullable()();
   TextColumn get notes => text().nullable()();
   TextColumn get status => textEnum<ReservationStatus>()();

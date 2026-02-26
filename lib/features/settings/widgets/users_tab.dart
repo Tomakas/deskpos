@@ -582,12 +582,15 @@ class _UserEditDialogState extends ConsumerState<_UserEditDialog>
           ],
         ),
         Expanded(
-          child: TabBarView(
-            controller: _tabCtrl,
-            children: [
-              _buildProfileTab(l, isNew),
-              _buildPermissionsTab(l),
-            ],
+          child: Form(
+            key: _formKey,
+            child: TabBarView(
+              controller: _tabCtrl,
+              children: [
+                _buildProfileTab(l, isNew),
+                _buildPermissionsTab(l),
+              ],
+            ),
           ),
         ),
         const SizedBox(height: 8),
@@ -607,11 +610,9 @@ class _UserEditDialogState extends ConsumerState<_UserEditDialog>
   Widget _buildProfileTab(AppLocalizations l, bool isNew) {
     return SingleChildScrollView(
       padding: const EdgeInsets.only(top: 16),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
             TextFormField(
               controller: _fullNameCtrl,
               decoration: InputDecoration(labelText: l.wizardFullName),
@@ -685,8 +686,7 @@ class _UserEditDialogState extends ConsumerState<_UserEditDialog>
             ),
           ],
         ),
-      ),
-    );
+      );
   }
 
   Widget _buildPermissionsTab(AppLocalizations l) {

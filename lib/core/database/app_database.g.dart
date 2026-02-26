@@ -27977,6 +27977,18 @@ class $ReservationsTable extends Reservations
     requiredDuringInsert: false,
     defaultValue: const Constant(2),
   );
+  static const VerificationMeta _durationMinutesMeta = const VerificationMeta(
+    'durationMinutes',
+  );
+  @override
+  late final GeneratedColumn<int> durationMinutes = GeneratedColumn<int>(
+    'duration_minutes',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(90),
+  );
   static const VerificationMeta _tableIdMeta = const VerificationMeta(
     'tableId',
   );
@@ -28022,6 +28034,7 @@ class $ReservationsTable extends Reservations
     customerPhone,
     reservationDate,
     partySize,
+    durationMinutes,
     tableId,
     notes,
     status,
@@ -28145,6 +28158,15 @@ class $ReservationsTable extends Reservations
         partySize.isAcceptableOrUnknown(data['party_size']!, _partySizeMeta),
       );
     }
+    if (data.containsKey('duration_minutes')) {
+      context.handle(
+        _durationMinutesMeta,
+        durationMinutes.isAcceptableOrUnknown(
+          data['duration_minutes']!,
+          _durationMinutesMeta,
+        ),
+      );
+    }
     if (data.containsKey('table_id')) {
       context.handle(
         _tableIdMeta,
@@ -28222,6 +28244,10 @@ class $ReservationsTable extends Reservations
         DriftSqlType.int,
         data['${effectivePrefix}party_size'],
       )!,
+      durationMinutes: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}duration_minutes'],
+      )!,
       tableId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}table_id'],
@@ -28265,6 +28291,7 @@ class Reservation extends DataClass implements Insertable<Reservation> {
   final String? customerPhone;
   final DateTime reservationDate;
   final int partySize;
+  final int durationMinutes;
   final String? tableId;
   final String? notes;
   final ReservationStatus status;
@@ -28283,6 +28310,7 @@ class Reservation extends DataClass implements Insertable<Reservation> {
     this.customerPhone,
     required this.reservationDate,
     required this.partySize,
+    required this.durationMinutes,
     this.tableId,
     this.notes,
     required this.status,
@@ -28316,6 +28344,7 @@ class Reservation extends DataClass implements Insertable<Reservation> {
     }
     map['reservation_date'] = Variable<DateTime>(reservationDate);
     map['party_size'] = Variable<int>(partySize);
+    map['duration_minutes'] = Variable<int>(durationMinutes);
     if (!nullToAbsent || tableId != null) {
       map['table_id'] = Variable<String>(tableId);
     }
@@ -28358,6 +28387,7 @@ class Reservation extends DataClass implements Insertable<Reservation> {
           : Value(customerPhone),
       reservationDate: Value(reservationDate),
       partySize: Value(partySize),
+      durationMinutes: Value(durationMinutes),
       tableId: tableId == null && nullToAbsent
           ? const Value.absent()
           : Value(tableId),
@@ -28388,6 +28418,7 @@ class Reservation extends DataClass implements Insertable<Reservation> {
       customerPhone: serializer.fromJson<String?>(json['customerPhone']),
       reservationDate: serializer.fromJson<DateTime>(json['reservationDate']),
       partySize: serializer.fromJson<int>(json['partySize']),
+      durationMinutes: serializer.fromJson<int>(json['durationMinutes']),
       tableId: serializer.fromJson<String?>(json['tableId']),
       notes: serializer.fromJson<String?>(json['notes']),
       status: $ReservationsTable.$converterstatus.fromJson(
@@ -28413,6 +28444,7 @@ class Reservation extends DataClass implements Insertable<Reservation> {
       'customerPhone': serializer.toJson<String?>(customerPhone),
       'reservationDate': serializer.toJson<DateTime>(reservationDate),
       'partySize': serializer.toJson<int>(partySize),
+      'durationMinutes': serializer.toJson<int>(durationMinutes),
       'tableId': serializer.toJson<String?>(tableId),
       'notes': serializer.toJson<String?>(notes),
       'status': serializer.toJson<String>(
@@ -28436,6 +28468,7 @@ class Reservation extends DataClass implements Insertable<Reservation> {
     Value<String?> customerPhone = const Value.absent(),
     DateTime? reservationDate,
     int? partySize,
+    int? durationMinutes,
     Value<String?> tableId = const Value.absent(),
     Value<String?> notes = const Value.absent(),
     ReservationStatus? status,
@@ -28460,6 +28493,7 @@ class Reservation extends DataClass implements Insertable<Reservation> {
         : this.customerPhone,
     reservationDate: reservationDate ?? this.reservationDate,
     partySize: partySize ?? this.partySize,
+    durationMinutes: durationMinutes ?? this.durationMinutes,
     tableId: tableId.present ? tableId.value : this.tableId,
     notes: notes.present ? notes.value : this.notes,
     status: status ?? this.status,
@@ -28494,6 +28528,9 @@ class Reservation extends DataClass implements Insertable<Reservation> {
           ? data.reservationDate.value
           : this.reservationDate,
       partySize: data.partySize.present ? data.partySize.value : this.partySize,
+      durationMinutes: data.durationMinutes.present
+          ? data.durationMinutes.value
+          : this.durationMinutes,
       tableId: data.tableId.present ? data.tableId.value : this.tableId,
       notes: data.notes.present ? data.notes.value : this.notes,
       status: data.status.present ? data.status.value : this.status,
@@ -28517,6 +28554,7 @@ class Reservation extends DataClass implements Insertable<Reservation> {
           ..write('customerPhone: $customerPhone, ')
           ..write('reservationDate: $reservationDate, ')
           ..write('partySize: $partySize, ')
+          ..write('durationMinutes: $durationMinutes, ')
           ..write('tableId: $tableId, ')
           ..write('notes: $notes, ')
           ..write('status: $status')
@@ -28540,6 +28578,7 @@ class Reservation extends DataClass implements Insertable<Reservation> {
     customerPhone,
     reservationDate,
     partySize,
+    durationMinutes,
     tableId,
     notes,
     status,
@@ -28562,6 +28601,7 @@ class Reservation extends DataClass implements Insertable<Reservation> {
           other.customerPhone == this.customerPhone &&
           other.reservationDate == this.reservationDate &&
           other.partySize == this.partySize &&
+          other.durationMinutes == this.durationMinutes &&
           other.tableId == this.tableId &&
           other.notes == this.notes &&
           other.status == this.status);
@@ -28582,6 +28622,7 @@ class ReservationsCompanion extends UpdateCompanion<Reservation> {
   final Value<String?> customerPhone;
   final Value<DateTime> reservationDate;
   final Value<int> partySize;
+  final Value<int> durationMinutes;
   final Value<String?> tableId;
   final Value<String?> notes;
   final Value<ReservationStatus> status;
@@ -28601,6 +28642,7 @@ class ReservationsCompanion extends UpdateCompanion<Reservation> {
     this.customerPhone = const Value.absent(),
     this.reservationDate = const Value.absent(),
     this.partySize = const Value.absent(),
+    this.durationMinutes = const Value.absent(),
     this.tableId = const Value.absent(),
     this.notes = const Value.absent(),
     this.status = const Value.absent(),
@@ -28621,6 +28663,7 @@ class ReservationsCompanion extends UpdateCompanion<Reservation> {
     this.customerPhone = const Value.absent(),
     required DateTime reservationDate,
     this.partySize = const Value.absent(),
+    this.durationMinutes = const Value.absent(),
     this.tableId = const Value.absent(),
     this.notes = const Value.absent(),
     required ReservationStatus status,
@@ -28645,6 +28688,7 @@ class ReservationsCompanion extends UpdateCompanion<Reservation> {
     Expression<String>? customerPhone,
     Expression<DateTime>? reservationDate,
     Expression<int>? partySize,
+    Expression<int>? durationMinutes,
     Expression<String>? tableId,
     Expression<String>? notes,
     Expression<String>? status,
@@ -28665,6 +28709,7 @@ class ReservationsCompanion extends UpdateCompanion<Reservation> {
       if (customerPhone != null) 'customer_phone': customerPhone,
       if (reservationDate != null) 'reservation_date': reservationDate,
       if (partySize != null) 'party_size': partySize,
+      if (durationMinutes != null) 'duration_minutes': durationMinutes,
       if (tableId != null) 'table_id': tableId,
       if (notes != null) 'notes': notes,
       if (status != null) 'status': status,
@@ -28687,6 +28732,7 @@ class ReservationsCompanion extends UpdateCompanion<Reservation> {
     Value<String?>? customerPhone,
     Value<DateTime>? reservationDate,
     Value<int>? partySize,
+    Value<int>? durationMinutes,
     Value<String?>? tableId,
     Value<String?>? notes,
     Value<ReservationStatus>? status,
@@ -28707,6 +28753,7 @@ class ReservationsCompanion extends UpdateCompanion<Reservation> {
       customerPhone: customerPhone ?? this.customerPhone,
       reservationDate: reservationDate ?? this.reservationDate,
       partySize: partySize ?? this.partySize,
+      durationMinutes: durationMinutes ?? this.durationMinutes,
       tableId: tableId ?? this.tableId,
       notes: notes ?? this.notes,
       status: status ?? this.status,
@@ -28759,6 +28806,9 @@ class ReservationsCompanion extends UpdateCompanion<Reservation> {
     if (partySize.present) {
       map['party_size'] = Variable<int>(partySize.value);
     }
+    if (durationMinutes.present) {
+      map['duration_minutes'] = Variable<int>(durationMinutes.value);
+    }
     if (tableId.present) {
       map['table_id'] = Variable<String>(tableId.value);
     }
@@ -28793,6 +28843,7 @@ class ReservationsCompanion extends UpdateCompanion<Reservation> {
           ..write('customerPhone: $customerPhone, ')
           ..write('reservationDate: $reservationDate, ')
           ..write('partySize: $partySize, ')
+          ..write('durationMinutes: $durationMinutes, ')
           ..write('tableId: $tableId, ')
           ..write('notes: $notes, ')
           ..write('status: $status, ')
@@ -56025,6 +56076,7 @@ typedef $$ReservationsTableCreateCompanionBuilder =
       Value<String?> customerPhone,
       required DateTime reservationDate,
       Value<int> partySize,
+      Value<int> durationMinutes,
       Value<String?> tableId,
       Value<String?> notes,
       required ReservationStatus status,
@@ -56046,6 +56098,7 @@ typedef $$ReservationsTableUpdateCompanionBuilder =
       Value<String?> customerPhone,
       Value<DateTime> reservationDate,
       Value<int> partySize,
+      Value<int> durationMinutes,
       Value<String?> tableId,
       Value<String?> notes,
       Value<ReservationStatus> status,
@@ -56128,6 +56181,11 @@ class $$ReservationsTableFilterComposer
 
   ColumnFilters<int> get partySize => $composableBuilder(
     column: $table.partySize,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get durationMinutes => $composableBuilder(
+    column: $table.durationMinutes,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -56227,6 +56285,11 @@ class $$ReservationsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get durationMinutes => $composableBuilder(
+    column: $table.durationMinutes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get tableId => $composableBuilder(
     column: $table.tableId,
     builder: (column) => ColumnOrderings(column),
@@ -56308,6 +56371,11 @@ class $$ReservationsTableAnnotationComposer
   GeneratedColumn<int> get partySize =>
       $composableBuilder(column: $table.partySize, builder: (column) => column);
 
+  GeneratedColumn<int> get durationMinutes => $composableBuilder(
+    column: $table.durationMinutes,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get tableId =>
       $composableBuilder(column: $table.tableId, builder: (column) => column);
 
@@ -56363,6 +56431,7 @@ class $$ReservationsTableTableManager
                 Value<String?> customerPhone = const Value.absent(),
                 Value<DateTime> reservationDate = const Value.absent(),
                 Value<int> partySize = const Value.absent(),
+                Value<int> durationMinutes = const Value.absent(),
                 Value<String?> tableId = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
                 Value<ReservationStatus> status = const Value.absent(),
@@ -56382,6 +56451,7 @@ class $$ReservationsTableTableManager
                 customerPhone: customerPhone,
                 reservationDate: reservationDate,
                 partySize: partySize,
+                durationMinutes: durationMinutes,
                 tableId: tableId,
                 notes: notes,
                 status: status,
@@ -56403,6 +56473,7 @@ class $$ReservationsTableTableManager
                 Value<String?> customerPhone = const Value.absent(),
                 required DateTime reservationDate,
                 Value<int> partySize = const Value.absent(),
+                Value<int> durationMinutes = const Value.absent(),
                 Value<String?> tableId = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
                 required ReservationStatus status,
@@ -56422,6 +56493,7 @@ class $$ReservationsTableTableManager
                 customerPhone: customerPhone,
                 reservationDate: reservationDate,
                 partySize: partySize,
+                durationMinutes: durationMinutes,
                 tableId: tableId,
                 notes: notes,
                 status: status,

@@ -1886,6 +1886,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reservationColumnStatus => 'Status';
 
   @override
+  String get reservationDuration => 'Duration (min)';
+
+  @override
+  String get reservationViewTable => 'Table';
+
+  @override
+  String get reservationViewChart => 'Chart';
+
+  @override
+  String get reservationChartNoData => 'No reservations to display';
+
+  @override
+  String get reservationSectionAll => 'All';
+
+  @override
   String get paymentTypeCredit => 'Credit';
 
   @override

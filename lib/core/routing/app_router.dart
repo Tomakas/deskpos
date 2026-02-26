@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/auth/screens/screen_login.dart';
 import '../../features/bills/screens/screen_bills.dart';
+import '../../features/bills/screens/screen_reservations.dart';
 import '../../features/catalog/screens/screen_catalog.dart';
 import '../../features/inventory/screens/screen_inventory.dart';
 import '../../features/onboarding/screens/screen_display_code.dart';
@@ -209,6 +210,15 @@ final routerProvider = Provider<GoRouter>((ref) {
           return null;
         },
         builder: (context, state) => const ScreenStatistics(),
+      ),
+      GoRoute(
+        path: '/reservations',
+        redirect: (context, state) {
+          final hasPermission = ref.read(hasPermissionProvider('venue.reservations_view'));
+          if (!hasPermission) return _homeRoute(ref);
+          return null;
+        },
+        builder: (context, state) => const ScreenReservations(),
       ),
     ],
   );

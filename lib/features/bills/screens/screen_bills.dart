@@ -31,7 +31,6 @@ import '../../../l10n/app_localizations.dart';
 import '../../shared/session_helpers.dart' as helpers;
 import '../widgets/dialog_bill_detail.dart';
 import '../widgets/dialog_new_bill.dart';
-import '../widgets/dialog_reservations_list.dart';
 import '../widgets/floor_map_view.dart';
 
 enum _SortField { table, total, lastOrder }
@@ -1138,10 +1137,7 @@ void _showMoreMenu(
       case 'vouchers':
         btnContext.push('/vouchers');
       case 'reservations':
-        showDialog(
-          context: btnContext,
-          builder: (_) => const DialogReservationsList(),
-        );
+        btnContext.push('/reservations');
       case 'data':
         btnContext.push('/data');
     }

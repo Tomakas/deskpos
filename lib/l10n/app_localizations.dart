@@ -3740,6 +3740,36 @@ abstract class AppLocalizations {
   /// **'Stav'**
   String get reservationColumnStatus;
 
+  /// No description provided for @reservationDuration.
+  ///
+  /// In cs, this message translates to:
+  /// **'Doba trvání (min)'**
+  String get reservationDuration;
+
+  /// No description provided for @reservationViewTable.
+  ///
+  /// In cs, this message translates to:
+  /// **'Tabulka'**
+  String get reservationViewTable;
+
+  /// No description provided for @reservationViewChart.
+  ///
+  /// In cs, this message translates to:
+  /// **'Graf'**
+  String get reservationViewChart;
+
+  /// No description provided for @reservationChartNoData.
+  ///
+  /// In cs, this message translates to:
+  /// **'Žádné rezervace k zobrazení'**
+  String get reservationChartNoData;
+
+  /// No description provided for @reservationSectionAll.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vše'**
+  String get reservationSectionAll;
+
   /// No description provided for @paymentTypeCredit.
   ///
   /// In cs, this message translates to:

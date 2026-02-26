@@ -702,6 +702,7 @@ Map<String, dynamic> reservationToSupabaseJson(ReservationModel m) => {
       'customer_phone': m.customerPhone,
       'reservation_date': toIso8601Utc(m.reservationDate),
       'party_size': m.partySize,
+      'duration_minutes': m.durationMinutes,
       'table_id': m.tableId,
       'notes': m.notes,
       'status': m.status.name,

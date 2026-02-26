@@ -26,6 +26,7 @@ class _DialogReservationEditState extends ConsumerState<DialogReservationEdit> {
   final _nameCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
   final _partySizeCtrl = TextEditingController();
+  final _durationCtrl = TextEditingController();
   final _notesCtrl = TextEditingController();
 
   late DateTime _selectedDate;
@@ -46,6 +47,7 @@ class _DialogReservationEditState extends ConsumerState<DialogReservationEdit> {
       _nameCtrl.text = r.customerName;
       _phoneCtrl.text = r.customerPhone ?? '';
       _partySizeCtrl.text = r.partySize.toString();
+      _durationCtrl.text = r.durationMinutes.toString();
       _notesCtrl.text = r.notes ?? '';
       _selectedDate = r.reservationDate;
       _selectedTime = TimeOfDay.fromDateTime(r.reservationDate);
@@ -57,6 +59,7 @@ class _DialogReservationEditState extends ConsumerState<DialogReservationEdit> {
       _selectedDate = DateTime(now.year, now.month, now.day, 18, 0);
       _selectedTime = const TimeOfDay(hour: 18, minute: 0);
       _partySizeCtrl.text = '2';
+      _durationCtrl.text = '90';
       _status = ReservationStatus.created;
     }
   }
@@ -66,6 +69,7 @@ class _DialogReservationEditState extends ConsumerState<DialogReservationEdit> {
     _nameCtrl.dispose();
     _phoneCtrl.dispose();
     _partySizeCtrl.dispose();
+    _durationCtrl.dispose();
     _notesCtrl.dispose();
     super.dispose();
   }
@@ -125,6 +129,7 @@ class _DialogReservationEditState extends ConsumerState<DialogReservationEdit> {
 
       final repo = ref.read(reservationRepositoryProvider);
       final partySize = int.tryParse(_partySizeCtrl.text.trim()) ?? 2;
+      final durationMinutes = (int.tryParse(_durationCtrl.text.trim()) ?? 90).clamp(15, 480);
       final phone = _phoneCtrl.text.trim();
       final notes = _notesCtrl.text.trim();
 
@@ -135,6 +140,7 @@ class _DialogReservationEditState extends ConsumerState<DialogReservationEdit> {
           customerPhone: phone.isEmpty ? null : phone,
           reservationDate: _combinedDateTime,
           partySize: partySize,
+          durationMinutes: durationMinutes,
           tableId: _tableId,
           notes: notes.isEmpty ? null : notes,
           status: _status,
@@ -150,6 +156,7 @@ class _DialogReservationEditState extends ConsumerState<DialogReservationEdit> {
           customerPhone: phone.isEmpty ? null : phone,
           reservationDate: _combinedDateTime,
           partySize: partySize,
+          durationMinutes: durationMinutes,
           tableId: _tableId,
           notes: notes.isEmpty ? null : notes,
           status: _status,
@@ -175,6 +182,32 @@ class _DialogReservationEditState extends ConsumerState<DialogReservationEdit> {
       if (mounted) Navigator.pop(context, true);
     } finally {
       if (mounted) setState(() => _isProcessing = false);
+    }
+  }
+
+  Color _statusColor(ReservationStatus s, ThemeData theme, AppColorsExtension appColors) {
+    switch (s) {
+      case ReservationStatus.created:
+        return theme.colorScheme.outlineVariant;
+      case ReservationStatus.confirmed:
+        return theme.colorScheme.primary;
+      case ReservationStatus.seated:
+        return appColors.success;
+      case ReservationStatus.cancelled:
+        return appColors.danger;
+    }
+  }
+
+  Color _onStatusColor(ReservationStatus s, ThemeData theme) {
+    switch (s) {
+      case ReservationStatus.created:
+        return theme.colorScheme.onSurface;
+      case ReservationStatus.confirmed:
+        return theme.colorScheme.onPrimary;
+      case ReservationStatus.seated:
+        return Colors.white;
+      case ReservationStatus.cancelled:
+        return Colors.white;
     }
   }
 
@@ -279,11 +312,25 @@ class _DialogReservationEditState extends ConsumerState<DialogReservationEdit> {
                 ),
                 const SizedBox(height: 12),
 
-                // Party size
-                TextField(
-                  controller: _partySizeCtrl,
-                  decoration: InputDecoration(labelText: l.reservationPartySize),
-                  keyboardType: TextInputType.number,
+                // Party size + Duration
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _partySizeCtrl,
+                        decoration: InputDecoration(labelText: l.reservationPartySize),
+                        keyboardType: TextInputType.number,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: TextField(
+                        controller: _durationCtrl,
+                        decoration: InputDecoration(labelText: l.reservationDuration),
+                        keyboardType: TextInputType.number,
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 12),
 
@@ -318,17 +365,35 @@ class _DialogReservationEditState extends ConsumerState<DialogReservationEdit> {
                 if (_isEdit) ...[
                   Text(l.reservationStatus, style: theme.textTheme.labelMedium),
                   const SizedBox(height: 4),
-                  SegmentedButton<ReservationStatus>(
-                    segments: ReservationStatus.values
-                        .map((s) => ButtonSegment(value: s, label: Text(_statusLabel(s))))
-                        .toList(),
-                    selected: {_status},
-                    onSelectionChanged: (v) => setState(() => _status = v.first),
-                    showSelectedIcon: false,
-                    style: ButtonStyle(
-                      visualDensity: VisualDensity.compact,
-                      textStyle: WidgetStatePropertyAll(theme.textTheme.labelSmall),
-                    ),
+                  Row(
+                    children: [
+                      for (final s in ReservationStatus.values) ...[
+                        if (s != ReservationStatus.values.first) const SizedBox(width: 8),
+                        Expanded(
+                          child: SizedBox(
+                            height: 40,
+                            child: FilterChip(
+                              label: SizedBox(
+                                width: double.infinity,
+                                child: Text(
+                                  _statusLabel(s),
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: _status == s
+                                        ? _onStatusColor(s, theme)
+                                        : null,
+                                  ),
+                                ),
+                              ),
+                              selected: _status == s,
+                              onSelected: (_) => setState(() => _status = s),
+                              showCheckmark: false,
+                              selectedColor: _statusColor(s, theme, context.appColors),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                   const SizedBox(height: 16),
                 ],

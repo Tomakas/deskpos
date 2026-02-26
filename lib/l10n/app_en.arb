@@ -753,6 +753,12 @@
   "reservationColumnTable": "Table",
   "reservationColumnStatus": "Status",
 
+  "reservationDuration": "Duration (min)",
+  "reservationViewTable": "Table",
+  "reservationViewChart": "Chart",
+  "reservationChartNoData": "No reservations to display",
+  "reservationSectionAll": "All",
+
   "paymentTypeCredit": "Credit",
   "paymentTypeVoucher": "Meal Vouchers",
 

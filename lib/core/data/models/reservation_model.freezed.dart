@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ReservationModel {
 
- String get id; String get companyId; String? get customerId; String get customerName; String? get customerPhone; DateTime get reservationDate; int get partySize; String? get tableId; String? get notes; ReservationStatus get status; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+ String get id; String get companyId; String? get customerId; String get customerName; String? get customerPhone; DateTime get reservationDate; int get partySize; int get durationMinutes; String? get tableId; String? get notes; ReservationStatus get status; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
 /// Create a copy of ReservationModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $ReservationModelCopyWith<ReservationModel> get copyWith => _$ReservationModelCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ReservationModel&&(identical(other.id, id) || other.id == id)&&(identical(other.companyId, companyId) || other.companyId == companyId)&&(identical(other.customerId, customerId) || other.customerId == customerId)&&(identical(other.customerName, customerName) || other.customerName == customerName)&&(identical(other.customerPhone, customerPhone) || other.customerPhone == customerPhone)&&(identical(other.reservationDate, reservationDate) || other.reservationDate == reservationDate)&&(identical(other.partySize, partySize) || other.partySize == partySize)&&(identical(other.tableId, tableId) || other.tableId == tableId)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.status, status) || other.status == status)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ReservationModel&&(identical(other.id, id) || other.id == id)&&(identical(other.companyId, companyId) || other.companyId == companyId)&&(identical(other.customerId, customerId) || other.customerId == customerId)&&(identical(other.customerName, customerName) || other.customerName == customerName)&&(identical(other.customerPhone, customerPhone) || other.customerPhone == customerPhone)&&(identical(other.reservationDate, reservationDate) || other.reservationDate == reservationDate)&&(identical(other.partySize, partySize) || other.partySize == partySize)&&(identical(other.durationMinutes, durationMinutes) || other.durationMinutes == durationMinutes)&&(identical(other.tableId, tableId) || other.tableId == tableId)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.status, status) || other.status == status)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,companyId,customerId,customerName,customerPhone,reservationDate,partySize,tableId,notes,status,createdAt,updatedAt,deletedAt);
+int get hashCode => Object.hash(runtimeType,id,companyId,customerId,customerName,customerPhone,reservationDate,partySize,durationMinutes,tableId,notes,status,createdAt,updatedAt,deletedAt);
 
 @override
 String toString() {
-  return 'ReservationModel(id: $id, companyId: $companyId, customerId: $customerId, customerName: $customerName, customerPhone: $customerPhone, reservationDate: $reservationDate, partySize: $partySize, tableId: $tableId, notes: $notes, status: $status, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'ReservationModel(id: $id, companyId: $companyId, customerId: $customerId, customerName: $customerName, customerPhone: $customerPhone, reservationDate: $reservationDate, partySize: $partySize, durationMinutes: $durationMinutes, tableId: $tableId, notes: $notes, status: $status, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $ReservationModelCopyWith<$Res>  {
   factory $ReservationModelCopyWith(ReservationModel value, $Res Function(ReservationModel) _then) = _$ReservationModelCopyWithImpl;
 @useResult
 $Res call({
- String id, String companyId, String? customerId, String customerName, String? customerPhone, DateTime reservationDate, int partySize, String? tableId, String? notes, ReservationStatus status, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String companyId, String? customerId, String customerName, String? customerPhone, DateTime reservationDate, int partySize, int durationMinutes, String? tableId, String? notes, ReservationStatus status, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -62,7 +62,7 @@ class _$ReservationModelCopyWithImpl<$Res>
 
 /// Create a copy of ReservationModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? companyId = null,Object? customerId = freezed,Object? customerName = null,Object? customerPhone = freezed,Object? reservationDate = null,Object? partySize = null,Object? tableId = freezed,Object? notes = freezed,Object? status = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? companyId = null,Object? customerId = freezed,Object? customerName = null,Object? customerPhone = freezed,Object? reservationDate = null,Object? partySize = null,Object? durationMinutes = null,Object? tableId = freezed,Object? notes = freezed,Object? status = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,companyId: null == companyId ? _self.companyId : companyId // ignore: cast_nullable_to_non_nullable
@@ -71,6 +71,7 @@ as String?,customerName: null == customerName ? _self.customerName : customerNam
 as String,customerPhone: freezed == customerPhone ? _self.customerPhone : customerPhone // ignore: cast_nullable_to_non_nullable
 as String?,reservationDate: null == reservationDate ? _self.reservationDate : reservationDate // ignore: cast_nullable_to_non_nullable
 as DateTime,partySize: null == partySize ? _self.partySize : partySize // ignore: cast_nullable_to_non_nullable
+as int,durationMinutes: null == durationMinutes ? _self.durationMinutes : durationMinutes // ignore: cast_nullable_to_non_nullable
 as int,tableId: freezed == tableId ? _self.tableId : tableId // ignore: cast_nullable_to_non_nullable
 as String?,notes: freezed == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
 as String?,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
@@ -162,10 +163,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String companyId,  String? customerId,  String customerName,  String? customerPhone,  DateTime reservationDate,  int partySize,  String? tableId,  String? notes,  ReservationStatus status,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String companyId,  String? customerId,  String customerName,  String? customerPhone,  DateTime reservationDate,  int partySize,  int durationMinutes,  String? tableId,  String? notes,  ReservationStatus status,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ReservationModel() when $default != null:
-return $default(_that.id,_that.companyId,_that.customerId,_that.customerName,_that.customerPhone,_that.reservationDate,_that.partySize,_that.tableId,_that.notes,_that.status,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.companyId,_that.customerId,_that.customerName,_that.customerPhone,_that.reservationDate,_that.partySize,_that.durationMinutes,_that.tableId,_that.notes,_that.status,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   return orElse();
 
 }
@@ -183,10 +184,10 @@ return $default(_that.id,_that.companyId,_that.customerId,_that.customerName,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String companyId,  String? customerId,  String customerName,  String? customerPhone,  DateTime reservationDate,  int partySize,  String? tableId,  String? notes,  ReservationStatus status,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String companyId,  String? customerId,  String customerName,  String? customerPhone,  DateTime reservationDate,  int partySize,  int durationMinutes,  String? tableId,  String? notes,  ReservationStatus status,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
 switch (_that) {
 case _ReservationModel():
-return $default(_that.id,_that.companyId,_that.customerId,_that.customerName,_that.customerPhone,_that.reservationDate,_that.partySize,_that.tableId,_that.notes,_that.status,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.companyId,_that.customerId,_that.customerName,_that.customerPhone,_that.reservationDate,_that.partySize,_that.durationMinutes,_that.tableId,_that.notes,_that.status,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -203,10 +204,10 @@ return $default(_that.id,_that.companyId,_that.customerId,_that.customerName,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String companyId,  String? customerId,  String customerName,  String? customerPhone,  DateTime reservationDate,  int partySize,  String? tableId,  String? notes,  ReservationStatus status,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String companyId,  String? customerId,  String customerName,  String? customerPhone,  DateTime reservationDate,  int partySize,  int durationMinutes,  String? tableId,  String? notes,  ReservationStatus status,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _ReservationModel() when $default != null:
-return $default(_that.id,_that.companyId,_that.customerId,_that.customerName,_that.customerPhone,_that.reservationDate,_that.partySize,_that.tableId,_that.notes,_that.status,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.companyId,_that.customerId,_that.customerName,_that.customerPhone,_that.reservationDate,_that.partySize,_that.durationMinutes,_that.tableId,_that.notes,_that.status,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   return null;
 
 }
@@ -218,7 +219,7 @@ return $default(_that.id,_that.companyId,_that.customerId,_that.customerName,_th
 
 
 class _ReservationModel implements ReservationModel {
-  const _ReservationModel({required this.id, required this.companyId, this.customerId, required this.customerName, this.customerPhone, required this.reservationDate, this.partySize = 2, this.tableId, this.notes, required this.status, required this.createdAt, required this.updatedAt, this.deletedAt});
+  const _ReservationModel({required this.id, required this.companyId, this.customerId, required this.customerName, this.customerPhone, required this.reservationDate, this.partySize = 2, this.durationMinutes = 90, this.tableId, this.notes, required this.status, required this.createdAt, required this.updatedAt, this.deletedAt});
   
 
 @override final  String id;
@@ -228,6 +229,7 @@ class _ReservationModel implements ReservationModel {
 @override final  String? customerPhone;
 @override final  DateTime reservationDate;
 @override@JsonKey() final  int partySize;
+@override@JsonKey() final  int durationMinutes;
 @override final  String? tableId;
 @override final  String? notes;
 @override final  ReservationStatus status;
@@ -245,16 +247,16 @@ _$ReservationModelCopyWith<_ReservationModel> get copyWith => __$ReservationMode
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ReservationModel&&(identical(other.id, id) || other.id == id)&&(identical(other.companyId, companyId) || other.companyId == companyId)&&(identical(other.customerId, customerId) || other.customerId == customerId)&&(identical(other.customerName, customerName) || other.customerName == customerName)&&(identical(other.customerPhone, customerPhone) || other.customerPhone == customerPhone)&&(identical(other.reservationDate, reservationDate) || other.reservationDate == reservationDate)&&(identical(other.partySize, partySize) || other.partySize == partySize)&&(identical(other.tableId, tableId) || other.tableId == tableId)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.status, status) || other.status == status)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ReservationModel&&(identical(other.id, id) || other.id == id)&&(identical(other.companyId, companyId) || other.companyId == companyId)&&(identical(other.customerId, customerId) || other.customerId == customerId)&&(identical(other.customerName, customerName) || other.customerName == customerName)&&(identical(other.customerPhone, customerPhone) || other.customerPhone == customerPhone)&&(identical(other.reservationDate, reservationDate) || other.reservationDate == reservationDate)&&(identical(other.partySize, partySize) || other.partySize == partySize)&&(identical(other.durationMinutes, durationMinutes) || other.durationMinutes == durationMinutes)&&(identical(other.tableId, tableId) || other.tableId == tableId)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.status, status) || other.status == status)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,companyId,customerId,customerName,customerPhone,reservationDate,partySize,tableId,notes,status,createdAt,updatedAt,deletedAt);
+int get hashCode => Object.hash(runtimeType,id,companyId,customerId,customerName,customerPhone,reservationDate,partySize,durationMinutes,tableId,notes,status,createdAt,updatedAt,deletedAt);
 
 @override
 String toString() {
-  return 'ReservationModel(id: $id, companyId: $companyId, customerId: $customerId, customerName: $customerName, customerPhone: $customerPhone, reservationDate: $reservationDate, partySize: $partySize, tableId: $tableId, notes: $notes, status: $status, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'ReservationModel(id: $id, companyId: $companyId, customerId: $customerId, customerName: $customerName, customerPhone: $customerPhone, reservationDate: $reservationDate, partySize: $partySize, durationMinutes: $durationMinutes, tableId: $tableId, notes: $notes, status: $status, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -265,7 +267,7 @@ abstract mixin class _$ReservationModelCopyWith<$Res> implements $ReservationMod
   factory _$ReservationModelCopyWith(_ReservationModel value, $Res Function(_ReservationModel) _then) = __$ReservationModelCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String companyId, String? customerId, String customerName, String? customerPhone, DateTime reservationDate, int partySize, String? tableId, String? notes, ReservationStatus status, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String companyId, String? customerId, String customerName, String? customerPhone, DateTime reservationDate, int partySize, int durationMinutes, String? tableId, String? notes, ReservationStatus status, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -282,7 +284,7 @@ class __$ReservationModelCopyWithImpl<$Res>
 
 /// Create a copy of ReservationModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? companyId = null,Object? customerId = freezed,Object? customerName = null,Object? customerPhone = freezed,Object? reservationDate = null,Object? partySize = null,Object? tableId = freezed,Object? notes = freezed,Object? status = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? companyId = null,Object? customerId = freezed,Object? customerName = null,Object? customerPhone = freezed,Object? reservationDate = null,Object? partySize = null,Object? durationMinutes = null,Object? tableId = freezed,Object? notes = freezed,Object? status = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_ReservationModel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,companyId: null == companyId ? _self.companyId : companyId // ignore: cast_nullable_to_non_nullable
@@ -291,6 +293,7 @@ as String?,customerName: null == customerName ? _self.customerName : customerNam
 as String,customerPhone: freezed == customerPhone ? _self.customerPhone : customerPhone // ignore: cast_nullable_to_non_nullable
 as String?,reservationDate: null == reservationDate ? _self.reservationDate : reservationDate // ignore: cast_nullable_to_non_nullable
 as DateTime,partySize: null == partySize ? _self.partySize : partySize // ignore: cast_nullable_to_non_nullable
+as int,durationMinutes: null == durationMinutes ? _self.durationMinutes : durationMinutes // ignore: cast_nullable_to_non_nullable
 as int,tableId: freezed == tableId ? _self.tableId : tableId // ignore: cast_nullable_to_non_nullable
 as String?,notes: freezed == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
 as String?,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable

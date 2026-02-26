@@ -15,6 +15,7 @@ abstract class ReservationModel with _$ReservationModel implements CompanyScoped
     String? customerPhone,
     required DateTime reservationDate,
     @Default(2) int partySize,
+    @Default(90) int durationMinutes,
     String? tableId,
     String? notes,
     required ReservationStatus status,

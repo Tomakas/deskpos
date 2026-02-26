@@ -753,6 +753,12 @@
   "reservationColumnTable": "Stůl",
   "reservationColumnStatus": "Stav",
 
+  "reservationDuration": "Doba trvání (min)",
+  "reservationViewTable": "Tabulka",
+  "reservationViewChart": "Graf",
+  "reservationChartNoData": "Žádné rezervace k zobrazení",
+  "reservationSectionAll": "Vše",
+
   "paymentTypeCredit": "Kredit",
   "paymentTypeVoucher": "Stravenky",
 

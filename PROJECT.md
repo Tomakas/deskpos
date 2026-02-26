@@ -1078,7 +1078,7 @@ Všechny aktivní tabulky obsahují společné sync sloupce (viz [SyncColumnsMix
 
 | Tabulka | Sloupce |
 |---------|---------|
-| **reservations** | id (T), company_id →companies, customer_id →customers?, table_id →tables?, customer_name (T), customer_phone (T?), reservation_date (D), party_size (I, default 2), status (T — ReservationStatus), notes (T?) |
+| **reservations** | id (T), company_id →companies, customer_id →customers?, table_id →tables?, customer_name (T), customer_phone (T?), reservation_date (D), party_size (I, default 2), duration_minutes (I, default 90), status (T — ReservationStatus), notes (T?) |
 
 ##### Zákazníci
 
