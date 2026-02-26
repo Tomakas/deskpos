@@ -3262,7 +3262,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get permProductsSetAvailability => 'Set availability';
 
   @override
-  String get permStockView => 'View stock';
+  String get permStockViewLevels => 'View stock levels';
+
+  @override
+  String get permStockViewDocuments => 'View stock documents';
+
+  @override
+  String get permStockViewMovements => 'View stock movements';
 
   @override
   String get permStockReceive => 'Receive stock';
@@ -3888,6 +3894,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get catalogSortType => 'Type';
+
+  @override
+  String get catalogSortRate => 'Rate';
+
+  @override
+  String get catalogSortSortOrder => 'Sort order';
 
   @override
   String get catalogSortMinSelections => 'Min. selections';

@@ -14,6 +14,8 @@ import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_table.dart';
 
+enum _SectionsSortField { name, sortOrder }
+
 class SectionsTab extends ConsumerStatefulWidget {
   const SectionsTab({super.key});
 
@@ -24,6 +26,9 @@ class SectionsTab extends ConsumerStatefulWidget {
 class _SectionsTabState extends ConsumerState<SectionsTab> {
   final _searchCtrl = TextEditingController();
   String _query = '';
+
+  _SectionsSortField _sortField = _SectionsSortField.name;
+  bool _sortAsc = true;
 
   @override
   void dispose() {
@@ -44,7 +49,14 @@ class _SectionsTabState extends ConsumerState<SectionsTab> {
         final filtered = sections.where((s) {
           if (_query.isEmpty) return true;
           return normalizeSearch(s.name).contains(_query);
-        }).toList();
+        }).toList()
+          ..sort((a, b) {
+            final cmp = switch (_sortField) {
+              _SectionsSortField.name => a.name.compareTo(b.name),
+              _SectionsSortField.sortOrder => a.sortOrder.compareTo(b.sortOrder),
+            };
+            return _sortAsc ? cmp : -cmp;
+          });
         return Column(
           children: [
             PosTableToolbar(
@@ -52,6 +64,39 @@ class _SectionsTabState extends ConsumerState<SectionsTab> {
               searchHint: l.searchHint,
               onSearchChanged: (v) => setState(() => _query = normalizeSearch(v)),
               trailing: [
+                PopupMenuButton<_SectionsSortField>(
+                  icon: const Icon(Icons.swap_vert),
+                  onSelected: (field) {
+                    if (field == _sortField) {
+                      setState(() => _sortAsc = !_sortAsc);
+                    } else {
+                      setState(() {
+                        _sortField = field;
+                        _sortAsc = true;
+                      });
+                    }
+                  },
+                  itemBuilder: (_) => [
+                    for (final entry in {
+                      _SectionsSortField.name: l.catalogSortName,
+                      _SectionsSortField.sortOrder: l.catalogSortSortOrder,
+                    }.entries)
+                      PopupMenuItem(
+                        value: entry.key,
+                        child: Row(
+                          children: [
+                            if (entry.key == _sortField)
+                              Icon(_sortAsc ? Icons.arrow_upward : Icons.arrow_downward, size: 16)
+                            else
+                              const SizedBox(width: 16),
+                            const SizedBox(width: 8),
+                            Text(entry.value, style: entry.key == _sortField ? const TextStyle(fontWeight: FontWeight.bold) : null),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(width: 8),
                 FilledButton.icon(
                   onPressed: () => _showEditDialog(context, null),
                   icon: const Icon(Icons.add),

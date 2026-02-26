@@ -11,6 +11,8 @@ import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/search_utils.dart';
+import '../../../core/widgets/highlighted_text.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_table.dart';
@@ -39,16 +41,47 @@ class _DisplayEntry implements _DeviceEntry {
 }
 
 // ---------------------------------------------------------------------------
+// Sort enum
+// ---------------------------------------------------------------------------
+enum _RegistersSortField { name, type }
+
+// ---------------------------------------------------------------------------
 // RegistersTab — registers + display devices in one table.
 // Three creation buttons: Pokladna, Zákaznický displej, KDS.
 // Type is immutable after creation.
 // ---------------------------------------------------------------------------
 
-class RegistersTab extends ConsumerWidget {
+class RegistersTab extends ConsumerStatefulWidget {
   const RegistersTab({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<RegistersTab> createState() => _RegistersTabState();
+}
+
+class _RegistersTabState extends ConsumerState<RegistersTab> {
+  final _searchCtrl = TextEditingController();
+  String _query = '';
+
+  _RegistersSortField _sortField = _RegistersSortField.name;
+  bool _sortAsc = true;
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  String _entryName(_DeviceEntry entry) {
+    return switch (entry) {
+      _RegisterEntry(:final register) =>
+        register.name.isEmpty ? register.code : register.name,
+      _DisplayEntry(:final device) =>
+        device.name.isEmpty ? _displayTypeLabel(context.l10n, device.type) : device.name,
+    };
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l = context.l10n;
     final theme = Theme.of(context);
     final company = ref.watch(currentCompanyProvider);
@@ -72,7 +105,7 @@ class RegistersTab extends ConsumerWidget {
             final displayDevices = dispSnap.data ?? [];
 
             // Combined list: registers first, then display devices
-            final entries = <_DeviceEntry>[
+            var entries = <_DeviceEntry>[
               for (final r in registers) _RegisterEntry(r),
               for (final d in displayDevices)
                 _DisplayEntry(
@@ -83,6 +116,30 @@ class RegistersTab extends ConsumerWidget {
                       .firstOrNull,
                 ),
             ];
+
+            // Search
+            if (_query.isNotEmpty) {
+              entries = entries.where((e) {
+                if (normalizeSearch(_entryName(e)).contains(_query)) return true;
+                if (e is _DisplayEntry && e.parentRegisterName != null) {
+                  if (normalizeSearch(e.parentRegisterName!).contains(_query)) return true;
+                }
+                return false;
+              }).toList();
+            }
+
+            // Sort
+            entries.sort((a, b) {
+              final cmp = switch (_sortField) {
+                _RegistersSortField.name => _entryName(a).compareTo(_entryName(b)),
+                _RegistersSortField.type => () {
+                  final typeA = a is _RegisterEntry ? '0_${a.register.type.index}' : '1_${(a as _DisplayEntry).device.type.index}';
+                  final typeB = b is _RegisterEntry ? '0_${b.register.type.index}' : '1_${(b as _DisplayEntry).device.type.index}';
+                  return typeA.compareTo(typeB);
+                }(),
+              };
+              return _sortAsc ? cmp : -cmp;
+            });
 
             return Column(
               children: [
@@ -110,10 +167,46 @@ class RegistersTab extends ConsumerWidget {
                     ),
                   ),
                 PosTableToolbar(
+                  searchController: _searchCtrl,
+                  searchHint: l.searchHint,
+                  onSearchChanged: (v) => setState(() => _query = normalizeSearch(v)),
                   trailing: [
+                    PopupMenuButton<_RegistersSortField>(
+                      icon: const Icon(Icons.swap_vert),
+                      onSelected: (field) {
+                        if (field == _sortField) {
+                          setState(() => _sortAsc = !_sortAsc);
+                        } else {
+                          setState(() {
+                            _sortField = field;
+                            _sortAsc = true;
+                          });
+                        }
+                      },
+                      itemBuilder: (_) => [
+                        for (final entry in {
+                          _RegistersSortField.name: l.catalogSortName,
+                          _RegistersSortField.type: l.catalogSortType,
+                        }.entries)
+                          PopupMenuItem(
+                            value: entry.key,
+                            child: Row(
+                              children: [
+                                if (entry.key == _sortField)
+                                  Icon(_sortAsc ? Icons.arrow_upward : Icons.arrow_downward, size: 16)
+                                else
+                                  const SizedBox(width: 16),
+                                const SizedBox(width: 8),
+                                Text(entry.value, style: entry.key == _sortField ? const TextStyle(fontWeight: FontWeight.bold) : null),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(width: 8),
                     FilledButton.icon(
                       onPressed: () =>
-                          _showRegisterDialog(context, ref, null, registers),
+                          _showRegisterDialog(context, null, registers),
                       icon: const Icon(Icons.add, size: 18),
                       label: Text(l.modePOS),
                     ),
@@ -123,7 +216,6 @@ class RegistersTab extends ConsumerWidget {
                           ? null
                           : () => _showCreateDisplayDialog(
                                 context,
-                                ref,
                                 DisplayDeviceType.customerDisplay,
                                 registers,
                               ),
@@ -134,7 +226,6 @@ class RegistersTab extends ConsumerWidget {
                     OutlinedButton.icon(
                       onPressed: () => _showCreateDisplayDialog(
                             context,
-                            ref,
                             DisplayDeviceType.kds,
                             registers,
                           ),
@@ -163,10 +254,11 @@ class RegistersTab extends ConsumerWidget {
                                     color: theme.colorScheme.onSurfaceVariant),
                                 const SizedBox(width: 8),
                                 Expanded(
-                                  child: Text(
+                                  child: HighlightedText(
                                     register.name.isEmpty
                                         ? register.code
                                         : register.name,
+                                    query: _query,
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
@@ -184,10 +276,11 @@ class RegistersTab extends ConsumerWidget {
                                 ),
                                 const SizedBox(width: 8),
                                 Expanded(
-                                  child: Text(
+                                  child: HighlightedText(
                                     device.name.isEmpty
                                         ? _displayTypeLabel(l, device.type)
                                         : device.name,
+                                    query: _query,
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
@@ -256,7 +349,6 @@ class RegistersTab extends ConsumerWidget {
                           _RegisterEntry(:final register) =>
                             _buildBindingCell(
                               context,
-                              ref,
                               l,
                               register,
                               deviceReg,
@@ -277,14 +369,14 @@ class RegistersTab extends ConsumerWidget {
                                 IconButton(
                                   icon: const Icon(Icons.edit, size: 20),
                                   onPressed: () => _showRegisterDialog(
-                                      context, ref, register, registers),
+                                      context, register, registers),
                                 ),
                                 IconButton(
                                   icon: const Icon(Icons.delete, size: 20),
                                   onPressed: register.isMain
                                       ? null
                                       : () => _deleteRegister(
-                                          context, ref, register),
+                                          context, register),
                                 ),
                               ],
                             ),
@@ -294,12 +386,12 @@ class RegistersTab extends ConsumerWidget {
                                 IconButton(
                                   icon: const Icon(Icons.edit, size: 20),
                                   onPressed: () => _showEditDisplayDialog(
-                                      context, ref, device),
+                                      context, device),
                                 ),
                                 IconButton(
                                   icon: const Icon(Icons.delete, size: 20),
                                   onPressed: () =>
-                                      _deleteDisplayDevice(context, ref, device),
+                                      _deleteDisplayDevice(context, device),
                                 ),
                               ],
                             ),
@@ -323,7 +415,6 @@ class RegistersTab extends ConsumerWidget {
 
   Widget _buildBindingCell(
     BuildContext context,
-    WidgetRef ref,
     AppLocalizations l,
     RegisterModel register,
     DeviceRegistrationModel? deviceReg,
@@ -372,7 +463,7 @@ class RegistersTab extends ConsumerWidget {
     return TextButton(
       onPressed: hasActiveSession
           ? null
-          : () => _bindRegister(context, ref, companyId, register.id),
+          : () => _bindRegister(context, companyId, register.id),
       child: Text(l.registerBindAction),
     );
   }
@@ -398,7 +489,6 @@ class RegistersTab extends ConsumerWidget {
 
   Future<void> _bindRegister(
     BuildContext context,
-    WidgetRef ref,
     String companyId,
     String registerId,
   ) async {
@@ -416,7 +506,6 @@ class RegistersTab extends ConsumerWidget {
 
   Future<void> _showRegisterDialog(
     BuildContext context,
-    WidgetRef ref,
     RegisterModel? existing,
     List<RegisterModel> allRegisters,
   ) async {
@@ -582,7 +671,7 @@ class RegistersTab extends ConsumerWidget {
   }
 
   Future<void> _deleteRegister(
-      BuildContext context, WidgetRef ref, RegisterModel register) async {
+      BuildContext context, RegisterModel register) async {
     if (!await confirmDelete(context, context.l10n) || !context.mounted) return;
     final regRepo = ref.read(registerRepositoryProvider);
     await regRepo.delete(register.id);
@@ -596,7 +685,6 @@ class RegistersTab extends ConsumerWidget {
 
   Future<void> _showCreateDisplayDialog(
     BuildContext context,
-    WidgetRef ref,
     DisplayDeviceType type,
     List<RegisterModel> registers,
   ) async {
@@ -680,7 +768,6 @@ class RegistersTab extends ConsumerWidget {
 
   Future<void> _showEditDisplayDialog(
     BuildContext context,
-    WidgetRef ref,
     DisplayDeviceModel device,
   ) async {
     final l = context.l10n;
@@ -745,7 +832,6 @@ class RegistersTab extends ConsumerWidget {
 
   Future<void> _deleteDisplayDevice(
     BuildContext context,
-    WidgetRef ref,
     DisplayDeviceModel device,
   ) async {
     if (!await confirmDelete(context, context.l10n) || !context.mounted) return;

@@ -6386,11 +6386,23 @@ abstract class AppLocalizations {
   /// **'Označit nedostupnost'**
   String get permProductsSetAvailability;
 
-  /// No description provided for @permStockView.
+  /// No description provided for @permStockViewLevels.
   ///
   /// In cs, this message translates to:
-  /// **'Zobrazit sklad'**
-  String get permStockView;
+  /// **'Zobrazit zásoby'**
+  String get permStockViewLevels;
+
+  /// No description provided for @permStockViewDocuments.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zobrazit doklady'**
+  String get permStockViewDocuments;
+
+  /// No description provided for @permStockViewMovements.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zobrazit pohyby'**
+  String get permStockViewMovements;
 
   /// No description provided for @permStockReceive.
   ///
@@ -7601,6 +7613,18 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Typ'**
   String get catalogSortType;
+
+  /// No description provided for @catalogSortRate.
+  ///
+  /// In cs, this message translates to:
+  /// **'Sazba'**
+  String get catalogSortRate;
+
+  /// No description provided for @catalogSortSortOrder.
+  ///
+  /// In cs, this message translates to:
+  /// **'Pořadí'**
+  String get catalogSortSortOrder;
 
   /// No description provided for @catalogSortMinSelections.
   ///

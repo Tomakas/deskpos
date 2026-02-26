@@ -1934,6 +1934,7 @@ class _RetailMenuButton extends ConsumerWidget {
     final canCatalog = ref.watch(hasAnyPermissionInGroupProvider('products'));
     final canInventory = ref.watch(hasAnyPermissionInGroupProvider('stock'));
     final canVouchers = ref.watch(hasAnyPermissionInGroupProvider('vouchers'));
+    final canData = ref.watch(hasAnyPermissionInGroupProvider('data'));
     final canSettings = ref.watch(hasAnyPermissionInGroupProvider('settings_company')) ||
         ref.watch(hasAnyPermissionInGroupProvider('settings_venue')) ||
         ref.watch(hasAnyPermissionInGroupProvider('settings_register'));
@@ -1989,6 +1990,7 @@ class _RetailMenuButton extends ConsumerWidget {
         ),
         PopupMenuItem(
           value: 'data',
+          enabled: canData,
           height: 48,
           child: Text(l.dataTitle),
         ),

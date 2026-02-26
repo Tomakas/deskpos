@@ -7,6 +7,7 @@ import '../../../core/data/models/category_model.dart';
 import '../../../core/data/models/stock_document_model.dart';
 import '../../../core/data/models/supplier_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
+import '../../../core/data/providers/permission_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/repositories/stock_level_repository.dart';
 import '../../../core/data/repositories/stock_movement_repository.dart';
@@ -115,8 +116,8 @@ class _ScreenInventoryState extends ConsumerState<ScreenInventory> {
     }
   }
 
-  bool get _hasActiveFilters {
-    return switch (_tabIndex) {
+  bool _hasActiveFilters(int originalIndex) {
+    return switch (originalIndex) {
       0 => _filterBelowMin || _filterZeroStock || _filterLevelCategoryIds.isNotEmpty,
       1 => _filterDocTypes.isNotEmpty,
       2 => _filterDirection != null || _filterMovementSource != _MovementSourceFilter.all || _filterMovementCategoryIds.isNotEmpty,
@@ -136,7 +137,26 @@ class _ScreenInventoryState extends ConsumerState<ScreenInventory> {
       );
     }
 
-    final tabs = [l.inventoryTabLevels, l.inventoryTabDocuments, l.inventoryTabMovements];
+    // Permission-gated tabs
+    final canLevels = ref.watch(hasPermissionProvider('stock.view_levels'));
+    final canDocuments = ref.watch(hasPermissionProvider('stock.view_documents'));
+    final canMovements = ref.watch(hasPermissionProvider('stock.view_movements'));
+
+    final allTabs = <(int, String)>[
+      if (canLevels) (0, l.inventoryTabLevels),
+      if (canDocuments) (1, l.inventoryTabDocuments),
+      if (canMovements) (2, l.inventoryTabMovements),
+    ];
+
+    if (allTabs.isEmpty) {
+      return Scaffold(
+        appBar: AppBar(title: Text(l.inventoryTitle)),
+        body: const SizedBox.shrink(),
+      );
+    }
+
+    final effectiveTab = _tabIndex.clamp(0, allTabs.length - 1);
+    final originalIndex = allTabs[effectiveTab].$1;
 
     return Scaffold(
       appBar: AppBar(
@@ -160,11 +180,11 @@ class _ScreenInventoryState extends ConsumerState<ScreenInventory> {
             child: Row(
               children: [
                 // Tab chips
-                for (final (i, label) in tabs.indexed) ...[
+                for (var i = 0; i < allTabs.length; i++) ...[
                   if (i > 0) const SizedBox(width: 8),
                   FilterChip(
-                    label: Text(label),
-                    selected: _tabIndex == i,
+                    label: Text(allTabs[i].$2),
+                    selected: effectiveTab == i,
                     onSelected: (_) => setState(() => _tabIndex = i),
                   ),
                 ],
@@ -199,21 +219,21 @@ class _ScreenInventoryState extends ConsumerState<ScreenInventory> {
                 // Filter
                 IconButton(
                   icon: const Icon(Icons.filter_alt_outlined),
-                  onPressed: _showFilterDialog,
-                  color: _hasActiveFilters ? Theme.of(context).colorScheme.primary : null,
+                  onPressed: () => _showFilterDialog(originalIndex),
+                  color: _hasActiveFilters(originalIndex) ? Theme.of(context).colorScheme.primary : null,
                 ),
                 // Sort
                 PopupMenuButton<String>(
                   icon: const Icon(Icons.swap_vert),
                   onSelected: _onSortSelected,
-                  itemBuilder: (_) => _buildSortMenuItems(l),
+                  itemBuilder: (_) => _buildSortMenuItems(l, originalIndex),
                 ),
               ],
             ),
           ),
           // Tab content
           Expanded(
-            child: switch (_tabIndex) {
+            child: switch (originalIndex) {
               0 => _StockLevelsTab(
                 companyId: company.id,
                 warehouseId: _warehouseId!,
@@ -251,8 +271,8 @@ class _ScreenInventoryState extends ConsumerState<ScreenInventory> {
 
   // --- Sort menu ---
 
-  List<PopupMenuEntry<String>> _buildSortMenuItems(AppLocalizations l) {
-    return switch (_tabIndex) {
+  List<PopupMenuEntry<String>> _buildSortMenuItems(AppLocalizations l, int originalIndex) {
+    return switch (originalIndex) {
       0 => [
         _sortMenuItem('levels_name', l.inventorySortName, _levelsSortField == _LevelsSortField.name, _levelsSortAsc),
         _sortMenuItem('levels_quantity', l.inventorySortQuantity, _levelsSortField == _LevelsSortField.quantity, _levelsSortAsc),
@@ -321,9 +341,9 @@ class _ScreenInventoryState extends ConsumerState<ScreenInventory> {
 
   // --- Filter dialogs ---
 
-  void _showFilterDialog() {
+  void _showFilterDialog(int originalIndex) {
     final l = context.l10n;
-    switch (_tabIndex) {
+    switch (originalIndex) {
       case 0:
         _showLevelsFilterDialog(l);
       case 1:

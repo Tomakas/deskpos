@@ -3258,7 +3258,13 @@ class AppLocalizationsCs extends AppLocalizations {
   String get permProductsSetAvailability => 'Označit nedostupnost';
 
   @override
-  String get permStockView => 'Zobrazit sklad';
+  String get permStockViewLevels => 'Zobrazit zásoby';
+
+  @override
+  String get permStockViewDocuments => 'Zobrazit doklady';
+
+  @override
+  String get permStockViewMovements => 'Zobrazit pohyby';
 
   @override
   String get permStockReceive => 'Příjem zboží';
@@ -3884,6 +3890,12 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get catalogSortType => 'Typ';
+
+  @override
+  String get catalogSortRate => 'Sazba';
+
+  @override
+  String get catalogSortSortOrder => 'Pořadí';
 
   @override
   String get catalogSortMinSelections => 'Min. výběr';

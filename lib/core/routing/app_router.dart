@@ -194,6 +194,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/data',
+        redirect: (context, state) {
+          final hasPermission = ref.read(hasAnyPermissionInGroupProvider('data'));
+          if (!hasPermission) return _homeRoute(ref);
+          return null;
+        },
         builder: (context, state) => const ScreenData(),
       ),
       GoRoute(

@@ -72,9 +72,9 @@ Admin vytvoří firmu, nastaví uživatele, stoly a produkty. Více uživatelů 
 
 #### Milník 1.4 — Oprávnění (engine)
 
-- **Task1.10** Permission engine — 113 permissions v 17 skupinách, O(1) check přes in-memory Set
-- **Task1.11** Role šablony — helper (19), operator (63), manager (92), admin (113)
-- **Výsledek:** Permission engine a role šablony jsou připraveny. Admin má všech 113 oprávnění.
+- **Task1.10** Permission engine — 115 permissions v 17 skupinách, O(1) check přes in-memory Set
+- **Task1.11** Role šablony — helper (19), operator (64), manager (95), admin (115)
+- **Výsledek:** Permission engine a role šablony jsou připraveny. Admin má všech 115 oprávnění.
 
 #### Milník 1.5 — Hlavní obrazovka
 
@@ -1539,7 +1539,7 @@ Když server odmítne push (`LWW_CONFLICT`), outbox processor označí entry jak
 
 ### Globální reference data
 
-`roles` (4), `permissions` (113), `role_permissions`, `currencies` jsou **globální** (bez `company_id`):
+`roles` (4), `permissions` (115), `role_permissions`, `currencies` jsou **globální** (bez `company_id`):
 - V Etapě 1–2: seedovány lokálně při onboardingu
 - Od Etapy 3: pull ze Supabase (bez company_id filtru); nejsou v ALLOWED_TABLES Ingest EF — klient je nepushuje
 - Aktuální design předpokládá 1 firma = 1 Supabase projekt
@@ -1608,9 +1608,9 @@ ALTER TABLE order_items ADD COLUMN voucher_discount integer NOT NULL DEFAULT 0;
 --    - S2: 7 FK indexes on modifier tables (item_modifier_groups, modifier_group_items, order_item_modifiers)
 --    - S3: Modifier RLS policies fixed from public → authenticated role
 
--- 7. Permissions 113 (permissions_113 migration):
---    - Replaces 16 seed permissions with 113 granular permissions in 17 groups
---    - 287 role_permission assignments (helper: 19, operator: 63, manager: 92, admin: 113)
+-- 7. Permissions 115 (permissions_113 migration + stock_view_split):
+--    - Replaces 16 seed permissions with 115 granular permissions in 17 groups
+--    - 293 role_permission assignments (helper: 19, operator: 64, manager: 95, admin: 115)
 
 -- 8. Verify RLS SELECT policies allow company-scoped reads for all users
 
@@ -2272,9 +2272,9 @@ Po odeslání formuláře se v jedné transakci vytvoří:
 | Company | 1 | Dle formuláře, status: `trial`, `auth_user_id` z Kroku 1 |
 | Currency | 1 | CZK (Kč, 2 des. místa). Formátování řídí `intl` package dle locale. |
 | TaxRate | 3 | Základní 21% (`regular`), Snížená 12% (`regular`), Nulová 0% (`noTax`), is_default: Základní=true |
-| Permission | 113 | Viz [Katalog oprávnění](#katalog-oprávnění-113) — 17 skupin |
+| Permission | 115 | Viz [Katalog oprávnění](#katalog-oprávnění-115) — 17 skupin |
 | Role | 4 | helper, operator, manager, admin |
-| RolePermission | 287 | helper: 19, operator: 63, manager: 92, admin: 113 |
+| RolePermission | 293 | helper: 19, operator: 64, manager: 95, admin: 115 |
 | PaymentMethod | 5 | Viz [Platební metody](#platební-metody), vč. Zákaznický kredit (credit) a Stravenky (voucher) |
 | Section | 1 (1 s demo) | Hlavní (zelená). Zahrádka + Interní zatím neimplementovány v `seedStaticDemoData` |
 | Table | 0 (10 s demo gastro) | S `withTestData` gastro: Stůl 1–8 + Zahradní 1–2, vše v 1 sekci, kapacita 4, tvar rectangle |
@@ -2288,7 +2288,7 @@ Po odeslání formuláře se v jedné transakci vytvoří:
 | Customer | 0 (5 s demo) | S `withTestData`: Martin Svoboda, Lucie Černá, Tomáš Krejčí, Eva Nováková, Petr Veselý |
 | Register | 1 | code: `REG-1`, type: `local`, is_active: true, allow_cash/card/transfer/credit/voucher/other: true, allow_refunds: false, grid: 5×8, sell_mode: gastro |
 | User | 1 | Admin s PIN hashem, role_id: admin |
-| UserPermission | 113 | Všech 113 oprávnění, granted_by: admin user ID (self-grant při onboardingu) |
+| UserPermission | 115 | Všech 115 oprávnění, granted_by: admin user ID (self-grant při onboardingu) |
 
 **Pořadí seedu (respektuje FK závislosti):**
 1. Currency → Company (`default_currency_id`)
@@ -2377,13 +2377,13 @@ Systém oprávnění funguje **offline-first**. Veškerá data jsou uložena lok
 ```
 ┌─────────────────────────────────────────────────────┐
 │  permissions (katalog)                              │
-│  113 položek v 17 skupinách, read-only, seed lokálně│
+│  115 položek v 17 skupinách, read-only, seed lokálně│
 └─────────────────────┬───────────────────────────────┘
                       │
 ┌─────────────────────▼───────────────────────────────┐
 │  role_permissions (šablony)                         │
 │  Vazba role → permission, read-only                 │
-│  admin: 113, manager: 92, operator: 63, helper: 19  │
+│  admin: 115, manager: 95, operator: 64, helper: 19  │
 └─────────────────────┬───────────────────────────────┘
                       │  "Přiřadit roli" = zkopírovat permission_ids
                       ▼
@@ -2411,11 +2411,11 @@ Systém oprávnění funguje **offline-first**. Veškerá data jsou uložena lok
 | Role | Český název | Oprávnění | Popis |
 |------|-------------|:---------:|-------|
 | `helper` | Pomocník / Číšník | 19 | Základní obsluha — objednávky, platby, vidí jen své věci |
-| `operator` | Směnový vedoucí | 62 | Řídí směnu — storna, refundace, slevy (limitované), pokladní operace, statistiky (session) |
-| `manager` | Manažer | 93 | Řídí provoz — slevy (neomezené), katalog, sklad, statistiky (historie), zaměstnanci, nastavení provozovny |
-| `admin` | Administrátor / Majitel | 113 | Plný přístup — systém, daně, data, role, destruktivní akce |
+| `operator` | Směnový vedoucí | 64 | Řídí směnu — storna, refundace, slevy (limitované), pokladní operace, statistiky (session) |
+| `manager` | Manažer | 95 | Řídí provoz — slevy (neomezené), katalog, sklad, statistiky (historie), zaměstnanci, nastavení provozovny |
+| `admin` | Administrátor / Majitel | 115 | Plný přístup — systém, daně, data, role, destruktivní akce |
 
-### Katalog oprávnění (113)
+### Katalog oprávnění (115)
 
 17 skupin s konvencí `skupina.akce`:
 
@@ -2427,7 +2427,7 @@ Systém oprávnění funguje **offline-first**. Veškerá data jsou uložena lok
 | 4 | Pokladna | `register.*` | 7 |
 | 5 | Směny zaměstnanců | `shifts.*` | 4 |
 | 6 | Produkty a katalog | `products.*` | 11 |
-| 7 | Sklad | `stock.*` | 8 |
+| 7 | Sklad | `stock.*` | 10 |
 | 8 | Zákazníci a věrnost | `customers.*` | 4 |
 | 9 | Vouchery | `vouchers.*` | 3 |
 | 10 | Provoz — stoly a rezervace | `venue.*` | 3 |
@@ -2438,7 +2438,7 @@ Systém oprávnění funguje **offline-first**. Veškerá data jsou uložena lok
 | 15 | Nastavení — firma | `settings_company.*` | 7 |
 | 16 | Nastavení — provozovna | `settings_venue.*` | 3 |
 | 17 | Nastavení — pokladna | `settings_register.*` | 7 |
-| | | **Celkem** | **113** |
+| | | **Celkem** | **115** |
 
 #### Objednávky (`orders`)
 
@@ -2541,7 +2541,9 @@ Evidence pracovních směn — příchod, odchod, docházka.
 
 | Kód | Název | Popis |
 |-----|-------|-------|
-| `stock.view` | Zobrazit stavy skladu | Vidět aktuální množství a stavy zásob |
+| `stock.view_levels` | Zobrazit zásoby | Vidět aktuální množství a stavy zásob |
+| `stock.view_documents` | Zobrazit doklady | Vidět příjemky, odpisy, korekce a další skladové doklady |
+| `stock.view_movements` | Zobrazit pohyby | Vidět historii pohybů zásob |
 | `stock.receive` | Příjem zboží | Vytvořit příjemku |
 | `stock.wastage` | Zaznamenat odpis | Vytvořit doklad odpisu nebo zmetku |
 | `stock.adjust` | Korekce skladu | Ručně upravit množství na skladě |
@@ -2704,7 +2706,7 @@ Odpovídá obrazovce **Nastavení pokladny** (terminály, hardware, grid, disple
 
 #### Operator (Směnový vedoucí)
 
-> **62 oprávnění.** Vše od helpera + storna, refundace, slevy (limitované na company limit), pokladní
+> **64 oprávnění.** Vše od helpera + storna, refundace, slevy (limitované na company limit), pokladní
 > operace, odpisy, správa zákazníků a rezervací. Plný detail v objednávkách.
 > Statistiky omezeny na aktuální session (bez date range selectoru).
 > Řídí provoz během směny.
@@ -2717,7 +2719,7 @@ Odpovídá obrazovce **Nastavení pokladny** (terminály, hardware, grid, disple
 | register | + `open_session`, `close_session`, `view_all_sessions`, `cash_in`, `cash_out`, `open_drawer` | 7 |
 | shifts | + `view_all` | 3 |
 | products | + `set_availability` | 2 |
-| stock | + `view`, `wastage` | 2 |
+| stock | + `view_levels`, `view_documents`, `view_movements`, `wastage` | 4 |
 | customers | + `manage`, `manage_credit` | 3 |
 | vouchers | + `manage` | 3 |
 | venue | + `reservations_manage` | 3 |
@@ -2728,11 +2730,11 @@ Odpovídá obrazovce **Nastavení pokladny** (terminály, hardware, grid, disple
 | settings_company | — | 0 |
 | settings_venue | — | 0 |
 | settings_register | — | 0 |
-| | **Celkem** | **62** |
+| | **Celkem** | **64** |
 
 #### Manager (Manažer)
 
-> **93 oprávnění.** Vše od operátora + neomezené slevy, správa katalogu (produkty, kategorie,
+> **95 oprávnění.** Vše od operátora + neomezené slevy, správa katalogu (produkty, kategorie,
 > modifikátory, receptury, dodavatelé, výrobci), skladu (příjem, korekce,
 > inventura, přesun), zaměstnanců, nastavení provozovny a export dat.
 > Plný přístup ke statistikám včetně historie, směn a uzávěrek.
@@ -2746,7 +2748,7 @@ Odpovídá obrazovce **Nastavení pokladny** (terminály, hardware, grid, disple
 | register | — | 7 |
 | shifts | + `manage` | 4 |
 | products | + `view_cost`, `manage`, `manage_categories`, `manage_modifiers`, `manage_recipes`, `manage_suppliers`, `manage_manufacturers` | 9 |
-| stock | + `receive`, `adjust`, `count`, `transfer` | 6 |
+| stock | + `receive`, `adjust`, `count`, `transfer` | 8 |
 | customers | + `manage_loyalty` | 4 |
 | vouchers | — | 3 |
 | venue | — | 3 |
@@ -2757,11 +2759,11 @@ Odpovídá obrazovce **Nastavení pokladny** (terminály, hardware, grid, disple
 | settings_company | — | 0 |
 | settings_venue | + `sections`, `tables`, `floor_plan` | 3 |
 | settings_register | + `grid`, `displays` | 2 |
-| | **Celkem** | **93** |
+| | **Celkem** | **95** |
 
 #### Admin (Administrátor / Majitel)
 
-> **113 oprávnění (vše).** Vše od manažera + systémová nastavení firmy,
+> **115 oprávnění (vše).** Vše od manažera + systémová nastavení firmy,
 > správa daní a nákupních cen, cenová strategie, sklady, role a oprávnění
 > uživatelů, import/záloha dat, registr a hardware, destruktivní akce.
 
@@ -2773,7 +2775,7 @@ Odpovídá obrazovce **Nastavení pokladny** (terminály, hardware, grid, disple
 | register | — | 7 |
 | shifts | — | 4 |
 | products | + `manage_purchase_price`, `manage_tax` | 11 |
-| stock | + `set_price_strategy`, `manage_warehouses` | 8 |
+| stock | + `set_price_strategy`, `manage_warehouses` | 10 |
 | customers | — | 4 |
 | vouchers | — | 3 |
 | venue | — | 3 |
@@ -2784,7 +2786,7 @@ Odpovídá obrazovce **Nastavení pokladny** (terminály, hardware, grid, disple
 | settings_company | + `info`, `security`, `fiscal`, `cloud`, `data_wipe`, `view_log`, `clear_log` | 7 |
 | settings_venue | — | 3 |
 | settings_register | + `manage`, `hardware`, `payment_methods`, `tax_rates`, `manage_devices` | 7 |
-| | **Celkem** | **113** |
+| | **Celkem** | **115** |
 
 #### Souhrnná matice
 
@@ -2796,7 +2798,7 @@ Odpovídá obrazovce **Nastavení pokladny** (terminály, hardware, grid, disple
 | register | 7 | 1 | 7 | 7 | 7 |
 | shifts | 4 | 2 | 3 | 4 | 4 |
 | products | 11 | 1 | 2 | 9 | 11 |
-| stock | 8 | 0 | 2 | 6 | 8 |
+| stock | 10 | 0 | 4 | 8 | 10 |
 | customers | 4 | 1 | 3 | 4 | 4 |
 | vouchers | 3 | 2 | 3 | 3 | 3 |
 | venue | 3 | 2 | 3 | 3 | 3 |
@@ -2807,13 +2809,13 @@ Odpovídá obrazovce **Nastavení pokladny** (terminály, hardware, grid, disple
 | settings_company | 7 | 0 | 0 | 0 | 7 |
 | settings_venue | 3 | 0 | 0 | 3 | 3 |
 | settings_register | 7 | 0 | 0 | 2 | 7 |
-| **Celkem** | **113** | **19** | **62** | **93** | **113** |
+| **Celkem** | **115** | **19** | **64** | **95** | **115** |
 
 #### Progrese mezi rolemi
 
 | Přechod | Nových oprávnění | Hlavní oblasti |
 |---------|:----------------:|----------------|
-| helper → operator | +43 | Storna, refundace, slevy (limitované), pokladní operace, statistiky (session) |
+| helper → operator | +45 | Storna, refundace, slevy (limitované), pokladní operace, statistiky (session) |
 | operator → manager | +31 | Slevy (neomezené), katalog, sklad, zaměstnanci, statistiky (historie + směny + uzávěrky), nastavení provozovny |
 | manager → admin | +20 | Systém, daně, ceny, data, role, hardware, destruktivní akce |
 

@@ -16,6 +16,8 @@ import '../../../core/utils/search_utils.dart';
 import '../../../core/widgets/highlighted_text.dart';
 import '../../../core/widgets/pos_table.dart';
 
+enum _TaxRatesSortField { name, rate }
+
 class TaxRatesTab extends ConsumerStatefulWidget {
   const TaxRatesTab({super.key});
 
@@ -26,6 +28,9 @@ class TaxRatesTab extends ConsumerStatefulWidget {
 class _TaxRatesTabState extends ConsumerState<TaxRatesTab> {
   final _searchCtrl = TextEditingController();
   String _query = '';
+
+  _TaxRatesSortField _sortField = _TaxRatesSortField.name;
+  bool _sortAsc = true;
 
   @override
   void dispose() {
@@ -46,7 +51,14 @@ class _TaxRatesTabState extends ConsumerState<TaxRatesTab> {
         final filtered = taxRates.where((tr) {
           if (_query.isEmpty) return true;
           return normalizeSearch(tr.label).contains(_query);
-        }).toList();
+        }).toList()
+          ..sort((a, b) {
+            final cmp = switch (_sortField) {
+              _TaxRatesSortField.name => a.label.compareTo(b.label),
+              _TaxRatesSortField.rate => a.rate.compareTo(b.rate),
+            };
+            return _sortAsc ? cmp : -cmp;
+          });
         return Column(
           children: [
             PosTableToolbar(
@@ -54,6 +66,39 @@ class _TaxRatesTabState extends ConsumerState<TaxRatesTab> {
               searchHint: l.searchHint,
               onSearchChanged: (v) => setState(() => _query = normalizeSearch(v)),
               trailing: [
+                PopupMenuButton<_TaxRatesSortField>(
+                  icon: const Icon(Icons.swap_vert),
+                  onSelected: (field) {
+                    if (field == _sortField) {
+                      setState(() => _sortAsc = !_sortAsc);
+                    } else {
+                      setState(() {
+                        _sortField = field;
+                        _sortAsc = true;
+                      });
+                    }
+                  },
+                  itemBuilder: (_) => [
+                    for (final entry in {
+                      _TaxRatesSortField.name: l.catalogSortName,
+                      _TaxRatesSortField.rate: l.catalogSortRate,
+                    }.entries)
+                      PopupMenuItem(
+                        value: entry.key,
+                        child: Row(
+                          children: [
+                            if (entry.key == _sortField)
+                              Icon(_sortAsc ? Icons.arrow_upward : Icons.arrow_downward, size: 16)
+                            else
+                              const SizedBox(width: 16),
+                            const SizedBox(width: 8),
+                            Text(entry.value, style: entry.key == _sortField ? const TextStyle(fontWeight: FontWeight.bold) : null),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(width: 8),
                 FilledButton.icon(
                   onPressed: () => _showEditDialog(context, null),
                   icon: const Icon(Icons.add),

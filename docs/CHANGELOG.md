@@ -1,5 +1,30 @@
 # Changelog
 
+## 2026-02-26 — Stock View Permission Split & Permission Guards
+
+### Permissions
+- **Split:** `stock.view` replaced by 3 granular permissions: `stock.view_levels`, `stock.view_documents`, `stock.view_movements`
+- **Implications updated:** write operations (`receive`, `wastage`, `adjust`, `count`, `transfer`) now imply `view_levels` + `view_documents`; `manage_warehouses` implies `view_levels` only
+- **Role changes:** operator 62 → 64, manager 93 → 95, admin 113 → 115 (helper unchanged at 19); total permissions 113 → 115
+
+### Fixes
+- **`/orders` button** in ScreenBills sidebar — now hidden when user lacks `orders.view` permission
+- **`/inventory` button** in ScreenBills sidebar — now hidden when user lacks any `stock.*` permission
+- **`/data` route** — added router-level permission guard (`hasAnyPermissionInGroupProvider('data')`)
+- **Data menu item** in ScreenBills "More" menu and ScreenSell retail menu — now disabled when user lacks any `data.*` permission
+
+### Features
+- **ScreenInventory** — tabs (Zásoby, Doklady, Pohyby) now individually gated by `stock.view_levels`, `stock.view_documents`, `stock.view_movements`
+- **ScreenData** — redesigned from flat layout to permission-gated tabs (Export, Import, Backup) with FilterChip tab bar
+
+### Database
+- Migration `20260226_009_stock_view_split`: deletes `stock.view`, inserts 3 new permissions + 9 role_permission assignments
+
+### Documentation
+- `PROJECT.md`: updated all permission counts, stock detail table, role tables, summary matrix, progression table, seed data counts
+
+---
+
 ## 2026-02-26 (late night) — Tiered Discount Permissions
 
 ### Features

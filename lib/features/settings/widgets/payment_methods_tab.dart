@@ -9,15 +9,36 @@ import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/search_utils.dart';
+import '../../../core/widgets/highlighted_text.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_table.dart';
 
-class PaymentMethodsTab extends ConsumerWidget {
+enum _PaymentMethodsSortField { name, type }
+
+class PaymentMethodsTab extends ConsumerStatefulWidget {
   const PaymentMethodsTab({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<PaymentMethodsTab> createState() => _PaymentMethodsTabState();
+}
+
+class _PaymentMethodsTabState extends ConsumerState<PaymentMethodsTab> {
+  final _searchCtrl = TextEditingController();
+  String _query = '';
+
+  _PaymentMethodsSortField _sortField = _PaymentMethodsSortField.name;
+  bool _sortAsc = true;
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l = context.l10n;
     final company = ref.watch(currentCompanyProvider);
     if (company == null) return const SizedBox.shrink();
@@ -26,12 +47,59 @@ class PaymentMethodsTab extends ConsumerWidget {
       stream: ref.watch(paymentMethodRepositoryProvider).watchAll(company.id),
       builder: (context, snap) {
         final methods = snap.data ?? [];
+        final filtered = methods.where((pm) {
+          if (_query.isEmpty) return true;
+          return normalizeSearch(pm.name).contains(_query);
+        }).toList()
+          ..sort((a, b) {
+            final cmp = switch (_sortField) {
+              _PaymentMethodsSortField.name => a.name.compareTo(b.name),
+              _PaymentMethodsSortField.type => a.type.index.compareTo(b.type.index),
+            };
+            return _sortAsc ? cmp : -cmp;
+          });
         return Column(
           children: [
             PosTableToolbar(
+              searchController: _searchCtrl,
+              searchHint: l.searchHint,
+              onSearchChanged: (v) => setState(() => _query = normalizeSearch(v)),
               trailing: [
+                PopupMenuButton<_PaymentMethodsSortField>(
+                  icon: const Icon(Icons.swap_vert),
+                  onSelected: (field) {
+                    if (field == _sortField) {
+                      setState(() => _sortAsc = !_sortAsc);
+                    } else {
+                      setState(() {
+                        _sortField = field;
+                        _sortAsc = true;
+                      });
+                    }
+                  },
+                  itemBuilder: (_) => [
+                    for (final entry in {
+                      _PaymentMethodsSortField.name: l.catalogSortName,
+                      _PaymentMethodsSortField.type: l.catalogSortType,
+                    }.entries)
+                      PopupMenuItem(
+                        value: entry.key,
+                        child: Row(
+                          children: [
+                            if (entry.key == _sortField)
+                              Icon(_sortAsc ? Icons.arrow_upward : Icons.arrow_downward, size: 16)
+                            else
+                              const SizedBox(width: 16),
+                            const SizedBox(width: 8),
+                            Text(entry.value, style: entry.key == _sortField ? const TextStyle(fontWeight: FontWeight.bold) : null),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(width: 8),
                 FilledButton.icon(
-                  onPressed: () => _showEditDialog(context, ref, null),
+                  onPressed: () => _showEditDialog(context, null),
                   icon: const Icon(Icons.add),
                   label: Text(l.actionAdd),
                 ),
@@ -40,7 +108,7 @@ class PaymentMethodsTab extends ConsumerWidget {
             Expanded(
               child: PosTable<PaymentMethodModel>(
                 columns: [
-                  PosColumn(label: l.fieldName, flex: 3, cellBuilder: (pm) => Text(pm.name, overflow: TextOverflow.ellipsis)),
+                  PosColumn(label: l.fieldName, flex: 3, cellBuilder: (pm) => HighlightedText(pm.name, query: _query, overflow: TextOverflow.ellipsis)),
                   PosColumn(label: l.fieldType, flex: 2, cellBuilder: (pm) => Text(_typeLabel(l, pm.type), overflow: TextOverflow.ellipsis)),
                   PosColumn(
                     label: l.fieldActive,
@@ -59,17 +127,17 @@ class PaymentMethodsTab extends ConsumerWidget {
                       children: [
                         IconButton(
                           icon: const Icon(Icons.edit, size: 20),
-                          onPressed: () => _showEditDialog(context, ref, pm),
+                          onPressed: () => _showEditDialog(context, pm),
                         ),
                         IconButton(
                           icon: const Icon(Icons.delete, size: 20),
-                          onPressed: () => _delete(context, ref, pm),
+                          onPressed: () => _delete(context, pm),
                         ),
                       ],
                     ),
                   ),
                 ],
-                items: methods,
+                items: filtered,
               ),
             ),
           ],
@@ -90,7 +158,7 @@ class PaymentMethodsTab extends ConsumerWidget {
   }
 
   Future<void> _showEditDialog(
-      BuildContext context, WidgetRef ref, PaymentMethodModel? existing) async {
+      BuildContext context, PaymentMethodModel? existing) async {
     final l = context.l10n;
     final nameCtrl = TextEditingController(text: existing?.name ?? '');
     var type = existing?.type ?? PaymentType.cash;
@@ -164,7 +232,7 @@ class PaymentMethodsTab extends ConsumerWidget {
     }
   }
 
-  Future<void> _delete(BuildContext context, WidgetRef ref, PaymentMethodModel method) async {
+  Future<void> _delete(BuildContext context, PaymentMethodModel method) async {
     if (!await confirmDelete(context, context.l10n) || !context.mounted) return;
     await ref.read(paymentMethodRepositoryProvider).delete(method.id);
   }

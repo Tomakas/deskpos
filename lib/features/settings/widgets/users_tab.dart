@@ -23,6 +23,8 @@ import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_table.dart';
 
+enum _UsersSortField { fullName, username, role }
+
 class UsersTab extends ConsumerStatefulWidget {
   const UsersTab({super.key});
 
@@ -40,10 +42,18 @@ class _UsersTabState extends ConsumerState<UsersTab> {
   final _searchCtrl = TextEditingController();
   String _query = '';
 
+  _UsersSortField _sortField = _UsersSortField.fullName;
+  bool _sortAsc = true;
+
   @override
   void dispose() {
     _searchCtrl.dispose();
     super.dispose();
+  }
+
+  int _roleIndex(List<RoleModel> roles, String roleId) {
+    final role = roles.where((r) => r.id == roleId).firstOrNull;
+    return role?.name.index ?? 0;
   }
 
   @override
@@ -69,7 +79,15 @@ class _UsersTabState extends ConsumerState<UsersTab> {
               final q = _query;
               return normalizeSearch(u.fullName).contains(q)
                   || normalizeSearch(u.username).contains(q);
-            }).toList();
+            }).toList()
+              ..sort((a, b) {
+                final cmp = switch (_sortField) {
+                  _UsersSortField.fullName => a.fullName.compareTo(b.fullName),
+                  _UsersSortField.username => a.username.compareTo(b.username),
+                  _UsersSortField.role => _roleIndex(roles, a.roleId).compareTo(_roleIndex(roles, b.roleId)),
+                };
+                return _sortAsc ? cmp : -cmp;
+              });
 
             return Column(
               children: [
@@ -78,6 +96,40 @@ class _UsersTabState extends ConsumerState<UsersTab> {
                   searchHint: l.searchHint,
                   onSearchChanged: (v) => setState(() => _query = normalizeSearch(v)),
                   trailing: [
+                    PopupMenuButton<_UsersSortField>(
+                      icon: const Icon(Icons.swap_vert),
+                      onSelected: (field) {
+                        if (field == _sortField) {
+                          setState(() => _sortAsc = !_sortAsc);
+                        } else {
+                          setState(() {
+                            _sortField = field;
+                            _sortAsc = true;
+                          });
+                        }
+                      },
+                      itemBuilder: (_) => [
+                        for (final entry in {
+                          _UsersSortField.fullName: l.catalogSortName,
+                          _UsersSortField.username: l.fieldUsername,
+                          _UsersSortField.role: l.fieldRole,
+                        }.entries)
+                          PopupMenuItem(
+                            value: entry.key,
+                            child: Row(
+                              children: [
+                                if (entry.key == _sortField)
+                                  Icon(_sortAsc ? Icons.arrow_upward : Icons.arrow_downward, size: 16)
+                                else
+                                  const SizedBox(width: 16),
+                                const SizedBox(width: 8),
+                                Text(entry.value, style: entry.key == _sortField ? const TextStyle(fontWeight: FontWeight.bold) : null),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(width: 8),
                     FilledButton.icon(
                       onPressed: () => _showEditDialog(context, ref, roles, users, null),
                       icon: const Icon(Icons.add),

@@ -7,12 +7,15 @@ import '../../../core/data/models/table_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/search_utils.dart';
 import '../../../core/widgets/highlighted_text.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_table.dart';
+
+enum _TablesSortField { name, section, capacity }
 
 class TablesTab extends ConsumerStatefulWidget {
   const TablesTab({super.key});
@@ -25,6 +28,12 @@ class _TablesTabState extends ConsumerState<TablesTab> {
   final _searchCtrl = TextEditingController();
   String _query = '';
 
+  _TablesSortField _sortField = _TablesSortField.name;
+  bool _sortAsc = true;
+  String? _filterSectionId;
+
+  bool get _hasActiveFilters => _filterSectionId != null;
+
   @override
   void dispose() {
     _searchCtrl.dispose();
@@ -34,6 +43,7 @@ class _TablesTabState extends ConsumerState<TablesTab> {
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
+    final theme = Theme.of(context);
     final company = ref.watch(currentCompanyProvider);
     if (company == null) return const SizedBox.shrink();
 
@@ -50,6 +60,7 @@ class _TablesTabState extends ConsumerState<TablesTab> {
             final sections = sectionsSnap.data ?? [];
 
             final filtered = tables.where((t) {
+              if (_filterSectionId != null && t.sectionId != _filterSectionId) return false;
               if (_query.isEmpty) return true;
               final q = _query;
               if (normalizeSearch(t.name).contains(q)) return true;
@@ -59,7 +70,16 @@ class _TablesTabState extends ConsumerState<TablesTab> {
                   ?.name;
               if (sectionName != null && normalizeSearch(sectionName).contains(q)) return true;
               return false;
-            }).toList();
+            }).toList()
+              ..sort((a, b) {
+                final cmp = switch (_sortField) {
+                  _TablesSortField.name => a.name.compareTo(b.name),
+                  _TablesSortField.section => (sections.where((s) => s.id == a.sectionId).firstOrNull?.name ?? '')
+                      .compareTo(sections.where((s) => s.id == b.sectionId).firstOrNull?.name ?? ''),
+                  _TablesSortField.capacity => a.capacity.compareTo(b.capacity),
+                };
+                return _sortAsc ? cmp : -cmp;
+              });
 
             return Column(
               children: [
@@ -68,6 +88,49 @@ class _TablesTabState extends ConsumerState<TablesTab> {
                   searchHint: l.searchHint,
                   onSearchChanged: (v) => setState(() => _query = normalizeSearch(v)),
                   trailing: [
+                    IconButton(
+                      icon: Icon(
+                        Icons.filter_alt_outlined,
+                        color: _hasActiveFilters
+                            ? theme.colorScheme.primary
+                            : null,
+                      ),
+                      onPressed: () => _showFilterDialog(context, l, sections),
+                    ),
+                    PopupMenuButton<_TablesSortField>(
+                      icon: const Icon(Icons.swap_vert),
+                      onSelected: (field) {
+                        if (field == _sortField) {
+                          setState(() => _sortAsc = !_sortAsc);
+                        } else {
+                          setState(() {
+                            _sortField = field;
+                            _sortAsc = true;
+                          });
+                        }
+                      },
+                      itemBuilder: (_) => [
+                        for (final entry in {
+                          _TablesSortField.name: l.catalogSortName,
+                          _TablesSortField.section: l.fieldSection,
+                          _TablesSortField.capacity: l.fieldCapacity,
+                        }.entries)
+                          PopupMenuItem(
+                            value: entry.key,
+                            child: Row(
+                              children: [
+                                if (entry.key == _sortField)
+                                  Icon(_sortAsc ? Icons.arrow_upward : Icons.arrow_downward, size: 16)
+                                else
+                                  const SizedBox(width: 16),
+                                const SizedBox(width: 8),
+                                Text(entry.value, style: entry.key == _sortField ? const TextStyle(fontWeight: FontWeight.bold) : null),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(width: 8),
                     FilledButton.icon(
                       onPressed: () => _showEditDialog(context, ref, sections, null),
                       icon: const Icon(Icons.add),
@@ -128,6 +191,68 @@ class _TablesTabState extends ConsumerState<TablesTab> {
         );
       },
     );
+  }
+
+  Future<void> _showFilterDialog(
+    BuildContext context,
+    AppLocalizations l,
+    List<SectionModel> sections,
+  ) async {
+    var sectionId = _filterSectionId;
+    var resetCount = 0;
+
+    await showDialog<void>(
+      context: context,
+      builder: (_) => StatefulBuilder(
+        builder: (ctx, setDialogState) => PosDialogShell(
+          title: l.filterTitle,
+          maxWidth: 400,
+          scrollable: true,
+          bottomActions: PosDialogActions(
+            actions: [
+              OutlinedButton(
+                onPressed: () {
+                  setDialogState(() {
+                    sectionId = null;
+                    resetCount++;
+                  });
+                },
+                child: Text(l.filterReset),
+              ),
+              OutlinedButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text(l.actionClose),
+              ),
+            ],
+          ),
+          children: [
+            Column(
+              key: ValueKey(resetCount),
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                DropdownButtonFormField<String?>(
+                  initialValue: sectionId,
+                  decoration: InputDecoration(labelText: l.fieldSection),
+                  items: [
+                    DropdownMenuItem<String?>(value: null, child: Text(l.filterAll)),
+                    ...sections.map(
+                      (s) => DropdownMenuItem(value: s.id, child: Text(s.name)),
+                    ),
+                  ],
+                  onChanged: (v) => setDialogState(() => sectionId = v),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
+
+    if (!mounted) return;
+    setState(() {
+      _filterSectionId = sectionId;
+    });
   }
 
   Future<void> _showEditDialog(

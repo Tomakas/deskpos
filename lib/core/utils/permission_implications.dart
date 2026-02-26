@@ -49,13 +49,13 @@ const Map<String, List<String>> _directRequirements = {
   'products.set_availability': ['products.view'],
 
   // stock
-  'stock.receive': ['stock.view'],
-  'stock.wastage': ['stock.view'],
-  'stock.adjust': ['stock.view'],
-  'stock.count': ['stock.view'],
-  'stock.transfer': ['stock.view'],
+  'stock.receive': ['stock.view_levels', 'stock.view_documents'],
+  'stock.wastage': ['stock.view_levels', 'stock.view_documents'],
+  'stock.adjust': ['stock.view_levels', 'stock.view_documents'],
+  'stock.count': ['stock.view_levels', 'stock.view_documents'],
+  'stock.transfer': ['stock.view_levels', 'stock.view_documents'],
   'stock.set_price_strategy': ['stock.receive'],
-  'stock.manage_warehouses': ['stock.view'],
+  'stock.manage_warehouses': ['stock.view_levels'],
 
   // customers
   'customers.manage': ['customers.view'],

@@ -24,6 +24,8 @@ import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/utils/formatting_ext.dart';
+import '../../../core/utils/search_utils.dart';
+import '../../../core/widgets/highlighted_text.dart';
 import '../../../core/widgets/pos_table.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../shared/session_helpers.dart' as helpers;
@@ -42,6 +44,9 @@ class ScreenBills extends ConsumerStatefulWidget {
 }
 
 class _ScreenBillsState extends ConsumerState<ScreenBills> {
+  final _searchCtrl = TextEditingController();
+  String _query = '';
+
   Set<BillStatus> _statusFilters = {BillStatus.opened};
   Set<String> _sectionFilters = {};
   _SortField _sortField = _SortField.table;
@@ -52,11 +57,19 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
   bool _isPanelVisible = true;
 
   @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final activeUser = ref.watch(activeUserProvider);
     final loggedIn = ref.watch(loggedInUsersProvider);
     final sessionAsync = ref.watch(activeRegisterSessionProvider);
     final hasSession = sessionAsync.valueOrNull != null;
+
+    final l = context.l10n;
 
     return Scaffold(
       body: Row(
@@ -80,6 +93,12 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
                   isPanelVisible: _isPanelVisible,
                   onTogglePanel: () => setState(() => _isPanelVisible = !_isPanelVisible),
                 ),
+                if (!_showMap)
+                  PosTableToolbar(
+                    searchController: _searchCtrl,
+                    searchHint: l.searchHint,
+                    onSearchChanged: (v) => setState(() => _query = normalizeSearch(v)),
+                  ),
                 Expanded(
                   child: _showMap
                       ? FloorMapView(
@@ -92,6 +111,7 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
                           sectionFilters: _sectionFilters,
                           sortField: _sortField,
                           sortAscending: _sortAscending,
+                          query: _query,
                           onBillTap: (bill) => _openBillDetail(context, bill),
                         ),
                 ),
@@ -485,12 +505,14 @@ class _BillsTable extends ConsumerWidget {
     this.sectionFilters = const {},
     required this.sortField,
     required this.sortAscending,
+    this.query = '',
     required this.onBillTap,
   });
   final Set<BillStatus> statusFilters;
   final Set<String> sectionFilters;
   final _SortField sortField;
   final bool sortAscending;
+  final String query;
   final ValueChanged<BillModel> onBillTap;
 
   @override
@@ -556,7 +578,7 @@ class _BillsTable extends ConsumerWidget {
           return sortAscending ? cmp : -cmp;
         });
 
-        final resolved = bills.map((bill) {
+        var resolved = bills.map((bill) {
           final customer = bill.customerId != null ? customerMap[bill.customerId] : null;
           return _ResolvedBill(
             bill: bill,
@@ -569,10 +591,19 @@ class _BillsTable extends ConsumerWidget {
           );
         }).toList();
 
+        if (query.isNotEmpty) {
+          resolved = resolved.where((r) {
+            if (normalizeSearch(r.tableName).contains(query)) return true;
+            if (normalizeSearch(r.customerName).contains(query)) return true;
+            if (normalizeSearch(r.staffName).contains(query)) return true;
+            return false;
+          }).toList();
+        }
+
         return PosTable<_ResolvedBill>(
           columns: [
-            PosColumn(label: l.columnTable, flex: 2, cellBuilder: (r) => Text(r.tableName)),
-            PosColumn(label: l.sellCustomer, flex: 2, cellBuilder: (r) => Text(r.customerName)),
+            PosColumn(label: l.columnTable, flex: 2, cellBuilder: (r) => HighlightedText(r.tableName, query: query, overflow: TextOverflow.ellipsis)),
+            PosColumn(label: l.sellCustomer, flex: 2, cellBuilder: (r) => HighlightedText(r.customerName, query: query, overflow: TextOverflow.ellipsis)),
             PosColumn(label: l.columnGuests, flex: 1, cellBuilder: (r) => Text(r.bill.numberOfGuests > 0 ? '${r.bill.numberOfGuests}' : '')),
             PosColumn(
               label: l.columnTotal,
@@ -598,7 +629,7 @@ class _BillsTable extends ConsumerWidget {
                 criticalMin: criticalMin,
               ),
             ),
-            PosColumn(label: l.columnStaff, flex: 2, cellBuilder: (r) => Text(r.staffName)),
+            PosColumn(label: l.columnStaff, flex: 2, cellBuilder: (r) => HighlightedText(r.staffName, query: query, overflow: TextOverflow.ellipsis)),
           ],
           items: resolved,
           onRowTap: (r) => onBillTap(r.bill),
@@ -796,9 +827,12 @@ class _RightPanel extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
     final theme = Theme.of(context);
+    final canOrders = ref.watch(hasPermissionProvider('orders.view'));
     final canCatalog = ref.watch(hasAnyPermissionInGroupProvider('products'));
+    final canInventory = ref.watch(hasAnyPermissionInGroupProvider('stock'));
     final canStats = ref.watch(hasAnyPermissionInGroupProvider('stats'));
     final canVouchers = ref.watch(hasAnyPermissionInGroupProvider('vouchers'));
+    final canData = ref.watch(hasAnyPermissionInGroupProvider('data'));
     final canCompanySettings = ref.watch(hasAnyPermissionInGroupProvider('settings_company'));
     final canVenueSettings = ref.watch(hasAnyPermissionInGroupProvider('settings_venue'));
     final canRegisterSettings = ref.watch(hasAnyPermissionInGroupProvider('settings_register'));
@@ -837,7 +871,7 @@ class _RightPanel extends ConsumerWidget {
             right: l.settingsTitle,
             leftIcon: Icons.receipt_long,
             rightIcon: Icons.settings,
-            onLeft: () => context.push('/orders'),
+            onLeft: canOrders ? () => context.push('/orders') : null,
             onRight: canCompanySettings || canVenueSettings || canRegisterSettings
                 ? onSettings
                 : null,
@@ -851,7 +885,7 @@ class _RightPanel extends ConsumerWidget {
                   child: SizedBox(
                     height: 54,
                     child: FilledButton.tonal(
-                      onPressed: () => context.push('/inventory'),
+                      onPressed: canInventory ? () => context.push('/inventory') : null,
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -874,6 +908,7 @@ class _RightPanel extends ConsumerWidget {
                           btnContext,
                           canStats: canStats,
                           canVouchers: canVouchers,
+                          canData: canData,
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -1073,6 +1108,7 @@ void _showMoreMenu(
   BuildContext btnContext, {
   required bool canStats,
   required bool canVouchers,
+  required bool canData,
 }) {
   final l = btnContext.l10n;
   final button = btnContext.findRenderObject()! as RenderBox;
@@ -1092,7 +1128,7 @@ void _showMoreMenu(
       PopupMenuItem(value: 'statistics', enabled: canStats, height: 48, child: Row(children: [const Icon(Icons.bar_chart, size: 20), const SizedBox(width: 12), Text(l.moreStatistics)])),
       PopupMenuItem(value: 'vouchers', enabled: canVouchers, height: 48, child: Row(children: [const Icon(Icons.card_giftcard, size: 20), const SizedBox(width: 12), Text(l.vouchersTitle)])),
       PopupMenuItem(value: 'reservations', height: 48, child: Row(children: [const Icon(Icons.event_seat, size: 20), const SizedBox(width: 12), Text(l.moreReservations)])),
-      PopupMenuItem(value: 'data', height: 48, child: Row(children: [const Icon(Icons.sd_card, size: 20), const SizedBox(width: 12), Text(l.dataTitle)])),
+      PopupMenuItem(value: 'data', enabled: canData, height: 48, child: Row(children: [const Icon(Icons.sd_card, size: 20), const SizedBox(width: 12), Text(l.dataTitle)])),
     ],
   ).then((value) {
     if (value == null || !btnContext.mounted) return;
