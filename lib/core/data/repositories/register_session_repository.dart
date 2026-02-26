@@ -133,6 +133,7 @@ class RegisterSessionRepository {
             }
             return expr;
           })
+          ..orderBy([(t) => OrderingTerm.desc(t.openedAt)])
           ..limit(1))
         .watchSingleOrNull()
         .map((e) => e == null ? null : registerSessionFromEntity(e));

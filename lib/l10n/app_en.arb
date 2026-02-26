@@ -1018,7 +1018,7 @@
   "onboardingCreateDemo": "Create Demo",
   "onboardingCreateDemoSubtitle": "Complete demo company with three months of history.",
   "demoDialogTitle": "Create Demo Company",
-  "demoDialogInfo": "Demo auto-deletes after 24 hours",
+  "demoDialogInfo": "Demo auto-deletes after 6 hours",
   "demoDialogCreate": "Create",
   "onboardingKdsDisplay": "Order Display (KDS)",
 

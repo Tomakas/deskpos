@@ -1346,7 +1346,7 @@ Edge Function `create-demo-data` (`supabase/functions/create-demo-data/index.ts`
 - Generuje: firmu s kompletními údaji (IČO, DIČ, email, telefon, adresa — fiktivní, lokalizované), company_settings, 4 uživatele (PIN 1111), tax rates, payment methods, warehouses, sections, tables, categories, items, modifiers, suppliers, manufacturers, customers, vouchers (kódy `XXXX-XXXX` generovány náhodně v SQL)
 - **90-day history loop:** Pro každý den vytváří register sessions, shifts, bills s orders a payments, cash movements, stock documents, reservations, customer transactions
 - Multi-currency support (cizí měna s manuálním kurzem)
-- **LWW guard:** dnešní session UPDATE používá `greatest(v_now, v_session_open)` pro `client_updated_at` — prevence LWW konfliktu když `v_session_open > v_now`
+- **Session open cap:** `IF v_is_today THEN v_session_open := least(v_session_open, v_now)` — zabraňuje `opened_at` v budoucnosti pro non-UTC timezóny (session_open_minutes=360 = 06:00 UTC, v CET to je 07:00)
 
 **Seed data** (`supabase/migrations/20260224_003_seed_demo_data.sql`):
 - Tabulka `seed_demo_data` s 4 variantami dat (locale × mode)
@@ -2069,7 +2069,7 @@ stateDiagram-v2
 #### RegisterSessionRepository
 
 - **Business:** openSession (s volitelným opening_cash), closeSession (s closing_cash, expected_cash, difference), incrementOrderCounter, incrementBillCounter
-- **Query:** getActiveSession, watchActiveSession, getLastClosingCash (pro navržení opening_cash), getClosedSessions (pro Z-report list — bez filtru, filtruje se v UI)
+- **Query:** getActiveSession, watchActiveSession (ORDER BY opened_at DESC, LIMIT 1 — deterministic), getLastClosingCash (pro navržení opening_cash), getClosedSessions (pro Z-report list — bez filtru, filtruje se v UI)
 - **Sync:** Injektovaný `SyncQueueRepository`, ruční enqueue `_enqueueSession` po každé mutaci
 
 #### CashMovementRepository

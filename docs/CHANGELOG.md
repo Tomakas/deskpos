@@ -27,10 +27,14 @@
 
 ### Supabase
 - **pgcrypto → extensions schema** — `ALTER EXTENSION pgcrypto SET SCHEMA extensions` (security best practice); `create_demo_company` search_path updated to `public, extensions`; migration `20260226_001`
-- **Demo function fixes** — LWW conflict prevention (`greatest(v_now, v_session_open)` for today's session update), random voucher code generation (`XXXX-XXXX` numeric), seed data stripped of hardcoded voucher codes
+- **Demo function fixes** — random voucher code generation (`XXXX-XXXX` numeric), seed data stripped of hardcoded voucher codes, skip future-timestamped entities for today's session (bills, cash movements, stock documents, customer transactions) to prevent "právě teď" display bug when demo is created before `session_open_minutes`
+- **Demo session open cap** — `session_open_minutes` changed from 480 (08:00 UTC) to 360 (06:00 UTC); today's session `opened_at` capped to `least(v_session_open, v_now)` preventing future timestamps for non-UTC timezones; fixes orders not visible under "Session" filter
+
+### Fixes
+- **watchActiveSession deterministic** — added `ORDER BY opened_at DESC` before `LIMIT 1` in `RegisterSessionRepository.watchActiveSession` to always return the most recently opened session
 
 ### Documentation
-- **PROJECT.md**: added bill age color system, `billAgeColor` helper, floor map edge positioning, `bill_id` on stock_movements schema, `DialogStockDocumentDetail` + `StockDocumentPdfBuilder`, discount dialog context title, `moveBill` map position clearing, demo function details (search_path, LWW guard, random voucher codes)
+- **PROJECT.md**: added bill age color system, `billAgeColor` helper, floor map edge positioning, `bill_id` on stock_movements schema, `DialogStockDocumentDetail` + `StockDocumentPdfBuilder`, discount dialog context title, `moveBill` map position clearing, demo function details (search_path, session open cap, random voucher codes), `watchActiveSession` ORDER BY note
 
 ## 2026-02-25 — Negative Stock Policy
 

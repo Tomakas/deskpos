@@ -103,10 +103,10 @@ Deno.serve(async (req) => {
       );
     }
 
-    // --- Mark company as demo with 24h expiry ---
+    // --- Mark company as demo with 6h expiry ---
     const companyId = data?.company_id;
     if (companyId) {
-      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+      const expiresAt = new Date(Date.now() + 6 * 60 * 60 * 1000).toISOString();
       const { error: updateError } = await serviceClient
         .from("companies")
         .update({ is_demo: true, demo_expires_at: expiresAt })
@@ -115,6 +115,31 @@ Deno.serve(async (req) => {
       if (updateError) {
         console.error("Failed to mark company as demo:", updateError);
         // Non-fatal — company was created successfully, demo flag is nice-to-have
+      }
+
+      // --- Log demo creation ---
+      const ipAddress =
+        req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+        req.headers.get("cf-connecting-ip") ||
+        null;
+      const userAgent = req.headers.get("user-agent") || null;
+
+      const { error: logError } = await serviceClient
+        .from("demo_log")
+        .insert({
+          company_id: companyId,
+          company_name: data?.company_name ?? company_name,
+          auth_user_id: user.id,
+          locale,
+          mode,
+          currency_code,
+          ip_address: ipAddress,
+          user_agent: userAgent,
+        });
+
+      if (logError) {
+        console.error("Failed to insert demo_log:", logError);
+        // Non-fatal
       }
     }
 

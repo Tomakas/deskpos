@@ -1025,6 +1025,10 @@ BEGIN
 
     -- Session open time
     v_session_open := v_day_date + ((v_day_tpl->>'session_open_minutes')::int || ' minutes')::interval;
+    -- Cap today's session open time to now (avoid future opened_at for non-UTC timezones)
+    IF v_is_today THEN
+      v_session_open := least(v_session_open, v_now);
+    END IF;
     v_session_cash := v_opening_cash;
 
     -- Create register session
@@ -1065,6 +1069,12 @@ BEGIN
     FOR v_idx IN 0..jsonb_array_length(COALESCE(v_day_tpl->'cash_movements', '[]'::jsonb)) - 1
     LOOP
       v_cm := v_day_tpl->'cash_movements'->v_idx;
+
+      -- Skip future cash movements on today's session
+      IF v_is_today AND v_session_open + ((v_cm->>'time_offset_minutes')::int || ' minutes')::interval > v_now THEN
+        CONTINUE;
+      END IF;
+
       v_cm_type := v_cm->>'type';
       v_cm_amount := (v_cm->>'amount')::int;
 
@@ -1104,6 +1114,12 @@ BEGIN
       v_bill_status := v_bill->>'status';
       v_bill_user_ref := v_bill->>'user_ref';
       v_bill_time := v_session_open + ((v_bill->>'time_offset_minutes')::int || ' minutes')::interval;
+
+      -- Skip future bills on today's session (demo created before session_open_minutes)
+      IF v_is_today AND v_bill_time > v_now THEN
+        CONTINUE;
+      END IF;
+
       v_is_takeaway := COALESCE((v_bill->>'is_takeaway')::boolean, false);
       v_guests := COALESCE((v_bill->>'guests')::int, 1);
 
@@ -1497,6 +1513,12 @@ BEGIN
     FOR v_idx IN 0..jsonb_array_length(COALESCE(v_stock_docs, '[]'::jsonb)) - 1
     LOOP
       v_sdoc := v_stock_docs->v_idx;
+
+      -- Skip future stock documents on today's session
+      IF v_is_today AND v_session_open + ((v_sdoc->>'time_offset_minutes')::int || ' minutes')::interval > v_now THEN
+        CONTINUE;
+      END IF;
+
       v_sdoc_type := v_sdoc->>'type';
       v_stock_doc_counter := v_stock_doc_counter + 1;
       v_sdoc_id := gen_random_uuid()::text;
@@ -1612,6 +1634,12 @@ BEGIN
     FOR v_idx IN 0..jsonb_array_length(COALESCE(v_ctxns, '[]'::jsonb)) - 1
     LOOP
       v_ctx := v_ctxns->v_idx;
+
+      -- Skip future customer transactions on today's session
+      IF v_is_today AND v_session_open + ((v_ctx->>'time_offset_minutes')::int || ' minutes')::interval > v_now THEN
+        CONTINUE;
+      END IF;
+
       v_ctx_id := gen_random_uuid()::text;
 
       INSERT INTO customer_transactions (id, company_id, customer_id,
@@ -1687,12 +1715,10 @@ BEGIN
       WHERE id = v_session_id;
     ELSE
       -- Today's open session — just update counters
-      -- Use greatest() because v_session_open may be in the future (> v_now)
-      -- and the INSERT used v_session_open as client_updated_at.
       UPDATE register_sessions SET
         bill_counter = v_bill_counter,
         order_counter = v_order_counter,
-        client_updated_at = greatest(v_now, v_session_open)
+        client_updated_at = v_now
       WHERE id = v_session_id;
 
       -- Update register active_bill_id to the last open bill

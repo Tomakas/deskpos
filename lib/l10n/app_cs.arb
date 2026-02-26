@@ -1018,7 +1018,7 @@
   "onboardingCreateDemo": "Vytvořit Demo",
   "onboardingCreateDemoSubtitle": "Kompletní demo firma s tříměsíční historií.",
   "demoDialogTitle": "Vytvořit demo firmu",
-  "demoDialogInfo": "Demo se automaticky smaže po 24 hodinách",
+  "demoDialogInfo": "Demo se automaticky smaže po 6 hodinách",
   "demoDialogCreate": "Vytvořit",
   "onboardingKdsDisplay": "Objednávkový displej (KDS)",
 
