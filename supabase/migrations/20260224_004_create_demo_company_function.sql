@@ -438,14 +438,14 @@ BEGIN
   -- STEP 9: Sections
   -- ========================================================================
   FOR v_rec IN
-    SELECT ref, data
+    SELECT ref, data, sort_order
     FROM seed_demo_data
     WHERE entity_type = 'sections'
       AND (locale = p_locale)
       AND (mode = p_mode)
     ORDER BY sort_order
   LOOP
-    INSERT INTO sections (id, company_id, name, color, is_active, is_default, client_created_at, client_updated_at)
+    INSERT INTO sections (id, company_id, name, color, is_active, is_default, sort_order, client_created_at, client_updated_at)
     VALUES (
       (SELECT id FROM _ref_map WHERE ref = v_rec.ref),
       v_company_id,
@@ -453,6 +453,7 @@ BEGIN
       v_rec.data->>'color',
       true,
       COALESCE((v_rec.data->>'is_default')::boolean, false),
+      v_rec.sort_order,
       v_now, v_now
     );
   END LOOP;

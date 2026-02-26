@@ -746,6 +746,7 @@ SectionModel sectionFromEntity(Section e) => SectionModel(
       color: e.color,
       isActive: e.isActive,
       isDefault: e.isDefault,
+      sortOrder: e.sortOrder,
       createdAt: e.createdAt,
       updatedAt: e.updatedAt,
       deletedAt: e.deletedAt,
@@ -758,6 +759,7 @@ SectionsCompanion sectionToCompanion(SectionModel m) => SectionsCompanion.insert
       color: Value(m.color),
       isActive: Value(m.isActive),
       isDefault: Value(m.isDefault),
+      sortOrder: Value(m.sortOrder),
     );
 
 // --- Shift ---

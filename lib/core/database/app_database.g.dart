@@ -30047,6 +30047,18 @@ class $SectionsTable extends Sections with TableInfo<$SectionsTable, Section> {
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _sortOrderMeta = const VerificationMeta(
+    'sortOrder',
+  );
+  @override
+  late final GeneratedColumn<int> sortOrder = GeneratedColumn<int>(
+    'sort_order',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     lastSyncedAt,
@@ -30062,6 +30074,7 @@ class $SectionsTable extends Sections with TableInfo<$SectionsTable, Section> {
     color,
     isActive,
     isDefault,
+    sortOrder,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -30165,6 +30178,12 @@ class $SectionsTable extends Sections with TableInfo<$SectionsTable, Section> {
         isDefault.isAcceptableOrUnknown(data['is_default']!, _isDefaultMeta),
       );
     }
+    if (data.containsKey('sort_order')) {
+      context.handle(
+        _sortOrderMeta,
+        sortOrder.isAcceptableOrUnknown(data['sort_order']!, _sortOrderMeta),
+      );
+    }
     return context;
   }
 
@@ -30226,6 +30245,10 @@ class $SectionsTable extends Sections with TableInfo<$SectionsTable, Section> {
         DriftSqlType.bool,
         data['${effectivePrefix}is_default'],
       )!,
+      sortOrder: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}sort_order'],
+      )!,
     );
   }
 
@@ -30249,6 +30272,7 @@ class Section extends DataClass implements Insertable<Section> {
   final String? color;
   final bool isActive;
   final bool isDefault;
+  final int sortOrder;
   const Section({
     this.lastSyncedAt,
     required this.version,
@@ -30263,6 +30287,7 @@ class Section extends DataClass implements Insertable<Section> {
     this.color,
     required this.isActive,
     required this.isDefault,
+    required this.sortOrder,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -30290,6 +30315,7 @@ class Section extends DataClass implements Insertable<Section> {
     }
     map['is_active'] = Variable<bool>(isActive);
     map['is_default'] = Variable<bool>(isDefault);
+    map['sort_order'] = Variable<int>(sortOrder);
     return map;
   }
 
@@ -30318,6 +30344,7 @@ class Section extends DataClass implements Insertable<Section> {
           : Value(color),
       isActive: Value(isActive),
       isDefault: Value(isDefault),
+      sortOrder: Value(sortOrder),
     );
   }
 
@@ -30340,6 +30367,7 @@ class Section extends DataClass implements Insertable<Section> {
       color: serializer.fromJson<String?>(json['color']),
       isActive: serializer.fromJson<bool>(json['isActive']),
       isDefault: serializer.fromJson<bool>(json['isDefault']),
+      sortOrder: serializer.fromJson<int>(json['sortOrder']),
     );
   }
   @override
@@ -30359,6 +30387,7 @@ class Section extends DataClass implements Insertable<Section> {
       'color': serializer.toJson<String?>(color),
       'isActive': serializer.toJson<bool>(isActive),
       'isDefault': serializer.toJson<bool>(isDefault),
+      'sortOrder': serializer.toJson<int>(sortOrder),
     };
   }
 
@@ -30376,6 +30405,7 @@ class Section extends DataClass implements Insertable<Section> {
     Value<String?> color = const Value.absent(),
     bool? isActive,
     bool? isDefault,
+    int? sortOrder,
   }) => Section(
     lastSyncedAt: lastSyncedAt.present ? lastSyncedAt.value : this.lastSyncedAt,
     version: version ?? this.version,
@@ -30394,6 +30424,7 @@ class Section extends DataClass implements Insertable<Section> {
     color: color.present ? color.value : this.color,
     isActive: isActive ?? this.isActive,
     isDefault: isDefault ?? this.isDefault,
+    sortOrder: sortOrder ?? this.sortOrder,
   );
   Section copyWithCompanion(SectionsCompanion data) {
     return Section(
@@ -30416,6 +30447,7 @@ class Section extends DataClass implements Insertable<Section> {
       color: data.color.present ? data.color.value : this.color,
       isActive: data.isActive.present ? data.isActive.value : this.isActive,
       isDefault: data.isDefault.present ? data.isDefault.value : this.isDefault,
+      sortOrder: data.sortOrder.present ? data.sortOrder.value : this.sortOrder,
     );
   }
 
@@ -30434,7 +30466,8 @@ class Section extends DataClass implements Insertable<Section> {
           ..write('name: $name, ')
           ..write('color: $color, ')
           ..write('isActive: $isActive, ')
-          ..write('isDefault: $isDefault')
+          ..write('isDefault: $isDefault, ')
+          ..write('sortOrder: $sortOrder')
           ..write(')'))
         .toString();
   }
@@ -30454,6 +30487,7 @@ class Section extends DataClass implements Insertable<Section> {
     color,
     isActive,
     isDefault,
+    sortOrder,
   );
   @override
   bool operator ==(Object other) =>
@@ -30471,7 +30505,8 @@ class Section extends DataClass implements Insertable<Section> {
           other.name == this.name &&
           other.color == this.color &&
           other.isActive == this.isActive &&
-          other.isDefault == this.isDefault);
+          other.isDefault == this.isDefault &&
+          other.sortOrder == this.sortOrder);
 }
 
 class SectionsCompanion extends UpdateCompanion<Section> {
@@ -30488,6 +30523,7 @@ class SectionsCompanion extends UpdateCompanion<Section> {
   final Value<String?> color;
   final Value<bool> isActive;
   final Value<bool> isDefault;
+  final Value<int> sortOrder;
   final Value<int> rowid;
   const SectionsCompanion({
     this.lastSyncedAt = const Value.absent(),
@@ -30503,6 +30539,7 @@ class SectionsCompanion extends UpdateCompanion<Section> {
     this.color = const Value.absent(),
     this.isActive = const Value.absent(),
     this.isDefault = const Value.absent(),
+    this.sortOrder = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   SectionsCompanion.insert({
@@ -30519,6 +30556,7 @@ class SectionsCompanion extends UpdateCompanion<Section> {
     this.color = const Value.absent(),
     this.isActive = const Value.absent(),
     this.isDefault = const Value.absent(),
+    this.sortOrder = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        companyId = Value(companyId),
@@ -30537,6 +30575,7 @@ class SectionsCompanion extends UpdateCompanion<Section> {
     Expression<String>? color,
     Expression<bool>? isActive,
     Expression<bool>? isDefault,
+    Expression<int>? sortOrder,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -30553,6 +30592,7 @@ class SectionsCompanion extends UpdateCompanion<Section> {
       if (color != null) 'color': color,
       if (isActive != null) 'is_active': isActive,
       if (isDefault != null) 'is_default': isDefault,
+      if (sortOrder != null) 'sort_order': sortOrder,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -30571,6 +30611,7 @@ class SectionsCompanion extends UpdateCompanion<Section> {
     Value<String?>? color,
     Value<bool>? isActive,
     Value<bool>? isDefault,
+    Value<int>? sortOrder,
     Value<int>? rowid,
   }) {
     return SectionsCompanion(
@@ -30587,6 +30628,7 @@ class SectionsCompanion extends UpdateCompanion<Section> {
       color: color ?? this.color,
       isActive: isActive ?? this.isActive,
       isDefault: isDefault ?? this.isDefault,
+      sortOrder: sortOrder ?? this.sortOrder,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -30633,6 +30675,9 @@ class SectionsCompanion extends UpdateCompanion<Section> {
     if (isDefault.present) {
       map['is_default'] = Variable<bool>(isDefault.value);
     }
+    if (sortOrder.present) {
+      map['sort_order'] = Variable<int>(sortOrder.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -30655,6 +30700,7 @@ class SectionsCompanion extends UpdateCompanion<Section> {
           ..write('color: $color, ')
           ..write('isActive: $isActive, ')
           ..write('isDefault: $isDefault, ')
+          ..write('sortOrder: $sortOrder, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -56841,6 +56887,7 @@ typedef $$SectionsTableCreateCompanionBuilder =
       Value<String?> color,
       Value<bool> isActive,
       Value<bool> isDefault,
+      Value<int> sortOrder,
       Value<int> rowid,
     });
 typedef $$SectionsTableUpdateCompanionBuilder =
@@ -56858,6 +56905,7 @@ typedef $$SectionsTableUpdateCompanionBuilder =
       Value<String?> color,
       Value<bool> isActive,
       Value<bool> isDefault,
+      Value<int> sortOrder,
       Value<int> rowid,
     });
 
@@ -56932,6 +56980,11 @@ class $$SectionsTableFilterComposer
 
   ColumnFilters<bool> get isDefault => $composableBuilder(
     column: $table.isDefault,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -57009,6 +57062,11 @@ class $$SectionsTableOrderingComposer
     column: $table.isDefault,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$SectionsTableAnnotationComposer
@@ -57064,6 +57122,9 @@ class $$SectionsTableAnnotationComposer
 
   GeneratedColumn<bool> get isDefault =>
       $composableBuilder(column: $table.isDefault, builder: (column) => column);
+
+  GeneratedColumn<int> get sortOrder =>
+      $composableBuilder(column: $table.sortOrder, builder: (column) => column);
 }
 
 class $$SectionsTableTableManager
@@ -57107,6 +57168,7 @@ class $$SectionsTableTableManager
                 Value<String?> color = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
                 Value<bool> isDefault = const Value.absent(),
+                Value<int> sortOrder = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => SectionsCompanion(
                 lastSyncedAt: lastSyncedAt,
@@ -57122,6 +57184,7 @@ class $$SectionsTableTableManager
                 color: color,
                 isActive: isActive,
                 isDefault: isDefault,
+                sortOrder: sortOrder,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -57139,6 +57202,7 @@ class $$SectionsTableTableManager
                 Value<String?> color = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
                 Value<bool> isDefault = const Value.absent(),
+                Value<int> sortOrder = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => SectionsCompanion.insert(
                 lastSyncedAt: lastSyncedAt,
@@ -57154,6 +57218,7 @@ class $$SectionsTableTableManager
                 color: color,
                 isActive: isActive,
                 isDefault: isDefault,
+                sortOrder: sortOrder,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-02-26 (evening) — Section Sort Order
+
+### Features
+- **Section sort order** — sections now support explicit ordering via `sort_order` column (default 0, tiebreaker: name); new sections auto-assigned `max + 1`; demo sections ordered Hlavní → Zahrádka → Interní
+
+### Database
+- `sections`: new `sort_order` column (integer, NOT NULL, default 0); migration `20260226_005`
+- `create_demo_company`: STEP 9 updated to propagate `sort_order` from `seed_demo_data`
+
+---
+
 ## 2026-02-26 — Bill Age Colors, Floor Map Redesign, Voucher Numpad
 
 ### Features

@@ -44,7 +44,7 @@ class SectionRepository
 
   @override
   List<OrderingTerm Function($SectionsTable)> get defaultOrderBy =>
-      [(t) => OrderingTerm.asc(t.name)];
+      [(t) => OrderingTerm.asc(t.sortOrder), (t) => OrderingTerm.asc(t.name)];
 
   @override
   Insertable<Section> toUpdateCompanion(SectionModel m) => SectionsCompanion(
@@ -52,6 +52,7 @@ class SectionRepository
         color: Value(m.color),
         isActive: Value(m.isActive),
         isDefault: Value(m.isDefault),
+        sortOrder: Value(m.sortOrder),
         updatedAt: Value(DateTime.now()),
       );
 

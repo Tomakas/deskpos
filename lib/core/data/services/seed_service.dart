@@ -198,7 +198,7 @@ class SeedService {
 
         // 4. Default section
         await _db.into(_db.sections).insert(sectionToCompanion(
-          SectionModel(id: _id(), companyId: companyId, name: t('Hlavní', 'Main'), color: '#4CAF50', isDefault: true, createdAt: now, updatedAt: now),
+          SectionModel(id: _id(), companyId: companyId, name: t('Hlavní', 'Main'), color: '#4CAF50', isDefault: true, sortOrder: 0, createdAt: now, updatedAt: now),
         ));
 
         // 5. Register

@@ -1072,7 +1072,7 @@ Všechny aktivní tabulky obsahují společné sync sloupce (viz [SyncColumnsMix
 
 | Tabulka | Sloupce |
 |---------|---------|
-| **sections** | id (T), company_id →companies, name (T), color (T?), is_active (B, default true), is_default (B, default false — max 1 per company) |
+| **sections** | id (T), company_id →companies, name (T), color (T?), is_active (B, default true), is_default (B, default false — max 1 per company), sort_order (I, default 0) |
 
 ##### Rezervace
 

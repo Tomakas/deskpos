@@ -190,6 +190,8 @@ class _SectionsTabState extends ConsumerState<SectionsTab> {
     } else {
       final id = const Uuid().v7();
       if (isDefault) await repo.clearDefault(company.id, exceptId: id);
+      final sections = await repo.watchAll(company.id).first;
+      final maxSort = sections.fold<int>(0, (max, s) => s.sortOrder > max ? s.sortOrder : max);
       await repo.create(SectionModel(
         id: id,
         companyId: company.id,
@@ -197,6 +199,7 @@ class _SectionsTabState extends ConsumerState<SectionsTab> {
         color: selectedColor,
         isActive: isActive,
         isDefault: isDefault,
+        sortOrder: maxSort + 1,
         createdAt: now,
         updatedAt: now,
       ));
