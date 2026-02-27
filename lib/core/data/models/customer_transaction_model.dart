@@ -13,6 +13,7 @@ abstract class CustomerTransactionModel with _$CustomerTransactionModel implemen
     required int pointsChange,
     required int creditChange,
     String? orderId,
+    String? note,
     required String processedByUserId,
     required DateTime createdAt,
     required DateTime updatedAt,

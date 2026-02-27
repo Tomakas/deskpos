@@ -297,6 +297,7 @@ Map<String, dynamic> customerTransactionToSupabaseJson(CustomerTransactionModel 
       'points_change': m.pointsChange,
       'credit_change': m.creditChange,
       'order_id': m.orderId,
+      'note': m.note,
       'processed_by_user_id': m.processedByUserId,
     };
 
@@ -561,6 +562,7 @@ Map<String, dynamic> cashMovementToSupabaseJson(CashMovementModel m) => {
       'type': m.type.name,
       'amount': m.amount,
       'reason': m.reason,
+      'currency_id': m.currencyId,
     };
 
 Map<String, dynamic> sessionCurrencyCashToSupabaseJson(SessionCurrencyCashModel m) => {

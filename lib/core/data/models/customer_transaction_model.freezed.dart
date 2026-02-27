@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$CustomerTransactionModel {
 
- String get id; String get companyId; String get customerId; int get pointsChange; int get creditChange; String? get orderId; String get processedByUserId; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+ String get id; String get companyId; String get customerId; int get pointsChange; int get creditChange; String? get orderId; String? get note; String get processedByUserId; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
 /// Create a copy of CustomerTransactionModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $CustomerTransactionModelCopyWith<CustomerTransactionModel> get copyWith => _$Cu
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CustomerTransactionModel&&(identical(other.id, id) || other.id == id)&&(identical(other.companyId, companyId) || other.companyId == companyId)&&(identical(other.customerId, customerId) || other.customerId == customerId)&&(identical(other.pointsChange, pointsChange) || other.pointsChange == pointsChange)&&(identical(other.creditChange, creditChange) || other.creditChange == creditChange)&&(identical(other.orderId, orderId) || other.orderId == orderId)&&(identical(other.processedByUserId, processedByUserId) || other.processedByUserId == processedByUserId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CustomerTransactionModel&&(identical(other.id, id) || other.id == id)&&(identical(other.companyId, companyId) || other.companyId == companyId)&&(identical(other.customerId, customerId) || other.customerId == customerId)&&(identical(other.pointsChange, pointsChange) || other.pointsChange == pointsChange)&&(identical(other.creditChange, creditChange) || other.creditChange == creditChange)&&(identical(other.orderId, orderId) || other.orderId == orderId)&&(identical(other.note, note) || other.note == note)&&(identical(other.processedByUserId, processedByUserId) || other.processedByUserId == processedByUserId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,companyId,customerId,pointsChange,creditChange,orderId,processedByUserId,createdAt,updatedAt,deletedAt);
+int get hashCode => Object.hash(runtimeType,id,companyId,customerId,pointsChange,creditChange,orderId,note,processedByUserId,createdAt,updatedAt,deletedAt);
 
 @override
 String toString() {
-  return 'CustomerTransactionModel(id: $id, companyId: $companyId, customerId: $customerId, pointsChange: $pointsChange, creditChange: $creditChange, orderId: $orderId, processedByUserId: $processedByUserId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'CustomerTransactionModel(id: $id, companyId: $companyId, customerId: $customerId, pointsChange: $pointsChange, creditChange: $creditChange, orderId: $orderId, note: $note, processedByUserId: $processedByUserId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $CustomerTransactionModelCopyWith<$Res>  {
   factory $CustomerTransactionModelCopyWith(CustomerTransactionModel value, $Res Function(CustomerTransactionModel) _then) = _$CustomerTransactionModelCopyWithImpl;
 @useResult
 $Res call({
- String id, String companyId, String customerId, int pointsChange, int creditChange, String? orderId, String processedByUserId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String companyId, String customerId, int pointsChange, int creditChange, String? orderId, String? note, String processedByUserId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -62,7 +62,7 @@ class _$CustomerTransactionModelCopyWithImpl<$Res>
 
 /// Create a copy of CustomerTransactionModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? companyId = null,Object? customerId = null,Object? pointsChange = null,Object? creditChange = null,Object? orderId = freezed,Object? processedByUserId = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? companyId = null,Object? customerId = null,Object? pointsChange = null,Object? creditChange = null,Object? orderId = freezed,Object? note = freezed,Object? processedByUserId = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,companyId: null == companyId ? _self.companyId : companyId // ignore: cast_nullable_to_non_nullable
@@ -70,6 +70,7 @@ as String,customerId: null == customerId ? _self.customerId : customerId // igno
 as String,pointsChange: null == pointsChange ? _self.pointsChange : pointsChange // ignore: cast_nullable_to_non_nullable
 as int,creditChange: null == creditChange ? _self.creditChange : creditChange // ignore: cast_nullable_to_non_nullable
 as int,orderId: freezed == orderId ? _self.orderId : orderId // ignore: cast_nullable_to_non_nullable
+as String?,note: freezed == note ? _self.note : note // ignore: cast_nullable_to_non_nullable
 as String?,processedByUserId: null == processedByUserId ? _self.processedByUserId : processedByUserId // ignore: cast_nullable_to_non_nullable
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
@@ -159,10 +160,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String companyId,  String customerId,  int pointsChange,  int creditChange,  String? orderId,  String processedByUserId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String companyId,  String customerId,  int pointsChange,  int creditChange,  String? orderId,  String? note,  String processedByUserId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CustomerTransactionModel() when $default != null:
-return $default(_that.id,_that.companyId,_that.customerId,_that.pointsChange,_that.creditChange,_that.orderId,_that.processedByUserId,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.companyId,_that.customerId,_that.pointsChange,_that.creditChange,_that.orderId,_that.note,_that.processedByUserId,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   return orElse();
 
 }
@@ -180,10 +181,10 @@ return $default(_that.id,_that.companyId,_that.customerId,_that.pointsChange,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String companyId,  String customerId,  int pointsChange,  int creditChange,  String? orderId,  String processedByUserId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String companyId,  String customerId,  int pointsChange,  int creditChange,  String? orderId,  String? note,  String processedByUserId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
 switch (_that) {
 case _CustomerTransactionModel():
-return $default(_that.id,_that.companyId,_that.customerId,_that.pointsChange,_that.creditChange,_that.orderId,_that.processedByUserId,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.companyId,_that.customerId,_that.pointsChange,_that.creditChange,_that.orderId,_that.note,_that.processedByUserId,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -200,10 +201,10 @@ return $default(_that.id,_that.companyId,_that.customerId,_that.pointsChange,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String companyId,  String customerId,  int pointsChange,  int creditChange,  String? orderId,  String processedByUserId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String companyId,  String customerId,  int pointsChange,  int creditChange,  String? orderId,  String? note,  String processedByUserId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _CustomerTransactionModel() when $default != null:
-return $default(_that.id,_that.companyId,_that.customerId,_that.pointsChange,_that.creditChange,_that.orderId,_that.processedByUserId,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.companyId,_that.customerId,_that.pointsChange,_that.creditChange,_that.orderId,_that.note,_that.processedByUserId,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   return null;
 
 }
@@ -215,7 +216,7 @@ return $default(_that.id,_that.companyId,_that.customerId,_that.pointsChange,_th
 
 
 class _CustomerTransactionModel implements CustomerTransactionModel {
-  const _CustomerTransactionModel({required this.id, required this.companyId, required this.customerId, required this.pointsChange, required this.creditChange, this.orderId, required this.processedByUserId, required this.createdAt, required this.updatedAt, this.deletedAt});
+  const _CustomerTransactionModel({required this.id, required this.companyId, required this.customerId, required this.pointsChange, required this.creditChange, this.orderId, this.note, required this.processedByUserId, required this.createdAt, required this.updatedAt, this.deletedAt});
   
 
 @override final  String id;
@@ -224,6 +225,7 @@ class _CustomerTransactionModel implements CustomerTransactionModel {
 @override final  int pointsChange;
 @override final  int creditChange;
 @override final  String? orderId;
+@override final  String? note;
 @override final  String processedByUserId;
 @override final  DateTime createdAt;
 @override final  DateTime updatedAt;
@@ -239,16 +241,16 @@ _$CustomerTransactionModelCopyWith<_CustomerTransactionModel> get copyWith => __
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CustomerTransactionModel&&(identical(other.id, id) || other.id == id)&&(identical(other.companyId, companyId) || other.companyId == companyId)&&(identical(other.customerId, customerId) || other.customerId == customerId)&&(identical(other.pointsChange, pointsChange) || other.pointsChange == pointsChange)&&(identical(other.creditChange, creditChange) || other.creditChange == creditChange)&&(identical(other.orderId, orderId) || other.orderId == orderId)&&(identical(other.processedByUserId, processedByUserId) || other.processedByUserId == processedByUserId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CustomerTransactionModel&&(identical(other.id, id) || other.id == id)&&(identical(other.companyId, companyId) || other.companyId == companyId)&&(identical(other.customerId, customerId) || other.customerId == customerId)&&(identical(other.pointsChange, pointsChange) || other.pointsChange == pointsChange)&&(identical(other.creditChange, creditChange) || other.creditChange == creditChange)&&(identical(other.orderId, orderId) || other.orderId == orderId)&&(identical(other.note, note) || other.note == note)&&(identical(other.processedByUserId, processedByUserId) || other.processedByUserId == processedByUserId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,companyId,customerId,pointsChange,creditChange,orderId,processedByUserId,createdAt,updatedAt,deletedAt);
+int get hashCode => Object.hash(runtimeType,id,companyId,customerId,pointsChange,creditChange,orderId,note,processedByUserId,createdAt,updatedAt,deletedAt);
 
 @override
 String toString() {
-  return 'CustomerTransactionModel(id: $id, companyId: $companyId, customerId: $customerId, pointsChange: $pointsChange, creditChange: $creditChange, orderId: $orderId, processedByUserId: $processedByUserId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'CustomerTransactionModel(id: $id, companyId: $companyId, customerId: $customerId, pointsChange: $pointsChange, creditChange: $creditChange, orderId: $orderId, note: $note, processedByUserId: $processedByUserId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -259,7 +261,7 @@ abstract mixin class _$CustomerTransactionModelCopyWith<$Res> implements $Custom
   factory _$CustomerTransactionModelCopyWith(_CustomerTransactionModel value, $Res Function(_CustomerTransactionModel) _then) = __$CustomerTransactionModelCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String companyId, String customerId, int pointsChange, int creditChange, String? orderId, String processedByUserId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String companyId, String customerId, int pointsChange, int creditChange, String? orderId, String? note, String processedByUserId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -276,7 +278,7 @@ class __$CustomerTransactionModelCopyWithImpl<$Res>
 
 /// Create a copy of CustomerTransactionModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? companyId = null,Object? customerId = null,Object? pointsChange = null,Object? creditChange = null,Object? orderId = freezed,Object? processedByUserId = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? companyId = null,Object? customerId = null,Object? pointsChange = null,Object? creditChange = null,Object? orderId = freezed,Object? note = freezed,Object? processedByUserId = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_CustomerTransactionModel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,companyId: null == companyId ? _self.companyId : companyId // ignore: cast_nullable_to_non_nullable
@@ -284,6 +286,7 @@ as String,customerId: null == customerId ? _self.customerId : customerId // igno
 as String,pointsChange: null == pointsChange ? _self.pointsChange : pointsChange // ignore: cast_nullable_to_non_nullable
 as int,creditChange: null == creditChange ? _self.creditChange : creditChange // ignore: cast_nullable_to_non_nullable
 as int,orderId: freezed == orderId ? _self.orderId : orderId // ignore: cast_nullable_to_non_nullable
+as String?,note: freezed == note ? _self.note : note // ignore: cast_nullable_to_non_nullable
 as String?,processedByUserId: null == processedByUserId ? _self.processedByUserId : processedByUserId // ignore: cast_nullable_to_non_nullable
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable

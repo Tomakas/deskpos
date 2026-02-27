@@ -813,10 +813,17 @@
     }
   },
   "loyaltyCredit": "Zákaznický kredit",
-  "loyaltyCreditTopUp": "Nabít kredit",
-  "loyaltyCreditDeduct": "Odečíst kredit",
+  "loyaltyCreditTopUp": "Nabít",
+  "loyaltyCreditDeduct": "Odečíst",
   "loyaltyCreditBalance": "Zůstatek",
   "loyaltyTransactionHistory": "Historie transakcí",
+  "loyaltyPointsChange": "{change} bodů",
+  "@loyaltyPointsChange": {
+    "placeholders": {
+      "change": { "type": "String" }
+    }
+  },
+  "loyaltyTransactionNote": "Poznámka (nepovinné)",
   "loyaltyNoCustomer": "K účtu není přiřazen zákazník",
 
   "settingsSectionGridManagement": "Správa rozložení mřížky",

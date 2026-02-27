@@ -24,6 +24,7 @@ class CashMovementRepository {
     required CashMovementType type,
     required int amount,
     String? reason,
+    String? currencyId,
   }) async {
     try {
       return await _db.transaction(() async {
@@ -37,6 +38,7 @@ class CashMovementRepository {
             type: type,
             amount: amount,
             reason: Value(reason),
+            currencyId: Value(currencyId),
           ),
         );
         final entity = await (_db.select(_db.cashMovements)

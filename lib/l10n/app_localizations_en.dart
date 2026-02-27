@@ -1978,16 +1978,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loyaltyCredit => 'Customer Credit';
 
   @override
-  String get loyaltyCreditTopUp => 'Top Up Credit';
+  String get loyaltyCreditTopUp => 'Top Up';
 
   @override
-  String get loyaltyCreditDeduct => 'Deduct Credit';
+  String get loyaltyCreditDeduct => 'Deduct';
 
   @override
   String get loyaltyCreditBalance => 'Balance';
 
   @override
   String get loyaltyTransactionHistory => 'Transaction History';
+
+  @override
+  String loyaltyPointsChange(String change) {
+    return '$change points';
+  }
+
+  @override
+  String get loyaltyTransactionNote => 'Note (optional)';
 
   @override
   String get loyaltyNoCustomer => 'No customer assigned to this bill';

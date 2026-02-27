@@ -53,6 +53,7 @@ class CustomerTransactionRepository extends BaseCompanyScopedRepository<
         pointsChange: Value(m.pointsChange),
         creditChange: Value(m.creditChange),
         orderId: Value(m.orderId),
+        note: Value(m.note),
         processedByUserId: Value(m.processedByUserId),
         updatedAt: Value(DateTime.now()),
       );

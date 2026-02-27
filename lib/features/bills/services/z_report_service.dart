@@ -155,11 +155,12 @@ class ZReportService {
 
     // Cash movements (exclude handover — it's a post-close transfer, not session accounting)
     final cashMovements = await cashMovementRepo.getBySession(sessionId);
+    // Base currency only (currencyId == null)
     final cashDeposits = cashMovements
-        .where((m) => m.type == CashMovementType.deposit)
+        .where((m) => m.type == CashMovementType.deposit && m.currencyId == null)
         .fold(0, (sum, m) => sum + m.amount);
     final cashWithdrawals = cashMovements
-        .where((m) => m.type == CashMovementType.withdrawal || m.type == CashMovementType.expense)
+        .where((m) => (m.type == CashMovementType.withdrawal || m.type == CashMovementType.expense) && m.currencyId == null)
         .fold(0, (sum, m) => sum + m.amount);
 
     final openingCash = session.openingCash ?? 0;
@@ -365,11 +366,12 @@ class ZReportService {
       // Cash movements per session (exclude handover — post-close transfer)
       final cashMovements = await cashMovementRepo.getBySession(session.id);
       movementsCache[session.id] = cashMovements;
+      // Base currency only (currencyId == null)
       final sessionDeposits = cashMovements
-          .where((m) => m.type == CashMovementType.deposit)
+          .where((m) => m.type == CashMovementType.deposit && m.currencyId == null)
           .fold(0, (sum, m) => sum + m.amount);
       final sessionWithdrawals = cashMovements
-          .where((m) => m.type == CashMovementType.withdrawal || m.type == CashMovementType.expense)
+          .where((m) => (m.type == CashMovementType.withdrawal || m.type == CashMovementType.expense) && m.currencyId == null)
           .fold(0, (sum, m) => sum + m.amount);
       totalCashDeposits += sessionDeposits;
       totalCashWithdrawals += sessionWithdrawals;
@@ -449,11 +451,12 @@ class ZReportService {
         regOpeningCash += rs.openingCash ?? 0;
         regClosingCash += rs.closingCash ?? 0;
         final movements = movementsCache[rs.id] ?? [];
+        // Base currency only (currencyId == null)
         regCashDeposits += movements
-            .where((m) => m.type == CashMovementType.deposit)
+            .where((m) => m.type == CashMovementType.deposit && m.currencyId == null)
             .fold(0, (sum, m) => sum + m.amount);
         regCashWithdrawals += movements
-            .where((m) => m.type == CashMovementType.withdrawal || m.type == CashMovementType.expense)
+            .where((m) => (m.type == CashMovementType.withdrawal || m.type == CashMovementType.expense) && m.currencyId == null)
             .fold(0, (sum, m) => sum + m.amount);
       }
       final regExpectedCash = regOpeningCash + regCashRevenue + regCashDeposits - regCashWithdrawals;

@@ -182,6 +182,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/kds',
+        redirect: (context, state) {
+          final hasPermission = ref.read(hasPermissionProvider('orders.view'));
+          if (!hasPermission) return _homeRoute(ref);
+          return null;
+        },
         builder: (context, state) => const ScreenKds(),
       ),
       GoRoute(

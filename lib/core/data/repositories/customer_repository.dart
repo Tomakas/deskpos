@@ -55,9 +55,6 @@ class CustomerRepository
         email: Value(m.email),
         phone: Value(m.phone),
         address: Value(m.address),
-        points: Value(m.points),
-        credit: Value(m.credit),
-        totalSpent: Value(m.totalSpent),
         lastVisitDate: Value(m.lastVisitDate),
         birthdate: Value(m.birthdate),
         updatedAt: Value(DateTime.now()),
@@ -89,6 +86,7 @@ class CustomerRepository
     required int delta,
     required String processedByUserId,
     String? orderId,
+    String? note,
   }) async {
     try {
       final now = DateTime.now();
@@ -116,6 +114,7 @@ class CustomerRepository
             pointsChange: delta,
             creditChange: 0,
             orderId: orderId,
+            note: note,
             processedByUserId: processedByUserId,
             createdAt: now,
             updatedAt: now,
@@ -163,6 +162,7 @@ class CustomerRepository
     required int delta,
     required String processedByUserId,
     String? orderId,
+    String? note,
   }) async {
     try {
       final now = DateTime.now();
@@ -193,6 +193,7 @@ class CustomerRepository
             pointsChange: 0,
             creditChange: delta,
             orderId: orderId,
+            note: note,
             processedByUserId: processedByUserId,
             createdAt: now,
             updatedAt: now,

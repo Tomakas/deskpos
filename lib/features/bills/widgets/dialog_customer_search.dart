@@ -11,6 +11,7 @@ import '../../../core/utils/formatting_ext.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
+import '../../catalog/widgets/dialog_customer_credit.dart';
 
 /// Sentinel value returned when user wants to remove the customer.
 class _RemoveCustomer {
@@ -264,6 +265,18 @@ class _DialogCustomerAssignState extends ConsumerState<_DialogCustomerAssign> {
                 ),
               ],
             ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.account_balance_wallet_outlined, size: 20),
+            tooltip: context.l10n.loyaltyCredit,
+            onPressed: () async {
+              await showDialog<void>(
+                context: context,
+                builder: (_) => DialogCustomerCredit(customer: c),
+              );
+              _loadCustomer(c.id);
+            },
+            visualDensity: VisualDensity.compact,
           ),
           IconButton(
             icon: const Icon(Icons.close, size: 20),

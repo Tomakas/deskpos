@@ -14,6 +14,7 @@ abstract class CashMovementModel with _$CashMovementModel {
     required CashMovementType type,
     required int amount,
     String? reason,
+    String? currencyId,
     required DateTime createdAt,
     required DateTime updatedAt,
     DateTime? deletedAt,

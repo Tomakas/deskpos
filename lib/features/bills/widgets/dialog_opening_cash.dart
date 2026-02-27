@@ -60,8 +60,14 @@ class DialogOpeningCash extends ConsumerStatefulWidget {
 }
 
 class _DialogOpeningCashState extends ConsumerState<DialogOpeningCash> {
+  /// Currently displayed numpad text (for the active currency).
   String _amountText = '';
-  final Map<String, TextEditingController> _foreignControllers = {};
+
+  /// Stored amounts per currency: null key = base, currencyId = foreign.
+  final Map<String?, String> _amounts = {};
+
+  /// null = base currency selected.
+  String? _selectedCurrencyId;
 
   @override
   void initState() {
@@ -69,27 +75,39 @@ class _DialogOpeningCashState extends ConsumerState<DialogOpeningCash> {
     if (widget.initialAmount != null && widget.initialAmount! > 0) {
       final currency = ref.read(currentCurrencyProvider).value;
       _amountText = wholeUnitsFromMinor(widget.initialAmount!, currency).toString();
+      _amounts[null] = _amountText;
     }
     for (final fc in widget.foreignCurrencies) {
-      final ctrl = TextEditingController();
       if (fc.lastClosingCash != null && fc.lastClosingCash! > 0) {
         final mockCurrency = CurrencyModel(
           id: fc.currencyId, code: fc.code, symbol: fc.symbol,
           name: '', decimalPlaces: fc.decimalPlaces,
           createdAt: DateTime.now(), updatedAt: DateTime.now(),
         );
-        ctrl.text = wholeUnitsFromMinor(fc.lastClosingCash!, mockCurrency).toString();
+        _amounts[fc.currencyId] = wholeUnitsFromMinor(fc.lastClosingCash!, mockCurrency).toString();
       }
-      _foreignControllers[fc.currencyId] = ctrl;
     }
   }
 
-  @override
-  void dispose() {
-    for (final ctrl in _foreignControllers.values) {
-      ctrl.dispose();
-    }
-    super.dispose();
+  CurrencyModel? get _activeCurrency {
+    if (_selectedCurrencyId == null) return null;
+    final fc = widget.foreignCurrencies.firstWhere(
+      (c) => c.currencyId == _selectedCurrencyId,
+    );
+    return CurrencyModel(
+      id: fc.currencyId, code: fc.code, symbol: fc.symbol,
+      name: '', decimalPlaces: fc.decimalPlaces,
+      createdAt: DateTime.now(), updatedAt: DateTime.now(),
+    );
+  }
+
+  void _selectCurrency(String? currencyId) {
+    if (currencyId == _selectedCurrencyId) return;
+    setState(() {
+      _amounts[_selectedCurrencyId] = _amountText;
+      _selectedCurrencyId = currencyId;
+      _amountText = _amounts[currencyId] ?? '';
+    });
   }
 
   void _numpadTap(String digit) {
@@ -109,13 +127,15 @@ class _DialogOpeningCashState extends ConsumerState<DialogOpeningCash> {
   }
 
   void _confirm() {
-    final currency = ref.read(currentCurrencyProvider).value;
-    final baseCash = parseMoney(_amountText, currency);
+    // Save current display into amounts map.
+    _amounts[_selectedCurrencyId] = _amountText;
+
+    final baseCurrency = ref.read(currentCurrencyProvider).value;
+    final baseCash = parseMoney(_amounts[null] ?? '', baseCurrency);
 
     final foreignCash = <String, int>{};
     for (final fc in widget.foreignCurrencies) {
-      final ctrl = _foreignControllers[fc.currencyId]!;
-      final text = ctrl.text.trim();
+      final text = (_amounts[fc.currencyId] ?? '').trim();
       if (text.isNotEmpty) {
         final mockCurrency = CurrencyModel(
           id: fc.currencyId, code: fc.code, symbol: fc.symbol,
@@ -134,71 +154,14 @@ class _DialogOpeningCashState extends ConsumerState<DialogOpeningCash> {
     final l = context.l10n;
     final theme = Theme.of(context);
     final hasForeign = widget.foreignCurrencies.isNotEmpty;
+    final currency = _activeCurrency ?? ref.watch(currentCurrencyProvider).value;
+    final locale = ref.read(appLocaleProvider).value ?? 'cs';
 
     return PosDialogShell(
       title: l.openingCashTitle,
-      maxWidth: hasForeign ? 420 : 340,
+      maxWidth: 340,
       maxHeight: 520,
       expandHeight: true,
-      children: [
-        Center(
-          child: Text(
-            l.openingCashSubtitle,
-            style: theme.textTheme.bodySmall,
-            textAlign: TextAlign.center,
-          ),
-        ),
-        const SizedBox(height: 20),
-        // Amount display
-        Container(
-          height: 48,
-          width: double.infinity,
-          decoration: BoxDecoration(
-            border: Border.all(color: theme.dividerColor),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          alignment: Alignment.centerRight,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Text(
-            ref.money(parseMoney(_amountText, ref.watch(currentCurrencyProvider).value)),
-            style: theme.textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
-        // Numpad
-        Expanded(
-          child: PosNumpad(
-            width: 250,
-            expand: true,
-            onDigit: _numpadTap,
-            onBackspace: _numpadBackspace,
-            onClear: _numpadClear,
-          ),
-        ),
-        // Foreign currency fields
-        if (hasForeign) ...[
-          const Divider(height: 24),
-          Text(l.openingForeignCashTitle, style: theme.textTheme.titleSmall),
-          const SizedBox(height: 8),
-          for (final fc in widget.foreignCurrencies)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: TextField(
-                controller: _foreignControllers[fc.currencyId],
-                decoration: InputDecoration(
-                  labelText: fc.code,
-                  suffixText: fc.symbol,
-                  border: const OutlineInputBorder(),
-                  isDense: true,
-                ),
-                keyboardType: TextInputType.number,
-              ),
-            ),
-        ],
-        const SizedBox(height: 16),
-      ],
       bottomActions: SizedBox(
         width: 250,
         child: PosDialogActions(
@@ -216,6 +179,91 @@ class _DialogOpeningCashState extends ConsumerState<DialogOpeningCash> {
           ],
         ),
       ),
+      children: [
+        Center(
+          child: Text(
+            l.openingCashSubtitle,
+            style: theme.textTheme.bodySmall,
+            textAlign: TextAlign.center,
+          ),
+        ),
+        const SizedBox(height: 20),
+        // Currency chip bar
+        if (hasForeign) ...[
+          _buildCurrencyChips(theme),
+          const SizedBox(height: 12),
+        ],
+        // Amount display
+        Container(
+          height: 48,
+          width: double.infinity,
+          decoration: BoxDecoration(
+            border: Border.all(color: theme.dividerColor),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          alignment: Alignment.centerRight,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Text(
+            _selectedCurrencyId != null
+                ? formatMoney(parseMoney(_amountText, currency), currency, appLocale: locale)
+                : ref.money(parseMoney(_amountText, currency)),
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        // Numpad
+        Expanded(
+          child: PosNumpad(
+            width: 250,
+            expand: true,
+            onDigit: _numpadTap,
+            onBackspace: _numpadBackspace,
+            onClear: _numpadClear,
+          ),
+        ),
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+
+  Widget _buildCurrencyChips(ThemeData theme) {
+    final baseCurrency = ref.watch(currentCurrencyProvider).value;
+    final baseCode = baseCurrency?.code ?? '---';
+
+    return Row(
+      children: [
+        Expanded(
+          child: SizedBox(
+            height: 40,
+            child: FilterChip(
+              label: SizedBox(
+                width: double.infinity,
+                child: Text(baseCode, textAlign: TextAlign.center),
+              ),
+              selected: _selectedCurrencyId == null,
+              onSelected: (_) => _selectCurrency(null),
+            ),
+          ),
+        ),
+        for (final fc in widget.foreignCurrencies) ...[
+          const SizedBox(width: 8),
+          Expanded(
+            child: SizedBox(
+              height: 40,
+              child: FilterChip(
+                label: SizedBox(
+                  width: double.infinity,
+                  child: Text(fc.code, textAlign: TextAlign.center),
+                ),
+                selected: _selectedCurrencyId == fc.currencyId,
+                onSelected: (_) => _selectCurrency(fc.currencyId),
+              ),
+            ),
+          ),
+        ],
+      ],
     );
   }
 }

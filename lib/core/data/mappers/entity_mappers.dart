@@ -384,6 +384,7 @@ CustomerTransactionModel customerTransactionFromEntity(CustomerTransaction e) =>
       pointsChange: e.pointsChange,
       creditChange: e.creditChange,
       orderId: e.orderId,
+      note: e.note,
       processedByUserId: e.processedByUserId,
       createdAt: e.createdAt,
       updatedAt: e.updatedAt,
@@ -398,6 +399,7 @@ CustomerTransactionsCompanion customerTransactionToCompanion(CustomerTransaction
       pointsChange: m.pointsChange,
       creditChange: m.creditChange,
       orderId: Value(m.orderId),
+      note: Value(m.note),
       processedByUserId: m.processedByUserId,
     );
 
@@ -599,6 +601,7 @@ CashMovementModel cashMovementFromEntity(CashMovement e) => CashMovementModel(
       type: e.type,
       amount: e.amount,
       reason: e.reason,
+      currencyId: e.currencyId,
       createdAt: e.createdAt,
       updatedAt: e.updatedAt,
       deletedAt: e.deletedAt,

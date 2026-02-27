@@ -3,12 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/data/enums/cash_movement_type.dart';
 import '../../../core/data/models/cash_movement_model.dart';
+import '../../../core/data/models/currency_model.dart';
+import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/formatters.dart';
 import '../../../core/utils/formatting_ext.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_table.dart';
 import 'dialog_cash_movement.dart';
+import 'dialog_opening_cash.dart';
 
 // ---------------------------------------------------------------------------
 // Sale entry passed from outside (cash payments during this session)
@@ -42,6 +46,7 @@ class _JournalEntry {
     required this.kind,
     required this.amount,
     this.note,
+    this.currency,
   });
 
   final DateTime createdAt;
@@ -50,6 +55,9 @@ class _JournalEntry {
   /// In haléře, always positive.
   final int amount;
   final String? note;
+
+  /// Non-null for foreign currency movements.
+  final CurrencyModel? currency;
 }
 
 // ---------------------------------------------------------------------------
@@ -64,6 +72,8 @@ class DialogCashJournal extends ConsumerStatefulWidget {
     required this.currentBalance,
     this.openingCash = 0,
     this.openedAt,
+    this.foreignCurrencies = const [],
+    this.currencyMap = const {},
   });
 
   final List<CashMovementModel> movements;
@@ -77,6 +87,12 @@ class DialogCashJournal extends ConsumerStatefulWidget {
 
   /// Session opened at (timestamp for the opening cash entry).
   final DateTime? openedAt;
+
+  /// Foreign currencies active in this session.
+  final List<ForeignCurrencyOpening> foreignCurrencies;
+
+  /// Currency models keyed by currencyId, for formatting foreign amounts.
+  final Map<String, CurrencyModel> currencyMap;
 
   @override
   ConsumerState<DialogCashJournal> createState() => _DialogCashJournalState();
@@ -109,6 +125,7 @@ class _DialogCashJournalState extends ConsumerState<DialogCashJournal> {
             kind: _EntryKind.deposit,
             amount: m.amount,
             note: m.reason,
+            currency: m.currencyId != null ? widget.currencyMap[m.currencyId] : null,
           ));
         }
       }
@@ -122,6 +139,7 @@ class _DialogCashJournalState extends ConsumerState<DialogCashJournal> {
             kind: _EntryKind.withdrawal,
             amount: m.amount,
             note: m.reason,
+            currency: m.currencyId != null ? widget.currencyMap[m.currencyId] : null,
           ));
         }
       }
@@ -268,8 +286,15 @@ class _DialogCashJournalState extends ConsumerState<DialogCashJournal> {
                       sign = '+';
                       color = theme.colorScheme.primary;
                   }
+                  final String formatted;
+                  if (e.currency != null) {
+                    final locale = ref.read(appLocaleProvider).value ?? 'cs';
+                    formatted = formatMoney(e.amount, e.currency, appLocale: locale);
+                  } else {
+                    formatted = ref.money(e.amount);
+                  }
                   return Text(
-                    '$sign ${ref.money(e.amount)}',
+                    '$sign $formatted',
                     textAlign: TextAlign.right,
                     style: theme.textTheme.bodySmall?.copyWith(color: color, fontWeight: FontWeight.w600),
                   );
@@ -299,7 +324,9 @@ class _DialogCashJournalState extends ConsumerState<DialogCashJournal> {
   Future<void> _addMovement(BuildContext context) async {
     final result = await showDialog<CashMovementResult>(
       context: context,
-      builder: (_) => const DialogCashMovement(),
+      builder: (_) => DialogCashMovement(
+        foreignCurrencies: widget.foreignCurrencies,
+      ),
     );
     if (result != null && context.mounted) {
       Navigator.pop(context, result);

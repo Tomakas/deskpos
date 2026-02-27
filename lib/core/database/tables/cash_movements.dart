@@ -12,6 +12,7 @@ class CashMovements extends Table with SyncColumnsMixin {
   TextColumn get type => textEnum<CashMovementType>()();
   IntColumn get amount => integer()();
   TextColumn get reason => text().nullable()();
+  TextColumn get currencyId => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};

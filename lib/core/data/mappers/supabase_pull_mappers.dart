@@ -639,6 +639,7 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
         type: Value(_enumFromName(CashMovementType.values, json['type'])),
         amount: Value(json['amount'] as int),
         reason: Value(json['reason'] as String?),
+        currencyId: Value(json['currency_id'] as String?),
         createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
         updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
         deletedAt: Value(_parseDateTime(json['deleted_at'])),

@@ -5,6 +5,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../core/data/enums/bill_status.dart';
 import '../../core/data/enums/cash_movement_type.dart';
+import '../../core/data/models/currency_model.dart';
 import '../../core/data/models/session_currency_cash_model.dart';
 import '../../core/data/enums/hardware_type.dart';
 import '../../core/data/enums/payment_type.dart';
@@ -59,11 +60,12 @@ Future<void> showCashJournalDialog(BuildContext context, WidgetRef ref) async {
   if (!context.mounted) return;
 
   final openingCash = session.openingCash ?? 0;
+  // Balance uses only base currency movements (currencyId == null)
   final deposits = movements
-      .where((m) => m.type == CashMovementType.deposit)
+      .where((m) => m.type == CashMovementType.deposit && m.currencyId == null)
       .fold(0, (sum, m) => sum + m.amount);
   final withdrawals = movements
-      .where((m) => m.type == CashMovementType.withdrawal || m.type == CashMovementType.expense || m.type == CashMovementType.handover)
+      .where((m) => (m.type == CashMovementType.withdrawal || m.type == CashMovementType.expense || m.type == CashMovementType.handover) && m.currencyId == null)
       .fold(0, (sum, m) => sum + m.amount);
 
   final billRepo = ref.read(billRepositoryProvider);
@@ -102,6 +104,25 @@ Future<void> showCashJournalDialog(BuildContext context, WidgetRef ref) async {
 
   final currentBalance = openingCash + deposits - withdrawals + cashRevenue;
 
+  // Load active foreign currencies for the movement dialog
+  final currencyRepo = ref.read(currencyRepositoryProvider);
+  final sessionCurrencyCashRepo = ref.read(sessionCurrencyCashRepositoryProvider);
+  final sessionCurrencyCashList = await sessionCurrencyCashRepo.getBySession(session.id);
+  if (!context.mounted) return;
+
+  final foreignCurrencies = <ForeignCurrencyOpening>[];
+  final currencyMap = <String, CurrencyModel>{};
+  for (final scc in sessionCurrencyCashList) {
+    final cur = await currencyRepo.getById(scc.currencyId);
+    if (cur == null) continue;
+    foreignCurrencies.add(ForeignCurrencyOpening(
+      currencyId: scc.currencyId,
+      code: cur.code,
+      symbol: cur.symbol,
+      decimalPlaces: cur.decimalPlaces,
+    ));
+    currencyMap[scc.currencyId] = cur;
+  }
   if (!context.mounted) return;
 
   final result = await showDialog<CashMovementResult>(
@@ -112,6 +133,8 @@ Future<void> showCashJournalDialog(BuildContext context, WidgetRef ref) async {
       currentBalance: currentBalance,
       openingCash: openingCash,
       openedAt: session.openedAt,
+      foreignCurrencies: foreignCurrencies,
+      currencyMap: currencyMap,
     ),
   );
   if (result == null) return;
@@ -123,6 +146,7 @@ Future<void> showCashJournalDialog(BuildContext context, WidgetRef ref) async {
     type: result.type,
     amount: result.amount,
     reason: result.reason,
+    currencyId: result.currencyId,
   );
 }
 
@@ -140,11 +164,12 @@ Future<void> closeSession(BuildContext context, WidgetRef ref) async {
   // Build closing data
   final cashMovements = await ref.read(cashMovementRepositoryProvider).getBySession(session.id);
   if (!context.mounted) return;
+  // Base currency only (currencyId == null)
   final cashDeposits = cashMovements
-      .where((m) => m.type == CashMovementType.deposit)
+      .where((m) => m.type == CashMovementType.deposit && m.currencyId == null)
       .fold(0, (sum, m) => sum + m.amount);
   final cashWithdrawals = cashMovements
-      .where((m) => m.type == CashMovementType.withdrawal || m.type == CashMovementType.expense || m.type == CashMovementType.handover)
+      .where((m) => (m.type == CashMovementType.withdrawal || m.type == CashMovementType.expense || m.type == CashMovementType.handover) && m.currencyId == null)
       .fold(0, (sum, m) => sum + m.amount);
 
   // Payment summaries: get all bills paid during this session
@@ -255,19 +280,37 @@ Future<void> closeSession(BuildContext context, WidgetRef ref) async {
     }
   }
 
+  // Aggregate per-currency deposits/withdrawals from cash movements
+  final foreignDeposits = <String, int>{};
+  final foreignWithdrawals = <String, int>{};
+  for (final m in cashMovements) {
+    if (m.currencyId == null) continue;
+    if (m.type == CashMovementType.deposit) {
+      foreignDeposits[m.currencyId!] =
+          (foreignDeposits[m.currencyId!] ?? 0) + m.amount;
+    } else if (m.type == CashMovementType.withdrawal || m.type == CashMovementType.expense) {
+      foreignWithdrawals[m.currencyId!] =
+          (foreignWithdrawals[m.currencyId!] ?? 0) + m.amount;
+    }
+  }
+
   final foreignCurrencyCash = <ForeignCurrencyCashData>[];
   for (final scc in sessionCurrencyCashList) {
     final cur = await currencyRepo.getById(scc.currencyId);
     if (cur == null) continue;
     final revenue = foreignRevenue[scc.currencyId] ?? 0;
+    final fcDeposits = foreignDeposits[scc.currencyId] ?? 0;
+    final fcWithdrawals = foreignWithdrawals[scc.currencyId] ?? 0;
     foreignCurrencyCash.add(ForeignCurrencyCashData(
       currencyId: scc.currencyId,
       code: cur.code,
       symbol: cur.symbol,
       decimalPlaces: cur.decimalPlaces,
       openingCash: scc.openingCash,
-      expectedCash: scc.openingCash + revenue,
+      expectedCash: scc.openingCash + revenue + fcDeposits - fcWithdrawals,
       cashRevenue: revenue,
+      cashDeposits: fcDeposits,
+      cashWithdrawals: fcWithdrawals,
     ));
   }
   if (!context.mounted) return;

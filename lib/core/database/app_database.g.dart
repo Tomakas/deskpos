@@ -2281,6 +2281,17 @@ class $CashMovementsTable extends CashMovements
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _currencyIdMeta = const VerificationMeta(
+    'currencyId',
+  );
+  @override
+  late final GeneratedColumn<String> currencyId = GeneratedColumn<String>(
+    'currency_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     lastSyncedAt,
@@ -2297,6 +2308,7 @@ class $CashMovementsTable extends CashMovements
     type,
     amount,
     reason,
+    currencyId,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -2407,6 +2419,12 @@ class $CashMovementsTable extends CashMovements
         reason.isAcceptableOrUnknown(data['reason']!, _reasonMeta),
       );
     }
+    if (data.containsKey('currency_id')) {
+      context.handle(
+        _currencyIdMeta,
+        currencyId.isAcceptableOrUnknown(data['currency_id']!, _currencyIdMeta),
+      );
+    }
     return context;
   }
 
@@ -2474,6 +2492,10 @@ class $CashMovementsTable extends CashMovements
         DriftSqlType.string,
         data['${effectivePrefix}reason'],
       ),
+      currencyId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}currency_id'],
+      ),
     );
   }
 
@@ -2501,6 +2523,7 @@ class CashMovement extends DataClass implements Insertable<CashMovement> {
   final CashMovementType type;
   final int amount;
   final String? reason;
+  final String? currencyId;
   const CashMovement({
     this.lastSyncedAt,
     required this.version,
@@ -2516,6 +2539,7 @@ class CashMovement extends DataClass implements Insertable<CashMovement> {
     required this.type,
     required this.amount,
     this.reason,
+    this.currencyId,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -2548,6 +2572,9 @@ class CashMovement extends DataClass implements Insertable<CashMovement> {
     if (!nullToAbsent || reason != null) {
       map['reason'] = Variable<String>(reason);
     }
+    if (!nullToAbsent || currencyId != null) {
+      map['currency_id'] = Variable<String>(currencyId);
+    }
     return map;
   }
 
@@ -2577,6 +2604,9 @@ class CashMovement extends DataClass implements Insertable<CashMovement> {
       reason: reason == null && nullToAbsent
           ? const Value.absent()
           : Value(reason),
+      currencyId: currencyId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(currencyId),
     );
   }
 
@@ -2602,6 +2632,7 @@ class CashMovement extends DataClass implements Insertable<CashMovement> {
       ),
       amount: serializer.fromJson<int>(json['amount']),
       reason: serializer.fromJson<String?>(json['reason']),
+      currencyId: serializer.fromJson<String?>(json['currencyId']),
     );
   }
   @override
@@ -2624,6 +2655,7 @@ class CashMovement extends DataClass implements Insertable<CashMovement> {
       ),
       'amount': serializer.toJson<int>(amount),
       'reason': serializer.toJson<String?>(reason),
+      'currencyId': serializer.toJson<String?>(currencyId),
     };
   }
 
@@ -2642,6 +2674,7 @@ class CashMovement extends DataClass implements Insertable<CashMovement> {
     CashMovementType? type,
     int? amount,
     Value<String?> reason = const Value.absent(),
+    Value<String?> currencyId = const Value.absent(),
   }) => CashMovement(
     lastSyncedAt: lastSyncedAt.present ? lastSyncedAt.value : this.lastSyncedAt,
     version: version ?? this.version,
@@ -2661,6 +2694,7 @@ class CashMovement extends DataClass implements Insertable<CashMovement> {
     type: type ?? this.type,
     amount: amount ?? this.amount,
     reason: reason.present ? reason.value : this.reason,
+    currencyId: currencyId.present ? currencyId.value : this.currencyId,
   );
   CashMovement copyWithCompanion(CashMovementsCompanion data) {
     return CashMovement(
@@ -2686,6 +2720,9 @@ class CashMovement extends DataClass implements Insertable<CashMovement> {
       type: data.type.present ? data.type.value : this.type,
       amount: data.amount.present ? data.amount.value : this.amount,
       reason: data.reason.present ? data.reason.value : this.reason,
+      currencyId: data.currencyId.present
+          ? data.currencyId.value
+          : this.currencyId,
     );
   }
 
@@ -2705,7 +2742,8 @@ class CashMovement extends DataClass implements Insertable<CashMovement> {
           ..write('userId: $userId, ')
           ..write('type: $type, ')
           ..write('amount: $amount, ')
-          ..write('reason: $reason')
+          ..write('reason: $reason, ')
+          ..write('currencyId: $currencyId')
           ..write(')'))
         .toString();
   }
@@ -2726,6 +2764,7 @@ class CashMovement extends DataClass implements Insertable<CashMovement> {
     type,
     amount,
     reason,
+    currencyId,
   );
   @override
   bool operator ==(Object other) =>
@@ -2744,7 +2783,8 @@ class CashMovement extends DataClass implements Insertable<CashMovement> {
           other.userId == this.userId &&
           other.type == this.type &&
           other.amount == this.amount &&
-          other.reason == this.reason);
+          other.reason == this.reason &&
+          other.currencyId == this.currencyId);
 }
 
 class CashMovementsCompanion extends UpdateCompanion<CashMovement> {
@@ -2762,6 +2802,7 @@ class CashMovementsCompanion extends UpdateCompanion<CashMovement> {
   final Value<CashMovementType> type;
   final Value<int> amount;
   final Value<String?> reason;
+  final Value<String?> currencyId;
   final Value<int> rowid;
   const CashMovementsCompanion({
     this.lastSyncedAt = const Value.absent(),
@@ -2778,6 +2819,7 @@ class CashMovementsCompanion extends UpdateCompanion<CashMovement> {
     this.type = const Value.absent(),
     this.amount = const Value.absent(),
     this.reason = const Value.absent(),
+    this.currencyId = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   CashMovementsCompanion.insert({
@@ -2795,6 +2837,7 @@ class CashMovementsCompanion extends UpdateCompanion<CashMovement> {
     required CashMovementType type,
     required int amount,
     this.reason = const Value.absent(),
+    this.currencyId = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        companyId = Value(companyId),
@@ -2817,6 +2860,7 @@ class CashMovementsCompanion extends UpdateCompanion<CashMovement> {
     Expression<String>? type,
     Expression<int>? amount,
     Expression<String>? reason,
+    Expression<String>? currencyId,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -2834,6 +2878,7 @@ class CashMovementsCompanion extends UpdateCompanion<CashMovement> {
       if (type != null) 'type': type,
       if (amount != null) 'amount': amount,
       if (reason != null) 'reason': reason,
+      if (currencyId != null) 'currency_id': currencyId,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -2853,6 +2898,7 @@ class CashMovementsCompanion extends UpdateCompanion<CashMovement> {
     Value<CashMovementType>? type,
     Value<int>? amount,
     Value<String?>? reason,
+    Value<String?>? currencyId,
     Value<int>? rowid,
   }) {
     return CashMovementsCompanion(
@@ -2870,6 +2916,7 @@ class CashMovementsCompanion extends UpdateCompanion<CashMovement> {
       type: type ?? this.type,
       amount: amount ?? this.amount,
       reason: reason ?? this.reason,
+      currencyId: currencyId ?? this.currencyId,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -2921,6 +2968,9 @@ class CashMovementsCompanion extends UpdateCompanion<CashMovement> {
     if (reason.present) {
       map['reason'] = Variable<String>(reason.value);
     }
+    if (currencyId.present) {
+      map['currency_id'] = Variable<String>(currencyId.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -2944,6 +2994,7 @@ class CashMovementsCompanion extends UpdateCompanion<CashMovement> {
           ..write('type: $type, ')
           ..write('amount: $amount, ')
           ..write('reason: $reason, ')
+          ..write('currencyId: $currencyId, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -5941,6 +5992,15 @@ class $CustomerTransactionsTable extends CustomerTransactions
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+    'note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _processedByUserIdMeta = const VerificationMeta(
     'processedByUserId',
   );
@@ -5968,6 +6028,7 @@ class $CustomerTransactionsTable extends CustomerTransactions
     pointsChange,
     creditChange,
     orderId,
+    note,
     processedByUserId,
   ];
   @override
@@ -6082,6 +6143,12 @@ class $CustomerTransactionsTable extends CustomerTransactions
         orderId.isAcceptableOrUnknown(data['order_id']!, _orderIdMeta),
       );
     }
+    if (data.containsKey('note')) {
+      context.handle(
+        _noteMeta,
+        note.isAcceptableOrUnknown(data['note']!, _noteMeta),
+      );
+    }
     if (data.containsKey('processed_by_user_id')) {
       context.handle(
         _processedByUserIdMeta,
@@ -6154,6 +6221,10 @@ class $CustomerTransactionsTable extends CustomerTransactions
         DriftSqlType.string,
         data['${effectivePrefix}order_id'],
       ),
+      note: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}note'],
+      ),
       processedByUserId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}processed_by_user_id'],
@@ -6182,6 +6253,7 @@ class CustomerTransaction extends DataClass
   final int pointsChange;
   final int creditChange;
   final String? orderId;
+  final String? note;
   final String processedByUserId;
   const CustomerTransaction({
     this.lastSyncedAt,
@@ -6197,6 +6269,7 @@ class CustomerTransaction extends DataClass
     required this.pointsChange,
     required this.creditChange,
     this.orderId,
+    this.note,
     required this.processedByUserId,
   });
   @override
@@ -6224,6 +6297,9 @@ class CustomerTransaction extends DataClass
     map['credit_change'] = Variable<int>(creditChange);
     if (!nullToAbsent || orderId != null) {
       map['order_id'] = Variable<String>(orderId);
+    }
+    if (!nullToAbsent || note != null) {
+      map['note'] = Variable<String>(note);
     }
     map['processed_by_user_id'] = Variable<String>(processedByUserId);
     return map;
@@ -6254,6 +6330,7 @@ class CustomerTransaction extends DataClass
       orderId: orderId == null && nullToAbsent
           ? const Value.absent()
           : Value(orderId),
+      note: note == null && nullToAbsent ? const Value.absent() : Value(note),
       processedByUserId: Value(processedByUserId),
     );
   }
@@ -6277,6 +6354,7 @@ class CustomerTransaction extends DataClass
       pointsChange: serializer.fromJson<int>(json['pointsChange']),
       creditChange: serializer.fromJson<int>(json['creditChange']),
       orderId: serializer.fromJson<String?>(json['orderId']),
+      note: serializer.fromJson<String?>(json['note']),
       processedByUserId: serializer.fromJson<String>(json['processedByUserId']),
     );
   }
@@ -6297,6 +6375,7 @@ class CustomerTransaction extends DataClass
       'pointsChange': serializer.toJson<int>(pointsChange),
       'creditChange': serializer.toJson<int>(creditChange),
       'orderId': serializer.toJson<String?>(orderId),
+      'note': serializer.toJson<String?>(note),
       'processedByUserId': serializer.toJson<String>(processedByUserId),
     };
   }
@@ -6315,6 +6394,7 @@ class CustomerTransaction extends DataClass
     int? pointsChange,
     int? creditChange,
     Value<String?> orderId = const Value.absent(),
+    Value<String?> note = const Value.absent(),
     String? processedByUserId,
   }) => CustomerTransaction(
     lastSyncedAt: lastSyncedAt.present ? lastSyncedAt.value : this.lastSyncedAt,
@@ -6334,6 +6414,7 @@ class CustomerTransaction extends DataClass
     pointsChange: pointsChange ?? this.pointsChange,
     creditChange: creditChange ?? this.creditChange,
     orderId: orderId.present ? orderId.value : this.orderId,
+    note: note.present ? note.value : this.note,
     processedByUserId: processedByUserId ?? this.processedByUserId,
   );
   CustomerTransaction copyWithCompanion(CustomerTransactionsCompanion data) {
@@ -6363,6 +6444,7 @@ class CustomerTransaction extends DataClass
           ? data.creditChange.value
           : this.creditChange,
       orderId: data.orderId.present ? data.orderId.value : this.orderId,
+      note: data.note.present ? data.note.value : this.note,
       processedByUserId: data.processedByUserId.present
           ? data.processedByUserId.value
           : this.processedByUserId,
@@ -6385,6 +6467,7 @@ class CustomerTransaction extends DataClass
           ..write('pointsChange: $pointsChange, ')
           ..write('creditChange: $creditChange, ')
           ..write('orderId: $orderId, ')
+          ..write('note: $note, ')
           ..write('processedByUserId: $processedByUserId')
           ..write(')'))
         .toString();
@@ -6405,6 +6488,7 @@ class CustomerTransaction extends DataClass
     pointsChange,
     creditChange,
     orderId,
+    note,
     processedByUserId,
   );
   @override
@@ -6424,6 +6508,7 @@ class CustomerTransaction extends DataClass
           other.pointsChange == this.pointsChange &&
           other.creditChange == this.creditChange &&
           other.orderId == this.orderId &&
+          other.note == this.note &&
           other.processedByUserId == this.processedByUserId);
 }
 
@@ -6442,6 +6527,7 @@ class CustomerTransactionsCompanion
   final Value<int> pointsChange;
   final Value<int> creditChange;
   final Value<String?> orderId;
+  final Value<String?> note;
   final Value<String> processedByUserId;
   final Value<int> rowid;
   const CustomerTransactionsCompanion({
@@ -6458,6 +6544,7 @@ class CustomerTransactionsCompanion
     this.pointsChange = const Value.absent(),
     this.creditChange = const Value.absent(),
     this.orderId = const Value.absent(),
+    this.note = const Value.absent(),
     this.processedByUserId = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -6475,6 +6562,7 @@ class CustomerTransactionsCompanion
     required int pointsChange,
     required int creditChange,
     this.orderId = const Value.absent(),
+    this.note = const Value.absent(),
     required String processedByUserId,
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -6497,6 +6585,7 @@ class CustomerTransactionsCompanion
     Expression<int>? pointsChange,
     Expression<int>? creditChange,
     Expression<String>? orderId,
+    Expression<String>? note,
     Expression<String>? processedByUserId,
     Expression<int>? rowid,
   }) {
@@ -6514,6 +6603,7 @@ class CustomerTransactionsCompanion
       if (pointsChange != null) 'points_change': pointsChange,
       if (creditChange != null) 'credit_change': creditChange,
       if (orderId != null) 'order_id': orderId,
+      if (note != null) 'note': note,
       if (processedByUserId != null) 'processed_by_user_id': processedByUserId,
       if (rowid != null) 'rowid': rowid,
     });
@@ -6533,6 +6623,7 @@ class CustomerTransactionsCompanion
     Value<int>? pointsChange,
     Value<int>? creditChange,
     Value<String?>? orderId,
+    Value<String?>? note,
     Value<String>? processedByUserId,
     Value<int>? rowid,
   }) {
@@ -6550,6 +6641,7 @@ class CustomerTransactionsCompanion
       pointsChange: pointsChange ?? this.pointsChange,
       creditChange: creditChange ?? this.creditChange,
       orderId: orderId ?? this.orderId,
+      note: note ?? this.note,
       processedByUserId: processedByUserId ?? this.processedByUserId,
       rowid: rowid ?? this.rowid,
     );
@@ -6597,6 +6689,9 @@ class CustomerTransactionsCompanion
     if (orderId.present) {
       map['order_id'] = Variable<String>(orderId.value);
     }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
     if (processedByUserId.present) {
       map['processed_by_user_id'] = Variable<String>(processedByUserId.value);
     }
@@ -6622,6 +6717,7 @@ class CustomerTransactionsCompanion
           ..write('pointsChange: $pointsChange, ')
           ..write('creditChange: $creditChange, ')
           ..write('orderId: $orderId, ')
+          ..write('note: $note, ')
           ..write('processedByUserId: $processedByUserId, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -44557,6 +44653,7 @@ typedef $$CashMovementsTableCreateCompanionBuilder =
       required CashMovementType type,
       required int amount,
       Value<String?> reason,
+      Value<String?> currencyId,
       Value<int> rowid,
     });
 typedef $$CashMovementsTableUpdateCompanionBuilder =
@@ -44575,6 +44672,7 @@ typedef $$CashMovementsTableUpdateCompanionBuilder =
       Value<CashMovementType> type,
       Value<int> amount,
       Value<String?> reason,
+      Value<String?> currencyId,
       Value<int> rowid,
     });
 
@@ -44657,6 +44755,11 @@ class $$CashMovementsTableFilterComposer
     column: $table.reason,
     builder: (column) => ColumnFilters(column),
   );
+
+  ColumnFilters<String> get currencyId => $composableBuilder(
+    column: $table.currencyId,
+    builder: (column) => ColumnFilters(column),
+  );
 }
 
 class $$CashMovementsTableOrderingComposer
@@ -44737,6 +44840,11 @@ class $$CashMovementsTableOrderingComposer
     column: $table.reason,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get currencyId => $composableBuilder(
+    column: $table.currencyId,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$CashMovementsTableAnnotationComposer
@@ -44797,6 +44905,11 @@ class $$CashMovementsTableAnnotationComposer
 
   GeneratedColumn<String> get reason =>
       $composableBuilder(column: $table.reason, builder: (column) => column);
+
+  GeneratedColumn<String> get currencyId => $composableBuilder(
+    column: $table.currencyId,
+    builder: (column) => column,
+  );
 }
 
 class $$CashMovementsTableTableManager
@@ -44844,6 +44957,7 @@ class $$CashMovementsTableTableManager
                 Value<CashMovementType> type = const Value.absent(),
                 Value<int> amount = const Value.absent(),
                 Value<String?> reason = const Value.absent(),
+                Value<String?> currencyId = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => CashMovementsCompanion(
                 lastSyncedAt: lastSyncedAt,
@@ -44860,6 +44974,7 @@ class $$CashMovementsTableTableManager
                 type: type,
                 amount: amount,
                 reason: reason,
+                currencyId: currencyId,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -44878,6 +44993,7 @@ class $$CashMovementsTableTableManager
                 required CashMovementType type,
                 required int amount,
                 Value<String?> reason = const Value.absent(),
+                Value<String?> currencyId = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => CashMovementsCompanion.insert(
                 lastSyncedAt: lastSyncedAt,
@@ -44894,6 +45010,7 @@ class $$CashMovementsTableTableManager
                 type: type,
                 amount: amount,
                 reason: reason,
+                currencyId: currencyId,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -46216,6 +46333,7 @@ typedef $$CustomerTransactionsTableCreateCompanionBuilder =
       required int pointsChange,
       required int creditChange,
       Value<String?> orderId,
+      Value<String?> note,
       required String processedByUserId,
       Value<int> rowid,
     });
@@ -46234,6 +46352,7 @@ typedef $$CustomerTransactionsTableUpdateCompanionBuilder =
       Value<int> pointsChange,
       Value<int> creditChange,
       Value<String?> orderId,
+      Value<String?> note,
       Value<String> processedByUserId,
       Value<int> rowid,
     });
@@ -46309,6 +46428,11 @@ class $$CustomerTransactionsTableFilterComposer
 
   ColumnFilters<String> get orderId => $composableBuilder(
     column: $table.orderId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get note => $composableBuilder(
+    column: $table.note,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -46392,6 +46516,11 @@ class $$CustomerTransactionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get processedByUserId => $composableBuilder(
     column: $table.processedByUserId,
     builder: (column) => ColumnOrderings(column),
@@ -46458,6 +46587,9 @@ class $$CustomerTransactionsTableAnnotationComposer
   GeneratedColumn<String> get orderId =>
       $composableBuilder(column: $table.orderId, builder: (column) => column);
 
+  GeneratedColumn<String> get note =>
+      $composableBuilder(column: $table.note, builder: (column) => column);
+
   GeneratedColumn<String> get processedByUserId => $composableBuilder(
     column: $table.processedByUserId,
     builder: (column) => column,
@@ -46520,6 +46652,7 @@ class $$CustomerTransactionsTableTableManager
                 Value<int> pointsChange = const Value.absent(),
                 Value<int> creditChange = const Value.absent(),
                 Value<String?> orderId = const Value.absent(),
+                Value<String?> note = const Value.absent(),
                 Value<String> processedByUserId = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => CustomerTransactionsCompanion(
@@ -46536,6 +46669,7 @@ class $$CustomerTransactionsTableTableManager
                 pointsChange: pointsChange,
                 creditChange: creditChange,
                 orderId: orderId,
+                note: note,
                 processedByUserId: processedByUserId,
                 rowid: rowid,
               ),
@@ -46554,6 +46688,7 @@ class $$CustomerTransactionsTableTableManager
                 required int pointsChange,
                 required int creditChange,
                 Value<String?> orderId = const Value.absent(),
+                Value<String?> note = const Value.absent(),
                 required String processedByUserId,
                 Value<int> rowid = const Value.absent(),
               }) => CustomerTransactionsCompanion.insert(
@@ -46570,6 +46705,7 @@ class $$CustomerTransactionsTableTableManager
                 pointsChange: pointsChange,
                 creditChange: creditChange,
                 orderId: orderId,
+                note: note,
                 processedByUserId: processedByUserId,
                 rowid: rowid,
               ),

@@ -304,9 +304,9 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
     var resetCount = 0;
 
     final boolItems = [
-      DropdownMenuItem<bool?>(value: null, child: Text(l.filterAll)),
-      DropdownMenuItem<bool?>(value: true, child: Text(l.yes)),
-      DropdownMenuItem<bool?>(value: false, child: Text(l.no)),
+      DropdownMenuItem<bool?>(value: null, child: Text(l.filterAll, overflow: TextOverflow.ellipsis)),
+      DropdownMenuItem<bool?>(value: true, child: Text(l.yes, overflow: TextOverflow.ellipsis)),
+      DropdownMenuItem<bool?>(value: false, child: Text(l.no, overflow: TextOverflow.ellipsis)),
     ];
 
     await showDialog<void>(
@@ -314,7 +314,7 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
       builder: (_) => StatefulBuilder(
         builder: (ctx, setDialogState) => PosDialogShell(
           title: l.filterTitle,
-          maxWidth: 400,
+          maxWidth: 500,
           scrollable: true,
           bottomActions: PosDialogActions(
             actions: [
@@ -344,73 +344,109 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
               key: ValueKey(resetCount),
               mainAxisSize: MainAxisSize.min,
               children: [
-                DropdownButtonFormField<ItemType?>(
-                  initialValue: itemType,
-                  decoration: InputDecoration(labelText: l.fieldType),
-                  items: [
-                    DropdownMenuItem<ItemType?>(value: null, child: Text(l.filterAll)),
-                    ...ItemType.values.map(
-                      (t) => DropdownMenuItem(value: t, child: Text(_localizedItemType(l, t))),
+                // Row 1: Type + Category
+                Row(
+                  children: [
+                    Expanded(
+                      child: DropdownButtonFormField<ItemType?>(
+                        initialValue: itemType,
+                        isExpanded: true,
+                        decoration: InputDecoration(labelText: l.fieldType),
+                        items: [
+                          DropdownMenuItem<ItemType?>(value: null, child: Text(l.filterAll, overflow: TextOverflow.ellipsis)),
+                          ...ItemType.values.map(
+                            (t) => DropdownMenuItem(value: t, child: Text(_localizedItemType(l, t), overflow: TextOverflow.ellipsis)),
+                          ),
+                        ],
+                        onChanged: (v) => setDialogState(() => itemType = v),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: DropdownButtonFormField<String?>(
+                        initialValue: categoryId,
+                        isExpanded: true,
+                        decoration: InputDecoration(labelText: l.fieldCategory),
+                        items: [
+                          DropdownMenuItem<String?>(value: null, child: Text(l.filterAll, overflow: TextOverflow.ellipsis)),
+                          ...categories.map(
+                            (c) => DropdownMenuItem(value: c.id, child: Text(c.name, overflow: TextOverflow.ellipsis)),
+                          ),
+                        ],
+                        onChanged: (v) => setDialogState(() => categoryId = v),
+                      ),
                     ),
                   ],
-                  onChanged: (v) => setDialogState(() => itemType = v),
                 ),
                 const SizedBox(height: 12),
-                DropdownButtonFormField<String?>(
-                  initialValue: categoryId,
-                  decoration: InputDecoration(labelText: l.fieldCategory),
-                  items: [
-                    DropdownMenuItem<String?>(value: null, child: Text(l.filterAll)),
-                    ...categories.map(
-                      (c) => DropdownMenuItem(value: c.id, child: Text(c.name)),
+                // Row 2: On Sale + Stock Tracked + Active
+                Row(
+                  children: [
+                    Expanded(
+                      child: DropdownButtonFormField<bool?>(
+                        initialValue: isOnSale,
+                        isExpanded: true,
+                        decoration: InputDecoration(labelText: l.fieldOnSale),
+                        items: boolItems,
+                        onChanged: (v) => setDialogState(() => isOnSale = v),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: DropdownButtonFormField<bool?>(
+                        initialValue: isStockTracked,
+                        isExpanded: true,
+                        decoration: InputDecoration(labelText: l.fieldStockTracked),
+                        items: boolItems,
+                        onChanged: (v) => setDialogState(() => isStockTracked = v),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: DropdownButtonFormField<bool?>(
+                        initialValue: isActive,
+                        isExpanded: true,
+                        decoration: InputDecoration(labelText: l.fieldActive),
+                        items: boolItems,
+                        onChanged: (v) => setDialogState(() => isActive = v),
+                      ),
                     ),
                   ],
-                  onChanged: (v) => setDialogState(() => categoryId = v),
                 ),
                 const SizedBox(height: 12),
-                DropdownButtonFormField<bool?>(
-                  initialValue: isActive,
-                  decoration: InputDecoration(labelText: l.fieldActive),
-                  items: boolItems,
-                  onChanged: (v) => setDialogState(() => isActive = v),
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<bool?>(
-                  initialValue: isOnSale,
-                  decoration: InputDecoration(labelText: l.fieldOnSale),
-                  items: boolItems,
-                  onChanged: (v) => setDialogState(() => isOnSale = v),
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<bool?>(
-                  initialValue: isStockTracked,
-                  decoration: InputDecoration(labelText: l.fieldStockTracked),
-                  items: boolItems,
-                  onChanged: (v) => setDialogState(() => isStockTracked = v),
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<String?>(
-                  initialValue: supplierId,
-                  decoration: InputDecoration(labelText: l.fieldSupplier),
-                  items: [
-                    DropdownMenuItem<String?>(value: null, child: Text(l.filterAll)),
-                    ...suppliers.map(
-                      (s) => DropdownMenuItem(value: s.id, child: Text(s.supplierName)),
+                // Row 3: Manufacturer + Supplier
+                Row(
+                  children: [
+                    Expanded(
+                      child: DropdownButtonFormField<String?>(
+                        initialValue: manufacturerId,
+                        isExpanded: true,
+                        decoration: InputDecoration(labelText: l.fieldManufacturer),
+                        items: [
+                          DropdownMenuItem<String?>(value: null, child: Text(l.filterAll, overflow: TextOverflow.ellipsis)),
+                          ...manufacturers.map(
+                            (m) => DropdownMenuItem(value: m.id, child: Text(m.name, overflow: TextOverflow.ellipsis)),
+                          ),
+                        ],
+                        onChanged: (v) => setDialogState(() => manufacturerId = v),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: DropdownButtonFormField<String?>(
+                        initialValue: supplierId,
+                        isExpanded: true,
+                        decoration: InputDecoration(labelText: l.fieldSupplier),
+                        items: [
+                          DropdownMenuItem<String?>(value: null, child: Text(l.filterAll, overflow: TextOverflow.ellipsis)),
+                          ...suppliers.map(
+                            (s) => DropdownMenuItem(value: s.id, child: Text(s.supplierName, overflow: TextOverflow.ellipsis)),
+                          ),
+                        ],
+                        onChanged: (v) => setDialogState(() => supplierId = v),
+                      ),
                     ),
                   ],
-                  onChanged: (v) => setDialogState(() => supplierId = v),
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<String?>(
-                  initialValue: manufacturerId,
-                  decoration: InputDecoration(labelText: l.fieldManufacturer),
-                  items: [
-                    DropdownMenuItem<String?>(value: null, child: Text(l.filterAll)),
-                    ...manufacturers.map(
-                      (m) => DropdownMenuItem(value: m.id, child: Text(m.name)),
-                    ),
-                  ],
-                  onChanged: (v) => setDialogState(() => manufacturerId = v),
                 ),
               ],
             ),

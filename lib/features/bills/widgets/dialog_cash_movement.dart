@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/data/enums/cash_movement_type.dart';
+import '../../../core/data/models/currency_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../l10n/app_localizations.dart';
@@ -12,12 +13,14 @@ import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_dialog_theme.dart';
 import '../../../core/widgets/pos_numpad.dart';
+import 'dialog_opening_cash.dart';
 
 class CashMovementResult {
   const CashMovementResult({
     required this.type,
     required this.amount,
     this.reason,
+    this.currencyId,
   });
 
   /// [deposit] or [withdrawal].
@@ -28,10 +31,18 @@ class CashMovementResult {
 
   /// Optional note / reason for the movement.
   final String? reason;
+
+  /// Null = base currency.
+  final String? currencyId;
 }
 
 class DialogCashMovement extends ConsumerStatefulWidget {
-  const DialogCashMovement({super.key});
+  const DialogCashMovement({
+    super.key,
+    this.foreignCurrencies = const [],
+  });
+
+  final List<ForeignCurrencyOpening> foreignCurrencies;
 
   @override
   ConsumerState<DialogCashMovement> createState() => _DialogCashMovementState();
@@ -40,9 +51,26 @@ class DialogCashMovement extends ConsumerStatefulWidget {
 class _DialogCashMovementState extends ConsumerState<DialogCashMovement> {
   String _amountText = '';
   String? _note;
+  String? _selectedCurrencyId;
 
   int get _amountWhole => int.tryParse(_amountText) ?? 0;
   bool get _hasAmount => _amountWhole > 0;
+
+  CurrencyModel? get _activeCurrency {
+    if (_selectedCurrencyId == null) return null;
+    final fc = widget.foreignCurrencies.firstWhere(
+      (c) => c.currencyId == _selectedCurrencyId,
+    );
+    return CurrencyModel(
+      id: fc.currencyId,
+      code: fc.code,
+      symbol: fc.symbol,
+      name: '',
+      decimalPlaces: fc.decimalPlaces,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
+  }
 
   // ---------------------------------------------------------------------------
   // Numpad input
@@ -70,13 +98,14 @@ class _DialogCashMovementState extends ConsumerState<DialogCashMovement> {
 
   void _confirm(CashMovementType type) {
     if (!_hasAmount) return;
-    final currency = ref.read(currentCurrencyProvider).value;
+    final currency = _activeCurrency ?? ref.read(currentCurrencyProvider).value;
     Navigator.pop(
       context,
       CashMovementResult(
         type: type,
         amount: parseMoney(_amountText, currency),
         reason: _note,
+        currencyId: _selectedCurrencyId,
       ),
     );
   }
@@ -134,11 +163,16 @@ class _DialogCashMovementState extends ConsumerState<DialogCashMovement> {
     return PosDialogShell(
       title: l.cashMovementTitle,
       maxWidth: 420,
-      maxHeight: 520,
+      maxHeight: widget.foreignCurrencies.isNotEmpty ? 570 : 520,
       expandHeight: true,
       children: [
         // Amount display
         _buildAmountDisplay(theme, l),
+        // Currency chip bar (only when foreign currencies exist)
+        if (widget.foreignCurrencies.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          _buildCurrencyChips(theme),
+        ],
         const SizedBox(height: 16),
         // Numpad + action buttons
         _buildNumpadAndActions(theme, l),
@@ -170,10 +204,66 @@ class _DialogCashMovementState extends ConsumerState<DialogCashMovement> {
   }
 
   // ---------------------------------------------------------------------------
+  // Currency chip bar
+  // ---------------------------------------------------------------------------
+
+  Widget _buildCurrencyChips(ThemeData theme) {
+    final baseCurrency = ref.watch(currentCurrencyProvider).value;
+    final baseCode = baseCurrency?.code ?? '---';
+
+    return Row(
+      children: [
+        Expanded(
+          child: SizedBox(
+            height: 40,
+            child: FilterChip(
+              label: SizedBox(
+                width: double.infinity,
+                child: Text(baseCode, textAlign: TextAlign.center),
+              ),
+              selected: _selectedCurrencyId == null,
+              onSelected: (_) {
+                setState(() {
+                  _selectedCurrencyId = null;
+                  _amountText = '';
+                });
+              },
+            ),
+          ),
+        ),
+        for (final fc in widget.foreignCurrencies) ...[
+          const SizedBox(width: 8),
+          Expanded(
+            child: SizedBox(
+              height: 40,
+              child: FilterChip(
+                label: SizedBox(
+                  width: double.infinity,
+                  child: Text(fc.code, textAlign: TextAlign.center),
+                ),
+                selected: _selectedCurrencyId == fc.currencyId,
+                onSelected: (_) {
+                  setState(() {
+                    _selectedCurrencyId = fc.currencyId;
+                    _amountText = '';
+                  });
+                },
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  // ---------------------------------------------------------------------------
   // Amount display
   // ---------------------------------------------------------------------------
 
   Widget _buildAmountDisplay(ThemeData theme, AppLocalizations l) {
+    final currency = _activeCurrency ?? ref.watch(currentCurrencyProvider).value;
+    final locale = ref.read(appLocaleProvider).value ?? 'cs';
+
     return Row(
       children: [
         Text(l.cashMovementAmount, style: theme.textTheme.titleMedium),
@@ -188,7 +278,9 @@ class _DialogCashMovementState extends ConsumerState<DialogCashMovement> {
             alignment: Alignment.centerRight,
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text(
-              ref.money(parseMoney(_amountText, ref.watch(currentCurrencyProvider).value)),
+              _selectedCurrencyId != null
+                  ? formatMoney(parseMoney(_amountText, currency), currency, appLocale: locale)
+                  : ref.money(parseMoney(_amountText, ref.watch(currentCurrencyProvider).value)),
               style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
               ),

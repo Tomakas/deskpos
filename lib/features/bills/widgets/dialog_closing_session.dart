@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -25,6 +27,8 @@ class ForeignCurrencyCashData {
     required this.openingCash,
     required this.expectedCash,
     required this.cashRevenue,
+    this.cashDeposits = 0,
+    this.cashWithdrawals = 0,
   });
 
   final String currencyId;
@@ -32,8 +36,10 @@ class ForeignCurrencyCashData {
   final String symbol;
   final int decimalPlaces;
   final int openingCash;
-  final int expectedCash; // opening + cashRevenue
+  final int expectedCash; // opening + cashRevenue + deposits - withdrawals
   final int cashRevenue;
+  final int cashDeposits;
+  final int cashWithdrawals;
 
   CurrencyModel toCurrencyModel() => CurrencyModel(
     id: currencyId, code: code, symbol: symbol,
@@ -156,10 +162,15 @@ class _DialogClosingSessionState extends ConsumerState<DialogClosingSession> {
   @override
   void initState() {
     super.initState();
-    _closingCashCtrl = TextEditingController();
+    _closingCashCtrl = TextEditingController(
+      text: '${_data.expectedCash ~/ 100}',
+    );
     _closingCashCtrl.addListener(() => setState(() {}));
     for (final fc in _data.foreignCurrencyCash) {
-      final ctrl = TextEditingController();
+      final divisor = pow(10, fc.decimalPlaces).toInt();
+      final ctrl = TextEditingController(
+        text: '${fc.expectedCash ~/ divisor}',
+      );
       ctrl.addListener(() => setState(() {}));
       _foreignClosingCtrls[fc.currencyId] = ctrl;
     }
@@ -280,18 +291,14 @@ class _DialogClosingSessionState extends ConsumerState<DialogClosingSession> {
                 _buildRevenue(l, theme),
                 const Divider(height: 24),
 
-                // --- Cash reconciliation ---
-                _buildCashReconciliation(l, theme),
-
                 // --- Foreign currency cash ---
                 if (_data.foreignCurrencyCash.isNotEmpty) ...[
-                  const Divider(height: 24),
                   _buildForeignCashReconciliation(l, theme),
+                  const Divider(height: 24),
                 ],
-                const SizedBox(height: 16),
 
-                // --- Closing cash input ---
-                _buildClosingCashInput(l, theme),
+                // --- Cash reconciliation + closing input ---
+                _buildCashReconciliation(l, theme),
                 const SizedBox(height: 20),
 
               ],
@@ -384,6 +391,8 @@ class _DialogClosingSessionState extends ConsumerState<DialogClosingSession> {
   // ---------------------------------------------------------------------------
 
   Widget _buildCashReconciliation(AppLocalizations l, ThemeData theme) {
+    final diff = _difference;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -401,6 +410,26 @@ class _DialogClosingSessionState extends ConsumerState<DialogClosingSession> {
           ref.money(_data.expectedCash),
           bold: true,
         ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _closingCashCtrl,
+          decoration: InputDecoration(
+            labelText: l.closingActualCash,
+            suffixText: ref.currencySymbol,
+            border: const OutlineInputBorder(),
+          ),
+          keyboardType: TextInputType.number,
+          style: theme.textTheme.titleLarge,
+        ),
+        if (diff != null) ...[
+          const SizedBox(height: 8),
+          _row(
+            l.closingDifference,
+            ref.moneyWithSign(diff),
+            bold: true,
+            valueColor: cashDifferenceColor(diff, context),
+          ),
+        ],
       ],
     );
   }
@@ -444,6 +473,10 @@ class _DialogClosingSessionState extends ConsumerState<DialogClosingSession> {
         const SizedBox(height: 4),
         _row(l.closingOpeningCash, fmt(fc.openingCash)),
         _row(l.closingCashRevenue, fmtSign(fc.cashRevenue)),
+        if (fc.cashDeposits > 0)
+          _row(l.closingDeposits, fmtSign(fc.cashDeposits)),
+        if (fc.cashWithdrawals > 0)
+          _row(l.closingWithdrawals, fmtSign(-fc.cashWithdrawals)),
         const Divider(height: 8),
         _row(l.closingExpectedCash, fmt(fc.expectedCash), bold: true),
         const SizedBox(height: 8),
@@ -483,39 +516,6 @@ class _DialogClosingSessionState extends ConsumerState<DialogClosingSession> {
           ),
         ],
       ),
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // Closing cash input + difference
-  // ---------------------------------------------------------------------------
-
-  Widget _buildClosingCashInput(AppLocalizations l, ThemeData theme) {
-    final diff = _difference;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        TextField(
-          controller: _closingCashCtrl,
-          decoration: InputDecoration(
-            labelText: l.closingActualCash,
-            suffixText: ref.currencySymbol,
-            border: const OutlineInputBorder(),
-          ),
-          keyboardType: TextInputType.number,
-          style: theme.textTheme.titleLarge,
-        ),
-        if (diff != null) ...[
-          const SizedBox(height: 8),
-          _row(
-            l.closingDifference,
-            ref.moneyWithSign(diff),
-            bold: true,
-            valueColor: cashDifferenceColor(diff, context),
-          ),
-        ],
-      ],
     );
   }
 

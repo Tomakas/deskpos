@@ -3905,13 +3905,13 @@ abstract class AppLocalizations {
   /// No description provided for @loyaltyCreditTopUp.
   ///
   /// In cs, this message translates to:
-  /// **'Nabít kredit'**
+  /// **'Nabít'**
   String get loyaltyCreditTopUp;
 
   /// No description provided for @loyaltyCreditDeduct.
   ///
   /// In cs, this message translates to:
-  /// **'Odečíst kredit'**
+  /// **'Odečíst'**
   String get loyaltyCreditDeduct;
 
   /// No description provided for @loyaltyCreditBalance.
@@ -3925,6 +3925,18 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Historie transakcí'**
   String get loyaltyTransactionHistory;
+
+  /// No description provided for @loyaltyPointsChange.
+  ///
+  /// In cs, this message translates to:
+  /// **'{change} bodů'**
+  String loyaltyPointsChange(String change);
+
+  /// No description provided for @loyaltyTransactionNote.
+  ///
+  /// In cs, this message translates to:
+  /// **'Poznámka (nepovinné)'**
+  String get loyaltyTransactionNote;
 
   /// No description provided for @loyaltyNoCustomer.
   ///

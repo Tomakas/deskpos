@@ -91,38 +91,30 @@ CURRENT_VERSION=$(grep -E '^version: ' pubspec.yaml | sed 's/version: //')
 IFS='.' read -r V_MAJOR V_MINOR V_PATCH <<< "$CURRENT_VERSION"
 
 BUMP_OPTIONS=(
-  "skip"
   "patch  (${CURRENT_VERSION} → ${V_MAJOR}.${V_MINOR}.$((V_PATCH + 1)))"
   "minor  (${CURRENT_VERSION} → ${V_MAJOR}.$((V_MINOR + 1)).0)"
   "major  (${CURRENT_VERSION} → $((V_MAJOR + 1)).0.0)"
+  "skip"
 )
 menu_select "Bump version? (current: ${CURRENT_VERSION})" "${BUMP_OPTIONS[@]}"
 
 NEW_VERSION=""
 case "$MENU_RESULT" in
-  1) NEW_VERSION="${V_MAJOR}.${V_MINOR}.$((V_PATCH + 1))" ;;
-  2) NEW_VERSION="${V_MAJOR}.$((V_MINOR + 1)).0" ;;
-  3) NEW_VERSION="$((V_MAJOR + 1)).0.0" ;;
+  0) NEW_VERSION="${V_MAJOR}.${V_MINOR}.$((V_PATCH + 1))" ;;
+  1) NEW_VERSION="${V_MAJOR}.$((V_MINOR + 1)).0" ;;
+  2) NEW_VERSION="$((V_MAJOR + 1)).0.0" ;;
 esac
 
-# Push
-echo ""
-printf "Push to origin? [Y/n] "
-read -r push_choice
-DO_PUSH=false
-if [ -z "$push_choice" ] || [[ "$push_choice" =~ ^[Yy]$ ]]; then
-  DO_PUSH=true
-fi
+# Push & build
+PUSH_OPTIONS=("no" "push only" "push + build")
+menu_select "Push to origin?" "${PUSH_OPTIONS[@]}"
 
-# Build workflow (only ask if pushing)
+DO_PUSH=false
 DO_BUILD=false
-if [ "$DO_PUSH" = true ]; then
-  printf "Trigger build workflow? [Y/n] "
-  read -r build_choice
-  if [ -z "$build_choice" ] || [[ "$build_choice" =~ ^[Yy]$ ]]; then
-    DO_BUILD=true
-  fi
-fi
+case "$MENU_RESULT" in
+  1) DO_PUSH=true ;;
+  2) DO_PUSH=true; DO_BUILD=true ;;
+esac
 
 # ── Phase 2: Execute ─────────────────────────────────────────────────────────
 

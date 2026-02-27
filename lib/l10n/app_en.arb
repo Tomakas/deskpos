@@ -813,10 +813,17 @@
     }
   },
   "loyaltyCredit": "Customer Credit",
-  "loyaltyCreditTopUp": "Top Up Credit",
-  "loyaltyCreditDeduct": "Deduct Credit",
+  "loyaltyCreditTopUp": "Top Up",
+  "loyaltyCreditDeduct": "Deduct",
   "loyaltyCreditBalance": "Balance",
   "loyaltyTransactionHistory": "Transaction History",
+  "loyaltyPointsChange": "{change} points",
+  "@loyaltyPointsChange": {
+    "placeholders": {
+      "change": { "type": "String" }
+    }
+  },
+  "loyaltyTransactionNote": "Note (optional)",
   "loyaltyNoCustomer": "No customer assigned to this bill",
 
   "settingsSectionGridManagement": "Grid Layout Management",

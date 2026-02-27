@@ -1977,16 +1977,24 @@ class AppLocalizationsCs extends AppLocalizations {
   String get loyaltyCredit => 'Zákaznický kredit';
 
   @override
-  String get loyaltyCreditTopUp => 'Nabít kredit';
+  String get loyaltyCreditTopUp => 'Nabít';
 
   @override
-  String get loyaltyCreditDeduct => 'Odečíst kredit';
+  String get loyaltyCreditDeduct => 'Odečíst';
 
   @override
   String get loyaltyCreditBalance => 'Zůstatek';
 
   @override
   String get loyaltyTransactionHistory => 'Historie transakcí';
+
+  @override
+  String loyaltyPointsChange(String change) {
+    return '$change bodů';
+  }
+
+  @override
+  String get loyaltyTransactionNote => 'Poznámka (nepovinné)';
 
   @override
   String get loyaltyNoCustomer => 'K účtu není přiřazen zákazník';

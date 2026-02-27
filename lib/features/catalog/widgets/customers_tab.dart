@@ -270,23 +270,29 @@ class _CustomersTabState extends ConsumerState<CustomersTab> {
               decoration: InputDecoration(labelText: l.customerAddress),
             ),
             const SizedBox(height: 12),
-            TextField(
-              controller: pointsCtrl,
-              decoration: InputDecoration(labelText: l.customerPoints),
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 12),
             Row(
               children: [
+                Expanded(
+                  child: TextField(
+                    controller: pointsCtrl,
+                    decoration: InputDecoration(labelText: l.customerPoints),
+                    keyboardType: TextInputType.number,
+                    readOnly: true,
+                    enabled: false,
+                  ),
+                ),
+                const SizedBox(width: 8),
                 Expanded(
                   child: TextField(
                     controller: creditCtrl,
                     decoration: InputDecoration(labelText: l.customerCredit),
                     keyboardType: TextInputType.number,
+                    readOnly: true,
+                    enabled: false,
                   ),
                 ),
                 if (existing != null) ...[
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 4),
                   IconButton(
                     icon: const Icon(Icons.account_balance_wallet_outlined),
                     tooltip: l.loyaltyCredit,
@@ -296,13 +302,17 @@ class _CustomersTabState extends ConsumerState<CustomersTab> {
                     },
                   ),
                 ],
+                const SizedBox(width: 8),
+                Expanded(
+                  child: TextField(
+                    controller: totalSpentCtrl,
+                    decoration: InputDecoration(labelText: l.customerTotalSpent),
+                    keyboardType: TextInputType.number,
+                    readOnly: true,
+                    enabled: false,
+                  ),
+                ),
               ],
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: totalSpentCtrl,
-              decoration: InputDecoration(labelText: l.customerTotalSpent),
-              keyboardType: TextInputType.number,
             ),
             if (existing != null) ...[
               const SizedBox(height: 12),
@@ -336,9 +346,6 @@ class _CustomersTabState extends ConsumerState<CustomersTab> {
         email: emailCtrl.text.trim().isNotEmpty ? emailCtrl.text.trim() : null,
         phone: phoneCtrl.text.trim().isNotEmpty ? phoneCtrl.text.trim() : null,
         address: addressCtrl.text.trim().isNotEmpty ? addressCtrl.text.trim() : null,
-        points: int.tryParse(pointsCtrl.text.trim()) ?? 0,
-        credit: parseMoney(creditCtrl.text.trim(), currency),
-        totalSpent: parseMoney(totalSpentCtrl.text.trim(), currency),
       ));
     } else {
       await repo.create(CustomerModel(
@@ -349,9 +356,9 @@ class _CustomersTabState extends ConsumerState<CustomersTab> {
         email: emailCtrl.text.trim().isNotEmpty ? emailCtrl.text.trim() : null,
         phone: phoneCtrl.text.trim().isNotEmpty ? phoneCtrl.text.trim() : null,
         address: addressCtrl.text.trim().isNotEmpty ? addressCtrl.text.trim() : null,
-        points: int.tryParse(pointsCtrl.text.trim()) ?? 0,
-        credit: parseMoney(creditCtrl.text.trim(), currency),
-        totalSpent: parseMoney(totalSpentCtrl.text.trim(), currency),
+        points: 0,
+        credit: 0,
+        totalSpent: 0,
         createdAt: now,
         updatedAt: now,
       ));
