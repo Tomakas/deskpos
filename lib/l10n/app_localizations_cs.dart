@@ -1974,6 +1974,9 @@ class AppLocalizationsCs extends AppLocalizations {
   String get loyaltyCreditBalance => 'Zůstatek';
 
   @override
+  String get manualDeduction => 'Ruční odečet';
+
+  @override
   String get loyaltyTransactionHistory => 'Historie transakcí';
 
   @override

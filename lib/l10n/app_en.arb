@@ -812,6 +812,7 @@
   "loyaltyCreditTopUp": "Top Up",
   "loyaltyCreditDeduct": "Deduct",
   "loyaltyCreditBalance": "Balance",
+  "manualDeduction": "Manual deduction",
   "loyaltyTransactionHistory": "Transaction History",
   "loyaltyPointsChange": "{change} points",
   "@loyaltyPointsChange": {

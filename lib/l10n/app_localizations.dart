@@ -3896,6 +3896,12 @@ abstract class AppLocalizations {
   /// **'Zůstatek'**
   String get loyaltyCreditBalance;
 
+  /// No description provided for @manualDeduction.
+  ///
+  /// In cs, this message translates to:
+  /// **'Ruční odečet'**
+  String get manualDeduction;
+
   /// No description provided for @loyaltyTransactionHistory.
   ///
   /// In cs, this message translates to:

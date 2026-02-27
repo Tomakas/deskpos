@@ -401,7 +401,7 @@ Future<void> closeSession(BuildContext context, WidgetRef ref) async {
   if (register != null &&
       register.type == HardwareType.mobile &&
       register.parentRegisterId != null &&
-      result.closingCash > 0) {
+      (result.closingCash > 0 || result.foreignClosingCash.values.any((v) => v > 0))) {
     final parentSession = await ref.read(registerSessionRepositoryProvider)
         .getActiveSession(company.id, registerId: register.parentRegisterId);
     if (!context.mounted) return;
@@ -409,26 +409,52 @@ Future<void> closeSession(BuildContext context, WidgetRef ref) async {
       final cashMovementRepo = ref.read(cashMovementRepositoryProvider);
       final registerName = register.name.isNotEmpty ? register.name : register.code;
 
-      // Withdrawal from mobile register (on the now-closed session)
-      await cashMovementRepo.create(
-        companyId: company.id,
-        registerSessionId: session.id,
-        userId: user.id,
-        type: CashMovementType.handover,
-        amount: result.closingCash,
-        reason: l.cashHandoverReason(registerName),
-      );
-      if (!context.mounted) return;
+      // Base currency handover
+      if (result.closingCash > 0) {
+        await cashMovementRepo.create(
+          companyId: company.id,
+          registerSessionId: session.id,
+          userId: user.id,
+          type: CashMovementType.handover,
+          amount: result.closingCash,
+          reason: l.cashHandoverReason(registerName),
+        );
+        if (!context.mounted) return;
+        await cashMovementRepo.create(
+          companyId: company.id,
+          registerSessionId: parentSession.id,
+          userId: user.id,
+          type: CashMovementType.deposit,
+          amount: result.closingCash,
+          reason: l.cashHandoverReason(registerName),
+        );
+        if (!context.mounted) return;
+      }
 
-      // Deposit on parent register session
-      await cashMovementRepo.create(
-        companyId: company.id,
-        registerSessionId: parentSession.id,
-        userId: user.id,
-        type: CashMovementType.deposit,
-        amount: result.closingCash,
-        reason: l.cashHandoverReason(registerName),
-      );
+      // Foreign currency handover
+      for (final entry in result.foreignClosingCash.entries) {
+        if (entry.value <= 0) continue;
+        await cashMovementRepo.create(
+          companyId: company.id,
+          registerSessionId: session.id,
+          userId: user.id,
+          type: CashMovementType.handover,
+          amount: entry.value,
+          currencyId: entry.key,
+          reason: l.cashHandoverReason(registerName),
+        );
+        if (!context.mounted) return;
+        await cashMovementRepo.create(
+          companyId: company.id,
+          registerSessionId: parentSession.id,
+          userId: user.id,
+          type: CashMovementType.deposit,
+          amount: entry.value,
+          currencyId: entry.key,
+          reason: l.cashHandoverReason(registerName),
+        );
+        if (!context.mounted) return;
+      }
     }
   }
 

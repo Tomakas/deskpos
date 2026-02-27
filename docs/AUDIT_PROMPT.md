@@ -1,9 +1,11 @@
 # Audit: Nekomitnuté změny — hledání bugů a regresí
 
-> **Cíl:** Důkladně zkontrolovat VŠECHNY nekomitnuté změny oproti HEAD. Najít bugy, regrese, nekonzistence, chybějící kusy a logické chyby.
+> **Cíl:** Důkladně zkontrolovat VŠECHNY nekomitnuté změny oproti HEAD. Najít bugy, regrese, nekonzistence, chybějící kusy, logické chyby a overengineering.
 >
 > **Scope:** Pouze soubory změněné od posledního commitu (`git diff HEAD --name-only`). Pro kontext čti i okolní kód.
 > **Audit je READ-ONLY** — žádné změny, žádné commity.
+>
+> **Overengineering pravidlo:** Každá nová abstrakce, wrapper, helper nebo layout struktura musí být odůvodněná. Pokud existuje jednodušší řešení se stejným výsledkem (méně vrstev, méně kódu, méně indirection), je to nález.
 
 ---
 
@@ -44,6 +46,7 @@ supabase/migrations/20260227_010_allow_null_unit_price_items.sql
 6. **Bill repository: předávání `reference`** — všechna volání `adjustPoints`/`adjustCredit` v bill_repository mají `reference: billNumber`?
 7. **Customer repository: signatury** — obě metody `adjustPoints` a `adjustCredit` přijímají `reference`?
 8. **Migrace** — odpovídají ALTER TABLE příkazy změnám v kódu?
+9. **Overengineering** — jsou nové abstrakce/helpery v repository/mapper vrstvě nutné? Nebylo jednodušší rozšířit existující metodu místo nové?
 
 ---
 
@@ -65,6 +68,7 @@ lib/features/sell/screens/screen_sell.dart
 8. **Single-select deselect** — nový toggle funguje jen pro `minSelections == 0`?
 9. **Session guard** — `requireActiveSession` je jen v `_submitQuickSale`. Měl by být i v `_onItemTapped` nebo `_addToCart`?
 10. **Quantity stepper v _PriceInputDialog** — je tam redundantní? Ignoruje se výsledek?
+11. **Overengineering** — jsou nové widgety/wrappery/layout struktury přiměřené? Existuje jednodušší řešení (méně FittedBox, LayoutBuilder, Flexible vrstev) se stejným výsledkem?
 
 ---
 
@@ -93,6 +97,7 @@ lib/features/shared/session_helpers.dart
 8. **Cash movement pro foreign currency change** — typ `withdrawal` je sémanticky správný?
 9. **Dialog closing session** — nový layout. Jsou mounted checky po všech async operacích?
 10. **Payment dialog** — foreign currency payment flow. Jsou všechny hraniční případy pokryté?
+11. **Overengineering** — jsou layout struktury (LayoutBuilder, FittedBox, Expanded flex zóny) přiměřené? Neřeší víc problémů než reálně existuje? Šlo by to jednodušeji?
 
 ---
 
@@ -134,6 +139,7 @@ lib/features/vouchers/widgets/dialog_voucher_create.dart
 6. **Statistics** — filtrování a agregace. Nové filtry fungují?
 7. **Vouchers** — session check před vytvořením voucheru?
 8. **Inventory dialogy** — drobné změny, něco se rozbilo?
+9. **Overengineering** — jsou nové parametry, abstrakce nebo wrappery nutné? Přidává se validace/error handling pro scénáře co nemohou nastat? Jsou nové helpery/utility jen pro jedno použití?
 
 ---
 
@@ -164,6 +170,7 @@ lib/l10n/app_localizations_en.dart
 8. **L10n: nové klíče** — existují v OBOU jazycích (CS i EN)?
 9. **L10n: změněné klíče** — `closingConfirm` změněn na "Potvrdit"/"Confirm". Není někde závislost na starém textu?
 10. **L10n: konzistence** — `app_localizations.dart` (abstract) deklaruje všechny nové klíče?
+11. **Overengineering** — jsou změny v core widgetech (PosDialogShell, PosTable, PosNumpad) přiměřené? Nepřidávají se globální wrappery (FittedBox, Flexible, LayoutBuilder) kvůli jednomu dialogu? Neovlivňují nežádoucně ostatní dialogy?
 
 ---
 
@@ -181,6 +188,10 @@ Každý agent vrátí:
 ### Varování
 | # | Závažnost | Soubor:řádek | Popis |
 |---|-----------|--------------|-------|
+
+### Overengineering
+| # | Soubor:řádek | Popis | Jednodušší alternativa |
+|---|--------------|-------|------------------------|
 
 ### OK (ověřeno bez nálezu)
 - [ ] Checklist bod X — OK

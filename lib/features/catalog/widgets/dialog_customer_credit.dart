@@ -174,10 +174,12 @@ class _DialogCustomerCreditState extends ConsumerState<DialogCustomerCredit> {
     final user = ref.read(activeUserProvider);
     final repo = ref.read(customerRepositoryProvider);
     final note = _noteCtrl.text.trim().isNotEmpty ? _noteCtrl.text.trim() : null;
+    final l = context.l10n;
     final result = await repo.adjustCredit(
       customerId: _customer.id,
       delta: -deductAmount,
       processedByUserId: user?.id ?? '',
+      reference: l.manualDeduction,
       note: note,
     );
     if (result is Success && mounted) {

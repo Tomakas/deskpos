@@ -1974,6 +1974,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loyaltyCreditBalance => 'Balance';
 
   @override
+  String get manualDeduction => 'Manual deduction';
+
+  @override
   String get loyaltyTransactionHistory => 'Transaction History';
 
   @override

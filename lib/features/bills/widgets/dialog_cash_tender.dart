@@ -215,11 +215,12 @@ class _DialogCashTenderState extends ConsumerState<DialogCashTender> {
       children: [
         // Vrátit / Zbývá
         Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('$changeLabel: ', style: infoStyle),
+            Text('$changeLabel: ', style: theme.textTheme.titleLarge),
             Text(
               changeValue,
-              style: theme.textTheme.titleMedium?.copyWith(
+              style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: changeColor,
               ),
