@@ -219,6 +219,7 @@ class FloorMapView extends ConsumerWidget {
                                       child: _MapTableCell(
                                         table: table,
                                         section: sectionMap[table.sectionId],
+                                        cellHeight: table.gridHeight * cellH,
                                         onTap: () => onTableTap(table),
                                       ),
                                     ),
@@ -514,10 +515,12 @@ class _MapTableCell extends StatelessWidget {
   const _MapTableCell({
     required this.table,
     required this.section,
+    required this.cellHeight,
     required this.onTap,
   });
   final TableModel table;
   final SectionModel? section;
+  final double cellHeight;
   final VoidCallback onTap;
 
   @override
@@ -539,6 +542,8 @@ class _MapTableCell extends StatelessWidget {
         ? null
         : border == 2 ? color : color.withValues(alpha: 0.6);
 
+    final fontSize = table.fontSize?.toDouble() ?? (cellHeight * 0.18).clamp(8.0, 18.0);
+
     final content = Center(
       child: Padding(
         padding: const EdgeInsets.all(4),
@@ -548,7 +553,7 @@ class _MapTableCell extends StatelessWidget {
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
-            fontSize: table.fontSize?.toDouble() ?? 13,
+            fontSize: fontSize,
             fontWeight: FontWeight.w600,
             color: fill == 2
                 ? Colors.white
