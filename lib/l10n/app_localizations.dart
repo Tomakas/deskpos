@@ -7269,8 +7269,20 @@ abstract class AppLocalizations {
   /// No description provided for @wizardDemoInfo.
   ///
   /// In cs, this message translates to:
-  /// **'Demo vytvoří 4 uživatele, všichni s PINem 1111'**
+  /// **'PIN pro všechny uživatele: 1111'**
   String get wizardDemoInfo;
+
+  /// No description provided for @wizardDemoUsers.
+  ///
+  /// In cs, this message translates to:
+  /// **'4 uživatelé s rolemi:'**
+  String get wizardDemoUsers;
+
+  /// No description provided for @wizardDemoHistory.
+  ///
+  /// In cs, this message translates to:
+  /// **'Obsahuje 90 dní prodejní historie'**
+  String get wizardDemoHistory;
 
   /// No description provided for @ordersSortAsc.
   ///

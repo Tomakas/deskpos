@@ -3714,7 +3714,13 @@ class AppLocalizationsCs extends AppLocalizations {
   String get wizardDemoDownloading => 'Stahování dat...';
 
   @override
-  String get wizardDemoInfo => 'Demo vytvoří 4 uživatele, všichni s PINem 1111';
+  String get wizardDemoInfo => 'PIN pro všechny uživatele: 1111';
+
+  @override
+  String get wizardDemoUsers => '4 uživatelé s rolemi:';
+
+  @override
+  String get wizardDemoHistory => 'Obsahuje 90 dní prodejní historie';
 
   @override
   String get ordersSortAsc => 'Od nejstarších';

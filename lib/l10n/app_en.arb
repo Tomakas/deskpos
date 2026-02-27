@@ -1511,7 +1511,9 @@
   "wizardDemoMode": "Demo mode",
   "wizardDemoCreating": "Creating demo data...",
   "wizardDemoDownloading": "Downloading data...",
-  "wizardDemoInfo": "Demo creates 4 users, all with PIN 1111",
+  "wizardDemoInfo": "PIN for all users: 1111",
+  "wizardDemoUsers": "4 users with roles:",
+  "wizardDemoHistory": "Includes 90 days of sales history",
 
   "ordersSortAsc": "Oldest first",
   "ordersSortDesc": "Newest first",

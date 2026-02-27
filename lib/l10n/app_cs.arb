@@ -1511,7 +1511,9 @@
   "wizardDemoMode": "Režim dema",
   "wizardDemoCreating": "Vytváření demo dat...",
   "wizardDemoDownloading": "Stahování dat...",
-  "wizardDemoInfo": "Demo vytvoří 4 uživatele, všichni s PINem 1111",
+  "wizardDemoInfo": "PIN pro všechny uživatele: 1111",
+  "wizardDemoUsers": "4 uživatelé s rolemi:",
+  "wizardDemoHistory": "Obsahuje 90 dní prodejní historie",
 
   "ordersSortAsc": "Od nejstarších",
   "ordersSortDesc": "Od nejnovějších",

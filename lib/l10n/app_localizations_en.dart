@@ -3718,7 +3718,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get wizardDemoDownloading => 'Downloading data...';
 
   @override
-  String get wizardDemoInfo => 'Demo creates 4 users, all with PIN 1111';
+  String get wizardDemoInfo => 'PIN for all users: 1111';
+
+  @override
+  String get wizardDemoUsers => '4 users with roles:';
+
+  @override
+  String get wizardDemoHistory => 'Includes 90 days of sales history';
 
   @override
   String get ordersSortAsc => 'Oldest first';

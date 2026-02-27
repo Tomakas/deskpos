@@ -633,16 +633,76 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
   void _showDemoDialog() {
     var demoMode = 'gastro';
     String? demoError;
-    var demoSubmitting = false;
+    String? demoProgress; // null = mode selection, non-null = progress phase
 
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (dialogContext) => StatefulBuilder(
         builder: (dialogContext, setDialogState) {
           final l = dialogContext.l10n;
+
+          // Error state — show error + close button
+          if (demoError != null) {
+            return AlertDialog(
+              title: Text(l.demoDialogTitle),
+              content: SelectableText(demoError!),
+              actions: [
+                PosDialogActions(
+                  actions: [
+                    FilledButton(
+                      onPressed: () => Navigator.of(dialogContext).pop(),
+                      child: Text(l.actionClose),
+                    ),
+                  ],
+                ),
+              ],
+            );
+          }
+
+          // Progress state — show spinner + status + info
+          if (demoProgress != null) {
+            final bodySmall = Theme.of(dialogContext).textTheme.bodySmall;
+            return PopScope(
+              canPop: false,
+              child: AlertDialog(
+                title: Text(l.demoDialogTitle),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      children: [
+                        const CircularProgressIndicator(),
+                        const SizedBox(width: 24),
+                        Expanded(child: Text(demoProgress!)),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    Text(l.wizardDemoUsers, style: bodySmall),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${l.roleAdmin} · ${l.roleManager} · ${l.roleOperator} · ${l.roleHelper}',
+                      style: Theme.of(dialogContext).textTheme.bodyMedium,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(l.wizardDemoInfo, style: bodySmall),
+                    const SizedBox(height: 12),
+                    Text(l.wizardDemoHistory, style: bodySmall),
+                    const SizedBox(height: 4),
+                    Text(l.demoDialogInfo, style: bodySmall),
+                  ],
+                ),
+              ),
+            );
+          }
+
+          // Mode selection state
           return AlertDialog(
             title: Text(l.demoDialogTitle),
-            content: Column(
+            content: ConstrainedBox(
+              constraints: const BoxConstraints(minWidth: 320),
+              child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -677,74 +737,37 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
-                Text(
-                  l.demoDialogInfo,
-                  style: Theme.of(dialogContext).textTheme.bodySmall,
-                ),
-                if (demoSubmitting) ...[
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          l.demoDialogCreating,
-                          style: Theme.of(dialogContext).textTheme.bodySmall,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-                if (demoError != null) ...[
-                  const SizedBox(height: 16),
-                  Text(
-                    demoError!,
-                    style: TextStyle(color: Theme.of(dialogContext).colorScheme.error),
-                  ),
-                ],
               ],
+            ),
             ),
             actions: [
               PosDialogActions(
                 actions: [
                   OutlinedButton(
-                    onPressed: demoSubmitting ? null : () => Navigator.of(dialogContext).pop(),
+                    onPressed: () => Navigator.of(dialogContext).pop(),
                     child: Text(l.wizardBack),
                   ),
                   FilledButton(
-                    onPressed: demoSubmitting
-                        ? null
-                        : () async {
+                    onPressed: () async {
+                      setDialogState(() => demoProgress = l.wizardDemoCreating);
+                      await _executeDemoCreation(
+                        mode: demoMode,
+                        onProgress: (msg) {
+                          if (dialogContext.mounted) {
+                            setDialogState(() => demoProgress = msg);
+                          }
+                        },
+                        onError: (msg) {
+                          if (dialogContext.mounted) {
                             setDialogState(() {
-                              demoSubmitting = true;
-                              demoError = null;
+                              demoError = msg;
+                              demoProgress = null;
                             });
-                            await _executeDemoCreation(
-                              dialogContext: dialogContext,
-                              mode: demoMode,
-                              onError: (msg) {
-                                if (dialogContext.mounted) {
-                                  setDialogState(() {
-                                    demoError = msg;
-                                    demoSubmitting = false;
-                                  });
-                                }
-                              },
-                            );
-                          },
-                    child: demoSubmitting
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : Text(l.demoDialogCreate),
+                          }
+                        },
+                      );
+                    },
+                    child: Text(l.demoDialogCreate),
                   ),
                 ],
               ),
@@ -756,8 +779,8 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
   }
 
   Future<void> _executeDemoCreation({
-    required BuildContext dialogContext,
     required String mode,
+    required void Function(String) onProgress,
     required void Function(String) onError,
   }) async {
     final l = context.l10n;
@@ -766,68 +789,27 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
         ? 'Demo Gastro'
         : (_selectedLocale == 'cs' ? 'Demo Maloobchod' : 'Demo Retail');
 
-    // 1. Anonymous sign-in
-    final authService = ref.read(supabaseAuthServiceProvider);
-
-    // Clear any stale session
-    if (authService.isAuthenticated) {
-      await authService.signOut();
-      if (!mounted) return;
-    }
-
-    final authResult = await authService.signInAnonymously();
-    if (!mounted) return;
-
-    switch (authResult) {
-      case Failure(message: final msg):
-        onError(msg);
-        return;
-      case Success():
-        break;
-    }
-
-    // Close demo dialog and show progress dialog
-    if (dialogContext.mounted) Navigator.of(dialogContext).pop();
-
-    final progressNotifier = ValueNotifier<String>(l.wizardDemoCreating);
-    final errorNotifier = ValueNotifier<String?>(null);
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (dialogCtx) => PopScope(
-        canPop: false,
-        child: ValueListenableBuilder<String?>(
-          valueListenable: errorNotifier,
-          builder: (_, error, __) {
-            if (error != null) {
-              return AlertDialog(
-                content: SelectableText(error),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.of(dialogCtx).pop(),
-                    child: Text(l.actionClose),
-                  ),
-                ],
-              );
-            }
-            return ValueListenableBuilder<String>(
-              valueListenable: progressNotifier,
-              builder: (_, status, __) => AlertDialog(
-                content: Row(
-                  children: [
-                    const CircularProgressIndicator(),
-                    const SizedBox(width: 24),
-                    Expanded(child: Text(status)),
-                  ],
-                ),
-              ),
-            );
-          },
-        ),
-      ),
-    );
-
     try {
+      // 1. Anonymous sign-in
+      final authService = ref.read(supabaseAuthServiceProvider);
+
+      // Clear any stale session
+      if (authService.isAuthenticated) {
+        await authService.signOut();
+        if (!mounted) return;
+      }
+
+      final authResult = await authService.signInAnonymously();
+      if (!mounted) return;
+
+      switch (authResult) {
+        case Failure(message: final msg):
+          onError(msg);
+          return;
+        case Success():
+          break;
+      }
+
       // 2. Pull global tables
       final syncService = ref.read(syncServiceProvider);
       const globalTables = ['currencies', 'roles', 'permissions', 'role_permissions'];
@@ -837,7 +819,7 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
       if (!mounted) return;
 
       // 3. Call edge function to create demo company server-side
-      progressNotifier.value = l.wizardDemoCreating;
+      onProgress(l.wizardDemoCreating);
       final supabase = Supabase.instance.client;
       final response = await supabase.functions.invoke(
         'create-demo-data',
@@ -872,7 +854,7 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
       }
 
       // 4. Pull all company data from server
-      progressNotifier.value = l.wizardDemoDownloading;
+      onProgress(l.wizardDemoDownloading);
       await syncService.pullAll(companyId);
       if (!mounted) return;
 
@@ -907,7 +889,7 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
 
       if (!mounted) return;
 
-      // Close progress dialog
+      // Close the dialog
       Navigator.of(context).pop();
 
       // Clear pre-company locale override — company settings now own the locale
@@ -918,7 +900,7 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
     } catch (e, s) {
       AppLogger.error('Demo onboarding failed', error: e, stackTrace: s);
       if (!mounted) return;
-      errorNotifier.value = '$e\n\n$s';
+      onError('$e\n\n$s');
     }
   }
 }
