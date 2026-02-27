@@ -4,9 +4,8 @@ import 'package:flutter/foundation.dart';
 
 import 'log_file_writer.dart';
 
-// TODO(production): Remove debugPrint calls before production release.
-// debugPrint is here only for Android Studio Run panel visibility during
-// development. developer.log alone is sufficient for DevTools / production.
+// debugPrint is guarded by kDebugMode — no production impact.
+// Kept for Android Studio Run panel visibility during development.
 
 abstract final class AppLogger {
   /// Path to the current log file, or null if not yet initialized.

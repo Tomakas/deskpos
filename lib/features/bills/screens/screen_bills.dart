@@ -1124,10 +1124,10 @@ void _showMoreMenu(
     context: btnContext,
     position: position,
     items: [
-      PopupMenuItem(value: 'statistics', enabled: canStats, height: 48, child: Row(children: [const Icon(Icons.bar_chart, size: 20), const SizedBox(width: 12), Text(l.moreStatistics)])),
-      PopupMenuItem(value: 'vouchers', enabled: canVouchers, height: 48, child: Row(children: [const Icon(Icons.card_giftcard, size: 20), const SizedBox(width: 12), Text(l.vouchersTitle)])),
+      if (canStats) PopupMenuItem(value: 'statistics', height: 48, child: Row(children: [const Icon(Icons.bar_chart, size: 20), const SizedBox(width: 12), Text(l.moreStatistics)])),
+      if (canVouchers) PopupMenuItem(value: 'vouchers', height: 48, child: Row(children: [const Icon(Icons.card_giftcard, size: 20), const SizedBox(width: 12), Text(l.vouchersTitle)])),
       PopupMenuItem(value: 'reservations', height: 48, child: Row(children: [const Icon(Icons.event_seat, size: 20), const SizedBox(width: 12), Text(l.moreReservations)])),
-      PopupMenuItem(value: 'data', enabled: canData, height: 48, child: Row(children: [const Icon(Icons.sd_card, size: 20), const SizedBox(width: 12), Text(l.dataTitle)])),
+      if (canData) PopupMenuItem(value: 'data', height: 48, child: Row(children: [const Icon(Icons.sd_card, size: 20), const SizedBox(width: 12), Text(l.dataTitle)])),
     ],
   ).then((value) {
     if (value == null || !btnContext.mounted) return;

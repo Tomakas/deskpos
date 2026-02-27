@@ -63,7 +63,7 @@ final syncLifecycleManagerProvider = Provider<SyncLifecycleManager>((ref) {
     realtimeService: ref.watch(realtimeServiceProvider),
     syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
     companyRepo: ref.watch(companyRepositoryProvider),
-    // Order matches tableDependencyOrder (FK parents before children).
+    // FK parents before children (indices are for reference, not exact positions).
     companyRepos: [
       ref.watch(companySettingsRepositoryProvider),    // company_settings (2)
       ref.watch(sectionRepositoryProvider),            // sections (6)
