@@ -1184,13 +1184,20 @@ class _InfoPanel extends ConsumerWidget {
             stream: Stream.periodic(const Duration(seconds: 1), (_) => DateTime.now()),
             builder: (context, snap) {
               final now = snap.data ?? DateTime.now();
-              return SizedBox(
-                width: double.infinity,
-                child: Text(
-                  '${ref.fmtTimeSeconds(now)}\n${ref.fmtDateWithDay(now)}',
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
-                ),
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: [
+                  Text(
+                    ref.fmtTimeSeconds(now),
+                    style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  const Spacer(),
+                  Text(
+                    ref.fmtDateWithDay(now),
+                    style: theme.textTheme.bodySmall,
+                  ),
+                ],
               );
             },
           ),

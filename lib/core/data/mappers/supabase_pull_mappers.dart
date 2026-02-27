@@ -593,6 +593,7 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
         gridRows: Value(json['grid_rows'] as int? ?? 5),
         gridCols: Value(json['grid_cols'] as int? ?? 8),
         displayCartJson: Value(json['display_cart_json'] as String?),
+        showStockBadge: Value(json['show_stock_badge'] as bool? ?? false),
         sellMode: Value(SellMode.values.asNameMap()[json['sell_mode'] as String?] ?? SellMode.gastro),
         createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
         updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),

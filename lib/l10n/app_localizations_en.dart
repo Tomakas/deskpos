@@ -2355,6 +2355,12 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get ordersStatusPrefix => 'Status';
+
+  @override
+  String get ordersRevertConfirm => 'Revert to previous step?';
+
+  @override
   String get customerDisplayTitle => 'Customer Display';
 
   @override

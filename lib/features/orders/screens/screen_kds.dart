@@ -200,6 +200,7 @@ class _ScreenKdsState extends ConsumerState<ScreenKds> {
                     order: orders[i],
                     searchQuery: _searchQuery,
                     onBump: () => _bumpOrder(orders[i]),
+                    onUnbump: () => _unbumpOrder(orders[i]),
                     onItemBump: (item) => _bumpItem(orders[i], item),
                     onItemStatusChange: (item, status) =>
                         _changeItemStatus(orders[i], item, status),
@@ -272,6 +273,53 @@ class _ScreenKdsState extends ConsumerState<ScreenKds> {
       for (final item in items) {
         if (item.status == lowestStatus) {
           await orderRepo.updateItemStatus(item.id, order.id, next);
+        }
+      }
+    } finally {
+      _isBumping = false;
+    }
+  }
+
+  /// Return items with the lowest active status to the previous status.
+  Future<void> _unbumpOrder(OrderModel order) async {
+    if (_isBumping) return;
+    // Check if revert is possible before showing dialog.
+    final orderRepo = ref.read(orderRepositoryProvider);
+    final items = await orderRepo.watchOrderItems(order.id).first;
+    final activeItems = items.where((i) =>
+        i.status != PrepStatus.voided && i.status != PrepStatus.cancelled);
+    if (activeItems.isEmpty) return;
+    final lowestStatus = activeItems
+        .map((i) => i.status)
+        .reduce((a, b) => a.index < b.index ? a : b);
+    final prev = _prevStatus(lowestStatus);
+    if (prev == null) return;
+
+    if (!mounted) return;
+    final l = context.l10n;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => PosDialogShell(
+        title: l.ordersRevertConfirm,
+        bottomActions: PosDialogActions(
+          actions: [
+            OutlinedButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: Text(l.no)),
+            FilledButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: Text(l.yes)),
+          ],
+        ),
+        children: const [],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    _isBumping = true;
+    try {
+      for (final item in items) {
+        if (item.status == lowestStatus) {
+          await orderRepo.updateItemStatus(item.id, order.id, prev);
         }
       }
     } finally {
@@ -356,6 +404,7 @@ class _KdsOrderCard extends ConsumerWidget {
     required this.order,
     required this.searchQuery,
     required this.onBump,
+    required this.onUnbump,
     required this.onItemBump,
     required this.onItemStatusChange,
     required this.onVoidItem,
@@ -363,6 +412,7 @@ class _KdsOrderCard extends ConsumerWidget {
   final OrderModel order;
   final String searchQuery;
   final VoidCallback onBump;
+  final VoidCallback onUnbump;
   final void Function(OrderItemModel) onItemBump;
   final void Function(OrderItemModel, PrepStatus) onItemStatusChange;
   final void Function(OrderItemModel) onVoidItem;
@@ -403,8 +453,13 @@ class _KdsOrderCard extends ConsumerWidget {
                 : null;
             final lowestNext =
                 lowestStatus != null ? _nextStatus(lowestStatus) : null;
-            final lowestColor =
-                lowestStatus != null ? lowestStatus.color(context) : statusColor;
+            final lowestPrev =
+                lowestStatus != null ? _prevStatus(lowestStatus) : null;
+            final lowestColor = lowestNext != null
+                ? lowestNext.color(context)
+                : lowestStatus != null
+                    ? lowestStatus.color(context)
+                    : statusColor;
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -413,89 +468,56 @@ class _KdsOrderCard extends ConsumerWidget {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Col 1: order number + status button (single row)
+                    // Col 1: order number + status
                     Expanded(
-                      child: Row(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Container(
-                            width: 10,
-                            height: 10,
-                            margin: const EdgeInsets.only(right: 8),
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: statusColor,
-                            ),
-                          ),
-                          if (isStorno)
-                            Text(
-                              '${l.ordersStornoPrefix} ',
-                              style: theme.textTheme.titleSmall?.copyWith(
-                                color: context.appColors.danger,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          Flexible(
-                            child: HighlightedText(
-                              order.orderNumber,
-                              query: searchQuery,
-                              style: theme.textTheme.titleSmall?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          if (isStorno && order.stornoSourceOrderId != null) ...[
-                            const SizedBox(width: 8),
-                            _StornoRef(
-                              billId: order.billId,
-                              sourceOrderId: order.stornoSourceOrderId!,
-                            ),
-                          ],
-                          const SizedBox(width: 8),
-                          if (lowestNext != null)
-                            Flexible(
-                              child: SizedBox(
-                              height: 40,
-                              child: FilledButton.tonal(
-                                style: FilledButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 12),
-                                  backgroundColor:
-                                      lowestColor.withValues(alpha: 0.15),
-                                  foregroundColor: lowestColor,
-                                  textStyle: theme.textTheme.labelSmall
-                                      ?.copyWith(fontWeight: FontWeight.w600),
+                          Row(
+                            children: [
+                              Container(
+                                width: 10,
+                                height: 10,
+                                margin: const EdgeInsets.only(right: 8),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: statusColor,
                                 ),
-                                clipBehavior: Clip.hardEdge,
-                                onPressed: onBump,
-                                child: Text(
-                                  _statusLabel(lowestStatus!, l),
+                              ),
+                              if (isStorno)
+                                Text(
+                                  '${l.ordersStornoPrefix} ',
+                                  style: theme.textTheme.titleSmall?.copyWith(
+                                    color: context.appColors.danger,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              Flexible(
+                                child: HighlightedText(
+                                  order.orderNumber,
+                                  query: searchQuery,
+                                  style: theme.textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
-                            ),
-                            )
-                          else
-                            Flexible(
-                              child: Container(
-                              height: 40,
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 12),
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                color: statusColor.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Text(
-                                _statusLabel(order.status, l),
-                                style: theme.textTheme.labelSmall?.copyWith(
-                                  color: statusColor,
-                                  fontWeight: FontWeight.w600,
+                              if (isStorno && order.stornoSourceOrderId != null) ...[
+                                const SizedBox(width: 8),
+                                _StornoRef(
+                                  billId: order.billId,
+                                  sourceOrderId: order.stornoSourceOrderId!,
                                 ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
+                              ],
+                            ],
+                          ),
+                          Text(
+                            '${l.ordersStatusPrefix}: ${_statusLabel(order.status, l)}',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: statusColor,
+                              fontWeight: FontWeight.w500,
                             ),
-                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -515,24 +537,74 @@ class _KdsOrderCard extends ConsumerWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 10),
-                // Items
-                Column(
-                  children: [
-                    for (var i = 0; i < items.length; i++) ...[
-                      if (i > 0) const SizedBox(height: 4),
-                      _KdsItemCard(
-                        item: items[i],
-                        searchQuery: searchQuery,
-                        isStorno: isStorno,
-                        canVoid: !isStorno && _isItemActive(items[i].status),
-                        onBump: () => onItemBump(items[i]),
-                        onStatusChange: (status) =>
-                            onItemStatusChange(items[i], status),
-                        onVoid: () => onVoidItem(items[i]),
+                const SizedBox(height: 8),
+                // Items + order-level bump button
+                IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          children: [
+                            for (var i = 0; i < items.length; i++) ...[
+                              if (i > 0) const SizedBox(height: 4),
+                              _KdsItemCard(
+                                item: items[i],
+                                searchQuery: searchQuery,
+                                isStorno: isStorno,
+                                canVoid: !isStorno && _isItemActive(items[i].status),
+                                onBump: () => onItemBump(items[i]),
+                                onStatusChange: (status) =>
+                                    onItemStatusChange(items[i], status),
+                                onVoid: () => onVoidItem(items[i]),
+                              ),
+                            ],
+                          ],
+                        ),
                       ),
+                      if (lowestNext != null || lowestPrev != null) ...[
+                        const SizedBox(width: 8),
+                        ConstrainedBox(
+                          constraints: const BoxConstraints(minWidth: 56),
+                          child: GestureDetector(
+                            onLongPress: onUnbump,
+                            child: FilledButton.tonal(
+                              style: FilledButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 8, horizontal: 4),
+                                backgroundColor:
+                                    lowestColor.withValues(alpha: 0.15),
+                                foregroundColor: lowestColor,
+                                textStyle: theme.textTheme.labelSmall
+                                    ?.copyWith(fontWeight: FontWeight.w600),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              clipBehavior: Clip.hardEdge,
+                              onPressed: lowestNext != null ? onBump : null,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(
+                                      Icons.keyboard_double_arrow_right,
+                                      size: 24),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    lowestNext != null
+                                        ? _nextStatusLabel(lowestNext, l)
+                                        : _statusLabel(lowestStatus!, l),
+                                    textAlign: TextAlign.center,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
                 // Notes
                 if (order.notes != null && order.notes!.isNotEmpty && !isStorno) ...[
@@ -614,6 +686,27 @@ class _KdsItemCard extends ConsumerWidget {
     final prev = !isStorno ? _prevStatus(item.status) : null;
     final next = !isStorno && !isVoided ? _nextStatus(item.status) : null;
 
+    Future<void> confirmRevert() async {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (_) => PosDialogShell(
+          title: l.ordersRevertConfirm,
+          bottomActions: PosDialogActions(
+            actions: [
+              OutlinedButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: Text(l.no)),
+              FilledButton(
+                  onPressed: () => Navigator.pop(context, true),
+                  child: Text(l.yes)),
+            ],
+          ),
+          children: const [],
+        ),
+      );
+      if (confirmed == true) onStatusChange(prev!);
+    }
+
     final stripColor = isStorno || isVoided
         ? context.appColors.inactiveIndicator
         : item.status.color(context);
@@ -687,18 +780,29 @@ class _KdsItemCard extends ConsumerWidget {
                                     ),
                                   ),
                                 ),
-                                // Item name
+                                // Item name + status
                                 Expanded(
-                                  child: HighlightedText(
-                                    item.itemName,
-                                    query: searchQuery,
-                                    style: theme.textTheme.bodyMedium?.copyWith(
-                                      decoration:
-                                          isVoided ? TextDecoration.lineThrough : null,
-                                      color: isVoided
-                                          ? theme.colorScheme.onSurfaceVariant
-                                          : null,
-                                    ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      HighlightedText(
+                                        item.itemName,
+                                        query: searchQuery,
+                                        style: theme.textTheme.bodyMedium?.copyWith(
+                                          decoration:
+                                              isVoided ? TextDecoration.lineThrough : null,
+                                          color: isVoided
+                                              ? theme.colorScheme.onSurfaceVariant
+                                              : null,
+                                        ),
+                                      ),
+                                      Text(
+                                        '${l.ordersStatusPrefix}: ${_statusLabel(item.status, l)}',
+                                        style: theme.textTheme.bodySmall?.copyWith(
+                                          color: item.status.color(context),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                                 // Price
@@ -712,61 +816,78 @@ class _KdsItemCard extends ConsumerWidget {
                                     ),
                                   ),
                                 ),
-                                // Prev-status button
-                                if (prev != null)
-                                  SizedBox(
-                                    height: 40,
-                                    width: 40,
-                                    child: IconButton.filled(
-                                      style: IconButton.styleFrom(
-                                        backgroundColor:
-                                            prev.color(context).withValues(alpha: 0.15),
-                                        foregroundColor: prev.color(context),
-                                      ),
-                                      onPressed: () => onStatusChange(prev),
-                                      icon: const Icon(Icons.undo, size: 18),
-                                    ),
-                                  ),
-                                if (prev != null) const SizedBox(width: 4),
-                                // Next-status button (flex to fit narrow screens)
+                                // Next-status button / delivered badge / voided label
                                 Flexible(
                                   child: Align(
-                                  alignment: Alignment.centerRight,
-                                  child: SizedBox(
-                                    height: 40,
-                                    child: next != null
-                                        ? FilledButton.tonal(
-                                            style: FilledButton.styleFrom(
-                                              padding: const EdgeInsets.symmetric(
-                                                  horizontal: 10),
-                                              backgroundColor: next.color(context)
-                                                  .withValues(alpha: 0.15),
-                                              foregroundColor: next.color(context),
-                                              textStyle: theme.textTheme.labelSmall
-                                                  ?.copyWith(fontWeight: FontWeight.w600),
-                                            ),
-                                            clipBehavior: Clip.hardEdge,
-                                            onPressed: onBump,
-                                            child: Text(
-                                              _nextStatusLabel(next, l),
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                          )
-                                        : isVoided
-                                            ? Center(
-                                                child: Text(
-                                                  l.ordersFilterStorno,
-                                                  style: theme.textTheme.labelSmall
-                                                      ?.copyWith(
-                                                    color: context.appColors.danger,
-                                                    fontWeight: FontWeight.w600,
-                                                  ),
-                                                  overflow: TextOverflow.ellipsis,
+                                    alignment: Alignment.centerRight,
+                                    child: SizedBox(
+                                      height: 40,
+                                      child: next != null
+                                          ? GestureDetector(
+                                              onLongPress: prev != null
+                                                  ? confirmRevert
+                                                  : null,
+                                              child: FilledButton.tonal(
+                                                style: FilledButton.styleFrom(
+                                                  padding: const EdgeInsets.symmetric(
+                                                      horizontal: 10),
+                                                  backgroundColor: next.color(context)
+                                                      .withValues(alpha: 0.15),
+                                                  foregroundColor: next.color(context),
+                                                  textStyle: theme.textTheme.labelSmall
+                                                      ?.copyWith(fontWeight: FontWeight.w600),
                                                 ),
-                                              )
-                                            : null,
+                                                clipBehavior: Clip.hardEdge,
+                                                onPressed: onBump,
+                                                child: Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    Icon(Icons.chevron_right, size: 18),
+                                                    Flexible(
+                                                      child: Text(
+                                                        _nextStatusLabel(next, l),
+                                                        overflow: TextOverflow.ellipsis,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            )
+                                          : !isVoided && prev != null
+                                              ? GestureDetector(
+                                                  onLongPress: confirmRevert,
+                                                  child: FilledButton.tonal(
+                                                    style: FilledButton.styleFrom(
+                                                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                                                      backgroundColor:
+                                                          item.status.color(context).withValues(alpha: 0.15),
+                                                      foregroundColor: item.status.color(context),
+                                                      textStyle: theme.textTheme.labelSmall
+                                                          ?.copyWith(fontWeight: FontWeight.w600),
+                                                    ),
+                                                    clipBehavior: Clip.hardEdge,
+                                                    onPressed: null,
+                                                    child: Text(
+                                                      _statusLabel(item.status, l),
+                                                      overflow: TextOverflow.ellipsis,
+                                                    ),
+                                                  ),
+                                                )
+                                              : isVoided
+                                                  ? Center(
+                                                      child: Text(
+                                                        l.ordersFilterStorno,
+                                                        style: theme.textTheme.labelSmall
+                                                            ?.copyWith(
+                                                          color: context.appColors.danger,
+                                                          fontWeight: FontWeight.w600,
+                                                        ),
+                                                        overflow: TextOverflow.ellipsis,
+                                                      ),
+                                                )
+                                              : null,
+                                    ),
                                   ),
-                                ),
                                 ),
                               ],
                             ),
@@ -996,14 +1117,6 @@ class _KdsClockWidgetState extends ConsumerState<_KdsClockWidget> {
 // ---------------------------------------------------------------------------
 // Shared helpers
 // ---------------------------------------------------------------------------
-String _statusLabel(PrepStatus status, AppLocalizations l) => switch (status) {
-      PrepStatus.created => l.ordersFilterCreated,
-      PrepStatus.ready => l.ordersFilterReady,
-      PrepStatus.delivered => l.ordersFilterDelivered,
-      PrepStatus.cancelled => l.ordersFilterStorno,
-      PrepStatus.voided => l.ordersFilterStorno,
-    };
-
 bool _isItemActive(PrepStatus status) =>
     status == PrepStatus.created ||
     status == PrepStatus.ready;
@@ -1018,6 +1131,14 @@ PrepStatus? _prevStatus(PrepStatus current) => switch (current) {
       PrepStatus.ready => PrepStatus.created,
       PrepStatus.delivered => PrepStatus.ready,
       _ => null,
+    };
+
+String _statusLabel(PrepStatus status, AppLocalizations l) => switch (status) {
+      PrepStatus.created => l.ordersFilterCreated,
+      PrepStatus.ready => l.ordersFilterReady,
+      PrepStatus.delivered => l.ordersFilterDelivered,
+      PrepStatus.cancelled => l.ordersFilterStorno,
+      PrepStatus.voided => l.ordersFilterStorno,
     };
 
 String _nextStatusLabel(PrepStatus status, AppLocalizations l) => switch (status) {

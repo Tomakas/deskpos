@@ -798,6 +798,8 @@ Pro **každou sdílenou** tabulku:
 
 ### FÁZE 5 — Dokumentace vs implementace
 
+> **SCOPE:** Tato fáze kontroluje pouze **rozpory mezi dokumentací a kódem** (je kód konzistentní s tím, co docs popisují?). **Nekontroluje kvalitu, úplnost ani konzistenci samotné dokumentace** — ta má vlastní dedikovaný audit (`docs/DOC_AUDIT_PROMPT.md`).
+
 **Každý rozpor je nález** — s jednou klíčovou výjimkou: PROJECT.md obsahuje i **plánované budoucí features** (typicky vyšší Etapy/Milestones). Neimplementované plánované tasky z budoucích etap NEJSOU rozpory a NEREPORTUJ je jako nálezy. Reportuj POUZE:
 - Kód dělá něco jiného než dokumentace popisuje pro HOTOVOU feature
 - Dokumentace uvádí nesprávné cesty, názvy, hodnoty pro EXISTUJÍCÍ implementaci

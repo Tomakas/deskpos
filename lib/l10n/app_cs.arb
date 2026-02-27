@@ -959,6 +959,8 @@
   "@ordersStornoRef": {
     "placeholders": { "orderNumber": { "type": "String" } }
   },
+  "ordersStatusPrefix": "Stav",
+  "ordersRevertConfirm": "Vrátit o krok zpět?",
   "customerDisplayTitle": "Zákaznický displej",
   "customerDisplayWelcome": "Vítejte",
   "customerDisplayHeader": "Váš účet",

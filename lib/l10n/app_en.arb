@@ -959,6 +959,8 @@
   "@ordersStornoRef": {
     "placeholders": { "orderNumber": { "type": "String" } }
   },
+  "ordersStatusPrefix": "Status",
+  "ordersRevertConfirm": "Revert to previous step?",
   "customerDisplayTitle": "Customer Display",
   "customerDisplayWelcome": "Welcome",
   "customerDisplayHeader": "Your Bill",

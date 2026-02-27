@@ -4622,6 +4622,18 @@ abstract class AppLocalizations {
   /// **'→ {orderNumber}'**
   String ordersStornoRef(String orderNumber);
 
+  /// No description provided for @ordersStatusPrefix.
+  ///
+  /// In cs, this message translates to:
+  /// **'Stav'**
+  String get ordersStatusPrefix;
+
+  /// No description provided for @ordersRevertConfirm.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vrátit o krok zpět?'**
+  String get ordersRevertConfirm;
+
   /// No description provided for @customerDisplayTitle.
   ///
   /// In cs, this message translates to:

@@ -2353,6 +2353,12 @@ class AppLocalizationsCs extends AppLocalizations {
   }
 
   @override
+  String get ordersStatusPrefix => 'Stav';
+
+  @override
+  String get ordersRevertConfirm => 'Vrátit o krok zpět?';
+
+  @override
   String get customerDisplayTitle => 'Zákaznický displej';
 
   @override
