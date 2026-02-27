@@ -438,16 +438,29 @@ class _GroupItemsSection extends ConsumerWidget {
   }
 }
 
-class _GroupItemTile extends ConsumerWidget {
+class _GroupItemTile extends ConsumerStatefulWidget {
   const _GroupItemTile({required this.groupItem});
   final ModifierGroupItemModel groupItem;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_GroupItemTile> createState() => _GroupItemTileState();
+}
+
+class _GroupItemTileState extends ConsumerState<_GroupItemTile> {
+  late final Future<ItemModel?> _itemFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _itemFuture = ref.read(itemRepositoryProvider).getById(widget.groupItem.itemId);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return FutureBuilder<ItemModel?>(
-      future: ref.watch(itemRepositoryProvider).getById(groupItem.itemId),
+      future: _itemFuture,
       builder: (context, snap) {
         final item = snap.data;
         if (item == null) return const SizedBox.shrink();
@@ -456,7 +469,7 @@ class _GroupItemTile extends ConsumerWidget {
           dense: true,
           contentPadding: EdgeInsets.zero,
           title: Text(item.name),
-          subtitle: groupItem.isDefault
+          subtitle: widget.groupItem.isDefault
               ? Text(context.l10n.fieldDefault, style: theme.textTheme.bodySmall)
               : null,
           trailing: Row(
@@ -467,7 +480,7 @@ class _GroupItemTile extends ConsumerWidget {
               IconButton(
                 icon: const Icon(Icons.close, size: 18),
                 onPressed: () async {
-                  await ref.read(modifierGroupItemRepositoryProvider).delete(groupItem.id);
+                  await ref.read(modifierGroupItemRepositoryProvider).delete(widget.groupItem.id);
                 },
               ),
             ],
