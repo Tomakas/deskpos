@@ -162,7 +162,10 @@ class PosNumpad extends StatelessWidget {
               borderRadius: BorderRadius.circular(_radius)),
           padding: EdgeInsets.zero,
         ),
-        child: child,
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: child,
+        ),
       ),
     );
   }

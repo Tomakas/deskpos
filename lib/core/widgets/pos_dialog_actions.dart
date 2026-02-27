@@ -20,36 +20,40 @@ class PosDialogActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final Widget row;
+
     if (leading != null) {
-      return Row(
+      row = Row(
         children: [
-          SizedBox(height: height, child: leading!),
+          SizedBox.expand(child: leading!),
           Expanded(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 for (int i = 0; i < actions.length; i++) ...[
                   if (i > 0) SizedBox(width: spacing),
-                  SizedBox(height: height, child: actions[i]),
+                  SizedBox(height: double.infinity, child: actions[i]),
                 ],
               ],
             ),
           ),
         ],
       );
+    } else {
+      row = Row(
+        mainAxisAlignment: expanded ? MainAxisAlignment.start : MainAxisAlignment.end,
+        children: [
+          for (int i = 0; i < actions.length; i++) ...[
+            if (i > 0) SizedBox(width: spacing),
+            if (expanded)
+              Expanded(child: SizedBox(height: double.infinity, child: actions[i]))
+            else
+              SizedBox(height: double.infinity, child: actions[i]),
+          ],
+        ],
+      );
     }
 
-    return Row(
-      mainAxisAlignment: expanded ? MainAxisAlignment.start : MainAxisAlignment.end,
-      children: [
-        for (int i = 0; i < actions.length; i++) ...[
-          if (i > 0) SizedBox(width: spacing),
-          if (expanded)
-            Expanded(child: SizedBox(height: height, child: actions[i]))
-          else
-            SizedBox(height: height, child: actions[i]),
-        ],
-      ],
-    );
+    return SizedBox(height: height, child: row);
   }
 }
