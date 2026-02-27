@@ -3,37 +3,76 @@ set -euo pipefail
 
 CHANGELOG="docs/CHANGELOG.md"
 TYPES=("feat" "fix" "docs" "refactor" "perf" "test" "chore")
+TYPE_LABELS=("feat      — new feature" "fix       — bug fix" "docs      — documentation" "refactor  — code refactoring" "perf      — performance" "test      — tests" "chore     — maintenance")
 ENTRIES=()
+
+# ── Arrow-key menu ───────────────────────────────────────────────────────────
+
+menu_select() {
+  local prompt="$1"
+  shift
+  local options=("$@")
+  local selected=0
+  local count=${#options[@]}
+
+  tput civis 2>/dev/null
+  trap 'tput cnorm 2>/dev/null' RETURN
+
+  printf "\n%s\n" "$prompt"
+
+  for i in "${!options[@]}"; do
+    if [ $i -eq $selected ]; then
+      printf "  \033[7m %s \033[0m\n" "${options[$i]}"
+    else
+      printf "   %s\n" "${options[$i]}"
+    fi
+  done
+
+  while true; do
+    read -rsn1 key
+    case "$key" in
+      '') break ;;
+      $'\x1b')
+        read -rsn2 key
+        case "$key" in
+          '[A') ((selected > 0)) && ((selected--)) ;;
+          '[B') ((selected < count - 1)) && ((selected++)) ;;
+        esac
+        ;;
+    esac
+
+    printf "\033[%dA" "$count"
+    for i in "${!options[@]}"; do
+      printf "\033[2K"
+      if [ $i -eq $selected ]; then
+        printf "  \033[7m %s \033[0m\n" "${options[$i]}"
+      else
+        printf "   %s\n" "${options[$i]}"
+      fi
+    done
+  done
+
+  tput cnorm 2>/dev/null
+  trap - RETURN
+  MENU_RESULT=$selected
+}
 
 # ── Phase 1: Collect all inputs ──────────────────────────────────────────────
 
 # Commit entries
 while true; do
-  echo ""
-  if [ ${#ENTRIES[@]} -eq 0 ]; then
-    echo "Select type:"
-  else
-    echo "Select type (Enter to finish):"
-  fi
-  echo "  1) feat      3) docs      5) perf      7) chore"
-  echo "  2) fix       4) refactor  6) test"
-  printf "#? "
-  read -r choice
+  if [ ${#ENTRIES[@]} -gt 0 ]; then
+    menu_options=("── Done ──" "${TYPE_LABELS[@]}")
+    menu_select "Select type (or Done):" "${menu_options[@]}"
 
-  if [ -z "$choice" ]; then
-    if [ ${#ENTRIES[@]} -eq 0 ]; then
-      echo "At least one entry is required."
-      continue
+    if [ $MENU_RESULT -eq 0 ]; then
+      break
     fi
-    break
+    TYPE="${TYPES[$((MENU_RESULT - 1))]}"
+  else
+    menu_select "Select type:" "${TYPE_LABELS[@]}"
+    TYPE="${TYPES[$MENU_RESULT]}"
   fi
-
-  if ! [[ "$choice" =~ ^[1-7]$ ]]; then
-    echo "Invalid choice."
-    continue
-  fi
-
-  TYPE="${TYPES[$((choice - 1))]}"
 
   printf "Description: "
   read -r desc
@@ -44,28 +83,26 @@ while true; do
   fi
 
   ENTRIES+=("${TYPE}:${desc}")
-  echo "Added: ${TYPE}: ${desc}"
+  echo "  Added: ${TYPE}: ${desc}"
 done
 
 # Version bump
 CURRENT_VERSION=$(grep -E '^version: ' pubspec.yaml | sed 's/version: //')
 IFS='.' read -r V_MAJOR V_MINOR V_PATCH <<< "$CURRENT_VERSION"
 
-echo ""
-echo "Current version: ${CURRENT_VERSION}"
-echo "Bump version?"
-echo "  1) major (${CURRENT_VERSION} → $((V_MAJOR + 1)).0.0)"
-echo "  2) minor (${CURRENT_VERSION} → ${V_MAJOR}.$((V_MINOR + 1)).0)"
-echo "  3) patch (${CURRENT_VERSION} → ${V_MAJOR}.${V_MINOR}.$((V_PATCH + 1)))"
-echo "  Enter) skip"
-printf "#? "
-read -r bump_choice
+BUMP_OPTIONS=(
+  "skip"
+  "patch  (${CURRENT_VERSION} → ${V_MAJOR}.${V_MINOR}.$((V_PATCH + 1)))"
+  "minor  (${CURRENT_VERSION} → ${V_MAJOR}.$((V_MINOR + 1)).0)"
+  "major  (${CURRENT_VERSION} → $((V_MAJOR + 1)).0.0)"
+)
+menu_select "Bump version? (current: ${CURRENT_VERSION})" "${BUMP_OPTIONS[@]}"
 
 NEW_VERSION=""
-case "$bump_choice" in
-  1) NEW_VERSION="$((V_MAJOR + 1)).0.0" ;;
+case "$MENU_RESULT" in
+  1) NEW_VERSION="${V_MAJOR}.${V_MINOR}.$((V_PATCH + 1))" ;;
   2) NEW_VERSION="${V_MAJOR}.$((V_MINOR + 1)).0" ;;
-  3) NEW_VERSION="${V_MAJOR}.${V_MINOR}.$((V_PATCH + 1))" ;;
+  3) NEW_VERSION="$((V_MAJOR + 1)).0.0" ;;
 esac
 
 # Push
