@@ -77,7 +77,6 @@ class _DialogSplitBillState extends ConsumerState<DialogSplitBill> {
             stream: ref.watch(orderRepositoryProvider).watchByBill(widget.billId),
             builder: (context, orderSnap) {
               final orders = (orderSnap.data ?? []).where((o) =>
-                  o.status != PrepStatus.cancelled &&
                   o.status != PrepStatus.voided &&
                   !o.isStorno).toList();
 
@@ -105,7 +104,6 @@ class _DialogSplitBillState extends ConsumerState<DialogSplitBill> {
       orders: orders,
       builder: (allItems) {
         final filtered = allItems.where((item) =>
-            item.status != PrepStatus.cancelled &&
             item.status != PrepStatus.voided).toList();
         _ensureModifiersLoaded(filtered);
         return _buildPanels(context, filtered, l);

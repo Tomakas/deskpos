@@ -5992,6 +5992,17 @@ class $CustomerTransactionsTable extends CustomerTransactions
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _referenceMeta = const VerificationMeta(
+    'reference',
+  );
+  @override
+  late final GeneratedColumn<String> reference = GeneratedColumn<String>(
+    'reference',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _noteMeta = const VerificationMeta('note');
   @override
   late final GeneratedColumn<String> note = GeneratedColumn<String>(
@@ -6028,6 +6039,7 @@ class $CustomerTransactionsTable extends CustomerTransactions
     pointsChange,
     creditChange,
     orderId,
+    reference,
     note,
     processedByUserId,
   ];
@@ -6143,6 +6155,12 @@ class $CustomerTransactionsTable extends CustomerTransactions
         orderId.isAcceptableOrUnknown(data['order_id']!, _orderIdMeta),
       );
     }
+    if (data.containsKey('reference')) {
+      context.handle(
+        _referenceMeta,
+        reference.isAcceptableOrUnknown(data['reference']!, _referenceMeta),
+      );
+    }
     if (data.containsKey('note')) {
       context.handle(
         _noteMeta,
@@ -6221,6 +6239,10 @@ class $CustomerTransactionsTable extends CustomerTransactions
         DriftSqlType.string,
         data['${effectivePrefix}order_id'],
       ),
+      reference: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}reference'],
+      ),
       note: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}note'],
@@ -6253,6 +6275,7 @@ class CustomerTransaction extends DataClass
   final int pointsChange;
   final int creditChange;
   final String? orderId;
+  final String? reference;
   final String? note;
   final String processedByUserId;
   const CustomerTransaction({
@@ -6269,6 +6292,7 @@ class CustomerTransaction extends DataClass
     required this.pointsChange,
     required this.creditChange,
     this.orderId,
+    this.reference,
     this.note,
     required this.processedByUserId,
   });
@@ -6297,6 +6321,9 @@ class CustomerTransaction extends DataClass
     map['credit_change'] = Variable<int>(creditChange);
     if (!nullToAbsent || orderId != null) {
       map['order_id'] = Variable<String>(orderId);
+    }
+    if (!nullToAbsent || reference != null) {
+      map['reference'] = Variable<String>(reference);
     }
     if (!nullToAbsent || note != null) {
       map['note'] = Variable<String>(note);
@@ -6330,6 +6357,9 @@ class CustomerTransaction extends DataClass
       orderId: orderId == null && nullToAbsent
           ? const Value.absent()
           : Value(orderId),
+      reference: reference == null && nullToAbsent
+          ? const Value.absent()
+          : Value(reference),
       note: note == null && nullToAbsent ? const Value.absent() : Value(note),
       processedByUserId: Value(processedByUserId),
     );
@@ -6354,6 +6384,7 @@ class CustomerTransaction extends DataClass
       pointsChange: serializer.fromJson<int>(json['pointsChange']),
       creditChange: serializer.fromJson<int>(json['creditChange']),
       orderId: serializer.fromJson<String?>(json['orderId']),
+      reference: serializer.fromJson<String?>(json['reference']),
       note: serializer.fromJson<String?>(json['note']),
       processedByUserId: serializer.fromJson<String>(json['processedByUserId']),
     );
@@ -6375,6 +6406,7 @@ class CustomerTransaction extends DataClass
       'pointsChange': serializer.toJson<int>(pointsChange),
       'creditChange': serializer.toJson<int>(creditChange),
       'orderId': serializer.toJson<String?>(orderId),
+      'reference': serializer.toJson<String?>(reference),
       'note': serializer.toJson<String?>(note),
       'processedByUserId': serializer.toJson<String>(processedByUserId),
     };
@@ -6394,6 +6426,7 @@ class CustomerTransaction extends DataClass
     int? pointsChange,
     int? creditChange,
     Value<String?> orderId = const Value.absent(),
+    Value<String?> reference = const Value.absent(),
     Value<String?> note = const Value.absent(),
     String? processedByUserId,
   }) => CustomerTransaction(
@@ -6414,6 +6447,7 @@ class CustomerTransaction extends DataClass
     pointsChange: pointsChange ?? this.pointsChange,
     creditChange: creditChange ?? this.creditChange,
     orderId: orderId.present ? orderId.value : this.orderId,
+    reference: reference.present ? reference.value : this.reference,
     note: note.present ? note.value : this.note,
     processedByUserId: processedByUserId ?? this.processedByUserId,
   );
@@ -6444,6 +6478,7 @@ class CustomerTransaction extends DataClass
           ? data.creditChange.value
           : this.creditChange,
       orderId: data.orderId.present ? data.orderId.value : this.orderId,
+      reference: data.reference.present ? data.reference.value : this.reference,
       note: data.note.present ? data.note.value : this.note,
       processedByUserId: data.processedByUserId.present
           ? data.processedByUserId.value
@@ -6467,6 +6502,7 @@ class CustomerTransaction extends DataClass
           ..write('pointsChange: $pointsChange, ')
           ..write('creditChange: $creditChange, ')
           ..write('orderId: $orderId, ')
+          ..write('reference: $reference, ')
           ..write('note: $note, ')
           ..write('processedByUserId: $processedByUserId')
           ..write(')'))
@@ -6488,6 +6524,7 @@ class CustomerTransaction extends DataClass
     pointsChange,
     creditChange,
     orderId,
+    reference,
     note,
     processedByUserId,
   );
@@ -6508,6 +6545,7 @@ class CustomerTransaction extends DataClass
           other.pointsChange == this.pointsChange &&
           other.creditChange == this.creditChange &&
           other.orderId == this.orderId &&
+          other.reference == this.reference &&
           other.note == this.note &&
           other.processedByUserId == this.processedByUserId);
 }
@@ -6527,6 +6565,7 @@ class CustomerTransactionsCompanion
   final Value<int> pointsChange;
   final Value<int> creditChange;
   final Value<String?> orderId;
+  final Value<String?> reference;
   final Value<String?> note;
   final Value<String> processedByUserId;
   final Value<int> rowid;
@@ -6544,6 +6583,7 @@ class CustomerTransactionsCompanion
     this.pointsChange = const Value.absent(),
     this.creditChange = const Value.absent(),
     this.orderId = const Value.absent(),
+    this.reference = const Value.absent(),
     this.note = const Value.absent(),
     this.processedByUserId = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -6562,6 +6602,7 @@ class CustomerTransactionsCompanion
     required int pointsChange,
     required int creditChange,
     this.orderId = const Value.absent(),
+    this.reference = const Value.absent(),
     this.note = const Value.absent(),
     required String processedByUserId,
     this.rowid = const Value.absent(),
@@ -6585,6 +6626,7 @@ class CustomerTransactionsCompanion
     Expression<int>? pointsChange,
     Expression<int>? creditChange,
     Expression<String>? orderId,
+    Expression<String>? reference,
     Expression<String>? note,
     Expression<String>? processedByUserId,
     Expression<int>? rowid,
@@ -6603,6 +6645,7 @@ class CustomerTransactionsCompanion
       if (pointsChange != null) 'points_change': pointsChange,
       if (creditChange != null) 'credit_change': creditChange,
       if (orderId != null) 'order_id': orderId,
+      if (reference != null) 'reference': reference,
       if (note != null) 'note': note,
       if (processedByUserId != null) 'processed_by_user_id': processedByUserId,
       if (rowid != null) 'rowid': rowid,
@@ -6623,6 +6666,7 @@ class CustomerTransactionsCompanion
     Value<int>? pointsChange,
     Value<int>? creditChange,
     Value<String?>? orderId,
+    Value<String?>? reference,
     Value<String?>? note,
     Value<String>? processedByUserId,
     Value<int>? rowid,
@@ -6641,6 +6685,7 @@ class CustomerTransactionsCompanion
       pointsChange: pointsChange ?? this.pointsChange,
       creditChange: creditChange ?? this.creditChange,
       orderId: orderId ?? this.orderId,
+      reference: reference ?? this.reference,
       note: note ?? this.note,
       processedByUserId: processedByUserId ?? this.processedByUserId,
       rowid: rowid ?? this.rowid,
@@ -6689,6 +6734,9 @@ class CustomerTransactionsCompanion
     if (orderId.present) {
       map['order_id'] = Variable<String>(orderId.value);
     }
+    if (reference.present) {
+      map['reference'] = Variable<String>(reference.value);
+    }
     if (note.present) {
       map['note'] = Variable<String>(note.value);
     }
@@ -6717,6 +6765,7 @@ class CustomerTransactionsCompanion
           ..write('pointsChange: $pointsChange, ')
           ..write('creditChange: $creditChange, ')
           ..write('orderId: $orderId, ')
+          ..write('reference: $reference, ')
           ..write('note: $note, ')
           ..write('processedByUserId: $processedByUserId, ')
           ..write('rowid: $rowid')
@@ -11775,9 +11824,9 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
   late final GeneratedColumn<int> unitPrice = GeneratedColumn<int>(
     'unit_price',
     aliasedName,
-    false,
+    true,
     type: DriftSqlType.int,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _saleTaxRateIdMeta = const VerificationMeta(
     'saleTaxRateId',
@@ -12090,8 +12139,6 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
         _unitPriceMeta,
         unitPrice.isAcceptableOrUnknown(data['unit_price']!, _unitPriceMeta),
       );
-    } else if (isInserting) {
-      context.missing(_unitPriceMeta);
     }
     if (data.containsKey('sale_tax_rate_id')) {
       context.handle(
@@ -12253,7 +12300,7 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
       unitPrice: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}unit_price'],
-      )!,
+      ),
       saleTaxRateId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}sale_tax_rate_id'],
@@ -12351,7 +12398,7 @@ class Item extends DataClass implements Insertable<Item> {
   final String? description;
   final ItemType itemType;
   final String? sku;
-  final int unitPrice;
+  final int? unitPrice;
   final String? saleTaxRateId;
   final bool isSellable;
   final bool isActive;
@@ -12381,7 +12428,7 @@ class Item extends DataClass implements Insertable<Item> {
     this.description,
     required this.itemType,
     this.sku,
-    required this.unitPrice,
+    this.unitPrice,
     this.saleTaxRateId,
     required this.isSellable,
     required this.isActive,
@@ -12432,7 +12479,9 @@ class Item extends DataClass implements Insertable<Item> {
     if (!nullToAbsent || sku != null) {
       map['sku'] = Variable<String>(sku);
     }
-    map['unit_price'] = Variable<int>(unitPrice);
+    if (!nullToAbsent || unitPrice != null) {
+      map['unit_price'] = Variable<int>(unitPrice);
+    }
     if (!nullToAbsent || saleTaxRateId != null) {
       map['sale_tax_rate_id'] = Variable<String>(saleTaxRateId);
     }
@@ -12500,7 +12549,9 @@ class Item extends DataClass implements Insertable<Item> {
           : Value(description),
       itemType: Value(itemType),
       sku: sku == null && nullToAbsent ? const Value.absent() : Value(sku),
-      unitPrice: Value(unitPrice),
+      unitPrice: unitPrice == null && nullToAbsent
+          ? const Value.absent()
+          : Value(unitPrice),
       saleTaxRateId: saleTaxRateId == null && nullToAbsent
           ? const Value.absent()
           : Value(saleTaxRateId),
@@ -12558,7 +12609,7 @@ class Item extends DataClass implements Insertable<Item> {
         serializer.fromJson<String>(json['itemType']),
       ),
       sku: serializer.fromJson<String?>(json['sku']),
-      unitPrice: serializer.fromJson<int>(json['unitPrice']),
+      unitPrice: serializer.fromJson<int?>(json['unitPrice']),
       saleTaxRateId: serializer.fromJson<String?>(json['saleTaxRateId']),
       isSellable: serializer.fromJson<bool>(json['isSellable']),
       isActive: serializer.fromJson<bool>(json['isActive']),
@@ -12601,7 +12652,7 @@ class Item extends DataClass implements Insertable<Item> {
         $ItemsTable.$converteritemType.toJson(itemType),
       ),
       'sku': serializer.toJson<String?>(sku),
-      'unitPrice': serializer.toJson<int>(unitPrice),
+      'unitPrice': serializer.toJson<int?>(unitPrice),
       'saleTaxRateId': serializer.toJson<String?>(saleTaxRateId),
       'isSellable': serializer.toJson<bool>(isSellable),
       'isActive': serializer.toJson<bool>(isActive),
@@ -12638,7 +12689,7 @@ class Item extends DataClass implements Insertable<Item> {
     Value<String?> description = const Value.absent(),
     ItemType? itemType,
     Value<String?> sku = const Value.absent(),
-    int? unitPrice,
+    Value<int?> unitPrice = const Value.absent(),
     Value<String?> saleTaxRateId = const Value.absent(),
     bool? isSellable,
     bool? isActive,
@@ -12672,7 +12723,7 @@ class Item extends DataClass implements Insertable<Item> {
     description: description.present ? description.value : this.description,
     itemType: itemType ?? this.itemType,
     sku: sku.present ? sku.value : this.sku,
-    unitPrice: unitPrice ?? this.unitPrice,
+    unitPrice: unitPrice.present ? unitPrice.value : this.unitPrice,
     saleTaxRateId: saleTaxRateId.present
         ? saleTaxRateId.value
         : this.saleTaxRateId,
@@ -12878,7 +12929,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
   final Value<String?> description;
   final Value<ItemType> itemType;
   final Value<String?> sku;
-  final Value<int> unitPrice;
+  final Value<int?> unitPrice;
   final Value<String?> saleTaxRateId;
   final Value<bool> isSellable;
   final Value<bool> isActive;
@@ -12941,7 +12992,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     this.description = const Value.absent(),
     required ItemType itemType,
     this.sku = const Value.absent(),
-    required int unitPrice,
+    this.unitPrice = const Value.absent(),
     this.saleTaxRateId = const Value.absent(),
     this.isSellable = const Value.absent(),
     this.isActive = const Value.absent(),
@@ -12960,8 +13011,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
   }) : id = Value(id),
        companyId = Value(companyId),
        name = Value(name),
-       itemType = Value(itemType),
-       unitPrice = Value(unitPrice);
+       itemType = Value(itemType);
   static Insertable<Item> custom({
     Expression<DateTime>? lastSyncedAt,
     Expression<int>? version,
@@ -13044,7 +13094,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     Value<String?>? description,
     Value<ItemType>? itemType,
     Value<String?>? sku,
-    Value<int>? unitPrice,
+    Value<int?>? unitPrice,
     Value<String?>? saleTaxRateId,
     Value<bool>? isSellable,
     Value<bool>? isActive,
@@ -46333,6 +46383,7 @@ typedef $$CustomerTransactionsTableCreateCompanionBuilder =
       required int pointsChange,
       required int creditChange,
       Value<String?> orderId,
+      Value<String?> reference,
       Value<String?> note,
       required String processedByUserId,
       Value<int> rowid,
@@ -46352,6 +46403,7 @@ typedef $$CustomerTransactionsTableUpdateCompanionBuilder =
       Value<int> pointsChange,
       Value<int> creditChange,
       Value<String?> orderId,
+      Value<String?> reference,
       Value<String?> note,
       Value<String> processedByUserId,
       Value<int> rowid,
@@ -46428,6 +46480,11 @@ class $$CustomerTransactionsTableFilterComposer
 
   ColumnFilters<String> get orderId => $composableBuilder(
     column: $table.orderId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get reference => $composableBuilder(
+    column: $table.reference,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -46516,6 +46573,11 @@ class $$CustomerTransactionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get reference => $composableBuilder(
+    column: $table.reference,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get note => $composableBuilder(
     column: $table.note,
     builder: (column) => ColumnOrderings(column),
@@ -46587,6 +46649,9 @@ class $$CustomerTransactionsTableAnnotationComposer
   GeneratedColumn<String> get orderId =>
       $composableBuilder(column: $table.orderId, builder: (column) => column);
 
+  GeneratedColumn<String> get reference =>
+      $composableBuilder(column: $table.reference, builder: (column) => column);
+
   GeneratedColumn<String> get note =>
       $composableBuilder(column: $table.note, builder: (column) => column);
 
@@ -46652,6 +46717,7 @@ class $$CustomerTransactionsTableTableManager
                 Value<int> pointsChange = const Value.absent(),
                 Value<int> creditChange = const Value.absent(),
                 Value<String?> orderId = const Value.absent(),
+                Value<String?> reference = const Value.absent(),
                 Value<String?> note = const Value.absent(),
                 Value<String> processedByUserId = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -46669,6 +46735,7 @@ class $$CustomerTransactionsTableTableManager
                 pointsChange: pointsChange,
                 creditChange: creditChange,
                 orderId: orderId,
+                reference: reference,
                 note: note,
                 processedByUserId: processedByUserId,
                 rowid: rowid,
@@ -46688,6 +46755,7 @@ class $$CustomerTransactionsTableTableManager
                 required int pointsChange,
                 required int creditChange,
                 Value<String?> orderId = const Value.absent(),
+                Value<String?> reference = const Value.absent(),
                 Value<String?> note = const Value.absent(),
                 required String processedByUserId,
                 Value<int> rowid = const Value.absent(),
@@ -46705,6 +46773,7 @@ class $$CustomerTransactionsTableTableManager
                 pointsChange: pointsChange,
                 creditChange: creditChange,
                 orderId: orderId,
+                reference: reference,
                 note: note,
                 processedByUserId: processedByUserId,
                 rowid: rowid,
@@ -49040,7 +49109,7 @@ typedef $$ItemsTableCreateCompanionBuilder =
       Value<String?> description,
       required ItemType itemType,
       Value<String?> sku,
-      required int unitPrice,
+      Value<int?> unitPrice,
       Value<String?> saleTaxRateId,
       Value<bool> isSellable,
       Value<bool> isActive,
@@ -49073,7 +49142,7 @@ typedef $$ItemsTableUpdateCompanionBuilder =
       Value<String?> description,
       Value<ItemType> itemType,
       Value<String?> sku,
-      Value<int> unitPrice,
+      Value<int?> unitPrice,
       Value<String?> saleTaxRateId,
       Value<bool> isSellable,
       Value<bool> isActive,
@@ -49575,7 +49644,7 @@ class $$ItemsTableTableManager
                 Value<String?> description = const Value.absent(),
                 Value<ItemType> itemType = const Value.absent(),
                 Value<String?> sku = const Value.absent(),
-                Value<int> unitPrice = const Value.absent(),
+                Value<int?> unitPrice = const Value.absent(),
                 Value<String?> saleTaxRateId = const Value.absent(),
                 Value<bool> isSellable = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
@@ -49640,7 +49709,7 @@ class $$ItemsTableTableManager
                 Value<String?> description = const Value.absent(),
                 required ItemType itemType,
                 Value<String?> sku = const Value.absent(),
-                required int unitPrice,
+                Value<int?> unitPrice = const Value.absent(),
                 Value<String?> saleTaxRateId = const Value.absent(),
                 Value<bool> isSellable = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),

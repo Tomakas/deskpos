@@ -118,6 +118,10 @@ class _CatalogModifiersTabState extends ConsumerState<CatalogModifiersTab> {
                   PosColumn(label: l.maxSelections, flex: 1, cellBuilder: (g) => Text(g.maxSelections?.toString() ?? l.unlimited)),
                 ],
                 onRowTap: (group) => _showGroupEditDialog(context, ref, group),
+                onRowLongPress: (group) async {
+                  if (!await confirmDelete(context, context.l10n) || !context.mounted) return;
+                  await ref.read(modifierGroupRepositoryProvider).delete(group.id);
+                },
               ),
             ),
           ],
@@ -312,6 +316,7 @@ class _GroupItemsSection extends ConsumerWidget {
             showCloseButton: true,
             title: l.addModifier,
             maxWidth: 400,
+            maxHeight: 500,
             expandHeight: true,
             children: [
               Row(
@@ -408,7 +413,7 @@ class _GroupItemsSection extends ConsumerWidget {
                           final item = filtered[i];
                           return ListTile(
                             title: Text(item.name),
-                            trailing: Text(ref.money(item.unitPrice)),
+                            trailing: Text(item.unitPrice != null ? ref.money(item.unitPrice!) : '???'),
                             onTap: () => Navigator.pop(ctx, item),
                           );
                         },
@@ -475,7 +480,7 @@ class _GroupItemTileState extends ConsumerState<_GroupItemTile> {
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(ref.money(item.unitPrice)),
+              Text(item.unitPrice != null ? ref.money(item.unitPrice!) : '???'),
               const SizedBox(width: 8),
               IconButton(
                 icon: const Icon(Icons.close, size: 18),

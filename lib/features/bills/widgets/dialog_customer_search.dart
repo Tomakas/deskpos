@@ -12,6 +12,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../catalog/widgets/dialog_customer_credit.dart';
+import '../../shared/session_helpers.dart' as helpers;
 
 /// Sentinel value returned when user wants to remove the customer.
 class _RemoveCustomer {
@@ -199,7 +200,6 @@ class _DialogCustomerAssignState extends ConsumerState<_DialogCustomerAssign> {
               onSubmitted: (_) => _save(),
             ),
         ],
-        const SizedBox(height: 16),
       ],
       bottomActions: PosDialogActions(
         actions: [
@@ -270,6 +270,7 @@ class _DialogCustomerAssignState extends ConsumerState<_DialogCustomerAssign> {
             icon: const Icon(Icons.account_balance_wallet_outlined, size: 20),
             tooltip: context.l10n.loyaltyCredit,
             onPressed: () async {
+              if (helpers.requireActiveSession(context, ref) == null) return;
               await showDialog<void>(
                 context: context,
                 builder: (_) => DialogCustomerCredit(customer: c),
@@ -368,7 +369,7 @@ class _DialogCustomerDbSearchState
         actions: [
           OutlinedButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(l.actionCancel),
+            child: Text(l.actionClose),
           ),
         ],
       ),

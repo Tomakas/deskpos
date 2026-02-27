@@ -14,7 +14,7 @@ class Items extends Table with SyncColumnsMixin {
   TextColumn get description => text().nullable()();
   TextColumn get itemType => textEnum<ItemType>()();
   TextColumn get sku => text().nullable()();
-  IntColumn get unitPrice => integer()();
+  IntColumn get unitPrice => integer().nullable()();
   TextColumn get saleTaxRateId => text().nullable()();
   BoolColumn get isSellable => boolean().withDefault(const Constant(true))();
   BoolColumn get isActive => boolean().withDefault(const Constant(true))();

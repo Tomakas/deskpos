@@ -182,6 +182,7 @@ class _DialogCashJournalState extends ConsumerState<DialogCashJournal> {
         ),
       ),
       maxWidth: 800,
+      maxHeight: 700,
       expandHeight: true,
       padding: const EdgeInsets.all(20),
       children: [

@@ -116,6 +116,10 @@ class _SuppliersTabState extends ConsumerState<SuppliersTab> {
                 ],
                 items: filtered,
                 onRowTap: (s) => _showEditDialog(context, ref, s),
+                onRowLongPress: (s) async {
+                  if (!await confirmDelete(context, context.l10n) || !context.mounted) return;
+                  await ref.read(supplierRepositoryProvider).delete(s.id);
+                },
               ),
             ),
           ],

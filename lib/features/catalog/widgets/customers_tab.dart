@@ -7,7 +7,6 @@ import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../../core/utils/formatters.dart';
 import '../../../core/utils/formatting_ext.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/search_utils.dart';
@@ -15,7 +14,9 @@ import '../../../core/widgets/highlighted_text.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_table.dart';
+import '../../shared/session_helpers.dart' as helpers;
 import 'dialog_customer_credit.dart';
+import 'dialog_customer_transactions.dart';
 
 enum _CustomersSortField { lastName, points, credit, lastVisit }
 
@@ -153,6 +154,10 @@ class _CustomersTabState extends ConsumerState<CustomersTab> {
                 ],
                 items: filtered,
                 onRowTap: (c) => _showEditDialog(context, ref, c),
+                onRowLongPress: (c) async {
+                  if (!await confirmDelete(context, context.l10n) || !context.mounted) return;
+                  await ref.read(customerRepositoryProvider).delete(c.id);
+                },
               ),
             ),
           ],
@@ -215,10 +220,6 @@ class _CustomersTabState extends ConsumerState<CustomersTab> {
     final emailCtrl = TextEditingController(text: existing?.email ?? '');
     final phoneCtrl = TextEditingController(text: existing?.phone ?? '');
     final addressCtrl = TextEditingController(text: existing?.address ?? '');
-    final currency = ref.read(currentCurrencyProvider).value;
-    final pointsCtrl = TextEditingController(text: existing?.points.toString() ?? '0');
-    final creditCtrl = TextEditingController(text: minorUnitsToInputString(existing?.credit ?? 0, currency));
-    final totalSpentCtrl = TextEditingController(text: minorUnitsToInputString(existing?.totalSpent ?? 0, currency));
 
     final result = await showDialog<Object>(
       context: context,
@@ -270,28 +271,31 @@ class _CustomersTabState extends ConsumerState<CustomersTab> {
               decoration: InputDecoration(labelText: l.customerAddress),
             ),
             const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: pointsCtrl,
-                    decoration: InputDecoration(labelText: l.customerPoints),
-                    keyboardType: TextInputType.number,
-                    readOnly: true,
-                    enabled: false,
+            if (existing != null) ...[
+              Row(
+                children: [
+                  Expanded(
+                    child: InputDecorator(
+                      decoration: InputDecoration(labelText: l.customerPoints),
+                      child: Text(existing.points.toString()),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: TextField(
-                    controller: creditCtrl,
-                    decoration: InputDecoration(labelText: l.customerCredit),
-                    keyboardType: TextInputType.number,
-                    readOnly: true,
-                    enabled: false,
+                  const SizedBox(width: 4),
+                  IconButton(
+                    icon: const Icon(Icons.history),
+                    tooltip: l.loyaltyTransactionHistory,
+                    onPressed: () => showDialog<void>(
+                      context: ctx,
+                      builder: (_) => DialogCustomerTransactions(customerId: existing.id),
+                    ),
                   ),
-                ),
-                if (existing != null) ...[
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: InputDecorator(
+                      decoration: InputDecoration(labelText: l.customerCredit),
+                      child: Text(ref.money(existing.credit)),
+                    ),
+                  ),
                   const SizedBox(width: 4),
                   IconButton(
                     icon: const Icon(Icons.account_balance_wallet_outlined),
@@ -302,27 +306,28 @@ class _CustomersTabState extends ConsumerState<CustomersTab> {
                     },
                   ),
                 ],
-                const SizedBox(width: 8),
-                Expanded(
-                  child: TextField(
-                    controller: totalSpentCtrl,
-                    decoration: InputDecoration(labelText: l.customerTotalSpent),
-                    keyboardType: TextInputType.number,
-                    readOnly: true,
-                    enabled: false,
-                  ),
-                ),
-              ],
-            ),
-            if (existing != null) ...[
+              ),
               const SizedBox(height: 12),
-              InputDecorator(
-                decoration: InputDecoration(labelText: l.customerLastVisit),
-                child: Text(
-                  existing.lastVisitDate != null
-                      ? ref.fmtDateTime(existing.lastVisitDate!)
-                      : '-',
-                ),
+              Row(
+                children: [
+                  Expanded(
+                    child: InputDecorator(
+                      decoration: InputDecoration(labelText: l.customerTotalSpent),
+                      child: Text(ref.money(existing.totalSpent)),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: InputDecorator(
+                      decoration: InputDecoration(labelText: l.customerLastVisit),
+                      child: Text(
+                        existing.lastVisitDate != null
+                            ? ref.fmtDateTime(existing.lastVisitDate!)
+                            : '-',
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
             const SizedBox(height: 24),
@@ -366,6 +371,7 @@ class _CustomersTabState extends ConsumerState<CustomersTab> {
   }
 
   void _showCreditDialog(BuildContext context, CustomerModel customer) {
+    if (helpers.requireActiveSession(context, ref) == null) return;
     showDialog(
       context: context,
       builder: (_) => DialogCustomerCredit(customer: customer),

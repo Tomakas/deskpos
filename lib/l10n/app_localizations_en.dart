@@ -444,26 +444,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get prepStatusDelivered => 'Delivered';
 
   @override
-  String get prepStatusCancelled => 'Cancelled';
-
-  @override
   String get prepStatusVoided => 'Voided';
 
   @override
   String get orderStatusChange => 'Change Status';
 
   @override
-  String get orderCancel => 'Cancel Order';
-
-  @override
   String get orderVoid => 'Void Order';
-
-  @override
-  String get orderConfirmCancel =>
-      'Are you sure you want to cancel this order?';
-
-  @override
-  String get orderConfirmVoid => 'Are you sure you want to void this order?';
 
   @override
   String get paymentTitle => 'Payment';
@@ -979,7 +966,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get closingPrint => 'Print';
 
   @override
-  String get closingConfirm => 'Close Session';
+  String get closingConfirm => 'Confirm';
 
   @override
   String get closingNoteTitle => 'Closing Note';
@@ -2033,11 +2020,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get autoArrangeSimpleHorizontalDesc =>
-      'Root categories are placed in the first row from left to right. Products are not shown on the main page. Tapping a category opens its sub-page with child categories in the first column and products to the right.';
+      'Root categories are placed in the first row from left to right. Products are not shown on the main page. Tapping a category opens its sub-page with child categories in the first row and products below.';
 
   @override
   String get autoArrangeSimpleVerticalDesc =>
-      'Root categories are placed in the first column from top to bottom. Products are not shown on the main page. Tapping a category opens its sub-page with child categories in the first row and products below.';
+      'Root categories are placed in the first column from top to bottom. Products are not shown on the main page. Tapping a category opens its sub-page with child categories in the first column and products to the right.';
 
   @override
   String get autoArrangeSmartHorizontalDesc =>
@@ -3112,6 +3099,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sellEnterQuantity => 'Enter quantity';
 
   @override
+  String get sellEnterPrice => 'Enter price';
+
+  @override
+  String get labelOpenPrice => 'Open price';
+
+  @override
   String get statsFilterTitle => 'Filter';
 
   @override
@@ -3591,6 +3584,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Default currency cannot be changed after the first bill is created.';
 
   @override
+  String get settingsCurrencySessionLocked =>
+      'Currencies cannot be changed while a session is active.';
+
+  @override
   String get settingsAlternativeCurrencies => 'Alternative currencies';
 
   @override
@@ -3630,6 +3627,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String cashTenderRemaining(String amount) {
     return 'Remaining: $amount';
   }
+
+  @override
+  String get cashTenderReceived => 'Received';
+
+  @override
+  String get cashTenderChangeLabel => 'Change';
+
+  @override
+  String get cashTenderRemainingLabel => 'Remaining';
 
   @override
   String get cashTenderSkip => 'Skip';
@@ -3877,7 +3883,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get inventorySortItem => 'Item';
 
   @override
-  String get settingsNegativeStockPolicy => 'Negative stock policy';
+  String get settingsNegativeStockPolicy => 'Sell when out of stock';
 
   @override
   String get negativeStockPolicyAllow => 'Allow';
@@ -3901,7 +3907,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get negativeStockPolicyDefault => 'Default (company setting)';
 
   @override
-  String get fieldNegativeStockPolicy => 'Negative stock override';
+  String get fieldNegativeStockPolicy => 'Sell without stock';
 
   @override
   String get stockColumnItem => 'Item';
@@ -4065,4 +4071,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get assignToGridPickTitle => 'Pick grid position';
+
+  @override
+  String get billsScopeSession => 'Current session';
+
+  @override
+  String get billsScopeAll => 'All';
+
+  @override
+  String get sessionRequiredTitle => 'No active session';
+
+  @override
+  String get sessionRequiredMessage =>
+      'You must start a session before making a sale.';
 }

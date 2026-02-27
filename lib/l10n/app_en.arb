@@ -188,14 +188,10 @@
   "prepStatusCreated": "Created",
   "prepStatusReady": "Ready",
   "prepStatusDelivered": "Delivered",
-  "prepStatusCancelled": "Cancelled",
   "prepStatusVoided": "Voided",
 
   "orderStatusChange": "Change Status",
-  "orderCancel": "Cancel Order",
   "orderVoid": "Void Order",
-  "orderConfirmCancel": "Are you sure you want to cancel this order?",
-  "orderConfirmVoid": "Are you sure you want to void this order?",
 
   "paymentTitle": "Payment",
   "paymentMethod": "Payment Method",
@@ -393,7 +389,7 @@
   "closingActualCash": "Actual Cash",
   "closingDifference": "Difference",
   "closingPrint": "Print",
-  "closingConfirm": "Close Session",
+  "closingConfirm": "Confirm",
   "closingNoteTitle": "Closing Note",
   "closingNoteHint": "Notes for closing...",
 
@@ -836,8 +832,8 @@
   "autoArrangeSmart": "Smart",
   "autoArrangeHorizontal": "Horizontal",
   "autoArrangeVertical": "Vertical",
-  "autoArrangeSimpleHorizontalDesc": "Root categories are placed in the first row from left to right. Products are not shown on the main page. Tapping a category opens its sub-page with child categories in the first column and products to the right.",
-  "autoArrangeSimpleVerticalDesc": "Root categories are placed in the first column from top to bottom. Products are not shown on the main page. Tapping a category opens its sub-page with child categories in the first row and products below.",
+  "autoArrangeSimpleHorizontalDesc": "Root categories are placed in the first row from left to right. Products are not shown on the main page. Tapping a category opens its sub-page with child categories in the first row and products below.",
+  "autoArrangeSimpleVerticalDesc": "Root categories are placed in the first column from top to bottom. Products are not shown on the main page. Tapping a category opens its sub-page with child categories in the first column and products to the right.",
   "autoArrangeSmartHorizontalDesc": "Each root category gets its own row — category in the first column, product previews to the right. Each category has a sub-page with all products and child categories arranged the same way.",
   "autoArrangeSmartVerticalDesc": "Each root category gets its own column — category in the first row, product previews below. Each category has a sub-page with all products and child categories arranged the same way.",
   "autoArrangeWarning": "Existing layout will be replaced",
@@ -1259,6 +1255,8 @@
   "statsSalesFinalTotal": "Total (receipts)",
 
   "sellEnterQuantity": "Enter quantity",
+  "sellEnterPrice": "Enter price",
+  "labelOpenPrice": "Open price",
 
   "statsFilterTitle": "Filter",
   "statsFilterPaymentMethod": "Payment method",
@@ -1440,6 +1438,7 @@
   "statsOrderItems": "Items",
 
   "settingsCurrencyLocked": "Default currency cannot be changed after the first bill is created.",
+  "settingsCurrencySessionLocked": "Currencies cannot be changed while a session is active.",
   "settingsAlternativeCurrencies": "Alternative currencies",
   "settingsAddCurrency": "Add currency",
   "settingsExchangeRate": "Exchange rate",
@@ -1473,6 +1472,9 @@
       "amount": {"type": "String"}
     }
   },
+  "cashTenderReceived": "Received",
+  "cashTenderChangeLabel": "Change",
+  "cashTenderRemainingLabel": "Remaining",
   "cashTenderSkip": "Skip",
   "cashTenderConversion": "{foreignAmount} × {rate} = {baseAmount}",
   "@cashTenderConversion": {
@@ -1570,7 +1572,7 @@
   "inventorySortType": "Type",
   "inventorySortAmount": "Amount",
   "inventorySortItem": "Item",
-  "settingsNegativeStockPolicy": "Negative stock policy",
+  "settingsNegativeStockPolicy": "Sell when out of stock",
   "negativeStockPolicyAllow": "Allow",
   "negativeStockPolicyWarn": "Warn",
   "negativeStockPolicyBlock": "Block",
@@ -1578,7 +1580,7 @@
   "stockWarningTitle": "Stock warning",
   "stockWarningContinue": "Continue",
   "negativeStockPolicyDefault": "Default (company setting)",
-  "fieldNegativeStockPolicy": "Negative stock override",
+  "fieldNegativeStockPolicy": "Sell without stock",
   "stockColumnItem": "Item",
   "stockColumnRequired": "Order",
   "stockColumnAvailable": "In stock",
@@ -1635,5 +1637,10 @@
   "assignToGridNo": "No",
   "assignToGridAuto": "Auto by category",
   "assignToGridPick": "Pick position",
-  "assignToGridPickTitle": "Pick grid position"
+  "assignToGridPickTitle": "Pick grid position",
+
+  "billsScopeSession": "Current session",
+  "billsScopeAll": "All",
+  "sessionRequiredTitle": "No active session",
+  "sessionRequiredMessage": "You must start a session before making a sale."
 }

@@ -175,7 +175,9 @@ class BillRepository {
         final tableIds = tables.map((t) => t.id).toSet();
         bills = bills.where((b) {
           if (b.tableId != null) return tableIds.contains(b.tableId);
-          return b.sectionId != null && sectionIds.contains(b.sectionId);
+          if (b.sectionId != null) return sectionIds.contains(b.sectionId);
+          // Bills without section/table (takeaway, voucher sale, credit top-up) — always visible
+          return true;
         }).toList();
       }
       return bills;
@@ -193,7 +195,6 @@ class BillRepository {
             .get();
         final activeOrderIds = orders
             .where((o) =>
-                o.status != PrepStatus.cancelled &&
                 o.status != PrepStatus.voided &&
                 !o.isStorno)
             .map((o) => o.id)
@@ -207,7 +208,7 @@ class BillRepository {
                 ..where((t) =>
                     t.orderId.isIn(activeOrderIds) &
                     t.deletedAt.isNull() &
-                    t.status.isNotIn([PrepStatus.cancelled.name, PrepStatus.voided.name])))
+                    t.status.isNotIn([PrepStatus.voided.name])))
               .get();
 
           // Batch-load modifiers for all active order items
@@ -328,6 +329,7 @@ class BillRepository {
           delta: -pointsToUse,
           processedByUserId: processedByUserId,
           orderId: billId,
+          reference: billEntity.billNumber,
         );
         if (pointsResult case Failure(:final message)) {
           return Failure(message);
@@ -442,6 +444,7 @@ class BillRepository {
             delta: earnedPoints,
             processedByUserId: userId ?? '',
             orderId: billId,
+            reference: updatedBill.billNumber,
           );
         }
       }
@@ -471,12 +474,10 @@ class BillRepository {
                 t.deletedAt.isNull()))
           .get();
 
-      // Cancel/void orders via OrderRepository (handles stock reversal + sync enqueue)
+      // Void orders via OrderRepository (handles stock reversal + sync enqueue)
       if (orderRepo != null) {
         for (final order in orders) {
-          if (order.status == PrepStatus.created) {
-            await orderRepo!.cancelOrder(order.id);
-          } else if (order.status == PrepStatus.ready) {
+          if (order.status == PrepStatus.created || order.status == PrepStatus.ready) {
             await orderRepo!.voidOrder(order.id);
           }
         }
@@ -516,6 +517,7 @@ class BillRepository {
           delta: bill.loyaltyPointsUsed,
           processedByUserId: userId ?? bill.openedByUserId,
           orderId: billId,
+          reference: bill.billNumber,
         );
       }
 
@@ -650,6 +652,12 @@ class BillRepository {
 
   Future<Result<BillModel>> updateCustomer(String billId, String? customerId, {String? customerName}) async {
     try {
+      final existing = await (_db.select(_db.bills)
+            ..where((t) => t.id.equals(billId)))
+          .getSingle();
+      if (existing.loyaltyPointsUsed > 0 || existing.paidAmount > 0) {
+        return const Failure('Cannot change customer after loyalty or payment has been applied');
+      }
       return await _db.transaction(() async {
         await (_db.update(_db.bills)..where((t) => t.id.equals(billId))).write(
           BillsCompanion(
@@ -673,6 +681,12 @@ class BillRepository {
 
   Future<Result<BillModel>> updateCustomerName(String billId, String? name) async {
     try {
+      final existing = await (_db.select(_db.bills)
+            ..where((t) => t.id.equals(billId)))
+          .getSingle();
+      if (existing.loyaltyPointsUsed > 0 || existing.paidAmount > 0) {
+        return const Failure('Cannot change customer after loyalty or payment has been applied');
+      }
       return await _db.transaction(() async {
         await (_db.update(_db.bills)..where((t) => t.id.equals(billId))).write(
           BillsCompanion(
@@ -820,6 +834,7 @@ class BillRepository {
             delta: bill.loyaltyPointsUsed,
             processedByUserId: userId,
             orderId: billId,
+            reference: bill.billNumber,
           );
         }
 
@@ -830,6 +845,7 @@ class BillRepository {
             delta: -bill.loyaltyPointsEarned,
             processedByUserId: userId,
             orderId: billId,
+            reference: bill.billNumber,
           );
         }
 
@@ -998,6 +1014,7 @@ class BillRepository {
             delta: -proportionalEarned,
             processedByUserId: userId,
             orderId: billId,
+            reference: bill.billNumber,
           );
         }
 
@@ -1008,6 +1025,7 @@ class BillRepository {
             delta: bill.loyaltyPointsUsed,
             processedByUserId: userId,
             orderId: billId,
+            reference: bill.billNumber,
           );
         }
 

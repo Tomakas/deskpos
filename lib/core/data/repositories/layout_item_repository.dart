@@ -224,6 +224,8 @@ class LayoutItemRepository {
               t.type.equalsValue(LayoutItemType.category) &
               t.categoryId.equals(categoryId) &
               t.page.isBiggerThanValue(0) &
+              t.gridRow.equals(0) &
+              t.gridCol.equals(0) &
               t.deletedAt.isNull())
           ..limit(1))
         .getSingleOrNull();

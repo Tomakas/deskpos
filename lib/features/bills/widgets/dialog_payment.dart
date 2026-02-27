@@ -28,9 +28,11 @@ class DialogPayment extends ConsumerStatefulWidget {
     super.key,
     required this.bill,
     this.tableName,
+    this.skipLoyaltyEarn = false,
   });
   final BillModel bill;
   final String? tableName;
+  final bool skipLoyaltyEarn;
 
   @override
   ConsumerState<DialogPayment> createState() => _DialogPaymentState();
@@ -132,7 +134,7 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
       child: ConstrainedBox(
         constraints: BoxConstraints(
           maxWidth: 500,
-          maxHeight: (MediaQuery.sizeOf(context).height - 24).clamp(0, 270),
+          maxHeight: (MediaQuery.sizeOf(context).height - 24).clamp(0, 240),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -164,7 +166,15 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
                                 ),
                               ),
                               const SizedBox(height: 8),
-                              Expanded(child: _SideButton(label: l.paymentEet, onPressed: null)),
+                              Expanded(
+                                child: _SideButton(
+                                  label: l.paymentPrintReceipt,
+                                  onPressed: () => setState(() => _printReceipt = !_printReceipt),
+                                  icon: _printReceipt
+                                      ? Icon(Icons.check_circle, size: 16, color: Colors.green.shade300)
+                                      : Icon(Icons.block, size: 16, color: Colors.red.shade300),
+                                ),
+                              ),
                               const SizedBox(height: 8),
                               Expanded(
                                 child: _SideButton(
@@ -191,131 +201,165 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
                   padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
                   child: Column(
                     children: [
-                      Text(
-                        l.paymentTitle.toUpperCase(),
-                        style: theme.textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
+                      // 25% — title + bill number
+                      Expanded(
+                        flex: 5,
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                l.paymentTitle.toUpperCase(),
+                                style: theme.textTheme.headlineSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                l.paymentBillSubtitle(
+                                  _bill.billNumber,
+                                  widget.tableName ?? l.billDetailNoTable,
+                                ),
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        l.paymentBillSubtitle(
-                          _bill.billNumber,
-                          widget.tableName ?? l.billDetailNoTable,
-                        ),
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          fontStyle: FontStyle.italic,
+                      // 25% — customer banner (or empty)
+                      Expanded(
+                        flex: 5,
+                        child: _customer != null
+                            ? FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Material(
+                                  color: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    side: BorderSide(
+                                      color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                                    ),
+                                  ),
+                                  child: InkWell(
+                                    borderRadius: BorderRadius.circular(8),
+                                    onTap: _canRedeemLoyalty ? () => _redeemLoyalty(context) : null,
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            '${_customer!.firstName} ${_customer!.lastName}',
+                                            style: theme.textTheme.bodySmall?.copyWith(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          Text(
+                                            l.loyaltyCustomerInfo(
+                                              _customer!.points,
+                                              ref.money(_customer!.credit),
+                                            ),
+                                            style: theme.textTheme.bodySmall,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              )
+                            : const SizedBox.shrink(),
+                      ),
+                      // 15% — payments list
+                      Expanded(
+                        flex: 3,
+                        child: StreamBuilder<List<PaymentModel>>(
+                          stream: ref.watch(paymentRepositoryProvider).watchByBill(_bill.id),
+                          builder: (context, snap) {
+                            final payments = snap.data ?? [];
+                            if (payments.isEmpty) return const SizedBox.shrink();
+                            return LayoutBuilder(
+                              builder: (context, constraints) => FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: SizedBox(
+                                  width: constraints.maxWidth,
+                                  child: _buildPaymentsList(context, payments),
+                                ),
+                              ),
+                            );
+                          },
                         ),
                       ),
-                      if (_customer != null) ...[
-                        const SizedBox(height: 8),
-                        GestureDetector(
-                          onTap: _canRedeemLoyalty ? () => _redeemLoyalty(context) : null,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              '${_customer!.firstName} ${_customer!.lastName} | ${l.loyaltyCustomerInfo(
-                                _customer!.points,
-                                ref.money(_customer!.credit),
-                              )}',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                fontWeight: FontWeight.bold,
+                      // 35% — amount to pay
+                      Expanded(
+                        flex: 7,
+                        child: LayoutBuilder(
+                          builder: (context, constraints) => FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: SizedBox(
+                              width: constraints.maxWidth,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (_selectedForeignCurrencyId != null) ...[
+                                    _amountBlock(
+                                      context,
+                                      _formatForeignMoney(_foreignPayAmount),
+                                      onTap: _remaining > 0 ? () => _editAmount(context) : null,
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      l.paymentForeignRate(
+                                        _selectedCompanyCurrency!.exchangeRate.toString(),
+                                        ref.money(_foreignToBase(_foreignPayAmount)),
+                                      ),
+                                      style: theme.textTheme.bodySmall?.copyWith(
+                                        fontStyle: FontStyle.italic,
+                                      ),
+                                    ),
+                                    if (_foreignToBase(_foreignPayAmount) > _remaining)
+                                      Text(
+                                        '(${l.paymentTip(ref.money(_foreignToBase(_foreignPayAmount) - _remaining))})',
+                                        style: theme.textTheme.bodySmall?.copyWith(
+                                          fontStyle: FontStyle.italic,
+                                          color: Colors.green,
+                                        ),
+                                      ),
+                                  ] else if (_customAmount != null) ...[
+                                    _amountBlock(
+                                      context,
+                                      ref.money(_customAmount!),
+                                      onTap: _remaining > 0 ? () => _editAmount(context) : null,
+                                    ),
+                                    if (_customAmount! != _remaining) ...[
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        _customAmount! > _remaining
+                                            ? '(${l.paymentTip(ref.money(_customAmount! - _remaining))})'
+                                            : '(${l.paymentRemaining(ref.money(_customAmount! - _remaining))})',
+                                        style: theme.textTheme.bodyMedium?.copyWith(
+                                          fontStyle: FontStyle.italic,
+                                          color: _customAmount! > _remaining
+                                              ? Colors.green
+                                              : Colors.red,
+                                        ),
+                                      ),
+                                    ],
+                                  ] else ...[
+                                    _amountBlock(
+                                      context,
+                                      ref.money(_remaining),
+                                      onTap: _remaining > 0 ? () => _editAmount(context) : null,
+                                    ),
+                                  ],
+                                ],
                               ),
                             ),
                           ),
                         ),
-                      ],
-                      const SizedBox(height: 16),
-                      // Already-made payments
-                      StreamBuilder<List<PaymentModel>>(
-                        stream: ref.watch(paymentRepositoryProvider).watchByBill(_bill.id),
-                        builder: (context, snap) {
-                          final payments = snap.data ?? [];
-                          if (payments.isEmpty) return const SizedBox.shrink();
-                          return _buildPaymentsList(context, payments);
-                        },
                       ),
-                      const Spacer(),
-                      // Remaining amount
-                      if (_selectedForeignCurrencyId != null) ...[
-                        // Foreign currency mode
-                        Text(
-                          ref.money(_remaining),
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        _amountBlock(
-                          context,
-                          _formatForeignMoney(_foreignPayAmount),
-                          onTap: _remaining > 0 ? () => _editAmount(context) : null,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          l.paymentForeignRate(
-                            _selectedCompanyCurrency!.exchangeRate.toString(),
-                            ref.money(_foreignToBase(_foreignPayAmount)),
-                          ),
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
-                        if (_foreignToBase(_foreignPayAmount) > _remaining)
-                          Text(
-                            '(${l.paymentTip(ref.money(_foreignToBase(_foreignPayAmount) - _remaining))})',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              fontStyle: FontStyle.italic,
-                              color: Colors.green,
-                            ),
-                          ),
-                      ] else if (_customAmount != null) ...[
-                        Text(
-                          ref.money(_remaining),
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                          ),
-                        ),
-                        if (_customAmount! != _remaining)
-                          Text(
-                            _customAmount! > _remaining
-                                ? '(${l.paymentTip(ref.money(_customAmount! - _remaining))})'
-                                : '(${l.paymentRemaining(ref.money(_customAmount! - _remaining))})',
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              fontStyle: FontStyle.italic,
-                              color: _customAmount! > _remaining
-                                  ? Colors.green
-                                  : Colors.red,
-                            ),
-                          ),
-                        const SizedBox(height: 4),
-                        _amountBlock(
-                          context,
-                          ref.money(_customAmount!),
-                          onTap: _remaining > 0 ? () => _editAmount(context) : null,
-                        ),
-                      ] else ...[
-                        _amountBlock(
-                          context,
-                          ref.money(_remaining),
-                          onTap: _remaining > 0 ? () => _editAmount(context) : null,
-                        ),
-                      ],
-                      const SizedBox(height: 12),
-                      GestureDetector(
-                        onTap: () => setState(() => _printReceipt = !_printReceipt),
-                        child: Text(
-                          '${l.paymentPrintReceipt}: ${_printReceipt ? l.paymentPrintYes : l.paymentPrintNo}',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      const Spacer(),
                     ],
                   ),
                 ),
@@ -382,6 +426,9 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
                                         onPressed: _processing || _remaining <= 0
                                             ? null
                                             : () => _pay(context, primaryMethods[i].id),
+                                        onLongPress: _processing || _remaining <= 0 || primaryMethods[i].type != PaymentType.cash
+                                            ? null
+                                            : () => _pay(context, primaryMethods[i].id, forceTender: true),
                                       )
                                     : const SizedBox.shrink(),
                               ),
@@ -446,56 +493,33 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
         final methods = snap.data ?? [];
         final methodMap = {for (final m in methods) m.id: m.name};
 
+        final parts = <String>[];
+        for (final p in payments) {
+          final name = methodMap[p.paymentMethodId] ?? '?';
+          String amount;
+          if (p.foreignCurrencyId != null && p.foreignAmount != null) {
+            final fc = _availableForeignCurrencies
+                .where((e) => e.$1.currencyId == p.foreignCurrencyId)
+                .firstOrNull;
+            amount = fc != null
+                ? '${formatMoney(p.foreignAmount!, fc.$2)} (× ${p.exchangeRate})'
+                : '${p.foreignAmount}';
+          } else {
+            amount = ref.money(p.amount);
+          }
+          final tip = p.tipIncludedAmount > 0 ? ' (+${ref.money(p.tipIncludedAmount)})' : '';
+          parts.add('$name $amount$tip');
+        }
+
         return Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            for (final p in payments)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 2),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      methodMap[p.paymentMethodId] ?? '?',
-                      style: theme.textTheme.bodyMedium,
-                    ),
-                    const SizedBox(width: 12),
-                    if (p.foreignCurrencyId != null && p.foreignAmount != null) ...[
-                      // Show foreign currency amount
-                      Builder(builder: (context) {
-                        final fc = _availableForeignCurrencies
-                            .where((e) => e.$1.currencyId == p.foreignCurrencyId)
-                            .firstOrNull;
-                        final foreignStr = fc != null
-                            ? formatMoney(p.foreignAmount!, fc.$2)
-                            : '${p.foreignAmount}';
-                        return Text(
-                          '$foreignStr (× ${p.exchangeRate})',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        );
-                      }),
-                    ] else ...[
-                      Text(
-                        ref.money(p.amount),
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                    if (p.tipIncludedAmount > 0) ...[
-                      const SizedBox(width: 4),
-                      Text(
-                        '(+${ref.money(p.tipIncludedAmount)})',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          fontStyle: FontStyle.italic,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            const Divider(),
+            Text(
+              parts.join(', '),
+              style: theme.textTheme.bodySmall,
+              textAlign: TextAlign.center,
+            ),
+            const Divider(height: 8),
           ],
         );
       },
@@ -578,7 +602,7 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
           ),
         ),
         const SizedBox(height: 8),
-        const Expanded(child: SizedBox.shrink()),
+        Expanded(child: _SideButton(label: l.paymentEet, onPressed: null)),
         const SizedBox(height: 8),
         const Expanded(child: SizedBox.shrink()),
         const SizedBox(height: 8),
@@ -612,16 +636,40 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
         final updatedBill = await ref.read(billRepositoryProvider).getById(_bill.id);
         await _loadCustomer();
         if (mounted && updatedBill is Success<BillModel>) {
-          setState(() {
-            _bill = updatedBill.value;
-            _customAmount = null;
-            _showMoreActions = false;
-          });
+          _bill = updatedBill.value;
+          _customAmount = null;
+          _showMoreActions = false;
+          // Auto-pay if fully covered by loyalty discount
+          if (_bill.totalGross - _bill.paidAmount <= 0) {
+            await _recordZeroPayment();
+            if (context.mounted) Navigator.pop(context, true);
+            return;
+          }
+          setState(() {});
         }
       }
     } finally {
       if (mounted) setState(() => _processing = false);
     }
+  }
+
+  Future<void> _recordZeroPayment() async {
+    final methods = await (_paymentMethodsFuture ?? Future.value(<PaymentMethodModel>[]));
+    final cashMethod = methods.where((m) => m.type == PaymentType.cash).firstOrNull;
+    if (cashMethod == null) return;
+    final register = ref.read(activeRegisterProvider).value;
+    final session = ref.read(activeRegisterSessionProvider).valueOrNull;
+    await ref.read(billRepositoryProvider).recordPayment(
+      companyId: _bill.companyId,
+      billId: _bill.id,
+      paymentMethodId: cashMethod.id,
+      currencyId: _bill.currencyId,
+      amount: 0,
+      userId: ref.read(activeUserProvider)?.id,
+      registerId: register?.id,
+      registerSessionId: session?.id,
+      loyaltyEarnRate: widget.skipLoyaltyEarn ? 0 : _loyaltyEarnRate,
+    );
   }
 
   void _clearForeignCurrency() {
@@ -689,7 +737,7 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
     }
   }
 
-  Future<void> _pay(BuildContext context, String methodId) async {
+  Future<void> _pay(BuildContext context, String methodId, {bool forceTender = false}) async {
     setState(() => _processing = true);
 
     if (_remaining <= 0) return;
@@ -703,7 +751,7 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
 
     CashTenderResult? tenderResult;
     if (isCash) {
-      final canSkip =
+      final canSkip = !forceTender &&
           ref.read(hasPermissionProvider('payments.skip_cash_dialog'));
       if (!canSkip) {
         final baseCurrency = ref.read(currentCurrencyProvider).value;
@@ -726,8 +774,12 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
         );
 
         if (!context.mounted) return;
-        // tenderResult == null → user chose "Bez zadání" or dismissed
-        // Payment proceeds normally without tender evidence
+        // tenderResult == null → user dismissed (close button) → cancel payment
+        if (tenderResult == null) {
+          setState(() => _processing = false);
+          return;
+        }
+        // tenderResult.skipped → "Bez zadání" → proceed without tender evidence
       }
     }
 
@@ -753,8 +805,8 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
       effectiveAmount = amount > _remaining ? _remaining : amount;
     }
 
-    // Use pre-loaded loyalty earn rate
-    final loyaltyEarn = _bill.customerId != null ? _loyaltyEarnRate : 0;
+    // Use pre-loaded loyalty earn rate (skip for non-sale bills like credit top-up)
+    final loyaltyEarn = _bill.customerId != null && !widget.skipLoyaltyEarn ? _loyaltyEarnRate : 0;
 
     final repo = ref.read(billRepositoryProvider);
     final register = ref.read(activeRegisterProvider).value;
@@ -832,6 +884,7 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
       delta: -effectiveAmount,
       processedByUserId: ref.read(activeUserProvider)?.id ?? '',
       orderId: _bill.id,
+      reference: _bill.billNumber,
     );
     if (creditResult is! Success) {
       if (mounted) setState(() => _processing = false);
@@ -881,13 +934,34 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
 }
 
 class _SideButton extends StatelessWidget {
-  const _SideButton({required this.label, required this.onPressed, this.color});
+  const _SideButton({required this.label, required this.onPressed, this.color, this.icon});
   final String label;
   final VoidCallback? onPressed;
   final Color? color;
+  final Widget? icon;
 
   @override
   Widget build(BuildContext context) {
+    final child = icon != null
+        ? Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              icon!,
+              const SizedBox(width: 4),
+              Flexible(
+                child: Text(
+                  label,
+                  style: const TextStyle(fontSize: 11),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ],
+          )
+        : Text(
+            label,
+            style: const TextStyle(fontSize: 11),
+            textAlign: TextAlign.center,
+          );
     return SizedBox(
       width: double.infinity,
       height: double.infinity,
@@ -895,43 +969,42 @@ class _SideButton extends StatelessWidget {
           ? FilledButton(
               style: FilledButton.styleFrom(backgroundColor: color),
               onPressed: onPressed,
-              child: Text(
-                label,
-                style: const TextStyle(fontSize: 11),
-                textAlign: TextAlign.center,
-              ),
+              child: child,
             )
           : FilledButton.tonal(
               onPressed: onPressed,
-              child: Text(
-                label,
-                style: const TextStyle(fontSize: 11),
-                textAlign: TextAlign.center,
-              ),
+              child: child,
             ),
     );
   }
 }
 
 class _PaymentMethodButton extends StatelessWidget {
-  const _PaymentMethodButton({required this.label, required this.onPressed});
+  const _PaymentMethodButton({required this.label, required this.onPressed, this.onLongPress});
   final String label;
   final VoidCallback? onPressed;
+  final VoidCallback? onLongPress;
 
   @override
   Widget build(BuildContext context) {
+    final button = FilledButton(
+      style: PosButtonStyles.confirm(context),
+      onPressed: onPressed,
+      child: Text(
+        label,
+        style: const TextStyle(fontSize: 11),
+        textAlign: TextAlign.center,
+      ),
+    );
     return SizedBox(
       width: double.infinity,
       height: double.infinity,
-      child: FilledButton(
-        style: PosButtonStyles.confirm(context),
-        onPressed: onPressed,
-        child: Text(
-          label,
-          style: const TextStyle(fontSize: 11),
-          textAlign: TextAlign.center,
-        ),
-      ),
+      child: onLongPress != null
+          ? GestureDetector(
+              onLongPress: onLongPress,
+              child: button,
+            )
+          : button,
     );
   }
 }

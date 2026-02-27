@@ -443,25 +443,13 @@ class AppLocalizationsCs extends AppLocalizations {
   String get prepStatusDelivered => 'Doručeno';
 
   @override
-  String get prepStatusCancelled => 'Zrušeno';
-
-  @override
   String get prepStatusVoided => 'Stornováno';
 
   @override
   String get orderStatusChange => 'Změnit stav';
 
   @override
-  String get orderCancel => 'Zrušit objednávku';
-
-  @override
   String get orderVoid => 'Stornovat objednávku';
-
-  @override
-  String get orderConfirmCancel => 'Opravdu chcete zrušit tuto objednávku?';
-
-  @override
-  String get orderConfirmVoid => 'Opravdu chcete stornovat tuto objednávku?';
 
   @override
   String get paymentTitle => 'Platba';
@@ -977,7 +965,7 @@ class AppLocalizationsCs extends AppLocalizations {
   String get closingPrint => 'Tisk';
 
   @override
-  String get closingConfirm => 'Uzavřít směnu';
+  String get closingConfirm => 'Potvrdit';
 
   @override
   String get closingNoteTitle => 'Poznámka k uzávěrce';
@@ -2033,11 +2021,11 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get autoArrangeSimpleHorizontalDesc =>
-      'Kořenové kategorie jsou umístěny v prvním řádku zleva doprava. Produkty se na hlavní stránce nezobrazují. Klepnutím na kategorii se otevře sub-stránka s podkategoriemi v prvním sloupci a produkty napravo.';
+      'Kořenové kategorie jsou umístěny v prvním řádku zleva doprava. Produkty se na hlavní stránce nezobrazují. Klepnutím na kategorii se otevře sub-stránka s podkategoriemi v prvním řádku a produkty pod nimi.';
 
   @override
   String get autoArrangeSimpleVerticalDesc =>
-      'Kořenové kategorie jsou umístěny v prvním sloupci shora dolů. Produkty se na hlavní stránce nezobrazují. Klepnutím na kategorii se otevře sub-stránka s podkategoriemi v prvním řádku a produkty pod nimi.';
+      'Kořenové kategorie jsou umístěny v prvním sloupci shora dolů. Produkty se na hlavní stránce nezobrazují. Klepnutím na kategorii se otevře sub-stránka s podkategoriemi v prvním sloupci a produkty napravo.';
 
   @override
   String get autoArrangeSmartHorizontalDesc =>
@@ -3108,6 +3096,12 @@ class AppLocalizationsCs extends AppLocalizations {
   String get sellEnterQuantity => 'Zadejte množství';
 
   @override
+  String get sellEnterPrice => 'Zadejte cenu';
+
+  @override
+  String get labelOpenPrice => 'Otevřená cena';
+
+  @override
   String get statsFilterTitle => 'Filtr';
 
   @override
@@ -3587,6 +3581,10 @@ class AppLocalizationsCs extends AppLocalizations {
       'Výchozí měnu nelze změnit po vytvoření prvního účtu.';
 
   @override
+  String get settingsCurrencySessionLocked =>
+      'Měny nelze měnit při aktivní směně.';
+
+  @override
   String get settingsAlternativeCurrencies => 'Alternativní měny';
 
   @override
@@ -3626,6 +3624,15 @@ class AppLocalizationsCs extends AppLocalizations {
   String cashTenderRemaining(String amount) {
     return 'Zbývá: $amount';
   }
+
+  @override
+  String get cashTenderReceived => 'Přijato';
+
+  @override
+  String get cashTenderChangeLabel => 'Vrátit';
+
+  @override
+  String get cashTenderRemainingLabel => 'Zbývá';
 
   @override
   String get cashTenderSkip => 'Bez zadání';
@@ -3873,7 +3880,7 @@ class AppLocalizationsCs extends AppLocalizations {
   String get inventorySortItem => 'Položka';
 
   @override
-  String get settingsNegativeStockPolicy => 'Politika záporných zásob';
+  String get settingsNegativeStockPolicy => 'Prodej při nedostatku zásob';
 
   @override
   String get negativeStockPolicyAllow => 'Povolit';
@@ -3897,7 +3904,7 @@ class AppLocalizationsCs extends AppLocalizations {
   String get negativeStockPolicyDefault => 'Výchozí (nastavení firmy)';
 
   @override
-  String get fieldNegativeStockPolicy => 'Přepsat politiku zásob';
+  String get fieldNegativeStockPolicy => 'Prodej bez skladu';
 
   @override
   String get stockColumnItem => 'Položka';
@@ -4061,4 +4068,17 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get assignToGridPickTitle => 'Vyberte pozici v gridu';
+
+  @override
+  String get billsScopeSession => 'Aktuální směna';
+
+  @override
+  String get billsScopeAll => 'Vše';
+
+  @override
+  String get sessionRequiredTitle => 'Směna není aktivní';
+
+  @override
+  String get sessionRequiredMessage =>
+      'Pro provedení prodeje je nutné nejprve zahájit směnu.';
 }

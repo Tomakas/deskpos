@@ -17,7 +17,7 @@ abstract class ItemModel with _$ItemModel implements CompanyScopedModel {
     String? description,
     required ItemType itemType,
     String? sku,
-    required int unitPrice,
+    int? unitPrice,
     String? saleTaxRateId,
     @Default(true) bool isSellable,
     @Default(true) bool isActive,

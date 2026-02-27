@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../l10n/app_localizations.dart';
+import '../theme/app_colors.dart';
 import 'pos_dialog_actions.dart';
 import 'pos_dialog_theme.dart';
 
@@ -18,6 +19,7 @@ class PosDialogShell extends StatelessWidget {
     this.expandHeight = false,
     this.bottomActions,
     this.showCloseButton = false,
+    this.onPrint,
   });
 
   final String title;
@@ -32,26 +34,45 @@ class PosDialogShell extends StatelessWidget {
   final Widget? bottomActions;
   final bool showCloseButton;
 
+  /// When provided, shows a print icon in the top-left of the title bar.
+  final VoidCallback? onPrint;
+
   @override
   Widget build(BuildContext context) {
     final style = titleStyle ?? Theme.of(context).textTheme.titleLarge;
     final titleContent = titleWidget ?? Text(title, style: style);
+    final hasSideAction = showCloseButton || onPrint != null;
     final Widget titleRow;
-    if (showCloseButton) {
+    if (hasSideAction) {
       titleRow = Row(
         children: [
-          const SizedBox(width: 40),
+          if (onPrint != null)
+            SizedBox(
+              width: 40,
+              height: 40,
+              child: IconButton(
+                icon: const Icon(Icons.print_outlined),
+                onPressed: onPrint,
+                padding: EdgeInsets.zero,
+                iconSize: 20,
+              ),
+            )
+          else
+            const SizedBox(width: 40),
           Expanded(child: Center(child: titleContent)),
-          SizedBox(
-            width: 40,
-            height: 40,
-            child: IconButton(
-              icon: const Icon(Icons.close),
-              onPressed: () => Navigator.pop(context),
-              padding: EdgeInsets.zero,
-              iconSize: 20,
-            ),
-          ),
+          if (showCloseButton)
+            SizedBox(
+              width: 40,
+              height: 40,
+              child: IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () => Navigator.pop(context),
+                padding: EdgeInsets.zero,
+                iconSize: 20,
+              ),
+            )
+          else
+            const SizedBox(width: 40),
         ],
       );
     } else {
@@ -86,6 +107,7 @@ class PosDialogShell extends StatelessWidget {
                     ),
                   ),
                 ),
+                const SizedBox(height: PosDialogTheme.actionTopSpacing),
                 bottomActions!,
               ],
             ),
@@ -98,7 +120,10 @@ class PosDialogShell extends StatelessWidget {
       titleRow,
       const SizedBox(height: PosDialogTheme.sectionSpacing),
       ...children,
-      ?bottomActions,
+      if (bottomActions != null) ...[
+        const SizedBox(height: PosDialogTheme.actionTopSpacing),
+        bottomActions!,
+      ],
     ];
 
     return Dialog(
@@ -140,7 +165,7 @@ Future<bool> confirmDelete(BuildContext context, AppLocalizations l) async {
         PosDialogActions(
           actions: [
             OutlinedButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.no)),
-            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.yes)),
+            FilledButton(style: PosButtonStyles.destructiveFilled(ctx), onPressed: () => Navigator.pop(ctx, true), child: Text(l.yes)),
           ],
         ),
       ],

@@ -140,25 +140,13 @@ class _SectionsTabState extends ConsumerState<SectionsTab> {
                       size: 20,
                     ),
                   ),
-                  PosColumn(
-                    label: l.fieldActions,
-                    flex: 2,
-                    cellBuilder: (s) => Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.edit, size: 20),
-                          onPressed: () => _showEditDialog(context, s),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete, size: 20),
-                          onPressed: () => _delete(context, s),
-                        ),
-                      ],
-                    ),
-                  ),
                 ],
                 items: filtered,
+                onRowTap: (s) => _showEditDialog(context, s),
+                onRowLongPress: (s) async {
+                  if (!await confirmDelete(context, context.l10n) || !context.mounted) return;
+                  await ref.read(sectionRepositoryProvider).delete(s.id);
+                },
               ),
             ),
           ],
@@ -182,6 +170,17 @@ class _SectionsTabState extends ConsumerState<SectionsTab> {
           maxWidth: 350,
           scrollable: true,
           bottomActions: PosDialogActions(
+            leading: existing != null
+                ? OutlinedButton(
+                    style: PosButtonStyles.destructiveOutlined(ctx),
+                    onPressed: () async {
+                      if (!await confirmDelete(ctx, l) || !ctx.mounted) return;
+                      await ref.read(sectionRepositoryProvider).delete(existing.id);
+                      if (ctx.mounted) Navigator.pop(ctx);
+                    },
+                    child: Text(l.actionDelete),
+                  )
+                : null,
             actions: [
               OutlinedButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.actionCancel)),
               FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.actionSave)),
@@ -252,8 +251,4 @@ class _SectionsTabState extends ConsumerState<SectionsTab> {
     }
   }
 
-  Future<void> _delete(BuildContext context, SectionModel section) async {
-    if (!await confirmDelete(context, context.l10n) || !context.mounted) return;
-    await ref.read(sectionRepositoryProvider).delete(section.id);
-  }
 }

@@ -148,6 +148,13 @@ class _RecipesTabState extends ConsumerState<RecipesTab> {
                     onRowTap: (entry) => _showRecipeDialog(
                       context, ref, items, entry.key, entry.value,
                     ),
+                    onRowLongPress: (entry) async {
+                      if (!await confirmDelete(context, context.l10n) || !context.mounted) return;
+                      final repo = ref.read(productRecipeRepositoryProvider);
+                      for (final c in entry.value) {
+                        await repo.delete(c.id);
+                      }
+                    },
                   ),
                 ),
               ],

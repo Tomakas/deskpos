@@ -16,14 +16,32 @@ class DialogCustomerTransactions extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
     final theme = Theme.of(context);
+    final headerStyle = theme.textTheme.bodySmall?.copyWith(
+      fontWeight: FontWeight.bold,
+      color: theme.colorScheme.onSurfaceVariant,
+    );
 
     return PosDialogShell(
       title: l.loyaltyTransactionHistory,
       showCloseButton: true,
       scrollable: true,
-      maxWidth: 500,
+      maxWidth: 560,
       maxHeight: 520,
       children: [
+        // Header row
+        Padding(
+          padding: const EdgeInsets.only(bottom: 6),
+          child: Row(
+            children: [
+              SizedBox(width: 90, child: Text(l.cashJournalColumnTime, style: headerStyle)),
+              Expanded(flex: 2, child: Text(l.customerPoints, style: headerStyle)),
+              Expanded(flex: 2, child: Text(l.customerCredit, style: headerStyle)),
+              Expanded(flex: 3, child: Text(l.cashMovementNote, style: headerStyle, textAlign: TextAlign.end)),
+            ],
+          ),
+        ),
+        const Divider(height: 1),
+        // Data rows
         StreamBuilder<List<CustomerTransactionModel>>(
           stream: ref.watch(customerTransactionRepositoryProvider).watchByCustomer(customerId),
           builder: (context, snap) {
@@ -41,49 +59,52 @@ class DialogCustomerTransactions extends ConsumerWidget {
               children: [
                 for (final tx in txs)
                   Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 2),
+                    padding: const EdgeInsets.symmetric(vertical: 3),
                     child: Row(
                       children: [
                         SizedBox(
-                          width: 80,
+                          width: 90,
                           child: Text(
                             ref.fmtDateTimeShort(tx.createdAt),
                             style: theme.textTheme.bodySmall,
                           ),
                         ),
-                        if (tx.pointsChange != 0)
-                          Expanded(
-                            child: Text(
-                              l.loyaltyPointsChange(
-                                '${tx.pointsChange > 0 ? '+' : ''}${tx.pointsChange}',
-                              ),
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: valueChangeColor(tx.pointsChange, context),
-                              ),
+                        Expanded(
+                          flex: 2,
+                          child: tx.pointsChange != 0
+                              ? Text(
+                                  '${tx.pointsChange > 0 ? '+' : ''}${tx.pointsChange}',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: valueChangeColor(tx.pointsChange, context),
+                                  ),
+                                )
+                              : const SizedBox.shrink(),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child: tx.creditChange != 0
+                              ? Text(
+                                  '${tx.creditChange > 0 ? '+' : ''}${ref.money(tx.creditChange)}',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: valueChangeColor(tx.creditChange, context),
+                                  ),
+                                )
+                              : const SizedBox.shrink(),
+                        ),
+                        Expanded(
+                          flex: 3,
+                          child: Text(
+                            [
+                              if (tx.reference != null) tx.reference!,
+                              if (tx.note != null && tx.note!.isNotEmpty) tx.note!,
+                            ].join(' · '),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
                             ),
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.end,
                           ),
-                        if (tx.creditChange != 0)
-                          Expanded(
-                            child: Text(
-                              '${tx.creditChange > 0 ? '+' : ''}${ref.money(tx.creditChange)}',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: valueChangeColor(tx.creditChange, context),
-                              ),
-                            ),
-                          ),
-                        if (tx.pointsChange == 0 && tx.creditChange == 0)
-                          const Expanded(child: SizedBox.shrink()),
-                        if (tx.note != null && tx.note!.isNotEmpty)
-                          Expanded(
-                            child: Text(
-                              tx.note!,
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                              textAlign: TextAlign.end,
-                            ),
-                          ),
+                        ),
                       ],
                     ),
                   ),

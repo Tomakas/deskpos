@@ -1858,6 +1858,31 @@ sequenceDiagram
 - **Customer display integrace:** Při zahájení prodeje `_pushDisplayIdle()`, po úspěšné platbě thank-you message
 - **numberOfGuests:** Explicitně nastaveno na 1 (výchozí `createBill` parametr je 0)
 
+### Přehled všech variant vytváření účtů (createBill)
+
+Systém vytváří účty (bills) na 7 místech. Každá varianta nastavuje jiné pole:
+
+| # | Soubor | tableId | sectionId | isTakeaway | Zobrazení v ScreenBills |
+|---|--------|---------|-----------|------------|------------------------|
+| 1 | `screen_bills.dart` — DialogNewBill | ano | ano | ne | název stolu |
+| 2 | `screen_sell.dart` — gastro prodej bez stolu | ne | ano | ne | „Bez stolu" |
+| 3 | `screen_sell.dart` — rychlý prodej (retail) | ne | ano | ano | „Rychlý účet" |
+| 4 | `dialog_bill_detail.dart` — split (okamžitá platba) | ano | ne | ne | název stolu |
+| 5 | `dialog_bill_detail.dart` — split (odložená platba) | ano | ne | ne | název stolu |
+| 6 | `dialog_voucher_create.dart` — prodej voucheru | ne | ne | ano | „Rychlý účet" |
+| 7 | `dialog_customer_credit.dart` — nabití kreditu | ne | ne | ano | „Rychlý účet" |
+
+**Zobrazení ve sloupci Stůl** (`_resolveTableName` v `screen_bills.dart`):
+- `isTakeaway == true` → `"{billNumber} — Rychlý účet"` (lokalizovaný klíč `billsQuickBill`)
+- `isTakeaway == false` a `tableId == null` → `"{billNumber} — Bez stolu"` (lokalizovaný klíč `billDetailNoTable`)
+- `isTakeaway == false` a `tableId != null` → název stolu z `tableMap`
+
+**Section filtr:** Účty bez `sectionId` a `tableId` (varianty 6, 7) procházejí section filtrem vždy — nejsou vázány na žádnou sekci.
+
+**Session scoping:** Všechny varianty předávají `registerSessionId` z aktuální session → účty jsou viditelné pouze v rámci session, ve které vznikly.
+
+**Loyalty body (skipLoyaltyEarn):** Varianty 6 a 7 předávají `skipLoyaltyEarn: true` do `DialogPayment`, aby se za nákup voucheru/kreditu nepřičítaly věrnostní body (ty se přičtou až při skutečné útratě).
+
 ### Workflow — Stolový prodej
 
 Pro restaurační provoz s více objednávkami na jeden účet:

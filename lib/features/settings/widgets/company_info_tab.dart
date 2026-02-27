@@ -118,12 +118,9 @@ class _CompanyInfoTabState extends ConsumerState<CompanyInfoTab> {
     if (!mounted) return;
     _earnCtrl.text = settings.loyaltyEarnRate.toString();
     _pointValueCtrl.text = settings.loyaltyPointValue.toString();
-    _maxItemDiscountCtrl.text = (settings.maxItemDiscountPercent / 100).toStringAsFixed(
-      settings.maxItemDiscountPercent % 100 == 0 ? 0 : 2,
-    );
-    _maxBillDiscountCtrl.text = (settings.maxBillDiscountPercent / 100).toStringAsFixed(
-      settings.maxBillDiscountPercent % 100 == 0 ? 0 : 2,
-    );
+    final locale = ref.read(appLocaleProvider).value ?? 'cs';
+    _maxItemDiscountCtrl.text = formatForInput(settings.maxItemDiscountPercent / 100, locale);
+    _maxBillDiscountCtrl.text = formatForInput(settings.maxBillDiscountPercent / 100, locale);
     setState(() {
       _currencies = currencies;
       _currencyLocked = currencyLocked;
@@ -144,7 +141,7 @@ class _CompanyInfoTabState extends ConsumerState<CompanyInfoTab> {
       // Create/update rate controllers
       for (final cc in list) {
         if (!_rateControllers.containsKey(cc.id)) {
-          _rateControllers[cc.id] = TextEditingController(text: cc.exchangeRate.toString());
+          _rateControllers[cc.id] = TextEditingController(text: formatForInput(cc.exchangeRate, ref.read(appLocaleProvider).value ?? 'cs'));
         }
       }
       // Remove controllers for deleted entries
@@ -435,6 +432,7 @@ class _CompanyInfoTabState extends ConsumerState<CompanyInfoTab> {
                 final defaultId = ref.watch(currentCompanyProvider)?.defaultCurrencyId;
                 final defaultCurrencyModel = _currencies.where((c) => c.id == defaultId).firstOrNull;
                 final currentCurrency = ref.watch(currentCurrencyProvider).value;
+                final hasActiveSession = ref.watch(activeRegisterSessionProvider).valueOrNull != null;
 
                 final children = <Widget>[];
 
@@ -476,7 +474,7 @@ class _CompanyInfoTabState extends ConsumerState<CompanyInfoTab> {
                           isDense: true,
                         ),
                         onChanged: (v) {
-                          final rate = double.tryParse(v);
+                          final rate = parseInputDouble(v);
                           if (rate != null && rate > 0) {
                             final ccRepo = ref.read(companyCurrencyRepositoryProvider);
                             ccRepo.update(cc.copyWith(
@@ -487,28 +485,31 @@ class _CompanyInfoTabState extends ConsumerState<CompanyInfoTab> {
                         },
                       ),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.close, size: 18),
-                      onPressed: () {
-                        final ccRepo = ref.read(companyCurrencyRepositoryProvider);
-                        ccRepo.delete(cc.id);
-                      },
-                      iconSize: 18,
-                      constraints: const BoxConstraints(),
-                      padding: const EdgeInsets.all(4),
-                    ),
+                    if (!hasActiveSession)
+                      IconButton(
+                        icon: const Icon(Icons.close, size: 18),
+                        onPressed: () {
+                          final ccRepo = ref.read(companyCurrencyRepositoryProvider);
+                          ccRepo.delete(cc.id);
+                        },
+                        iconSize: 18,
+                        constraints: const BoxConstraints(),
+                        padding: const EdgeInsets.all(4),
+                      ),
                   ]);
                 }
 
                 // Add currency button
-                children.addAll([
-                  const SizedBox(width: 8),
-                  IconButton(
-                    icon: const Icon(Icons.add_circle_outline),
-                    onPressed: _addAlternativeCurrency,
-                    tooltip: l.settingsAddCurrency,
-                  ),
-                ]);
+                if (!hasActiveSession) {
+                  children.addAll([
+                    const SizedBox(width: 8),
+                    IconButton(
+                      icon: const Icon(Icons.add_circle_outline),
+                      onPressed: _addAlternativeCurrency,
+                      tooltip: l.settingsAddCurrency,
+                    ),
+                  ]);
+                }
 
                 return Row(children: children);
               }),
@@ -518,6 +519,16 @@ class _CompanyInfoTabState extends ConsumerState<CompanyInfoTab> {
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 child: Text(
                   l.settingsCurrencyLocked,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            if (ref.watch(activeRegisterSessionProvider).valueOrNull != null)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                child: Text(
+                  l.settingsCurrencySessionLocked,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
@@ -604,7 +615,7 @@ class _CompanyInfoTabState extends ConsumerState<CompanyInfoTab> {
                       decoration: InputDecoration(labelText: l.settingsMaxItemDiscount),
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
                       onChanged: (v) {
-                        final parsed = double.tryParse(v);
+                        final parsed = parseInputDouble(v);
                         if (parsed == null) return;
                         final basisPoints = (parsed * 100).round().clamp(0, 10000);
                         _updateSettings(_settings!.copyWith(maxItemDiscountPercent: basisPoints));
@@ -618,7 +629,7 @@ class _CompanyInfoTabState extends ConsumerState<CompanyInfoTab> {
                       decoration: InputDecoration(labelText: l.settingsMaxBillDiscount),
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
                       onChanged: (v) {
-                        final parsed = double.tryParse(v);
+                        final parsed = parseInputDouble(v);
                         if (parsed == null) return;
                         final basisPoints = (parsed * 100).round().clamp(0, 10000);
                         _updateSettings(_settings!.copyWith(maxBillDiscountPercent: basisPoints));

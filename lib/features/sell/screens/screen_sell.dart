@@ -12,6 +12,7 @@ import '../../../core/data/enums/unit_type.dart';
 import '../../../core/data/enums/layout_item_type.dart';
 import '../../../core/data/models/bill_model.dart';
 import '../../../core/data/models/category_model.dart';
+import '../../../core/data/models/currency_model.dart';
 import '../../../core/data/models/customer_display_content.dart';
 import '../../../core/data/models/customer_model.dart';
 import '../../../core/data/models/item_model.dart';
@@ -652,7 +653,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
             final item = items[i];
             return ListTile(
               title: Text(item.name),
-              trailing: Text(ref.money(item.unitPrice)),
+              trailing: Text(item.unitPrice != null ? ref.money(item.unitPrice!) : '???'),
               onTap: () => _addToCart(ref, item, company.id),
               onLongPress: () => _addToCart(ref, item, company.id, forceQuantityDialog: true),
             );
@@ -843,7 +844,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
 
     return _ItemButton(
       label: layoutItem.label ?? item.name,
-      subtitle: hasVariants ? null : ref.moneyValue(item.unitPrice),
+      subtitle: hasVariants ? null : (item.unitPrice != null ? ref.moneyValue(item.unitPrice!) : '???'),
       color: layoutItem.color != null
           ? parseHexColor(layoutItem.color)
           : Theme.of(context).colorScheme.primaryContainer,
@@ -1017,15 +1018,32 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
       }
     }
 
-    // Quantity dialog for non-ks items, or when forced (long press)
+    // Open-price items: ask cashier for price (+ quantity in same dialog)
+    int? resolvedPrice;
     double quantity = 1;
-    if (selectedItem.unit != UnitType.ks || forceQuantityDialog) {
-      final q = await showDialog<double>(
+    if (selectedItem.unitPrice == null) {
+      final currency = ref.read(currentCurrencyProvider).value;
+      final result = await showDialog<({int price, double quantity})>(
         context: context,
-        builder: (_) => _QuantityInputDialog(item: selectedItem),
+        builder: (_) => _PriceInputDialog(
+          item: selectedItem,
+          currencySymbol: currency?.symbol ?? '',
+          currency: currency,
+        ),
       );
-      if (q == null || !mounted) return;
-      quantity = q;
+      if (result == null || !mounted) return;
+      resolvedPrice = result.price;
+      quantity = result.quantity;
+    } else {
+      // Quantity dialog for non-ks items, or when forced (long press)
+      if (selectedItem.unit != UnitType.ks || forceQuantityDialog) {
+        final q = await showDialog<double>(
+          context: context,
+          builder: (_) => _QuantityInputDialog(item: selectedItem),
+        );
+        if (q == null || !mounted) return;
+        quantity = q;
+      }
     }
 
     // Check for modifier groups (on item itself + inherited from parent)
@@ -1034,11 +1052,12 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
 
     if (groups.isNotEmpty) {
       final modifiers = await _showModifierDialog(selectedItem, groups,
+          resolvedPrice: resolvedPrice,
           cellWidth: cellWidth, cellHeight: cellHeight, cellColor: cellColor);
       if (modifiers == null || !mounted) return;
-      _addItemToCart(selectedItem, quantity: quantity, modifiers: modifiers);
+      _addItemToCart(selectedItem, quantity: quantity, modifiers: modifiers, priceOverride: resolvedPrice);
     } else {
-      _addItemToCart(selectedItem, quantity: quantity);
+      _addItemToCart(selectedItem, quantity: quantity, priceOverride: resolvedPrice);
     }
   }
 
@@ -1136,7 +1155,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
                     height: height,
                     child: _ItemButton(
                       label: v.name,
-                      subtitle: ref.moneyValue(v.unitPrice),
+                      subtitle: v.unitPrice != null ? ref.moneyValue(v.unitPrice!) : '???',
                       color: color,
                       cellHeight: height,
                       stockBadge: stockBadge,
@@ -1155,6 +1174,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
   Future<List<_CartModifier>?> _showModifierDialog(
     ItemModel item,
     List<_ModifierGroupWithItems> groups, {
+    int? resolvedPrice,
     double? cellWidth,
     double? cellHeight,
     Color? cellColor,
@@ -1165,6 +1185,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
         item: item,
         groups: groups,
         moneyFormatter: ref.money,
+        resolvedPrice: resolvedPrice,
         cellWidth: cellWidth ?? 100.0,
         cellHeight: cellHeight ?? 80.0,
         cellColor: cellColor,
@@ -1172,7 +1193,8 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     );
   }
 
-  void _addItemToCart(ItemModel item, {double quantity = 1, List<_CartModifier> modifiers = const []}) {
+  void _addItemToCart(ItemModel item, {double quantity = 1, List<_CartModifier> modifiers = const [], int? priceOverride}) {
+    final resolvedUnitPrice = priceOverride ?? item.unitPrice ?? 0;
     setState(() {
       // Find last separator index
       int lastSepIdx = -1;
@@ -1187,7 +1209,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
           .where((c) {
             if (c.notes != null) return false;
             final cModKey = (c.modifiers.map((m) => m.itemId).toList()..sort()).join(',');
-            return c.itemId == item.id && cModKey == modKey;
+            return c.itemId == item.id && cModKey == modKey && c.unitPrice == resolvedUnitPrice;
           })
           .firstOrNull;
       if (existing != null) {
@@ -1196,7 +1218,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
         _cart.add(_CartItem(
           itemId: item.id,
           name: item.name,
-          unitPrice: item.unitPrice,
+          unitPrice: resolvedUnitPrice,
           unit: item.unit,
           saleTaxRateId: item.saleTaxRateId,
           modifiers: modifiers,
@@ -1371,6 +1393,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
 
   Future<void> _submitQuickSale(BuildContext context, WidgetRef ref) async {
     if (_isSubmitting) return;
+    if (helpers.requireActiveSession(context, ref) == null) return;
     setState(() => _isSubmitting = true);
     try {
       final company = ref.read(currentCompanyProvider);
@@ -2069,6 +2092,136 @@ class _QuantityInputDialogState extends State<_QuantityInputDialog> {
   }
 }
 
+class _PriceInputDialog extends StatefulWidget {
+  const _PriceInputDialog({
+    required this.item,
+    required this.currencySymbol,
+    required this.currency,
+  });
+  final ItemModel item;
+  final String currencySymbol;
+  final CurrencyModel? currency;
+
+  @override
+  State<_PriceInputDialog> createState() => _PriceInputDialogState();
+}
+
+class _PriceInputDialogState extends State<_PriceInputDialog> {
+  String _amountText = '';
+  int _quantity = 1;
+
+  void _numpadTap(String digit) {
+    if (_amountText.length >= 10) return;
+    setState(() => _amountText += digit);
+  }
+
+  void _numpadDot() {
+    if (_amountText.contains('.')) return;
+    setState(() => _amountText += _amountText.isEmpty ? '0.' : '.');
+  }
+
+  void _numpadBackspace() {
+    if (_amountText.isEmpty) return;
+    setState(() {
+      _amountText = _amountText.substring(0, _amountText.length - 1);
+    });
+  }
+
+  void _numpadClear() {
+    setState(() => _amountText = '');
+  }
+
+  void _confirm() {
+    final price = parseMoney(_amountText, widget.currency);
+    if (price <= 0) return;
+    Navigator.pop(context, (price: price, quantity: _quantity.toDouble()));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    final theme = Theme.of(context);
+    final suffix = widget.currencySymbol;
+
+    return PosDialogShell(
+      title: widget.item.name,
+      maxWidth: 340,
+      maxHeight: 520,
+      expandHeight: true,
+      children: [
+        // Quantity stepper
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            IconButton.outlined(
+              onPressed: _quantity > 1 ? () => setState(() => _quantity--) : null,
+              icon: const Icon(Icons.remove, size: 20),
+              visualDensity: VisualDensity.compact,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Text(
+                '$_quantity ${localizedUnitType(l, widget.item.unit)}',
+                style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+              ),
+            ),
+            IconButton.outlined(
+              onPressed: () => setState(() => _quantity++),
+              icon: const Icon(Icons.add, size: 20),
+              visualDensity: VisualDensity.compact,
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Container(
+          height: 48,
+          width: double.infinity,
+          decoration: BoxDecoration(
+            border: Border.all(color: theme.dividerColor),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          alignment: Alignment.centerRight,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Text(
+            '${_amountText.isEmpty ? '0' : _amountText} $suffix',
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Expanded(
+          child: PosNumpad(
+            width: 250,
+            expand: true,
+            onDigit: _numpadTap,
+            onBackspace: _numpadBackspace,
+            onClear: _numpadClear,
+            onDot: _numpadDot,
+          ),
+        ),
+        const SizedBox(height: 16),
+      ],
+      bottomActions: SizedBox(
+        width: 250,
+        child: PosDialogActions(
+          expanded: true,
+          actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(l.actionCancel),
+            ),
+            FilledButton(
+              onPressed: _confirm,
+              child: Text(l.actionConfirm),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _ModifierGroupWithItems {
   const _ModifierGroupWithItems({required this.group, required this.items});
   final ModifierGroupModel group;
@@ -2212,6 +2365,7 @@ class _ModifierSelectionDialog extends StatefulWidget {
     required this.item,
     required this.groups,
     required this.moneyFormatter,
+    this.resolvedPrice,
     required this.cellWidth,
     required this.cellHeight,
     this.cellColor,
@@ -2219,6 +2373,7 @@ class _ModifierSelectionDialog extends StatefulWidget {
   final ItemModel item;
   final List<_ModifierGroupWithItems> groups;
   final String Function(int) moneyFormatter;
+  final int? resolvedPrice;
   final double cellWidth;
   final double cellHeight;
   final Color? cellColor;
@@ -2257,7 +2412,7 @@ class _ModifierSelectionDialogState extends State<_ModifierSelectionDialog> {
     for (final g in widget.groups) {
       final sel = _selections[g.group.id] ?? {};
       for (final gi in g.items) {
-        if (sel.contains(gi.item.id)) total += gi.item.unitPrice;
+        if (sel.contains(gi.item.id)) total += gi.item.unitPrice ?? 0;
       }
     }
     return total;
@@ -2267,14 +2422,15 @@ class _ModifierSelectionDialogState extends State<_ModifierSelectionDialog> {
   Widget build(BuildContext context) {
     final l = context.l10n;
     final theme = Theme.of(context);
-    final total = widget.item.unitPrice + _modifierTotal;
+    final basePrice = widget.resolvedPrice ?? widget.item.unitPrice ?? 0;
+    final total = basePrice + _modifierTotal;
 
     return PosDialogShell(
       title: widget.item.name,
       titleWidget: Row(
         children: [
           Expanded(child: Text(widget.item.name, style: theme.textTheme.titleLarge)),
-          Text(widget.moneyFormatter(widget.item.unitPrice),
+          Text(widget.moneyFormatter(basePrice),
               style: theme.textTheme.titleMedium),
         ],
       ),
@@ -2328,7 +2484,7 @@ class _ModifierSelectionDialogState extends State<_ModifierSelectionDialog> {
                           result.add(_CartModifier(
                             itemId: gi.item.id,
                             name: gi.item.name,
-                            unitPrice: gi.item.unitPrice,
+                            unitPrice: gi.item.unitPrice ?? 0,
                             saleTaxRateId: gi.item.saleTaxRateId,
                             modifierGroupId: g.group.id,
                           ));
@@ -2372,8 +2528,8 @@ class _ModifierSelectionDialogState extends State<_ModifierSelectionDialog> {
                 height: widget.cellHeight,
                 child: _ItemButton(
                   label: gi.item.name,
-                  subtitle: gi.item.unitPrice > 0
-                      ? '+${widget.moneyFormatter(gi.item.unitPrice)}'
+                  subtitle: (gi.item.unitPrice ?? 0) > 0
+                      ? '+${widget.moneyFormatter(gi.item.unitPrice!)}'
                       : null,
                   color: color,
                   cellHeight: widget.cellHeight,
@@ -2382,7 +2538,13 @@ class _ModifierSelectionDialogState extends State<_ModifierSelectionDialog> {
                       ? null
                       : () {
                           if (isSingleSelect) {
-                            setState(() => _selections[g.group.id] = {gi.item.id});
+                            setState(() {
+                              if (isSelected && g.group.minSelections == 0) {
+                                _selections[g.group.id] = {};
+                              } else {
+                                _selections[g.group.id] = {gi.item.id};
+                              }
+                            });
                           } else {
                             setState(() {
                               final s = _selections[g.group.id] ??= {};

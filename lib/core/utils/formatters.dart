@@ -111,6 +111,12 @@ int parseMoney(String input, CurrencyModel? currency) {
   return (parsed * multiplier).round();
 }
 
+/// Parses a user-entered amount string into integer minor units, or null if empty.
+int? parseMoneyOrNull(String input, CurrencyModel? currency) {
+  if (input.trim().isEmpty) return null;
+  return parseMoney(input, currency);
+}
+
 /// Extracts the whole-unit part from minor units (drops fractional part).
 ///
 /// For CZK (decimalPlaces=2): 50099 → 500
@@ -125,13 +131,46 @@ int wholeUnitsFromMinor(int minorUnits, CurrencyModel? currency) {
 
 /// Converts minor units to a string suitable for pre-filling an input field.
 ///
-/// For CZK (decimalPlaces=2): 1250 → "12.50"
+/// When [locale] is provided, uses locale-aware decimal separator (e.g. comma
+/// for CS). Otherwise falls back to dot-based formatting.
+///
+/// For CZK (decimalPlaces=2): 1250 → "12,50" (cs) / "12.50" (en)
 /// For HUF (decimalPlaces=0): 1234 → "1234"
-String minorUnitsToInputString(int minorUnits, CurrencyModel? currency) {
+String minorUnitsToInputString(int minorUnits, CurrencyModel? currency, {String? locale}) {
   final c = currency ?? _fallbackCurrency;
   if (c.decimalPlaces == 0) return minorUnits.toString();
   final divisor = _pow10(c.decimalPlaces);
-  return (minorUnits / divisor).toStringAsFixed(c.decimalPlaces);
+  final value = minorUnits / divisor;
+  if (locale != null) {
+    final fmt = NumberFormat.decimalPattern(locale)
+      ..turnOffGrouping()
+      ..maximumFractionDigits = c.decimalPlaces
+      ..minimumFractionDigits = c.decimalPlaces;
+    return fmt.format(value);
+  }
+  return value.toStringAsFixed(c.decimalPlaces);
+}
+
+/// Formats a number for pre-filling a text input field.
+///
+/// Uses locale-aware decimal separator, no grouping separators.
+/// Drops trailing zeros: 21.0 → "21", 10.5 → "10,5" (cs) / "10.5" (en).
+String formatForInput(num value, String locale, {int maxDecimals = 2}) {
+  if (value == value.roundToDouble()) {
+    return value.round().toString();
+  }
+  final fmt = NumberFormat.decimalPattern(locale)
+    ..turnOffGrouping()
+    ..maximumFractionDigits = maxDecimals
+    ..minimumFractionDigits = 0;
+  return fmt.format(value);
+}
+
+/// Parses a user-entered number, accepting both comma and dot as decimal
+/// separator. Returns `null` when the input cannot be parsed.
+double? parseInputDouble(String input) {
+  final normalized = input.replaceAll(',', '.').trim();
+  return double.tryParse(normalized);
 }
 
 // ---------------------------------------------------------------------------

@@ -18,7 +18,6 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
 
     required this.statusReady,
     required this.statusDelivered,
-    required this.statusCancelled,
     required this.statusVoided,
     // BillStatus
     required this.billOpened,
@@ -49,7 +48,6 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
 
   final Color statusReady;
   final Color statusDelivered;
-  final Color statusCancelled;
   final Color statusVoided;
 
   // BillStatus
@@ -82,7 +80,6 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
 
     Color? statusReady,
     Color? statusDelivered,
-    Color? statusCancelled,
     Color? statusVoided,
     Color? billOpened,
     Color? billPaid,
@@ -106,7 +103,6 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
 
       statusReady: statusReady ?? this.statusReady,
       statusDelivered: statusDelivered ?? this.statusDelivered,
-      statusCancelled: statusCancelled ?? this.statusCancelled,
       statusVoided: statusVoided ?? this.statusVoided,
       billOpened: billOpened ?? this.billOpened,
       billPaid: billPaid ?? this.billPaid,
@@ -135,7 +131,6 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
 
       statusReady: Color.lerp(statusReady, other.statusReady, t)!,
       statusDelivered: Color.lerp(statusDelivered, other.statusDelivered, t)!,
-      statusCancelled: Color.lerp(statusCancelled, other.statusCancelled, t)!,
       statusVoided: Color.lerp(statusVoided, other.statusVoided, t)!,
       billOpened: Color.lerp(billOpened, other.billOpened, t)!,
       billPaid: Color.lerp(billPaid, other.billPaid, t)!,
@@ -164,7 +159,6 @@ const lightAppColors = AppColorsExtension(
 
   statusReady: Colors.green,
   statusDelivered: Colors.grey,
-  statusCancelled: Colors.red,
   statusVoided: Colors.red,
   // BillStatus
   billOpened: Colors.blue,
@@ -208,6 +202,13 @@ abstract final class PosButtonStyles {
 
   static ButtonStyle destructiveFilled(BuildContext context) =>
       FilledButton.styleFrom(backgroundColor: context.appColors.danger);
+
+  static ButtonStyle destructiveFilledWith(BuildContext context, {EdgeInsetsGeometry? padding, OutlinedBorder? shape}) =>
+      FilledButton.styleFrom(
+        backgroundColor: context.appColors.danger,
+        padding: padding,
+        shape: shape,
+      );
 
   static ButtonStyle destructiveOutlined(BuildContext context) =>
       OutlinedButton.styleFrom(

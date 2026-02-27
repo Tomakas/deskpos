@@ -37,7 +37,7 @@ class _LogTabState extends State<LogTab> {
   }
 
   static const _maxReadBytes = 200 * 1024; // 200 KB tail
-  static const _maxLines = 500;
+  static const _maxLines = 1000;
 
   Future<void> _loadLog() async {
     final path = AppLogger.logFilePath;

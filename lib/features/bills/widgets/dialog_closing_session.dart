@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -12,6 +10,7 @@ import '../../../core/utils/formatters.dart';
 import '../../../core/utils/formatting_ext.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
+import '../../../core/widgets/pos_numpad.dart';
 
 // ---------------------------------------------------------------------------
 // Data classes
@@ -130,6 +129,7 @@ class ClosingSessionResult {
     required this.closingCash,
     this.note,
     this.foreignClosingCash = const {},
+    this.printReport = false,
   });
 
   /// Actual cash counted by the cashier, in haléře.
@@ -138,6 +138,9 @@ class ClosingSessionResult {
 
   /// Foreign currency closing cash: currencyId → amount in minor units.
   final Map<String, int> foreignClosingCash;
+
+  /// Whether to print the Z-report after closing.
+  final bool printReport;
 }
 
 // ---------------------------------------------------------------------------
@@ -156,20 +159,21 @@ class _DialogClosingSessionState extends ConsumerState<DialogClosingSession> {
   late final TextEditingController _closingCashCtrl;
   final Map<String, TextEditingController> _foreignClosingCtrls = {};
   String? _note;
+  bool _printReport = false;
 
   ClosingSessionData get _data => widget.data;
 
   @override
   void initState() {
     super.initState();
+    final baseCurrency = ref.read(currentCurrencyProvider).value;
     _closingCashCtrl = TextEditingController(
-      text: '${_data.expectedCash ~/ 100}',
+      text: '${wholeUnitsFromMinor(_data.expectedCash, baseCurrency)}',
     );
     _closingCashCtrl.addListener(() => setState(() {}));
     for (final fc in _data.foreignCurrencyCash) {
-      final divisor = pow(10, fc.decimalPlaces).toInt();
       final ctrl = TextEditingController(
-        text: '${fc.expectedCash ~/ divisor}',
+        text: '${wholeUnitsFromMinor(fc.expectedCash, fc.toCurrencyModel())}',
       );
       ctrl.addListener(() => setState(() {}));
       _foreignClosingCtrls[fc.currencyId] = ctrl;
@@ -190,8 +194,9 @@ class _DialogClosingSessionState extends ConsumerState<DialogClosingSession> {
   // ---------------------------------------------------------------------------
 
   int? get _closingCashMinor {
-    final parsed = int.tryParse(_closingCashCtrl.text);
-    return parsed == null ? null : parsed * 100;
+    final text = _closingCashCtrl.text.trim();
+    if (text.isEmpty || parseInputDouble(text) == null) return null;
+    return parseMoney(text, ref.read(currentCurrencyProvider).value);
   }
 
   int? get _difference {
@@ -210,10 +215,9 @@ class _DialogClosingSessionState extends ConsumerState<DialogClosingSession> {
     final foreignClosing = <String, int>{};
     for (final fc in _data.foreignCurrencyCash) {
       final ctrl = _foreignClosingCtrls[fc.currencyId]!;
-      final parsed = int.tryParse(ctrl.text);
-      if (parsed != null) {
-        final cur = fc.toCurrencyModel();
-        foreignClosing[fc.currencyId] = parseMoney(parsed.toString(), cur);
+      final text = ctrl.text.trim();
+      if (text.isNotEmpty && parseInputDouble(text) != null) {
+        foreignClosing[fc.currencyId] = parseMoney(text, fc.toCurrencyModel());
       }
     }
 
@@ -223,6 +227,7 @@ class _DialogClosingSessionState extends ConsumerState<DialogClosingSession> {
         closingCash: closing,
         note: _note,
         foreignClosingCash: foreignClosing,
+        printReport: _printReport,
       ),
     );
   }
@@ -265,6 +270,137 @@ class _DialogClosingSessionState extends ConsumerState<DialogClosingSession> {
     if (result != null && mounted) {
       setState(() => _note = result.isEmpty ? null : result);
     }
+  }
+
+  Future<String?> _showCashInputDialog({
+    required String title,
+    required int expectedCash,
+    required String initialText,
+    required CurrencyModel currency,
+    required String locale,
+  }) async {
+    final l = context.l10n;
+    String fmt(int amount) => formatMoney(amount, currency, appLocale: locale);
+    String fmtSign(int amount) =>
+        formatMoneyWithSign(amount, currency, appLocale: locale);
+
+    return showDialog<String>(
+      context: context,
+      builder: (dialogContext) {
+        var input = initialText;
+        return StatefulBuilder(
+          builder: (ctx, setInnerState) {
+            final closingMinor =
+                input.isNotEmpty && parseInputDouble(input) != null
+                    ? parseMoney(input, currency)
+                    : null;
+            final diff =
+                closingMinor != null ? closingMinor - expectedCash : null;
+
+            return PosDialogShell(
+              title: title,
+              maxWidth: 340,
+              maxHeight: 480,
+              expandHeight: true,
+              bottomActions: SizedBox(
+                width: 250,
+                child: PosDialogActions(
+                  expanded: true,
+                  actions: [
+                    OutlinedButton(
+                      onPressed: () => Navigator.pop(dialogContext),
+                      child: Text(l.actionCancel),
+                    ),
+                    FilledButton(
+                      style: PosButtonStyles.confirm(ctx),
+                      onPressed: input.isNotEmpty
+                          ? () => Navigator.pop(dialogContext, input)
+                          : null,
+                      child: Text(l.actionConfirm),
+                    ),
+                  ],
+                ),
+              ),
+              children: [
+                // Expected cash info row
+                _row(l.closingExpectedCash, fmt(expectedCash), bold: true),
+                // Live difference row
+                if (diff != null)
+                  _row(
+                    l.closingDifference,
+                    fmtSign(diff),
+                    bold: true,
+                    valueColor: cashDifferenceColor(diff, ctx),
+                  ),
+                const SizedBox(height: 12),
+                // Amount display
+                Container(
+                  height: 48,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                        color: Theme.of(ctx).dividerColor),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  alignment: Alignment.centerRight,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Text(
+                    input.isNotEmpty
+                        ? fmt(parseMoney(input, currency))
+                        : '—',
+                    style: Theme.of(ctx).textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                // Numpad
+                Expanded(
+                  child: PosNumpad(
+                    width: 250,
+                    expand: true,
+                    onDigit: (digit) {
+                      if (input.length >= 7) return;
+                      setInnerState(() => input += digit);
+                    },
+                    onBackspace: () {
+                      if (input.isEmpty) return;
+                      setInnerState(() {
+                        input = input.substring(0, input.length - 1);
+                      });
+                    },
+                    onClear: () => setInnerState(() => input = ''),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _cashInputRow(String label, String value,
+      {required VoidCallback onTap}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: FilledButton.tonal(
+        onPressed: onTap,
+        style: FilledButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(label),
+            ),
+            Text(value),
+            const SizedBox(width: 4),
+            const Icon(Icons.chevron_right, size: 20),
+          ],
+        ),
+      ),
+    );
   }
 
   // ---------------------------------------------------------------------------
@@ -411,15 +547,23 @@ class _DialogClosingSessionState extends ConsumerState<DialogClosingSession> {
           bold: true,
         ),
         const SizedBox(height: 8),
-        TextField(
-          controller: _closingCashCtrl,
-          decoration: InputDecoration(
-            labelText: l.closingActualCash,
-            suffixText: ref.currencySymbol,
-            border: const OutlineInputBorder(),
-          ),
-          keyboardType: TextInputType.number,
-          style: theme.textTheme.titleLarge,
+        _cashInputRow(
+          l.closingActualCash,
+          _closingCashMinor != null ? ref.money(_closingCashMinor!) : '—',
+          onTap: () async {
+            final currency = ref.read(currentCurrencyProvider).value!;
+            final locale = ref.read(appLocaleProvider).value ?? 'cs';
+            final result = await _showCashInputDialog(
+              title: l.closingActualCash,
+              expectedCash: _data.expectedCash,
+              initialText: _closingCashCtrl.text,
+              currency: currency,
+              locale: locale,
+            );
+            if (result != null) {
+              _closingCashCtrl.text = result;
+            }
+          },
         ),
         if (diff != null) ...[
           const SizedBox(height: 8),
@@ -461,8 +605,10 @@ class _DialogClosingSessionState extends ConsumerState<DialogClosingSession> {
     String fmtSign(int amount) => formatMoneyWithSign(amount, cur, appLocale: locale);
 
     final ctrl = _foreignClosingCtrls[fc.currencyId]!;
-    final parsed = int.tryParse(ctrl.text);
-    final closingMinor = parsed != null ? parseMoney(parsed.toString(), cur) : null;
+    final closingText = ctrl.text.trim();
+    final closingMinor = closingText.isNotEmpty && parseInputDouble(closingText) != null
+        ? parseMoney(closingText, cur)
+        : null;
     final diff = closingMinor != null ? closingMinor - fc.expectedCash : null;
 
     return Column(
@@ -480,16 +626,21 @@ class _DialogClosingSessionState extends ConsumerState<DialogClosingSession> {
         const Divider(height: 8),
         _row(l.closingExpectedCash, fmt(fc.expectedCash), bold: true),
         const SizedBox(height: 8),
-        TextField(
-          controller: ctrl,
-          decoration: InputDecoration(
-            labelText: l.closingActualCash,
-            suffixText: fc.symbol,
-            border: const OutlineInputBorder(),
-            isDense: true,
-          ),
-          keyboardType: TextInputType.number,
-          style: theme.textTheme.titleMedium,
+        _cashInputRow(
+          l.closingActualCash,
+          closingMinor != null ? fmt(closingMinor) : '—',
+          onTap: () async {
+            final result = await _showCashInputDialog(
+              title: '${l.closingActualCash} (${fc.code})',
+              expectedCash: fc.expectedCash,
+              initialText: ctrl.text,
+              currency: cur,
+              locale: locale,
+            );
+            if (result != null) {
+              ctrl.text = result;
+            }
+          },
         ),
         if (diff != null) ...[
           const SizedBox(height: 4),
@@ -541,8 +692,17 @@ class _DialogClosingSessionState extends ConsumerState<DialogClosingSession> {
           ),
         ),
         OutlinedButton(
-          onPressed: null,
-          child: Text(l.closingPrint),
+          onPressed: () => setState(() => _printReport = !_printReport),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(l.closingPrint),
+              if (_printReport) ...[
+                const SizedBox(width: 4),
+                Icon(Icons.check, size: 14, color: theme.colorScheme.primary),
+              ],
+            ],
+          ),
         ),
         OutlinedButton(
           onPressed: () => Navigator.pop(context),

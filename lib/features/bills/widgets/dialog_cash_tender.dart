@@ -8,7 +8,6 @@ import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
-import '../../../core/utils/formatting_ext.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_numpad.dart';
@@ -17,13 +16,20 @@ class CashTenderResult {
   const CashTenderResult({
     required this.receivedAmount,
     required this.changeAmount,
+    this.skipped = false,
   });
+
+  /// "Bez zadání" — skip tender, proceed with payment without evidence.
+  static const skip = CashTenderResult(receivedAmount: 0, changeAmount: 0, skipped: true);
 
   /// Přijatá částka v měně platby (minor units).
   final int receivedAmount;
 
   /// Částka k vrácení — vždy ve výchozí měně (minor units).
   final int changeAmount;
+
+  /// True when user chose "Bez zadání" (skip).
+  final bool skipped;
 }
 
 class DialogCashTender extends ConsumerStatefulWidget {
@@ -176,25 +182,110 @@ class _DialogCashTenderState extends ConsumerState<DialogCashTender> {
     final l = context.l10n;
     final theme = Theme.of(context);
 
+    final infoStyle = theme.textTheme.bodyMedium;
+
+    // Change / remaining
+    final String changeLabel;
+    final String changeValue;
+    final Color changeColor;
+    if (_receivedMinor == 0) {
+      changeLabel = l.cashTenderChangeLabel;
+      changeValue = '—';
+      changeColor = theme.colorScheme.onSurfaceVariant;
+    } else if (_coversAmount) {
+      changeLabel = l.cashTenderChangeLabel;
+      changeValue = _fmtBase(_changeAmount);
+      changeColor = Colors.green;
+    } else {
+      changeLabel = l.cashTenderRemainingLabel;
+      changeValue = _fmtBase(widget.amountDue - _receivedInBase);
+      changeColor = theme.colorScheme.error;
+    }
+
+    // Title: "K úhradě: 320 Kč"
+    final titleText = '${l.cashTenderAmountDue}: ${_fmtPay(_amountDueInPayCurrency)}';
+
     return PosDialogShell(
-      title: l.cashTenderTitle,
+      title: titleText,
+      showCloseButton: true,
       maxWidth: 440,
-      maxHeight: 400,
+      maxHeight: 440,
       expandHeight: true,
       padding: const EdgeInsets.all(20),
       children: [
-        // 1. K úhradě header
-        _buildAmountDueHeader(theme),
+        // Vrátit / Zbývá
+        Row(
+          children: [
+            Text('$changeLabel: ', style: infoStyle),
+            Text(
+              changeValue,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: changeColor,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        // Přijato — input box
+        Row(
+          children: [
+            Text('${l.cashTenderReceived}: ', style: infoStyle),
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.3)),
+                ),
+                child: Text(
+                  _receivedMinor > 0 ? _fmtPay(_receivedMinor) : '',
+                  style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.end,
+                ),
+              ),
+            ),
+            if (_isForeign && _receivedMinor > 0) ...[
+              const SizedBox(width: 8),
+              Text(
+                '= ${_fmtBase(_receivedInBase)}',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ],
+        ),
         const SizedBox(height: 12),
-        // 2. Quick buttons + Numpad
         Expanded(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Quick buttons (flex: 1)
-              Expanded(child: _buildQuickButtons()),
+              // Quick buttons
+              Expanded(
+                child: Column(
+                  children: [
+                    for (var i = 0; i < _displayQuick.length; i++) ...[
+                      if (i > 0) const SizedBox(height: 8),
+                      Expanded(
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: FilledButton.tonal(
+                            onPressed: () => setState(() {
+                              _input = _displayQuick[i].toString();
+                              _replaceOnNextDigit = true;
+                            }),
+                            child: Text('${_displayQuick[i]}'),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
               const SizedBox(width: 16),
-              // Numpad (flex: 3)
+              // Numpad
               Expanded(
                 flex: 3,
                 child: PosNumpad(
@@ -207,21 +298,13 @@ class _DialogCashTenderState extends ConsumerState<DialogCashTender> {
             ],
           ),
         ),
-        const SizedBox(height: 12),
-        // 3. Konverzní řádek (jen cizí měna + nenulový vstup)
-        if (_isForeign && _receivedMinor > 0) ...[
-          _buildConversionLine(theme),
-          const SizedBox(height: 4),
-        ],
-        // 4. Vrátit / Zbývá / Prázdný stav
-        _buildChangeLine(theme, l),
         const SizedBox(height: 16),
       ],
       bottomActions: PosDialogActions(
         expanded: true,
         actions: [
           OutlinedButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(context, CashTenderResult.skip),
             child: Text(l.cashTenderSkip),
           ),
           FilledButton(
@@ -238,117 +321,6 @@ class _DialogCashTenderState extends ConsumerState<DialogCashTender> {
             child: Text(l.actionConfirm),
           ),
         ],
-      ),
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // UI building blocks
-  // ---------------------------------------------------------------------------
-
-  Widget _buildAmountDueHeader(ThemeData theme) {
-    return Material(
-      color: theme.colorScheme.primaryContainer,
-      borderRadius: BorderRadius.circular(12),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
-        child: Column(
-          children: [
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(
-                _fmtBase(widget.amountDue),
-                style: theme.textTheme.headlineLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.onPrimaryContainer,
-                ),
-              ),
-            ),
-            if (_isForeign)
-              Text(
-                '(${_fmtPay(_amountDueInPayCurrency)} × ${ref.fmtDecimal(widget.exchangeRate!)})',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onPrimaryContainer.withValues(
-                    alpha: 0.7,
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildQuickButtons() {
-    return Column(
-      children: [
-        for (var i = 0; i < _displayQuick.length; i++) ...[
-          if (i > 0) const SizedBox(height: 8),
-          Expanded(
-            child: SizedBox(
-              width: double.infinity,
-              child: FilledButton.tonal(
-                onPressed: () => setState(() {
-                  _input = _displayQuick[i].toString();
-                  _replaceOnNextDigit = true;
-                }),
-                child: Text('${_displayQuick[i]}'),
-              ),
-            ),
-          ),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildConversionLine(ThemeData theme) {
-    final l = context.l10n;
-    return Text(
-      l.cashTenderConversion(
-        _fmtPay(_receivedMinor),
-        ref.fmtDecimal(widget.exchangeRate!),
-        _fmtBase(_receivedInBase),
-      ),
-      textAlign: TextAlign.center,
-      style: theme.textTheme.bodySmall?.copyWith(
-        color: theme.colorScheme.onSurfaceVariant,
-      ),
-    );
-  }
-
-  Widget _buildChangeLine(ThemeData theme, dynamic l) {
-    if (_receivedMinor == 0) {
-      // Prázdný stav — zobrazit dlužnou částku šedě
-      return Text(
-        '${l.cashTenderAmountDue}: ${_fmtBase(widget.amountDue)}',
-        textAlign: TextAlign.center,
-        style: theme.textTheme.bodyMedium?.copyWith(
-          color: theme.colorScheme.onSurfaceVariant,
-        ),
-      );
-    }
-
-    if (_coversAmount) {
-      // Vrátit — zelený text
-      return Text(
-        l.cashTenderChange(_fmtBase(_changeAmount)),
-        textAlign: TextAlign.center,
-        style: theme.textTheme.titleMedium?.copyWith(
-          color: Colors.green,
-          fontWeight: FontWeight.bold,
-        ),
-      );
-    }
-
-    // Zbývá — červený text
-    return Text(
-      l.cashTenderRemaining(
-        _fmtBase(widget.amountDue - _receivedInBase),
-      ),
-      textAlign: TextAlign.center,
-      style: theme.textTheme.titleMedium?.copyWith(
-        color: theme.colorScheme.error,
-        fontWeight: FontWeight.bold,
       ),
     );
   }

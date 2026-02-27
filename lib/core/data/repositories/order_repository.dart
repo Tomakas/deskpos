@@ -269,8 +269,8 @@ class OrderRepository {
         return (o, items);
       });
 
-      // Reverse stock deduction on cancel/void
-      if (status == PrepStatus.cancelled || status == PrepStatus.voided) {
+      // Reverse stock deduction on void
+      if (status == PrepStatus.voided) {
         await _reverseStockForOrder(order.companyId, itemEntities, billId: order.billId);
       }
 
@@ -281,20 +281,7 @@ class OrderRepository {
     }
   }
 
-  Future<Result<OrderModel>> cancelOrder(String orderId) async {
-    try {
-      final order = await (_db.select(_db.orders)
-            ..where((t) => t.id.equals(orderId)))
-          .getSingle();
-      if (order.status != PrepStatus.created) {
-        return const Failure('Can only cancel orders in created state');
-      }
-      return updateStatus(orderId, PrepStatus.cancelled);
-    } catch (e, s) {
-      AppLogger.error('Failed to cancel order', error: e, stackTrace: s);
-      return Failure('Failed to cancel order: $e');
-    }
-  }
+  Future<Result<OrderModel>> cancelOrder(String orderId) => voidOrder(orderId);
 
   Future<Result<OrderModel>> voidOrder(String orderId) async {
     try {
@@ -331,9 +318,8 @@ class OrderRepository {
       final itemEntity = await (_db.select(_db.orderItems)
             ..where((t) => t.id.equals(itemId)))
           .getSingle();
-      if (itemEntity.status == PrepStatus.voided ||
-          itemEntity.status == PrepStatus.cancelled) {
-        return const Failure('Item is already voided or cancelled');
+      if (itemEntity.status == PrepStatus.voided) {
+        return const Failure('Item is already voided');
       }
 
       return await _db.transaction(() async {
@@ -353,8 +339,8 @@ class OrderRepository {
               : const Value.absent(),
         ));
 
-        // 3. Stock reversal if cancelled/voided
-        if (newStatus == PrepStatus.cancelled || newStatus == PrepStatus.voided) {
+        // 3. Stock reversal if voided
+        if (newStatus == PrepStatus.voided) {
           final orderEntity = await (_db.select(_db.orders)
                 ..where((t) => t.id.equals(orderId)))
               .getSingle();
@@ -387,12 +373,10 @@ class OrderRepository {
   /// Derives Order.status from the statuses of all its items.
   ///
   /// Rules (evaluated in order):
-  /// 1. No active items + all voided → voided
-  /// 2. No active items + all cancelled → cancelled
-  /// 3. No active items + mix → voided
-  /// 4. All active items delivered → delivered
-  /// 5. All active items ready|delivered → ready
-  /// 6. Otherwise → created
+  /// 1. No active items → voided
+  /// 2. All active items delivered → delivered
+  /// 3. All active items ready|delivered → ready
+  /// 4. Otherwise → created
   ///
   /// Order-level timestamps are set on first transition to that status.
   Future<void> _deriveOrderStatus(String orderId) async {
@@ -404,23 +388,13 @@ class OrderRepository {
     if (allItems.isEmpty) return;
 
     final activeItems = allItems
-        .where((i) =>
-            i.status != PrepStatus.voided && i.status != PrepStatus.cancelled)
+        .where((i) => i.status != PrepStatus.voided)
         .toList();
 
     PrepStatus derived;
     if (activeItems.isEmpty) {
-      // All items are voided or cancelled
-      final allVoided = allItems.every((i) => i.status == PrepStatus.voided);
-      final allCancelled =
-          allItems.every((i) => i.status == PrepStatus.cancelled);
-      if (allCancelled) {
-        derived = PrepStatus.cancelled;
-      } else if (allVoided) {
-        derived = PrepStatus.voided;
-      } else {
-        derived = PrepStatus.voided; // mix
-      }
+      // All items are voided — void the order
+      derived = PrepStatus.voided;
     } else if (activeItems.every((i) => i.status == PrepStatus.delivered)) {
       derived = PrepStatus.delivered;
     } else if (activeItems.every((i) =>
@@ -451,7 +425,7 @@ class OrderRepository {
       ),
     );
 
-    // Recalculate totals (exclude voided/cancelled items)
+    // Recalculate totals (exclude voided items)
     await _recalculateOrderTotals(orderId);
   }
 
@@ -470,8 +444,8 @@ class OrderRepository {
       final itemEntity = await (_db.select(_db.orderItems)
             ..where((t) => t.id.equals(orderItemId)))
           .getSingle();
-      if (itemEntity.status == PrepStatus.voided || itemEntity.status == PrepStatus.cancelled) {
-        return const Failure('Item is already voided or cancelled');
+      if (itemEntity.status == PrepStatus.voided) {
+        return const Failure('Item is already voided');
       }
 
       // 2. Fetch original order — validate not storno
@@ -911,14 +885,14 @@ class OrderRepository {
                 ..where((t) =>
                     t.orderId.equals(sourceOrderId) &
                     t.deletedAt.isNull() &
-                    t.status.isNotIn([PrepStatus.cancelled.name, PrepStatus.voided.name])))
+                    t.status.isNotIn([PrepStatus.voided.name])))
               .get();
           // Also exclude items with 0 quantity (shouldn't happen, but defensive)
           final activeRemaining = remainingItems.where((i) => i.quantity > 0).toList();
           if (activeRemaining.isEmpty) {
             await (_db.update(_db.orders)..where((t) => t.id.equals(sourceOrderId))).write(
               OrdersCompanion(
-                status: const Value(PrepStatus.cancelled),
+                status: const Value(PrepStatus.voided),
                 itemCount: const Value(0),
                 subtotalGross: const Value(0),
                 subtotalNet: const Value(0),
@@ -1213,11 +1187,11 @@ class OrderRepository {
     });
   }
 
-  /// Recalculates order totals excluding voided/cancelled items.
+  /// Recalculates order totals excluding voided items.
   Future<void> _recalculateOrderTotals(String orderId) async {
     final items = await (_db.select(_db.orderItems)
           ..where((t) => t.orderId.equals(orderId) & t.deletedAt.isNull()
-              & t.status.isNotIn([PrepStatus.cancelled.name, PrepStatus.voided.name])))
+              & t.status.isNotIn([PrepStatus.voided.name])))
         .get();
     // Load modifiers for these items
     final itemIds = items.map((i) => i.id).toList();
@@ -1251,11 +1225,11 @@ class OrderRepository {
     );
   }
 
-  /// Auto-voids an order if all its items are voided/cancelled.
+  /// Auto-voids an order if all its items are voided.
   Future<void> _autoVoidOrderIfEmpty(String orderId) async {
     final activeItems = await (_db.select(_db.orderItems)
           ..where((t) => t.orderId.equals(orderId) & t.deletedAt.isNull()
-              & t.status.isNotIn([PrepStatus.cancelled.name, PrepStatus.voided.name])))
+              & t.status.isNotIn([PrepStatus.voided.name])))
         .get();
     if (activeItems.isEmpty) {
       final now = DateTime.now();
@@ -1450,7 +1424,7 @@ class OrderRepository {
     }
   }
 
-  /// Reverses stock deduction when an order is cancelled or voided.
+  /// Reverses stock deduction when an order is voided.
   Future<void> _reverseStockForOrder(
     String companyId,
     List<OrderItem> orderItemEntities, {

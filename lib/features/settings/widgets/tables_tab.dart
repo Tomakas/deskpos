@@ -164,25 +164,13 @@ class _TablesTabState extends ConsumerState<TablesTab> {
                           ),
                         ),
                       ),
-                      PosColumn(
-                        label: l.fieldActions,
-                        flex: 2,
-                        cellBuilder: (t) => Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.edit, size: 20),
-                              onPressed: () => _showEditDialog(context, ref, sections, t),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.delete, size: 20),
-                              onPressed: () => _delete(context, ref, t),
-                            ),
-                          ],
-                        ),
-                      ),
                     ],
                     items: filtered,
+                    onRowTap: (t) => _showEditDialog(context, ref, sections, t),
+                    onRowLongPress: (t) async {
+                      if (!await confirmDelete(context, context.l10n) || !context.mounted) return;
+                      await ref.read(tableRepositoryProvider).delete(t.id);
+                    },
                   ),
                 ),
               ],
@@ -275,6 +263,17 @@ class _TablesTabState extends ConsumerState<TablesTab> {
           maxWidth: 350,
           scrollable: true,
           bottomActions: PosDialogActions(
+            leading: existing != null
+                ? OutlinedButton(
+                    style: PosButtonStyles.destructiveOutlined(ctx),
+                    onPressed: () async {
+                      if (!await confirmDelete(ctx, l) || !ctx.mounted) return;
+                      await ref.read(tableRepositoryProvider).delete(existing.id);
+                      if (ctx.mounted) Navigator.pop(ctx);
+                    },
+                    child: Text(l.actionDelete),
+                  )
+                : null,
             actions: [
               OutlinedButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.actionCancel)),
               FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.actionSave)),
@@ -341,8 +340,4 @@ class _TablesTabState extends ConsumerState<TablesTab> {
     }
   }
 
-  Future<void> _delete(BuildContext context, WidgetRef ref, TableModel table) async {
-    if (!await confirmDelete(context, context.l10n) || !mounted) return;
-    await ref.read(tableRepositoryProvider).delete(table.id);
-  }
 }

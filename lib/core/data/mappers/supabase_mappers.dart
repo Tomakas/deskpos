@@ -297,6 +297,7 @@ Map<String, dynamic> customerTransactionToSupabaseJson(CustomerTransactionModel 
       'points_change': m.pointsChange,
       'credit_change': m.creditChange,
       'order_id': m.orderId,
+      'reference': m.reference,
       'note': m.note,
       'processed_by_user_id': m.processedByUserId,
     };

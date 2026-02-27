@@ -86,6 +86,7 @@ class CustomerRepository
     required int delta,
     required String processedByUserId,
     String? orderId,
+    String? reference,
     String? note,
   }) async {
     try {
@@ -114,6 +115,7 @@ class CustomerRepository
             pointsChange: delta,
             creditChange: 0,
             orderId: orderId,
+            reference: reference,
             note: note,
             processedByUserId: processedByUserId,
             createdAt: now,
@@ -162,6 +164,7 @@ class CustomerRepository
     required int delta,
     required String processedByUserId,
     String? orderId,
+    String? reference,
     String? note,
   }) async {
     try {
@@ -193,6 +196,7 @@ class CustomerRepository
             pointsChange: 0,
             creditChange: delta,
             orderId: orderId,
+            reference: reference,
             note: note,
             processedByUserId: processedByUserId,
             createdAt: now,

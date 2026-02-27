@@ -308,7 +308,7 @@ class _DialogStockDocumentState extends ConsumerState<DialogStockDocument> {
             quantityController: TextEditingController(text: '1'),
             priceController: TextEditingController(
               text: item.purchasePrice != null
-                  ? minorUnitsToInputString(item.purchasePrice!, ref.read(currentCurrencyProvider).value)
+                  ? minorUnitsToInputString(item.purchasePrice!, ref.read(currentCurrencyProvider).value, locale: ref.read(appLocaleProvider).value ?? 'cs')
                   : '',
             ),
           ),

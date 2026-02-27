@@ -359,46 +359,23 @@ class _RegistersTabState extends ConsumerState<RegistersTab> {
                           _DisplayEntry() => const SizedBox.shrink(),
                         },
                       ),
-                      PosColumn(
-                        label: l.fieldActions,
-                        flex: 2,
-                        cellBuilder: (entry) => switch (entry) {
-                          _RegisterEntry(:final register) => Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(
-                                  icon: const Icon(Icons.edit, size: 20),
-                                  onPressed: () => _showRegisterDialog(
-                                      context, register, registers),
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.delete, size: 20),
-                                  onPressed: register.isMain
-                                      ? null
-                                      : () => _deleteRegister(
-                                          context, register),
-                                ),
-                              ],
-                            ),
-                          _DisplayEntry(:final device) => Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(
-                                  icon: const Icon(Icons.edit, size: 20),
-                                  onPressed: () => _showEditDisplayDialog(
-                                      context, device),
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.delete, size: 20),
-                                  onPressed: () =>
-                                      _deleteDisplayDevice(context, device),
-                                ),
-                              ],
-                            ),
-                        },
-                      ),
                     ],
                     items: entries,
+                    onRowTap: (entry) => switch (entry) {
+                      _RegisterEntry(:final register) => _showRegisterDialog(context, register, registers),
+                      _DisplayEntry(:final device) => _showEditDisplayDialog(context, device),
+                    },
+                    onRowLongPress: (entry) async {
+                      if (entry is _RegisterEntry && entry.register.isMain) return;
+                      if (!await confirmDelete(context, context.l10n) || !context.mounted) return;
+                      switch (entry) {
+                        case _RegisterEntry(:final register):
+                          await ref.read(registerRepositoryProvider).delete(register.id);
+                          if (context.mounted) ref.invalidate(activeRegisterProvider);
+                        case _DisplayEntry(:final device):
+                          await ref.read(displayDeviceRepositoryProvider).delete(device.id);
+                      }
+                    },
                   ),
                 ),
               ],
@@ -530,6 +507,20 @@ class _RegistersTabState extends ConsumerState<RegistersTab> {
           maxWidth: 400,
           scrollable: true,
           bottomActions: PosDialogActions(
+            leading: existing != null && !existing.isMain
+                ? OutlinedButton(
+                    style: PosButtonStyles.destructiveOutlined(ctx),
+                    onPressed: () async {
+                      if (!await confirmDelete(ctx, l) || !ctx.mounted) return;
+                      final regRepo = ref.read(registerRepositoryProvider);
+                      await regRepo.delete(existing.id);
+                      if (!ctx.mounted) return;
+                      ref.invalidate(activeRegisterProvider);
+                      Navigator.pop(ctx);
+                    },
+                    child: Text(l.actionDelete),
+                  )
+                : null,
             actions: [
               OutlinedButton(
                 onPressed: () => Navigator.pop(ctx, false),
@@ -670,15 +661,6 @@ class _RegistersTabState extends ConsumerState<RegistersTab> {
     ref.invalidate(activeRegisterProvider);
   }
 
-  Future<void> _deleteRegister(
-      BuildContext context, RegisterModel register) async {
-    if (!await confirmDelete(context, context.l10n) || !context.mounted) return;
-    final regRepo = ref.read(registerRepositoryProvider);
-    await regRepo.delete(register.id);
-    if (!context.mounted) return;
-    ref.invalidate(activeRegisterProvider);
-  }
-
   // ---------------------------------------------------------------------------
   // Display device actions
   // ---------------------------------------------------------------------------
@@ -784,6 +766,15 @@ class _RegistersTabState extends ConsumerState<RegistersTab> {
           maxWidth: 400,
           scrollable: true,
           bottomActions: PosDialogActions(
+            leading: OutlinedButton(
+              style: PosButtonStyles.destructiveOutlined(ctx),
+              onPressed: () async {
+                if (!await confirmDelete(ctx, l) || !ctx.mounted) return;
+                await ref.read(displayDeviceRepositoryProvider).delete(device.id);
+                if (ctx.mounted) Navigator.pop(ctx);
+              },
+              child: Text(l.actionDelete),
+            ),
             actions: [
               OutlinedButton(
                 onPressed: () => Navigator.pop(ctx, false),
@@ -830,13 +821,6 @@ class _RegistersTabState extends ConsumerState<RegistersTab> {
         );
   }
 
-  Future<void> _deleteDisplayDevice(
-    BuildContext context,
-    DisplayDeviceModel device,
-  ) async {
-    if (!await confirmDelete(context, context.l10n) || !context.mounted) return;
-    await ref.read(displayDeviceRepositoryProvider).delete(device.id);
-  }
 }
 
 // ---------------------------------------------------------------------------

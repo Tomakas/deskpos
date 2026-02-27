@@ -619,7 +619,7 @@ class _DialogGridEditorState extends ConsumerState<DialogGridEditor> {
                       final item = filtered[index];
                       return ListTile(
                         title: Text(item.name),
-                        subtitle: Text(ref.money(item.unitPrice)),
+                        subtitle: Text(item.unitPrice != null ? ref.money(item.unitPrice!) : '???'),
                         onTap: () => Navigator.pop(context, item),
                       );
                     },

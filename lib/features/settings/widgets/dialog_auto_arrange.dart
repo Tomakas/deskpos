@@ -554,7 +554,7 @@ class _DialogAutoArrangeState extends ConsumerState<DialogAutoArrange> {
           registerId: registerId,
           companyId: companyId,
           pageCounter: pageCounter,
-          variant: _ArrangeVariant.horizontal,
+          variant: _ArrangeVariant.vertical,
         );
 
         catIdx++;
@@ -607,7 +607,7 @@ class _DialogAutoArrangeState extends ConsumerState<DialogAutoArrange> {
           registerId: registerId,
           companyId: companyId,
           pageCounter: pageCounter,
-          variant: _ArrangeVariant.vertical,
+          variant: _ArrangeVariant.horizontal,
         );
 
         catIdx++;

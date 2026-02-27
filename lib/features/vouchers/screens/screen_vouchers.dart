@@ -10,6 +10,7 @@ import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/utils/formatting_ext.dart';
 import '../../../core/widgets/pos_table.dart';
+import '../../shared/session_helpers.dart' as helpers;
 import '../widgets/dialog_voucher_create.dart';
 import '../widgets/dialog_voucher_detail.dart';
 
@@ -204,6 +205,7 @@ class _ScreenVouchersState extends ConsumerState<ScreenVouchers> {
       };
 
   Future<void> _createVoucher(BuildContext context) async {
+    if (helpers.requireActiveSession(context, ref) == null) return;
     await showDialog(
       context: context,
       builder: (_) => const DialogVoucherCreate(),

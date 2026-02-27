@@ -10,6 +10,7 @@ class CustomerTransactions extends Table with SyncColumnsMixin {
   IntColumn get pointsChange => integer()();
   IntColumn get creditChange => integer()();
   TextColumn get orderId => text().nullable()();
+  TextColumn get reference => text().nullable()();
   TextColumn get note => text().nullable()();
   TextColumn get processedByUserId => text()();
 

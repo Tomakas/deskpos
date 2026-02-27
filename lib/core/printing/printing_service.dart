@@ -68,8 +68,7 @@ class PrintingService {
     // 3. Get order items (only active ones)
     final allItems = await orderRepo.getOrderItemsByBill(billId);
     final activeItems = allItems
-        .where((i) =>
-            i.status != PrepStatus.cancelled && i.status != PrepStatus.voided)
+        .where((i) => i.status != PrepStatus.voided)
         .toList();
 
     // 4. Get payments

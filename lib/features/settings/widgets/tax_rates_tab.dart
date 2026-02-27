@@ -11,6 +11,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
+import '../../../core/utils/formatters.dart';
 import '../../../core/utils/formatting_ext.dart';
 import '../../../core/utils/search_utils.dart';
 import '../../../core/widgets/highlighted_text.dart';
@@ -121,25 +122,13 @@ class _TaxRatesTabState extends ConsumerState<TaxRatesTab> {
                       size: 20,
                     ),
                   ),
-                  PosColumn(
-                    label: l.fieldActions,
-                    flex: 2,
-                    cellBuilder: (tr) => Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.edit, size: 20),
-                          onPressed: () => _showEditDialog(context, tr),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete, size: 20),
-                          onPressed: () => _delete(context, tr),
-                        ),
-                      ],
-                    ),
-                  ),
                 ],
                 items: filtered,
+                onRowTap: (tr) => _showEditDialog(context, tr),
+                onRowLongPress: (tr) async {
+                  if (!await confirmDelete(context, context.l10n) || !context.mounted) return;
+                  await ref.read(taxRateRepositoryProvider).delete(tr.id);
+                },
               ),
             ),
           ],
@@ -159,9 +148,10 @@ class _TaxRatesTabState extends ConsumerState<TaxRatesTab> {
 
   Future<void> _showEditDialog(BuildContext context, TaxRateModel? existing) async {
     final l = context.l10n;
+    final locale = ref.read(appLocaleProvider).value ?? 'cs';
     final labelCtrl = TextEditingController(text: existing?.label ?? '');
     final rateCtrl = TextEditingController(
-        text: existing != null ? (existing.rate / 100).toStringAsFixed(0) : '');
+        text: existing != null ? formatForInput(existing.rate / 100, locale, maxDecimals: 2) : '');
     var type = existing?.type ?? TaxCalcType.regular;
     var isDefault = existing?.isDefault ?? false;
 
@@ -173,6 +163,17 @@ class _TaxRatesTabState extends ConsumerState<TaxRatesTab> {
           maxWidth: 350,
           scrollable: true,
           bottomActions: PosDialogActions(
+            leading: existing != null
+                ? OutlinedButton(
+                    style: PosButtonStyles.destructiveOutlined(ctx),
+                    onPressed: () async {
+                      if (!await confirmDelete(ctx, l) || !ctx.mounted) return;
+                      await ref.read(taxRateRepositoryProvider).delete(existing.id);
+                      if (ctx.mounted) Navigator.pop(ctx);
+                    },
+                    child: Text(l.actionDelete),
+                  )
+                : null,
             actions: [
               OutlinedButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.actionCancel)),
               FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.actionSave)),
@@ -219,7 +220,7 @@ class _TaxRatesTabState extends ConsumerState<TaxRatesTab> {
     final company = ref.read(currentCompanyProvider)!;
     final repo = ref.read(taxRateRepositoryProvider);
     final now = DateTime.now();
-    final rateInBps = ((int.tryParse(rateCtrl.text) ?? 0) * 100);
+    final rateInBps = ((parseInputDouble(rateCtrl.text) ?? 0) * 100).round();
 
     if (existing != null) {
       if (isDefault) await repo.clearDefault(company.id, exceptId: existing.id);
@@ -245,8 +246,4 @@ class _TaxRatesTabState extends ConsumerState<TaxRatesTab> {
     }
   }
 
-  Future<void> _delete(BuildContext context, TaxRateModel taxRate) async {
-    if (!await confirmDelete(context, context.l10n) || !context.mounted) return;
-    await ref.read(taxRateRepositoryProvider).delete(taxRate.id);
-  }
 }

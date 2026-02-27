@@ -120,7 +120,7 @@ class ZReportService {
     for (final bill in paidBills) {
       final items = await orderRepo.getOrderItemsByBill(bill.id);
       for (final item in items) {
-        if (item.status == PrepStatus.cancelled || item.status == PrepStatus.voided) continue;
+        if (item.status == PrepStatus.voided) continue;
         final rate = item.saleTaxRateAtt;
         final itemGross = (item.salePriceAtt * item.quantity).round();
         final itemTax = (item.saleTaxAmount * item.quantity).round();
@@ -348,7 +348,7 @@ class ZReportService {
         if (bill.status == BillStatus.paid || bill.status == BillStatus.refunded) {
           final items = await orderRepo.getOrderItemsByBill(bill.id);
           for (final item in items) {
-            if (item.status == PrepStatus.cancelled || item.status == PrepStatus.voided) continue;
+            if (item.status == PrepStatus.voided) continue;
             final rate = item.saleTaxRateAtt;
             final itemGross = (item.salePriceAtt * item.quantity).round();
             final itemTax = (item.saleTaxAmount * item.quantity).round();

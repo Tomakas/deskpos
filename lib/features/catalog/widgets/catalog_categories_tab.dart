@@ -146,6 +146,10 @@ class _CatalogCategoriesTabState extends ConsumerState<CatalogCategoriesTab> {
                 ],
                 items: filtered,
                 onRowTap: (c) => _showEditDialog(context, ref, categories, c),
+                onRowLongPress: (c) async {
+                  if (!await confirmDelete(context, context.l10n) || !context.mounted) return;
+                  await ref.read(categoryRepositoryProvider).delete(c.id);
+                },
               ),
             ),
           ],

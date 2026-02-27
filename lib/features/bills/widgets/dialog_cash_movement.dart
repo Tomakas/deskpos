@@ -347,8 +347,7 @@ class _DialogCashMovementState extends ConsumerState<DialogCashMovement> {
                   child: SizedBox(
                     width: double.infinity,
                     child: FilledButton(
-                      style: FilledButton.styleFrom(
-                        backgroundColor: theme.colorScheme.error,
+                      style: PosButtonStyles.destructiveFilledWith(context,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(PosDialogTheme.numpadLargeRadius),
                         ),

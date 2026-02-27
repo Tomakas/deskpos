@@ -21,6 +21,7 @@ import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_numpad.dart';
 import '../../bills/widgets/dialog_payment.dart';
+import '../../bills/widgets/dialog_receipt_preview.dart';
 
 class DialogVoucherCreate extends ConsumerStatefulWidget {
   const DialogVoucherCreate({super.key});
@@ -232,7 +233,6 @@ class _DialogVoucherCreateState extends ConsumerState<DialogVoucherCreate> {
             ),
           ],
         ),
-        const SizedBox(height: 16),
       ],
       bottomActions: PosDialogActions(
         expanded: true,
@@ -343,6 +343,9 @@ class _DialogVoucherCreateState extends ConsumerState<DialogVoucherCreate> {
         updatedAt: now,
       );
       await voucherRepo.create(model);
+      if (mounted) {
+        await showReceiptPrintDialog(context, ref, bill.id);
+      }
       if (mounted) Navigator.pop(context, model);
     } else {
       // Payment cancelled — cancel the bill
@@ -510,7 +513,7 @@ class _ItemSearchDialogState extends ConsumerState<_ItemSearchDialog> {
                   return ListTile(
                     title: Text(item.name),
                     subtitle: item.sku != null ? Text(item.sku!) : null,
-                    trailing: Text(ref.money(item.unitPrice)),
+                    trailing: Text(item.unitPrice != null ? ref.money(item.unitPrice!) : '???'),
                     onTap: () => Navigator.pop(context, item),
                   );
                 },

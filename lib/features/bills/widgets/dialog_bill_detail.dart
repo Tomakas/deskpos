@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/data/enums/bill_status.dart';
 import '../../../core/data/enums/discount_type.dart';
+import '../../../core/data/enums/payment_type.dart';
 import '../../../core/data/enums/display_device_type.dart';
 import '../../../core/data/enums/prep_status.dart';
 import '../../../core/data/enums/unit_type.dart';
@@ -29,6 +30,7 @@ import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/utils/formatting_ext.dart';
 import '../../../core/utils/unit_type_l10n.dart';
+import '../../shared/session_helpers.dart' as helpers;
 import 'dialog_customer_search.dart';
 import 'dialog_discount.dart';
 import 'dialog_merge_bill.dart';
@@ -303,13 +305,13 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
     return StreamBuilder<int>(
       stream: ref.watch(orderRepositoryProvider).watchByBill(bill.id).asyncMap((orders) async {
         final activeOrders = orders.where((o) =>
-            o.status != PrepStatus.cancelled && o.status != PrepStatus.voided && !o.isStorno);
+            o.status != PrepStatus.voided && !o.isStorno);
         final modRepo = ref.read(orderItemModifierRepositoryProvider);
         int total = 0;
         for (final order in activeOrders) {
           final items = await ref.read(orderRepositoryProvider).getOrderItems(order.id);
           for (final item in items) {
-            if (item.status != PrepStatus.cancelled && item.status != PrepStatus.voided) {
+            if (item.status != PrepStatus.voided) {
               total += (item.salePriceAtt * item.quantity).round();
               // Include modifier costs
               final mods = await modRepo.getByOrderItem(item.id);
@@ -446,7 +448,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
     final activeOrders = isCancelled
         ? orders
         : orders.where((o) =>
-            o.status != PrepStatus.cancelled && o.status != PrepStatus.voided).toList();
+            o.status != PrepStatus.voided).toList();
 
     if (activeOrders.isEmpty) {
       return const SizedBox.shrink();
@@ -458,7 +460,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
         final allItems = isCancelled
             ? (snap.data ?? [])
             : (snap.data ?? []).where((item) =>
-                item.status != PrepStatus.cancelled && item.status != PrepStatus.voided).toList();
+                item.status != PrepStatus.voided).toList();
 
         if (allItems.isEmpty) return const SizedBox.shrink();
 
@@ -524,16 +526,16 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
               ),
               child: Row(
                 children: [
-                  SizedBox(
-                    width: 44,
+                  Expanded(
+                    flex: 2,
                     child: Text(
                       '${ref.fmtQty(item.quantity, maxDecimals: 1)} ${localizedUnitType(context.l10n, item.unit)}',
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ),
-                  Expanded(child: Text(item.name, style: Theme.of(context).textTheme.bodyMedium)),
-                  SizedBox(
-                    width: 100,
+                  Expanded(flex: 5, child: Text(item.name, style: Theme.of(context).textTheme.bodyMedium)),
+                  Expanded(
+                    flex: 3,
                     child: item.totalGross != item.totalBeforeVoucher
                         ? Row(
                             mainAxisAlignment: MainAxisAlignment.end,
@@ -690,7 +692,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
               ),
             ),
           ],
-          if (!isClosed && bill.totalGross > 0) ...[
+          if (!isClosed) ...[
             const SizedBox(width: 12),
             // Pay
             Expanded(
@@ -749,7 +751,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
     final items = await orderRepo.getOrderItemsByBill(bill.id);
     if (!mounted) return;
     final activeItems = items.where((i) =>
-        i.status != PrepStatus.cancelled && i.status != PrepStatus.voided).toList();
+        i.status != PrepStatus.voided).toList();
 
     final displayItems = <DisplayItem>[];
     int subtotal = 0;
@@ -845,7 +847,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
             final activeItems = await orderRepo.getOrderItemsByBill(bill.id);
             usesToReturn = activeItems
                 .where((i) => i.voucherDiscount > 0 &&
-                    i.status != PrepStatus.cancelled && i.status != PrepStatus.voided)
+                    i.status != PrepStatus.voided)
                 .fold<double>(0, (s, i) => s + i.quantity)
                 .ceil();
           }
@@ -999,7 +1001,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
         final modifierRepo = ref.read(orderItemModifierRepositoryProvider);
         final activeItems = await orderRepo.getOrderItemsByBill(bill.id);
         final filtered = activeItems
-            .where((i) => i.status != PrepStatus.cancelled && i.status != PrepStatus.voided)
+            .where((i) => i.status != PrepStatus.voided)
             .toList();
         final itemIds = filtered.map((i) => i.id).toList();
         final allMods = await modifierRepo.getByOrderItemIds(itemIds);
@@ -1089,7 +1091,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
           final activeItems = await orderRepo.getOrderItemsByBill(bill.id);
           usesToReturn = activeItems
               .where((i) => i.voucherDiscount > 0 &&
-                  i.status != PrepStatus.cancelled && i.status != PrepStatus.voided)
+                  i.status != PrepStatus.voided)
               .fold<double>(0, (s, i) => s + i.quantity)
               .ceil();
         }
@@ -1288,6 +1290,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
 
   Future<void> _refundBill(BuildContext context, WidgetRef ref, BillModel bill, AppLocalizations l) async {
     if (_isProcessing) return;
+    if (helpers.requireActiveSession(context, ref) == null) return;
     setState(() => _isProcessing = true);
     try {
       final confirmed = await showDialog<bool>(
@@ -1330,8 +1333,34 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
 
   Future<void> _payBill(BuildContext context, WidgetRef ref, BillModel bill) async {
     if (_isProcessing) return;
+    if (helpers.requireActiveSession(context, ref) == null) return;
     setState(() => _isProcessing = true);
     try {
+      // If remaining is zero (e.g. fully covered by loyalty), record zero cash payment directly
+      if (bill.totalGross - bill.paidAmount <= 0) {
+        final methods = await ref.read(paymentMethodRepositoryProvider).getAll(bill.companyId);
+        final cashMethod = methods.where((m) => m.type == PaymentType.cash).firstOrNull;
+        if (cashMethod != null) {
+          final register = ref.read(activeRegisterProvider).value;
+          final session = ref.read(activeRegisterSessionProvider).valueOrNull;
+          await ref.read(billRepositoryProvider).recordPayment(
+            companyId: bill.companyId,
+            billId: bill.id,
+            paymentMethodId: cashMethod.id,
+            currencyId: bill.currencyId,
+            amount: 0,
+            userId: ref.read(activeUserProvider)?.id,
+            registerId: register?.id,
+            registerSessionId: session?.id,
+          );
+        }
+        if (context.mounted) {
+          _sendThankYou(context);
+          Navigator.pop(context);
+        }
+        return;
+      }
+
       String? tableName;
       if (bill.tableId != null) {
         final tableRepo = ref.read(tableRepositoryProvider);
@@ -1474,28 +1503,40 @@ class _OrderSection extends ConsumerWidget {
                     builder: (context, modSnap) {
                       final mods = modSnap.data ?? [];
                       final modTotal = mods.fold<int>(0, (sum, m) => sum + (m.unitPrice * m.quantity * item.quantity).round());
+                      final isVoided = item.status == PrepStatus.voided;
+                      final voidedDecoration = isVoided ? TextDecoration.lineThrough : null;
+                      final voidedColor = isVoided ? Theme.of(context).colorScheme.onSurfaceVariant : null;
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
                             children: [
-                              SizedBox(
-                                width: 44,
+                              Expanded(
+                                flex: 2,
                                 child: Text(
                                   ref.fmtTime(order.createdAt),
-                                  style: Theme.of(context).textTheme.bodySmall,
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    decoration: voidedDecoration,
+                                    color: voidedColor,
+                                  ),
                                 ),
                               ),
-                              SizedBox(
-                                width: 36,
+                              Expanded(
+                                flex: 2,
                                 child: Text(
                                   '${ref.fmtQty(item.quantity, maxDecimals: 1)} ${localizedUnitType(context.l10n, item.unit)}',
-                                  style: Theme.of(context).textTheme.bodySmall,
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    decoration: voidedDecoration,
+                                    color: voidedColor,
+                                  ),
                                 ),
                               ),
-                              Expanded(child: Text(item.itemName, overflow: TextOverflow.ellipsis, maxLines: 1, style: Theme.of(context).textTheme.bodyMedium)),
-                              SizedBox(
-                                width: 100,
+                              Expanded(flex: 5, child: Text(item.itemName, overflow: TextOverflow.ellipsis, maxLines: 1, style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                decoration: voidedDecoration,
+                                color: voidedColor,
+                              ))),
+                              Expanded(
+                                flex: 3,
                                 child: () {
                                   final itemSubtotal = (item.salePriceAtt * item.quantity).round() + modTotal;
                                   int itemDiscount = 0;
@@ -1505,7 +1546,7 @@ class _OrderSection extends ConsumerWidget {
                                         : item.discount;
                                   }
                                   final totalDiscount = itemDiscount + item.voucherDiscount;
-                                  if (totalDiscount > 0) {
+                                  if (totalDiscount > 0 && !isVoided) {
                                     final discountedPrice = itemSubtotal - totalDiscount;
                                     return Row(
                                       mainAxisAlignment: MainAxisAlignment.end,
@@ -1528,31 +1569,41 @@ class _OrderSection extends ConsumerWidget {
                                   return Text(
                                     ref.money(itemSubtotal),
                                     textAlign: TextAlign.right,
-                                    style: Theme.of(context).textTheme.bodyMedium,
+                                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                      decoration: voidedDecoration,
+                                      color: voidedColor,
+                                    ),
                                   );
                                 }(),
                               ),
-                              const SizedBox(width: 8),
-                              Container(
-                                width: 8,
-                                height: 8,
-                                decoration: BoxDecoration(
-                                  color: item.status.color(context),
-                                  shape: BoxShape.circle,
-                                ),
+                              SizedBox(
+                                width: 40,
+                                child: (item.status == PrepStatus.created ||
+                                        item.status == PrepStatus.ready)
+                                    ? PopupMenuButton<PrepStatus>(
+                                        icon: Icon(Icons.more_vert,
+                                            color: item.status.color(context)),
+                                        iconSize: 16,
+                                        padding: EdgeInsets.zero,
+                                        constraints: const BoxConstraints(
+                                            minWidth: 40, minHeight: 40),
+                                        onSelected: (status) =>
+                                            _changeItemStatus(ref, item, status),
+                                        itemBuilder: (_) =>
+                                            _availableTransitions(
+                                                item.status, l, context),
+                                      )
+                                    : Center(
+                                        child: Container(
+                                          width: 8,
+                                          height: 8,
+                                          decoration: BoxDecoration(
+                                            color: item.status.color(context),
+                                            shape: BoxShape.circle,
+                                          ),
+                                        ),
+                                      ),
                               ),
-                              if (item.status == PrepStatus.created ||
-                                  item.status == PrepStatus.ready)
-                                PopupMenuButton<PrepStatus>(
-                                  iconSize: 16,
-                                  padding: EdgeInsets.zero,
-                                  onSelected: (status) =>
-                                      _changeItemStatus(ref, item, status),
-                                  itemBuilder: (_) =>
-                                      _availableTransitions(item.status, l),
-                                )
-                              else
-                                const SizedBox(width: 32),
                             ],
                           ),
                           // Item notes
@@ -1722,7 +1773,7 @@ class _OrderSection extends ConsumerWidget {
         bottomActions: PosDialogActions(
           actions: [
             OutlinedButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
-            FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
+            FilledButton(style: PosButtonStyles.destructiveFilled(context), onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
           ],
         ),
       ),
@@ -1831,18 +1882,35 @@ class _OrderSection extends ConsumerWidget {
     repo.updateItemStatus(item.id, order.id, status);
   }
 
-  List<PopupMenuEntry<PrepStatus>> _availableTransitions(PrepStatus current, AppLocalizations l) {
+  List<PopupMenuEntry<PrepStatus>> _availableTransitions(
+      PrepStatus current, AppLocalizations l, BuildContext context) {
+    PopupMenuItem<PrepStatus> transition(PrepStatus status, String label) =>
+        PopupMenuItem(
+          value: status,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.chevron_right, size: 18, color: status.color(context)),
+              const SizedBox(width: 4),
+              Text(label, style: TextStyle(color: status.color(context))),
+            ],
+          ),
+        );
+    PopupMenuItem<PrepStatus> voidItem() => PopupMenuItem(
+          value: PrepStatus.voided,
+          child: Text(l.orderItemStorno,
+              style: TextStyle(color: context.appColors.danger)),
+        );
     switch (current) {
       case PrepStatus.created:
         return [
-          PopupMenuItem(value: PrepStatus.ready, child: Text(l.prepStatusReady)),
-          PopupMenuItem(value: PrepStatus.cancelled, child: Text(l.prepStatusCancelled)),
-          PopupMenuItem(value: PrepStatus.voided, child: Text(l.prepStatusVoided)),
+          transition(PrepStatus.ready, l.prepStatusReady),
+          voidItem(),
         ];
       case PrepStatus.ready:
         return [
-          PopupMenuItem(value: PrepStatus.delivered, child: Text(l.prepStatusDelivered)),
-          PopupMenuItem(value: PrepStatus.voided, child: Text(l.prepStatusVoided)),
+          transition(PrepStatus.delivered, l.prepStatusDelivered),
+          voidItem(),
         ];
       default:
         return [];

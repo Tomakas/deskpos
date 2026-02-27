@@ -54,6 +54,7 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
   bool _isCreatingBill = false;
   bool _showMap = false;
   bool _isPanelVisible = true;
+  bool _showAllBills = false;
 
   @override
   void dispose() {
@@ -89,6 +90,8 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
                   }),
                   singleSelect: _showMap,
                   showSort: !_showMap,
+                  showAllBills: _showAllBills,
+                  onShowAllBillsChanged: (v) => setState(() => _showAllBills = v),
                   isPanelVisible: _isPanelVisible,
                   onTogglePanel: () => setState(() => _isPanelVisible = !_isPanelVisible),
                 ),
@@ -111,6 +114,7 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
                           sortField: _sortField,
                           sortAscending: _sortAscending,
                           query: _query,
+                          showAllBills: _showAllBills,
                           onBillTap: (bill) => _openBillDetail(context, bill),
                         ),
                 ),
@@ -287,6 +291,8 @@ class _SectionTabBar extends ConsumerWidget {
     required this.onSortChanged,
     this.singleSelect = false,
     this.showSort = true,
+    required this.showAllBills,
+    required this.onShowAllBillsChanged,
     required this.isPanelVisible,
     required this.onTogglePanel,
   });
@@ -297,6 +303,8 @@ class _SectionTabBar extends ConsumerWidget {
   final void Function(_SortField field, bool ascending) onSortChanged;
   final bool singleSelect;
   final bool showSort;
+  final bool showAllBills;
+  final ValueChanged<bool> onShowAllBillsChanged;
   final bool isPanelVisible;
   final VoidCallback onTogglePanel;
 
@@ -383,6 +391,38 @@ class _SectionTabBar extends ConsumerWidget {
               ],
               if (showSort) ...[
                 const SizedBox(width: 8),
+                PopupMenuButton<bool>(
+                  icon: const Icon(Icons.filter_list),
+                  onSelected: (value) => onShowAllBillsChanged(value),
+                  itemBuilder: (_) => [
+                    PopupMenuItem(
+                      value: false,
+                      child: Row(
+                        children: [
+                          if (!showAllBills)
+                            const Icon(Icons.check, size: 16)
+                          else
+                            const SizedBox(width: 16),
+                          const SizedBox(width: 8),
+                          Expanded(child: Text(l.billsScopeSession)),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: true,
+                      child: Row(
+                        children: [
+                          if (showAllBills)
+                            const Icon(Icons.check, size: 16)
+                          else
+                            const SizedBox(width: 16),
+                          const SizedBox(width: 8),
+                          Expanded(child: Text(l.billsScopeAll)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
                 PopupMenuButton<_SortField>(
                   icon: const Icon(Icons.swap_vert),
                   onSelected: (field) {
@@ -505,6 +545,7 @@ class _BillsTable extends ConsumerWidget {
     required this.sortField,
     required this.sortAscending,
     this.query = '',
+    this.showAllBills = false,
     required this.onBillTap,
   });
   final Set<BillStatus> statusFilters;
@@ -512,6 +553,7 @@ class _BillsTable extends ConsumerWidget {
   final _SortField sortField;
   final bool sortAscending;
   final String query;
+  final bool showAllBills;
   final ValueChanged<BillModel> onBillTap;
 
   @override
@@ -538,10 +580,14 @@ class _BillsTable extends ConsumerWidget {
       builder: (context, billSnap) {
         var allBills = billSnap.data ?? [];
 
-        // Scope to active register session when one exists
-        final activeSession = ref.watch(activeRegisterSessionProvider).valueOrNull;
-        if (activeSession != null) {
-          allBills = allBills.where((b) => b.registerSessionId == activeSession.id).toList();
+        // Scope to active register session unless "show all" is enabled
+        if (!showAllBills) {
+          final activeSession = ref.watch(activeRegisterSessionProvider).valueOrNull;
+          if (activeSession != null) {
+            allBills = allBills.where((b) => b.registerSessionId == activeSession.id).toList();
+          } else {
+            allBills = [];
+          }
         }
 
         // Refunded bills are shown under the "paid" filter
@@ -1234,7 +1280,7 @@ class _InfoPanel extends ConsumerWidget {
                     const SizedBox(height: 2),
                     _InfoRow(l.prepStatusDelivered, '${count(PrepStatus.delivered)}'),
                     const SizedBox(height: 2),
-                    _InfoRow(l.prepStatusCancelled, '${count(PrepStatus.cancelled)}'),
+                    _InfoRow(l.prepStatusVoided, '${count(PrepStatus.voided)}'),
                   ],
                 );
               },

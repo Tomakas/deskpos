@@ -6,20 +6,46 @@ import 'package:uuid/uuid.dart';
 import '../../core/data/enums/bill_status.dart';
 import '../../core/data/enums/cash_movement_type.dart';
 import '../../core/data/models/currency_model.dart';
+import '../../core/data/models/register_session_model.dart';
 import '../../core/data/models/session_currency_cash_model.dart';
 import '../../core/data/enums/hardware_type.dart';
 import '../../core/data/enums/payment_type.dart';
 import '../../core/data/providers/auth_providers.dart';
+import '../../core/data/providers/printing_providers.dart';
 import '../../core/data/providers/repository_providers.dart';
 import '../../core/data/result.dart';
 import '../../core/l10n/app_localizations_ext.dart';
+import '../../core/logging/app_logger.dart';
+import '../../core/printing/receipt_data.dart';
+import '../../core/utils/file_opener.dart';
+import '../../core/utils/formatters.dart';
 import '../../core/utils/formatting_ext.dart';
 import '../../core/widgets/pos_dialog_actions.dart';
 import '../../core/widgets/pos_dialog_shell.dart';
+import '../bills/providers/z_report_providers.dart';
 import '../bills/widgets/dialog_cash_journal.dart';
 import '../bills/widgets/dialog_cash_movement.dart';
 import '../bills/widgets/dialog_closing_session.dart';
 import '../bills/widgets/dialog_opening_cash.dart';
+
+/// Returns active session or shows info dialog and returns null.
+RegisterSessionModel? requireActiveSession(BuildContext context, WidgetRef ref) {
+  final session = ref.read(activeRegisterSessionProvider).valueOrNull;
+  if (session != null) return session;
+  final l = context.l10n;
+  showDialog(
+    context: context,
+    builder: (_) => PosDialogShell(
+      title: l.sessionRequiredTitle,
+      showCloseButton: true,
+      children: [
+        Text(l.sessionRequiredMessage),
+        const SizedBox(height: 16),
+      ],
+    ),
+  );
+  return null;
+}
 
 /// Performs logout: closes active shift, clears auth state, navigates to /login.
 Future<void> performLogout(BuildContext context, WidgetRef ref) async {
@@ -104,7 +130,7 @@ Future<void> showCashJournalDialog(BuildContext context, WidgetRef ref) async {
 
   final currentBalance = openingCash + deposits - withdrawals + cashRevenue;
 
-  // Load active foreign currencies for the movement dialog
+  // Load foreign currencies from session snapshot (currencies are frozen at session open)
   final currencyRepo = ref.read(currencyRepositoryProvider);
   final sessionCurrencyCashRepo = ref.read(sessionCurrencyCashRepositoryProvider);
   final sessionCurrencyCashList = await sessionCurrencyCashRepo.getBySession(session.id);
@@ -405,6 +431,61 @@ Future<void> closeSession(BuildContext context, WidgetRef ref) async {
       );
     }
   }
+
+  // Print Z-report if requested
+  if (result.printReport && context.mounted) {
+    try {
+      final zReport = await ref.read(zReportServiceProvider).buildZReport(session.id);
+      if (zReport != null && context.mounted) {
+        final locale = ref.read(appLocaleProvider).value ?? 'cs';
+        final labels = ZReportLabels(
+          reportTitle: l.zReportTitle,
+          session: l.zReportSessionInfo,
+          openedAt: l.zReportOpenedAt,
+          closedAt: l.zReportClosedAt,
+          duration: l.zReportDuration,
+          openedBy: l.zReportOpenedBy,
+          revenueTitle: l.zReportRevenueByPayment,
+          revenueTotal: l.zReportRevenueTotal,
+          taxTitle: l.zReportTaxTitle,
+          taxRate: l.zReportTaxRate,
+          taxNet: l.zReportTaxNet,
+          taxAmount: l.zReportTaxAmount,
+          taxGross: l.zReportTaxGross,
+          tipsTitle: l.zReportTipsTotal,
+          tipsTotal: l.zReportTipsTotal,
+          tipsByUser: l.zReportTipsByUser,
+          discountsTitle: l.zReportDiscounts,
+          discountsTotal: l.zReportDiscounts,
+          billCountsTitle: l.zReportBillsPaid,
+          billsPaid: l.zReportBillsPaid,
+          billsCancelled: l.zReportBillsCancelled,
+          billsRefunded: l.zReportBillsRefunded,
+          openBillsAtOpen: l.zReportOpenBillsAtOpen,
+          openBillsAtClose: l.zReportOpenBillsAtClose,
+          cashTitle: l.zReportCashTitle,
+          cashOpening: l.zReportCashOpening,
+          cashRevenue: l.zReportCashRevenue,
+          cashDeposits: l.zReportCashDeposits,
+          cashWithdrawals: l.zReportCashWithdrawals,
+          cashExpected: l.zReportCashExpected,
+          cashClosing: l.zReportCashClosing,
+          cashDifference: l.zReportCashDifference,
+          shiftsTitle: l.zReportShiftsTitle,
+          currencySymbol: ref.currencySymbol,
+          locale: locale,
+          formatDuration: (d) => formatDuration(d,
+              hm: l.durationHoursMinutes, hOnly: l.durationHoursOnly, mOnly: l.durationMinutesOnly),
+          currency: ref.read(currentCurrencyProvider).value,
+        );
+        final bytes = await ref.read(printingServiceProvider)
+            .generateZReportPdf(zReport, labels);
+        await FileOpener.shareBytes('z_report_${session.id}.pdf', bytes);
+      }
+    } catch (e, s) {
+      AppLogger.error('Failed to print Z-report after closing', error: e, stackTrace: s);
+    }
+  }
 }
 
 /// Opens a new register session.
@@ -486,17 +567,17 @@ Future<void> openSession(BuildContext context, WidgetRef ref) async {
     if (!context.mounted) return;
   }
 
-  // Create SessionCurrencyCash records for each foreign currency
+  // Create SessionCurrencyCash records for ALL active foreign currencies
   if (openResult is Success) {
     final newSession = (openResult as Success).value;
-    for (final entry in result.foreignCash.entries) {
+    for (final fc in foreignOpenings) {
       final now = DateTime.now();
       await sessionCurrencyCashRepo.create(SessionCurrencyCashModel(
         id: const Uuid().v7(),
         companyId: company.id,
         registerSessionId: newSession.id,
-        currencyId: entry.key,
-        openingCash: entry.value,
+        currencyId: fc.currencyId,
+        openingCash: result.foreignCash[fc.currencyId] ?? 0,
         createdAt: now,
         updatedAt: now,
       ));

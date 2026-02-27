@@ -96,6 +96,7 @@ class _DialogStockDocumentDetailState
               showCloseButton: true,
               title: doc.documentNumber,
               maxWidth: 700,
+              maxHeight: 700,
               expandHeight: true,
               bottomActions: PosDialogActions(
                 leading: OutlinedButton.icon(

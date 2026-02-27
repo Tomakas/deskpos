@@ -109,6 +109,10 @@ class _ManufacturersTabState extends ConsumerState<ManufacturersTab> {
                 ],
                 items: filtered,
                 onRowTap: (m) => _showEditDialog(context, ref, m),
+                onRowLongPress: (m) async {
+                  if (!await confirmDelete(context, context.l10n) || !context.mounted) return;
+                  await ref.read(manufacturerRepositoryProvider).delete(m.id);
+                },
               ),
             ),
           ],

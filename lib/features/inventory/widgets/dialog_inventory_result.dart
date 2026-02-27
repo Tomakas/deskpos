@@ -121,13 +121,13 @@ class _DialogInventoryResultState extends ConsumerState<DialogInventoryResult> {
           label: Text(l.inventoryResultPrint),
         ),
         actions: [
-          FilledButton(
-            onPressed: (_applied || _applying) ? null : () => _applyToStock(context),
-            child: Text(_applied ? l.inventoryResultApplied : l.inventoryResultApply),
-          ),
           OutlinedButton(
             onPressed: () => Navigator.pop(context),
             child: Text(l.inventoryResultClose),
+          ),
+          FilledButton(
+            onPressed: (_applied || _applying) ? null : () => _applyToStock(context),
+            child: Text(_applied ? l.inventoryResultApplied : l.inventoryResultApply),
           ),
         ],
       ),

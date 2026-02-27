@@ -210,6 +210,7 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
   bool? _salesDiscountFilter;
   Set<PrepStatus> _orderStatusFilter = {};
   bool? _orderStornoFilter;
+  String? _tipsUserFilter;
 
   // Per-section data
   List<BillModel> _receipts = [];
@@ -357,7 +358,7 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
     final orders = await orderRepo.getOrdersByBillIds(billIds);
     if (!mounted) return;
     final activeOrders = orders.where((o) =>
-        o.status != PrepStatus.cancelled && o.status != PrepStatus.voided).toList();
+        o.status != PrepStatus.voided).toList();
     final stornoOrderIds = <String>{};
     final activeOrderIds = <String>[];
     final orderBillMap = <String, String>{}; // orderId → billId
@@ -376,7 +377,6 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
     final activeOrderIdSet = activeOrderIds.toSet();
     final items = allItems.where((i) =>
         activeOrderIdSet.contains(i.orderId) &&
-        i.status != PrepStatus.cancelled &&
         i.status != PrepStatus.voided).toList();
 
     // 4. Load modifiers for all active items
@@ -799,7 +799,7 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
         : await orderRepo.getOrdersByBillIds(billIds);
     if (!mounted) return;
     final activeOrderIdSet = orders
-        .where((o) => o.status != PrepStatus.cancelled && o.status != PrepStatus.voided)
+        .where((o) => o.status != PrepStatus.voided)
         .map((o) => o.id)
         .toSet();
     final stornoOrderIds = orders
@@ -813,7 +813,6 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
     if (!mounted) return;
     final items = allItems.where((i) =>
         activeOrderIdSet.contains(i.orderId) &&
-        i.status != PrepStatus.cancelled &&
         i.status != PrepStatus.voided).toList();
 
     // Load modifiers
@@ -1145,6 +1144,9 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
 
   List<_TipRow> get _filteredTips {
     var list = _tipRows;
+    if (_tipsUserFilter != null) {
+      list = list.where((r) => r.userName == _tipsUserFilter).toList();
+    }
     if (_query.isNotEmpty) {
       final q = normalizeSearch(_query);
       list = list.where((r) =>
@@ -1302,7 +1304,7 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
   // ---------------------------------------------------------------------------
 
   bool get _sectionHasFilter => switch (_section) {
-    _StatSection.receipts || _StatSection.sales || _StatSection.orders => true,
+    _StatSection.receipts || _StatSection.sales || _StatSection.orders || _StatSection.tips => true,
     _ => false,
   };
 
@@ -1313,7 +1315,8 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
       _salesCategoryFilter.isNotEmpty ||
       _salesDiscountFilter != null ||
       _orderStatusFilter.isNotEmpty ||
-      _orderStornoFilter != null;
+      _orderStornoFilter != null ||
+      _tipsUserFilter != null;
 
   void _showFilterDialog() {
     switch (_section) {
@@ -1323,6 +1326,8 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
         _showSalesFilterDialog();
       case _StatSection.orders:
         _showOrderFilterDialog();
+      case _StatSection.tips:
+        _showTipsFilterDialog();
       default:
         break;
     }
@@ -1622,7 +1627,6 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
       PrepStatus.created: l.prepStatusCreated,
       PrepStatus.ready: l.prepStatusReady,
       PrepStatus.delivered: l.prepStatusDelivered,
-      PrepStatus.cancelled: l.prepStatusCancelled,
       PrepStatus.voided: l.prepStatusVoided,
     };
 
@@ -1720,6 +1724,62 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
     );
   }
 
+  void _showTipsFilterDialog() {
+    final l = context.l10n;
+    final allUsers = _tipRows.map((r) => r.userName).toSet().toList()..sort();
+    if (allUsers.isEmpty) return;
+
+    var selectedUser = _tipsUserFilter;
+
+    showDialog(
+      context: context,
+      builder: (_) => StatefulBuilder(
+        builder: (ctx, setDialogState) => PosDialogShell(
+          title: l.statsFilterTitle,
+          scrollable: true,
+          children: [
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(l.zReportColumnUser, style: const TextStyle(fontWeight: FontWeight.bold)),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              children: [
+                FilterChip(
+                  label: Text(l.statsFilterAll),
+                  selected: selectedUser == null,
+                  onSelected: (_) => setDialogState(() => selectedUser = null),
+                ),
+                for (final name in allUsers)
+                  FilterChip(
+                    label: Text(name),
+                    selected: selectedUser == name,
+                    onSelected: (v) => setDialogState(() => selectedUser = v ? name : null),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 24),
+          ],
+          bottomActions: PosDialogActions(actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(l.actionCancel),
+            ),
+            FilledButton(
+              onPressed: () {
+                setState(() => _tipsUserFilter = selectedUser);
+                Navigator.pop(ctx);
+              },
+              child: Text(l.statsFilterApply),
+            ),
+          ]),
+        ),
+      ),
+    );
+  }
+
   // ---------------------------------------------------------------------------
   // Summary dialog
   // ---------------------------------------------------------------------------
@@ -1768,8 +1828,20 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
         final data = _filteredOrders;
         final totalAmount = data.fold(0, (s, r) => s + r.totalGross);
         final totalItems = data.fold(0, (s, r) => s + r.itemCount);
+        final stornoCount = data.where((r) => r.isStorno).length;
+        final statusCounts = <PrepStatus, int>{};
+        for (final r in data) {
+          statusCounts[r.status] = (statusCounts[r.status] ?? 0) + 1;
+        }
         rows = [
           (l.statsOrderCount, '${data.length}'),
+          ('', ''), // divider
+          for (final status in PrepStatus.values)
+            if (statusCounts.containsKey(status))
+              ('  ${_prepStatusLabel(status, l)}', '${statusCounts[status]}'),
+          if (stornoCount > 0)
+            ('  ${l.orderStorno}', '$stornoCount'),
+          ('', ''), // divider
           (l.statsOrderTotalItems, '$totalItems'),
           (l.statsOrderTotal, ref.money(totalAmount)),
         ];
@@ -1810,26 +1882,24 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
       builder: (_) => PosDialogShell(
         title: l.statsSummary,
         scrollable: true,
+        showCloseButton: true,
         children: [
           for (final (label, value) in rows)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 6),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(label),
-                  Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
-                ],
+            if (label.isEmpty && value.isEmpty)
+              const Divider(height: 16)
+            else
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(label),
+                    Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  ],
+                ),
               ),
-            ),
           const SizedBox(height: 16),
         ],
-        bottomActions: PosDialogActions(actions: [
-          OutlinedButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l.actionClose),
-          ),
-        ]),
       ),
     );
   }
@@ -1867,14 +1937,13 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
     final orders = await orderRepo.getOrdersByBillIds([billId]);
     if (!mounted) return;
     final activeOrderIds = orders
-        .where((o) => o.status != PrepStatus.cancelled && o.status != PrepStatus.voided)
+        .where((o) => o.status != PrepStatus.voided)
         .map((o) => o.id)
         .toSet();
     final allItems = await orderRepo.getOrderItemsByBillIds([billId]);
     if (!mounted) return;
     final items = allItems
         .where((i) => activeOrderIds.contains(i.orderId) &&
-            i.status != PrepStatus.cancelled &&
             i.status != PrepStatus.voided)
         .toList();
 
@@ -1920,6 +1989,7 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
       builder: (_) => PosDialogShell(
         title: l.statsReceiptDetailTitle,
         scrollable: true,
+        showCloseButton: true,
         children: [
           // Header
           _orderDetailRow(l.statsColumnBillNumber, bill.billNumber),
@@ -1976,12 +2046,6 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
             _orderDetailRow(l.receiptTip, ref.money(tipTotal)),
           const SizedBox(height: 16),
         ],
-        bottomActions: PosDialogActions(actions: [
-          OutlinedButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l.actionClose),
-          ),
-        ]),
       ),
     );
   }
@@ -2010,6 +2074,7 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
       builder: (_) => PosDialogShell(
         title: l.statsOrderDetailTitle,
         scrollable: true,
+        showCloseButton: true,
         children: [
           // Header info
           _orderDetailRow(l.statsColumnOrderNumber, row.orderNumber),
@@ -2051,12 +2116,6 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
             ),
           const SizedBox(height: 16),
         ],
-        bottomActions: PosDialogActions(actions: [
-          OutlinedButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l.actionClose),
-          ),
-        ]),
       ),
     );
   }
@@ -2343,7 +2402,6 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
       PrepStatus.created => l.prepStatusCreated,
       PrepStatus.ready => l.prepStatusReady,
       PrepStatus.delivered => l.prepStatusDelivered,
-      PrepStatus.cancelled => l.prepStatusCancelled,
       PrepStatus.voided => l.prepStatusVoided,
     };
   }

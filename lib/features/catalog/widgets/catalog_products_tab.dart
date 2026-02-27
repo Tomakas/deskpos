@@ -145,7 +145,7 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
                           ..sort((a, b) {
                             final cmp = switch (_sortField) {
                               _ProductsSortField.name => a.name.compareTo(b.name),
-                              _ProductsSortField.price => a.unitPrice.compareTo(b.unitPrice),
+                              _ProductsSortField.price => (a.unitPrice ?? 0).compareTo(b.unitPrice ?? 0),
                               _ProductsSortField.type => a.itemType.index.compareTo(b.itemType.index),
                             };
                             return _sortAsc ? cmp : -cmp;
@@ -228,7 +228,7 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
-                                  PosColumn(label: l.fieldPrice, flex: 1, cellBuilder: (item) => Text(ref.moneyValue(item.unitPrice), overflow: TextOverflow.ellipsis)),
+                                  PosColumn(label: l.fieldPrice, flex: 1, cellBuilder: (item) => Text(item.unitPrice != null ? ref.moneyValue(item.unitPrice!) : '???', overflow: TextOverflow.ellipsis)),
                                   PosColumn(
                                     label: l.fieldTaxRate,
                                     flex: 2,
@@ -270,6 +270,10 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
                                 items: filtered,
                                 onRowTap: (item) => _showEditDialog(
                                     context, ref, categories, taxRates, suppliers, manufacturers, item),
+                                onRowLongPress: (item) async {
+                                  if (!await confirmDelete(context, context.l10n) || !context.mounted) return;
+                                  await ref.read(itemRepositoryProvider).delete(item.id);
+                                },
                               ),
                             ),
                           ],
@@ -480,14 +484,15 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
     final l = context.l10n;
     final nameCtrl = TextEditingController(text: existing?.name ?? '');
     final currency = ref.read(currentCurrencyProvider).value;
+    final locale = ref.read(appLocaleProvider).value ?? 'cs';
     final priceCtrl = TextEditingController(
-        text: existing != null ? minorUnitsToInputString(existing.unitPrice, currency) : '');
+        text: existing?.unitPrice != null ? minorUnitsToInputString(existing!.unitPrice!, currency, locale: locale) : '');
     final descriptionCtrl = TextEditingController(text: existing?.description ?? '');
     final skuCtrl = TextEditingController(text: existing?.sku ?? '');
     final altSkuCtrl = TextEditingController(text: existing?.altSku ?? '');
     final purchasePriceCtrl = TextEditingController(
         text: existing?.purchasePrice != null
-            ? minorUnitsToInputString(existing!.purchasePrice!, currency)
+            ? minorUnitsToInputString(existing!.purchasePrice!, currency, locale: locale)
             : '');
     var categoryId = existing?.categoryId;
     var taxRateId = existing?.saleTaxRateId ??
@@ -502,7 +507,8 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
         text: existing?.minQuantity?.toString() ?? '');
     var supplierId = existing?.supplierId;
     var manufacturerId = existing?.manufacturerId;
-    var purchaseTaxRateId = existing?.purchaseTaxRateId;
+    var purchaseTaxRateId = existing?.purchaseTaxRateId ??
+        (taxRates.where((t) => t.isDefault).firstOrNull?.id);
     var parentId = existing?.parentId;
 
     final result = await showDialog<Object>(
@@ -723,27 +729,36 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
             ),
             if (isStockTracked) ...[
               const SizedBox(height: 12),
-              TextField(
-                controller: minQuantityCtrl,
-                decoration: InputDecoration(labelText: l.inventoryColumnMinQuantity),
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<NegativeStockPolicy?>(
-                initialValue: negativeStockPolicy,
-                decoration: InputDecoration(labelText: l.fieldNegativeStockPolicy),
-                items: [
-                  DropdownMenuItem<NegativeStockPolicy?>(
-                    value: null,
-                    child: Text(l.negativeStockPolicyDefault),
-                  ),
-                  for (final p in NegativeStockPolicy.values)
-                    DropdownMenuItem<NegativeStockPolicy?>(
-                      value: p,
-                      child: Text(_policyLabel(l, p)),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: minQuantityCtrl,
+                      decoration: InputDecoration(labelText: l.inventoryColumnMinQuantity),
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
                     ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: DropdownButtonFormField<NegativeStockPolicy?>(
+                      initialValue: negativeStockPolicy,
+                      decoration: InputDecoration(labelText: l.fieldNegativeStockPolicy),
+                      items: [
+                        DropdownMenuItem<NegativeStockPolicy?>(
+                          value: null,
+                          child: Text(l.negativeStockPolicyDefault),
+                        ),
+                        for (final p in NegativeStockPolicy.values)
+                          DropdownMenuItem<NegativeStockPolicy?>(
+                            value: p,
+                            child: Text(_policyLabel(l, p)),
+                          ),
+                      ],
+                      onChanged: (v) => setDialogState(() => negativeStockPolicy = v),
+                    ),
+                  ),
                 ],
-                onChanged: (v) => setDialogState(() => negativeStockPolicy = v),
               ),
             ],
             // Variants section — only for existing products
@@ -767,7 +782,7 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
     final company = ref.read(currentCompanyProvider)!;
     final repo = ref.read(itemRepositoryProvider);
     final now = DateTime.now();
-    final priceInCents = parseMoney(priceCtrl.text, currency);
+    final priceInCents = parseMoneyOrNull(priceCtrl.text, currency);
     final purchasePriceCents = purchasePriceCtrl.text.trim().isNotEmpty
         ? parseMoney(purchasePriceCtrl.text, currency)
         : null;
@@ -1017,7 +1032,7 @@ class _VariantsExpansionTile extends ConsumerWidget {
                   ListTile(
                     dense: true,
                     title: Text(v.name),
-                    trailing: Text(ref.moneyValue(v.unitPrice)),
+                    trailing: Text(v.unitPrice != null ? ref.moneyValue(v.unitPrice!) : '???'),
                     onTap: () => _showVariantEditDialog(context, ref, v),
                     onLongPress: () => _confirmDeleteVariant(context, ref, v),
                   ),
@@ -1044,10 +1059,11 @@ class _VariantsExpansionTile extends ConsumerWidget {
     final l = context.l10n;
     final nameCtrl = TextEditingController(text: existing?.name ?? '');
     final currency = ref.read(currentCurrencyProvider).value;
+    final locale = ref.read(appLocaleProvider).value ?? 'cs';
     final priceCtrl = TextEditingController(
-      text: existing != null
-          ? minorUnitsToInputString(existing.unitPrice, currency)
-          : minorUnitsToInputString(product.unitPrice, currency),
+      text: existing?.unitPrice != null
+          ? minorUnitsToInputString(existing!.unitPrice!, currency, locale: locale)
+          : (product.unitPrice != null ? minorUnitsToInputString(product.unitPrice!, currency, locale: locale) : ''),
     );
     final skuCtrl = TextEditingController(text: existing?.sku ?? '');
     final altSkuCtrl = TextEditingController(text: existing?.altSku ?? '');
@@ -1101,7 +1117,7 @@ class _VariantsExpansionTile extends ConsumerWidget {
     if (!context.mounted) return;
 
     final repo = ref.read(itemRepositoryProvider);
-    final priceInCents = parseMoney(priceCtrl.text, currency);
+    final priceInCents = parseMoneyOrNull(priceCtrl.text, currency);
     final now = DateTime.now();
 
     if (existing != null) {

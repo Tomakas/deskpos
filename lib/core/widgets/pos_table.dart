@@ -39,6 +39,7 @@ class PosTable<T> extends StatelessWidget {
     required this.columns,
     required this.items,
     this.onRowTap,
+    this.onRowLongPress,
     this.rowColor,
     this.emptyMessage,
     this.footer,
@@ -47,6 +48,7 @@ class PosTable<T> extends StatelessWidget {
   final List<PosColumn<T>> columns;
   final List<T> items;
   final void Function(T item)? onRowTap;
+  final void Function(T item)? onRowLongPress;
   final Color? Function(T item)? rowColor;
   final String? emptyMessage;
   final Widget? footer;
@@ -87,6 +89,7 @@ class PosTable<T> extends StatelessWidget {
                     final color = rowColor?.call(item);
                     return InkWell(
                       onTap: onRowTap != null ? () => onRowTap!(item) : null,
+                      onLongPress: onRowLongPress != null ? () => onRowLongPress!(item) : null,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 16, vertical: 14),

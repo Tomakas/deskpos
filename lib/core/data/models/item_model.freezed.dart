@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ItemModel {
 
- String get id; String get companyId; String? get categoryId; String get name; String? get description; ItemType get itemType; String? get sku; int get unitPrice; String? get saleTaxRateId; bool get isSellable; bool get isActive; UnitType get unit; String? get altSku; int? get purchasePrice; String? get purchaseTaxRateId; bool get isOnSale; bool get isStockTracked; double? get minQuantity; String? get manufacturerId; String? get supplierId; String? get parentId; NegativeStockPolicy? get negativeStockPolicy; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+ String get id; String get companyId; String? get categoryId; String get name; String? get description; ItemType get itemType; String? get sku; int? get unitPrice; String? get saleTaxRateId; bool get isSellable; bool get isActive; UnitType get unit; String? get altSku; int? get purchasePrice; String? get purchaseTaxRateId; bool get isOnSale; bool get isStockTracked; double? get minQuantity; String? get manufacturerId; String? get supplierId; String? get parentId; NegativeStockPolicy? get negativeStockPolicy; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
 /// Create a copy of ItemModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -45,7 +45,7 @@ abstract mixin class $ItemModelCopyWith<$Res>  {
   factory $ItemModelCopyWith(ItemModel value, $Res Function(ItemModel) _then) = _$ItemModelCopyWithImpl;
 @useResult
 $Res call({
- String id, String companyId, String? categoryId, String name, String? description, ItemType itemType, String? sku, int unitPrice, String? saleTaxRateId, bool isSellable, bool isActive, UnitType unit, String? altSku, int? purchasePrice, String? purchaseTaxRateId, bool isOnSale, bool isStockTracked, double? minQuantity, String? manufacturerId, String? supplierId, String? parentId, NegativeStockPolicy? negativeStockPolicy, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String companyId, String? categoryId, String name, String? description, ItemType itemType, String? sku, int? unitPrice, String? saleTaxRateId, bool isSellable, bool isActive, UnitType unit, String? altSku, int? purchasePrice, String? purchaseTaxRateId, bool isOnSale, bool isStockTracked, double? minQuantity, String? manufacturerId, String? supplierId, String? parentId, NegativeStockPolicy? negativeStockPolicy, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -62,7 +62,7 @@ class _$ItemModelCopyWithImpl<$Res>
 
 /// Create a copy of ItemModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? companyId = null,Object? categoryId = freezed,Object? name = null,Object? description = freezed,Object? itemType = null,Object? sku = freezed,Object? unitPrice = null,Object? saleTaxRateId = freezed,Object? isSellable = null,Object? isActive = null,Object? unit = null,Object? altSku = freezed,Object? purchasePrice = freezed,Object? purchaseTaxRateId = freezed,Object? isOnSale = null,Object? isStockTracked = null,Object? minQuantity = freezed,Object? manufacturerId = freezed,Object? supplierId = freezed,Object? parentId = freezed,Object? negativeStockPolicy = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? companyId = null,Object? categoryId = freezed,Object? name = null,Object? description = freezed,Object? itemType = null,Object? sku = freezed,Object? unitPrice = freezed,Object? saleTaxRateId = freezed,Object? isSellable = null,Object? isActive = null,Object? unit = null,Object? altSku = freezed,Object? purchasePrice = freezed,Object? purchaseTaxRateId = freezed,Object? isOnSale = null,Object? isStockTracked = null,Object? minQuantity = freezed,Object? manufacturerId = freezed,Object? supplierId = freezed,Object? parentId = freezed,Object? negativeStockPolicy = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,companyId: null == companyId ? _self.companyId : companyId // ignore: cast_nullable_to_non_nullable
@@ -71,8 +71,8 @@ as String?,name: null == name ? _self.name : name // ignore: cast_nullable_to_no
 as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,itemType: null == itemType ? _self.itemType : itemType // ignore: cast_nullable_to_non_nullable
 as ItemType,sku: freezed == sku ? _self.sku : sku // ignore: cast_nullable_to_non_nullable
-as String?,unitPrice: null == unitPrice ? _self.unitPrice : unitPrice // ignore: cast_nullable_to_non_nullable
-as int,saleTaxRateId: freezed == saleTaxRateId ? _self.saleTaxRateId : saleTaxRateId // ignore: cast_nullable_to_non_nullable
+as String?,unitPrice: freezed == unitPrice ? _self.unitPrice : unitPrice // ignore: cast_nullable_to_non_nullable
+as int?,saleTaxRateId: freezed == saleTaxRateId ? _self.saleTaxRateId : saleTaxRateId // ignore: cast_nullable_to_non_nullable
 as String?,isSellable: null == isSellable ? _self.isSellable : isSellable // ignore: cast_nullable_to_non_nullable
 as bool,isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
 as bool,unit: null == unit ? _self.unit : unit // ignore: cast_nullable_to_non_nullable
@@ -174,7 +174,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String companyId,  String? categoryId,  String name,  String? description,  ItemType itemType,  String? sku,  int unitPrice,  String? saleTaxRateId,  bool isSellable,  bool isActive,  UnitType unit,  String? altSku,  int? purchasePrice,  String? purchaseTaxRateId,  bool isOnSale,  bool isStockTracked,  double? minQuantity,  String? manufacturerId,  String? supplierId,  String? parentId,  NegativeStockPolicy? negativeStockPolicy,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String companyId,  String? categoryId,  String name,  String? description,  ItemType itemType,  String? sku,  int? unitPrice,  String? saleTaxRateId,  bool isSellable,  bool isActive,  UnitType unit,  String? altSku,  int? purchasePrice,  String? purchaseTaxRateId,  bool isOnSale,  bool isStockTracked,  double? minQuantity,  String? manufacturerId,  String? supplierId,  String? parentId,  NegativeStockPolicy? negativeStockPolicy,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ItemModel() when $default != null:
 return $default(_that.id,_that.companyId,_that.categoryId,_that.name,_that.description,_that.itemType,_that.sku,_that.unitPrice,_that.saleTaxRateId,_that.isSellable,_that.isActive,_that.unit,_that.altSku,_that.purchasePrice,_that.purchaseTaxRateId,_that.isOnSale,_that.isStockTracked,_that.minQuantity,_that.manufacturerId,_that.supplierId,_that.parentId,_that.negativeStockPolicy,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
@@ -195,7 +195,7 @@ return $default(_that.id,_that.companyId,_that.categoryId,_that.name,_that.descr
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String companyId,  String? categoryId,  String name,  String? description,  ItemType itemType,  String? sku,  int unitPrice,  String? saleTaxRateId,  bool isSellable,  bool isActive,  UnitType unit,  String? altSku,  int? purchasePrice,  String? purchaseTaxRateId,  bool isOnSale,  bool isStockTracked,  double? minQuantity,  String? manufacturerId,  String? supplierId,  String? parentId,  NegativeStockPolicy? negativeStockPolicy,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String companyId,  String? categoryId,  String name,  String? description,  ItemType itemType,  String? sku,  int? unitPrice,  String? saleTaxRateId,  bool isSellable,  bool isActive,  UnitType unit,  String? altSku,  int? purchasePrice,  String? purchaseTaxRateId,  bool isOnSale,  bool isStockTracked,  double? minQuantity,  String? manufacturerId,  String? supplierId,  String? parentId,  NegativeStockPolicy? negativeStockPolicy,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
 switch (_that) {
 case _ItemModel():
 return $default(_that.id,_that.companyId,_that.categoryId,_that.name,_that.description,_that.itemType,_that.sku,_that.unitPrice,_that.saleTaxRateId,_that.isSellable,_that.isActive,_that.unit,_that.altSku,_that.purchasePrice,_that.purchaseTaxRateId,_that.isOnSale,_that.isStockTracked,_that.minQuantity,_that.manufacturerId,_that.supplierId,_that.parentId,_that.negativeStockPolicy,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
@@ -215,7 +215,7 @@ return $default(_that.id,_that.companyId,_that.categoryId,_that.name,_that.descr
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String companyId,  String? categoryId,  String name,  String? description,  ItemType itemType,  String? sku,  int unitPrice,  String? saleTaxRateId,  bool isSellable,  bool isActive,  UnitType unit,  String? altSku,  int? purchasePrice,  String? purchaseTaxRateId,  bool isOnSale,  bool isStockTracked,  double? minQuantity,  String? manufacturerId,  String? supplierId,  String? parentId,  NegativeStockPolicy? negativeStockPolicy,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String companyId,  String? categoryId,  String name,  String? description,  ItemType itemType,  String? sku,  int? unitPrice,  String? saleTaxRateId,  bool isSellable,  bool isActive,  UnitType unit,  String? altSku,  int? purchasePrice,  String? purchaseTaxRateId,  bool isOnSale,  bool isStockTracked,  double? minQuantity,  String? manufacturerId,  String? supplierId,  String? parentId,  NegativeStockPolicy? negativeStockPolicy,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _ItemModel() when $default != null:
 return $default(_that.id,_that.companyId,_that.categoryId,_that.name,_that.description,_that.itemType,_that.sku,_that.unitPrice,_that.saleTaxRateId,_that.isSellable,_that.isActive,_that.unit,_that.altSku,_that.purchasePrice,_that.purchaseTaxRateId,_that.isOnSale,_that.isStockTracked,_that.minQuantity,_that.manufacturerId,_that.supplierId,_that.parentId,_that.negativeStockPolicy,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
@@ -230,7 +230,7 @@ return $default(_that.id,_that.companyId,_that.categoryId,_that.name,_that.descr
 
 
 class _ItemModel implements ItemModel {
-  const _ItemModel({required this.id, required this.companyId, this.categoryId, required this.name, this.description, required this.itemType, this.sku, required this.unitPrice, this.saleTaxRateId, this.isSellable = true, this.isActive = true, required this.unit, this.altSku, this.purchasePrice, this.purchaseTaxRateId, this.isOnSale = true, this.isStockTracked = false, this.minQuantity, this.manufacturerId, this.supplierId, this.parentId, this.negativeStockPolicy, required this.createdAt, required this.updatedAt, this.deletedAt});
+  const _ItemModel({required this.id, required this.companyId, this.categoryId, required this.name, this.description, required this.itemType, this.sku, this.unitPrice, this.saleTaxRateId, this.isSellable = true, this.isActive = true, required this.unit, this.altSku, this.purchasePrice, this.purchaseTaxRateId, this.isOnSale = true, this.isStockTracked = false, this.minQuantity, this.manufacturerId, this.supplierId, this.parentId, this.negativeStockPolicy, required this.createdAt, required this.updatedAt, this.deletedAt});
   
 
 @override final  String id;
@@ -240,7 +240,7 @@ class _ItemModel implements ItemModel {
 @override final  String? description;
 @override final  ItemType itemType;
 @override final  String? sku;
-@override final  int unitPrice;
+@override final  int? unitPrice;
 @override final  String? saleTaxRateId;
 @override@JsonKey() final  bool isSellable;
 @override@JsonKey() final  bool isActive;
@@ -289,7 +289,7 @@ abstract mixin class _$ItemModelCopyWith<$Res> implements $ItemModelCopyWith<$Re
   factory _$ItemModelCopyWith(_ItemModel value, $Res Function(_ItemModel) _then) = __$ItemModelCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String companyId, String? categoryId, String name, String? description, ItemType itemType, String? sku, int unitPrice, String? saleTaxRateId, bool isSellable, bool isActive, UnitType unit, String? altSku, int? purchasePrice, String? purchaseTaxRateId, bool isOnSale, bool isStockTracked, double? minQuantity, String? manufacturerId, String? supplierId, String? parentId, NegativeStockPolicy? negativeStockPolicy, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String companyId, String? categoryId, String name, String? description, ItemType itemType, String? sku, int? unitPrice, String? saleTaxRateId, bool isSellable, bool isActive, UnitType unit, String? altSku, int? purchasePrice, String? purchaseTaxRateId, bool isOnSale, bool isStockTracked, double? minQuantity, String? manufacturerId, String? supplierId, String? parentId, NegativeStockPolicy? negativeStockPolicy, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -306,7 +306,7 @@ class __$ItemModelCopyWithImpl<$Res>
 
 /// Create a copy of ItemModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? companyId = null,Object? categoryId = freezed,Object? name = null,Object? description = freezed,Object? itemType = null,Object? sku = freezed,Object? unitPrice = null,Object? saleTaxRateId = freezed,Object? isSellable = null,Object? isActive = null,Object? unit = null,Object? altSku = freezed,Object? purchasePrice = freezed,Object? purchaseTaxRateId = freezed,Object? isOnSale = null,Object? isStockTracked = null,Object? minQuantity = freezed,Object? manufacturerId = freezed,Object? supplierId = freezed,Object? parentId = freezed,Object? negativeStockPolicy = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? companyId = null,Object? categoryId = freezed,Object? name = null,Object? description = freezed,Object? itemType = null,Object? sku = freezed,Object? unitPrice = freezed,Object? saleTaxRateId = freezed,Object? isSellable = null,Object? isActive = null,Object? unit = null,Object? altSku = freezed,Object? purchasePrice = freezed,Object? purchaseTaxRateId = freezed,Object? isOnSale = null,Object? isStockTracked = null,Object? minQuantity = freezed,Object? manufacturerId = freezed,Object? supplierId = freezed,Object? parentId = freezed,Object? negativeStockPolicy = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_ItemModel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,companyId: null == companyId ? _self.companyId : companyId // ignore: cast_nullable_to_non_nullable
@@ -315,8 +315,8 @@ as String?,name: null == name ? _self.name : name // ignore: cast_nullable_to_no
 as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,itemType: null == itemType ? _self.itemType : itemType // ignore: cast_nullable_to_non_nullable
 as ItemType,sku: freezed == sku ? _self.sku : sku // ignore: cast_nullable_to_non_nullable
-as String?,unitPrice: null == unitPrice ? _self.unitPrice : unitPrice // ignore: cast_nullable_to_non_nullable
-as int,saleTaxRateId: freezed == saleTaxRateId ? _self.saleTaxRateId : saleTaxRateId // ignore: cast_nullable_to_non_nullable
+as String?,unitPrice: freezed == unitPrice ? _self.unitPrice : unitPrice // ignore: cast_nullable_to_non_nullable
+as int?,saleTaxRateId: freezed == saleTaxRateId ? _self.saleTaxRateId : saleTaxRateId // ignore: cast_nullable_to_non_nullable
 as String?,isSellable: null == isSellable ? _self.isSellable : isSellable // ignore: cast_nullable_to_non_nullable
 as bool,isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
 as bool,unit: null == unit ? _self.unit : unit // ignore: cast_nullable_to_non_nullable

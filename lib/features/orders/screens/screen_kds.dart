@@ -263,7 +263,7 @@ class _ScreenKdsState extends ConsumerState<ScreenKds> {
       final orderRepo = ref.read(orderRepositoryProvider);
       final items = await orderRepo.watchOrderItems(order.id).first;
       final activeItems = items.where((i) =>
-          i.status != PrepStatus.voided && i.status != PrepStatus.cancelled);
+          i.status != PrepStatus.voided);
       if (activeItems.isEmpty) return;
       final lowestStatus = activeItems
           .map((i) => i.status)
@@ -287,7 +287,7 @@ class _ScreenKdsState extends ConsumerState<ScreenKds> {
     final orderRepo = ref.read(orderRepositoryProvider);
     final items = await orderRepo.watchOrderItems(order.id).first;
     final activeItems = items.where((i) =>
-        i.status != PrepStatus.voided && i.status != PrepStatus.cancelled);
+        i.status != PrepStatus.voided);
     if (activeItems.isEmpty) return;
     final lowestStatus = activeItems
         .map((i) => i.status)
@@ -444,8 +444,7 @@ class _KdsOrderCard extends ConsumerWidget {
 
             // Find lowest active item status for the order-level button
             final activeItems = items.where((i) =>
-                i.status != PrepStatus.voided &&
-                i.status != PrepStatus.cancelled);
+                i.status != PrepStatus.voided);
             final lowestStatus = !isStorno && activeItems.isNotEmpty
                 ? activeItems
                     .map((i) => i.status)
@@ -681,8 +680,7 @@ class _KdsItemCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
     final theme = Theme.of(context);
-    final isVoided =
-        item.status == PrepStatus.voided || item.status == PrepStatus.cancelled;
+    final isVoided = item.status == PrepStatus.voided;
     final prev = !isStorno ? _prevStatus(item.status) : null;
     final next = !isStorno && !isVoided ? _nextStatus(item.status) : null;
 
@@ -1137,7 +1135,6 @@ String _statusLabel(PrepStatus status, AppLocalizations l) => switch (status) {
       PrepStatus.created => l.ordersFilterCreated,
       PrepStatus.ready => l.ordersFilterReady,
       PrepStatus.delivered => l.ordersFilterDelivered,
-      PrepStatus.cancelled => l.ordersFilterStorno,
       PrepStatus.voided => l.ordersFilterStorno,
     };
 
@@ -1172,7 +1169,7 @@ class _KdsStatusFilterBar extends StatelessWidget {
       ({PrepStatus.created}, l.ordersFilterCreated, PrepStatus.created.color(context)),
       ({PrepStatus.ready}, l.ordersFilterReady, PrepStatus.ready.color(context)),
       ({PrepStatus.delivered}, l.ordersFilterDelivered, PrepStatus.delivered.color(context)),
-      ({PrepStatus.cancelled, PrepStatus.voided}, l.ordersFilterStorno, PrepStatus.cancelled.color(context)),
+      ({PrepStatus.voided}, l.ordersFilterStorno, PrepStatus.voided.color(context)),
     ];
 
     return Container(

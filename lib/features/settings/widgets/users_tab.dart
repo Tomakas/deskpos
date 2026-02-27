@@ -172,32 +172,14 @@ class _UsersTabState extends ConsumerState<UsersTab> {
                           ),
                         ),
                       ),
-                      PosColumn(
-                        label: l.fieldActions,
-                        flex: 2,
-                        cellBuilder: (user) {
-                          final isLast = _isLastAdmin(users, roles, user);
-                          return Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.edit, size: 20),
-                                onPressed: () => _showEditDialog(context, ref, roles, users, user),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.security, size: 20),
-                                onPressed: () => _showEditDialog(context, ref, roles, users, user, initialTabIndex: 1),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.delete, size: 20),
-                                onPressed: isLast ? null : () => _delete(context, ref, user),
-                              ),
-                            ],
-                          );
-                        },
-                      ),
                     ],
                     items: filtered,
+                    onRowTap: (user) => _showEditDialog(context, ref, roles, users, user),
+                    onRowLongPress: (user) async {
+                      if (_isLastAdmin(users, roles, user)) return;
+                      if (!await confirmDelete(context, context.l10n) || !context.mounted) return;
+                      await ref.read(userRepositoryProvider).delete(user.id);
+                    },
                   ),
                 ),
               ],
@@ -308,10 +290,6 @@ class _UsersTabState extends ConsumerState<UsersTab> {
     }
   }
 
-  Future<void> _delete(BuildContext context, WidgetRef ref, UserModel user) async {
-    if (!await confirmDelete(context, context.l10n) || !mounted) return;
-    await ref.read(userRepositoryProvider).delete(user.id);
-  }
 }
 
 class _UserFormResult {
@@ -571,7 +549,8 @@ class _UserEditDialogState extends ConsumerState<_UserEditDialog>
 
     return PosDialogShell(
       title: isNew ? l.actionAdd : l.actionEdit,
-      maxWidth: 700,
+      maxWidth: 500,
+      maxHeight: 600,
       expandHeight: true,
       children: [
         TabBar(
@@ -596,6 +575,17 @@ class _UserEditDialogState extends ConsumerState<_UserEditDialog>
         const SizedBox(height: 8),
       ],
       bottomActions: PosDialogActions(
+        leading: widget.existing != null && !widget.isLastAdmin
+            ? OutlinedButton(
+                style: PosButtonStyles.destructiveOutlined(context),
+                onPressed: () async {
+                  if (!await confirmDelete(context, l) || !context.mounted) return;
+                  await ref.read(userRepositoryProvider).delete(widget.existing!.id);
+                  if (context.mounted) Navigator.pop(context);
+                },
+                child: Text(l.actionDelete),
+              )
+            : null,
         actions: [
           OutlinedButton(
             onPressed: () => Navigator.pop(context),

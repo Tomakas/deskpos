@@ -188,14 +188,10 @@
   "prepStatusCreated": "Vytvořeno",
   "prepStatusReady": "Připraveno",
   "prepStatusDelivered": "Doručeno",
-  "prepStatusCancelled": "Zrušeno",
   "prepStatusVoided": "Stornováno",
 
   "orderStatusChange": "Změnit stav",
-  "orderCancel": "Zrušit objednávku",
   "orderVoid": "Stornovat objednávku",
-  "orderConfirmCancel": "Opravdu chcete zrušit tuto objednávku?",
-  "orderConfirmVoid": "Opravdu chcete stornovat tuto objednávku?",
 
   "paymentTitle": "Platba",
   "paymentMethod": "Platební metoda",
@@ -393,7 +389,7 @@
   "closingActualCash": "Skutečný stav hotovosti",
   "closingDifference": "Rozdíl",
   "closingPrint": "Tisk",
-  "closingConfirm": "Uzavřít směnu",
+  "closingConfirm": "Potvrdit",
   "closingNoteTitle": "Poznámka k uzávěrce",
   "closingNoteHint": "Poznámky k uzávěrce...",
 
@@ -836,8 +832,8 @@
   "autoArrangeSmart": "Chytré",
   "autoArrangeHorizontal": "Horizontální",
   "autoArrangeVertical": "Vertikální",
-  "autoArrangeSimpleHorizontalDesc": "Kořenové kategorie jsou umístěny v prvním řádku zleva doprava. Produkty se na hlavní stránce nezobrazují. Klepnutím na kategorii se otevře sub-stránka s podkategoriemi v prvním sloupci a produkty napravo.",
-  "autoArrangeSimpleVerticalDesc": "Kořenové kategorie jsou umístěny v prvním sloupci shora dolů. Produkty se na hlavní stránce nezobrazují. Klepnutím na kategorii se otevře sub-stránka s podkategoriemi v prvním řádku a produkty pod nimi.",
+  "autoArrangeSimpleHorizontalDesc": "Kořenové kategorie jsou umístěny v prvním řádku zleva doprava. Produkty se na hlavní stránce nezobrazují. Klepnutím na kategorii se otevře sub-stránka s podkategoriemi v prvním řádku a produkty pod nimi.",
+  "autoArrangeSimpleVerticalDesc": "Kořenové kategorie jsou umístěny v prvním sloupci shora dolů. Produkty se na hlavní stránce nezobrazují. Klepnutím na kategorii se otevře sub-stránka s podkategoriemi v prvním sloupci a produkty napravo.",
   "autoArrangeSmartHorizontalDesc": "Každá kořenová kategorie zabírá řádek — kategorie v prvním sloupci, náhledy produktů napravo. Každá kategorie má sub-stránku se všemi produkty a podkategoriemi ve stejném rozložení.",
   "autoArrangeSmartVerticalDesc": "Každá kořenová kategorie zabírá sloupec — kategorie v prvním řádku, náhledy produktů pod ní. Každá kategorie má sub-stránku se všemi produkty a podkategoriemi ve stejném rozložení.",
   "autoArrangeWarning": "Stávající rozmístění bude nahrazeno",
@@ -1259,6 +1255,8 @@
   "statsSalesFinalTotal": "Celkem (účtenky)",
 
   "sellEnterQuantity": "Zadejte množství",
+  "sellEnterPrice": "Zadejte cenu",
+  "labelOpenPrice": "Otevřená cena",
 
   "statsFilterTitle": "Filtr",
   "statsFilterPaymentMethod": "Typ platby",
@@ -1440,6 +1438,7 @@
   "statsOrderItems": "Položky",
 
   "settingsCurrencyLocked": "Výchozí měnu nelze změnit po vytvoření prvního účtu.",
+  "settingsCurrencySessionLocked": "Měny nelze měnit při aktivní směně.",
   "settingsAlternativeCurrencies": "Alternativní měny",
   "settingsAddCurrency": "Přidat měnu",
   "settingsExchangeRate": "Kurz",
@@ -1473,6 +1472,9 @@
       "amount": {"type": "String"}
     }
   },
+  "cashTenderReceived": "Přijato",
+  "cashTenderChangeLabel": "Vrátit",
+  "cashTenderRemainingLabel": "Zbývá",
   "cashTenderSkip": "Bez zadání",
   "cashTenderConversion": "{foreignAmount} × {rate} = {baseAmount}",
   "@cashTenderConversion": {
@@ -1570,7 +1572,7 @@
   "inventorySortType": "Typ",
   "inventorySortAmount": "Částka",
   "inventorySortItem": "Položka",
-  "settingsNegativeStockPolicy": "Politika záporných zásob",
+  "settingsNegativeStockPolicy": "Prodej při nedostatku zásob",
   "negativeStockPolicyAllow": "Povolit",
   "negativeStockPolicyWarn": "Upozornit",
   "negativeStockPolicyBlock": "Blokovat",
@@ -1578,7 +1580,7 @@
   "stockWarningTitle": "Upozornění na zásoby",
   "stockWarningContinue": "Pokračovat",
   "negativeStockPolicyDefault": "Výchozí (nastavení firmy)",
-  "fieldNegativeStockPolicy": "Přepsat politiku zásob",
+  "fieldNegativeStockPolicy": "Prodej bez skladu",
   "stockColumnItem": "Položka",
   "stockColumnRequired": "Objednávka",
   "stockColumnAvailable": "Skladem",
@@ -1635,5 +1637,10 @@
   "assignToGridNo": "Ne",
   "assignToGridAuto": "Automaticky",
   "assignToGridPick": "Vybrat pozici",
-  "assignToGridPickTitle": "Vyberte pozici v gridu"
+  "assignToGridPickTitle": "Vyberte pozici v gridu",
+
+  "billsScopeSession": "Aktuální směna",
+  "billsScopeAll": "Vše",
+  "sessionRequiredTitle": "Směna není aktivní",
+  "sessionRequiredMessage": "Pro provedení prodeje je nutné nejprve zahájit směnu."
 }

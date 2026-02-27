@@ -6,7 +6,6 @@ enum PrepStatus {
   created,
   ready,
   delivered,
-  cancelled,
   voided,
 }
 
@@ -17,7 +16,6 @@ extension PrepStatusColor on PrepStatus {
       PrepStatus.created => c.statusCreated,
       PrepStatus.ready => c.statusReady,
       PrepStatus.delivered => c.statusDelivered,
-      PrepStatus.cancelled => c.statusCancelled,
       PrepStatus.voided => c.statusVoided,
     };
   }

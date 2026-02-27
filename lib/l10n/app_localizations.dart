@@ -938,12 +938,6 @@ abstract class AppLocalizations {
   /// **'Doručeno'**
   String get prepStatusDelivered;
 
-  /// No description provided for @prepStatusCancelled.
-  ///
-  /// In cs, this message translates to:
-  /// **'Zrušeno'**
-  String get prepStatusCancelled;
-
   /// No description provided for @prepStatusVoided.
   ///
   /// In cs, this message translates to:
@@ -956,29 +950,11 @@ abstract class AppLocalizations {
   /// **'Změnit stav'**
   String get orderStatusChange;
 
-  /// No description provided for @orderCancel.
-  ///
-  /// In cs, this message translates to:
-  /// **'Zrušit objednávku'**
-  String get orderCancel;
-
   /// No description provided for @orderVoid.
   ///
   /// In cs, this message translates to:
   /// **'Stornovat objednávku'**
   String get orderVoid;
-
-  /// No description provided for @orderConfirmCancel.
-  ///
-  /// In cs, this message translates to:
-  /// **'Opravdu chcete zrušit tuto objednávku?'**
-  String get orderConfirmCancel;
-
-  /// No description provided for @orderConfirmVoid.
-  ///
-  /// In cs, this message translates to:
-  /// **'Opravdu chcete stornovat tuto objednávku?'**
-  String get orderConfirmVoid;
 
   /// No description provided for @paymentTitle.
   ///
@@ -1973,7 +1949,7 @@ abstract class AppLocalizations {
   /// No description provided for @closingConfirm.
   ///
   /// In cs, this message translates to:
-  /// **'Uzavřít směnu'**
+  /// **'Potvrdit'**
   String get closingConfirm;
 
   /// No description provided for @closingNoteTitle.
@@ -4007,13 +3983,13 @@ abstract class AppLocalizations {
   /// No description provided for @autoArrangeSimpleHorizontalDesc.
   ///
   /// In cs, this message translates to:
-  /// **'Kořenové kategorie jsou umístěny v prvním řádku zleva doprava. Produkty se na hlavní stránce nezobrazují. Klepnutím na kategorii se otevře sub-stránka s podkategoriemi v prvním sloupci a produkty napravo.'**
+  /// **'Kořenové kategorie jsou umístěny v prvním řádku zleva doprava. Produkty se na hlavní stránce nezobrazují. Klepnutím na kategorii se otevře sub-stránka s podkategoriemi v prvním řádku a produkty pod nimi.'**
   String get autoArrangeSimpleHorizontalDesc;
 
   /// No description provided for @autoArrangeSimpleVerticalDesc.
   ///
   /// In cs, this message translates to:
-  /// **'Kořenové kategorie jsou umístěny v prvním sloupci shora dolů. Produkty se na hlavní stránce nezobrazují. Klepnutím na kategorii se otevře sub-stránka s podkategoriemi v prvním řádku a produkty pod nimi.'**
+  /// **'Kořenové kategorie jsou umístěny v prvním sloupci shora dolů. Produkty se na hlavní stránce nezobrazují. Klepnutím na kategorii se otevře sub-stránka s podkategoriemi v prvním sloupci a produkty napravo.'**
   String get autoArrangeSimpleVerticalDesc;
 
   /// No description provided for @autoArrangeSmartHorizontalDesc.
@@ -6074,6 +6050,18 @@ abstract class AppLocalizations {
   /// **'Zadejte množství'**
   String get sellEnterQuantity;
 
+  /// No description provided for @sellEnterPrice.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zadejte cenu'**
+  String get sellEnterPrice;
+
+  /// No description provided for @labelOpenPrice.
+  ///
+  /// In cs, this message translates to:
+  /// **'Otevřená cena'**
+  String get labelOpenPrice;
+
   /// No description provided for @statsFilterTitle.
   ///
   /// In cs, this message translates to:
@@ -7028,6 +7016,12 @@ abstract class AppLocalizations {
   /// **'Výchozí měnu nelze změnit po vytvoření prvního účtu.'**
   String get settingsCurrencyLocked;
 
+  /// No description provided for @settingsCurrencySessionLocked.
+  ///
+  /// In cs, this message translates to:
+  /// **'Měny nelze měnit při aktivní směně.'**
+  String get settingsCurrencySessionLocked;
+
   /// No description provided for @settingsAlternativeCurrencies.
   ///
   /// In cs, this message translates to:
@@ -7093,6 +7087,24 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Zbývá: {amount}'**
   String cashTenderRemaining(String amount);
+
+  /// No description provided for @cashTenderReceived.
+  ///
+  /// In cs, this message translates to:
+  /// **'Přijato'**
+  String get cashTenderReceived;
+
+  /// No description provided for @cashTenderChangeLabel.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vrátit'**
+  String get cashTenderChangeLabel;
+
+  /// No description provided for @cashTenderRemainingLabel.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zbývá'**
+  String get cashTenderRemainingLabel;
 
   /// No description provided for @cashTenderSkip.
   ///
@@ -7575,7 +7587,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsNegativeStockPolicy.
   ///
   /// In cs, this message translates to:
-  /// **'Politika záporných zásob'**
+  /// **'Prodej při nedostatku zásob'**
   String get settingsNegativeStockPolicy;
 
   /// No description provided for @negativeStockPolicyAllow.
@@ -7623,7 +7635,7 @@ abstract class AppLocalizations {
   /// No description provided for @fieldNegativeStockPolicy.
   ///
   /// In cs, this message translates to:
-  /// **'Přepsat politiku zásob'**
+  /// **'Prodej bez skladu'**
   String get fieldNegativeStockPolicy;
 
   /// No description provided for @stockColumnItem.
@@ -7943,6 +7955,30 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Vyberte pozici v gridu'**
   String get assignToGridPickTitle;
+
+  /// No description provided for @billsScopeSession.
+  ///
+  /// In cs, this message translates to:
+  /// **'Aktuální směna'**
+  String get billsScopeSession;
+
+  /// No description provided for @billsScopeAll.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vše'**
+  String get billsScopeAll;
+
+  /// No description provided for @sessionRequiredTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Směna není aktivní'**
+  String get sessionRequiredTitle;
+
+  /// No description provided for @sessionRequiredMessage.
+  ///
+  /// In cs, this message translates to:
+  /// **'Pro provedení prodeje je nutné nejprve zahájit směnu.'**
+  String get sessionRequiredMessage;
 }
 
 class _AppLocalizationsDelegate

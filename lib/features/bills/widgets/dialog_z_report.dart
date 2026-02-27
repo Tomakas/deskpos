@@ -11,7 +11,6 @@ import '../../../core/utils/formatters.dart';
 import '../../../core/utils/formatting_ext.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/printing/receipt_data.dart';
-import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../models/z_report_data.dart';
 
@@ -85,22 +84,16 @@ class DialogZReport extends ConsumerWidget {
       titleStyle: theme.textTheme.headlineSmall,
       maxWidth: 520,
       scrollable: true,
-      bottomActions: PosDialogActions(
-        leading: OutlinedButton(
-          onPressed: () async {
-            try {
-              final labels = _buildLabels(context, ref);
-              final bytes = await ref.read(printingServiceProvider)
-                  .generateZReportPdf(data, labels);
-              await FileOpener.shareBytes('z_report_${data.sessionId}.pdf', bytes);
-            } catch (e, s) {
-              AppLogger.error('Failed to print Z-report', error: e, stackTrace: s);
-            }
-          },
-          child: Text(l.zReportPrint),
-        ),
-        actions: const [],
-      ),
+      onPrint: () async {
+        try {
+          final labels = _buildLabels(context, ref);
+          final bytes = await ref.read(printingServiceProvider)
+              .generateZReportPdf(data, labels);
+          await FileOpener.shareBytes('z_report_${data.sessionId}.pdf', bytes);
+        } catch (e, s) {
+          AppLogger.error('Failed to print Z-report', error: e, stackTrace: s);
+        }
+      },
       children: [
         // --- Session info ---
                 Text(l.zReportSessionInfo, style: theme.textTheme.titleSmall),
