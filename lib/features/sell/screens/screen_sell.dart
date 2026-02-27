@@ -2110,55 +2110,55 @@ class _RetailMenuButton extends ConsumerWidget {
         ),
         if (hasSession)
           PopupMenuItem(value: 'cash-journal', height: 48, child: Text(l.billsCashJournal)),
-        PopupMenuItem(
-          value: 'statistics',
-          enabled: canStats,
-          height: 48,
-          child: Text(l.moreStatistics),
-        ),
+        if (canStats)
+          PopupMenuItem(
+            value: 'statistics',
+            height: 48,
+            child: Text(l.moreStatistics),
+          ),
         const PopupMenuDivider(),
         PopupMenuItem(
           value: 'bills',
           height: 48,
           child: Text(l.billsTitle),
         ),
-        PopupMenuItem(
-          value: 'orders',
-          enabled: canViewOrders,
-          height: 48,
-          child: Text(l.ordersTitle),
-        ),
-        PopupMenuItem(
-          value: 'catalog',
-          enabled: canCatalog,
-          height: 48,
-          child: Text(l.moreCatalog),
-        ),
-        PopupMenuItem(
-          value: 'inventory',
-          enabled: canInventory,
-          height: 48,
-          child: Text(l.billsInventory),
-        ),
-        PopupMenuItem(
-          value: 'vouchers',
-          enabled: canVouchers,
-          height: 48,
-          child: Text(l.vouchersTitle),
-        ),
-        PopupMenuItem(
-          value: 'data',
-          enabled: canData,
-          height: 48,
-          child: Text(l.dataTitle),
-        ),
+        if (canViewOrders)
+          PopupMenuItem(
+            value: 'orders',
+            height: 48,
+            child: Text(l.ordersTitle),
+          ),
+        if (canCatalog)
+          PopupMenuItem(
+            value: 'catalog',
+            height: 48,
+            child: Text(l.moreCatalog),
+          ),
+        if (canInventory)
+          PopupMenuItem(
+            value: 'inventory',
+            height: 48,
+            child: Text(l.billsInventory),
+          ),
+        if (canVouchers)
+          PopupMenuItem(
+            value: 'vouchers',
+            height: 48,
+            child: Text(l.vouchersTitle),
+          ),
+        if (canData)
+          PopupMenuItem(
+            value: 'data',
+            height: 48,
+            child: Text(l.dataTitle),
+          ),
         const PopupMenuDivider(),
-        PopupMenuItem(
-          value: 'settings',
-          enabled: canSettings,
-          height: 48,
-          child: Text(l.settingsTitle),
-        ),
+        if (canSettings)
+          PopupMenuItem(
+            value: 'settings',
+            height: 48,
+            child: Text(l.settingsTitle),
+          ),
         const PopupMenuDivider(),
         PopupMenuItem(
           value: 'logout',
