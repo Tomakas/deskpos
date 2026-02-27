@@ -3,9 +3,9 @@
 
   "appTitle": "Maty",
 
-  "onboardingTitle": "Vítejte v Maty",
+  "onboardingTitle": "Pokladní systém Maty",
   "onboardingCreateCompany": "Založit novou firmu",
-  "onboardingJoinCompany": "Připojit se k firmě",
+  "onboardingJoinCompany": "Přihlásit k existující firmě",
   "onboardingJoinCompanyDisabled": "Dostupné od verze 3.0",
 
   "wizardStepCompany": "Firma",
@@ -1026,8 +1026,8 @@
 
   "onboardingCustomerDisplay": "Zákaznický displej",
   "onboardingCustomerDisplaySubtitle": "Zařízení bude po připojení sloužit jako zákaznický displej.",
-  "onboardingCreateDemo": "Vytvořit Demo",
-  "onboardingCreateDemoSubtitle": "Kompletní demo firma s tříměsíční historií.",
+  "onboardingCreateDemo": "Demo účet",
+  "onboardingCreateDemoSubtitle": "Vytvoří kompletní firmu s daty včetně tříměsíční historie.",
   "demoDialogTitle": "Vytvořit demo firmu",
   "demoDialogInfo": "Demo se automaticky smaže po 6 hodinách",
   "demoDialogCreate": "Vytvořit",

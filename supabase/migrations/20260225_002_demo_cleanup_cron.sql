@@ -60,7 +60,7 @@ SELECT cron.schedule(
               'bills', (SELECT count(*) FROM bills WHERE company_id = v_company_id AND created_at > v_created_at + interval '1 minute'),
               'orders', (SELECT count(*) FROM orders WHERE company_id = v_company_id AND created_at > v_created_at + interval '1 minute'),
               'items_sold', (SELECT coalesce(sum(quantity), 0) FROM order_items oi JOIN orders o ON o.id = oi.order_id AND o.company_id = oi.company_id WHERE oi.company_id = v_company_id AND oi.created_at > v_created_at + interval '1 minute'),
-              'revenue', (SELECT coalesce(sum(total_amount), 0) FROM bills WHERE company_id = v_company_id AND created_at > v_created_at + interval '1 minute'),
+              'revenue', (SELECT coalesce(sum(total_gross), 0) FROM bills WHERE company_id = v_company_id AND created_at > v_created_at + interval '1 minute'),
               'payments', (
                 SELECT coalesce(jsonb_object_agg(pm.name, cnt), '{}'::jsonb)
                 FROM (

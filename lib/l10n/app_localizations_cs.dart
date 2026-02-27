@@ -12,13 +12,13 @@ class AppLocalizationsCs extends AppLocalizations {
   String get appTitle => 'Maty';
 
   @override
-  String get onboardingTitle => 'Vítejte v Maty';
+  String get onboardingTitle => 'Pokladní systém Maty';
 
   @override
   String get onboardingCreateCompany => 'Založit novou firmu';
 
   @override
-  String get onboardingJoinCompany => 'Připojit se k firmě';
+  String get onboardingJoinCompany => 'Přihlásit k existující firmě';
 
   @override
   String get onboardingJoinCompanyDisabled => 'Dostupné od verze 3.0';
@@ -2510,11 +2510,11 @@ class AppLocalizationsCs extends AppLocalizations {
       'Zařízení bude po připojení sloužit jako zákaznický displej.';
 
   @override
-  String get onboardingCreateDemo => 'Vytvořit Demo';
+  String get onboardingCreateDemo => 'Demo účet';
 
   @override
   String get onboardingCreateDemoSubtitle =>
-      'Kompletní demo firma s tříměsíční historií.';
+      'Vytvoří kompletní firmu s daty včetně tříměsíční historie.';
 
   @override
   String get demoDialogTitle => 'Vytvořit demo firmu';

@@ -12,13 +12,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appTitle => 'Maty';
 
   @override
-  String get onboardingTitle => 'Welcome to Maty';
+  String get onboardingTitle => 'Maty POS System';
 
   @override
   String get onboardingCreateCompany => 'Create New Company';
 
   @override
-  String get onboardingJoinCompany => 'Join Company';
+  String get onboardingJoinCompany => 'Sign In to Existing Company';
 
   @override
   String get onboardingJoinCompanyDisabled => 'Available from version 3.0';
@@ -2512,11 +2512,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'This device will serve as a customer display after connecting.';
 
   @override
-  String get onboardingCreateDemo => 'Create Demo';
+  String get onboardingCreateDemo => 'Demo Account';
 
   @override
   String get onboardingCreateDemoSubtitle =>
-      'Complete demo company with three months of history.';
+      'Creates a complete company with data including three months of history.';
 
   @override
   String get demoDialogTitle => 'Create Demo Company';

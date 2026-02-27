@@ -3,9 +3,9 @@
 
   "appTitle": "Maty",
 
-  "onboardingTitle": "Welcome to Maty",
+  "onboardingTitle": "Maty POS System",
   "onboardingCreateCompany": "Create New Company",
-  "onboardingJoinCompany": "Join Company",
+  "onboardingJoinCompany": "Sign In to Existing Company",
   "onboardingJoinCompanyDisabled": "Available from version 3.0",
 
   "wizardStepCompany": "Company",
@@ -1026,8 +1026,8 @@
 
   "onboardingCustomerDisplay": "Customer Display",
   "onboardingCustomerDisplaySubtitle": "This device will serve as a customer display after connecting.",
-  "onboardingCreateDemo": "Create Demo",
-  "onboardingCreateDemoSubtitle": "Complete demo company with three months of history.",
+  "onboardingCreateDemo": "Demo Account",
+  "onboardingCreateDemoSubtitle": "Creates a complete company with data including three months of history.",
   "demoDialogTitle": "Create Demo Company",
   "demoDialogInfo": "Demo auto-deletes after 6 hours",
   "demoDialogCreate": "Create",

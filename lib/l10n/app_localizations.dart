@@ -107,7 +107,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingTitle.
   ///
   /// In cs, this message translates to:
-  /// **'Vítejte v Maty'**
+  /// **'Pokladní systém Maty'**
   String get onboardingTitle;
 
   /// No description provided for @onboardingCreateCompany.
@@ -119,7 +119,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingJoinCompany.
   ///
   /// In cs, this message translates to:
-  /// **'Připojit se k firmě'**
+  /// **'Přihlásit k existující firmě'**
   String get onboardingJoinCompany;
 
   /// No description provided for @onboardingJoinCompanyDisabled.
@@ -4931,13 +4931,13 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingCreateDemo.
   ///
   /// In cs, this message translates to:
-  /// **'Vytvořit Demo'**
+  /// **'Demo účet'**
   String get onboardingCreateDemo;
 
   /// No description provided for @onboardingCreateDemoSubtitle.
   ///
   /// In cs, this message translates to:
-  /// **'Kompletní demo firma s tříměsíční historií.'**
+  /// **'Vytvoří kompletní firmu s daty včetně tříměsíční historie.'**
   String get onboardingCreateDemoSubtitle;
 
   /// No description provided for @demoDialogTitle.
