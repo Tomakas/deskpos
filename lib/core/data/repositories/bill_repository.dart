@@ -648,13 +648,13 @@ class BillRepository {
     }
   }
 
-  Future<Result<BillModel>> updateCustomer(String billId, String? customerId) async {
+  Future<Result<BillModel>> updateCustomer(String billId, String? customerId, {String? customerName}) async {
     try {
       return await _db.transaction(() async {
         await (_db.update(_db.bills)..where((t) => t.id.equals(billId))).write(
           BillsCompanion(
             customerId: Value(customerId),
-            customerName: const Value(null),
+            customerName: Value(customerName),
             updatedAt: Value(DateTime.now()),
           ),
         );

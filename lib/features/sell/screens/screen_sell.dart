@@ -900,7 +900,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     final billId = widget.billId;
     if (result is CustomerModel) {
       if (billId != null) {
-        await ref.read(billRepositoryProvider).updateCustomer(billId, result.id);
+        await ref.read(billRepositoryProvider).updateCustomer(billId, result.id, customerName: '${result.firstName} ${result.lastName}');
       }
       if (mounted) {
         setState(() {

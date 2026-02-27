@@ -485,6 +485,7 @@ class _BillCircle extends ConsumerWidget {
                   bill.customerName!,
                   style: TextStyle(
                     fontSize: 11,
+                    height: 1.0,
                     color: Colors.white.withValues(alpha: 0.9),
                   ),
                   maxLines: 1,

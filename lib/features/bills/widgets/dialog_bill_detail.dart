@@ -1124,7 +1124,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
     if (result == null) return;
     if (!mounted) return;
     if (result is CustomerModel) {
-      await billRepo.updateCustomer(bill.id, result.id);
+      await billRepo.updateCustomer(bill.id, result.id, customerName: '${result.firstName} ${result.lastName}');
     } else if (result is String) {
       // Free-text customer name
       await billRepo.updateCustomerName(bill.id, result);
