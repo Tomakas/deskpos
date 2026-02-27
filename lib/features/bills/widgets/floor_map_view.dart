@@ -207,7 +207,7 @@ class FloorMapView extends ConsumerWidget {
                                       top: elem.gridRow * cellH,
                                       width: elem.gridWidth * cellW,
                                       height: elem.gridHeight * cellH,
-                                      child: _MapElementCell(element: elem),
+                                      child: _MapElementCell(element: elem, cellHeight: elem.gridHeight * cellH),
                                     ),
                                   // Tables
                                   for (final table in placedTables)
@@ -230,7 +230,7 @@ class FloorMapView extends ConsumerWidget {
                                       top: elem.gridRow * cellH,
                                       width: elem.gridWidth * cellW,
                                       height: elem.gridHeight * cellH,
-                                      child: _MapElementCell(element: elem),
+                                      child: _MapElementCell(element: elem, cellHeight: elem.gridHeight * cellH),
                                     ),
                                   // Bills as draggable circles
                                   for (final bill in sectionBills)
@@ -542,22 +542,20 @@ class _MapTableCell extends StatelessWidget {
         ? null
         : border == 2 ? color : color.withValues(alpha: 0.6);
 
-    final fontSize = table.fontSize?.toDouble() ?? (cellHeight * 0.18).clamp(8.0, 18.0);
+    final textColor = fill == 2
+        ? Colors.white
+        : Theme.of(context).colorScheme.onSurface;
 
     final content = Center(
-      child: Padding(
-        padding: const EdgeInsets.all(4),
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
         child: Text(
           table.name,
           textAlign: TextAlign.center,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
           style: TextStyle(
-            fontSize: fontSize,
+            fontSize: table.fontSize?.toDouble() ?? (cellHeight * 0.35).clamp(10.0, 24.0),
             fontWeight: FontWeight.w600,
-            color: fill == 2
-                ? Colors.white
-                : Theme.of(context).colorScheme.onSurface,
+            color: textColor,
           ),
         ),
       ),
@@ -603,8 +601,9 @@ class _MapTableCell extends StatelessWidget {
 }
 
 class _MapElementCell extends StatelessWidget {
-  const _MapElementCell({required this.element});
+  const _MapElementCell({required this.element, required this.cellHeight});
   final MapElementModel element;
+  final double cellHeight;
 
   static Color? _applyStyle(Color? color, int style) {
     if (color == null || style == 0) return null;
@@ -632,23 +631,23 @@ class _MapElementCell extends StatelessWidget {
     };
     final fillColor = _applyStyle(color, element.fillStyle);
 
+    final textColor = element.fillStyle == 2 && color != null
+        ? Colors.white
+        : color != null
+            ? color.withValues(alpha: 0.9)
+            : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7);
+
     final content = element.label != null
         ? Center(
-            child: Padding(
-              padding: const EdgeInsets.all(4),
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
               child: Text(
                 element.label!,
                 textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontSize: element.fontSize?.toDouble() ?? 14,
+                  fontSize: element.fontSize?.toDouble() ?? (cellHeight * 0.35).clamp(10.0, 24.0),
                   fontWeight: FontWeight.w500,
-                  color: element.fillStyle == 2 && color != null
-                      ? Colors.white
-                      : color != null
-                          ? color.withValues(alpha: 0.9)
-                          : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                  color: textColor,
                 ),
               ),
             ),

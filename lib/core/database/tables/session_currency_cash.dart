@@ -3,6 +3,7 @@ import 'package:drift/drift.dart';
 import 'sync_columns_mixin.dart';
 
 @TableIndex(name: 'idx_session_currency_cash_company_updated', columns: {#companyId, #updatedAt})
+@TableIndex(name: 'idx_session_currency_cash_currency', columns: {#currencyId})
 class SessionCurrencyCash extends Table with SyncColumnsMixin {
   TextColumn get id => text()();
   TextColumn get companyId => text()();

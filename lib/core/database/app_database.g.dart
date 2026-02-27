@@ -43368,6 +43368,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     'idx_company_currencies_company_updated',
     'CREATE INDEX idx_company_currencies_company_updated ON company_currencies (company_id, updated_at)',
   );
+  late final Index idxCompanyCurrenciesCurrency = Index(
+    'idx_company_currencies_currency',
+    'CREATE INDEX idx_company_currencies_currency ON company_currencies (currency_id)',
+  );
   late final Index idxCustomerTransactionsCompanyUpdated = Index(
     'idx_customer_transactions_company_updated',
     'CREATE INDEX idx_customer_transactions_company_updated ON customer_transactions (company_id, updated_at)',
@@ -43432,6 +43436,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     'idx_payments_company_updated',
     'CREATE INDEX idx_payments_company_updated ON payments (company_id, updated_at)',
   );
+  late final Index idxPaymentsForeignCurrency = Index(
+    'idx_payments_foreign_currency',
+    'CREATE INDEX idx_payments_foreign_currency ON payments (foreign_currency_id)',
+  );
   late final Index idxProductRecipesCompanyUpdated = Index(
     'idx_product_recipes_company_updated',
     'CREATE INDEX idx_product_recipes_company_updated ON product_recipes (company_id, updated_at)',
@@ -43455,6 +43463,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final Index idxSessionCurrencyCashCompanyUpdated = Index(
     'idx_session_currency_cash_company_updated',
     'CREATE INDEX idx_session_currency_cash_company_updated ON session_currency_cash (company_id, updated_at)',
+  );
+  late final Index idxSessionCurrencyCashCurrency = Index(
+    'idx_session_currency_cash_currency',
+    'CREATE INDEX idx_session_currency_cash_currency ON session_currency_cash (currency_id)',
   );
   late final Index idxShiftsCompanyUpdated = Index(
     'idx_shifts_company_updated',
@@ -43591,6 +43603,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     idxCategoriesCompanyUpdated,
     idxCompaniesUpdatedAt,
     idxCompanyCurrenciesCompanyUpdated,
+    idxCompanyCurrenciesCurrency,
     idxCustomerTransactionsCompanyUpdated,
     idxCustomersCompanyUpdated,
     idxCompanySettingsCompanyUpdated,
@@ -43607,12 +43620,14 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     idxOrdersCompanyUpdated,
     idxPaymentMethodsCompanyUpdated,
     idxPaymentsCompanyUpdated,
+    idxPaymentsForeignCurrency,
     idxProductRecipesCompanyUpdated,
     idxRegisterSessionsCompanyUpdated,
     idxRegistersCompanyUpdated,
     idxReservationsCompanyUpdated,
     idxSectionsCompanyUpdated,
     idxSessionCurrencyCashCompanyUpdated,
+    idxSessionCurrencyCashCurrency,
     idxShiftsCompanyUpdated,
     idxStockDocumentsCompanyUpdated,
     idxStockDocumentsWarehouse,

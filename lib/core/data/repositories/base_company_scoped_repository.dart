@@ -101,7 +101,9 @@ abstract class BaseCompanyScopedRepository<TTable extends Table,
     );
   }
 
-  /// Enqueue all existing (non-deleted) entities for initial push.
+  /// Enqueue all entities for initial push.
+  /// Intentionally includes soft-deleted rows: if a user creates and deletes
+  /// an entity while offline, both operations must reach the server.
   Future<void> enqueueAll(String companyId) async {
     if (syncQueueRepo == null) return;
     final entities = await (db.select(table)
