@@ -95,6 +95,7 @@ class _DialogCustomerCreditState extends ConsumerState<DialogCustomerCredit> {
     final theme = Theme.of(context);
 
     return PosDialogShell(
+      showCloseButton: true,
       title: l.loyaltyCredit,
       maxWidth: 500,
       maxHeight: 600,
@@ -143,14 +144,6 @@ class _DialogCustomerCreditState extends ConsumerState<DialogCustomerCredit> {
         ),
         const SizedBox(height: 16),
       ],
-      bottomActions: SizedBox(
-        width: double.infinity,
-        height: PosDialogTheme.actionHeight,
-        child: OutlinedButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text(l.actionClose),
-        ),
-      ),
     );
   }
 

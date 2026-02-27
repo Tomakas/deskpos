@@ -82,14 +82,7 @@ class _ScreenKdsState extends ConsumerState<ScreenKds> {
             onPressed: () => Scaffold.of(ctx).openDrawer(),
           ),
         ),
-        title: _OrdersToolbar(
-          sessionScope: _sessionScope,
-          onSessionScopeChanged: (v) => setState(() => _sessionScope = v),
-          sortAscending: _sortAscending,
-          onSortChanged: () => setState(() => _sortAscending = !_sortAscending),
-          searchController: _searchCtrl,
-          onSearchChanged: (v) => setState(() => _searchQuery = v),
-        ),
+        title: Text(l.ordersTitle),
         actions: [
           _KdsClockWidget(),
           const SizedBox(width: 16),
@@ -117,6 +110,59 @@ class _ScreenKdsState extends ConsumerState<ScreenKds> {
       ),
       body: Column(
         children: [
+          // Toolbar
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: SizedBox(
+                    height: 40,
+                    child: TextField(
+                      controller: _searchCtrl,
+                      onChanged: (v) => setState(() => _searchQuery = v),
+                      decoration: InputDecoration(
+                        hintText: l.searchHint,
+                        prefixIcon: const Icon(Icons.search, size: 20),
+                        suffixIcon: _searchCtrl.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear, size: 20),
+                                onPressed: () {
+                                  _searchCtrl.clear();
+                                  setState(() => _searchQuery = '');
+                                },
+                              )
+                            : null,
+                        border: const OutlineInputBorder(),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                ChoiceChip(
+                  label: Text(l.ordersScopeSession),
+                  selected: _sessionScope,
+                  onSelected: (_) => setState(() => _sessionScope = true),
+                ),
+                const SizedBox(width: 4),
+                ChoiceChip(
+                  label: Text(l.ordersScopeAll),
+                  selected: !_sessionScope,
+                  onSelected: (_) => setState(() => _sessionScope = false),
+                ),
+                const SizedBox(width: 4),
+                IconButton(
+                  icon: Icon(_sortAscending
+                      ? Icons.arrow_upward
+                      : Icons.arrow_downward),
+                  tooltip: _sortAscending ? l.ordersSortAsc : l.ordersSortDesc,
+                  onPressed: () => setState(() => _sortAscending = !_sortAscending),
+                ),
+              ],
+            ),
+          ),
           // Order cards list
           Expanded(
             child: StreamBuilder<List<OrderModel>>(
@@ -986,81 +1032,6 @@ Color _urgencyColor(int minutes, AppColorsExtension colors) {
   return colors.danger;
 }
 
-// ---------------------------------------------------------------------------
-// Orders Toolbar (scope, sort, search)
-// ---------------------------------------------------------------------------
-class _OrdersToolbar extends StatelessWidget {
-  const _OrdersToolbar({
-    required this.sessionScope,
-    required this.onSessionScopeChanged,
-    required this.sortAscending,
-    required this.onSortChanged,
-    required this.searchController,
-    required this.onSearchChanged,
-  });
-
-  final bool sessionScope;
-  final ValueChanged<bool> onSessionScopeChanged;
-  final bool sortAscending;
-  final VoidCallback onSortChanged;
-  final TextEditingController searchController;
-  final ValueChanged<String> onSearchChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final l = context.l10n;
-    return Row(
-      children: [
-        Text(l.ordersTitle, style: Theme.of(context).textTheme.titleLarge),
-        const SizedBox(width: 16),
-        Expanded(
-          child: SizedBox(
-            height: 36,
-            child: TextField(
-              controller: searchController,
-              onChanged: onSearchChanged,
-              decoration: InputDecoration(
-                hintText: l.searchHint,
-                prefixIcon: const Icon(Icons.search, size: 20),
-                suffixIcon: searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear, size: 20),
-                        onPressed: () {
-                          searchController.clear();
-                          onSearchChanged('');
-                        },
-                      )
-                    : null,
-                border: const OutlineInputBorder(),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        ChoiceChip(
-          label: Text(l.ordersScopeSession),
-          selected: sessionScope,
-          onSelected: (_) => onSessionScopeChanged(true),
-        ),
-        const SizedBox(width: 4),
-        ChoiceChip(
-          label: Text(l.ordersScopeAll),
-          selected: !sessionScope,
-          onSelected: (_) => onSessionScopeChanged(false),
-        ),
-        const SizedBox(width: 4),
-        IconButton(
-          icon: Icon(sortAscending
-              ? Icons.arrow_upward
-              : Icons.arrow_downward),
-          tooltip: sortAscending ? l.ordersSortAsc : l.ordersSortDesc,
-          onPressed: onSortChanged,
-        ),
-      ],
-    );
-  }
-}
 
 // ---------------------------------------------------------------------------
 // KDS Status Filter Bar (toggle-based, matching ScreenOrders)

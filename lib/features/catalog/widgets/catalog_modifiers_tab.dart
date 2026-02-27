@@ -212,6 +212,7 @@ class _CatalogModifiersTabState extends ConsumerState<CatalogModifiersTab> {
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
                     labelText: l.minSelections,
+                    floatingLabelBehavior: FloatingLabelBehavior.always,
                     border: const OutlineInputBorder(),
                   ),
                 ),
@@ -223,7 +224,8 @@ class _CatalogModifiersTabState extends ConsumerState<CatalogModifiersTab> {
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
                     labelText: l.maxSelections,
-                    helperText: l.unlimited,
+                    floatingLabelBehavior: FloatingLabelBehavior.always,
+                    hintText: l.unlimited,
                     border: const OutlineInputBorder(),
                   ),
                 ),
@@ -293,29 +295,131 @@ class _GroupItemsSection extends ConsumerWidget {
 
     if (!context.mounted) return;
 
+    var onlyModifiers = true;
+    var query = '';
+    final searchCtrl = TextEditingController();
+
     final selected = await showDialog<ItemModel>(
       context: context,
-      builder: (ctx) => SimpleDialog(
-        title: Text(l.addModifier),
-        children: [
-          for (final item in availableItems)
-            SimpleDialogOption(
-              onPressed: () => Navigator.pop(ctx, item),
-              child: Row(
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) {
+          final filtered = availableItems.where((i) {
+            if (onlyModifiers && i.itemType != ItemType.modifier) return false;
+            if (query.isNotEmpty && !normalizeSearch(i.name).contains(query)) return false;
+            return true;
+          }).toList();
+          return PosDialogShell(
+            showCloseButton: true,
+            title: l.addModifier,
+            maxWidth: 400,
+            expandHeight: true,
+            children: [
+              Row(
                 children: [
-                  Expanded(child: Text(item.name)),
-                  Text(ref.money(item.unitPrice)),
+                  Expanded(
+                    child: TextField(
+                      controller: searchCtrl,
+                      decoration: InputDecoration(
+                        hintText: l.searchHint,
+                        prefixIcon: const Icon(Icons.search),
+                        suffixIcon: searchCtrl.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.close),
+                                onPressed: () {
+                                  searchCtrl.clear();
+                                  setDialogState(() => query = '');
+                                },
+                              )
+                            : null,
+                        isDense: true,
+                        border: const OutlineInputBorder(),
+                      ),
+                      onChanged: (v) => setDialogState(() => query = normalizeSearch(v)),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: Icon(
+                      Icons.filter_alt_outlined,
+                      color: !onlyModifiers
+                          ? Theme.of(ctx).colorScheme.primary
+                          : null,
+                    ),
+                    onPressed: () async {
+                      var tempOnly = onlyModifiers;
+                      await showDialog<void>(
+                        context: ctx,
+                        builder: (_) => StatefulBuilder(
+                          builder: (fCtx, setFilterState) => PosDialogShell(
+                            title: l.filterTitle,
+                            maxWidth: 400,
+                            scrollable: true,
+                            bottomActions: PosDialogActions(
+                              leading: !tempOnly
+                                  ? OutlinedButton(
+                                      style: PosButtonStyles.destructiveOutlined(fCtx),
+                                      onPressed: () {
+                                        setDialogState(() => onlyModifiers = true);
+                                        Navigator.of(fCtx).pop();
+                                      },
+                                      child: Text(l.filterReset),
+                                    )
+                                  : null,
+                              actions: [
+                                OutlinedButton(
+                                  onPressed: () => Navigator.of(fCtx).pop(),
+                                  child: Text(l.actionCancel),
+                                ),
+                                FilledButton(
+                                  onPressed: () {
+                                    setDialogState(() => onlyModifiers = tempOnly);
+                                    Navigator.of(fCtx).pop();
+                                  },
+                                  child: Text(l.actionConfirm),
+                                ),
+                              ],
+                            ),
+                            children: [
+                              SwitchListTile(
+                                title: Text(l.modifierFilterOnlyModifiers),
+                                value: tempOnly,
+                                onChanged: (v) => setFilterState(() => tempOnly = v),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 ],
               ),
-            ),
-          if (availableItems.isEmpty)
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(l.noModifierGroups, style: Theme.of(context).textTheme.bodySmall),
-            ),
-        ],
+              const SizedBox(height: 8),
+              Expanded(
+                child: filtered.isEmpty
+                    ? Center(
+                        child: Text(
+                          l.noModifierGroups,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      )
+                    : ListView.builder(
+                        itemCount: filtered.length,
+                        itemBuilder: (_, i) {
+                          final item = filtered[i];
+                          return ListTile(
+                            title: Text(item.name),
+                            trailing: Text(ref.money(item.unitPrice)),
+                            onTap: () => Navigator.pop(ctx, item),
+                          );
+                        },
+                      ),
+              ),
+            ],
+          );
+        },
       ),
     );
+    searchCtrl.dispose();
 
     if (selected == null) return;
 

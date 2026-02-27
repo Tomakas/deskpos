@@ -519,6 +519,7 @@ Map<String, dynamic> registerToSupabaseJson(RegisterModel m) => {
       'grid_rows': m.gridRows,
       'grid_cols': m.gridCols,
       'display_cart_json': m.displayCartJson,
+      'show_stock_badge': m.showStockBadge,
       'sell_mode': m.sellMode.name,
     };
 

@@ -29,6 +29,7 @@ abstract class RegisterModel with _$RegisterModel {
     @Default(5) int gridRows,
     @Default(8) int gridCols,
     String? displayCartJson,
+    @Default(false) bool showStockBadge,
     @Default(SellMode.gastro) SellMode sellMode,
     required DateTime createdAt,
     required DateTime updatedAt,

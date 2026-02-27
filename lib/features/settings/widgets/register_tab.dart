@@ -89,6 +89,19 @@ class RegisterTab extends ConsumerWidget {
                 ),
               ),
             ),
+            SwitchListTile(
+              title: Text(l.settingsShowStockBadge),
+              subtitle: Text(l.settingsShowStockBadgeDescription),
+              value: register.showStockBadge,
+              onChanged: (value) async {
+                final repo = ref.read(registerRepositoryProvider);
+                await repo.update(
+                  register.copyWith(showStockBadge: value),
+                );
+                if (!context.mounted) return;
+                ref.invalidate(activeRegisterProvider);
+              },
+            ),
             const Divider(),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

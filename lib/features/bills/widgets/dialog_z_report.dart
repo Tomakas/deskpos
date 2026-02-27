@@ -80,30 +80,26 @@ class DialogZReport extends ConsumerWidget {
     final title = isVenueReport ? l.zReportVenueReportTitle : l.zReportTitle;
 
     return PosDialogShell(
+      showCloseButton: true,
       title: title,
       titleStyle: theme.textTheme.headlineSmall,
       maxWidth: 520,
       scrollable: true,
       bottomActions: PosDialogActions(
-        actions: [
-          OutlinedButton(
-            onPressed: () async {
-              try {
-                final labels = _buildLabels(context, ref);
-                final bytes = await ref.read(printingServiceProvider)
-                    .generateZReportPdf(data, labels);
-                await FileOpener.shareBytes('z_report_${data.sessionId}.pdf', bytes);
-              } catch (e, s) {
-                AppLogger.error('Failed to print Z-report', error: e, stackTrace: s);
-              }
-            },
-            child: Text(l.zReportPrint),
-          ),
-          FilledButton.tonal(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l.zReportClose),
-          ),
-        ],
+        leading: OutlinedButton(
+          onPressed: () async {
+            try {
+              final labels = _buildLabels(context, ref);
+              final bytes = await ref.read(printingServiceProvider)
+                  .generateZReportPdf(data, labels);
+              await FileOpener.shareBytes('z_report_${data.sessionId}.pdf', bytes);
+            } catch (e, s) {
+              AppLogger.error('Failed to print Z-report', error: e, stackTrace: s);
+            }
+          },
+          child: Text(l.zReportPrint),
+        ),
+        actions: const [],
       ),
       children: [
         // --- Session info ---

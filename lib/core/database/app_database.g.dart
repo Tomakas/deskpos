@@ -26561,6 +26561,21 @@ class $RegistersTable extends Registers
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _showStockBadgeMeta = const VerificationMeta(
+    'showStockBadge',
+  );
+  @override
+  late final GeneratedColumn<bool> showStockBadge = GeneratedColumn<bool>(
+    'show_stock_badge',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("show_stock_badge" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   @override
   late final GeneratedColumnWithTypeConverter<SellMode, String> sellMode =
       GeneratedColumn<String>(
@@ -26601,6 +26616,7 @@ class $RegistersTable extends Registers
     gridRows,
     gridCols,
     displayCartJson,
+    showStockBadge,
     sellMode,
   ];
   @override
@@ -26816,6 +26832,15 @@ class $RegistersTable extends Registers
         ),
       );
     }
+    if (data.containsKey('show_stock_badge')) {
+      context.handle(
+        _showStockBadgeMeta,
+        showStockBadge.isAcceptableOrUnknown(
+          data['show_stock_badge']!,
+          _showStockBadgeMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -26939,6 +26964,10 @@ class $RegistersTable extends Registers
         DriftSqlType.string,
         data['${effectivePrefix}display_cart_json'],
       ),
+      showStockBadge: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}show_stock_badge'],
+      )!,
       sellMode: $RegistersTable.$convertersellMode.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.string,
@@ -26988,6 +27017,7 @@ class Register extends DataClass implements Insertable<Register> {
   final int gridRows;
   final int gridCols;
   final String? displayCartJson;
+  final bool showStockBadge;
   final SellMode sellMode;
   const Register({
     this.lastSyncedAt,
@@ -27018,6 +27048,7 @@ class Register extends DataClass implements Insertable<Register> {
     required this.gridRows,
     required this.gridCols,
     this.displayCartJson,
+    required this.showStockBadge,
     required this.sellMode,
   });
   @override
@@ -27071,6 +27102,7 @@ class Register extends DataClass implements Insertable<Register> {
     if (!nullToAbsent || displayCartJson != null) {
       map['display_cart_json'] = Variable<String>(displayCartJson);
     }
+    map['show_stock_badge'] = Variable<bool>(showStockBadge);
     {
       map['sell_mode'] = Variable<String>(
         $RegistersTable.$convertersellMode.toSql(sellMode),
@@ -27125,6 +27157,7 @@ class Register extends DataClass implements Insertable<Register> {
       displayCartJson: displayCartJson == null && nullToAbsent
           ? const Value.absent()
           : Value(displayCartJson),
+      showStockBadge: Value(showStockBadge),
       sellMode: Value(sellMode),
     );
   }
@@ -27165,6 +27198,7 @@ class Register extends DataClass implements Insertable<Register> {
       gridRows: serializer.fromJson<int>(json['gridRows']),
       gridCols: serializer.fromJson<int>(json['gridCols']),
       displayCartJson: serializer.fromJson<String?>(json['displayCartJson']),
+      showStockBadge: serializer.fromJson<bool>(json['showStockBadge']),
       sellMode: $RegistersTable.$convertersellMode.fromJson(
         serializer.fromJson<String>(json['sellMode']),
       ),
@@ -27204,6 +27238,7 @@ class Register extends DataClass implements Insertable<Register> {
       'gridRows': serializer.toJson<int>(gridRows),
       'gridCols': serializer.toJson<int>(gridCols),
       'displayCartJson': serializer.toJson<String?>(displayCartJson),
+      'showStockBadge': serializer.toJson<bool>(showStockBadge),
       'sellMode': serializer.toJson<String>(
         $RegistersTable.$convertersellMode.toJson(sellMode),
       ),
@@ -27239,6 +27274,7 @@ class Register extends DataClass implements Insertable<Register> {
     int? gridRows,
     int? gridCols,
     Value<String?> displayCartJson = const Value.absent(),
+    bool? showStockBadge,
     SellMode? sellMode,
   }) => Register(
     lastSyncedAt: lastSyncedAt.present ? lastSyncedAt.value : this.lastSyncedAt,
@@ -27279,6 +27315,7 @@ class Register extends DataClass implements Insertable<Register> {
     displayCartJson: displayCartJson.present
         ? displayCartJson.value
         : this.displayCartJson,
+    showStockBadge: showStockBadge ?? this.showStockBadge,
     sellMode: sellMode ?? this.sellMode,
   );
   Register copyWithCompanion(RegistersCompanion data) {
@@ -27337,6 +27374,9 @@ class Register extends DataClass implements Insertable<Register> {
       displayCartJson: data.displayCartJson.present
           ? data.displayCartJson.value
           : this.displayCartJson,
+      showStockBadge: data.showStockBadge.present
+          ? data.showStockBadge.value
+          : this.showStockBadge,
       sellMode: data.sellMode.present ? data.sellMode.value : this.sellMode,
     );
   }
@@ -27372,6 +27412,7 @@ class Register extends DataClass implements Insertable<Register> {
           ..write('gridRows: $gridRows, ')
           ..write('gridCols: $gridCols, ')
           ..write('displayCartJson: $displayCartJson, ')
+          ..write('showStockBadge: $showStockBadge, ')
           ..write('sellMode: $sellMode')
           ..write(')'))
         .toString();
@@ -27407,6 +27448,7 @@ class Register extends DataClass implements Insertable<Register> {
     gridRows,
     gridCols,
     displayCartJson,
+    showStockBadge,
     sellMode,
   ]);
   @override
@@ -27441,6 +27483,7 @@ class Register extends DataClass implements Insertable<Register> {
           other.gridRows == this.gridRows &&
           other.gridCols == this.gridCols &&
           other.displayCartJson == this.displayCartJson &&
+          other.showStockBadge == this.showStockBadge &&
           other.sellMode == this.sellMode);
 }
 
@@ -27473,6 +27516,7 @@ class RegistersCompanion extends UpdateCompanion<Register> {
   final Value<int> gridRows;
   final Value<int> gridCols;
   final Value<String?> displayCartJson;
+  final Value<bool> showStockBadge;
   final Value<SellMode> sellMode;
   final Value<int> rowid;
   const RegistersCompanion({
@@ -27504,6 +27548,7 @@ class RegistersCompanion extends UpdateCompanion<Register> {
     this.gridRows = const Value.absent(),
     this.gridCols = const Value.absent(),
     this.displayCartJson = const Value.absent(),
+    this.showStockBadge = const Value.absent(),
     this.sellMode = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -27536,6 +27581,7 @@ class RegistersCompanion extends UpdateCompanion<Register> {
     this.gridRows = const Value.absent(),
     this.gridCols = const Value.absent(),
     this.displayCartJson = const Value.absent(),
+    this.showStockBadge = const Value.absent(),
     this.sellMode = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -27571,6 +27617,7 @@ class RegistersCompanion extends UpdateCompanion<Register> {
     Expression<int>? gridRows,
     Expression<int>? gridCols,
     Expression<String>? displayCartJson,
+    Expression<bool>? showStockBadge,
     Expression<String>? sellMode,
     Expression<int>? rowid,
   }) {
@@ -27603,6 +27650,7 @@ class RegistersCompanion extends UpdateCompanion<Register> {
       if (gridRows != null) 'grid_rows': gridRows,
       if (gridCols != null) 'grid_cols': gridCols,
       if (displayCartJson != null) 'display_cart_json': displayCartJson,
+      if (showStockBadge != null) 'show_stock_badge': showStockBadge,
       if (sellMode != null) 'sell_mode': sellMode,
       if (rowid != null) 'rowid': rowid,
     });
@@ -27637,6 +27685,7 @@ class RegistersCompanion extends UpdateCompanion<Register> {
     Value<int>? gridRows,
     Value<int>? gridCols,
     Value<String?>? displayCartJson,
+    Value<bool>? showStockBadge,
     Value<SellMode>? sellMode,
     Value<int>? rowid,
   }) {
@@ -27669,6 +27718,7 @@ class RegistersCompanion extends UpdateCompanion<Register> {
       gridRows: gridRows ?? this.gridRows,
       gridCols: gridCols ?? this.gridCols,
       displayCartJson: displayCartJson ?? this.displayCartJson,
+      showStockBadge: showStockBadge ?? this.showStockBadge,
       sellMode: sellMode ?? this.sellMode,
       rowid: rowid ?? this.rowid,
     );
@@ -27763,6 +27813,9 @@ class RegistersCompanion extends UpdateCompanion<Register> {
     if (displayCartJson.present) {
       map['display_cart_json'] = Variable<String>(displayCartJson.value);
     }
+    if (showStockBadge.present) {
+      map['show_stock_badge'] = Variable<bool>(showStockBadge.value);
+    }
     if (sellMode.present) {
       map['sell_mode'] = Variable<String>(
         $RegistersTable.$convertersellMode.toSql(sellMode.value),
@@ -27805,6 +27858,7 @@ class RegistersCompanion extends UpdateCompanion<Register> {
           ..write('gridRows: $gridRows, ')
           ..write('gridCols: $gridCols, ')
           ..write('displayCartJson: $displayCartJson, ')
+          ..write('showStockBadge: $showStockBadge, ')
           ..write('sellMode: $sellMode, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -55412,6 +55466,7 @@ typedef $$RegistersTableCreateCompanionBuilder =
       Value<int> gridRows,
       Value<int> gridCols,
       Value<String?> displayCartJson,
+      Value<bool> showStockBadge,
       Value<SellMode> sellMode,
       Value<int> rowid,
     });
@@ -55445,6 +55500,7 @@ typedef $$RegistersTableUpdateCompanionBuilder =
       Value<int> gridRows,
       Value<int> gridCols,
       Value<String?> displayCartJson,
+      Value<bool> showStockBadge,
       Value<SellMode> sellMode,
       Value<int> rowid,
     });
@@ -55596,6 +55652,11 @@ class $$RegistersTableFilterComposer
 
   ColumnFilters<String> get displayCartJson => $composableBuilder(
     column: $table.displayCartJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get showStockBadge => $composableBuilder(
+    column: $table.showStockBadge,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -55755,6 +55816,11 @@ class $$RegistersTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get showStockBadge => $composableBuilder(
+    column: $table.showStockBadge,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get sellMode => $composableBuilder(
     column: $table.sellMode,
     builder: (column) => ColumnOrderings(column),
@@ -55880,6 +55946,11 @@ class $$RegistersTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<bool> get showStockBadge => $composableBuilder(
+    column: $table.showStockBadge,
+    builder: (column) => column,
+  );
+
   GeneratedColumnWithTypeConverter<SellMode, String> get sellMode =>
       $composableBuilder(column: $table.sellMode, builder: (column) => column);
 }
@@ -55940,6 +56011,7 @@ class $$RegistersTableTableManager
                 Value<int> gridRows = const Value.absent(),
                 Value<int> gridCols = const Value.absent(),
                 Value<String?> displayCartJson = const Value.absent(),
+                Value<bool> showStockBadge = const Value.absent(),
                 Value<SellMode> sellMode = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => RegistersCompanion(
@@ -55971,6 +56043,7 @@ class $$RegistersTableTableManager
                 gridRows: gridRows,
                 gridCols: gridCols,
                 displayCartJson: displayCartJson,
+                showStockBadge: showStockBadge,
                 sellMode: sellMode,
                 rowid: rowid,
               ),
@@ -56004,6 +56077,7 @@ class $$RegistersTableTableManager
                 Value<int> gridRows = const Value.absent(),
                 Value<int> gridCols = const Value.absent(),
                 Value<String?> displayCartJson = const Value.absent(),
+                Value<bool> showStockBadge = const Value.absent(),
                 Value<SellMode> sellMode = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => RegistersCompanion.insert(
@@ -56035,6 +56109,7 @@ class $$RegistersTableTableManager
                 gridRows: gridRows,
                 gridCols: gridCols,
                 displayCartJson: displayCartJson,
+                showStockBadge: showStockBadge,
                 sellMode: sellMode,
                 rowid: rowid,
               ),

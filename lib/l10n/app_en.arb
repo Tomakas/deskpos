@@ -275,6 +275,7 @@
   "itemTypeIngredient": "Ingredient",
   "itemTypeVariant": "Variant",
   "itemTypeModifier": "Modifier",
+  "modifierFilterOnlyModifiers": "Only modifiers",
 
   "moreReports": "Reports",
   "moreStatistics": "Statistics",
@@ -516,6 +517,8 @@
   },
   "settingsGridRows": "Grid Rows",
   "settingsGridCols": "Grid Columns",
+  "settingsShowStockBadge": "Show stock badges",
+  "settingsShowStockBadgeDescription": "Display stock quantity on product buttons",
   "lockScreenTitle": "Locked",
   "lockScreenSubtitle": "Select user to unlock",
 
@@ -822,10 +825,14 @@
   "settingsManualEditor": "Manual Grid Editor",
   "settingsManualEditorDescription": "Open editor to assign items",
   "autoArrangeTitle": "Auto Arrange",
+  "autoArrangeSimple": "Simple",
+  "autoArrangeSmart": "Smart",
   "autoArrangeHorizontal": "Horizontal",
-  "autoArrangeHorizontalDesc": "Row = category + its products",
   "autoArrangeVertical": "Vertical",
-  "autoArrangeVerticalDesc": "Column = category + its products below",
+  "autoArrangeSimpleHorizontalDesc": "Root categories are placed in the first row from left to right. Products are not shown on the main page. Tapping a category opens its sub-page with child categories in the first column and products to the right.",
+  "autoArrangeSimpleVerticalDesc": "Root categories are placed in the first column from top to bottom. Products are not shown on the main page. Tapping a category opens its sub-page with child categories in the first row and products below.",
+  "autoArrangeSmartHorizontalDesc": "Each root category gets its own row — category in the first column, product previews to the right. Each category has a sub-page with all products and child categories arranged the same way.",
+  "autoArrangeSmartVerticalDesc": "Each root category gets its own column — category in the first row, product previews below. Each category has a sub-page with all products and child categories arranged the same way.",
   "autoArrangeWarning": "Existing layout will be replaced",
   "autoArrangeConfirm": "Arrange",
   "autoArrangeSummary": "{categories} categories, {products} products",
@@ -1613,5 +1620,11 @@
   "businessTypeBeautySalon": "Beauty Salon",
   "businessTypeFitness": "Fitness",
   "businessTypeAutoService": "Auto Service",
-  "businessTypeOther": "Other"
+  "businessTypeOther": "Other",
+
+  "assignToGridTitle": "Assign to Grid?",
+  "assignToGridNo": "No",
+  "assignToGridAuto": "Auto by category",
+  "assignToGridPick": "Pick position",
+  "assignToGridPickTitle": "Pick grid position"
 }

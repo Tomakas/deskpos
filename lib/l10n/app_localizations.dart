@@ -1322,6 +1322,12 @@ abstract class AppLocalizations {
   /// **'Modifikátor'**
   String get itemTypeModifier;
 
+  /// No description provided for @modifierFilterOnlyModifiers.
+  ///
+  /// In cs, this message translates to:
+  /// **'Pouze modifikátory'**
+  String get modifierFilterOnlyModifiers;
+
   /// No description provided for @moreReports.
   ///
   /// In cs, this message translates to:
@@ -2527,6 +2533,18 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Sloupce gridu'**
   String get settingsGridCols;
+
+  /// No description provided for @settingsShowStockBadge.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zobrazit stav skladu'**
+  String get settingsShowStockBadge;
+
+  /// No description provided for @settingsShowStockBadgeDescription.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zobrazit množství na tlačítkách produktů'**
+  String get settingsShowStockBadgeDescription;
 
   /// No description provided for @lockScreenTitle.
   ///
@@ -3950,17 +3968,23 @@ abstract class AppLocalizations {
   /// **'Automatické rozmístění'**
   String get autoArrangeTitle;
 
+  /// No description provided for @autoArrangeSimple.
+  ///
+  /// In cs, this message translates to:
+  /// **'Jednoduché'**
+  String get autoArrangeSimple;
+
+  /// No description provided for @autoArrangeSmart.
+  ///
+  /// In cs, this message translates to:
+  /// **'Chytré'**
+  String get autoArrangeSmart;
+
   /// No description provided for @autoArrangeHorizontal.
   ///
   /// In cs, this message translates to:
   /// **'Horizontální'**
   String get autoArrangeHorizontal;
-
-  /// No description provided for @autoArrangeHorizontalDesc.
-  ///
-  /// In cs, this message translates to:
-  /// **'Řádek = kategorie + její produkty'**
-  String get autoArrangeHorizontalDesc;
 
   /// No description provided for @autoArrangeVertical.
   ///
@@ -3968,11 +3992,29 @@ abstract class AppLocalizations {
   /// **'Vertikální'**
   String get autoArrangeVertical;
 
-  /// No description provided for @autoArrangeVerticalDesc.
+  /// No description provided for @autoArrangeSimpleHorizontalDesc.
   ///
   /// In cs, this message translates to:
-  /// **'Sloupec = kategorie + její produkty pod ní'**
-  String get autoArrangeVerticalDesc;
+  /// **'Kořenové kategorie jsou umístěny v prvním řádku zleva doprava. Produkty se na hlavní stránce nezobrazují. Klepnutím na kategorii se otevře sub-stránka s podkategoriemi v prvním sloupci a produkty napravo.'**
+  String get autoArrangeSimpleHorizontalDesc;
+
+  /// No description provided for @autoArrangeSimpleVerticalDesc.
+  ///
+  /// In cs, this message translates to:
+  /// **'Kořenové kategorie jsou umístěny v prvním sloupci shora dolů. Produkty se na hlavní stránce nezobrazují. Klepnutím na kategorii se otevře sub-stránka s podkategoriemi v prvním řádku a produkty pod nimi.'**
+  String get autoArrangeSimpleVerticalDesc;
+
+  /// No description provided for @autoArrangeSmartHorizontalDesc.
+  ///
+  /// In cs, this message translates to:
+  /// **'Každá kořenová kategorie zabírá řádek — kategorie v prvním sloupci, náhledy produktů napravo. Každá kategorie má sub-stránku se všemi produkty a podkategoriemi ve stejném rozložení.'**
+  String get autoArrangeSmartHorizontalDesc;
+
+  /// No description provided for @autoArrangeSmartVerticalDesc.
+  ///
+  /// In cs, this message translates to:
+  /// **'Každá kořenová kategorie zabírá sloupec — kategorie v prvním řádku, náhledy produktů pod ní. Každá kategorie má sub-stránku se všemi produkty a podkategoriemi ve stejném rozložení.'**
+  String get autoArrangeSmartVerticalDesc;
 
   /// No description provided for @autoArrangeWarning.
   ///
@@ -7847,6 +7889,36 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Ostatní'**
   String get businessTypeOther;
+
+  /// No description provided for @assignToGridTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Přiřadit na grid?'**
+  String get assignToGridTitle;
+
+  /// No description provided for @assignToGridNo.
+  ///
+  /// In cs, this message translates to:
+  /// **'Ne'**
+  String get assignToGridNo;
+
+  /// No description provided for @assignToGridAuto.
+  ///
+  /// In cs, this message translates to:
+  /// **'Automaticky'**
+  String get assignToGridAuto;
+
+  /// No description provided for @assignToGridPick.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vybrat pozici'**
+  String get assignToGridPick;
+
+  /// No description provided for @assignToGridPickTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vyberte pozici v gridu'**
+  String get assignToGridPickTitle;
 }
 
 class _AppLocalizationsDelegate

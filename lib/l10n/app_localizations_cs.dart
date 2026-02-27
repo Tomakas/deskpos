@@ -646,6 +646,9 @@ class AppLocalizationsCs extends AppLocalizations {
   String get itemTypeModifier => 'Modifikátor';
 
   @override
+  String get modifierFilterOnlyModifiers => 'Pouze modifikátory';
+
+  @override
   String get moreReports => 'Reporty';
 
   @override
@@ -1265,6 +1268,13 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get settingsGridCols => 'Sloupce gridu';
+
+  @override
+  String get settingsShowStockBadge => 'Zobrazit stav skladu';
+
+  @override
+  String get settingsShowStockBadgeDescription =>
+      'Zobrazit množství na tlačítkách produktů';
 
   @override
   String get lockScreenTitle => 'Zamčeno';
@@ -2002,17 +2012,32 @@ class AppLocalizationsCs extends AppLocalizations {
   String get autoArrangeTitle => 'Automatické rozmístění';
 
   @override
-  String get autoArrangeHorizontal => 'Horizontální';
+  String get autoArrangeSimple => 'Jednoduché';
 
   @override
-  String get autoArrangeHorizontalDesc => 'Řádek = kategorie + její produkty';
+  String get autoArrangeSmart => 'Chytré';
+
+  @override
+  String get autoArrangeHorizontal => 'Horizontální';
 
   @override
   String get autoArrangeVertical => 'Vertikální';
 
   @override
-  String get autoArrangeVerticalDesc =>
-      'Sloupec = kategorie + její produkty pod ní';
+  String get autoArrangeSimpleHorizontalDesc =>
+      'Kořenové kategorie jsou umístěny v prvním řádku zleva doprava. Produkty se na hlavní stránce nezobrazují. Klepnutím na kategorii se otevře sub-stránka s podkategoriemi v prvním sloupci a produkty napravo.';
+
+  @override
+  String get autoArrangeSimpleVerticalDesc =>
+      'Kořenové kategorie jsou umístěny v prvním sloupci shora dolů. Produkty se na hlavní stránce nezobrazují. Klepnutím na kategorii se otevře sub-stránka s podkategoriemi v prvním řádku a produkty pod nimi.';
+
+  @override
+  String get autoArrangeSmartHorizontalDesc =>
+      'Každá kořenová kategorie zabírá řádek — kategorie v prvním sloupci, náhledy produktů napravo. Každá kategorie má sub-stránku se všemi produkty a podkategoriemi ve stejném rozložení.';
+
+  @override
+  String get autoArrangeSmartVerticalDesc =>
+      'Každá kořenová kategorie zabírá sloupec — kategorie v prvním řádku, náhledy produktů pod ní. Každá kategorie má sub-stránku se všemi produkty a podkategoriemi ve stejném rozložení.';
 
   @override
   String get autoArrangeWarning => 'Stávající rozmístění bude nahrazeno';
@@ -4007,4 +4032,19 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get businessTypeOther => 'Ostatní';
+
+  @override
+  String get assignToGridTitle => 'Přiřadit na grid?';
+
+  @override
+  String get assignToGridNo => 'Ne';
+
+  @override
+  String get assignToGridAuto => 'Automaticky';
+
+  @override
+  String get assignToGridPick => 'Vybrat pozici';
+
+  @override
+  String get assignToGridPickTitle => 'Vyberte pozici v gridu';
 }

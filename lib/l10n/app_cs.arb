@@ -275,6 +275,7 @@
   "itemTypeIngredient": "Ingredience",
   "itemTypeVariant": "Varianta",
   "itemTypeModifier": "Modifikátor",
+  "modifierFilterOnlyModifiers": "Pouze modifikátory",
 
   "moreReports": "Reporty",
   "moreStatistics": "Statistiky",
@@ -516,6 +517,8 @@
   },
   "settingsGridRows": "Řádky gridu",
   "settingsGridCols": "Sloupce gridu",
+  "settingsShowStockBadge": "Zobrazit stav skladu",
+  "settingsShowStockBadgeDescription": "Zobrazit množství na tlačítkách produktů",
   "lockScreenTitle": "Zamčeno",
   "lockScreenSubtitle": "Vyberte uživatele pro odemčení",
 
@@ -822,10 +825,14 @@
   "settingsManualEditor": "Ruční editor mřížky",
   "settingsManualEditorDescription": "Otevře editor pro přiřazení položek",
   "autoArrangeTitle": "Automatické rozmístění",
+  "autoArrangeSimple": "Jednoduché",
+  "autoArrangeSmart": "Chytré",
   "autoArrangeHorizontal": "Horizontální",
-  "autoArrangeHorizontalDesc": "Řádek = kategorie + její produkty",
   "autoArrangeVertical": "Vertikální",
-  "autoArrangeVerticalDesc": "Sloupec = kategorie + její produkty pod ní",
+  "autoArrangeSimpleHorizontalDesc": "Kořenové kategorie jsou umístěny v prvním řádku zleva doprava. Produkty se na hlavní stránce nezobrazují. Klepnutím na kategorii se otevře sub-stránka s podkategoriemi v prvním sloupci a produkty napravo.",
+  "autoArrangeSimpleVerticalDesc": "Kořenové kategorie jsou umístěny v prvním sloupci shora dolů. Produkty se na hlavní stránce nezobrazují. Klepnutím na kategorii se otevře sub-stránka s podkategoriemi v prvním řádku a produkty pod nimi.",
+  "autoArrangeSmartHorizontalDesc": "Každá kořenová kategorie zabírá řádek — kategorie v prvním sloupci, náhledy produktů napravo. Každá kategorie má sub-stránku se všemi produkty a podkategoriemi ve stejném rozložení.",
+  "autoArrangeSmartVerticalDesc": "Každá kořenová kategorie zabírá sloupec — kategorie v prvním řádku, náhledy produktů pod ní. Každá kategorie má sub-stránku se všemi produkty a podkategoriemi ve stejném rozložení.",
   "autoArrangeWarning": "Stávající rozmístění bude nahrazeno",
   "autoArrangeConfirm": "Rozmístit",
   "autoArrangeSummary": "{categories} kategorií, {products} produktů",
@@ -1613,5 +1620,11 @@
   "businessTypeBeautySalon": "Kosmetický salon",
   "businessTypeFitness": "Fitness",
   "businessTypeAutoService": "Autoservis",
-  "businessTypeOther": "Ostatní"
+  "businessTypeOther": "Ostatní",
+
+  "assignToGridTitle": "Přiřadit na grid?",
+  "assignToGridNo": "Ne",
+  "assignToGridAuto": "Automaticky",
+  "assignToGridPick": "Vybrat pozici",
+  "assignToGridPickTitle": "Vyberte pozici v gridu"
 }

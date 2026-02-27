@@ -69,18 +69,7 @@ class _ScreenOrdersState extends ConsumerState<ScreenOrders> {
 
     return Scaffold(
       appBar: AppBar(
-        title: _OrdersToolbar(
-          sessionScope: _sessionScope,
-          onSessionScopeChanged: (v) => setState(() => _sessionScope = v),
-          sortField: _sortField,
-          sortAscending: _sortAscending,
-          onSortChanged: (field, ascending) => setState(() {
-            _sortField = field;
-            _sortAscending = ascending;
-          }),
-          searchController: _searchCtrl,
-          onSearchChanged: (v) => setState(() => _searchQuery = v),
-        ),
+        title: Text(l.ordersTitle),
         actions: [
           _OrdersClockWidget(),
           const SizedBox(width: 16),
@@ -88,6 +77,92 @@ class _ScreenOrdersState extends ConsumerState<ScreenOrders> {
       ),
       body: Column(
         children: [
+          // Toolbar
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: SizedBox(
+                    height: 40,
+                    child: TextField(
+                      controller: _searchCtrl,
+                      onChanged: (v) => setState(() => _searchQuery = v),
+                      decoration: InputDecoration(
+                        hintText: l.searchHint,
+                        prefixIcon: const Icon(Icons.search, size: 20),
+                        suffixIcon: _searchCtrl.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear, size: 20),
+                                onPressed: () {
+                                  _searchCtrl.clear();
+                                  setState(() => _searchQuery = '');
+                                },
+                              )
+                            : null,
+                        border: const OutlineInputBorder(),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                PopupMenuButton<bool>(
+                  icon: Icon(
+                    Icons.filter_alt_outlined,
+                    color: !_sessionScope ? Theme.of(context).colorScheme.primary : null,
+                  ),
+                  onSelected: (v) => setState(() => _sessionScope = v),
+                  itemBuilder: (_) => [
+                    CheckedPopupMenuItem(
+                      value: true,
+                      checked: _sessionScope,
+                      child: Text(l.ordersScopeSession),
+                    ),
+                    CheckedPopupMenuItem(
+                      value: false,
+                      checked: !_sessionScope,
+                      child: Text(l.ordersScopeAll),
+                    ),
+                  ],
+                ),
+                PopupMenuButton<_OrderSortField>(
+                  icon: const Icon(Icons.swap_vert),
+                  onSelected: (field) {
+                    if (field == _sortField) {
+                      setState(() => _sortAscending = !_sortAscending);
+                    } else {
+                      setState(() {
+                        _sortField = field;
+                        _sortAscending = field == _OrderSortField.time ? false : true;
+                      });
+                    }
+                  },
+                  itemBuilder: (_) => [
+                    for (final entry in {
+                      _OrderSortField.time: l.ordersSortByTime,
+                      _OrderSortField.number: l.ordersSortByNumber,
+                      _OrderSortField.status: l.ordersSortByStatus,
+                    }.entries)
+                      PopupMenuItem(
+                        value: entry.key,
+                        child: Row(
+                          children: [
+                            if (entry.key == _sortField)
+                              Icon(_sortAscending ? Icons.arrow_upward : Icons.arrow_downward, size: 16)
+                            else
+                              const SizedBox(width: 16),
+                            const SizedBox(width: 8),
+                            Text(entry.value, style: entry.key == _sortField ? const TextStyle(fontWeight: FontWeight.bold) : null),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          ),
           // Order cards list
           Expanded(
             child: StreamBuilder<List<OrderModel>>(
@@ -929,113 +1004,6 @@ String _nextStatusLabel(PrepStatus status, AppLocalizations l) => switch (status
       _ => '',
     };
 
-// ---------------------------------------------------------------------------
-// Orders Toolbar (scope, sort, search)
-// ---------------------------------------------------------------------------
-class _OrdersToolbar extends StatelessWidget {
-  const _OrdersToolbar({
-    required this.sessionScope,
-    required this.onSessionScopeChanged,
-    required this.sortField,
-    required this.sortAscending,
-    required this.onSortChanged,
-    required this.searchController,
-    required this.onSearchChanged,
-  });
-
-  final bool sessionScope;
-  final ValueChanged<bool> onSessionScopeChanged;
-  final _OrderSortField sortField;
-  final bool sortAscending;
-  final void Function(_OrderSortField field, bool ascending) onSortChanged;
-  final TextEditingController searchController;
-  final ValueChanged<String> onSearchChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final l = context.l10n;
-    return Row(
-      children: [
-        Text(l.ordersTitle, style: Theme.of(context).textTheme.titleLarge),
-        const SizedBox(width: 16),
-        Expanded(
-          child: SizedBox(
-            height: 36,
-            child: TextField(
-              controller: searchController,
-              onChanged: onSearchChanged,
-              decoration: InputDecoration(
-                hintText: l.searchHint,
-                prefixIcon: const Icon(Icons.search, size: 20),
-                suffixIcon: searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear, size: 20),
-                        onPressed: () {
-                          searchController.clear();
-                          onSearchChanged('');
-                        },
-                      )
-                    : null,
-                border: const OutlineInputBorder(),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 4),
-        PopupMenuButton<bool>(
-          icon: Icon(
-            Icons.filter_alt_outlined,
-            color: !sessionScope ? Theme.of(context).colorScheme.primary : null,
-          ),
-          onSelected: onSessionScopeChanged,
-          itemBuilder: (_) => [
-            CheckedPopupMenuItem(
-              value: true,
-              checked: sessionScope,
-              child: Text(l.ordersScopeSession),
-            ),
-            CheckedPopupMenuItem(
-              value: false,
-              checked: !sessionScope,
-              child: Text(l.ordersScopeAll),
-            ),
-          ],
-        ),
-        PopupMenuButton<_OrderSortField>(
-          icon: const Icon(Icons.swap_vert),
-          onSelected: (field) {
-            if (field == sortField) {
-              onSortChanged(field, !sortAscending);
-            } else {
-              onSortChanged(field, field == _OrderSortField.time ? false : true);
-            }
-          },
-          itemBuilder: (_) => [
-            for (final entry in {
-              _OrderSortField.time: l.ordersSortByTime,
-              _OrderSortField.number: l.ordersSortByNumber,
-              _OrderSortField.status: l.ordersSortByStatus,
-            }.entries)
-              PopupMenuItem(
-                value: entry.key,
-                child: Row(
-                  children: [
-                    if (entry.key == sortField)
-                      Icon(sortAscending ? Icons.arrow_upward : Icons.arrow_downward, size: 16)
-                    else
-                      const SizedBox(width: 16),
-                    const SizedBox(width: 8),
-                    Text(entry.value, style: entry.key == sortField ? const TextStyle(fontWeight: FontWeight.bold) : null),
-                  ],
-                ),
-              ),
-          ],
-        ),
-      ],
-    );
-  }
-}
 
 // ---------------------------------------------------------------------------
 // Status Filter Bar

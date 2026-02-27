@@ -93,6 +93,7 @@ class _DialogStockDocumentDetailState
             final movements = movSnap.data ?? [];
 
             return PosDialogShell(
+              showCloseButton: true,
               title: doc.documentNumber,
               maxWidth: 700,
               expandHeight: true,
@@ -104,12 +105,7 @@ class _DialogStockDocumentDetailState
                   icon: const Icon(Icons.print_outlined),
                   label: Text(l.billDetailPrint),
                 ),
-                actions: [
-                  OutlinedButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: Text(l.actionClose),
-                  ),
-                ],
+                actions: const [],
               ),
               children: [
                 _buildHeader(context, doc, l),

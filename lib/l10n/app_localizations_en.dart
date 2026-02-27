@@ -649,6 +649,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get itemTypeModifier => 'Modifier';
 
   @override
+  String get modifierFilterOnlyModifiers => 'Only modifiers';
+
+  @override
   String get moreReports => 'Reports';
 
   @override
@@ -1268,6 +1271,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsGridCols => 'Grid Columns';
+
+  @override
+  String get settingsShowStockBadge => 'Show stock badges';
+
+  @override
+  String get settingsShowStockBadgeDescription =>
+      'Display stock quantity on product buttons';
 
   @override
   String get lockScreenTitle => 'Locked';
@@ -2002,17 +2012,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String get autoArrangeTitle => 'Auto Arrange';
 
   @override
-  String get autoArrangeHorizontal => 'Horizontal';
+  String get autoArrangeSimple => 'Simple';
 
   @override
-  String get autoArrangeHorizontalDesc => 'Row = category + its products';
+  String get autoArrangeSmart => 'Smart';
+
+  @override
+  String get autoArrangeHorizontal => 'Horizontal';
 
   @override
   String get autoArrangeVertical => 'Vertical';
 
   @override
-  String get autoArrangeVerticalDesc =>
-      'Column = category + its products below';
+  String get autoArrangeSimpleHorizontalDesc =>
+      'Root categories are placed in the first row from left to right. Products are not shown on the main page. Tapping a category opens its sub-page with child categories in the first column and products to the right.';
+
+  @override
+  String get autoArrangeSimpleVerticalDesc =>
+      'Root categories are placed in the first column from top to bottom. Products are not shown on the main page. Tapping a category opens its sub-page with child categories in the first row and products below.';
+
+  @override
+  String get autoArrangeSmartHorizontalDesc =>
+      'Each root category gets its own row — category in the first column, product previews to the right. Each category has a sub-page with all products and child categories arranged the same way.';
+
+  @override
+  String get autoArrangeSmartVerticalDesc =>
+      'Each root category gets its own column — category in the first row, product previews below. Each category has a sub-page with all products and child categories arranged the same way.';
 
   @override
   String get autoArrangeWarning => 'Existing layout will be replaced';
@@ -4011,4 +4036,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get businessTypeOther => 'Other';
+
+  @override
+  String get assignToGridTitle => 'Assign to Grid?';
+
+  @override
+  String get assignToGridNo => 'No';
+
+  @override
+  String get assignToGridAuto => 'Auto by category';
+
+  @override
+  String get assignToGridPick => 'Pick position';
+
+  @override
+  String get assignToGridPickTitle => 'Pick grid position';
 }

@@ -559,6 +559,7 @@ RegisterModel registerFromEntity(Register e) => RegisterModel(
       gridRows: e.gridRows,
       gridCols: e.gridCols,
       displayCartJson: e.displayCartJson,
+      showStockBadge: e.showStockBadge,
       sellMode: e.sellMode,
       createdAt: e.createdAt,
       updatedAt: e.updatedAt,

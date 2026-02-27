@@ -27,6 +27,7 @@ class Registers extends Table with SyncColumnsMixin {
   IntColumn get gridRows => integer().withDefault(const Constant(5))();
   IntColumn get gridCols => integer().withDefault(const Constant(8))();
   TextColumn get displayCartJson => text().nullable()();
+  BoolColumn get showStockBadge => boolean().withDefault(const Constant(false))();
   TextColumn get sellMode => textEnum<SellMode>().withDefault(Constant(SellMode.gastro.name))();
 
   @override

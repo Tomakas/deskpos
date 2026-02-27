@@ -169,6 +169,7 @@ class RegisterRepository {
           allowRefunds: Value(model.allowRefunds),
           gridRows: Value(model.gridRows),
           gridCols: Value(model.gridCols),
+          showStockBadge: Value(model.showStockBadge),
           sellMode: Value(model.sellMode),
           updatedAt: Value(now),
         ));

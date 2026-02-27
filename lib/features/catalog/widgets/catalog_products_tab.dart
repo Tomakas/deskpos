@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../core/data/enums/item_type.dart';
+import '../../../core/data/enums/layout_item_type.dart';
 import '../../../core/data/enums/negative_stock_policy.dart';
 import '../../../core/data/enums/unit_type.dart';
 import '../../../core/data/models/category_model.dart';
@@ -21,10 +22,14 @@ import '../../../core/utils/formatting_ext.dart';
 import '../../../core/utils/search_utils.dart';
 import '../../../core/utils/unit_type_l10n.dart';
 import '../../../core/widgets/highlighted_text.dart';
+import '../../../core/widgets/pos_color_palette.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
+import '../../settings/widgets/dialog_grid_editor.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_table.dart';
 import '../../../l10n/app_localizations.dart';
+
+enum _AssignAction { none, auto, pick }
 
 enum _ProductsSortField { name, price, type }
 
@@ -761,7 +766,7 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
         parentId: parentId,
       ));
     } else {
-      await repo.create(ItemModel(
+      final createdItem = ItemModel(
         id: const Uuid().v7(),
         companyId: company.id,
         name: nameCtrl.text.trim(),
@@ -785,8 +790,152 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
         parentId: parentId,
         createdAt: now,
         updatedAt: now,
-      ));
+      );
+      await repo.create(createdItem);
+
+      if (itemType != ItemType.variant &&
+          itemType != ItemType.modifier &&
+          itemType != ItemType.ingredient &&
+          mounted) {
+        await _showAssignToGridDialog(context, ref, createdItem);
+      }
     }
+  }
+
+  Future<void> _showAssignToGridDialog(
+    BuildContext context,
+    WidgetRef ref,
+    ItemModel item,
+  ) async {
+    final l = context.l10n;
+    final action = await showDialog<_AssignAction>(
+      context: context,
+      builder: (ctx) => PosDialogShell(
+        title: l.assignToGridTitle,
+        maxWidth: 360,
+        bottomActions: PosDialogActions(
+          actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.pop(ctx, _AssignAction.none),
+              child: Text(l.assignToGridNo),
+            ),
+          ],
+        ),
+        children: [
+          SizedBox(
+            height: 44,
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: () => Navigator.pop(ctx, _AssignAction.auto),
+              child: Text(l.assignToGridAuto),
+            ),
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            height: 44,
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: () => Navigator.pop(ctx, _AssignAction.pick),
+              child: Text(l.assignToGridPick),
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
+
+    if (action == null || action == _AssignAction.none || !mounted) return;
+
+    final register = await ref.read(activeRegisterProvider.future);
+    if (register == null || !mounted) return;
+    final layoutRepo = ref.read(layoutItemRepositoryProvider);
+    final companyId = item.companyId;
+
+    int? targetPage;
+    int? targetRow;
+    int? targetCol;
+
+    if (action == _AssignAction.auto) {
+      if (item.categoryId == null) return;
+      final page = await layoutRepo.getPageForCategory(
+        register.id,
+        item.categoryId!,
+      );
+      if (page == null) return;
+
+      final layoutItems = await layoutRepo
+          .watchByRegister(register.id, page: page)
+          .first;
+      final occupied = <(int, int)>{
+        for (final li in layoutItems) (li.gridRow, li.gridCol),
+      };
+
+      for (int r = 0; r < register.gridRows; r++) {
+        for (int c = 0; c < register.gridCols; c++) {
+          if (!occupied.contains((r, c))) {
+            targetPage = page;
+            targetRow = r;
+            targetCol = c;
+            break;
+          }
+        }
+        if (targetPage != null) break;
+      }
+      if (targetPage == null) return;
+    } else if (action == _AssignAction.pick) {
+      if (!mounted) return;
+      final result = await showDialog<({int page, int row, int col})>(
+        context: context,
+        builder: (_) => const DialogGridEditor(mode: GridDialogMode.picker),
+      );
+      if (result == null || !mounted) return;
+      targetPage = result.page;
+      targetRow = result.row;
+      targetCol = result.col;
+    }
+
+    if (targetPage == null || !mounted) return;
+
+    final selectedColor = await _showGridColorPicker(context);
+    if (!mounted) return;
+
+    await layoutRepo.setCell(
+      companyId: companyId,
+      registerId: register.id,
+      page: targetPage,
+      gridRow: targetRow!,
+      gridCol: targetCol!,
+      type: LayoutItemType.item,
+      itemId: item.id,
+      color: selectedColor,
+    );
+  }
+
+  Future<String?> _showGridColorPicker(BuildContext context) {
+    final l = context.l10n;
+    return showDialog<String?>(
+      context: context,
+      builder: (_) => PosDialogShell(
+        title: l.gridEditorColor,
+        maxWidth: 400,
+        scrollable: true,
+        bottomActions: PosDialogActions(
+          actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(l.actionCancel),
+            ),
+          ],
+        ),
+        children: [
+          PosColorPalette(
+            selectedColor: null,
+            onColorSelected: (color) => Navigator.pop(context, color),
+          ),
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
   }
 
   String _policyLabel(AppLocalizations l, NegativeStockPolicy policy) {
@@ -1036,13 +1185,16 @@ class _ModifierGroupsExpansionTile extends ConsumerWidget {
 
     final selected = await showDialog<ModifierGroupModel>(
       context: context,
-      builder: (ctx) => SimpleDialog(
-        title: Text(l.assignModifierGroup),
+      builder: (ctx) => PosDialogShell(
+        showCloseButton: true,
+        title: l.assignModifierGroup,
+        maxWidth: 400,
+        scrollable: true,
         children: [
           for (final group in available)
-            SimpleDialogOption(
-              onPressed: () => Navigator.pop(ctx, group),
-              child: Text(group.name),
+            ListTile(
+              title: Text(group.name),
+              onTap: () => Navigator.pop(ctx, group),
             ),
         ],
       ),
@@ -1064,3 +1216,4 @@ class _ModifierGroupsExpansionTile extends ConsumerWidget {
     );
   }
 }
+

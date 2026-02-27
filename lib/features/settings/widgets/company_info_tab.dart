@@ -17,6 +17,7 @@ import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/utils/formatting_ext.dart';
 import '../../../core/widgets/business_type_selector.dart';
+import '../../../core/widgets/pos_dialog_shell.dart';
 
 class CompanyInfoTab extends ConsumerStatefulWidget {
   const CompanyInfoTab({super.key});
@@ -210,13 +211,16 @@ class _CompanyInfoTabState extends ConsumerState<CompanyInfoTab> {
       context: context,
       builder: (ctx) {
         final l = ctx.l10n;
-        return SimpleDialog(
-          title: Text(l.currencySelectorTitle),
+        return PosDialogShell(
+          showCloseButton: true,
+          title: l.currencySelectorTitle,
+          maxWidth: 400,
+          scrollable: true,
           children: [
             for (final currency in available)
-              SimpleDialogOption(
-                onPressed: () => Navigator.pop(ctx, currency),
-                child: Text('${currency.code} (${currency.symbol})'),
+              ListTile(
+                title: Text('${currency.code} (${currency.symbol})'),
+                onTap: () => Navigator.pop(ctx, currency),
               ),
           ],
         );

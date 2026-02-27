@@ -12,10 +12,13 @@ import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/repositories/stock_level_repository.dart';
 import '../../../core/data/repositories/stock_movement_repository.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatting_ext.dart';
 import '../../../core/utils/search_utils.dart';
 import '../../../core/utils/unit_type_l10n.dart';
 import '../../../core/widgets/highlighted_text.dart';
+import '../../../core/widgets/pos_dialog_actions.dart';
+import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_table.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../bills/widgets/dialog_bill_detail.dart';
@@ -375,80 +378,81 @@ class _ScreenInventoryState extends ConsumerState<ScreenInventory> {
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) {
           final hasFilters = belowMin || zeroStock || categoryIds.isNotEmpty;
-          return AlertDialog(
-            title: Text(l.filterTitle),
-            content: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SwitchListTile(
-                    title: Text(l.inventoryFilterBelowMin),
-                    value: belowMin,
-                    onChanged: (v) => setDialogState(() => belowMin = v),
-                  ),
-                  SwitchListTile(
-                    title: Text(l.inventoryFilterZeroStock),
-                    value: zeroStock,
-                    onChanged: (v) => setDialogState(() => zeroStock = v),
-                  ),
-                  const Divider(),
-                  ListTile(
-                    title: Text(l.inventoryFilterCategory, style: Theme.of(ctx).textTheme.titleSmall),
-                    dense: true,
-                  ),
-                  StreamBuilder<List<CategoryModel>>(
-                    stream: ref.read(categoryRepositoryProvider).watchAll(company.id),
-                    builder: (ctx, snap) {
-                      final categories = snap.data ?? [];
-                      return Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          for (final cat in categories)
-                            CheckboxListTile(
-                              title: Text(cat.name),
-                              value: categoryIds.contains(cat.id),
-                              onChanged: (v) => setDialogState(() {
-                                if (v == true) {
-                                  categoryIds.add(cat.id);
-                                } else {
-                                  categoryIds.remove(cat.id);
-                                }
-                              }),
-                            ),
-                        ],
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
-            actions: [
-              if (hasFilters)
+          return PosDialogShell(
+            title: l.filterTitle,
+            maxWidth: 400,
+            scrollable: true,
+            bottomActions: PosDialogActions(
+              leading: hasFilters
+                  ? OutlinedButton(
+                      style: PosButtonStyles.destructiveOutlined(ctx),
+                      onPressed: () {
+                        setState(() {
+                          _filterBelowMin = false;
+                          _filterZeroStock = false;
+                          _filterLevelCategoryIds = {};
+                        });
+                        Navigator.of(ctx).pop();
+                      },
+                      child: Text(l.filterReset),
+                    )
+                  : null,
+              actions: [
                 OutlinedButton(
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  child: Text(l.actionCancel),
+                ),
+                FilledButton(
                   onPressed: () {
                     setState(() {
-                      _filterBelowMin = false;
-                      _filterZeroStock = false;
-                      _filterLevelCategoryIds = {};
+                      _filterBelowMin = belowMin;
+                      _filterZeroStock = zeroStock;
+                      _filterLevelCategoryIds = categoryIds;
                     });
                     Navigator.of(ctx).pop();
                   },
-                  child: Text(l.filterReset),
+                  child: Text(l.actionConfirm),
                 ),
-              OutlinedButton(
-                onPressed: () => Navigator.of(ctx).pop(),
-                child: Text(l.actionCancel),
+              ],
+            ),
+            children: [
+              SwitchListTile(
+                title: Text(l.inventoryFilterBelowMin),
+                value: belowMin,
+                onChanged: (v) => setDialogState(() => belowMin = v),
               ),
-              FilledButton(
-                onPressed: () {
-                  setState(() {
-                    _filterBelowMin = belowMin;
-                    _filterZeroStock = zeroStock;
-                    _filterLevelCategoryIds = categoryIds;
-                  });
-                  Navigator.of(ctx).pop();
+              SwitchListTile(
+                title: Text(l.inventoryFilterZeroStock),
+                value: zeroStock,
+                onChanged: (v) => setDialogState(() => zeroStock = v),
+              ),
+              const Divider(),
+              ListTile(
+                title: Text(l.inventoryFilterCategory, style: Theme.of(ctx).textTheme.titleSmall),
+                dense: true,
+              ),
+              StreamBuilder<List<CategoryModel>>(
+                stream: ref.read(categoryRepositoryProvider).watchAll(company.id),
+                builder: (ctx, snap) {
+                  final categories = snap.data ?? [];
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      for (final cat in categories)
+                        CheckboxListTile(
+                          title: Text(cat.name),
+                          value: categoryIds.contains(cat.id),
+                          onChanged: (v) => setDialogState(() {
+                            if (v == true) {
+                              categoryIds.add(cat.id);
+                            } else {
+                              categoryIds.remove(cat.id);
+                            }
+                          }),
+                        ),
+                    ],
+                  );
                 },
-                child: Text(l.actionConfirm),
               ),
             ],
           );
@@ -463,45 +467,48 @@ class _ScreenInventoryState extends ConsumerState<ScreenInventory> {
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
-          title: Text(l.inventoryFilterDocType),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              for (final type in StockDocumentType.values)
-                CheckboxListTile(
-                  title: Text(_documentTypeLabel(l, type)),
-                  value: docTypes.contains(type),
-                  onChanged: (v) => setDialogState(() {
-                    if (v == true) {
-                      docTypes.add(type);
-                    } else {
-                      docTypes.remove(type);
-                    }
-                  }),
-                ),
-            ],
-          ),
-          actions: [
-            if (docTypes.isNotEmpty)
+        builder: (ctx, setDialogState) => PosDialogShell(
+          title: l.inventoryFilterDocType,
+          maxWidth: 400,
+          scrollable: true,
+          bottomActions: PosDialogActions(
+            leading: docTypes.isNotEmpty
+                ? OutlinedButton(
+                    style: PosButtonStyles.destructiveOutlined(ctx),
+                    onPressed: () {
+                      setState(() => _filterDocTypes = {});
+                      Navigator.of(ctx).pop();
+                    },
+                    child: Text(l.filterReset),
+                  )
+                : null,
+            actions: [
               OutlinedButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: Text(l.actionCancel),
+              ),
+              FilledButton(
                 onPressed: () {
-                  setState(() => _filterDocTypes = {});
+                  setState(() => _filterDocTypes = docTypes);
                   Navigator.of(ctx).pop();
                 },
-                child: Text(l.filterReset),
+                child: Text(l.actionConfirm),
               ),
-            OutlinedButton(
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: Text(l.actionCancel),
-            ),
-            FilledButton(
-              onPressed: () {
-                setState(() => _filterDocTypes = docTypes);
-                Navigator.of(ctx).pop();
-              },
-              child: Text(l.actionConfirm),
-            ),
+            ],
+          ),
+          children: [
+            for (final type in StockDocumentType.values)
+              CheckboxListTile(
+                title: Text(_documentTypeLabel(l, type)),
+                value: docTypes.contains(type),
+                onChanged: (v) => setDialogState(() {
+                  if (v == true) {
+                    docTypes.add(type);
+                  } else {
+                    docTypes.remove(type);
+                  }
+                }),
+              ),
           ],
         ),
       ),
@@ -521,117 +528,118 @@ class _ScreenInventoryState extends ConsumerState<ScreenInventory> {
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) {
           final hasFilters = direction != null || source != _MovementSourceFilter.all || categoryIds.isNotEmpty;
-          return AlertDialog(
-            title: Text(l.filterTitle),
-            content: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  RadioGroup<StockMovementDirection?>(
-                    groupValue: direction,
-                    onChanged: (v) => setDialogState(() => direction = v),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        RadioListTile<StockMovementDirection?>(
-                          title: Text(l.filterAll),
-                          value: null,
-                        ),
-                        RadioListTile<StockMovementDirection?>(
-                          title: Text(l.inventoryFilterInbound),
-                          value: StockMovementDirection.inbound,
-                        ),
-                        RadioListTile<StockMovementDirection?>(
-                          title: Text(l.inventoryFilterOutbound),
-                          value: StockMovementDirection.outbound,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Divider(),
-                  ListTile(
-                    title: Text(l.inventoryFilterSource, style: Theme.of(ctx).textTheme.titleSmall),
-                    dense: true,
-                  ),
-                  RadioGroup<_MovementSourceFilter>(
-                    groupValue: source,
-                    onChanged: (v) => setDialogState(() => source = v!),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        RadioListTile<_MovementSourceFilter>(
-                          title: Text(l.filterAll),
-                          value: _MovementSourceFilter.all,
-                        ),
-                        RadioListTile<_MovementSourceFilter>(
-                          title: Text(l.inventoryFilterSourceSale),
-                          value: _MovementSourceFilter.sale,
-                        ),
-                        RadioListTile<_MovementSourceFilter>(
-                          title: Text(l.inventoryFilterSourceDocument),
-                          value: _MovementSourceFilter.document,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Divider(),
-                  ListTile(
-                    title: Text(l.inventoryFilterCategory, style: Theme.of(ctx).textTheme.titleSmall),
-                    dense: true,
-                  ),
-                  StreamBuilder<List<CategoryModel>>(
-                    stream: ref.read(categoryRepositoryProvider).watchAll(company.id),
-                    builder: (ctx, snap) {
-                      final categories = snap.data ?? [];
-                      return Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          for (final cat in categories)
-                            CheckboxListTile(
-                              title: Text(cat.name),
-                              value: categoryIds.contains(cat.id),
-                              onChanged: (v) => setDialogState(() {
-                                if (v == true) {
-                                  categoryIds.add(cat.id);
-                                } else {
-                                  categoryIds.remove(cat.id);
-                                }
-                              }),
-                            ),
-                        ],
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
-            actions: [
-              if (hasFilters)
+          return PosDialogShell(
+            title: l.filterTitle,
+            maxWidth: 400,
+            scrollable: true,
+            bottomActions: PosDialogActions(
+              leading: hasFilters
+                  ? OutlinedButton(
+                      style: PosButtonStyles.destructiveOutlined(ctx),
+                      onPressed: () {
+                        setState(() {
+                          _filterDirection = null;
+                          _filterMovementSource = _MovementSourceFilter.all;
+                          _filterMovementCategoryIds = {};
+                        });
+                        Navigator.of(ctx).pop();
+                      },
+                      child: Text(l.filterReset),
+                    )
+                  : null,
+              actions: [
                 OutlinedButton(
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  child: Text(l.actionCancel),
+                ),
+                FilledButton(
                   onPressed: () {
                     setState(() {
-                      _filterDirection = null;
-                      _filterMovementSource = _MovementSourceFilter.all;
-                      _filterMovementCategoryIds = {};
+                      _filterDirection = direction;
+                      _filterMovementSource = source;
+                      _filterMovementCategoryIds = categoryIds;
                     });
                     Navigator.of(ctx).pop();
                   },
-                  child: Text(l.filterReset),
+                  child: Text(l.actionConfirm),
                 ),
-              OutlinedButton(
-                onPressed: () => Navigator.of(ctx).pop(),
-                child: Text(l.actionCancel),
+              ],
+            ),
+            children: [
+              RadioGroup<StockMovementDirection?>(
+                groupValue: direction,
+                onChanged: (v) => setDialogState(() => direction = v),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    RadioListTile<StockMovementDirection?>(
+                      title: Text(l.filterAll),
+                      value: null,
+                    ),
+                    RadioListTile<StockMovementDirection?>(
+                      title: Text(l.inventoryFilterInbound),
+                      value: StockMovementDirection.inbound,
+                    ),
+                    RadioListTile<StockMovementDirection?>(
+                      title: Text(l.inventoryFilterOutbound),
+                      value: StockMovementDirection.outbound,
+                    ),
+                  ],
+                ),
               ),
-              FilledButton(
-                onPressed: () {
-                  setState(() {
-                    _filterDirection = direction;
-                    _filterMovementSource = source;
-                    _filterMovementCategoryIds = categoryIds;
-                  });
-                  Navigator.of(ctx).pop();
+              const Divider(),
+              ListTile(
+                title: Text(l.inventoryFilterSource, style: Theme.of(ctx).textTheme.titleSmall),
+                dense: true,
+              ),
+              RadioGroup<_MovementSourceFilter>(
+                groupValue: source,
+                onChanged: (v) => setDialogState(() => source = v!),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    RadioListTile<_MovementSourceFilter>(
+                      title: Text(l.filterAll),
+                      value: _MovementSourceFilter.all,
+                    ),
+                    RadioListTile<_MovementSourceFilter>(
+                      title: Text(l.inventoryFilterSourceSale),
+                      value: _MovementSourceFilter.sale,
+                    ),
+                    RadioListTile<_MovementSourceFilter>(
+                      title: Text(l.inventoryFilterSourceDocument),
+                      value: _MovementSourceFilter.document,
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(),
+              ListTile(
+                title: Text(l.inventoryFilterCategory, style: Theme.of(ctx).textTheme.titleSmall),
+                dense: true,
+              ),
+              StreamBuilder<List<CategoryModel>>(
+                stream: ref.read(categoryRepositoryProvider).watchAll(company.id),
+                builder: (ctx, snap) {
+                  final categories = snap.data ?? [];
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      for (final cat in categories)
+                        CheckboxListTile(
+                          title: Text(cat.name),
+                          value: categoryIds.contains(cat.id),
+                          onChanged: (v) => setDialogState(() {
+                            if (v == true) {
+                              categoryIds.add(cat.id);
+                            } else {
+                              categoryIds.remove(cat.id);
+                            }
+                          }),
+                        ),
+                    ],
+                  );
                 },
-                child: Text(l.actionConfirm),
               ),
             ],
           );
@@ -647,8 +655,11 @@ class _ScreenInventoryState extends ConsumerState<ScreenInventory> {
 
     showDialog(
       context: context,
-      builder: (ctx) => SimpleDialog(
-        title: Text(l.inventoryNewDocumentTitle),
+      builder: (ctx) => PosDialogShell(
+        showCloseButton: true,
+        title: l.inventoryNewDocumentTitle,
+        maxWidth: 400,
+        scrollable: true,
         children: [
           _DocumentTypeOption(
             icon: Icons.add_box_outlined,

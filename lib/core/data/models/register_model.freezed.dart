@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$RegisterModel {
 
- String get id; String get companyId; String get code; String get name; int get registerNumber; String? get parentRegisterId; bool get isMain; bool get isActive; HardwareType get type; bool get allowCash; bool get allowCard; bool get allowTransfer; bool get allowCredit; bool get allowVoucher; bool get allowOther; bool get allowRefunds; String? get boundDeviceId; String? get activeBillId; int get gridRows; int get gridCols; String? get displayCartJson; SellMode get sellMode; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+ String get id; String get companyId; String get code; String get name; int get registerNumber; String? get parentRegisterId; bool get isMain; bool get isActive; HardwareType get type; bool get allowCash; bool get allowCard; bool get allowTransfer; bool get allowCredit; bool get allowVoucher; bool get allowOther; bool get allowRefunds; String? get boundDeviceId; String? get activeBillId; int get gridRows; int get gridCols; String? get displayCartJson; bool get showStockBadge; SellMode get sellMode; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
 /// Create a copy of RegisterModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $RegisterModelCopyWith<RegisterModel> get copyWith => _$RegisterModelCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is RegisterModel&&(identical(other.id, id) || other.id == id)&&(identical(other.companyId, companyId) || other.companyId == companyId)&&(identical(other.code, code) || other.code == code)&&(identical(other.name, name) || other.name == name)&&(identical(other.registerNumber, registerNumber) || other.registerNumber == registerNumber)&&(identical(other.parentRegisterId, parentRegisterId) || other.parentRegisterId == parentRegisterId)&&(identical(other.isMain, isMain) || other.isMain == isMain)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.type, type) || other.type == type)&&(identical(other.allowCash, allowCash) || other.allowCash == allowCash)&&(identical(other.allowCard, allowCard) || other.allowCard == allowCard)&&(identical(other.allowTransfer, allowTransfer) || other.allowTransfer == allowTransfer)&&(identical(other.allowCredit, allowCredit) || other.allowCredit == allowCredit)&&(identical(other.allowVoucher, allowVoucher) || other.allowVoucher == allowVoucher)&&(identical(other.allowOther, allowOther) || other.allowOther == allowOther)&&(identical(other.allowRefunds, allowRefunds) || other.allowRefunds == allowRefunds)&&(identical(other.boundDeviceId, boundDeviceId) || other.boundDeviceId == boundDeviceId)&&(identical(other.activeBillId, activeBillId) || other.activeBillId == activeBillId)&&(identical(other.gridRows, gridRows) || other.gridRows == gridRows)&&(identical(other.gridCols, gridCols) || other.gridCols == gridCols)&&(identical(other.displayCartJson, displayCartJson) || other.displayCartJson == displayCartJson)&&(identical(other.sellMode, sellMode) || other.sellMode == sellMode)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RegisterModel&&(identical(other.id, id) || other.id == id)&&(identical(other.companyId, companyId) || other.companyId == companyId)&&(identical(other.code, code) || other.code == code)&&(identical(other.name, name) || other.name == name)&&(identical(other.registerNumber, registerNumber) || other.registerNumber == registerNumber)&&(identical(other.parentRegisterId, parentRegisterId) || other.parentRegisterId == parentRegisterId)&&(identical(other.isMain, isMain) || other.isMain == isMain)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.type, type) || other.type == type)&&(identical(other.allowCash, allowCash) || other.allowCash == allowCash)&&(identical(other.allowCard, allowCard) || other.allowCard == allowCard)&&(identical(other.allowTransfer, allowTransfer) || other.allowTransfer == allowTransfer)&&(identical(other.allowCredit, allowCredit) || other.allowCredit == allowCredit)&&(identical(other.allowVoucher, allowVoucher) || other.allowVoucher == allowVoucher)&&(identical(other.allowOther, allowOther) || other.allowOther == allowOther)&&(identical(other.allowRefunds, allowRefunds) || other.allowRefunds == allowRefunds)&&(identical(other.boundDeviceId, boundDeviceId) || other.boundDeviceId == boundDeviceId)&&(identical(other.activeBillId, activeBillId) || other.activeBillId == activeBillId)&&(identical(other.gridRows, gridRows) || other.gridRows == gridRows)&&(identical(other.gridCols, gridCols) || other.gridCols == gridCols)&&(identical(other.displayCartJson, displayCartJson) || other.displayCartJson == displayCartJson)&&(identical(other.showStockBadge, showStockBadge) || other.showStockBadge == showStockBadge)&&(identical(other.sellMode, sellMode) || other.sellMode == sellMode)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 
 @override
-int get hashCode => Object.hashAll([runtimeType,id,companyId,code,name,registerNumber,parentRegisterId,isMain,isActive,type,allowCash,allowCard,allowTransfer,allowCredit,allowVoucher,allowOther,allowRefunds,boundDeviceId,activeBillId,gridRows,gridCols,displayCartJson,sellMode,createdAt,updatedAt,deletedAt]);
+int get hashCode => Object.hashAll([runtimeType,id,companyId,code,name,registerNumber,parentRegisterId,isMain,isActive,type,allowCash,allowCard,allowTransfer,allowCredit,allowVoucher,allowOther,allowRefunds,boundDeviceId,activeBillId,gridRows,gridCols,displayCartJson,showStockBadge,sellMode,createdAt,updatedAt,deletedAt]);
 
 @override
 String toString() {
-  return 'RegisterModel(id: $id, companyId: $companyId, code: $code, name: $name, registerNumber: $registerNumber, parentRegisterId: $parentRegisterId, isMain: $isMain, isActive: $isActive, type: $type, allowCash: $allowCash, allowCard: $allowCard, allowTransfer: $allowTransfer, allowCredit: $allowCredit, allowVoucher: $allowVoucher, allowOther: $allowOther, allowRefunds: $allowRefunds, boundDeviceId: $boundDeviceId, activeBillId: $activeBillId, gridRows: $gridRows, gridCols: $gridCols, displayCartJson: $displayCartJson, sellMode: $sellMode, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'RegisterModel(id: $id, companyId: $companyId, code: $code, name: $name, registerNumber: $registerNumber, parentRegisterId: $parentRegisterId, isMain: $isMain, isActive: $isActive, type: $type, allowCash: $allowCash, allowCard: $allowCard, allowTransfer: $allowTransfer, allowCredit: $allowCredit, allowVoucher: $allowVoucher, allowOther: $allowOther, allowRefunds: $allowRefunds, boundDeviceId: $boundDeviceId, activeBillId: $activeBillId, gridRows: $gridRows, gridCols: $gridCols, displayCartJson: $displayCartJson, showStockBadge: $showStockBadge, sellMode: $sellMode, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $RegisterModelCopyWith<$Res>  {
   factory $RegisterModelCopyWith(RegisterModel value, $Res Function(RegisterModel) _then) = _$RegisterModelCopyWithImpl;
 @useResult
 $Res call({
- String id, String companyId, String code, String name, int registerNumber, String? parentRegisterId, bool isMain, bool isActive, HardwareType type, bool allowCash, bool allowCard, bool allowTransfer, bool allowCredit, bool allowVoucher, bool allowOther, bool allowRefunds, String? boundDeviceId, String? activeBillId, int gridRows, int gridCols, String? displayCartJson, SellMode sellMode, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String companyId, String code, String name, int registerNumber, String? parentRegisterId, bool isMain, bool isActive, HardwareType type, bool allowCash, bool allowCard, bool allowTransfer, bool allowCredit, bool allowVoucher, bool allowOther, bool allowRefunds, String? boundDeviceId, String? activeBillId, int gridRows, int gridCols, String? displayCartJson, bool showStockBadge, SellMode sellMode, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -62,7 +62,7 @@ class _$RegisterModelCopyWithImpl<$Res>
 
 /// Create a copy of RegisterModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? companyId = null,Object? code = null,Object? name = null,Object? registerNumber = null,Object? parentRegisterId = freezed,Object? isMain = null,Object? isActive = null,Object? type = null,Object? allowCash = null,Object? allowCard = null,Object? allowTransfer = null,Object? allowCredit = null,Object? allowVoucher = null,Object? allowOther = null,Object? allowRefunds = null,Object? boundDeviceId = freezed,Object? activeBillId = freezed,Object? gridRows = null,Object? gridCols = null,Object? displayCartJson = freezed,Object? sellMode = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? companyId = null,Object? code = null,Object? name = null,Object? registerNumber = null,Object? parentRegisterId = freezed,Object? isMain = null,Object? isActive = null,Object? type = null,Object? allowCash = null,Object? allowCard = null,Object? allowTransfer = null,Object? allowCredit = null,Object? allowVoucher = null,Object? allowOther = null,Object? allowRefunds = null,Object? boundDeviceId = freezed,Object? activeBillId = freezed,Object? gridRows = null,Object? gridCols = null,Object? displayCartJson = freezed,Object? showStockBadge = null,Object? sellMode = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,companyId: null == companyId ? _self.companyId : companyId // ignore: cast_nullable_to_non_nullable
@@ -85,7 +85,8 @@ as String?,activeBillId: freezed == activeBillId ? _self.activeBillId : activeBi
 as String?,gridRows: null == gridRows ? _self.gridRows : gridRows // ignore: cast_nullable_to_non_nullable
 as int,gridCols: null == gridCols ? _self.gridCols : gridCols // ignore: cast_nullable_to_non_nullable
 as int,displayCartJson: freezed == displayCartJson ? _self.displayCartJson : displayCartJson // ignore: cast_nullable_to_non_nullable
-as String?,sellMode: null == sellMode ? _self.sellMode : sellMode // ignore: cast_nullable_to_non_nullable
+as String?,showStockBadge: null == showStockBadge ? _self.showStockBadge : showStockBadge // ignore: cast_nullable_to_non_nullable
+as bool,sellMode: null == sellMode ? _self.sellMode : sellMode // ignore: cast_nullable_to_non_nullable
 as SellMode,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
@@ -174,10 +175,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String companyId,  String code,  String name,  int registerNumber,  String? parentRegisterId,  bool isMain,  bool isActive,  HardwareType type,  bool allowCash,  bool allowCard,  bool allowTransfer,  bool allowCredit,  bool allowVoucher,  bool allowOther,  bool allowRefunds,  String? boundDeviceId,  String? activeBillId,  int gridRows,  int gridCols,  String? displayCartJson,  SellMode sellMode,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String companyId,  String code,  String name,  int registerNumber,  String? parentRegisterId,  bool isMain,  bool isActive,  HardwareType type,  bool allowCash,  bool allowCard,  bool allowTransfer,  bool allowCredit,  bool allowVoucher,  bool allowOther,  bool allowRefunds,  String? boundDeviceId,  String? activeBillId,  int gridRows,  int gridCols,  String? displayCartJson,  bool showStockBadge,  SellMode sellMode,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _RegisterModel() when $default != null:
-return $default(_that.id,_that.companyId,_that.code,_that.name,_that.registerNumber,_that.parentRegisterId,_that.isMain,_that.isActive,_that.type,_that.allowCash,_that.allowCard,_that.allowTransfer,_that.allowCredit,_that.allowVoucher,_that.allowOther,_that.allowRefunds,_that.boundDeviceId,_that.activeBillId,_that.gridRows,_that.gridCols,_that.displayCartJson,_that.sellMode,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.companyId,_that.code,_that.name,_that.registerNumber,_that.parentRegisterId,_that.isMain,_that.isActive,_that.type,_that.allowCash,_that.allowCard,_that.allowTransfer,_that.allowCredit,_that.allowVoucher,_that.allowOther,_that.allowRefunds,_that.boundDeviceId,_that.activeBillId,_that.gridRows,_that.gridCols,_that.displayCartJson,_that.showStockBadge,_that.sellMode,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   return orElse();
 
 }
@@ -195,10 +196,10 @@ return $default(_that.id,_that.companyId,_that.code,_that.name,_that.registerNum
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String companyId,  String code,  String name,  int registerNumber,  String? parentRegisterId,  bool isMain,  bool isActive,  HardwareType type,  bool allowCash,  bool allowCard,  bool allowTransfer,  bool allowCredit,  bool allowVoucher,  bool allowOther,  bool allowRefunds,  String? boundDeviceId,  String? activeBillId,  int gridRows,  int gridCols,  String? displayCartJson,  SellMode sellMode,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String companyId,  String code,  String name,  int registerNumber,  String? parentRegisterId,  bool isMain,  bool isActive,  HardwareType type,  bool allowCash,  bool allowCard,  bool allowTransfer,  bool allowCredit,  bool allowVoucher,  bool allowOther,  bool allowRefunds,  String? boundDeviceId,  String? activeBillId,  int gridRows,  int gridCols,  String? displayCartJson,  bool showStockBadge,  SellMode sellMode,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
 switch (_that) {
 case _RegisterModel():
-return $default(_that.id,_that.companyId,_that.code,_that.name,_that.registerNumber,_that.parentRegisterId,_that.isMain,_that.isActive,_that.type,_that.allowCash,_that.allowCard,_that.allowTransfer,_that.allowCredit,_that.allowVoucher,_that.allowOther,_that.allowRefunds,_that.boundDeviceId,_that.activeBillId,_that.gridRows,_that.gridCols,_that.displayCartJson,_that.sellMode,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.companyId,_that.code,_that.name,_that.registerNumber,_that.parentRegisterId,_that.isMain,_that.isActive,_that.type,_that.allowCash,_that.allowCard,_that.allowTransfer,_that.allowCredit,_that.allowVoucher,_that.allowOther,_that.allowRefunds,_that.boundDeviceId,_that.activeBillId,_that.gridRows,_that.gridCols,_that.displayCartJson,_that.showStockBadge,_that.sellMode,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -215,10 +216,10 @@ return $default(_that.id,_that.companyId,_that.code,_that.name,_that.registerNum
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String companyId,  String code,  String name,  int registerNumber,  String? parentRegisterId,  bool isMain,  bool isActive,  HardwareType type,  bool allowCash,  bool allowCard,  bool allowTransfer,  bool allowCredit,  bool allowVoucher,  bool allowOther,  bool allowRefunds,  String? boundDeviceId,  String? activeBillId,  int gridRows,  int gridCols,  String? displayCartJson,  SellMode sellMode,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String companyId,  String code,  String name,  int registerNumber,  String? parentRegisterId,  bool isMain,  bool isActive,  HardwareType type,  bool allowCash,  bool allowCard,  bool allowTransfer,  bool allowCredit,  bool allowVoucher,  bool allowOther,  bool allowRefunds,  String? boundDeviceId,  String? activeBillId,  int gridRows,  int gridCols,  String? displayCartJson,  bool showStockBadge,  SellMode sellMode,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _RegisterModel() when $default != null:
-return $default(_that.id,_that.companyId,_that.code,_that.name,_that.registerNumber,_that.parentRegisterId,_that.isMain,_that.isActive,_that.type,_that.allowCash,_that.allowCard,_that.allowTransfer,_that.allowCredit,_that.allowVoucher,_that.allowOther,_that.allowRefunds,_that.boundDeviceId,_that.activeBillId,_that.gridRows,_that.gridCols,_that.displayCartJson,_that.sellMode,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.companyId,_that.code,_that.name,_that.registerNumber,_that.parentRegisterId,_that.isMain,_that.isActive,_that.type,_that.allowCash,_that.allowCard,_that.allowTransfer,_that.allowCredit,_that.allowVoucher,_that.allowOther,_that.allowRefunds,_that.boundDeviceId,_that.activeBillId,_that.gridRows,_that.gridCols,_that.displayCartJson,_that.showStockBadge,_that.sellMode,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   return null;
 
 }
@@ -230,7 +231,7 @@ return $default(_that.id,_that.companyId,_that.code,_that.name,_that.registerNum
 
 
 class _RegisterModel implements RegisterModel {
-  const _RegisterModel({required this.id, required this.companyId, required this.code, this.name = '', this.registerNumber = 1, this.parentRegisterId, this.isMain = false, this.isActive = true, required this.type, this.allowCash = true, this.allowCard = true, this.allowTransfer = true, this.allowCredit = true, this.allowVoucher = true, this.allowOther = true, this.allowRefunds = false, this.boundDeviceId, this.activeBillId, this.gridRows = 5, this.gridCols = 8, this.displayCartJson, this.sellMode = SellMode.gastro, required this.createdAt, required this.updatedAt, this.deletedAt});
+  const _RegisterModel({required this.id, required this.companyId, required this.code, this.name = '', this.registerNumber = 1, this.parentRegisterId, this.isMain = false, this.isActive = true, required this.type, this.allowCash = true, this.allowCard = true, this.allowTransfer = true, this.allowCredit = true, this.allowVoucher = true, this.allowOther = true, this.allowRefunds = false, this.boundDeviceId, this.activeBillId, this.gridRows = 5, this.gridCols = 8, this.displayCartJson, this.showStockBadge = false, this.sellMode = SellMode.gastro, required this.createdAt, required this.updatedAt, this.deletedAt});
   
 
 @override final  String id;
@@ -254,6 +255,7 @@ class _RegisterModel implements RegisterModel {
 @override@JsonKey() final  int gridRows;
 @override@JsonKey() final  int gridCols;
 @override final  String? displayCartJson;
+@override@JsonKey() final  bool showStockBadge;
 @override@JsonKey() final  SellMode sellMode;
 @override final  DateTime createdAt;
 @override final  DateTime updatedAt;
@@ -269,16 +271,16 @@ _$RegisterModelCopyWith<_RegisterModel> get copyWith => __$RegisterModelCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RegisterModel&&(identical(other.id, id) || other.id == id)&&(identical(other.companyId, companyId) || other.companyId == companyId)&&(identical(other.code, code) || other.code == code)&&(identical(other.name, name) || other.name == name)&&(identical(other.registerNumber, registerNumber) || other.registerNumber == registerNumber)&&(identical(other.parentRegisterId, parentRegisterId) || other.parentRegisterId == parentRegisterId)&&(identical(other.isMain, isMain) || other.isMain == isMain)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.type, type) || other.type == type)&&(identical(other.allowCash, allowCash) || other.allowCash == allowCash)&&(identical(other.allowCard, allowCard) || other.allowCard == allowCard)&&(identical(other.allowTransfer, allowTransfer) || other.allowTransfer == allowTransfer)&&(identical(other.allowCredit, allowCredit) || other.allowCredit == allowCredit)&&(identical(other.allowVoucher, allowVoucher) || other.allowVoucher == allowVoucher)&&(identical(other.allowOther, allowOther) || other.allowOther == allowOther)&&(identical(other.allowRefunds, allowRefunds) || other.allowRefunds == allowRefunds)&&(identical(other.boundDeviceId, boundDeviceId) || other.boundDeviceId == boundDeviceId)&&(identical(other.activeBillId, activeBillId) || other.activeBillId == activeBillId)&&(identical(other.gridRows, gridRows) || other.gridRows == gridRows)&&(identical(other.gridCols, gridCols) || other.gridCols == gridCols)&&(identical(other.displayCartJson, displayCartJson) || other.displayCartJson == displayCartJson)&&(identical(other.sellMode, sellMode) || other.sellMode == sellMode)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RegisterModel&&(identical(other.id, id) || other.id == id)&&(identical(other.companyId, companyId) || other.companyId == companyId)&&(identical(other.code, code) || other.code == code)&&(identical(other.name, name) || other.name == name)&&(identical(other.registerNumber, registerNumber) || other.registerNumber == registerNumber)&&(identical(other.parentRegisterId, parentRegisterId) || other.parentRegisterId == parentRegisterId)&&(identical(other.isMain, isMain) || other.isMain == isMain)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.type, type) || other.type == type)&&(identical(other.allowCash, allowCash) || other.allowCash == allowCash)&&(identical(other.allowCard, allowCard) || other.allowCard == allowCard)&&(identical(other.allowTransfer, allowTransfer) || other.allowTransfer == allowTransfer)&&(identical(other.allowCredit, allowCredit) || other.allowCredit == allowCredit)&&(identical(other.allowVoucher, allowVoucher) || other.allowVoucher == allowVoucher)&&(identical(other.allowOther, allowOther) || other.allowOther == allowOther)&&(identical(other.allowRefunds, allowRefunds) || other.allowRefunds == allowRefunds)&&(identical(other.boundDeviceId, boundDeviceId) || other.boundDeviceId == boundDeviceId)&&(identical(other.activeBillId, activeBillId) || other.activeBillId == activeBillId)&&(identical(other.gridRows, gridRows) || other.gridRows == gridRows)&&(identical(other.gridCols, gridCols) || other.gridCols == gridCols)&&(identical(other.displayCartJson, displayCartJson) || other.displayCartJson == displayCartJson)&&(identical(other.showStockBadge, showStockBadge) || other.showStockBadge == showStockBadge)&&(identical(other.sellMode, sellMode) || other.sellMode == sellMode)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 
 @override
-int get hashCode => Object.hashAll([runtimeType,id,companyId,code,name,registerNumber,parentRegisterId,isMain,isActive,type,allowCash,allowCard,allowTransfer,allowCredit,allowVoucher,allowOther,allowRefunds,boundDeviceId,activeBillId,gridRows,gridCols,displayCartJson,sellMode,createdAt,updatedAt,deletedAt]);
+int get hashCode => Object.hashAll([runtimeType,id,companyId,code,name,registerNumber,parentRegisterId,isMain,isActive,type,allowCash,allowCard,allowTransfer,allowCredit,allowVoucher,allowOther,allowRefunds,boundDeviceId,activeBillId,gridRows,gridCols,displayCartJson,showStockBadge,sellMode,createdAt,updatedAt,deletedAt]);
 
 @override
 String toString() {
-  return 'RegisterModel(id: $id, companyId: $companyId, code: $code, name: $name, registerNumber: $registerNumber, parentRegisterId: $parentRegisterId, isMain: $isMain, isActive: $isActive, type: $type, allowCash: $allowCash, allowCard: $allowCard, allowTransfer: $allowTransfer, allowCredit: $allowCredit, allowVoucher: $allowVoucher, allowOther: $allowOther, allowRefunds: $allowRefunds, boundDeviceId: $boundDeviceId, activeBillId: $activeBillId, gridRows: $gridRows, gridCols: $gridCols, displayCartJson: $displayCartJson, sellMode: $sellMode, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'RegisterModel(id: $id, companyId: $companyId, code: $code, name: $name, registerNumber: $registerNumber, parentRegisterId: $parentRegisterId, isMain: $isMain, isActive: $isActive, type: $type, allowCash: $allowCash, allowCard: $allowCard, allowTransfer: $allowTransfer, allowCredit: $allowCredit, allowVoucher: $allowVoucher, allowOther: $allowOther, allowRefunds: $allowRefunds, boundDeviceId: $boundDeviceId, activeBillId: $activeBillId, gridRows: $gridRows, gridCols: $gridCols, displayCartJson: $displayCartJson, showStockBadge: $showStockBadge, sellMode: $sellMode, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -289,7 +291,7 @@ abstract mixin class _$RegisterModelCopyWith<$Res> implements $RegisterModelCopy
   factory _$RegisterModelCopyWith(_RegisterModel value, $Res Function(_RegisterModel) _then) = __$RegisterModelCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String companyId, String code, String name, int registerNumber, String? parentRegisterId, bool isMain, bool isActive, HardwareType type, bool allowCash, bool allowCard, bool allowTransfer, bool allowCredit, bool allowVoucher, bool allowOther, bool allowRefunds, String? boundDeviceId, String? activeBillId, int gridRows, int gridCols, String? displayCartJson, SellMode sellMode, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String companyId, String code, String name, int registerNumber, String? parentRegisterId, bool isMain, bool isActive, HardwareType type, bool allowCash, bool allowCard, bool allowTransfer, bool allowCredit, bool allowVoucher, bool allowOther, bool allowRefunds, String? boundDeviceId, String? activeBillId, int gridRows, int gridCols, String? displayCartJson, bool showStockBadge, SellMode sellMode, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -306,7 +308,7 @@ class __$RegisterModelCopyWithImpl<$Res>
 
 /// Create a copy of RegisterModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? companyId = null,Object? code = null,Object? name = null,Object? registerNumber = null,Object? parentRegisterId = freezed,Object? isMain = null,Object? isActive = null,Object? type = null,Object? allowCash = null,Object? allowCard = null,Object? allowTransfer = null,Object? allowCredit = null,Object? allowVoucher = null,Object? allowOther = null,Object? allowRefunds = null,Object? boundDeviceId = freezed,Object? activeBillId = freezed,Object? gridRows = null,Object? gridCols = null,Object? displayCartJson = freezed,Object? sellMode = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? companyId = null,Object? code = null,Object? name = null,Object? registerNumber = null,Object? parentRegisterId = freezed,Object? isMain = null,Object? isActive = null,Object? type = null,Object? allowCash = null,Object? allowCard = null,Object? allowTransfer = null,Object? allowCredit = null,Object? allowVoucher = null,Object? allowOther = null,Object? allowRefunds = null,Object? boundDeviceId = freezed,Object? activeBillId = freezed,Object? gridRows = null,Object? gridCols = null,Object? displayCartJson = freezed,Object? showStockBadge = null,Object? sellMode = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_RegisterModel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,companyId: null == companyId ? _self.companyId : companyId // ignore: cast_nullable_to_non_nullable
@@ -329,7 +331,8 @@ as String?,activeBillId: freezed == activeBillId ? _self.activeBillId : activeBi
 as String?,gridRows: null == gridRows ? _self.gridRows : gridRows // ignore: cast_nullable_to_non_nullable
 as int,gridCols: null == gridCols ? _self.gridCols : gridCols // ignore: cast_nullable_to_non_nullable
 as int,displayCartJson: freezed == displayCartJson ? _self.displayCartJson : displayCartJson // ignore: cast_nullable_to_non_nullable
-as String?,sellMode: null == sellMode ? _self.sellMode : sellMode // ignore: cast_nullable_to_non_nullable
+as String?,showStockBadge: null == showStockBadge ? _self.showStockBadge : showStockBadge // ignore: cast_nullable_to_non_nullable
+as bool,sellMode: null == sellMode ? _self.sellMode : sellMode // ignore: cast_nullable_to_non_nullable
 as SellMode,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable

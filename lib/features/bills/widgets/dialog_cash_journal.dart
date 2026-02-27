@@ -6,7 +6,6 @@ import '../../../core/data/models/cash_movement_model.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatting_ext.dart';
-import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_table.dart';
 import 'dialog_cash_movement.dart';
@@ -150,6 +149,7 @@ class _DialogCashJournalState extends ConsumerState<DialogCashJournal> {
     final filtered = _filtered;
 
     return PosDialogShell(
+      showCloseButton: true,
       title: l.cashJournalBalance,
       titleWidget: Text.rich(
         TextSpan(
@@ -293,14 +293,6 @@ class _DialogCashJournalState extends ConsumerState<DialogCashJournal> {
         ),
         const SizedBox(height: 12),
       ],
-      bottomActions: PosDialogActions(
-        actions: [
-          OutlinedButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l.actionClose),
-          ),
-        ],
-      ),
     );
   }
 

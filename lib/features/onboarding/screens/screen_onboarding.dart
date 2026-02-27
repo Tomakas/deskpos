@@ -19,6 +19,7 @@ import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/widgets/business_type_selector.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
+import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../l10n/app_localizations.dart';
 
 class ScreenOnboarding extends ConsumerStatefulWidget {
@@ -642,20 +643,15 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
         builder: (dialogContext, setDialogState) {
           final l = dialogContext.l10n;
 
-          // Error state — show error + close button
+          // Error state — show error + X close button
           if (demoError != null) {
-            return AlertDialog(
-              title: Text(l.demoDialogTitle),
-              content: SelectableText(demoError!),
-              actions: [
-                PosDialogActions(
-                  actions: [
-                    FilledButton(
-                      onPressed: () => Navigator.of(dialogContext).pop(),
-                      child: Text(l.actionClose),
-                    ),
-                  ],
-                ),
+            return PosDialogShell(
+              showCloseButton: true,
+              title: l.demoDialogTitle,
+              maxWidth: 420,
+              scrollable: true,
+              children: [
+                SelectableText(demoError!),
               ],
             );
           }
@@ -665,109 +661,100 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
             final bodySmall = Theme.of(dialogContext).textTheme.bodySmall;
             return PopScope(
               canPop: false,
-              child: AlertDialog(
-                title: Text(l.demoDialogTitle),
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Row(
-                      children: [
-                        const CircularProgressIndicator(),
-                        const SizedBox(width: 24),
-                        Expanded(child: Text(demoProgress!)),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    Text(l.wizardDemoUsers, style: bodySmall),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${l.roleAdmin} · ${l.roleManager} · ${l.roleOperator} · ${l.roleHelper}',
-                      style: Theme.of(dialogContext).textTheme.bodyMedium,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(l.wizardDemoInfo, style: bodySmall),
-                    const SizedBox(height: 12),
-                    Text(l.wizardDemoHistory, style: bodySmall),
-                    const SizedBox(height: 4),
-                    Text(l.demoDialogInfo, style: bodySmall),
-                  ],
-                ),
+              child: PosDialogShell(
+                title: l.demoDialogTitle,
+                maxWidth: 420,
+                scrollable: true,
+                children: [
+                  Row(
+                    children: [
+                      const CircularProgressIndicator(),
+                      const SizedBox(width: 24),
+                      Expanded(child: Text(demoProgress!)),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  Text(l.wizardDemoUsers, style: bodySmall),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${l.roleAdmin} · ${l.roleManager} · ${l.roleOperator} · ${l.roleHelper}',
+                    style: Theme.of(dialogContext).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(l.wizardDemoInfo, style: bodySmall),
+                  const SizedBox(height: 12),
+                  Text(l.wizardDemoHistory, style: bodySmall),
+                  const SizedBox(height: 4),
+                  Text(l.demoDialogInfo, style: bodySmall),
+                ],
               ),
             );
           }
 
           // Mode selection state
-          return AlertDialog(
-            title: Text(l.demoDialogTitle),
-            content: ConstrainedBox(
-              constraints: const BoxConstraints(minWidth: 320),
-              child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: SizedBox(
-                        height: 40,
-                        child: FilterChip(
-                          label: SizedBox(
-                            width: double.infinity,
-                            child: Text(l.sellModeGastro, textAlign: TextAlign.center),
-                          ),
-                          selected: demoMode == 'gastro',
-                          onSelected: (_) => setDialogState(() => demoMode = 'gastro'),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: SizedBox(
-                        height: 40,
-                        child: FilterChip(
-                          label: SizedBox(
-                            width: double.infinity,
-                            child: Text(l.sellModeRetail, textAlign: TextAlign.center),
-                          ),
-                          selected: demoMode == 'retail',
-                          onSelected: (_) => setDialogState(() => demoMode = 'retail'),
-                        ),
-                      ),
-                    ),
-                  ],
+          return PosDialogShell(
+            title: l.demoDialogTitle,
+            maxWidth: 420,
+            scrollable: true,
+            bottomActions: PosDialogActions(
+              actions: [
+                OutlinedButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: Text(l.wizardBack),
+                ),
+                FilledButton(
+                  onPressed: () async {
+                    setDialogState(() => demoProgress = l.wizardDemoCreating);
+                    await _executeDemoCreation(
+                      mode: demoMode,
+                      onProgress: (msg) {
+                        if (dialogContext.mounted) {
+                          setDialogState(() => demoProgress = msg);
+                        }
+                      },
+                      onError: (msg) {
+                        if (dialogContext.mounted) {
+                          setDialogState(() {
+                            demoError = msg;
+                            demoProgress = null;
+                          });
+                        }
+                      },
+                    );
+                  },
+                  child: Text(l.demoDialogCreate),
                 ),
               ],
             ),
-            ),
-            actions: [
-              PosDialogActions(
-                actions: [
-                  OutlinedButton(
-                    onPressed: () => Navigator.of(dialogContext).pop(),
-                    child: Text(l.wizardBack),
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: SizedBox(
+                      height: 40,
+                      child: FilterChip(
+                        label: SizedBox(
+                          width: double.infinity,
+                          child: Text(l.sellModeGastro, textAlign: TextAlign.center),
+                        ),
+                        selected: demoMode == 'gastro',
+                        onSelected: (_) => setDialogState(() => demoMode = 'gastro'),
+                      ),
+                    ),
                   ),
-                  FilledButton(
-                    onPressed: () async {
-                      setDialogState(() => demoProgress = l.wizardDemoCreating);
-                      await _executeDemoCreation(
-                        mode: demoMode,
-                        onProgress: (msg) {
-                          if (dialogContext.mounted) {
-                            setDialogState(() => demoProgress = msg);
-                          }
-                        },
-                        onError: (msg) {
-                          if (dialogContext.mounted) {
-                            setDialogState(() {
-                              demoError = msg;
-                              demoProgress = null;
-                            });
-                          }
-                        },
-                      );
-                    },
-                    child: Text(l.demoDialogCreate),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: SizedBox(
+                      height: 40,
+                      child: FilterChip(
+                        label: SizedBox(
+                          width: double.infinity,
+                          child: Text(l.sellModeRetail, textAlign: TextAlign.center),
+                        ),
+                        selected: demoMode == 'retail',
+                        onSelected: (_) => setDialogState(() => demoMode = 'retail'),
+                      ),
+                    ),
                   ),
                 ],
               ),

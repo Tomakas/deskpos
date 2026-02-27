@@ -644,7 +644,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
           Expanded(
             child: SizedBox(
               height: 44,
-              child: FilledButton(
+              child: OutlinedButton(
                 onPressed: () => Navigator.pop(context),
                 child: Text(l.actionClose),
               ),

@@ -73,6 +73,7 @@ class _DialogVoucherDetailState extends ConsumerState<DialogVoucherDetail> {
     final theme = Theme.of(context);
 
     return PosDialogShell(
+      showCloseButton: true,
       title: voucher.code,
       titleStyle: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
       maxWidth: 400,
@@ -109,10 +110,6 @@ class _DialogVoucherDetailState extends ConsumerState<DialogVoucherDetail> {
           label: Text(l.voucherPrint),
         ),
         actions: [
-          OutlinedButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l.actionClose),
-          ),
           if (voucher.status == VoucherStatus.active)
             FilledButton(
               style: PosButtonStyles.destructiveFilled(context),

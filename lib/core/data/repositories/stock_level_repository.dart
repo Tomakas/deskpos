@@ -173,6 +173,24 @@ class StockLevelRepository {
     }
   }
 
+  /// Watches all stock level quantities for a warehouse (itemId → quantity).
+  /// Unlike [watchByWarehouse], does NOT filter by isStockTracked — returns
+  /// every stock_levels row for the warehouse so variants inherit parent tracking.
+  Stream<Map<String, double>> watchStockMap(String companyId, String warehouseId) {
+    final query = _db.select(_db.stockLevels)
+      ..where((t) =>
+          t.companyId.equals(companyId) &
+          t.warehouseId.equals(warehouseId) &
+          t.deletedAt.isNull());
+    return query.watch().map((rows) {
+      final map = <String, double>{};
+      for (final row in rows) {
+        map[row.itemId] = row.quantity;
+      }
+      return map;
+    });
+  }
+
   /// Watches all stock-tracked items for a warehouse, with stock levels via LEFT JOIN.
   Stream<List<StockLevelWithItem>> watchByWarehouse(String companyId, String warehouseId) {
     final query = _db.select(_db.items).join([

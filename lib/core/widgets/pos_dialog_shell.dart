@@ -17,6 +17,7 @@ class PosDialogShell extends StatelessWidget {
     this.scrollable = false,
     this.expandHeight = false,
     this.bottomActions,
+    this.showCloseButton = false,
   });
 
   final String title;
@@ -29,13 +30,33 @@ class PosDialogShell extends StatelessWidget {
   final bool scrollable;
   final bool expandHeight;
   final Widget? bottomActions;
+  final bool showCloseButton;
 
   @override
   Widget build(BuildContext context) {
     final style = titleStyle ?? Theme.of(context).textTheme.titleLarge;
-    final titleRow = titleWidget != null
-        ? Center(child: titleWidget!)
-        : Center(child: Text(title, style: style));
+    final titleContent = titleWidget ?? Text(title, style: style);
+    final Widget titleRow;
+    if (showCloseButton) {
+      titleRow = Row(
+        children: [
+          const SizedBox(width: 40),
+          Expanded(child: Center(child: titleContent)),
+          SizedBox(
+            width: 40,
+            height: 40,
+            child: IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: () => Navigator.pop(context),
+              padding: EdgeInsets.zero,
+              iconSize: 20,
+            ),
+          ),
+        ],
+      );
+    } else {
+      titleRow = Center(child: titleContent);
+    }
 
     // scrollable + bottomActions → title & children scroll, actions pinned
     if (scrollable && bottomActions != null) {
