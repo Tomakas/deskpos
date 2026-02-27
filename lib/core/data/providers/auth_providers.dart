@@ -85,6 +85,10 @@ final appInitProvider = FutureProvider<_AppInitState>((ref) async {
   }
 
   final companyRepo = ref.watch(companyRepositoryProvider);
+
+  // Clean up expired local demo companies before checking state
+  await companyRepo.deleteExpiredLocalDemos();
+
   final result = await companyRepo.getFirst();
   final company = switch (result) {
     Success(value: final c) => c,
@@ -93,15 +97,9 @@ final appInitProvider = FutureProvider<_AppInitState>((ref) async {
 
   if (company == null) return _AppInitState.needsOnboarding;
 
-  // Client-side demo expiry check (server cron is authoritative)
-  if (company.isDemo &&
-      company.demoExpiresAt != null &&
-      company.demoExpiresAt!.isBefore(DateTime.now())) {
-    return _AppInitState.needsOnboarding;
-  }
-
   // Lost anonymous session: local demo company exists but no Supabase auth session
   if (company.isDemo && Supabase.instance.client.auth.currentSession == null) {
+    await companyRepo.deleteCompanyLocally(company.id);
     return _AppInitState.needsOnboarding;
   }
 
