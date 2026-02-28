@@ -13,6 +13,7 @@ Audit používá architekturu **Triple Modular Redundancy (TMR)** pro maximáln�
 │                  FÁZE 0 — Prerekvizity              │
 │         (hlavní konverzace, jednorázově)             │
 │  Supabase project ID, git status, cesty k docs      │
+│  + Supabase snapshot + dart analyze do souborů       │
 └──────────────────────┬──────────────────────────────┘
                        │
         ┌──────────────┼──────────────────┐
@@ -24,9 +25,9 @@ Audit používá architekturu **Triple Modular Redundancy (TMR)** pro maximáln�
 │  kompletní   ││  kompletní   ││  kompletní   │
 │  analýza     ││  analýza     ││  analýza     │
 │              ││              ││              │
-│ (MUSÍ použít ││ (MUSÍ použít ││ (MUSÍ použít │
-│  vlastní     ││  vlastní     ││  vlastní     │
-│  podagenty)  ││  podagenty)  ││  podagenty)  │
+│ (čte sdílený ││ (čte sdílený ││ (čte sdílený │
+│  snapshot +  ││  snapshot +  ││  snapshot +  │
+│  dart anal.) ││  dart anal.) ││  dart anal.) │
 └──────┬───────┘└──────┬───────┘└──────┬───────┘
        │               │               │
        ▼               ▼               ▼
@@ -38,7 +39,7 @@ Audit používá architekturu **Triple Modular Redundancy (TMR)** pro maximáln�
 │  který přečte výstupy α/β/γ ze souborů a provede:   │
 │  1. Sloučit a deduplikovat nálezy ze všech 3 agentů │
 │  2. Klasifikovat shodu (3/3, 2/3, 1/3 agentů)      │
-│  3. Re-verifikovat sporné nálezy (1/3 unikátní)     │
+│  3. Re-verifikovat VŠECHNY nálezy (sanity check)    │
 │  4. Potvrzené → do reportu                          │
 │  5. Vyvrácené → do sekce zamítnutých                │
 │  6. Zapsat FINÁLNÍ REPORT do souboru                │
@@ -55,9 +56,10 @@ Audit používá architekturu **Triple Modular Redundancy (TMR)** pro maximáln�
 
 1. **Identický scope** — Všichni 3 agenti provádějí **tutéž kompletní analýzu** (FÁZE 1–5). Žádné dělení práce mezi agenty.
 2. **Nezávislost** — Agenti nevidí výsledky ostatních. Každý pracuje izolovaně.
-3. **Vlastní podagenti (POVINNÉ)** — Každý agent **MUSÍ** spouštět vlastní podagenty pro delegaci práce. Audit vyžaduje čtení 80+ souborů a spouštění SQL dotazů — bez podagentů kontext nestačí na dokončení všech fází. Agent sám provádí pouze koordinaci, FÁZI 2 (Supabase MCP) a FÁZI 4 (křížová validace). Vše ostatní deleguje na podagenty.
-4. **Supabase MCP** — Každý agent má přístup k MCP nástrojům a provádí vlastní Supabase analýzu nezávisle.
-5. **Sloučení až na konci** — Po dokončení všech 3 agentů se spustí **merge agent** (sub-agent), který přečte výstupy ze souborů, sloučí a re-verifikuje. Hlavní konverzace NEČTE jednotlivé reporty — čte jen finální výstup merge agenta.
+3. **Vlastní podagenti (POVINNÉ)** — Každý agent **MUSÍ** spouštět vlastní podagenty pro delegaci práce. Audit vyžaduje čtení 80+ souborů — bez podagentů kontext nestačí na dokončení všech fází. Agent sám provádí pouze koordinaci, FÁZI 2 (analýza Supabase snapshotu) a FÁZI 4 (křížová validace). Vše ostatní deleguje na podagenty.
+4. **Sdílený Supabase snapshot** — Hlavní konverzace stáhne Supabase schéma JEDNOU (FÁZE 0.5) a zapíše ho do souboru. Všichni 3 agenti čtou TENTÝŽ snapshot — nespouštějí vlastní MCP dotazy. Šetří ~30% tokenů a eliminuje riziko, že agenti dostanou různá data.
+5. **Sdílený dart analyze** — Hlavní konverzace spustí `dart analyze lib/` JEDNOU (FÁZE 0.6) a zapíše výstup do souboru. Agenti čtou sdílený výstup.
+6. **Sloučení až na konci** — Po dokončení všech 3 agentů se spustí **merge agent** (sub-agent), který přečte výstupy ze souborů, sloučí a re-verifikuje. Hlavní konverzace NEČTE jednotlivé reporty — čte jen finální výstup merge agenta.
 
 ### Jak spustit 3 agenty
 
@@ -65,7 +67,7 @@ Spusť **v jednom kroku** 3 background agenty (Task tool, `run_in_background: tr
 
 - Kompletní instrukce (pravidla analýzy, verifikační protokol)
 - Všechny fáze (FÁZE 1–5)
-- Supabase project ID (zjištěné v FÁZI 0)
+- Cesty ke sdíleným souborům (Supabase snapshot, dart analyze výstup)
 - Identifikátor agenta (α / β / γ) — pouze pro rozlišení ve výstupu
 
 **Prompt pro každého agenta musí být shodný** (kromě identifikátoru). Agent si sám rozhodne, jak svou práci interně organizuje.
@@ -79,7 +81,33 @@ Před spuštěním agentů:
 1. **Supabase project ID** — zjisti z `lib/core/network/supabase_config.dart`
 2. **Git status** — `git status` a `git log --oneline -10`
 3. **Cesta k PROJECT.md** — ověř skutečnou cestu (Glob `**/PROJECT.md`)
-4. Tyto informace předej do promptu všem 3 agentům.
+
+---
+
+## FÁZE 0.5 — Supabase snapshot (hlavní konverzace)
+
+Před spuštěním 3 agentů stáhni Supabase schéma **JEDNOU** a zapiš do souboru. Agenti čtou snapshot místo vlastních MCP dotazů.
+
+```bash
+rm -rf /tmp/tmr-audit && mkdir -p /tmp/tmr-audit
+```
+
+Spusť přes Supabase MCP (`execute_sql`) VŠECHNY SQL dotazy z FÁZE 2.1–2.4 a zapiš výsledky do `/tmp/tmr-audit/supabase_snapshot.md`. Dále spusť:
+- `list_migrations` → zapiš do snapshotu
+- `get_advisors(type: "security")` → zapiš do snapshotu
+- `get_advisors(type: "performance")` → zapiš do snapshotu
+
+**Formát snapshotu:** Každá sekce s SQL dotazem, pod ním výsledek. Agent čte snapshot jako read-only referenci.
+
+---
+
+## FÁZE 0.6 — Statická analýza (hlavní konverzace)
+
+Spusť `dart analyze lib/` a zapiš výstup do `/tmp/tmr-audit/dart_analyze.txt`. Agenti NESPOUŠTĚJÍ `dart analyze` sami — čtou sdílený výstup. Každý warning/error je automaticky nález (viz FÁZE 3.7.0).
+
+---
+
+4. Předej agentům: cesty ke snapshot souborům + Supabase project ID.
 
 ---
 
@@ -101,7 +129,7 @@ Proveď **kompletní, důkladnou a podrobnou analýzu** celého Maty projektu. A
 3. **Rozlišuj závažnost striktně dle definic** (viz Definice závažností níže). Nikdy neinfluj závažnost.
 4. **U každého nálezu uveď**: co je špatně, proč je to problém, konkrétní dopad, a navrhované řešení.
 5. **Porovnávej kód s dokumentací** (`PROJECT.md`, `CLAUDE.md`). Rozpor mezi kódem a dokumentací je nález — reportuj jako STŘEDNÍ+ závažnost. Neurčuj, kdo má pravdu (kód nebo docs), ale jasně popiš co se liší a kde. **VÝJIMKA:** Neimplementované plánované features z budoucích etap nejsou rozpory — viz "Známé vzory — NE BUG" bod 9.
-6. **Analýzu Supabase** proveď přes MCP nástroje (execute_sql, list_tables, get_advisors) — nikdy nehádej stav serveru.
+6. **Analýzu Supabase** proveď ze sdíleného snapshotu (`/tmp/tmr-audit/supabase_snapshot.md`) — nikdy nehádej stav serveru. Pokud snapshot neobsahuje potřebná data, požádej o doplnění (ale NESPOUŠTĚJ vlastní MCP dotazy).
 7. **Spouštěj podagenty** — je to POVINNÉ (viz sekce "Povinné rozdělení podagentů").
 8. **Generovaný kód VYLÚČ z analýzy** — soubory `*.g.dart` a `*.freezed.dart` jsou automaticky generované `build_runner`em. NEANALYZUJ je, NEHLÁŠEJ v nich nálezy, NEPOČÍTEJ je do code quality metrik. Jediná relevantní kontrola: je generovaný kód aktuální vůči zdrojovým definicím (viz 3.7.1).
 
@@ -117,6 +145,8 @@ Každý nález **MUSÍ** projít verifikací před zařazením do reportu. Cíle
 4. **Zvaž kontext a záměr** — je to skutečně bug, nebo záměrné designové rozhodnutí? Viz sekce "Známé vzory — NE BUG" níže.
 5. **Ověř kompletní řetězec** — pokud reportuješ problém v mapperu, ověř i Drift tabulku, model, Supabase schéma a druhý mapper. Problém může být na jiném místě než se zdá.
 6. **Rozliš „nefunkční" vs „neoptimální"** — KRITICKÉ = crash nebo data loss V PRODUKCI. Neoptimální index ≠ KRITICKÉ. Typ mismatch, který PostgreSQL automaticky řeší ≠ KRITICKÉ.
+7. **Projdi CELÝ seznam "Známé vzory — NE BUG"** — u KAŽDÉHO nálezu porovnej se VŠEMI body seznamu. Pokud nález odpovídá kterémukoliv bodu, NEREPORTUJ. Toto je nejčastější zdroj false positives — v předchozích auditech agenti opakovaně reportovali nálezy pokryté známými vzory (bod 19, 20, 24).
+8. **Počítání a enumerace** — nikdy nepočítej manuálně (tabulky, enumy, permissions, sloupce). Vždy použij programatický dotaz: SQL `SELECT count(*)` pro Supabase, Glob + count pro soubory, grep pro enum values. Manuální počítání je NESPOLEHLIVÉ a opakovaně vedlo k false positives v předchozích auditech.
 
 ### Známé vzory — NE BUG (POVINNÝ checklist)
 
@@ -144,6 +174,9 @@ Před reportováním nálezu ověř, že NEJDE o jeden z těchto známých vzor�
 20. **Supabase edge function volání v UI** — Volání `Supabase.instance.client.functions.invoke()` v onboarding screenu je jednorázová serverová operace, ne běžný data access pattern. NEREPORTUJ jako „direct Supabase access".
 21. **Globální tabulky se nepushují při initial push** — currencies, roles, permissions, role_permissions jsou server-authoritative. Initial push je pushuje jen pokud je firma nová (vlastní je). Jinak se stahují ze serveru při pull. NEREPORTUJ absenci v initial push jako bug.
 22. **Platform-specifický kód** — `Platform.isMacOS`, `Platform.isWindows`, `kIsWeb` kontroly v `lib/core/platform/` a podmíněných importech jsou standardní Flutter multiplatformní vzor. NEREPORTUJ jako code smell. Reportuj POUZE pokud platform check chybí tam, kde by měl být.
+23. **FK-backing indexy hlášené jako unused** — Supabase performance advisor hlásí `idx_scan = 0` pro indexy, které backují FK constraints, protože constraint checks (při DELETE/UPDATE na parent tabulce) se NEZAZNAMENÁVAJÍ do `pg_stat_user_indexes`. Před reportováním "unused index" VŽDY ověř: a) existuje FK constraint na indexovaném sloupci? b) má parent tabulka DELETE/UPDATE operace? Pokud ano = index je aktivně používán, NEREPORTUJ. Totéž platí pro indexy na tabulkách s < 1000 rows (planner volí seq scan i s validním indexem) a indexy používané pg_cron joby (cron queries se neprojevují ve statistikách).
+24. **Mezinárodní technické termíny v UI** — Slova jako USB, Bluetooth, WiFi, PDF, QR, NFC, PIN, POS, KDS jsou mezinárodní standardy a nepotřebují lokalizaci. NEREPORTUJ jako hardcoded strings nebo chybějící `context.l10n`. Reportuj POUZE user-facing text, který se skutečně liší mezi jazyky.
+25. **`get_advisors` výstup vyžaduje verifikaci** — Supabase advisor nástroje (performance, security) jsou heuristické. Jejich výstup je VSTUP pro analýzu, ne hotový nález. Každé doporučení z advisoru MUSÍ být ověřeno proti skutečnému kódu, FK vztahům a usage patterns před reportováním.
 
 ### Definice závažností (STRIKTNÍ)
 
@@ -185,7 +218,7 @@ Nikdy nehlásaj KRITICKÉ bez confidence level CONFIRMED.
 Agent slouží jako koordinátor — spouští podagenty, sbírá výstupy a kompiluje report. Agent NEČTE zdrojové soubory přímo (kromě FÁZE 2 a 4), vše deleguje. Konkrétní dělení je na agentovi, ale MUSÍ splnit:
 
 1. Minimálně 4 paralelní podagenty pro FÁZI 3 (klient je příliš velký pro jednoho)
-2. FÁZE 2 (Supabase MCP) provádí agent přímo
+2. FÁZE 2 (Supabase analýza ze snapshotu) provádí agent přímo
 3. FÁZE 4 (křížová validace) provádí agent přímo (potřebuje data z FÁZE 2)
 4. Každý podagent vrací strukturovaný výstup (viz formát níže)
 5. Agent koordinuje a kompiluje finální report
@@ -200,14 +233,14 @@ Doporučené dělení (agent může upravit):
 6. **Podagent: Dokumentace vs implementace** — FÁZE 5
 
 **Agent provádí PŘÍMO (ne v podagentech):**
-- FÁZE 2 (Supabase MCP) — vyžaduje MCP nástroje a koordinaci dat
+- FÁZE 2 (Supabase analýza) — čte sdílený snapshot, koordinuje data
 - FÁZE 4 (křížová validace Drift ↔ Supabase) — vyžaduje data z FÁZE 2 + výstupy podagentů
 
 ### Kompletnost analýzy a prioritizace
 
 Agent MUSÍ pokrýt všechny fáze. Pokud kontextové okno nestačí, řeš dalším dělením na menší podagenty. Pokud ani to nepomůže, dodržuj prioritní pořadí:
 
-1. **Priorita 1 (NESMÍ chybět):** FÁZE 2, 4 (Supabase, křížová validace — nejvyšší hodnota)
+1. **Priorita 1 (NESMÍ chybět):** FÁZE 2, 4 (Supabase analýza ze snapshotu, křížová validace — nejvyšší hodnota)
 2. **Priorita 2 (NEMĚLO BY chybět):** FÁZE 3.1–3.3 (repositories, sync, auth)
 3. **Priorita 3 (MĚLO BY být):** FÁZE 3.4–3.6 (UI, providers, routing)
 4. **Priorita 4 (NICE TO HAVE):** FÁZE 3.7–3.13, 5 (code quality, konzistence, docs)
@@ -240,9 +273,9 @@ Strom všech `.dart` souborů v `lib/` (přes Glob `lib/**/*.dart`).
 
 ---
 
-### FÁZE 2 — Analýza Supabase serveru (MCP)
+### FÁZE 2 — Analýza Supabase serveru (ze snapshotu)
 
-Pomocí Supabase MCP nástrojů proveď kompletní audit server-side:
+Přečti Supabase snapshot z `/tmp/tmr-audit/supabase_snapshot.md` (vytvořen v FÁZI 0.5). NESPOUŠTĚJ vlastní MCP dotazy — snapshot obsahuje všechna data. Analyzuj:
 
 #### 2.1 Schéma a struktura
 ```sql
@@ -344,10 +377,10 @@ WHERE t.schemaname = 'public'
 - **Guard/Constraint** — existují BEFORE triggery vynucující business pravidla? Je jejich logika kompletní a neobejitelná?
 - **Jiné** — existují triggery mimo výše uvedené kategorie? Jsou zdokumentované?
 
-#### 2.5 Migrace a advisors
-- `list_migrations` — seznam všech migrací
-- `get_advisors(type: "security")` — bezpečnostní doporučení
-- `get_advisors(type: "performance")` — výkonnostní doporučení
+#### 2.5 Migrace a advisors (ze snapshotu)
+- Migrace — seznam je ve snapshotu (z `list_migrations`)
+- Security advisors — doporučení jsou ve snapshotu (z `get_advisors`)
+- Performance advisors — doporučení jsou ve snapshotu. **POZOR:** Advisor výstup je heuristický — každé doporučení MUSÍ být re-verifikováno (viz Známé vzory bod 25)
 
 #### 2.6 Edge Functions (TypeScript)
 
@@ -590,9 +623,9 @@ Přečti: `lib/core/routing/app_router.dart`
 
 #### 3.7 Kvalita kódu
 
-**3.7.0 Statická analýza (POVINNÝ PRVNÍ KROK)**
+**3.7.0 Statická analýza (ze sdíleného výstupu)**
 
-Spusť `dart analyze lib/` a zaznamenej VŠECHNY warnings a errors. Každý warning je automaticky nález:
+Přečti výstup `dart analyze` z `/tmp/tmr-audit/dart_analyze.txt` (vytvořen v FÁZI 0.6). NESPOUŠTĚJ `dart analyze` sám — čti sdílený výstup. Každý warning je automaticky nález:
 - `error` → VYSOKÉ
 - `warning` → STŘEDNÍ
 - `info` → NÍZKÉ
@@ -902,12 +935,15 @@ Spusť **jeden foreground agent** (Task tool) s tímto zadáním:
 > 1. **Sběr a deduplikace** — přečti všechny 3 reporty. Identifikuj duplikáty (shodný soubor + řádek, nebo shodný koncept jinak formulovaný). Pro duplikáty vezmi nejvyšší důvěryhodnost (confidence), ne nejvyšší závažnost.
 >
 > 2. **Klasifikace shody:**
->    - 3/3 agentů shodně → Přijat bez dalšího ověření
->    - 2/3 shodně, 1 odlišně → Přijat, přezkoumej závažnost
->    - 1/3 unikátní nález → POVINNÁ re-verifikace čtením zdrojového kódu
+>    - 3/3 agentů shodně → Přijat, ALE povinná sanity check (viz krok 3)
+>    - 2/3 shodně, 1 odlišně → Přijat, přezkoumej závažnost + sanity check
+>    - 1/3 unikátní nález → POVINNÁ plná re-verifikace čtením zdrojového kódu
 >    - 2/3+ říká NE BUG → Zamítnut, uveď v sekci zamítnutých
 >
-> 3. **Re-verifikace sporných nálezů** — pouze 1/3 unikátní nálezy. Přečti zdrojový kód, ověř proti „Známé vzory" (viz níže), rozhodnutí Přijat/Zamítnut.
+> 3. **Sanity check VŠECH nálezů (včetně 3/3 shody)** — i konsenzuální nálezy mohou být false positive (všichni 3 agenti opakují stejnou chybu). Pro KAŽDÝ nález:
+>    a) Projdi seznam "Známé vzory — NE BUG" — pokud nález odpovídá = ZAMÍTNUT s "known pattern overlooked by all agents"
+>    b) Projdi seznam "Časté false positive traps" — pokud nález odpovídá = ZAMÍTNUT
+>    c) U 1/3 unikátních nálezů navíc přečti zdrojový kód a ověř plně
 >
 > 4. **Zapiš finální report** do `/tmp/tmr-audit/FINAL_REPORT.md` ve formátu definovaném v sekci FINÁLNÍ REPORT.
 >
@@ -989,4 +1025,7 @@ Seznam sekcí, které žádný agent nedokončil (pokud existují).
 5. **„Chybějící globální tabulky v initial push"** — Globální tabulky jsou server-authoritative, client je nepushuje (kromě onboarding nové firmy, kde se seedují na serveru).
 6. **„FutureBuilder s inline future"** — Ověř, jestli future není cachovaná v instanční proměnné (vzor `_cachedKey` + `_future` pattern v `dialog_bill_detail.dart`).
 7. **„N+1 query v StreamBuilder"** — StreamBuilder s per-row streamem NENÍ N+1 problém (streamy jsou lazy a reaktivní). N+1 je POUZE: `for (final x in list) { await repo.method(x); }` v async kontextu.
+8. **„Unused index dle get_advisors/performance"** — VŽDY ověř: a) je index FK-backing? (viz Známé vzory bod 23), b) má tabulka < 1000 rows? (planner volí seq scan), c) existuje pg_cron job nebo scheduled query? Advisors nevidí FK constraint checks ani cron queries. V předchozím auditu bylo 7 z 9 hlášených "unused" indexů false positive.
+9. **„Hardcoded string XYZ"** — Ověř, zda jde o: a) mezinárodní technický termín (viz Známé vzory bod 24), b) brand name nebo standard, c) log/debug message (ty se nelokalizují). Pouze USER-FACING text, který se liší mezi jazyky, je nález.
+10. **„Enum/tabulka count mismatch — docs say X, code has Y"** — Nepočítej manuálně. Spusť SQL/grep a uveď PŘESNÝ seznam s názvy. Tvrzení „docs říkají 24 enumů ale existuje 26" bez výčtu konkrétních chybějících = nespolehlivý nález. V předchozím auditu bylo počítání enumů false positive — dokumentace byla správná.
 

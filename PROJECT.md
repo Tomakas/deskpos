@@ -1006,7 +1006,7 @@ Navíc každá tabulka definuje: `createdAt`, `updatedAt`, `deletedAt` (soft del
 
 > **Poznámky:**
 > - `TableEntity` používá `@DataClassName('TableEntity')` anotaci (konflikt s Drift `Table`)
-> - `SyncQueue` a `SyncMetadata` nepoužívají `SyncColumnsMixin` (vlastní timestamps)
+> - `SyncQueue` a `SyncMetadata` nepoužívají `SyncColumnsMixin` (vlastní timestamps). Jejich repozitáře (`SyncQueueRepository`, `SyncMetadataRepository`) záměrně neextendují `BaseCompanyScopedRepository` — jsou infrastrukturní tabulky, ne business entity.
 > - **Drift vs Supabase:** Drift má 45 tabulek (42 doménových + device_registrations + sync_queue + sync_metadata). Supabase má 46 tabulek (42 doménových + sync_queue + audit_log + seed_demo_data + demo_log). `device_registrations` a `sync_metadata` jsou Drift-only, `audit_log`, `seed_demo_data` a `demo_log` jsou server-only.
 
 #### Sloupce tabulek
@@ -2203,7 +2203,7 @@ Progresivní lockout chrání proti hádání PIN kódu:
 - `SupabaseAuthService` zajišťuje signIn/signUp/signInAnonymously a session management
 - Sign-up vyžaduje potvrzení emailu — pokud Supabase vrátí null session, zobrazí se chybová hláška
 
-> **Supabase Auth konfigurace:** Funkce **Leaked Password Protection** (HaveIBeenPwned integrace) je v projektu záměrně **vypnutá**. Důvod: POS systém používá jednoduché admin heslo primárně pro sync mezi zařízeními, nikoliv pro přímé přihlašování uživatelů. Uživatelé se přihlašují pomocí PIN kódu. **Anonymous sign-ins** povoleny pro demo flow.
+> **Supabase Auth konfigurace:** **Anonymous sign-ins** záměrně povoleny — vyžaduje je demo flow (`signInAnonymously()`). Bezpečnostní dopad minimální: RLS policies vyžadují `authenticated` roli (anon JWT ji dostane), ale `get_my_company_ids()` vrátí jen firmy daného `auth.uid()`, takže anon uživatel vidí pouze svou demo firmu. Rate limiting na straně Supabase brání masivní tvorbě anon sessions.
 
 ### Navigace
 

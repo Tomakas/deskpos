@@ -231,10 +231,10 @@ final routerProvider = Provider<GoRouter>((ref) {
 
 class _RouterNotifier extends ChangeNotifier {
   _RouterNotifier(this._ref) {
-    _ref.listen(appInitProvider, (_, __) => notifyListeners());
-    _ref.listen(activeUserProvider, (_, __) => notifyListeners());
-    _ref.listen(activeRegisterProvider, (_, __) => notifyListeners());
-    _ref.listen(userPermissionCodesProvider, (_, __) => notifyListeners());
+    _ref.listen(appInitProvider, (_, _) => notifyListeners());
+    _ref.listen(activeUserProvider, (_, _) => notifyListeners());
+    _ref.listen(activeRegisterProvider, (_, _) => notifyListeners());
+    _ref.listen(userPermissionCodesProvider, (_, _) => notifyListeners());
   }
   final Ref _ref;
 }

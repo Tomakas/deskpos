@@ -453,6 +453,9 @@ class OrderRepository {
       if (itemEntity.status == PrepStatus.voided) {
         return const Failure('Item is already voided');
       }
+      if (voidQuantity != null && voidQuantity <= 0) {
+        return const Failure('Void quantity must be positive');
+      }
       if (voidQuantity != null && voidQuantity > itemEntity.quantity) {
         return const Failure('Void quantity exceeds item quantity');
       }

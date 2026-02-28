@@ -89,11 +89,11 @@ DECLARE
   v_currency_id  text;
   v_now          timestamptz := now();
 
-  -- Role IDs (fixed, from global seed)
-  v_role_admin    text := '01930000-0000-7000-8000-000000000103';
-  v_role_manager  text := '01930000-0000-7000-8000-000000000104';
-  v_role_operator text := '01930000-0000-7000-8000-000000000102';
-  v_role_helper   text := '01930000-0000-7000-8000-000000000101';
+  -- Role IDs (looked up from roles table)
+  v_role_admin    text;
+  v_role_manager  text;
+  v_role_operator text;
+  v_role_helper   text;
 
   -- Counters
   v_bill_counter      int := 0;
@@ -263,6 +263,12 @@ DECLARE
   v_admin_user_id  text;
   v_display_id     text;
 BEGIN
+  -- Look up role IDs dynamically instead of hardcoding UUIDs
+  SELECT id::text INTO STRICT v_role_admin    FROM roles WHERE name = 'admin';
+  SELECT id::text INTO STRICT v_role_manager  FROM roles WHERE name = 'manager';
+  SELECT id::text INTO STRICT v_role_operator FROM roles WHERE name = 'operator';
+  SELECT id::text INTO STRICT v_role_helper   FROM roles WHERE name = 'helper';
+
   -- ========================================================================
   -- STEP 1: Setup — ref_map temp table, resolve currency
   -- ========================================================================

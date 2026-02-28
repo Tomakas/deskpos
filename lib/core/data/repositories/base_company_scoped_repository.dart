@@ -102,12 +102,16 @@ abstract class BaseCompanyScopedRepository<TTable extends Table,
   }
 
   /// Enqueue all entities for initial push.
-  /// Intentionally includes soft-deleted rows: if a user creates and deletes
-  /// an entity while offline, both operations must reach the server.
+  /// Includes soft-deleted rows: if a user creates and deletes an entity while
+  /// offline, both operations must reach the server so the delete propagates.
   Future<void> enqueueAll(String companyId) async {
     if (syncQueueRepo == null) return;
+    // Use companyId-only filter (no deletedAt) so soft-deleted rows are included.
     final entities = await (db.select(table)
-          ..where((t) => whereCompanyScope(t, companyId)))
+          ..where((t) {
+            final d = t as dynamic;
+            return (d.companyId as GeneratedColumn<String>).equals(companyId);
+          }))
         .get();
     for (final entity in entities) {
       final model = fromEntity(entity);

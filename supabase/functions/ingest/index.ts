@@ -142,10 +142,19 @@ Deno.serve(async (req) => {
       }
     }
 
+    // --- Strip server-authoritative fields that clients must not set ---
+    const SERVER_ONLY_FIELDS: Record<string, string[]> = {
+      companies: ["is_demo", "demo_expires_at", "status"],
+    };
+    const stripped = { ...payload };
+    for (const field of SERVER_ONLY_FIELDS[table] ?? []) {
+      delete stripped[field];
+    }
+
     // --- Write to target table ---
     const { error: upsertError } = await serviceClient
       .from(table)
-      .upsert(payload as Record<string, unknown>, { onConflict: "id" });
+      .upsert(stripped as Record<string, unknown>, { onConflict: "id" });
 
     if (upsertError) {
       const code = upsertError.code ?? "";

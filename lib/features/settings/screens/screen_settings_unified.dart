@@ -36,9 +36,9 @@ class _ScreenSettingsUnifiedState extends ConsumerState<ScreenSettingsUnified>
   void initState() {
     super.initState();
     // Listen for permission changes and rebuild tabs safely (outside build).
-    ref.listenManual(hasAnyPermissionInGroupProvider('settings_company'), (_, __) => _schedulRebuild());
-    ref.listenManual(hasAnyPermissionInGroupProvider('settings_venue'), (_, __) => _schedulRebuild());
-    ref.listenManual(hasAnyPermissionInGroupProvider('settings_register'), (_, __) => _schedulRebuild());
+    ref.listenManual(hasAnyPermissionInGroupProvider('settings_company'), (_, _) => _schedulRebuild());
+    ref.listenManual(hasAnyPermissionInGroupProvider('settings_venue'), (_, _) => _schedulRebuild());
+    ref.listenManual(hasAnyPermissionInGroupProvider('settings_register'), (_, _) => _schedulRebuild());
   }
 
   @override

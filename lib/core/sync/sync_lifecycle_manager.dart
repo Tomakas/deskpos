@@ -319,11 +319,13 @@ class SyncLifecycleManager {
     Map<String, dynamic> Function(dynamic entity) toJson,
   ) async {
     try {
+      // Include soft-deleted rows: if a user creates and deletes an entity
+      // while offline, both operations must reach the server so the delete
+      // propagates.
       final entities = await (_db.select(table)
             ..where((t) {
               final d = t as dynamic;
-              return (d.companyId as GeneratedColumn<String>).equals(companyId) &
-                  (d.deletedAt as GeneratedColumn).isNull();
+              return (d.companyId as GeneratedColumn<String>).equals(companyId);
             }))
           .get();
       for (final entity in entities) {
@@ -352,9 +354,9 @@ class SyncLifecycleManager {
 
   Future<void> _enqueueRegisters(String companyId) async {
     try {
+      // Include soft-deleted rows so the delete propagates to the server.
       final entities = await (_db.select(_db.registers)
-            ..where(
-                (t) => t.companyId.equals(companyId) & t.deletedAt.isNull()))
+            ..where((t) => t.companyId.equals(companyId)))
           .get();
       for (final entity in entities) {
         final model = registerFromEntity(entity);
@@ -383,9 +385,9 @@ class SyncLifecycleManager {
 
   Future<void> _enqueueUserPermissions(String companyId) async {
     try {
+      // Include soft-deleted rows so the delete propagates to the server.
       final entities = await (_db.select(_db.userPermissions)
-            ..where(
-                (t) => t.companyId.equals(companyId) & t.deletedAt.isNull()))
+            ..where((t) => t.companyId.equals(companyId)))
           .get();
       for (final entity in entities) {
         final model = userPermissionFromEntity(entity);

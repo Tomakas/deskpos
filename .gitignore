@@ -46,3 +46,4 @@ app.*.map.json
 
 # Local database
 maty_database.sqlite
+/docs/AI_ASSISTANT_PLAN.md
