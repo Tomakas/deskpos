@@ -453,6 +453,9 @@ class OrderRepository {
       if (itemEntity.status == PrepStatus.voided) {
         return const Failure('Item is already voided');
       }
+      if (voidQuantity != null && voidQuantity > itemEntity.quantity) {
+        return const Failure('Void quantity exceeds item quantity');
+      }
 
       // 2. Fetch original order — validate not storno
       final orderEntity = await (_db.select(_db.orders)
@@ -591,7 +594,7 @@ class OrderRepository {
         // Apply discounts to storno totals
         int stornoDiscountAmount = 0;
         if (stornoDisc > 0) {
-          if ((isPartial ? itemEntity.discountType == DiscountType.percent : itemEntity.discountType == DiscountType.percent)) {
+          if (itemEntity.discountType == DiscountType.percent) {
             stornoDiscountAmount = (itemSubtotal * stornoDisc / 10000).round();
           } else {
             stornoDiscountAmount = stornoDisc;

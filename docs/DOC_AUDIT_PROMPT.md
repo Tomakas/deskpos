@@ -22,14 +22,14 @@ FÁZE 1 — EXTRACT (hlavní agent)
   Cleanup /tmp/doc-audit → přečti PROJECT.md → zapiš blueprint + self-consistency check
   (Agenti v fázi 2 čtou JEN blueprint, ne celý PROJECT.md)
 
-FÁZE 2 — SCAN (6 background agentů, paralelně)
+FÁZE 2 — SCAN (7 background agentů, paralelně)
   Každý agent čte blueprint + svůj výsek kódu/Supabase
   Každý agent zapíše findings do /tmp/doc-audit/NN_*.md
   Výstup se zapisuje do souboru — bez limitu na délku
 
 FÁZE 3 — REPORT (dedikovaný Task agent, NE hlavní agent)
   Hlavní agent spustí JEDEN "Report" Task agent (general-purpose, foreground)
-  Report agent čte 6 findings souborů + blueprint → deduplikuje, re-verifikuje
+  Report agent čte 7 findings souborů + blueprint → deduplikuje, re-verifikuje
   Report agent zapíše finální report do /tmp/doc-audit/FINAL_REPORT.md
   Hlavní agent přečte FINAL_REPORT.md a nabídne uživateli aplikaci oprav
 ```
@@ -123,9 +123,19 @@ Pro každý enum v docs:
 ## 5. WORKFLOW POPISY (PROJECT.md sekce X, cca řádky N–M)
 Pro každý popsaný workflow:
 ### [workflow_name]
-- Kroky: 1. ..., 2. ..., 3. ...
-- Transakčnost: ano/ne (dle docs)
-- Mermaid diagram: ano/ne (pokud ano, extrahuj klíčové přechody/stavy)
+- Metoda: `ClassName.methodName(params)` (dle docs)
+- Guard conditions: co musí platit před spuštěním (permission, stav entity, aktivní session)
+- Kroky:
+  1. ... (if condition → branch A / else → branch B)
+  2. ...
+- Podmíněné větve: všechny if/switch/when cesty popsané v docs
+- Side effects: outbox zápis, tisk, notifikace, customer display update, cash journal zápis
+- Transakčnost: ano/ne (dle docs) + scope (celý workflow / jen DB část)
+- Mermaid diagram: ano/ne
+  - Pokud ano — extrahuj:
+    - Stavy: [kompletní seznam]
+    - Přechody: [from] → [to] via [method/akce] when [guard podmínka]
+    - Terminální stavy: [seznam stavů bez odchozích přechodů]
 
 ## 6. ROUTES A SCREENY (PROJECT.md sekce X, cca řádky N–M)
 | Route (dle docs) | Screen (dle docs) | Guard (dle docs) | Taby (dle docs) |
@@ -162,13 +172,41 @@ Pravidla pro agenty:
 - Detailně specifikované tasky (Task4.18–4.31) — ověřit zda soubory EXISTUJÍ
 
 ## 11. UI BEHAVIOR CLAIMS (PROJECT.md sekce X, cca řádky N–M)
-Specifické UI behavioral claims ověřitelné proti widget kódu:
-- Počty tabů per screen + názvy tabů
+
+### 11a. Dialog katalog
+Pro každý dialog zmíněný v docs:
+- Třída: `DialogXxx`
+- Otevírá se z: screen/dialog + trigger (button label, long-press, menu item)
+- Parametry: povinné/volitelné (dle docs)
+- Akční tlačítka: [Cancel → l10n klíč, Save → l10n klíč, Delete → l10n klíč]
+- Destruktivní akce: ano/ne (které tlačítko, styl)
+- Rozměry: pokud docs uvádí (fullscreen, adaptive, fixní šířka)
+
+### 11b. Screen panel layout
+Pro každý screen s popsaným layoutem v docs:
+- Panel struktura: flex proportions (2:1, 3:2...), sloupce, řádky
+- Podmíněná viditelnost: co se schová/zobrazí na základě stavu (prázdný košík, gastro vs retail, aktivní session)
+- Filter chips/tab bar: počet, l10n klíče, default výběr
+- Toolbar buttons: seznam, pořadí, podmíněné zobrazení
+
+### 11c. Interakční vzory
+Všechny explicitně popsané interakce:
+- Long-press akce: kde a co spouštějí (screen, widget, akce)
+- Triple-tap: kde (screen, widget)
+- Swipe: kde a směr
+- Numpad vs TextField: kde se používá numpad místo textového vstupu
+- Drag & drop: kde
+- Double-click/tap: kde
+
+### 11d. Button labels a l10n
+Pro explicitně zmíněné button labely v docs:
+- Český text v docs → očekávaný l10n klíč → ověřit proti ARB
+- Specifické styling claims (destructive, outlined, filled)
+
+### 11e. Widget usage counts a state machines
 - Widget usage counts (např. "PosTable: 35 použití ve 20 souborech")
 - State machine chování (stavy CustomerDisplay, BillStatus přechody)
-- Specifické interakce (triple-tap, long-press)
-- Dialog dimensions, specifické widgety per screen
-- Permission kódy použité v guardech
+- Permission kódy použité v UI guardech
 
 ## 12. PERMISSION CATALOG (PROJECT.md sekce X, cca řádky N–M)
 - Kompletní seznam permission kódů (113)
@@ -176,6 +214,8 @@ Specifické UI behavioral claims ověřitelné proti widget kódu:
 - Role templates (helper: 19, operator: 63, manager: 92, admin: 113)
 - Souhrnná matice per role per skupina
 - Celkový součet 287 role_permissions
+- Guard mapping: pro každý permission kód kde docs uvádí UI guard usage:
+  `permission_code` → screen/dialog/widget kde se používá jako guard
 ```
 
 **Pravidla pro extrakci:**
@@ -187,9 +227,9 @@ Specifické UI behavioral claims ověřitelné proti widget kódu:
 
 ---
 
-## FÁZE 2 — SCAN (6 paralelních agentů)
+## FÁZE 2 — SCAN (7 paralelních agentů)
 
-Spusť všech 6 najednou přes Task tool s `run_in_background: true`.
+Spusť všech 7 najednou přes Task tool s `run_in_background: true`.
 
 Každý agent dostane:
 1. Instrukci přečíst `/tmp/doc-audit/blueprint.md`
@@ -423,10 +463,12 @@ SELECT jobname, schedule, command FROM cron.job;
    b) Pokud blueprint zmiňuje konkrétní l10n klíče, ověř že existují v ARB souborech.
    c) Spot-check 5 screen souborů pro hardcoded české/anglické stringy v UI
       (hledej přímé texty v `Text()` widgetech mimo `l10n`).
-7. Ověř ScreenCustomerDisplay behavior claims z blueprintu sekce 11:
+7. Ověř ScreenCustomerDisplay behavior claims z blueprintu sekce 11e:
    a) Existují dokumentované stavy (idle, cart preview, active, thank you) v kódu?
    b) Triple-tap odpárování — existuje v kódu?
    c) 5s ThankYou timer — existuje v kódu?
+   **Poznámka:** Detailní UI behavioral verification (button labels, dialog obsah, l10n accuracy,
+   interakční vzory) provádí Agent 7. Agent 5 ověřuje existence a strukturu.
 8. Ověř specificky ScreenStatistics — docs tvrdí N tabů s konkrétními názvy.
    Glob `lib/features/statistics/**/*.dart` a ověř existenci widgetů zmíněných v docs.
 
@@ -434,12 +476,13 @@ SELECT jobname, schedule, command FROM cron.job;
 
 ### Agent 6: WORKFLOWS + SEED + AUTH + DIAGRAMS
 
-**Čte:** Blueprint sekce 5, 7 (seed data), 10, 11, 12
+**Čte:** Blueprint sekce 5, 7 (seed data), 10, 11e (state machines), 12
 **Kontroluje:** `lib/core/data/repositories/*.dart`, `lib/core/data/services/seed_service.dart`,
   `lib/core/auth/*.dart`, `lib/features/sell/screens/screen_sell.dart`, `lib/features/bills/`,
   `lib/core/printing/*.dart`
 **Píše do:** `/tmp/doc-audit/06_workflows.md`
-**Autoritativní pro:** workflow kroky, seed data, auth flow, Mermaid diagramy, printing obsah
+**Autoritativní pro:** workflow kroky, workflow guard conditions, seed data, auth flow, Mermaid diagramy, printing obsah
+**Poznámka:** Dialog obsah, button labels, panel layout a interakční vzory řeší Agent 7.
 
 **Úkoly:**
 1. Pro každý workflow v blueprintu najdi implementaci a porovnej kroky:
@@ -449,6 +492,15 @@ SELECT jobname, schedule, command FROM cron.job;
    - Docs říkají "v transakci" ale kód nemá `transaction()`? → nález
    Pokud zjistíš, že screen/route neexistuje, NEHLÁSÍ to — to patří Agent 5.
    Hlásíš pouze: kroky workflow nesedí, chybí transakce, chybí větev.
+1b. **DEEP workflow verification** — pro klíčové workflows (createBill, closeBill,
+   cancelBill/voidBill, openSession, closeSession, payment, refund, createOrder):
+   - PŘEČTI tělo metody (ne jen Grep existenci) — Read soubor, najdi metodu, přečti celou
+   - Ověř guard conditions: docs tvrdí "vyžaduje aktivní session" → kód checkuje `activeSession`?
+   - Ověř podmíněné větve: docs tvrdí "if gastro → A, if retail → B" → kód má `switch` / `if`?
+   - Ověř side effects: docs tvrdí "zapíše do outbox" → kód volá `_enqueue*` / `syncQueue`?
+   - Ověř transaction boundary: docs tvrdí "v transakci" → celý workflow je v `transaction {}` nebo jen část?
+   - Ověř parametry: docs uvádí parametry metody → sedí s kódem?
+   - Confidence: označ každý workflow nález jako VERIFIED (přečteno tělo) nebo INFERRED (jen Grep)
 2. Ověř seed data: `seed_service.dart` vs. blueprint sekce 7
    - Počty sedí? (tax rates, payment methods, permissions, roles, items...)
    - Defaultní hodnoty sedí? (názvy, typy, is_default flagy)
@@ -458,13 +510,17 @@ SELECT jobname, schedule, command FROM cron.job;
    - Detailně specifikované tasky (Task4.18–4.31) — ověř zda soubory EXISTUJÍ.
 4. Zkontroluj Quick Sale specificky: retail vs. gastro mode chování, cart separátory,
    customer display integrace — jsou v docs?
-5. Ověř Mermaid diagramy v blueprintu (sekce 5):
+5. Ověř Mermaid diagramy v blueprintu (sekce 5) — **DEEP verification:**
    a) BillStatus state diagram — odpovídají přechody implementaci v `BillRepository`?
       - Přechod v diagramu ale ne v kódu? → MEDIUM
       - Přechod v kódu ale ne v diagramu? → DOC DEBT
-   b) PrepStatus state diagram — odpovídají přechody implementaci v `OrderRepository`?
+      - Pro KAŽDÝ přechod: najdi konkrétní řádek kódu kde se stav mění (Read metodu)
+      - Ověř guard podmínku přechodu — ne jen existenci, ale i podmínku (permission, stav entity)
+      - Ověř terminální stavy — skutečně neexistuje žádný kód měnící stav z terminálního?
+   b) PrepStatus state diagram — stejná hloubka jako BillStatus
    c) Sync lifecycle diagram — odpovídá sekvence v `SyncLifecycleManager`?
    d) Quick Sale / Table Sale sequence diagrams — odpovídají volání repository metod?
+      - Pro každý krok v sequence diagramu: ověř že volaná metoda existuje A přijímá popsané parametry
 6. Ověř autentizační flow:
    a) `auth_service.dart` — odpovídají lockout prahy v kódu dokumentaci?
    b) `pin_helper.dart` — formát hash je jak docs tvrdí?
@@ -475,6 +531,62 @@ SELECT jobname, schedule, command FROM cron.job;
    a) `ReceiptPdfBuilder` — generuje hlavičku firmy, DPH rekapitulaci, spropitné?
    b) `ZReportPdfBuilder` — kopíruje strukturu `DialogZReport`?
    c) (Stačí Grep pro klíčové sekce v builder souborech)
+
+---
+
+### Agent 7: UI/UX BEHAVIOR + DIALOGY + INTERAKCE
+
+**Čte:** Blueprint sekce 11 (všechny podsekce 11a–11e), 6 (routes pro kontext)
+**Kontroluje:** `lib/features/*/widgets/dialog_*.dart`, `lib/features/*/screens/*.dart`,
+  `lib/core/widgets/*.dart`, `lib/l10n/app_cs.arb`, `lib/l10n/app_en.arb`
+**Píše do:** `/tmp/doc-audit/07_ui_ux.md`
+**Autoritativní pro:** dialog obsah/akce, button labels vs l10n, interaction patterns,
+  panel layout/proportions, conditional visibility, dialog parametry
+
+**Úkoly:**
+1. Pro každý dialog v blueprintu 11a:
+   a) Přečti widget soubor (`dialog_*.dart`) a ověř akční tlačítka:
+      - Počet tlačítek sedí? Typ (FilledButton/OutlinedButton) sedí?
+      - Label odpovídá l10n klíči z docs?
+      - Destruktivní akce používá `PosButtonStyles.destructiveOutlined`?
+   b) Ověř parametry konstruktoru vs docs:
+      - Povinný parametr v docs ale optional v kódu? → nález
+      - Parametr v kódu ale ne v docs? → DOC DEBT (pokud mění chování)
+   c) Ověř odkud se dialog otevírá:
+      - Docs tvrdí "otevírá se z ScreenX" → Grep `DialogXxx` v příslušném screen souboru
+   d) Dialog v kódu ale NE v docs? → DOC DEBT (skupinově per feature)
+2. Pro každý screen v blueprintu 11b:
+   a) Ověř Flex/Expanded proportions:
+      - Docs tvrdí "2:1 layout" → kód má `flex: 2` + `flex: 1`?
+      - Docs tvrdí "3 panely" → kód má 3 `Expanded`?
+   b) Ověř podmíněnou viditelnost:
+      - Docs tvrdí "schová se když košík prázdný" → kód má `if (cart.isEmpty)` / `Visibility`?
+      - Docs tvrdí "jen v gastro režimu" → kód má `if (businessType == gastro)`?
+   c) Ověř filter chip/tab bars:
+      - Počet chips sedí?
+      - Default selected chip odpovídá docs?
+   d) Ověř toolbar buttons:
+      - Docs tvrdí N tlačítek → kód má N tlačítek?
+      - Podmíněné zobrazení tlačítek (permission guard, stav) sedí?
+3. Pro explicitní l10n claims v blueprintu 11d:
+   a) Přečti `app_cs.arb` a `app_en.arb`
+   b) Docs tvrdí tlačítko "Uložit" → najdi l10n klíč v kódu → ověř hodnotu v ARB
+   c) Docs uvádí konkrétní český text → existuje v ARB s tou hodnotou?
+   d) Nesedí label? → LOW (pokud sémanticky stejný) nebo MEDIUM (pokud jiný význam)
+4. Interakční vzory (blueprintu 11c):
+   a) Long-press: Grep `onLongPress` / `onRowLongPress` v příslušných souborech
+      - Docs tvrdí long-press akci → existuje v kódu? Spouští správnou akci?
+   b) Triple-tap: Grep `onTripleTap` nebo počítadlo tapů
+   c) Numpad usage: Grep `PosNumpad` v dialozích zmíněných v docs
+      - Docs tvrdí "numpad pro zadání ceny" → kód používá PosNumpad, ne TextField?
+   d) Drag & drop: Grep `Draggable` / `DragTarget` / `ReorderableListView`
+5. Widget usage counts (blueprintu 11e):
+   a) Pokud docs tvrdí "PosTable: N použití v M souborech" → Grep a ověř
+   b) State machine claims: přečti widget kód a ověř stavy + přechody
+6. **Bidirectional:** Glob `dialog_*.dart` v každém feature adresáři.
+   Dialogy v kódu ale ne v docs → DOC DEBT (skupinově per feature, ne per dialog).
+7. **Spot-check screen descriptions:** Pro 5 screenů s nejdetailnějším popisem v docs:
+   Přečti screen soubor a ověř, že popsané panely, tlačítka a chování skutečně existují.
 
 ---
 
@@ -539,6 +651,9 @@ findings_by_severity:
   medium: 2
   low: 1
   doc_debt: 2
+verification_depth:
+  verified: 12    # přečteno tělo metody/widgetu
+  inferred: 71    # jen Grep/existence check
 ---
 
 # [NN] [NÁZEV OBLASTI]
@@ -597,12 +712,16 @@ Slouží jako důkaz důkladnosti — hlavní agent ví co bylo zkontrolováno.
     Soubory/entity v kódu ale ne v blueprintu → DOC DEBT (reportuj skupinově).
 15. **Křížová kontrola počtů:** Pokud blueprint uvádí stejné číslo v různých kontextech
     (např. "42 doménových tabulek" v sekci schema i v sekci sync), ověř obojí nezávisle.
+16. **Confidence tagging:** U workflow a UI nálezů uveď hloubku ověření:
+    - `[VERIFIED]` — přečteno tělo metody/widgetu, ověřen konkrétní řádek kódu
+    - `[INFERRED]` — ověřeno jen Grep existence (metoda existuje, ale logika nečtena)
+    Report agent použije toto pro coverage metriky.
 
 ---
 
 ## FÁZE 3 — REPORT (dedikovaný Task agent)
 
-**Proč agent:** 6 findings souborů + blueprint + re-verifikace = příliš mnoho kontextu
+**Proč agent:** 7 findings souborů + blueprint + re-verifikace = příliš mnoho kontextu
 pro hlavního agenta po fázích 1+2. Dedikovaný agent má čistý kontext.
 
 ### Krok 0: Validace (hlavní agent, PŘED spuštěním Report agenta)
@@ -610,7 +729,7 @@ pro hlavního agenta po fázích 1+2. Dedikovaný agent má čistý kontext.
 Hlavní agent provede LEHKOU validaci — NEČTE obsah souborů, jen ověří existenci:
 
 ```
-Pro každý soubor 01–06:
+Pro každý soubor 01–07:
   1. Existuje? (Glob `/tmp/doc-audit/0*.md`)
   2. Pokud ne → "⚠ Agent NN selhal" — zeptej se uživatele zda re-run
 ```
@@ -636,7 +755,7 @@ Jsi Report agent pro audit dokumentace PROJECT.md.
 
 ## Tvůj úkol
 1. Přečti `/tmp/doc-audit/blueprint.md` (pro kontext)
-2. Přečti všech 6 findings souborů: `/tmp/doc-audit/01_schema_enums.md` až `/tmp/doc-audit/06_workflows.md`
+2. Přečti všech 7 findings souborů: `/tmp/doc-audit/01_schema_enums.md` až `/tmp/doc-audit/07_ui_ux.md`
 3. Validuj YAML frontmatter — pokud `items_checked = 0`, označ jako INCOMPLETE
 4. Deduplikuj dle matice (viz níže)
 5. Re-verifikuj CRITICAL a HIGH nálezy z JINÉHO úhlu než agent
@@ -650,10 +769,14 @@ Jsi Report agent pro audit dokumentace PROJECT.md.
 | Sloupce tabulek | Agent 1 (Drift) | Agent 3 jen Supabase-specifické odchylky |
 | Enum hodnoty | Agent 1 (Dart) | Agent 3 jen PG sort order |
 | Sync table list | Agent 2 | Agent 1 jen total count |
-| Routes/screeny existence | Agent 5 | Agent 6 jen chování |
+| Routes/screeny existence | Agent 5 | Agent 6 jen chování, Agent 7 jen UI detail |
 | Trigger počty | Agent 3 | Agent 4 cross-check |
 | Permission kódy | Agent 4 (cross-check) | Agent 6 jen seed counts |
 | Workflow kroky | Agent 6 | Agent 2 jen sync-related kroky |
+| Dialog obsah/akce | Agent 7 | Agent 5 jen existence/počty |
+| Button labels vs l10n | Agent 7 | Agent 5 jen l10n key existence |
+| Screen panel layout | Agent 7 | Agent 5 jen tab structure |
+| Interakční vzory | Agent 7 | Agent 6 jen workflow-related |
 
 ## Merge protokol pro duplicitní nálezy
 a) Identifikuj shodné nálezy — stejný fakt, stejná sekce, stejný typ rozporu.
@@ -698,6 +821,14 @@ Re-verifikace MUSÍ použít jiný zdroj než agent.
 
 ## DOC DEBT — Nedokumentované změny
 | # | Oblast | Co chybí v docs | Dopad |
+
+## Coverage — hloubka ověření
+- Workflows: X/Y ověřeno do hloubky (VERIFIED — přečteno tělo metody), Z/Y jen existence (INFERRED)
+- Mermaid diagramy: X/Y přechody ověřeny s konkrétním řádkem kódu
+- Dialogy: X/Y ověřeny (tlačítka, parametry, l10n), Z neexistují v blueprintu
+- Screeny: X/Y ověřeny (panely, layout, visibility), Z jen existence
+- L10n labels: X/Y button labels ověřeny proti ARB hodnotám
+- Interakce: X/Y long-press/triple-tap/numpad claims ověřeny
 
 ## Akční plán oprav PROJECT.md
 Seřazeno od nejdůležitějších. Pro každou opravu:

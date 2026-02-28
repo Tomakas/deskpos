@@ -360,7 +360,7 @@ class _ScreenOrdersState extends ConsumerState<ScreenOrders> {
           bottomActions: PosDialogActions(
             actions: [
               OutlinedButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
-              FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
+              FilledButton(style: PosButtonStyles.destructiveFilled(context), onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
             ],
           ),
           children: const [],
@@ -382,6 +382,7 @@ class _ScreenOrdersState extends ConsumerState<ScreenOrders> {
     if (session != null) {
       final sessionRepo = ref.read(registerSessionRepositoryProvider);
       final counter = await sessionRepo.incrementOrderCounter(session.id);
+      if (!context.mounted) return;
       if (counter is Success<int>) {
         stornoNumber = 'X$regNum-${counter.value.toString().padLeft(4, '0')}';
       }
