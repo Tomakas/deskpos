@@ -552,6 +552,26 @@ class _UserEditDialogState extends ConsumerState<_UserEditDialog>
       maxWidth: 500,
       maxHeight: 600,
       expandHeight: true,
+      bottomActions: PosDialogActions(
+        leading: widget.existing != null && !widget.isLastAdmin
+            ? OutlinedButton(
+                style: PosButtonStyles.destructiveOutlined(context),
+                onPressed: () async {
+                  if (!await confirmDelete(context, l) || !context.mounted) return;
+                  await ref.read(userRepositoryProvider).delete(widget.existing!.id);
+                  if (context.mounted) Navigator.pop(context);
+                },
+                child: Text(l.actionDelete),
+              )
+            : null,
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l.actionCancel),
+          ),
+          FilledButton(onPressed: _save, child: Text(l.actionSave)),
+        ],
+      ),
       children: [
         TabBar(
           controller: _tabCtrl,
@@ -574,26 +594,6 @@ class _UserEditDialogState extends ConsumerState<_UserEditDialog>
         ),
         const SizedBox(height: 8),
       ],
-      bottomActions: PosDialogActions(
-        leading: widget.existing != null && !widget.isLastAdmin
-            ? OutlinedButton(
-                style: PosButtonStyles.destructiveOutlined(context),
-                onPressed: () async {
-                  if (!await confirmDelete(context, l) || !context.mounted) return;
-                  await ref.read(userRepositoryProvider).delete(widget.existing!.id);
-                  if (context.mounted) Navigator.pop(context);
-                },
-                child: Text(l.actionDelete),
-              )
-            : null,
-        actions: [
-          OutlinedButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l.actionCancel),
-          ),
-          FilledButton(onPressed: _save, child: Text(l.actionSave)),
-        ],
-      ),
     );
   }
 

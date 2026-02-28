@@ -207,6 +207,22 @@ class _DialogCustomerCreditState extends ConsumerState<DialogCustomerCredit> {
       maxWidth: 420,
       maxHeight: 540,
       expandHeight: true,
+      bottomActions: PosDialogActions(
+        expanded: true,
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l.actionClose),
+          ),
+          FilledButton.tonal(
+            onPressed: () => showDialog<void>(
+              context: context,
+              builder: (_) => DialogCustomerTransactions(customerId: _customer.id),
+            ),
+            child: Text(l.loyaltyTransactionHistory),
+          ),
+        ],
+      ),
       children: [
         // Customer name + balance on one row
         Row(
@@ -246,22 +262,6 @@ class _DialogCustomerCreditState extends ConsumerState<DialogCustomerCredit> {
         // Numpad + action buttons
         _buildNumpadAndActions(theme, l),
       ],
-      bottomActions: PosDialogActions(
-        expanded: true,
-        actions: [
-          OutlinedButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l.actionClose),
-          ),
-          FilledButton.tonal(
-            onPressed: () => showDialog<void>(
-              context: context,
-              builder: (_) => DialogCustomerTransactions(customerId: _customer.id),
-            ),
-            child: Text(l.loyaltyTransactionHistory),
-          ),
-        ],
-      ),
     );
   }
 

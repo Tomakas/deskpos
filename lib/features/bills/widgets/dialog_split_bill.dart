@@ -71,6 +71,7 @@ class _DialogSplitBillState extends ConsumerState<DialogSplitBill> {
       maxWidth: 700,
       maxHeight: 600,
       expandHeight: true,
+      bottomActions: _buildActions(context, l),
       children: [
         Expanded(
           child: StreamBuilder<List<OrderModel>>(
@@ -86,7 +87,6 @@ class _DialogSplitBillState extends ConsumerState<DialogSplitBill> {
         ),
         const SizedBox(height: 16),
       ],
-      bottomActions: _buildActions(context, l),
     );
   }
 

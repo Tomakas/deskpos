@@ -74,6 +74,23 @@ class _DialogInventoryState extends ConsumerState<DialogInventory> {
       title: l.inventoryDialogTitle,
       maxWidth: 700,
       maxHeight: 700,
+      bottomActions: PosDialogActions(
+        leading: OutlinedButton.icon(
+          onPressed: _printing ? null : () => _printTemplate(context),
+          icon: const Icon(Icons.print_outlined),
+          label: Text(l.inventoryPrintTemplate),
+        ),
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l.actionCancel),
+          ),
+          FilledButton(
+            onPressed: () => _save(context),
+            child: Text(l.inventoryDialogSave),
+          ),
+        ],
+      ),
       children: [
         Expanded(
           child: StreamBuilder<List<StockLevelWithItem>>(
@@ -185,23 +202,6 @@ class _DialogInventoryState extends ConsumerState<DialogInventory> {
         ),
         const SizedBox(height: 16),
       ],
-      bottomActions: PosDialogActions(
-        leading: OutlinedButton.icon(
-          onPressed: _printing ? null : () => _printTemplate(context),
-          icon: const Icon(Icons.print_outlined),
-          label: Text(l.inventoryPrintTemplate),
-        ),
-        actions: [
-          OutlinedButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l.actionCancel),
-          ),
-          FilledButton(
-            onPressed: () => _save(context),
-            child: Text(l.inventoryDialogSave),
-          ),
-        ],
-      ),
     );
   }
 

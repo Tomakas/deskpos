@@ -119,18 +119,6 @@ class _DialogCashMovementState extends ConsumerState<DialogCashMovement> {
         title: l.cashMovementNoteTitle,
         maxWidth: 400,
         scrollable: true,
-        children: [
-          TextField(
-            controller: ctrl,
-            decoration: InputDecoration(
-              border: const OutlineInputBorder(),
-              hintText: l.cashMovementNoteHint,
-            ),
-            maxLines: 2,
-            autofocus: true,
-          ),
-          const SizedBox(height: 16),
-        ],
         bottomActions: PosDialogActions(
           actions: [
             OutlinedButton(
@@ -143,6 +131,18 @@ class _DialogCashMovementState extends ConsumerState<DialogCashMovement> {
             ),
           ],
         ),
+        children: [
+          TextField(
+            controller: ctrl,
+            decoration: InputDecoration(
+              border: const OutlineInputBorder(),
+              hintText: l.cashMovementNoteHint,
+            ),
+            maxLines: 2,
+            autofocus: true,
+          ),
+          const SizedBox(height: 16),
+        ],
       ),
     );
     ctrl.dispose();
@@ -165,19 +165,6 @@ class _DialogCashMovementState extends ConsumerState<DialogCashMovement> {
       maxWidth: 420,
       maxHeight: widget.foreignCurrencies.isNotEmpty ? 570 : 520,
       expandHeight: true,
-      children: [
-        // Amount display
-        _buildAmountDisplay(theme, l),
-        // Currency chip bar (only when foreign currencies exist)
-        if (widget.foreignCurrencies.isNotEmpty) ...[
-          const SizedBox(height: 12),
-          _buildCurrencyChips(theme),
-        ],
-        const SizedBox(height: 16),
-        // Numpad + action buttons
-        _buildNumpadAndActions(theme, l),
-        const SizedBox(height: 16),
-      ],
       bottomActions: PosDialogActions(
         expanded: true,
         actions: [
@@ -200,6 +187,19 @@ class _DialogCashMovementState extends ConsumerState<DialogCashMovement> {
           ),
         ],
       ),
+      children: [
+        // Amount display
+        _buildAmountDisplay(theme, l),
+        // Currency chip bar (only when foreign currencies exist)
+        if (widget.foreignCurrencies.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          _buildCurrencyChips(theme),
+        ],
+        const SizedBox(height: 16),
+        // Numpad + action buttons
+        _buildNumpadAndActions(theme, l),
+        const SizedBox(height: 16),
+      ],
     );
   }
 

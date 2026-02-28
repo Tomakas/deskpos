@@ -73,6 +73,21 @@ class _DialogVoucherRedeemState extends State<DialogVoucherRedeem> {
       maxHeight: 460,
       expandHeight: true,
       padding: const EdgeInsets.all(20),
+      bottomActions: PosDialogActions(
+        expanded: true,
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l.actionCancel),
+          ),
+          FilledButton(
+            onPressed: _isComplete
+                ? () => Navigator.pop(context, _displayCode)
+                : null,
+            child: Text(l.voucherRedeem),
+          ),
+        ],
+      ),
       children: [
         // Code boxes: ☐☐☐☐ - ☐☐☐☐
         Row(
@@ -101,21 +116,6 @@ class _DialogVoucherRedeemState extends State<DialogVoucherRedeem> {
         ),
         const SizedBox(height: 16),
       ],
-      bottomActions: PosDialogActions(
-        expanded: true,
-        actions: [
-          OutlinedButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l.actionCancel),
-          ),
-          FilledButton(
-            onPressed: _isComplete
-                ? () => Navigator.pop(context, _displayCode)
-                : null,
-            child: Text(l.voucherRedeem),
-          ),
-        ],
-      ),
     );
   }
 }

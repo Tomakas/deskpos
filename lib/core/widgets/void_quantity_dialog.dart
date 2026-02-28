@@ -74,6 +74,23 @@ class _VoidQuantityDialogState extends State<VoidQuantityDialog> {
       maxWidth: 340,
       maxHeight: 520,
       expandHeight: true,
+      bottomActions: SizedBox(
+        width: 250,
+        child: PosDialogActions(
+          expanded: true,
+          actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(l.actionCancel),
+            ),
+            FilledButton(
+              style: PosButtonStyles.destructiveFilled(context),
+              onPressed: _parsedValue() != null ? _confirm : null,
+              child: Text(l.actionConfirm),
+            ),
+          ],
+        ),
+      ),
       children: [
         Center(
           child: Text(
@@ -114,23 +131,6 @@ class _VoidQuantityDialogState extends State<VoidQuantityDialog> {
         ),
         const SizedBox(height: 16),
       ],
-      bottomActions: SizedBox(
-        width: 250,
-        child: PosDialogActions(
-          expanded: true,
-          actions: [
-            OutlinedButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(l.actionCancel),
-            ),
-            FilledButton(
-              style: PosButtonStyles.destructiveFilled(context),
-              onPressed: _parsedValue() != null ? _confirm : null,
-              child: Text(l.actionConfirm),
-            ),
-          ],
-        ),
-      ),
     );
   }
 

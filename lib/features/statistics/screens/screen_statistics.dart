@@ -1352,6 +1352,23 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
         builder: (ctx, setDialogState) => PosDialogShell(
           title: l.statsFilterTitle,
           scrollable: true,
+          bottomActions: PosDialogActions(actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(l.actionCancel),
+            ),
+            FilledButton(
+              onPressed: () {
+                setState(() {
+                  _receiptPaymentFilter = selectedMethods;
+                  _receiptTakeawayFilter = selectedTakeaway;
+                  _receiptDiscountFilter = selectedDiscount;
+                });
+                Navigator.pop(ctx);
+              },
+              child: Text(l.statsFilterApply),
+            ),
+          ]),
           children: [
             // Payment method filter
             if (allMethodNames.isNotEmpty) ...[
@@ -1485,23 +1502,6 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
             ),
             const SizedBox(height: 24),
           ],
-          bottomActions: PosDialogActions(actions: [
-            OutlinedButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: Text(l.actionCancel),
-            ),
-            FilledButton(
-              onPressed: () {
-                setState(() {
-                  _receiptPaymentFilter = selectedMethods;
-                  _receiptTakeawayFilter = selectedTakeaway;
-                  _receiptDiscountFilter = selectedDiscount;
-                });
-                Navigator.pop(ctx);
-              },
-              child: Text(l.statsFilterApply),
-            ),
-          ]),
         ),
       ),
     );
@@ -1520,6 +1520,22 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
         builder: (ctx, setDialogState) => PosDialogShell(
           title: l.statsFilterTitle,
           scrollable: true,
+          bottomActions: PosDialogActions(actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(l.actionCancel),
+            ),
+            FilledButton(
+              onPressed: () {
+                setState(() {
+                  _salesCategoryFilter = selectedCategories;
+                  _salesDiscountFilter = selectedDiscount;
+                });
+                Navigator.pop(ctx);
+              },
+              child: Text(l.statsFilterApply),
+            ),
+          ]),
           children: [
             if (allCategories.isNotEmpty) ...[
               Align(
@@ -1600,22 +1616,6 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
             ),
             const SizedBox(height: 24),
           ],
-          bottomActions: PosDialogActions(actions: [
-            OutlinedButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: Text(l.actionCancel),
-            ),
-            FilledButton(
-              onPressed: () {
-                setState(() {
-                  _salesCategoryFilter = selectedCategories;
-                  _salesDiscountFilter = selectedDiscount;
-                });
-                Navigator.pop(ctx);
-              },
-              child: Text(l.statsFilterApply),
-            ),
-          ]),
         ),
       ),
     );
@@ -1639,6 +1639,22 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
         builder: (ctx, setDialogState) => PosDialogShell(
           title: l.statsFilterTitle,
           scrollable: true,
+          bottomActions: PosDialogActions(actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(l.actionCancel),
+            ),
+            FilledButton(
+              onPressed: () {
+                setState(() {
+                  _orderStatusFilter = selectedStatuses;
+                  _orderStornoFilter = selectedStorno;
+                });
+                Navigator.pop(ctx);
+              },
+              child: Text(l.statsFilterApply),
+            ),
+          ]),
           children: [
             Align(
               alignment: Alignment.centerLeft,
@@ -1703,22 +1719,6 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
             ),
             const SizedBox(height: 24),
           ],
-          bottomActions: PosDialogActions(actions: [
-            OutlinedButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: Text(l.actionCancel),
-            ),
-            FilledButton(
-              onPressed: () {
-                setState(() {
-                  _orderStatusFilter = selectedStatuses;
-                  _orderStornoFilter = selectedStorno;
-                });
-                Navigator.pop(ctx);
-              },
-              child: Text(l.statsFilterApply),
-            ),
-          ]),
         ),
       ),
     );
@@ -1737,6 +1737,19 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
         builder: (ctx, setDialogState) => PosDialogShell(
           title: l.statsFilterTitle,
           scrollable: true,
+          bottomActions: PosDialogActions(actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(l.actionCancel),
+            ),
+            FilledButton(
+              onPressed: () {
+                setState(() => _tipsUserFilter = selectedUser);
+                Navigator.pop(ctx);
+              },
+              child: Text(l.statsFilterApply),
+            ),
+          ]),
           children: [
             Align(
               alignment: Alignment.centerLeft,
@@ -1762,19 +1775,6 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
             ),
             const SizedBox(height: 24),
           ],
-          bottomActions: PosDialogActions(actions: [
-            OutlinedButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: Text(l.actionCancel),
-            ),
-            FilledButton(
-              onPressed: () {
-                setState(() => _tipsUserFilter = selectedUser);
-                Navigator.pop(ctx);
-              },
-              child: Text(l.statsFilterApply),
-            ),
-          ]),
         ),
       ),
     );

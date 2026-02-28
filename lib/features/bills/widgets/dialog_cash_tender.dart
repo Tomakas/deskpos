@@ -212,6 +212,28 @@ class _DialogCashTenderState extends ConsumerState<DialogCashTender> {
       maxHeight: 440,
       expandHeight: true,
       padding: const EdgeInsets.all(20),
+      bottomActions: PosDialogActions(
+        expanded: true,
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.pop(context, CashTenderResult.skip),
+            child: Text(l.cashTenderSkip),
+          ),
+          FilledButton(
+            style: PosButtonStyles.confirm(context),
+            onPressed: _coversAmount && _receivedMinor > 0
+                ? () => Navigator.pop(
+                      context,
+                      CashTenderResult(
+                        receivedAmount: _receivedMinor,
+                        changeAmount: _changeAmount,
+                      ),
+                    )
+                : null,
+            child: Text(l.actionConfirm),
+          ),
+        ],
+      ),
       children: [
         // Vrátit / Zbývá
         Row(
@@ -301,28 +323,6 @@ class _DialogCashTenderState extends ConsumerState<DialogCashTender> {
         ),
         const SizedBox(height: 16),
       ],
-      bottomActions: PosDialogActions(
-        expanded: true,
-        actions: [
-          OutlinedButton(
-            onPressed: () => Navigator.pop(context, CashTenderResult.skip),
-            child: Text(l.cashTenderSkip),
-          ),
-          FilledButton(
-            style: PosButtonStyles.confirm(context),
-            onPressed: _coversAmount && _receivedMinor > 0
-                ? () => Navigator.pop(
-                      context,
-                      CashTenderResult(
-                        receivedAmount: _receivedMinor,
-                        changeAmount: _changeAmount,
-                      ),
-                    )
-                : null,
-            child: Text(l.actionConfirm),
-          ),
-        ],
-      ),
     );
   }
 }

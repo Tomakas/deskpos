@@ -95,34 +95,6 @@ class _DialogDiscountState extends ConsumerState<DialogDiscount> {
       maxHeight: 460,
       expandHeight: true,
       padding: const EdgeInsets.all(20),
-      children: [
-        // Display
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-          decoration: BoxDecoration(
-            border: Border.all(color: theme.dividerColor),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            _input.isEmpty ? '0' : _input,
-            style: theme.textTheme.headlineMedium,
-            textAlign: TextAlign.right,
-          ),
-        ),
-        const SizedBox(height: 12),
-        // Numpad
-        Expanded(
-          child: PosNumpad(
-            size: PosNumpadSize.compact,
-            expand: true,
-            onDigit: (d) => setState(() => _input += d),
-            onBackspace: _onBackspace,
-            onDot: _onDot,
-          ),
-        ),
-        const SizedBox(height: 16),
-      ],
       bottomActions: PosDialogActions(
         height: 52,
         expanded: true,
@@ -162,6 +134,34 @@ class _DialogDiscountState extends ConsumerState<DialogDiscount> {
           ),
         ],
       ),
+      children: [
+        // Display
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          decoration: BoxDecoration(
+            border: Border.all(color: theme.dividerColor),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            _input.isEmpty ? '0' : _input,
+            style: theme.textTheme.headlineMedium,
+            textAlign: TextAlign.right,
+          ),
+        ),
+        const SizedBox(height: 12),
+        // Numpad
+        Expanded(
+          child: PosNumpad(
+            size: PosNumpadSize.compact,
+            expand: true,
+            onDigit: (d) => setState(() => _input += d),
+            onBackspace: _onBackspace,
+            onDot: _onDot,
+          ),
+        ),
+        const SizedBox(height: 16),
+      ],
     );
   }
 }

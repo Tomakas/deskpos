@@ -267,10 +267,6 @@ Future<void> closeSession(BuildContext context, WidgetRef ref) async {
       builder: (dialogContext) => PosDialogShell(
         title: l.closingOpenBillsWarningTitle,
         scrollable: true,
-        children: [
-          Text(l.closingOpenBillsWarningMessage(openBillsCount, ref.money(openBillsAmount))),
-          const SizedBox(height: 24),
-        ],
         bottomActions: PosDialogActions(
           actions: [
             OutlinedButton(
@@ -283,6 +279,10 @@ Future<void> closeSession(BuildContext context, WidgetRef ref) async {
             ),
           ],
         ),
+        children: [
+          Text(l.closingOpenBillsWarningMessage(openBillsCount, ref.money(openBillsAmount))),
+          const SizedBox(height: 24),
+        ],
       ),
     );
     if (shouldContinue != true || !context.mounted) return;

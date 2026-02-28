@@ -942,18 +942,6 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
         title: context.l10n.sellNote,
         maxWidth: 380,
         scrollable: true,
-        children: [
-          TextField(
-            controller: controller,
-            autofocus: true,
-            maxLines: 3,
-            decoration: InputDecoration(
-              hintText: context.l10n.sellNote,
-              border: const OutlineInputBorder(),
-            ),
-          ),
-          const SizedBox(height: 16),
-        ],
         bottomActions: PosDialogActions(
           actions: [
             OutlinedButton(
@@ -966,6 +954,18 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
             ),
           ],
         ),
+        children: [
+          TextField(
+            controller: controller,
+            autofocus: true,
+            maxLines: 3,
+            decoration: InputDecoration(
+              hintText: context.l10n.sellNote,
+              border: const OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
       ),
     );
     if (result != null && mounted) {
@@ -1636,9 +1636,6 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
           return PosDialogShell(
             title: l.stockWarningTitle,
             scrollable: true,
-            children: [
-              _StockShortageTable(shortages: e.shortages, isWarning: true),
-            ],
             bottomActions: PosDialogActions(
               actions: [
                 OutlinedButton(
@@ -1651,6 +1648,9 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
                 ),
               ],
             ),
+            children: [
+              _StockShortageTable(shortages: e.shortages, isWarning: true),
+            ],
           );
         },
       );
@@ -1663,9 +1663,6 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
           return PosDialogShell(
             title: l.stockInsufficientTitle,
             scrollable: true,
-            children: [
-              _StockShortageTable(shortages: e.shortages, isWarning: false),
-            ],
             bottomActions: PosDialogActions(
               actions: [
                 FilledButton(
@@ -1674,6 +1671,9 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
                 ),
               ],
             ),
+            children: [
+              _StockShortageTable(shortages: e.shortages, isWarning: false),
+            ],
           );
         },
       );
@@ -1893,18 +1893,6 @@ class _ItemNoteDialogState extends ConsumerState<_ItemNoteDialog> {
       ),
       maxWidth: 380,
       scrollable: true,
-      children: [
-        TextField(
-          controller: _noteController,
-          autofocus: true,
-          maxLines: 3,
-          decoration: InputDecoration(
-            hintText: l.sellNote,
-            border: const OutlineInputBorder(),
-          ),
-        ),
-        const SizedBox(height: 16),
-      ],
       bottomActions: PosDialogActions(
         leading: Row(
           mainAxisSize: MainAxisSize.min,
@@ -1944,6 +1932,18 @@ class _ItemNoteDialogState extends ConsumerState<_ItemNoteDialog> {
           ),
         ],
       ),
+      children: [
+        TextField(
+          controller: _noteController,
+          autofocus: true,
+          maxLines: 3,
+          decoration: InputDecoration(
+            hintText: l.sellNote,
+            border: const OutlineInputBorder(),
+          ),
+        ),
+        const SizedBox(height: 16),
+      ],
     );
   }
 
@@ -1955,10 +1955,6 @@ class _ItemNoteDialogState extends ConsumerState<_ItemNoteDialog> {
         title: l.actionDelete,
         maxWidth: 340,
         scrollable: true,
-        children: [
-          Text(l.sellRemoveFromCart),
-          const SizedBox(height: 16),
-        ],
         bottomActions: PosDialogActions(
           actions: [
             OutlinedButton(
@@ -1972,6 +1968,10 @@ class _ItemNoteDialogState extends ConsumerState<_ItemNoteDialog> {
             ),
           ],
         ),
+        children: [
+          Text(l.sellRemoveFromCart),
+          const SizedBox(height: 16),
+        ],
       ),
     );
     if (confirmed == true && context.mounted) {
@@ -2032,6 +2032,22 @@ class _QuantityInputDialogState extends State<_QuantityInputDialog> {
       maxWidth: 340,
       maxHeight: 520,
       expandHeight: true,
+      bottomActions: SizedBox(
+        width: 250,
+        child: PosDialogActions(
+          expanded: true,
+          actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(l.actionCancel),
+            ),
+            FilledButton(
+              onPressed: _confirm,
+              child: Text(l.actionConfirm),
+            ),
+          ],
+        ),
+      ),
       children: [
         Center(
           child: Text(
@@ -2072,22 +2088,6 @@ class _QuantityInputDialogState extends State<_QuantityInputDialog> {
         ),
         const SizedBox(height: 16),
       ],
-      bottomActions: SizedBox(
-        width: 250,
-        child: PosDialogActions(
-          expanded: true,
-          actions: [
-            OutlinedButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(l.actionCancel),
-            ),
-            FilledButton(
-              onPressed: _confirm,
-              child: Text(l.actionConfirm),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
@@ -2148,6 +2148,22 @@ class _PriceInputDialogState extends State<_PriceInputDialog> {
       maxWidth: 340,
       maxHeight: 520,
       expandHeight: true,
+      bottomActions: SizedBox(
+        width: 250,
+        child: PosDialogActions(
+          expanded: true,
+          actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(l.actionCancel),
+            ),
+            FilledButton(
+              onPressed: _confirm,
+              child: Text(l.actionConfirm),
+            ),
+          ],
+        ),
+      ),
       children: [
         // Quantity stepper
         Row(
@@ -2202,22 +2218,6 @@ class _PriceInputDialogState extends State<_PriceInputDialog> {
         ),
         const SizedBox(height: 16),
       ],
-      bottomActions: SizedBox(
-        width: 250,
-        child: PosDialogActions(
-          expanded: true,
-          actions: [
-            OutlinedButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(l.actionCancel),
-            ),
-            FilledButton(
-              onPressed: _confirm,
-              child: Text(l.actionConfirm),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
@@ -2436,37 +2436,6 @@ class _ModifierSelectionDialogState extends State<_ModifierSelectionDialog> {
       ),
       maxWidth: widget.cellWidth * 5 + PosDialogTheme.padding * 2,
       scrollable: true,
-      children: [
-        for (final g in widget.groups) ...[
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: Text(g.group.name,
-                    style: theme.textTheme.titleSmall),
-              ),
-              Text(
-                _groupRuleLabel(l, g.group),
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          _buildGroupItems(g),
-        ],
-        const SizedBox(height: 16),
-        const Divider(),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(l.sellTotal, style: theme.textTheme.titleMedium),
-            Text(widget.moneyFormatter(total), style: theme.textTheme.titleLarge),
-          ],
-        ),
-        const SizedBox(height: 16),
-      ],
       bottomActions: PosDialogActions(
         actions: [
           OutlinedButton(
@@ -2498,6 +2467,37 @@ class _ModifierSelectionDialogState extends State<_ModifierSelectionDialog> {
           ),
         ],
       ),
+      children: [
+        for (final g in widget.groups) ...[
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: Text(g.group.name,
+                    style: theme.textTheme.titleSmall),
+              ),
+              Text(
+                _groupRuleLabel(l, g.group),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          _buildGroupItems(g),
+        ],
+        const SizedBox(height: 16),
+        const Divider(),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(l.sellTotal, style: theme.textTheme.titleMedium),
+            Text(widget.moneyFormatter(total), style: theme.textTheme.titleLarge),
+          ],
+        ),
+        const SizedBox(height: 16),
+      ],
     );
   }
 

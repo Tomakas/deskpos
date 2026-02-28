@@ -94,6 +94,21 @@ class _DialogChangeTotalToPayState extends ConsumerState<DialogChangeTotalToPay>
       maxHeight: 400,
       expandHeight: true,
       padding: const EdgeInsets.all(20),
+      bottomActions: PosDialogActions(
+        expanded: true,
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l.actionCancel),
+          ),
+          FilledButton(
+            onPressed: _amountInMinor > 0
+                ? () => Navigator.pop(context, _amountInMinor)
+                : null,
+            child: Text(l.actionConfirm),
+          ),
+        ],
+      ),
       children: [
         Expanded(
           child: Row(
@@ -151,21 +166,6 @@ class _DialogChangeTotalToPayState extends ConsumerState<DialogChangeTotalToPay>
         ),
         const SizedBox(height: 16),
       ],
-      bottomActions: PosDialogActions(
-        expanded: true,
-        actions: [
-          OutlinedButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l.actionCancel),
-          ),
-          FilledButton(
-            onPressed: _amountInMinor > 0
-                ? () => Navigator.pop(context, _amountInMinor)
-                : null,
-            child: Text(l.actionConfirm),
-          ),
-        ],
-      ),
     );
   }
 }

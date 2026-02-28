@@ -174,6 +174,25 @@ class _DialogCustomerAssignState extends ConsumerState<_DialogCustomerAssign> {
       title: l.billDetailCustomer,
       maxWidth: 420,
       scrollable: true,
+      bottomActions: PosDialogActions(
+        actions: [
+          if (widget.showRemoveButton)
+            OutlinedButton(
+              style: PosButtonStyles.destructiveOutlined(context),
+              onPressed: () =>
+                  Navigator.pop(context, const _RemoveCustomer()),
+              child: Text(l.customerRemove),
+            ),
+          OutlinedButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l.actionCancel),
+          ),
+          FilledButton(
+            onPressed: _save,
+            child: Text(l.actionSave),
+          ),
+        ],
+      ),
       children: [
         if (_isLoading)
           const Padding(
@@ -201,25 +220,6 @@ class _DialogCustomerAssignState extends ConsumerState<_DialogCustomerAssign> {
             ),
         ],
       ],
-      bottomActions: PosDialogActions(
-        actions: [
-          if (widget.showRemoveButton)
-            OutlinedButton(
-              style: PosButtonStyles.destructiveOutlined(context),
-              onPressed: () =>
-                  Navigator.pop(context, const _RemoveCustomer()),
-              child: Text(l.customerRemove),
-            ),
-          OutlinedButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l.actionCancel),
-          ),
-          FilledButton(
-            onPressed: _save,
-            child: Text(l.actionSave),
-          ),
-        ],
-      ),
     );
   }
 
@@ -338,6 +338,14 @@ class _DialogCustomerDbSearchState
       maxWidth: 420,
       maxHeight: 500,
       padding: const EdgeInsets.all(16),
+      bottomActions: PosDialogActions(
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l.actionClose),
+          ),
+        ],
+      ),
       children: [
         TextField(
           controller: _searchCtrl,
@@ -365,14 +373,6 @@ class _DialogCustomerDbSearchState
         ),
         const SizedBox(height: 8),
       ],
-      bottomActions: PosDialogActions(
-        actions: [
-          OutlinedButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l.actionClose),
-          ),
-        ],
-      ),
     );
   }
 

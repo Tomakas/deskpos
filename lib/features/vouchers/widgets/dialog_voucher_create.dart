@@ -67,6 +67,29 @@ class _DialogVoucherCreateState extends ConsumerState<DialogVoucherCreate> {
       maxHeight: 600,
       expandHeight: true,
       padding: const EdgeInsets.all(20),
+      bottomActions: PosDialogActions(
+        expanded: true,
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l.actionCancel),
+          ),
+          if (_type == VoucherType.discount)
+            FilledButton(
+              onPressed: _rawValue > 0 && _isScopeValid ? _createDiscountVoucher : null,
+              child: Text(l.voucherCreate),
+            )
+          else
+            FilledButton(
+              onPressed: _rawValue > 0 ? () => _confirmAbsolute() : null,
+              child: Text(
+                _rawValue > 0
+                    ? '${l.voucherSell} ${ref.money(_rawValue)}'
+                    : l.voucherSell,
+              ),
+            ),
+        ],
+      ),
       children: [
         // Type selection
         Row(
@@ -234,29 +257,6 @@ class _DialogVoucherCreateState extends ConsumerState<DialogVoucherCreate> {
           ],
         ),
       ],
-      bottomActions: PosDialogActions(
-        expanded: true,
-        actions: [
-          OutlinedButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l.actionCancel),
-          ),
-          if (_type == VoucherType.discount)
-            FilledButton(
-              onPressed: _rawValue > 0 && _isScopeValid ? _createDiscountVoucher : null,
-              child: Text(l.voucherCreate),
-            )
-          else
-            FilledButton(
-              onPressed: _rawValue > 0 ? () => _confirmAbsolute() : null,
-              child: Text(
-                _rawValue > 0
-                    ? '${l.voucherSell} ${ref.money(_rawValue)}'
-                    : l.voucherSell,
-              ),
-            ),
-        ],
-      ),
     );
   }
 

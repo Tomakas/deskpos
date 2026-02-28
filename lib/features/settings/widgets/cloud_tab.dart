@@ -140,10 +140,6 @@ class CloudTab extends ConsumerWidget {
       builder: (ctx) => PosDialogShell(
         title: title,
         scrollable: true,
-        children: [
-          Text(message),
-          const SizedBox(height: 24),
-        ],
         bottomActions: PosDialogActions(
           actions: [
             OutlinedButton(
@@ -157,6 +153,10 @@ class CloudTab extends ConsumerWidget {
             ),
           ],
         ),
+        children: [
+          Text(message),
+          const SizedBox(height: 24),
+        ],
       ),
     );
   }

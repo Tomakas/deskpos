@@ -28,6 +28,14 @@ class DialogMergeBill extends ConsumerWidget {
           ),
       maxWidth: 420,
       maxHeight: 500,
+      bottomActions: PosDialogActions(
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l.actionCancel),
+          ),
+        ],
+      ),
       children: [
         Text(
           l.mergeBillDescription,
@@ -96,14 +104,6 @@ class DialogMergeBill extends ConsumerWidget {
         ),
         const SizedBox(height: 16),
       ],
-      bottomActions: PosDialogActions(
-        actions: [
-          OutlinedButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l.actionCancel),
-          ),
-        ],
-      ),
     );
   }
 }

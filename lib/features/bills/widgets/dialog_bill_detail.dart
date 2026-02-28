@@ -820,16 +820,16 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
             title: '',
             maxWidth: 400,
             scrollable: true,
-            children: [
-              Text(l.billDetailConfirmCancel),
-              const SizedBox(height: 16),
-            ],
             bottomActions: PosDialogActions(
               actions: [
                 OutlinedButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
                 FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
               ],
             ),
+            children: [
+              Text(l.billDetailConfirmCancel),
+              const SizedBox(height: 16),
+            ],
           ),
         );
         if (confirmed != true) return;
@@ -915,16 +915,16 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
         title: l.billDetailRemoveDiscount,
         maxWidth: 400,
         scrollable: true,
-        children: [
-          Text(l.billDetailRemoveDiscountConfirm),
-          const SizedBox(height: 16),
-        ],
         bottomActions: PosDialogActions(
           actions: [
             OutlinedButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.no)),
             FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.yes)),
           ],
         ),
+        children: [
+          Text(l.billDetailRemoveDiscountConfirm),
+          const SizedBox(height: 16),
+        ],
       ),
     );
     if (confirmed != true || !mounted) return;
@@ -975,15 +975,15 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
             title: '',
             maxWidth: 400,
             scrollable: true,
-            children: [
-              Text(errorMsg),
-              const SizedBox(height: 16),
-            ],
             bottomActions: PosDialogActions(
               actions: [
                 OutlinedButton(onPressed: () => Navigator.pop(context), child: Text(context.l10n.actionOk)),
               ],
             ),
+            children: [
+              Text(errorMsg),
+              const SizedBox(height: 16),
+            ],
           ),
         );
         return;
@@ -1065,16 +1065,16 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
         title: l.billDetailRemoveVoucher,
         maxWidth: 400,
         scrollable: true,
-        children: [
-          Text(l.billDetailRemoveVoucherConfirm),
-          const SizedBox(height: 16),
-        ],
         bottomActions: PosDialogActions(
           actions: [
             OutlinedButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.no)),
             FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.yes)),
           ],
         ),
+        children: [
+          Text(l.billDetailRemoveVoucherConfirm),
+          const SizedBox(height: 16),
+        ],
       ),
     );
     if (confirmed != true || !mounted) return;
@@ -1300,16 +1300,16 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
           title: l.refundTitle,
           maxWidth: 400,
           scrollable: true,
-          children: [
-            Text(l.refundConfirmFull),
-            const SizedBox(height: 16),
-          ],
           bottomActions: PosDialogActions(
             actions: [
               OutlinedButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
               FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
             ],
           ),
+          children: [
+            Text(l.refundConfirmFull),
+            const SizedBox(height: 16),
+          ],
         ),
       );
       if (confirmed != true) return;
@@ -1656,18 +1656,6 @@ class _OrderSection extends ConsumerWidget {
         title: context.l10n.sellNote,
         maxWidth: 380,
         scrollable: true,
-        children: [
-          TextField(
-            controller: controller,
-            autofocus: true,
-            maxLines: 3,
-            decoration: InputDecoration(
-              hintText: context.l10n.sellNote,
-              border: const OutlineInputBorder(),
-            ),
-          ),
-          const SizedBox(height: 16),
-        ],
         bottomActions: PosDialogActions(
           actions: [
             OutlinedButton(
@@ -1680,6 +1668,18 @@ class _OrderSection extends ConsumerWidget {
             ),
           ],
         ),
+        children: [
+          TextField(
+            controller: controller,
+            autofocus: true,
+            maxLines: 3,
+            decoration: InputDecoration(
+              hintText: context.l10n.sellNote,
+              border: const OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
       ),
     );
     if (result != null && context.mounted) {
@@ -1698,6 +1698,18 @@ class _OrderSection extends ConsumerWidget {
         title: item.itemName,
         maxWidth: 380,
         scrollable: true,
+        bottomActions: PosDialogActions(
+          actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(context.l10n.actionCancel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, controller.text),
+              child: Text(context.l10n.actionSave),
+            ),
+          ],
+        ),
         children: [
           TextField(
             controller: controller,
@@ -1737,18 +1749,6 @@ class _OrderSection extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
         ],
-        bottomActions: PosDialogActions(
-          actions: [
-            OutlinedButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(context.l10n.actionCancel),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(context, controller.text),
-              child: Text(context.l10n.actionSave),
-            ),
-          ],
-        ),
       ),
     );
     if (result != null && context.mounted) {
@@ -1783,16 +1783,16 @@ class _OrderSection extends ConsumerWidget {
           title: '',
           maxWidth: 400,
           scrollable: true,
-          children: [
-            Text(l.orderItemStornoConfirm),
-            const SizedBox(height: 16),
-          ],
           bottomActions: PosDialogActions(
             actions: [
               OutlinedButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
               FilledButton(style: PosButtonStyles.destructiveFilled(context), onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
             ],
           ),
+          children: [
+            Text(l.orderItemStornoConfirm),
+            const SizedBox(height: 16),
+          ],
         ),
       );
       if (confirmed != true || !context.mounted) return;
@@ -1870,16 +1870,16 @@ class _OrderSection extends ConsumerWidget {
         title: l.refundTitle,
         maxWidth: 400,
         scrollable: true,
-        children: [
-          Text(l.refundConfirmItem),
-          const SizedBox(height: 16),
-        ],
         bottomActions: PosDialogActions(
           actions: [
             OutlinedButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
             FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
           ],
         ),
+        children: [
+          Text(l.refundConfirmItem),
+          const SizedBox(height: 16),
+        ],
       ),
     );
     if (confirmed != true) return;
