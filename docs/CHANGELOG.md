@@ -1,5 +1,28 @@
 # Changelog
 
+## 2026-02-28 — Documentation Audit Fixes
+
+### Documentation
+- **PrepStatus enum:** removed `cancelled` value from docs (unified into `voided` in code), updated Mermaid diagram, transition table, `_deriveOrderStatus` rules, cancelBill sequence, and ScreenBills info panel
+- **items.unitPrice:** marked as nullable `(I?)` for open-price items, added pending migration note
+- **seed_demo_data RLS:** corrected from "RLS off" to "RLS on, no policies"
+- **/kds permission guard:** documented `orders.view` guard (was incorrectly stated as "no guard")
+- **Phantom dialogs removed:** DialogZReportList, DialogShiftsList, DialogReservationsList, DialogTipStatistics removed from file tree (consolidated into ScreenStatistics tabs and ScreenReservations)
+- **BusinessType enum:** added to enum catalog (17 values), updated PG enum count (21→26), Dart enum count (23→24), companies table schema
+- **NegativeStockPolicy/SellMode:** removed outdated "TEXT na Supabase" disclaimers (now PG enums)
+- **ScreenRegisterSettings:** corrected tab count from 2 to 3 (Režim, Prodej, Periferie)
+- **New routes:** added `/data` and `/reservations` to route table
+- **Widget/dialog counts:** PosTable 25→23 files, PosNumpad 13→14, dialog count 32→29
+- **Undocumented columns:** added registers.show_stock_badge, cash_movements.currency_id, customer_transactions.reference and .note
+- **File tree updates:** added ScreenReservations, ScreenData, DialogCustomerTransactions, BusinessTypeSelector, dashboard widget files
+- **BaseCompanyScopedRepository:** count 22→23 (includes OrderItemModifierRepository)
+- **order_item_modifiers sync:** documented own createBatch enqueue in addition to OrderRepository
+- **display_devices RLS:** added SELECT policy to docs
+- **Outbox watchdog:** documented 60s stuck processing timeout
+- **Button label:** "Uložit na účet" → "Uložit"
+
+---
+
 ## 2026-02-26 — Reservations Fullscreen Page
 
 ### Features

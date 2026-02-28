@@ -883,16 +883,25 @@ class BillRepository {
             ..where((t) => t.id.equals(orderItemId)))
           .getSingle();
 
+      // Load modifiers and include their cost in refund calculation
+      final mods = await (_db.select(_db.orderItemModifiers)
+            ..where((t) => t.orderItemId.equals(orderItemId) & t.deletedAt.isNull()))
+          .get();
       final itemTotal = (item.salePriceAtt * item.quantity).round();
+      int modTotal = 0;
+      for (final mod in mods) {
+        modTotal += (mod.unitPrice * mod.quantity * item.quantity).round();
+      }
+      final grossBeforeDiscount = itemTotal + modTotal;
       int itemDiscount = 0;
       if (item.discount > 0) {
         if (item.discountType == DiscountType.percent) {
-          itemDiscount = (itemTotal * item.discount / 10000).round();
+          itemDiscount = (grossBeforeDiscount * item.discount / 10000).round();
         } else {
           itemDiscount = item.discount;
         }
       }
-      final refundAmount = itemTotal - itemDiscount;
+      final refundAmount = grossBeforeDiscount - itemDiscount - item.voucherDiscount;
 
       final now = DateTime.now();
 

@@ -27,12 +27,11 @@ FÁZE 2 — SCAN (6 background agentů, paralelně)
   Každý agent zapíše findings do /tmp/doc-audit/NN_*.md
   Výstup se zapisuje do souboru — bez limitu na délku
 
-FÁZE 3 — REPORT (hlavní agent)
-  Validuj výstupy agentů (detekce selhání)
-  Přečti 6 findings souborů → sestav finální report do konzole
-  Deduplikuj dle matice autoritativních agentů
-  Re-verifikuj CRITICAL/HIGH nálezy z JINÉHO úhlu než agent
-  Volitelně: aplikuj opravy do PROJECT.md (selektivně dle severity)
+FÁZE 3 — REPORT (dedikovaný Task agent, NE hlavní agent)
+  Hlavní agent spustí JEDEN "Report" Task agent (general-purpose, foreground)
+  Report agent čte 6 findings souborů + blueprint → deduplikuje, re-verifikuje
+  Report agent zapíše finální report do /tmp/doc-audit/FINAL_REPORT.md
+  Hlavní agent přečte FINAL_REPORT.md a nabídne uživateli aplikaci oprav
 ```
 
 **Proč blueprint:** PROJECT.md je rozsáhlý dokument. Bez blueprintu každý agent čte celý dokument
@@ -601,29 +600,49 @@ Slouží jako důkaz důkladnosti — hlavní agent ví co bylo zkontrolováno.
 
 ---
 
-## FÁZE 3 — REPORT (hlavní agent)
+## FÁZE 3 — REPORT (dedikovaný Task agent)
 
-Po dokončení všech 6 agentů:
+**Proč agent:** 6 findings souborů + blueprint + re-verifikace = příliš mnoho kontextu
+pro hlavního agenta po fázích 1+2. Dedikovaný agent má čistý kontext.
 
-### Krok 0: Validace výstupů
+### Krok 0: Validace (hlavní agent, PŘED spuštěním Report agenta)
 
-Pro každý očekávaný soubor (`01_schema_enums.md` až `06_workflows.md`):
-1. Existuje soubor? Pokud ne → agent selhal. Zaznamej a pokračuj.
-2. Obsahuje soubor YAML frontmatter? Pokud ne → agent nedodržoval formát.
-3. Má soubor `items_checked > 0`? Pokud `items_checked = 0` → agent pravděpodobně selhal.
-4. Pokud agent měl zkontrolovat N položek a zkontroloval < 50%, označ jako INCOMPLETE.
+Hlavní agent provede LEHKOU validaci — NEČTE obsah souborů, jen ověří existenci:
 
-Pokud některý agent selhal nebo je INCOMPLETE:
-- Vypiš varování: "⚠ Agent NN selhal/neúplný — oblast XY nebyla plně auditována"
-- Zeptej se uživatele, zda chce agenta spustit znovu (jednotlivě, ne celou fázi)
+```
+Pro každý soubor 01–06:
+  1. Existuje? (Glob `/tmp/doc-audit/0*.md`)
+  2. Pokud ne → "⚠ Agent NN selhal" — zeptej se uživatele zda re-run
+```
 
-### Krok 1: Čtení a sloučení
+Pokud všechny soubory existují → spusť Report agenta.
 
-Přečti soubory `/tmp/doc-audit/01_schema_enums.md` až `/tmp/doc-audit/06_workflows.md`.
+### Krok 1: Spuštění Report agenta
 
-### Krok 2: Deduplikace dle matice
+Hlavní agent spustí JEDEN Task agent (general-purpose, **foreground**, NE background):
 
-**Deduplikační matice — autoritativní agent per oblast:**
+```
+Task(
+  subagent_type: "general-purpose",
+  description: "Phase 3: Compile audit report",
+  prompt: <viz prompt šablona níže>
+)
+```
+
+**Prompt šablona pro Report agenta:**
+
+```
+Jsi Report agent pro audit dokumentace PROJECT.md.
+
+## Tvůj úkol
+1. Přečti `/tmp/doc-audit/blueprint.md` (pro kontext)
+2. Přečti všech 6 findings souborů: `/tmp/doc-audit/01_schema_enums.md` až `/tmp/doc-audit/06_workflows.md`
+3. Validuj YAML frontmatter — pokud `items_checked = 0`, označ jako INCOMPLETE
+4. Deduplikuj dle matice (viz níže)
+5. Re-verifikuj CRITICAL a HIGH nálezy z JINÉHO úhlu než agent
+6. Zapiš finální report do `/tmp/doc-audit/FINAL_REPORT.md`
+
+## Deduplikační matice — autoritativní agent per oblast
 
 | Oblast | Autoritativní agent | Ostatní agenti |
 |--------|---------------------|----------------|
@@ -636,26 +655,23 @@ Přečti soubory `/tmp/doc-audit/01_schema_enums.md` až `/tmp/doc-audit/06_work
 | Permission kódy | Agent 4 (cross-check) | Agent 6 jen seed counts |
 | Workflow kroky | Agent 6 | Agent 2 jen sync-related kroky |
 
-**Merge protokol pro duplicitní nálezy:**
-a) **Identifikuj shodné nálezy** — dva nálezy jsou shodné pokud se týkají stejného faktu (stejná sekce, stejný typ rozporu).
-b) **Severity: vezmi VYŠŠÍ** z duplicitních nálezů. Vysvětli proč v reportu.
-c) **Kontext: sluč** — každý agent mohl ověřit z jiného úhlu. Finální nález obsahuje VŠECHNY citace reality ze všech agentů.
-d) **Oprava: vezmi KONKRÉTNĚJŠÍ** — preferuj návrh s přesnou citací před vágním "doplnit do docs."
-e) **Pokud agenti nesouhlasí na FAKTU** (např. jeden říká 36, druhý 38), re-verifikuj čtením kódu — toto je POVINNÉ.
+## Merge protokol pro duplicitní nálezy
+a) Identifikuj shodné nálezy — stejný fakt, stejná sekce, stejný typ rozporu.
+b) Severity: vezmi VYŠŠÍ z duplicitních nálezů. Vysvětli proč.
+c) Kontext: sluč — finální nález obsahuje VŠECHNY citace reality ze všech agentů.
+d) Oprava: vezmi KONKRÉTNĚJŠÍ návrh.
+e) Pokud agenti nesouhlasí na FAKTU (jeden říká 36, druhý 38), re-verifikuj čtením kódu — POVINNÉ.
 
-### Krok 3: Re-verifikace
-
-Pro CRITICAL a HIGH: re-verifikuj z JINÉHO úhlu než agent:
-- Agent tvrdil počet? → Spočítej sám (Glob/Grep, ne ručně)
-- Agent tvrdil neexistenci? → Vyhledej pomocí Grep s alternativními názvy
-- Agent citoval soubor:řádek? → Přečti kontext (±20 řádků) pro ověření
+## Re-verifikace CRITICAL + HIGH
+Pro každý CRITICAL/HIGH nález:
+- Agent tvrdil počet? → Spočítej sám (Glob/Grep)
+- Agent tvrdil neexistenci? → Grep s alternativními názvy
+- Agent citoval soubor:řádek? → Přečti kontext (±20 řádků)
 - Agent použil SQL? → Ověř klientský kód, nebo naopak
-
 Re-verifikace MUSÍ použít jiný zdroj než agent.
 
-### Krok 4: Finální report
+## Formát FINAL_REPORT.md
 
-```markdown
 # Audit dokumentace — PROJECT.md
 > Datum: YYYY-MM-DD | PROJECT.md: ~RRRR řádků
 
@@ -672,32 +688,37 @@ Re-verifikace MUSÍ použít jiný zdroj než agent.
 - **Oprava:** Kde → Smazat → Nahradit
 
 ## HIGH — Feature chybí nebo neexistuje
-
-(stejný formát)
+(stejný formát jako CRITICAL)
 
 ## MEDIUM — Nepřesnosti
-
-(stejný formát)
+(stejný formát jako CRITICAL)
 
 ## LOW — Kosmetické
-
 | # | Sekce | Problém | Oprava |
-|---|-------|---------|--------|
 
 ## DOC DEBT — Nedokumentované změny
-
 | # | Oblast | Co chybí v docs | Dopad |
-|---|--------|-----------------|-------|
 
 ## Akční plán oprav PROJECT.md
-
 Seřazeno od nejdůležitějších. Pro každou opravu:
 1. Sekce v PROJECT.md
 2. Co smazat/změnit (přesná citace)
 3. Čím nahradit (přesný nový text)
+
+## DŮLEŽITÉ
+- Výstup piš do souboru přes Write tool, NE jako textový output.
+- Buď důkladný — output jde do souboru, neomezuje tě kontext.
+- Nezkracuj, nesumarizuj — piš kompletní citace a opravy.
 ```
 
-### Krok 5: Aplikace oprav
+### Krok 2: Prezentace reportu (hlavní agent)
+
+Po dokončení Report agenta hlavní agent:
+1. Přečte `/tmp/doc-audit/FINAL_REPORT.md`
+2. Vypíše report uživateli do konzole (celý, nezkracovat)
+3. Nabídne aplikaci oprav (viz Krok 3)
+
+### Krok 3: Aplikace oprav (hlavní agent)
 
 **Zeptej se uživatele:** "Mám aplikovat opravy do PROJECT.md?"
 Nabídni možnosti:

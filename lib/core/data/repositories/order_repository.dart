@@ -495,6 +495,9 @@ class OrderRepository {
           saleTaxRateAtt: itemEntity.saleTaxRateAtt,
           saleTaxAmount: itemEntity.saleTaxAmount,
           unit: Value(itemEntity.unit),
+          discount: Value(itemEntity.discount),
+          discountType: Value(itemEntity.discountType),
+          voucherDiscount: Value(itemEntity.voucherDiscount),
           status: PrepStatus.delivered,
         ));
 
@@ -543,18 +546,28 @@ class OrderRepository {
           }
         }
 
-        // 7. Update storno order totals (including modifiers)
+        // 7. Update storno order totals (including modifiers and discounts)
         int itemSubtotal = (itemEntity.salePriceAtt * itemEntity.quantity).round();
         int itemTax = (itemEntity.saleTaxAmount * itemEntity.quantity).round();
         for (final mod in voidedMods) {
           itemSubtotal += (mod.unitPrice * mod.quantity * itemEntity.quantity).round();
           itemTax += (mod.taxAmount * mod.quantity * itemEntity.quantity).round();
         }
+        // Apply discounts to storno totals
+        int stornoDiscount = 0;
+        if (itemEntity.discount > 0) {
+          if (itemEntity.discountType == DiscountType.percent) {
+            stornoDiscount = (itemSubtotal * itemEntity.discount / 10000).round();
+          } else {
+            stornoDiscount = itemEntity.discount;
+          }
+        }
+        final stornoGross = itemSubtotal - stornoDiscount - itemEntity.voucherDiscount;
         await (_db.update(_db.orders)..where((t) => t.id.equals(stornoOrderId))).write(
           OrdersCompanion(
             itemCount: const Value(1),
-            subtotalGross: Value(itemSubtotal),
-            subtotalNet: Value(itemSubtotal - itemTax),
+            subtotalGross: Value(stornoGross),
+            subtotalNet: Value(stornoGross - itemTax),
             taxTotal: Value(itemTax),
             deliveredAt: Value(now),
             updatedAt: Value(now),
@@ -936,7 +949,8 @@ class OrderRepository {
   }
 
   /// Reverses stock for a single order item (used by voidItem).
-  Future<void> _reverseStockForSingleItem(String companyId, OrderItem item, {String? billId}) async {
+  /// When [overrideQuantity] is provided, uses that instead of [item.quantity].
+  Future<void> _reverseStockForSingleItem(String companyId, OrderItem item, {String? billId, double? overrideQuantity}) async {
     if (stockLevelRepo == null || stockMovementRepo == null) return;
 
     final warehouse = await (_db.select(_db.warehouses)
@@ -949,13 +963,15 @@ class OrderRepository {
         .getSingleOrNull();
     if (itemDef == null || !itemDef.isStockTracked) return;
 
+    final qty = overrideQuantity ?? item.quantity;
+
     if (itemDef.itemType == ItemType.recipe) {
       // Recipe ingredients — always inbound on reversal
       final recipes = await (_db.select(_db.productRecipes)
             ..where((t) => t.parentProductId.equals(itemDef.id) & t.deletedAt.isNull()))
           .get();
       for (final recipe in recipes) {
-        final componentQty = recipe.quantityRequired * item.quantity;
+        final componentQty = recipe.quantityRequired * qty;
         await _createStockMovement(
           companyId: companyId,
           warehouseId: warehouse.id,
@@ -970,7 +986,7 @@ class OrderRepository {
         companyId: companyId,
         warehouseId: warehouse.id,
         itemId: itemDef.id,
-        quantity: item.quantity,
+        quantity: qty,
         direction: _stockDirectionForReversal(item.salePriceAtt),
         billId: billId,
       );
@@ -985,7 +1001,7 @@ class OrderRepository {
             .getSingleOrNull();
         if (modItem == null || !modItem.isStockTracked) continue;
 
-        final modQty = mod.quantity * item.quantity;
+        final modQty = mod.quantity * qty;
         await _createStockMovement(
           companyId: companyId,
           warehouseId: warehouse.id,
@@ -1207,12 +1223,23 @@ class OrderRepository {
 
     int gross = 0, tax = 0;
     for (final item in items) {
-      gross += (item.salePriceAtt * item.quantity).round();
-      tax += (item.saleTaxAmount * item.quantity).round();
+      int itemGross = (item.salePriceAtt * item.quantity).round();
+      int itemTax = (item.saleTaxAmount * item.quantity).round();
       for (final mod in modsByItem[item.id] ?? <OrderItemModifier>[]) {
-        gross += (mod.unitPrice * mod.quantity * item.quantity).round();
-        tax += (mod.taxAmount * mod.quantity * item.quantity).round();
+        itemGross += (mod.unitPrice * mod.quantity * item.quantity).round();
+        itemTax += (mod.taxAmount * mod.quantity * item.quantity).round();
       }
+      // Apply item discount (on total including modifiers)
+      int itemDiscount = 0;
+      if (item.discount > 0) {
+        if (item.discountType == DiscountType.percent) {
+          itemDiscount = (itemGross * item.discount / 10000).round();
+        } else {
+          itemDiscount = item.discount;
+        }
+      }
+      gross += itemGross - itemDiscount - item.voucherDiscount;
+      tax += itemTax;
     }
     await (_db.update(_db.orders)..where((t) => t.id.equals(orderId))).write(
       OrdersCompanion(
