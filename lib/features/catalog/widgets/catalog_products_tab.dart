@@ -847,7 +847,7 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
       if (itemType != ItemType.variant &&
           itemType != ItemType.modifier &&
           itemType != ItemType.ingredient &&
-          mounted) {
+          context.mounted) {
         await _showAssignToGridDialog(context, ref, createdItem);
       }
     }
@@ -934,21 +934,21 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
       }
       if (targetPage == null) return;
     } else if (action == _AssignAction.pick) {
-      if (!mounted) return;
+      if (!context.mounted) return;
       final result = await showDialog<({int page, int row, int col})>(
         context: context,
         builder: (_) => const DialogGridEditor(mode: GridDialogMode.picker),
       );
-      if (result == null || !mounted) return;
+      if (result == null || !context.mounted) return;
       targetPage = result.page;
       targetRow = result.row;
       targetCol = result.col;
     }
 
-    if (targetPage == null || !mounted) return;
+    if (targetPage == null || !context.mounted) return;
 
     final selectedColor = await _showGridColorPicker(context);
-    if (!mounted) return;
+    if (!context.mounted) return;
 
     await layoutRepo.setCell(
       companyId: companyId,

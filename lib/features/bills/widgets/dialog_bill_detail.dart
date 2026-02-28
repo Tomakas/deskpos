@@ -39,6 +39,7 @@ import 'dialog_payment.dart';
 import 'dialog_receipt_preview.dart' show showReceiptPrintDialog;
 import 'dialog_split_bill.dart';
 import 'dialog_voucher_redeem.dart';
+import '../../../core/widgets/void_quantity_dialog.dart';
 
 class DialogBillDetail extends ConsumerStatefulWidget {
   const DialogBillDetail({super.key, required this.billId});
@@ -811,7 +812,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
     try {
       // Skip confirmation for empty bills (no orders at all)
       final orders = await ref.read(orderRepositoryProvider).getOrdersByBillIds([bill.id]);
-      if (!mounted) return;
+      if (!context.mounted) return;
       if (orders.isNotEmpty) {
         final confirmed = await showDialog<bool>(
           context: context,
@@ -881,7 +882,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
           maxPercent = settings.maxBillDiscountPercent;
         }
       }
-      if (!mounted) return;
+      if (!context.mounted) return;
       final result = await showDialog<(DiscountType, int)?>(
         context: context,
         builder: (_) => DialogDiscount(
@@ -1588,7 +1589,7 @@ class _OrderSection extends ConsumerWidget {
                                         constraints: const BoxConstraints(
                                             minWidth: 40, minHeight: 40),
                                         onSelected: (status) =>
-                                            _changeItemStatus(ref, item, status),
+                                            _changeItemStatus(context, ref, item, status),
                                         itemBuilder: (_) =>
                                             _availableTransitions(
                                                 item.status, l, context),
@@ -1760,25 +1761,42 @@ class _OrderSection extends ConsumerWidget {
 
   Future<void> _voidSingleItem(BuildContext context, WidgetRef ref, OrderItemModel item) async {
     final l = context.l10n;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (_) => PosDialogShell(
-        title: '',
-        maxWidth: 400,
-        scrollable: true,
-        children: [
-          Text(l.orderItemStornoConfirm),
-          const SizedBox(height: 16),
-        ],
-        bottomActions: PosDialogActions(
-          actions: [
-            OutlinedButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
-            FilledButton(style: PosButtonStyles.destructiveFilled(context), onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
-          ],
+    double? voidQty;
+
+    if (item.quantity > 1) {
+      // Show quantity selection dialog (also serves as confirmation)
+      final result = await showDialog<double>(
+        context: context,
+        builder: (_) => VoidQuantityDialog(
+          itemName: item.itemName,
+          maxQuantity: item.quantity,
+          unit: item.unit,
         ),
-      ),
-    );
-    if (confirmed != true || !context.mounted) return;
+      );
+      if (result == null || !context.mounted) return;
+      voidQty = result;
+    } else {
+      // Simple confirmation for qty <= 1
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (_) => PosDialogShell(
+          title: '',
+          maxWidth: 400,
+          scrollable: true,
+          children: [
+            Text(l.orderItemStornoConfirm),
+            const SizedBox(height: 16),
+          ],
+          bottomActions: PosDialogActions(
+            actions: [
+              OutlinedButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
+              FilledButton(style: PosButtonStyles.destructiveFilled(context), onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
+            ],
+          ),
+        ),
+      );
+      if (confirmed != true || !context.mounted) return;
+    }
 
     final user = ref.read(activeUserProvider);
     if (user == null) return;
@@ -1799,6 +1817,8 @@ class _OrderSection extends ConsumerWidget {
       }
     }
 
+    // Full void when voidQty equals maxQty, partial otherwise
+    final isFullVoid = voidQty == null || voidQty >= item.quantity;
     await orderRepo.voidItem(
       orderId: order.id,
       orderItemId: item.id,
@@ -1806,6 +1826,7 @@ class _OrderSection extends ConsumerWidget {
       userId: user.id,
       stornoOrderNumber: stornoNumber,
       registerId: registerModel?.id,
+      voidQuantity: isFullVoid ? null : voidQty,
     );
     await billRepo.updateTotals(order.billId);
   }
@@ -1877,7 +1898,11 @@ class _OrderSection extends ConsumerWidget {
   }
 
   void _changeItemStatus(
-      WidgetRef ref, OrderItemModel item, PrepStatus status) {
+      BuildContext context, WidgetRef ref, OrderItemModel item, PrepStatus status) {
+    if (status == PrepStatus.voided) {
+      _voidSingleItem(context, ref, item);
+      return;
+    }
     final repo = ref.read(orderRepositoryProvider);
     repo.updateItemStatus(item.id, order.id, status);
   }

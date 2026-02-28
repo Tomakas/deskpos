@@ -21,6 +21,7 @@ import '../../../core/utils/unit_type_l10n.dart';
 import '../../../core/widgets/highlighted_text.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
+import '../../../core/widgets/void_quantity_dialog.dart';
 
 class ScreenOrders extends ConsumerStatefulWidget {
   const ScreenOrders({super.key});
@@ -338,20 +339,35 @@ class _ScreenOrdersState extends ConsumerState<ScreenOrders> {
 
   Future<void> _voidItem(OrderModel order, OrderItemModel item) async {
     final l = context.l10n;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (_) => PosDialogShell(
-        title: l.orderItemStornoConfirm,
-        bottomActions: PosDialogActions(
-          actions: [
-            OutlinedButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
-            FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
-          ],
+    double? voidQty;
+
+    if (item.quantity > 1) {
+      final result = await showDialog<double>(
+        context: context,
+        builder: (_) => VoidQuantityDialog(
+          itemName: item.itemName,
+          maxQuantity: item.quantity,
+          unit: item.unit,
         ),
-        children: const [],
-      ),
-    );
-    if (confirmed != true || !context.mounted) return;
+      );
+      if (result == null || !context.mounted) return;
+      voidQty = result;
+    } else {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (_) => PosDialogShell(
+          title: l.orderItemStornoConfirm,
+          bottomActions: PosDialogActions(
+            actions: [
+              OutlinedButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
+              FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
+            ],
+          ),
+          children: const [],
+        ),
+      );
+      if (confirmed != true || !context.mounted) return;
+    }
 
     final user = ref.read(activeUserProvider);
     if (user == null) return;
@@ -371,6 +387,7 @@ class _ScreenOrdersState extends ConsumerState<ScreenOrders> {
       }
     }
 
+    final isFullVoid = voidQty == null || voidQty >= item.quantity;
     await orderRepo.voidItem(
       orderId: order.id,
       orderItemId: item.id,
@@ -378,6 +395,7 @@ class _ScreenOrdersState extends ConsumerState<ScreenOrders> {
       userId: user.id,
       stornoOrderNumber: stornoNumber,
       registerId: registerModel?.id,
+      voidQuantity: isFullVoid ? null : voidQty,
     );
     await billRepo.updateTotals(order.billId);
   }

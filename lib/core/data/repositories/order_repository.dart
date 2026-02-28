@@ -429,6 +429,11 @@ class OrderRepository {
     await _recalculateOrderTotals(orderId);
   }
 
+  /// Voids a single order item, creating a storno order.
+  ///
+  /// When [voidQuantity] is null, performs a full void (existing behavior).
+  /// When [voidQuantity] < item.quantity, performs a partial void:
+  /// reduces original item quantity and creates a storno for the voided portion.
   Future<Result<OrderModel>> voidItem({
     required String orderId,
     required String orderItemId,
@@ -436,6 +441,7 @@ class OrderRepository {
     required String userId,
     required String stornoOrderNumber,
     String? registerId,
+    double? voidQuantity,
   }) async {
     try {
       final now = DateTime.now();
@@ -456,17 +462,34 @@ class OrderRepository {
         return const Failure('Cannot void items on storno orders');
       }
 
-      return await _db.transaction(() async {
-        // 3. Void original item
-        await (_db.update(_db.orderItems)..where((t) => t.id.equals(orderItemId))).write(
-          OrderItemsCompanion(
-            status: const Value(PrepStatus.voided),
-            updatedAt: Value(now),
-          ),
-        );
+      // Determine if this is a partial void
+      final isPartial = voidQuantity != null && voidQuantity < itemEntity.quantity;
+      final effectiveVoidQty = voidQuantity ?? itemEntity.quantity;
 
-        // 4. Stock reversal for this single item
-        await _reverseStockForSingleItem(companyId, itemEntity, billId: orderEntity.billId);
+      return await _db.transaction(() async {
+        if (isPartial) {
+          // PARTIAL VOID: reduce original item quantity
+          final newOrigQty = itemEntity.quantity - effectiveVoidQty;
+          await (_db.update(_db.orderItems)..where((t) => t.id.equals(orderItemId))).write(
+            OrderItemsCompanion(
+              quantity: Value(newOrigQty),
+              updatedAt: Value(now),
+            ),
+          );
+        } else {
+          // FULL VOID: mark original item as voided
+          await (_db.update(_db.orderItems)..where((t) => t.id.equals(orderItemId))).write(
+            OrderItemsCompanion(
+              status: const Value(PrepStatus.voided),
+              updatedAt: Value(now),
+            ),
+          );
+        }
+
+        // 4. Stock reversal for voided quantity
+        await _reverseStockForSingleItem(companyId, itemEntity,
+            billId: orderEntity.billId,
+            overrideQuantity: isPartial ? effectiveVoidQty : null);
 
         // 5. Create storno order
         final stornoOrderId = const Uuid().v7();
@@ -482,26 +505,38 @@ class OrderRepository {
           stornoSourceOrderId: Value(orderId),
         ));
 
-        // 6. Create storno order item (copy of voided item)
+        // 6. Create storno order item
         final stornoItemId = const Uuid().v7();
+        // Discount rules for partial: percent → copy rate, absolute → 0 (stays on original)
+        final stornoDisc = isPartial
+            ? (itemEntity.discountType == DiscountType.percent ? itemEntity.discount : 0)
+            : itemEntity.discount;
+        final stornoDiscType = isPartial
+            ? (itemEntity.discountType == DiscountType.percent
+                ? Value(itemEntity.discountType)
+                : const Value<DiscountType?>(null))
+            : Value(itemEntity.discountType);
+        // Voucher discount stays on original for partial void
+        final stornoVoucherDisc = isPartial ? 0 : itemEntity.voucherDiscount;
+
         await _db.into(_db.orderItems).insert(OrderItemsCompanion.insert(
           id: stornoItemId,
           companyId: companyId,
           orderId: stornoOrderId,
           itemId: itemEntity.itemId,
           itemName: itemEntity.itemName,
-          quantity: itemEntity.quantity,
+          quantity: effectiveVoidQty,
           salePriceAtt: itemEntity.salePriceAtt,
           saleTaxRateAtt: itemEntity.saleTaxRateAtt,
           saleTaxAmount: itemEntity.saleTaxAmount,
           unit: Value(itemEntity.unit),
-          discount: Value(itemEntity.discount),
-          discountType: Value(itemEntity.discountType),
-          voucherDiscount: Value(itemEntity.voucherDiscount),
+          discount: Value(stornoDisc),
+          discountType: stornoDiscType,
+          voucherDiscount: Value(stornoVoucherDisc),
           status: PrepStatus.delivered,
         ));
 
-        // 6b. Copy modifiers from voided item to storno item
+        // 6b. Copy modifiers from original item to storno item
         final voidedMods = await (_db.select(_db.orderItemModifiers)
               ..where((t) => t.orderItemId.equals(orderItemId) & t.deletedAt.isNull()))
             .get();
@@ -547,22 +582,22 @@ class OrderRepository {
         }
 
         // 7. Update storno order totals (including modifiers and discounts)
-        int itemSubtotal = (itemEntity.salePriceAtt * itemEntity.quantity).round();
-        int itemTax = (itemEntity.saleTaxAmount * itemEntity.quantity).round();
+        int itemSubtotal = (itemEntity.salePriceAtt * effectiveVoidQty).round();
+        int itemTax = (itemEntity.saleTaxAmount * effectiveVoidQty).round();
         for (final mod in voidedMods) {
-          itemSubtotal += (mod.unitPrice * mod.quantity * itemEntity.quantity).round();
-          itemTax += (mod.taxAmount * mod.quantity * itemEntity.quantity).round();
+          itemSubtotal += (mod.unitPrice * mod.quantity * effectiveVoidQty).round();
+          itemTax += (mod.taxAmount * mod.quantity * effectiveVoidQty).round();
         }
         // Apply discounts to storno totals
-        int stornoDiscount = 0;
-        if (itemEntity.discount > 0) {
-          if (itemEntity.discountType == DiscountType.percent) {
-            stornoDiscount = (itemSubtotal * itemEntity.discount / 10000).round();
+        int stornoDiscountAmount = 0;
+        if (stornoDisc > 0) {
+          if ((isPartial ? itemEntity.discountType == DiscountType.percent : itemEntity.discountType == DiscountType.percent)) {
+            stornoDiscountAmount = (itemSubtotal * stornoDisc / 10000).round();
           } else {
-            stornoDiscount = itemEntity.discount;
+            stornoDiscountAmount = stornoDisc;
           }
         }
-        final stornoGross = itemSubtotal - stornoDiscount - itemEntity.voucherDiscount;
+        final stornoGross = itemSubtotal - stornoDiscountAmount - stornoVoucherDisc;
         await (_db.update(_db.orders)..where((t) => t.id.equals(stornoOrderId))).write(
           OrdersCompanion(
             itemCount: const Value(1),
@@ -577,10 +612,12 @@ class OrderRepository {
         // 8. Recalculate original order totals (exclude voided items)
         await _recalculateOrderTotals(orderId);
 
-        // 9. Auto-void order if all items voided
-        await _autoVoidOrderIfEmpty(orderId);
+        // 9. Auto-void order if all items voided (only for full void)
+        if (!isPartial) {
+          await _autoVoidOrderIfEmpty(orderId);
+        }
 
-        // 10. Enqueue sync: voided item, storno order, storno item, original order
+        // 10. Enqueue sync: updated original item, storno order, storno item, original order
         final updatedItem = await (_db.select(_db.orderItems)..where((t) => t.id.equals(orderItemId))).getSingle();
         await _enqueueOrderItem('update', orderItemFromEntity(updatedItem));
 

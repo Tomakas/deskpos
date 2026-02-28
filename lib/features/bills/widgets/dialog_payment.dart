@@ -622,7 +622,7 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
     try {
       final freshCustomer = await ref.read(customerRepositoryProvider)
           .getById(_bill.customerId!, includeDeleted: true);
-      if (!mounted || freshCustomer == null || freshCustomer.points <= 0) return;
+      if (!context.mounted || freshCustomer == null || freshCustomer.points <= 0) return;
 
       final result = await showDialog<bool>(
         context: context,
