@@ -528,6 +528,39 @@ class BillRepository {
     }
   }
 
+  Future<Result<BillModel>> reopenBill(String billId) async {
+    try {
+      final bill = await (_db.select(_db.bills)
+            ..where((t) => t.id.equals(billId)))
+          .getSingle();
+
+      if (bill.status == BillStatus.opened) {
+        return const Failure('Bill is already open');
+      }
+
+      final now = DateTime.now();
+      final reopenedBill = await _db.transaction(() async {
+        await (_db.update(_db.bills)..where((t) => t.id.equals(billId))).write(
+          BillsCompanion(
+            status: const Value(BillStatus.opened),
+            closedAt: const Value(null),
+            updatedAt: Value(now),
+          ),
+        );
+        final entity = await (_db.select(_db.bills)
+              ..where((t) => t.id.equals(billId)))
+            .getSingle();
+        final b = billFromEntity(entity);
+        await _enqueueBill('update', b);
+        return b;
+      });
+      return Success(reopenedBill);
+    } catch (e, s) {
+      AppLogger.error('Failed to reopen bill', error: e, stackTrace: s);
+      return Failure('Failed to reopen bill: $e');
+    }
+  }
+
   Future<Result<BillModel>> updateMapPosition(
     String billId,
     int? posX,

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/data/enums/cash_movement_type.dart';
 import '../../../core/data/models/currency_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
+import '../../../core/data/providers/permission_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
@@ -326,8 +327,8 @@ class _DialogCashMovementState extends ConsumerState<DialogCashMovement> {
                           borderRadius: BorderRadius.circular(PosDialogTheme.numpadLargeRadius),
                         ),
                       ),
-                      onPressed:
-                          _hasAmount ? () => _confirm(CashMovementType.deposit) : null,
+                      onPressed: _hasAmount && ref.watch(hasPermissionProvider('register.cash_in'))
+                          ? () => _confirm(CashMovementType.deposit) : null,
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -352,8 +353,8 @@ class _DialogCashMovementState extends ConsumerState<DialogCashMovement> {
                           borderRadius: BorderRadius.circular(PosDialogTheme.numpadLargeRadius),
                         ),
                       ),
-                      onPressed:
-                          _hasAmount ? () => _confirm(CashMovementType.withdrawal) : null,
+                      onPressed: _hasAmount && ref.watch(hasPermissionProvider('register.cash_out'))
+                          ? () => _confirm(CashMovementType.withdrawal) : null,
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [

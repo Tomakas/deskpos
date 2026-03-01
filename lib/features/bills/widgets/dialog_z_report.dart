@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/data/models/currency_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
+import '../../../core/data/providers/permission_providers.dart';
 import '../../../core/data/providers/printing_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/theme/app_colors.dart';
@@ -84,16 +85,18 @@ class DialogZReport extends ConsumerWidget {
       titleStyle: theme.textTheme.headlineSmall,
       maxWidth: 520,
       scrollable: true,
-      onPrint: () async {
-        try {
-          final labels = _buildLabels(context, ref);
-          final bytes = await ref.read(printingServiceProvider)
-              .generateZReportPdf(data, labels);
-          await FileOpener.shareBytes('z_report_${data.sessionId}.pdf', bytes);
-        } catch (e, s) {
-          AppLogger.error('Failed to print Z-report', error: e, stackTrace: s);
-        }
-      },
+      onPrint: ref.watch(hasPermissionProvider('printing.z_report'))
+          ? () async {
+              try {
+                final labels = _buildLabels(context, ref);
+                final bytes = await ref.read(printingServiceProvider)
+                    .generateZReportPdf(data, labels);
+                await FileOpener.shareBytes('z_report_${data.sessionId}.pdf', bytes);
+              } catch (e, s) {
+                AppLogger.error('Failed to print Z-report', error: e, stackTrace: s);
+              }
+            }
+          : null,
       children: [
         // --- Session info ---
                 Text(l.zReportSessionInfo, style: theme.textTheme.titleSmall),

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/data/providers/auth_providers.dart';
+import '../../../core/data/providers/permission_providers.dart';
 import '../../../core/data/providers/database_provider.dart';
 import '../../../core/data/providers/sync_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
@@ -66,7 +67,9 @@ class CloudTab extends ConsumerWidget {
                             foregroundColor: theme.colorScheme.error,
                             side: BorderSide(color: theme.colorScheme.error),
                           ),
-                          onPressed: () => _deleteLocalData(context, ref),
+                          onPressed: ref.watch(hasPermissionProvider('settings_company.data_wipe'))
+                              ? () => _deleteLocalData(context, ref)
+                              : null,
                           child: Text(l.cloudDeleteLocalData),
                         ),
                       ),
@@ -89,7 +92,9 @@ class CloudTab extends ConsumerWidget {
                           style: FilledButton.styleFrom(
                             backgroundColor: theme.colorScheme.error,
                           ),
-                          onPressed: () => _deleteAllData(context, ref),
+                          onPressed: ref.watch(hasPermissionProvider('settings_company.data_wipe'))
+                              ? () => _deleteAllData(context, ref)
+                              : null,
                           child: Text(l.cloudDeleteAllData),
                         ),
                       ),

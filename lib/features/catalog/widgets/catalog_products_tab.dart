@@ -14,6 +14,7 @@ import '../../../core/data/models/modifier_group_model.dart';
 import '../../../core/data/models/supplier_model.dart';
 import '../../../core/data/models/tax_rate_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
+import '../../../core/data/providers/permission_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/theme/app_colors.dart';
@@ -207,12 +208,13 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
                                   ],
                                 ),
                                 const SizedBox(width: 8),
-                                FilledButton.icon(
-                                  onPressed: () => _showEditDialog(
-                                      context, ref, categories, taxRates, suppliers, manufacturers, null),
-                                  icon: const Icon(Icons.add),
-                                  label: Text(l.actionAdd),
-                                ),
+                                if (ref.watch(hasPermissionProvider('products.manage')))
+                                  FilledButton.icon(
+                                    onPressed: () => _showEditDialog(
+                                        context, ref, categories, taxRates, suppliers, manufacturers, null),
+                                    icon: const Icon(Icons.add),
+                                    label: Text(l.actionAdd),
+                                  ),
                               ],
                             ),
                             Expanded(
@@ -246,14 +248,15 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
-                                  PosColumn(
-                                    label: l.fieldPurchasePrice,
-                                    flex: 1,
-                                    cellBuilder: (item) => Text(
-                                      item.purchasePrice != null ? ref.moneyValue(item.purchasePrice!) : '-',
-                                      overflow: TextOverflow.ellipsis,
+                                  if (ref.watch(hasPermissionProvider('products.view_cost')))
+                                    PosColumn(
+                                      label: l.fieldPurchasePrice,
+                                      flex: 1,
+                                      cellBuilder: (item) => Text(
+                                        item.purchasePrice != null ? ref.moneyValue(item.purchasePrice!) : '-',
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
                                     ),
-                                  ),
                                   PosColumn(
                                     label: l.fieldActive,
                                     flex: 1,
@@ -268,12 +271,16 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
                                   ),
                                 ],
                                 items: filtered,
-                                onRowTap: (item) => _showEditDialog(
-                                    context, ref, categories, taxRates, suppliers, manufacturers, item),
-                                onRowLongPress: (item) async {
-                                  if (!await confirmDelete(context, context.l10n) || !context.mounted) return;
-                                  await ref.read(itemRepositoryProvider).delete(item.id);
-                                },
+                                onRowTap: ref.watch(hasPermissionProvider('products.manage'))
+                                    ? (item) => _showEditDialog(
+                                        context, ref, categories, taxRates, suppliers, manufacturers, item)
+                                    : null,
+                                onRowLongPress: ref.watch(hasPermissionProvider('products.manage'))
+                                    ? (item) async {
+                                        if (!await confirmDelete(context, context.l10n) || !context.mounted) return;
+                                        await ref.read(itemRepositoryProvider).delete(item.id);
+                                      }
+                                    : null,
                               ),
                             ),
                           ],

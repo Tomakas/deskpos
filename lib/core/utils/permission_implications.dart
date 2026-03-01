@@ -2,12 +2,10 @@
 /// Only immediate dependencies — transitivity is resolved by the functions.
 const Map<String, List<String>> _directRequirements = {
   // orders
-  'orders.view_all': ['orders.view'],
   'orders.view_paid': ['orders.view'],
   'orders.view_cancelled': ['orders.view'],
   'orders.view_detail': ['orders.view'],
   'orders.edit': ['orders.view'],
-  'orders.edit_others': ['orders.edit', 'orders.view_all'],
   'orders.void_item': ['orders.view'],
   'orders.void_bill': ['orders.view'],
   'orders.reopen': ['orders.view'],

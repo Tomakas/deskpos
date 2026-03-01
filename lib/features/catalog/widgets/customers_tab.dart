@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../../core/data/models/customer_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
+import '../../../core/data/providers/permission_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../l10n/app_localizations.dart';
@@ -128,11 +129,12 @@ class _CustomersTabState extends ConsumerState<CustomersTab> {
                   ],
                 ),
                 const SizedBox(width: 8),
-                FilledButton.icon(
-                  onPressed: () => _showEditDialog(context, ref, null),
-                  icon: const Icon(Icons.add),
-                  label: Text(l.actionAdd),
-                ),
+                if (ref.watch(hasPermissionProvider('customers.manage')))
+                  FilledButton.icon(
+                    onPressed: () => _showEditDialog(context, ref, null),
+                    icon: const Icon(Icons.add),
+                    label: Text(l.actionAdd),
+                  ),
               ],
             ),
             Expanded(
@@ -153,11 +155,15 @@ class _CustomersTabState extends ConsumerState<CustomersTab> {
                   )),
                 ],
                 items: filtered,
-                onRowTap: (c) => _showEditDialog(context, ref, c),
-                onRowLongPress: (c) async {
-                  if (!await confirmDelete(context, context.l10n) || !context.mounted) return;
-                  await ref.read(customerRepositoryProvider).delete(c.id);
-                },
+                onRowTap: ref.watch(hasPermissionProvider('customers.manage'))
+                    ? (c) => _showEditDialog(context, ref, c)
+                    : null,
+                onRowLongPress: ref.watch(hasPermissionProvider('customers.manage'))
+                    ? (c) async {
+                        if (!await confirmDelete(context, context.l10n) || !context.mounted) return;
+                        await ref.read(customerRepositoryProvider).delete(c.id);
+                      }
+                    : null,
               ),
             ),
           ],
@@ -229,7 +235,7 @@ class _CustomersTabState extends ConsumerState<CustomersTab> {
           maxWidth: 400,
           scrollable: true,
           bottomActions: PosDialogActions(
-            leading: existing != null
+            leading: existing != null && ref.read(hasPermissionProvider('customers.manage'))
                 ? OutlinedButton(
                     style: PosButtonStyles.destructiveOutlined(ctx),
                     onPressed: () async {
@@ -274,37 +280,41 @@ class _CustomersTabState extends ConsumerState<CustomersTab> {
             if (existing != null) ...[
               Row(
                 children: [
-                  Expanded(
-                    child: InputDecorator(
-                      decoration: InputDecoration(labelText: l.customerPoints),
-                      child: Text(existing.points.toString()),
+                  if (ref.read(hasPermissionProvider('customers.manage_loyalty'))) ...[
+                    Expanded(
+                      child: InputDecorator(
+                        decoration: InputDecoration(labelText: l.customerPoints),
+                        child: Text(existing.points.toString()),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 4),
-                  IconButton(
-                    icon: const Icon(Icons.history),
-                    tooltip: l.loyaltyTransactionHistory,
-                    onPressed: () => showDialog<void>(
-                      context: ctx,
-                      builder: (_) => DialogCustomerTransactions(customerId: existing.id),
+                    const SizedBox(width: 4),
+                    IconButton(
+                      icon: const Icon(Icons.history),
+                      tooltip: l.loyaltyTransactionHistory,
+                      onPressed: () => showDialog<void>(
+                        context: ctx,
+                        builder: (_) => DialogCustomerTransactions(customerId: existing.id),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: InputDecorator(
-                      decoration: InputDecoration(labelText: l.customerCredit),
-                      child: Text(ref.money(existing.credit)),
+                    const SizedBox(width: 4),
+                  ],
+                  if (ref.read(hasPermissionProvider('customers.manage_credit'))) ...[
+                    Expanded(
+                      child: InputDecorator(
+                        decoration: InputDecoration(labelText: l.customerCredit),
+                        child: Text(ref.money(existing.credit)),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 4),
-                  IconButton(
-                    icon: const Icon(Icons.account_balance_wallet_outlined),
-                    tooltip: l.loyaltyCredit,
-                    onPressed: () {
-                      Navigator.pop(ctx);
-                      _showCreditDialog(context, existing);
-                    },
-                  ),
+                    const SizedBox(width: 4),
+                    IconButton(
+                      icon: const Icon(Icons.account_balance_wallet_outlined),
+                      tooltip: l.loyaltyCredit,
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        _showCreditDialog(context, existing);
+                      },
+                    ),
+                  ],
                 ],
               ),
               const SizedBox(height: 12),

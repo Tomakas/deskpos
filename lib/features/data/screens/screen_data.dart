@@ -102,34 +102,50 @@ class _ScreenDataState extends ConsumerState<ScreenData> {
   }
 
   Widget _buildExportTab(dynamic l) {
-    return Column(
-      children: [
-        SizedBox(
-          height: 100,
-          child: _DataCard(
-            icon: Icons.upload_file,
-            title: l.dataExport,
-            description: l.dataExportDescription,
-            onPressed: null,
-          ),
-        ),
-      ],
-    );
+    final items = <({IconData icon, String title, String description})>[
+      (icon: Icons.inventory_2, title: l.dataExportProducts, description: l.dataExportProductsDesc),
+      (icon: Icons.category, title: l.dataExportCategories, description: l.dataExportCategoriesDesc),
+      (icon: Icons.people, title: l.dataExportCustomers, description: l.dataExportCustomersDesc),
+      (icon: Icons.local_shipping, title: l.dataExportSuppliers, description: l.dataExportSuppliersDesc),
+      (icon: Icons.tune, title: l.dataExportModifierGroups, description: l.dataExportModifierGroupsDesc),
+      (icon: Icons.payment, title: l.dataExportPaymentMethods, description: l.dataExportPaymentMethodsDesc),
+      (icon: Icons.percent, title: l.dataExportTaxRates, description: l.dataExportTaxRatesDesc),
+      (icon: Icons.card_giftcard, title: l.dataExportVouchers, description: l.dataExportVouchersDesc),
+      (icon: Icons.warehouse, title: l.dataExportStockLevels, description: l.dataExportStockLevelsDesc),
+      (icon: Icons.receipt_long, title: l.dataExportOrders, description: l.dataExportOrdersDesc),
+      (icon: Icons.description, title: l.dataExportBills, description: l.dataExportBillsDesc),
+    ];
+    return _buildItemList(items);
   }
 
   Widget _buildImportTab(dynamic l) {
-    return Column(
-      children: [
-        SizedBox(
-          height: 100,
-          child: _DataCard(
-            icon: Icons.download,
-            title: l.dataImport,
-            description: l.dataImportDescription,
-            onPressed: null,
-          ),
-        ),
-      ],
+    final items = <({IconData icon, String title, String description})>[
+      (icon: Icons.inventory_2, title: l.dataImportProducts, description: l.dataImportProductsDesc),
+      (icon: Icons.category, title: l.dataImportCategories, description: l.dataImportCategoriesDesc),
+      (icon: Icons.people, title: l.dataImportCustomers, description: l.dataImportCustomersDesc),
+      (icon: Icons.local_shipping, title: l.dataImportSuppliers, description: l.dataImportSuppliersDesc),
+      (icon: Icons.tune, title: l.dataImportModifierGroups, description: l.dataImportModifierGroupsDesc),
+      (icon: Icons.payment, title: l.dataImportPaymentMethods, description: l.dataImportPaymentMethodsDesc),
+      (icon: Icons.percent, title: l.dataImportTaxRates, description: l.dataImportTaxRatesDesc),
+      (icon: Icons.card_giftcard, title: l.dataImportVouchers, description: l.dataImportVouchersDesc),
+      (icon: Icons.warehouse, title: l.dataImportStockLevels, description: l.dataImportStockLevelsDesc),
+    ];
+    return _buildItemList(items);
+  }
+
+  Widget _buildItemList(List<({IconData icon, String title, String description})> items) {
+    return ListView.separated(
+      itemCount: items.length,
+      separatorBuilder: (_, _) => const SizedBox(height: 8),
+      itemBuilder: (context, index) {
+        final item = items[index];
+        return _DataCard(
+          icon: item.icon,
+          title: item.title,
+          description: item.description,
+          onPressed: null,
+        );
+      },
     );
   }
 

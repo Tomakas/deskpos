@@ -10,6 +10,7 @@ import '../../../core/data/models/order_item_model.dart';
 import '../../../core/data/models/order_model.dart';
 import '../../../core/data/models/table_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
+import '../../../core/data/providers/permission_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
@@ -194,11 +195,14 @@ class _ScreenOrdersState extends ConsumerState<ScreenOrders> {
                   itemBuilder: (_, i) => _OrderCard(
                     order: orders[i],
                     searchQuery: _searchQuery,
-                    onBump: () => _bumpOrder(orders[i]),
-                    onUnbump: () => _unbumpOrder(orders[i]),
+                    onBump: ref.watch(hasPermissionProvider('orders.bump'))
+                        ? () => _bumpOrder(orders[i]) : null,
+                    onUnbump: ref.watch(hasPermissionProvider('orders.bump_back'))
+                        ? () => _unbumpOrder(orders[i]) : null,
                     onItemStatusChange: (item, status) =>
                         _changeItemStatus(orders[i], item, status),
-                    onVoidItem: (item) => _voidItem(orders[i], item),
+                    onVoidItem: ref.watch(hasPermissionProvider('orders.void_item'))
+                        ? (item) => _voidItem(orders[i], item) : null,
                   ),
                 );
               },
@@ -409,17 +413,17 @@ class _OrderCard extends ConsumerWidget {
   const _OrderCard({
     required this.order,
     required this.searchQuery,
-    required this.onBump,
-    required this.onUnbump,
+    this.onBump,
+    this.onUnbump,
     required this.onItemStatusChange,
-    required this.onVoidItem,
+    this.onVoidItem,
   });
   final OrderModel order;
   final String searchQuery;
-  final VoidCallback onBump;
-  final VoidCallback onUnbump;
+  final VoidCallback? onBump;
+  final VoidCallback? onUnbump;
   final void Function(OrderItemModel, PrepStatus) onItemStatusChange;
-  final void Function(OrderItemModel) onVoidItem;
+  final void Function(OrderItemModel)? onVoidItem;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -556,9 +560,9 @@ class _OrderCard extends ConsumerWidget {
                                 item: items[i],
                                 searchQuery: searchQuery,
                                 isStorno: isStorno,
-                                canVoid: !isStorno && _isItemActive(items[i].status),
+                                canVoid: onVoidItem != null && !isStorno && _isItemActive(items[i].status),
                                 canChangeStatus: !isStorno,
-                                onVoid: () => onVoidItem(items[i]),
+                                onVoid: onVoidItem != null ? () => onVoidItem!(items[i]) : () {},
                                 onStatusChange: (status) =>
                                     onItemStatusChange(items[i], status),
                               ),
@@ -566,12 +570,12 @@ class _OrderCard extends ConsumerWidget {
                           ],
                         ),
                       ),
-                      if (lowestNext != null || lowestPrev != null) ...[
+                      if ((lowestNext != null && onBump != null) || (lowestPrev != null && onUnbump != null)) ...[
                         const SizedBox(width: 8),
                         ConstrainedBox(
                           constraints: const BoxConstraints(minWidth: 56),
                           child: GestureDetector(
-                            onLongPress: onUnbump,
+                            onLongPress: lowestPrev != null ? onUnbump : null,
                             child: FilledButton.tonal(
                               style: FilledButton.styleFrom(
                                 padding: const EdgeInsets.symmetric(

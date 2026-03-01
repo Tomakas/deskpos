@@ -85,101 +85,192 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
     final l = context.l10n;
 
     if (!_showWizard) {
-      return Scaffold(
-        body: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 400),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: SizedBox(
-                        height: 40,
-                        child: FilterChip(
-                          label: SizedBox(
-                            width: double.infinity,
-                            child: Text(l.languageCzech, textAlign: TextAlign.center),
-                          ),
-                          selected: _selectedLocale == 'cs',
-                          onSelected: (_) => _setLocale('cs'),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: SizedBox(
-                        height: 40,
-                        child: FilterChip(
-                          label: SizedBox(
-                            width: double.infinity,
-                            child: Text(l.languageEnglish, textAlign: TextAlign.center),
-                          ),
-                          selected: _selectedLocale == 'en',
-                          onSelected: (_) => _setLocale('en'),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 32),
-                Text(l.onboardingTitle, style: Theme.of(context).textTheme.headlineMedium),
-                const SizedBox(height: 48),
-                SizedBox(
+      final langChips = Row(
+        children: [
+          Expanded(
+            child: SizedBox(
+              height: 40,
+              child: FilterChip(
+                label: SizedBox(
                   width: double.infinity,
-                  height: 52,
-                  child: FilledButton(
-                    onPressed: () => setState(() => _showWizard = true),
-                    child: Text(l.onboardingCreateCompany),
-                  ),
+                  child: Text(l.languageCzech, textAlign: TextAlign.center),
                 ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: OutlinedButton(
-                    onPressed: () => context.go('/connect-company'),
-                    child: Text(l.onboardingJoinCompany),
-                  ),
-                ),
-                const SizedBox(height: 32),
-                const Divider(),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: OutlinedButton(
-                    onPressed: () => context.go('/display-code?type=customer_display'),
-                    child: Text(l.onboardingCustomerDisplay),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  l.onboardingCustomerDisplaySubtitle,
-                  style: Theme.of(context).textTheme.bodySmall,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 32),
-                const Divider(),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: FilledButton.tonal(
-                    onPressed: _showDemoDialog,
-                    child: Text(l.onboardingCreateDemo),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  l.onboardingCreateDemoSubtitle,
-                  style: Theme.of(context).textTheme.bodySmall,
-                  textAlign: TextAlign.center,
-                ),
-              ],
+                selected: _selectedLocale == 'cs',
+                onSelected: (_) => _setLocale('cs'),
+              ),
             ),
           ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: SizedBox(
+              height: 40,
+              child: FilterChip(
+                label: SizedBox(
+                  width: double.infinity,
+                  child: Text(l.languageEnglish, textAlign: TextAlign.center),
+                ),
+                selected: _selectedLocale == 'en',
+                onSelected: (_) => _setLocale('en'),
+              ),
+            ),
+          ),
+        ],
+      );
+
+      final title = Text(
+        l.onboardingTitle,
+        style: Theme.of(context).textTheme.headlineMedium,
+      );
+
+      final createBtn = SizedBox(
+        width: double.infinity,
+        height: 52,
+        child: FilledButton(
+          onPressed: () => setState(() => _showWizard = true),
+          child: Text(l.onboardingCreateCompany),
+        ),
+      );
+
+      final joinBtn = SizedBox(
+        width: double.infinity,
+        height: 52,
+        child: OutlinedButton(
+          onPressed: () => context.go('/connect-company'),
+          child: Text(l.onboardingJoinCompany),
+        ),
+      );
+
+      final displayBtn = SizedBox(
+        width: double.infinity,
+        height: 52,
+        child: OutlinedButton(
+          onPressed: () => context.go('/display-code?type=customer_display'),
+          child: Text(l.onboardingCustomerDisplay),
+        ),
+      );
+
+      final displaySubtitle = Text(
+        l.onboardingCustomerDisplaySubtitle,
+        style: Theme.of(context).textTheme.bodySmall,
+        textAlign: TextAlign.center,
+      );
+
+      final demoBtn = SizedBox(
+        width: double.infinity,
+        height: 52,
+        child: FilledButton.tonal(
+          onPressed: _showDemoDialog,
+          child: Text(l.onboardingCreateDemo),
+        ),
+      );
+
+      final demoSubtitle = Text(
+        l.onboardingCreateDemoSubtitle,
+        style: Theme.of(context).textTheme.bodySmall,
+        textAlign: TextAlign.center,
+      );
+
+      return Scaffold(
+        body: LayoutBuilder(
+          builder: (context, constraints) {
+            final compact = constraints.maxHeight < 520;
+
+            if (compact) {
+              return Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(32),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 720),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 400),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              langChips,
+                              const SizedBox(height: 24),
+                              title,
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(child: createBtn),
+                            const SizedBox(width: 32),
+                            Expanded(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  displayBtn,
+                                  const SizedBox(height: 8),
+                                  displaySubtitle,
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(child: joinBtn),
+                            const SizedBox(width: 32),
+                            Expanded(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  demoBtn,
+                                  const SizedBox(height: 8),
+                                  demoSubtitle,
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }
+
+            return Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(32),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 400),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      langChips,
+                      const SizedBox(height: 32),
+                      title,
+                      const SizedBox(height: 48),
+                      createBtn,
+                      const SizedBox(height: 16),
+                      joinBtn,
+                      const SizedBox(height: 32),
+                      const Divider(),
+                      const SizedBox(height: 16),
+                      displayBtn,
+                      const SizedBox(height: 8),
+                      displaySubtitle,
+                      const SizedBox(height: 32),
+                      const Divider(),
+                      const SizedBox(height: 16),
+                      demoBtn,
+                      const SizedBox(height: 8),
+                      demoSubtitle,
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
         ),
       );
     }

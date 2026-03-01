@@ -12,6 +12,7 @@ import '../../../core/data/models/user_model.dart';
 import '../../../core/data/enums/prep_status.dart';
 import '../../../core/data/result.dart';
 import '../../../core/data/providers/auth_providers.dart';
+import '../../../core/data/providers/permission_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/theme/app_colors.dart';
@@ -105,12 +106,14 @@ class _TipRow {
     required this.userName,
     required this.billId,
     required this.billNumber,
+    required this.paymentMethodName,
     required this.amount,
   });
   final DateTime paidAt;
   final String userName;
   final String billId;       // for navigation to bill detail
   final String billNumber;
+  final String paymentMethodName;
   final int amount;
 }
 
@@ -176,10 +179,10 @@ class ScreenStatistics extends ConsumerStatefulWidget {
 }
 
 class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
-    with SingleTickerProviderStateMixin {
-  static const _sections = _StatSection.values;
+    with TickerProviderStateMixin {
+  List<_StatSection> _sections = [];
 
-  late TabController _tabController;
+  TabController? _tabController;
   _StatSection _section = _StatSection.dashboard;
   bool _loading = false;
 
@@ -211,6 +214,7 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
   Set<PrepStatus> _orderStatusFilter = {};
   bool? _orderStornoFilter;
   String? _tipsUserFilter;
+  String? _tipsPaymentMethodFilter;
 
   // Per-section data
   List<BillModel> _receipts = [];
@@ -230,24 +234,69 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
   DashboardData? _dashboardData;
   bool _dashboardTopProductByRevenue = false;
 
+  static const _sectionPermissions = {
+    _StatSection.receipts: 'stats.receipts',
+    _StatSection.sales: 'stats.sales',
+    _StatSection.orders: 'stats.orders',
+    _StatSection.shifts: 'stats.shifts',
+    _StatSection.zReports: 'stats.z_reports',
+    _StatSection.tips: 'stats.tips',
+  };
+
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: _sections.length, vsync: this);
-    _tabController.addListener(_onTabChanged);
+    ref.listenManual(hasAnyPermissionInGroupProvider('stats'), (_, _) => _scheduleRebuildTabs());
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _rebuildTabs();
+  }
+
+  void _scheduleRebuildTabs() {
+    if (!mounted) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      setState(() => _rebuildTabs());
+    });
+  }
+
+  void _rebuildTabs() {
+    bool p(String code) => ref.read(hasPermissionProvider(code));
+
+    final tabs = <_StatSection>[
+      _StatSection.dashboard, // always visible if user has any stats perm
+      for (final section in _StatSection.values)
+        if (section != _StatSection.dashboard)
+          if (_sectionPermissions[section] == null || p(_sectionPermissions[section]!))
+            section,
+    ];
+
+    if (_sections.length == tabs.length && _sections.every((s) => tabs.contains(s))) return;
+
+    _sections = tabs;
+
+    _tabController?.removeListener(_onTabChanged);
+    _tabController?.dispose();
+    _tabController = tabs.isNotEmpty
+        ? TabController(length: tabs.length, vsync: this)
+        : null;
+    _tabController?.addListener(_onTabChanged);
   }
 
   @override
   void dispose() {
-    _tabController.removeListener(_onTabChanged);
-    _tabController.dispose();
+    _tabController?.removeListener(_onTabChanged);
+    _tabController?.dispose();
     _searchCtrl.dispose();
     super.dispose();
   }
 
   void _onTabChanged() {
-    if (_tabController.indexIsChanging) return; // wait for animation to finish
-    _onSectionChanged(_sections[_tabController.index]);
+    if (_tabController == null || _tabController!.indexIsChanging) return;
+    _onSectionChanged(_sections[_tabController!.index]);
   }
 
   // ---------------------------------------------------------------------------
@@ -604,6 +653,7 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
 
     final userRepo = ref.read(userRepositoryProvider);
     final billRepo = ref.read(billRepositoryProvider);
+    final paymentMethodRepo = ref.read(paymentMethodRepositoryProvider);
 
     final userIds = payments.map((p) => p.userId).whereType<String>().toSet();
     final userMap = <String, UserModel?>{};
@@ -617,6 +667,9 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
       final result = await billRepo.getById(bid);
       billMap[bid] = result is Success<BillModel> ? result.value : null;
     }
+
+    final allMethods = await paymentMethodRepo.getAll(companyId);
+    final methodNameMap = {for (final m in allMethods) m.id: m.name};
     if (!mounted) return;
 
     final rows = payments.map((p) => _TipRow(
@@ -624,6 +677,7 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
       userName: p.userId != null ? (userMap[p.userId]?.username ?? '-') : '-',
       billId: p.billId,
       billNumber: billMap[p.billId]?.billNumber ?? '-',
+      paymentMethodName: methodNameMap[p.paymentMethodId] ?? '-',
       amount: p.tipIncludedAmount,
     )).toList();
     setState(() => _tipRows = rows);
@@ -1147,11 +1201,15 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
     if (_tipsUserFilter != null) {
       list = list.where((r) => r.userName == _tipsUserFilter).toList();
     }
+    if (_tipsPaymentMethodFilter != null) {
+      list = list.where((r) => r.paymentMethodName == _tipsPaymentMethodFilter).toList();
+    }
     if (_query.isNotEmpty) {
       final q = normalizeSearch(_query);
       list = list.where((r) =>
           normalizeSearch(r.userName).contains(q) ||
-          normalizeSearch(r.billNumber).contains(q)).toList();
+          normalizeSearch(r.billNumber).contains(q) ||
+          normalizeSearch(r.paymentMethodName).contains(q)).toList();
     }
     switch (_tipSort) {
       case _TipSort.dateDesc:
@@ -1316,7 +1374,8 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
       _salesDiscountFilter != null ||
       _orderStatusFilter.isNotEmpty ||
       _orderStornoFilter != null ||
-      _tipsUserFilter != null;
+      _tipsUserFilter != null ||
+      _tipsPaymentMethodFilter != null;
 
   void _showFilterDialog() {
     switch (_section) {
@@ -1727,9 +1786,11 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
   void _showTipsFilterDialog() {
     final l = context.l10n;
     final allUsers = _tipRows.map((r) => r.userName).toSet().toList()..sort();
-    if (allUsers.isEmpty) return;
+    final allMethods = _tipRows.map((r) => r.paymentMethodName).toSet().toList()..sort();
+    if (allUsers.isEmpty && allMethods.isEmpty) return;
 
     var selectedUser = _tipsUserFilter;
+    var selectedMethod = _tipsPaymentMethodFilter;
 
     showDialog(
       context: context,
@@ -1744,7 +1805,10 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
             ),
             FilledButton(
               onPressed: () {
-                setState(() => _tipsUserFilter = selectedUser);
+                setState(() {
+                  _tipsUserFilter = selectedUser;
+                  _tipsPaymentMethodFilter = selectedMethod;
+                });
                 Navigator.pop(ctx);
               },
               child: Text(l.statsFilterApply),
@@ -1770,6 +1834,29 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
                     label: Text(name),
                     selected: selectedUser == name,
                     onSelected: (v) => setDialogState(() => selectedUser = v ? name : null),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(l.statsFilterPaymentMethod, style: const TextStyle(fontWeight: FontWeight.bold)),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              children: [
+                FilterChip(
+                  label: Text(l.statsFilterAll),
+                  selected: selectedMethod == null,
+                  onSelected: (_) => setDialogState(() => selectedMethod = null),
+                ),
+                for (final name in allMethods)
+                  FilterChip(
+                    label: Text(name),
+                    selected: selectedMethod == name,
+                    onSelected: (v) => setDialogState(() => selectedMethod = v ? name : null),
                   ),
               ],
             ),
@@ -2151,6 +2238,23 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
     final l = context.l10n;
     final locale = ref.watch(appLocaleProvider).value ?? 'cs';
 
+    if (_sections.isEmpty || _tabController == null) {
+      return Scaffold(
+        appBar: AppBar(title: Text(l.statsTitle)),
+        body: const SizedBox.shrink(),
+      );
+    }
+
+    String sectionLabel(_StatSection s) => switch (s) {
+      _StatSection.dashboard => l.statsTabDashboard,
+      _StatSection.receipts => l.statsTabReceipts,
+      _StatSection.sales => l.statsTabSales,
+      _StatSection.orders => l.statsTabOrders,
+      _StatSection.shifts => l.statsTabShifts,
+      _StatSection.zReports => l.statsTabZReports,
+      _StatSection.tips => l.statsTabTips,
+    };
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -2161,13 +2265,7 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
         bottom: TabBar(
           controller: _tabController,
           tabs: [
-            Tab(text: l.statsTabDashboard),
-            Tab(text: l.statsTabReceipts),
-            Tab(text: l.statsTabSales),
-            Tab(text: l.statsTabOrders),
-            Tab(text: l.statsTabShifts),
-            Tab(text: l.statsTabZReports),
-            Tab(text: l.statsTabTips),
+            for (final s in _sections) Tab(text: sectionLabel(s)),
           ],
         ),
       ),
@@ -2518,6 +2616,11 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
           label: l.statsColumnBill,
           flex: 8,
           cellBuilder: (r) => HighlightedText(r.billNumber, query: _query),
+        ),
+        PosColumn(
+          label: l.statsColumnPaymentMethod,
+          flex: 10,
+          cellBuilder: (r) => HighlightedText(r.paymentMethodName, query: _query, overflow: TextOverflow.ellipsis),
         ),
         PosColumn(
           label: l.tipStatsColumnAmount,

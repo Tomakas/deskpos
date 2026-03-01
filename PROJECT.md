@@ -2442,11 +2442,11 @@ Systém oprávnění funguje **offline-first**. Veškerá data jsou uložena lok
 
 | # | Skupina | Prefix | Počet |
 |---|---------|--------|:-----:|
-| 1 | Objednávky | `orders.*` | 17 |
-| 2 | Platby | `payments.*` | 11 |
+| 1 | Objednávky | `orders.*` | 15 |
+| 2 | Platby | `payments.*` | 12 |
 | 3 | Slevy a ceny | `discounts.*` | 5 |
 | 4 | Pokladna | `register.*` | 7 |
-| 5 | Směny zaměstnanců | `shifts.*` | 4 |
+| 5 | Směny zaměstnanců | `shifts.*` | 3 |
 | 6 | Produkty a katalog | `products.*` | 11 |
 | 7 | Sklad | `stock.*` | 10 |
 | 8 | Zákazníci a věrnost | `customers.*` | 4 |
@@ -2458,8 +2458,8 @@ Systém oprávnění funguje **offline-first**. Veškerá data jsou uložena lok
 | 14 | Uživatelé a role | `users.*` | 4 |
 | 15 | Nastavení — firma | `settings_company.*` | 7 |
 | 16 | Nastavení — provozovna | `settings_venue.*` | 3 |
-| 17 | Nastavení — pokladna | `settings_register.*` | 7 |
-| | | **Celkem** | **115** |
+| 17 | Nastavení — pokladna | `settings_register.*` | 6 |
+| | | **Celkem** | **112** |
 
 #### Objednávky (`orders`)
 
@@ -2470,12 +2470,10 @@ propojené workflow se sdílenými akcemi.
 |-----|-------|-------|
 | `orders.create` | Vytvořit objednávku | Přidávat položky na účet |
 | `orders.view` | Zobrazit vlastní | Vidět objednávky přiřazené k sobě |
-| `orders.view_all` | Zobrazit všechny | Vidět objednávky všech zaměstnanců |
 | `orders.view_paid` | Zobrazit zaplacené | Vidět historii zaplacených účtů |
 | `orders.view_cancelled` | Zobrazit stornované | Vidět stornované a zrušené účty |
 | `orders.view_detail` | Detail v info panelu | Zobrazit cenu, modifikátory a poznámky; bez tohoto oprávnění uživatel vidí jen čas, stav a název |
 | `orders.edit` | Upravit objednávku | Měnit položky na vlastní otevřené objednávce |
-| `orders.edit_others` | Upravit cizí | Měnit položky na objednávce jiného zaměstnance |
 | `orders.void_item` | Storno položky | Stornovat jednotlivou položku (vytvoří storno objednávku) |
 | `orders.void_bill` | Storno celého účtu | Zrušit nebo stornovat celý účet |
 | `orders.reopen` | Znovu otevřít účet | Otevřít již zaplacený nebo zrušený účet |
@@ -2497,6 +2495,7 @@ propojené workflow se sdílenými akcemi.
 | `payments.method_card` | Platba kartou | Přijímat kartové platby |
 | `payments.method_voucher` | Platba voucherem | Platba dárkovým nebo slevovým voucherem z aplikace |
 | `payments.method_meal_ticket` | Platba stravenkami | Platba stravenkami (Sodexo, Up, Edenred apod.) |
+| `payments.method_bank` | Bankovní převod | Platba bankovním převodem |
 | `payments.method_credit` | Platba na kredit | Platba z kreditu zákazníka |
 | `payments.skip_cash_dialog` | Přeskočit dialog hotovosti | Dokončit hotovostní platbu bez zadání přijaté částky; bez tohoto oprávnění musí obsluha zadat kolik zákazník dal a systém zobrazí kolik vrátit |
 | `payments.accept_tip` | Přijmout spropitné | Přijmout spropitné při platbě |
@@ -2537,7 +2536,6 @@ Evidence pracovních směn — příchod, odchod, docházka.
 
 | Kód | Název | Popis |
 |-----|-------|-------|
-| `shifts.clock_in_out` | Přihlásit / odhlásit směnu | Zaznamenat vlastní příchod a odchod |
 | `shifts.view_own` | Zobrazit vlastní směny | Vidět historii vlastních směn |
 | `shifts.view_all` | Zobrazit všechny směny | Vidět směny všech zaměstnanců |
 | `shifts.manage` | Spravovat směny | Vytvářet, upravovat a mazat směny zaměstnanců |
@@ -2690,7 +2688,6 @@ Odpovídá obrazovce **Nastavení pokladny** (terminály, hardware, grid, disple
 | `settings_register.manage` | Spravovat pokladny | Vytvářet, upravovat a mazat pokladní terminály |
 | `settings_register.hardware` | Nastavit hardware | Konfigurovat tiskárny, skenery, platební terminály a zásuvku |
 | `settings_register.grid` | Editovat prodejní grid | Upravovat rozvržení tlačítek na prodejní obrazovce |
-| `settings_register.displays` | Spravovat displeje | Konfigurovat zákaznické a kuchyňské displeje |
 | `settings_register.payment_methods` | Platební metody | Vytvářet, upravovat a mazat platební metody |
 | `settings_register.tax_rates` | Daňové sazby | Vytvářet, upravovat a mazat daňové sazby |
 | `settings_register.manage_devices` | Správa zobrazovacích zařízení | Spravovat KDS a zákaznické displeje jako zařízení |
@@ -2699,7 +2696,7 @@ Odpovídá obrazovce **Nastavení pokladny** (terminály, hardware, grid, disple
 
 #### Helper (Pomocník / Číšník)
 
-> **19 oprávnění.** Základní provoz — přijímá objednávky, inkasuje platby,
+> **18 oprávnění.** Základní provoz — přijímá objednávky, inkasuje platby,
 > vidí jen své věci, nemůže stornovat, refundovat, dávat slevy ani měnit
 > nastavení. V info panelu objednávek vidí pouze čas, stav a název
 > (bez cen a modifikátorů). Nemá přístup ke statistikám.
@@ -2710,7 +2707,7 @@ Odpovídá obrazovce **Nastavení pokladny** (terminály, hardware, grid, disple
 | payments | `accept`, `method_cash`, `method_card`, `accept_tip` | 4 |
 | discounts | — | 0 |
 | register | `view_session` | 1 |
-| shifts | `clock_in_out`, `view_own` | 2 |
+| shifts | `view_own` | 1 |
 | products | `view` | 1 |
 | stock | — | 0 |
 | customers | `view` | 1 |
@@ -2723,22 +2720,22 @@ Odpovídá obrazovce **Nastavení pokladny** (terminály, hardware, grid, disple
 | settings_company | — | 0 |
 | settings_venue | — | 0 |
 | settings_register | — | 0 |
-| | **Celkem** | **19** |
+| | **Celkem** | **18** |
 
 #### Operator (Směnový vedoucí)
 
-> **64 oprávnění.** Vše od helpera + storna, refundace, slevy (limitované na company limit), pokladní
+> **62 oprávnění.** Vše od helpera + storna, refundace, slevy (limitované na company limit), pokladní
 > operace, odpisy, správa zákazníků a rezervací. Plný detail v objednávkách.
 > Statistiky omezeny na aktuální session (bez date range selectoru).
 > Řídí provoz během směny.
 
 | Skupina | Navíc oproti helper | Celkem |
 |---------|---------------------|:------:|
-| orders | + `view_all`, `view_paid`, `view_cancelled`, `view_detail`, `edit_others`, `void_item`, `void_bill`, `transfer`, `split`, `merge`, `bump_back` | 16 |
-| payments | + `refund`, `refund_item`, `method_voucher`, `method_meal_ticket`, `method_credit`, `skip_cash_dialog`, `adjust_tip` | 11 |
+| orders | + `view_paid`, `view_cancelled`, `view_detail`, `void_item`, `void_bill`, `transfer`, `split`, `merge`, `bump_back` | 14 |
+| payments | + `refund`, `refund_item`, `method_voucher`, `method_meal_ticket`, `method_bank`, `method_credit`, `skip_cash_dialog`, `adjust_tip` | 12 |
 | discounts | + `apply_item_limited`, `apply_bill_limited`, `loyalty` | 3 |
 | register | + `open_session`, `close_session`, `view_all_sessions`, `cash_in`, `cash_out`, `open_drawer` | 7 |
-| shifts | + `view_all` | 3 |
+| shifts | + `view_all` | 2 |
 | products | + `set_availability` | 2 |
 | stock | + `view_levels`, `view_documents`, `view_movements`, `wastage` | 4 |
 | customers | + `manage`, `manage_credit` | 3 |
@@ -2751,11 +2748,11 @@ Odpovídá obrazovce **Nastavení pokladny** (terminály, hardware, grid, disple
 | settings_company | — | 0 |
 | settings_venue | — | 0 |
 | settings_register | — | 0 |
-| | **Celkem** | **64** |
+| | **Celkem** | **62** |
 
 #### Manager (Manažer)
 
-> **95 oprávnění.** Vše od operátora + neomezené slevy, správa katalogu (produkty, kategorie,
+> **92 oprávnění.** Vše od operátora + neomezené slevy, správa katalogu (produkty, kategorie,
 > modifikátory, receptury, dodavatelé, výrobci), skladu (příjem, korekce,
 > inventura, přesun), zaměstnanců, nastavení provozovny a export dat.
 > Plný přístup ke statistikám včetně historie, směn a uzávěrek.
@@ -2763,11 +2760,11 @@ Odpovídá obrazovce **Nastavení pokladny** (terminály, hardware, grid, disple
 
 | Skupina | Navíc oproti operator | Celkem |
 |---------|----------------------|:------:|
-| orders | + `reopen` | 17 |
-| payments | — | 11 |
+| orders | + `reopen` | 15 |
+| payments | — | 12 |
 | discounts | + `apply_item`, `apply_bill` | 5 |
 | register | — | 7 |
-| shifts | + `manage` | 4 |
+| shifts | + `manage` | 3 |
 | products | + `view_cost`, `manage`, `manage_categories`, `manage_modifiers`, `manage_recipes`, `manage_suppliers`, `manage_manufacturers` | 9 |
 | stock | + `receive`, `adjust`, `count`, `transfer` | 8 |
 | customers | + `manage_loyalty` | 4 |
@@ -2779,22 +2776,22 @@ Odpovídá obrazovce **Nastavení pokladny** (terminály, hardware, grid, disple
 | users | + `manage` | 2 |
 | settings_company | — | 0 |
 | settings_venue | + `sections`, `tables`, `floor_plan` | 3 |
-| settings_register | + `grid`, `displays` | 2 |
-| | **Celkem** | **95** |
+| settings_register | + `grid` | 1 |
+| | **Celkem** | **92** |
 
 #### Admin (Administrátor / Majitel)
 
-> **115 oprávnění (vše).** Vše od manažera + systémová nastavení firmy,
+> **112 oprávnění (vše).** Vše od manažera + systémová nastavení firmy,
 > správa daní a nákupních cen, cenová strategie, sklady, role a oprávnění
 > uživatelů, import/záloha dat, registr a hardware, destruktivní akce.
 
 | Skupina | Navíc oproti manager | Celkem |
 |---------|---------------------|:------:|
-| orders | — | 17 |
-| payments | — | 11 |
+| orders | — | 15 |
+| payments | — | 12 |
 | discounts | — | 5 |
 | register | — | 7 |
-| shifts | — | 4 |
+| shifts | — | 3 |
 | products | + `manage_purchase_price`, `manage_tax` | 11 |
 | stock | + `set_price_strategy`, `manage_warehouses` | 10 |
 | customers | — | 4 |
@@ -2806,18 +2803,18 @@ Odpovídá obrazovce **Nastavení pokladny** (terminály, hardware, grid, disple
 | users | + `assign_roles`, `manage_permissions` | 4 |
 | settings_company | + `info`, `security`, `fiscal`, `cloud`, `data_wipe`, `view_log`, `clear_log` | 7 |
 | settings_venue | — | 3 |
-| settings_register | + `manage`, `hardware`, `payment_methods`, `tax_rates`, `manage_devices` | 7 |
-| | **Celkem** | **115** |
+| settings_register | + `manage`, `hardware`, `payment_methods`, `tax_rates`, `manage_devices` | 6 |
+| | **Celkem** | **112** |
 
 #### Souhrnná matice
 
 | Skupina | Počet | helper | operator | manager | admin |
 |---------|:-----:|:------:|:--------:|:-------:|:-----:|
-| orders | 17 | 5 | 16 | 17 | 17 |
-| payments | 11 | 4 | 11 | 11 | 11 |
+| orders | 15 | 5 | 14 | 15 | 15 |
+| payments | 12 | 4 | 12 | 12 | 12 |
 | discounts | 5 | 0 | 3 | 5 | 5 |
 | register | 7 | 1 | 7 | 7 | 7 |
-| shifts | 4 | 2 | 3 | 4 | 4 |
+| shifts | 3 | 1 | 2 | 3 | 3 |
 | products | 11 | 1 | 2 | 9 | 11 |
 | stock | 10 | 0 | 4 | 8 | 10 |
 | customers | 4 | 1 | 3 | 4 | 4 |
@@ -2829,15 +2826,15 @@ Odpovídá obrazovce **Nastavení pokladny** (terminály, hardware, grid, disple
 | users | 4 | 0 | 1 | 2 | 4 |
 | settings_company | 7 | 0 | 0 | 0 | 7 |
 | settings_venue | 3 | 0 | 0 | 3 | 3 |
-| settings_register | 7 | 0 | 0 | 2 | 7 |
-| **Celkem** | **115** | **19** | **64** | **95** | **115** |
+| settings_register | 6 | 0 | 0 | 1 | 6 |
+| **Celkem** | **112** | **18** | **62** | **92** | **112** |
 
 #### Progrese mezi rolemi
 
 | Přechod | Nových oprávnění | Hlavní oblasti |
 |---------|:----------------:|----------------|
-| helper → operator | +45 | Storna, refundace, slevy (limitované), pokladní operace, statistiky (session) |
-| operator → manager | +31 | Slevy (neomezené), katalog, sklad, zaměstnanci, statistiky (historie + směny + uzávěrky), nastavení provozovny |
+| helper → operator | +44 | Storna, refundace, slevy (limitované), pokladní operace, statistiky (session) |
+| operator → manager | +30 | Slevy (neomezené), katalog, sklad, zaměstnanci, statistiky (historie + směny + uzávěrky), nastavení provozovny |
 | manager → admin | +20 | Systém, daně, ceny, data, role, hardware, destruktivní akce |
 
 ### Přiřazení role uživateli

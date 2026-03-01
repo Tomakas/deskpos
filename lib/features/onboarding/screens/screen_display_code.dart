@@ -77,97 +77,138 @@ class _ScreenDisplayCodeState extends ConsumerState<ScreenDisplayCode> {
     final l = context.l10n;
     final theme = Theme.of(context);
 
-    return Scaffold(
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 360),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                l.displayCodeTitle,
-                style: theme.textTheme.headlineMedium,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                l.displayCodeSubtitle,
-                style: theme.textTheme.bodyMedium,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 32),
-              // Code dots
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  for (var i = 0; i < 6; i++) ...[
-                    if (i > 0) const SizedBox(width: 12),
-                    _CodeDot(
-                      filled: i < _code.length,
-                      digit: i < _code.length ? _code[i] : null,
-                    ),
-                  ],
-                ],
-              ),
-              const SizedBox(height: 12),
-              // Status area
-              SizedBox(
-                height: _isWaiting ? 80 : 24,
-                child: _isWaiting
-                    ? Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            l.displayCodeWaitingForConfirmation,
-                            style: theme.textTheme.bodySmall,
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 4),
-                          GestureDetector(
-                            onTap: _cancelWaiting,
-                            child: Text(
-                              l.actionCancel,
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.primary,
-                                decoration: TextDecoration.underline,
-                              ),
-                            ),
-                          ),
-                        ],
-                      )
-                    : _isLooking
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : _error != null
-                            ? Text(
-                                _error!,
-                                style: TextStyle(
-                                  color: theme.colorScheme.error,
-                                  fontSize: 13,
-                                ),
-                              )
-                            : null,
-              ),
-              const SizedBox(height: 16),
-              PosNumpad(
-                width: 280,
-                enabled: !_isBusy,
-                onDigit: _onDigit,
-                onBackspace: _onBackspace,
-                bottomLeftChild: const Icon(Icons.arrow_back),
-                onBottomLeft: _isBusy ? null : () => context.go('/onboarding'),
+    final infoBlock = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          l.displayCodeTitle,
+          style: theme.textTheme.headlineMedium,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          l.displayCodeSubtitle,
+          style: theme.textTheme.bodyMedium,
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 32),
+        // Code dots
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            for (var i = 0; i < 6; i++) ...[
+              if (i > 0) const SizedBox(width: 12),
+              _CodeDot(
+                filled: i < _code.length,
+                digit: i < _code.length ? _code[i] : null,
               ),
             ],
-          ),
+          ],
         ),
+        const SizedBox(height: 12),
+        // Status area
+        SizedBox(
+          height: _isWaiting ? 80 : 24,
+          child: _isWaiting
+              ? Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      l.displayCodeWaitingForConfirmation,
+                      style: theme.textTheme.bodySmall,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 4),
+                    GestureDetector(
+                      onTap: _cancelWaiting,
+                      child: Text(
+                        l.actionCancel,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.primary,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+              : _isLooking
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : _error != null
+                      ? Text(
+                          _error!,
+                          style: TextStyle(
+                            color: theme.colorScheme.error,
+                            fontSize: 13,
+                          ),
+                        )
+                      : null,
+        ),
+      ],
+    );
+
+    final numpad = PosNumpad(
+      width: 280,
+      enabled: !_isBusy,
+      onDigit: _onDigit,
+      onBackspace: _onBackspace,
+      bottomLeftChild: const Icon(Icons.arrow_back),
+      onBottomLeft: _isBusy ? null : () => context.go('/onboarding'),
+    );
+
+    return Scaffold(
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final compact = constraints.maxHeight < 520;
+
+          if (compact) {
+            return Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(32),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 640),
+                  child: Wrap(
+                    spacing: 48,
+                    runSpacing: 24,
+                    alignment: WrapAlignment.center,
+                    children: [
+                      ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 320),
+                        child: infoBlock,
+                      ),
+                      numpad,
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }
+
+          return Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(32),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 360),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    infoBlock,
+                    const SizedBox(height: 16),
+                    numpad,
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }

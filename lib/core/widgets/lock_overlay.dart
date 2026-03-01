@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -40,20 +41,23 @@ class _LockOverlayState extends ConsumerState<LockOverlay> {
   @override
   Widget build(BuildContext context) {
     final screen = MediaQuery.sizeOf(context);
-    return ColoredBox(
-      color: Colors.black54,
-      child: Center(
-        child: Card(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxWidth: 360,
-              maxHeight: (screen.height - 24).clamp(0, 460),
+    return BackdropFilter(
+      filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+      child: ColoredBox(
+        color: Colors.black54,
+        child: Center(
+          child: Card(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: 360,
+                maxHeight: (screen.height - 24).clamp(0, 460),
+              ),
+              child: switch (_step) {
+                _LockStep.loggedIn => _buildLoggedInList(context),
+                _LockStep.newUser => _buildNewUserList(context),
+                _LockStep.pin => _buildPinEntry(context),
+              },
             ),
-            child: switch (_step) {
-              _LockStep.loggedIn => _buildLoggedInList(context),
-              _LockStep.newUser => _buildNewUserList(context),
-              _LockStep.pin => _buildPinEntry(context),
-            },
           ),
         ),
       ),

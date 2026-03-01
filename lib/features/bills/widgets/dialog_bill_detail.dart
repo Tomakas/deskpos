@@ -572,63 +572,75 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
 
   Widget _buildRightButtons(BuildContext context, WidgetRef ref, BillModel bill, AppLocalizations l) {
     final isOpened = bill.status == BillStatus.opened;
+    final canAssignCustomer = ref.watch(hasPermissionProvider('orders.assign_customer'));
+    final canTransfer = ref.watch(hasPermissionProvider('orders.transfer'));
+    final canMerge = ref.watch(hasPermissionProvider('orders.merge'));
+    final canSplit = ref.watch(hasPermissionProvider('orders.split'));
+    final canDiscount = ref.watch(hasPermissionProvider('discounts.apply_bill')) ||
+        ref.watch(hasPermissionProvider('discounts.apply_bill_limited'));
+
+    final buttons = <Widget>[
+      if (canAssignCustomer)
+        Expanded(
+          child: _SideButton(
+            label: l.billDetailCustomer,
+            onPressed: isOpened && !_isProcessing ? () => _selectCustomer(context, ref, bill) : null,
+          ),
+        ),
+      if (canTransfer)
+        Expanded(
+          child: _SideButton(
+            label: l.billDetailMove,
+            onPressed: isOpened && !_isProcessing ? () => _moveBill(context, ref, bill) : null,
+          ),
+        ),
+      if (canMerge)
+        Expanded(
+          child: _SideButton(
+            label: l.billDetailMerge,
+            onPressed: isOpened && !_isProcessing ? () => _mergeBill(context, ref, bill) : null,
+          ),
+        ),
+      if (canSplit)
+        Expanded(
+          child: _SideButton(
+            label: l.billDetailSplit,
+            onPressed: isOpened && !_isProcessing ? () => _splitBill(context, ref, bill) : null,
+          ),
+        ),
+      if (canDiscount)
+        Expanded(
+          child: _SideButton(
+            label: bill.discountAmount > 0 ? l.billDetailRemoveDiscount : l.billDetailDiscount,
+            onPressed: isOpened && !_isProcessing
+                ? () => bill.discountAmount > 0
+                    ? _removeBillDiscount(context, ref, bill)
+                    : _applyBillDiscount(context, ref, bill)
+                : null,
+          ),
+        ),
+      Expanded(
+        child: _SideButton(
+          label: bill.voucherId != null ? l.billDetailRemoveVoucher : l.billDetailVoucher,
+          onPressed: isOpened && !_isProcessing
+              ? () => bill.voucherId != null
+                  ? _removeVoucher(context, ref, bill)
+                  : _applyVoucher(context, ref, bill)
+              : null,
+        ),
+      ),
+    ];
+
     return SizedBox(
       width: 100,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
         child: Column(
           children: [
-            Expanded(
-              child: _SideButton(
-                label: l.billDetailCustomer,
-                onPressed: isOpened && !_isProcessing ? () => _selectCustomer(context, ref, bill) : null,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Expanded(
-              child: _SideButton(
-                label: l.billDetailMove,
-                onPressed: isOpened && !_isProcessing ? () => _moveBill(context, ref, bill) : null,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Expanded(
-              child: _SideButton(
-                label: l.billDetailMerge,
-                onPressed: isOpened && !_isProcessing ? () => _mergeBill(context, ref, bill) : null,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Expanded(
-              child: _SideButton(
-                label: l.billDetailSplit,
-                onPressed: isOpened && !_isProcessing ? () => _splitBill(context, ref, bill) : null,
-              ),
-            ),
-            const SizedBox(height: 4),
-            if (ref.watch(hasPermissionProvider('discounts.apply_bill')) ||
-                ref.watch(hasPermissionProvider('discounts.apply_bill_limited')))
-              Expanded(
-                child: _SideButton(
-                  label: bill.discountAmount > 0 ? l.billDetailRemoveDiscount : l.billDetailDiscount,
-                  onPressed: isOpened && !_isProcessing
-                      ? () => bill.discountAmount > 0
-                          ? _removeBillDiscount(context, ref, bill)
-                          : _applyBillDiscount(context, ref, bill)
-                      : null,
-                ),
-              ),
-            const SizedBox(height: 4),
-            Expanded(
-              child: _SideButton(
-                label: bill.voucherId != null ? l.billDetailRemoveVoucher : l.billDetailVoucher,
-                onPressed: isOpened && !_isProcessing
-                    ? () => bill.voucherId != null
-                        ? _removeVoucher(context, ref, bill)
-                        : _applyVoucher(context, ref, bill)
-                    : null,
-              ),
-            ),
+            for (var i = 0; i < buttons.length; i++) ...[
+              if (i > 0) const SizedBox(height: 4),
+              buttons[i],
+            ],
           ],
         ),
       ),
@@ -638,6 +650,13 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
   Widget _buildFooter(BuildContext context, WidgetRef ref, BillModel bill, AppLocalizations l) {
     final isClosed = bill.status != BillStatus.opened;
     final isPaid = bill.status == BillStatus.paid;
+    final canPrint = isClosed
+        ? ref.watch(hasPermissionProvider('printing.reprint'))
+        : ref.watch(hasPermissionProvider('printing.receipt'));
+    final canRefund = ref.watch(hasPermissionProvider('payments.refund'));
+    final canReopen = ref.watch(hasPermissionProvider('orders.reopen'));
+    final canVoidBill = ref.watch(hasPermissionProvider('orders.void_bill'));
+    final canPay = ref.watch(hasPermissionProvider('payments.accept'));
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -653,18 +672,21 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
               ),
             ),
           ),
-          const SizedBox(width: 12),
-          // Print receipt
-          Expanded(
-            child: SizedBox(
-              height: 44,
-              child: FilledButton(
-                onPressed: () => showReceiptPrintDialog(context, ref, bill.id),
-                child: Text(l.billDetailPrint),
+          if (canPrint) ...[
+            const SizedBox(width: 12),
+            // Print receipt
+            Expanded(
+              child: SizedBox(
+                height: 44,
+                child: FilledButton(
+                  onPressed: () => showReceiptPrintDialog(context, ref, bill.id),
+                  child: Text(l.billDetailPrint),
+                ),
               ),
             ),
-          ),
-          if (isPaid &&
+          ],
+          if (canRefund &&
+              isPaid &&
               (ref.watch(activeRegisterProvider).value?.allowRefunds ?? true)) ...[
             const SizedBox(width: 12),
             // Refund
@@ -679,7 +701,21 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
               ),
             ),
           ],
-          if (!isClosed) ...[
+          if (canReopen && isClosed) ...[
+            const SizedBox(width: 12),
+            // Reopen bill
+            Expanded(
+              child: SizedBox(
+                height: 44,
+                child: FilledButton(
+                  style: PosButtonStyles.warningFilled(context),
+                  onPressed: !_isProcessing ? () => _reopenBill(context, ref, bill, l) : null,
+                  child: Text(l.billDetailReopen),
+                ),
+              ),
+            ),
+          ],
+          if (canVoidBill && !isClosed) ...[
             const SizedBox(width: 12),
             // Cancel bill
             Expanded(
@@ -693,7 +729,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
               ),
             ),
           ],
-          if (!isClosed) ...[
+          if (canPay && !isClosed) ...[
             const SizedBox(width: 12),
             // Pay
             Expanded(
@@ -860,6 +896,41 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
 
       final repo = ref.read(billRepositoryProvider);
       final result = await repo.cancelBill(bill.id, userId: ref.read(activeUserProvider)?.id);
+      if (result is Success) {
+        if (context.mounted) Navigator.pop(context);
+      }
+    } finally {
+      if (mounted) setState(() => _isProcessing = false);
+    }
+  }
+
+  Future<void> _reopenBill(BuildContext context, WidgetRef ref, BillModel bill, AppLocalizations l) async {
+    if (_isProcessing) return;
+    setState(() => _isProcessing = true);
+    try {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (_) => PosDialogShell(
+          title: '',
+          maxWidth: 400,
+          scrollable: true,
+          bottomActions: PosDialogActions(
+            actions: [
+              OutlinedButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
+              FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
+            ],
+          ),
+          children: [
+            Text(l.billDetailConfirmReopen),
+            const SizedBox(height: 16),
+          ],
+        ),
+      );
+      if (confirmed != true) return;
+      if (!context.mounted) return;
+
+      final repo = ref.read(billRepositoryProvider);
+      final result = await repo.reopenBill(bill.id);
       if (result is Success) {
         if (context.mounted) Navigator.pop(context);
       }
@@ -1485,10 +1556,11 @@ class _OrderSection extends ConsumerWidget {
               ),
             for (final item in items)
               InkWell(
-                onTap: isEditable
+                onTap: isEditable && ref.watch(hasPermissionProvider('orders.edit'))
                     ? () => _editItemNotes(context, ref, item)
                     : (isPaid &&
                             item.status != PrepStatus.voided &&
+                            ref.watch(hasPermissionProvider('payments.refund_item')) &&
                             (ref.watch(activeRegisterProvider).value?.allowRefunds ?? true))
                         ? () => _refundItem(context, ref, item)
                         : null,
@@ -1592,7 +1664,7 @@ class _OrderSection extends ConsumerWidget {
                                             _changeItemStatus(context, ref, item, status),
                                         itemBuilder: (_) =>
                                             _availableTransitions(
-                                                item.status, l, context),
+                                                item.status, l, context, ref),
                                       )
                                     : Center(
                                         child: Container(
@@ -1734,19 +1806,21 @@ class _OrderSection extends ConsumerWidget {
                 child: Text(context.l10n.billDetailDiscount),
               ),
             ),
-          const SizedBox(height: 8),
-          SizedBox(
-            width: double.infinity,
-            height: 40,
-            child: OutlinedButton(
-              style: PosButtonStyles.destructiveOutlined(context),
-              onPressed: () {
-                Navigator.pop(context);
-                _voidSingleItem(context, ref, item);
-              },
-              child: Text(context.l10n.orderItemStorno),
+          if (ref.read(hasPermissionProvider('orders.void_item'))) ...[
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              height: 40,
+              child: OutlinedButton(
+                style: PosButtonStyles.destructiveOutlined(context),
+                onPressed: () {
+                  Navigator.pop(context);
+                  _voidSingleItem(context, ref, item);
+                },
+                child: Text(context.l10n.orderItemStorno),
+              ),
             ),
-          ),
+          ],
           const SizedBox(height: 16),
         ],
       ),
@@ -1908,7 +1982,7 @@ class _OrderSection extends ConsumerWidget {
   }
 
   List<PopupMenuEntry<PrepStatus>> _availableTransitions(
-      PrepStatus current, AppLocalizations l, BuildContext context) {
+      PrepStatus current, AppLocalizations l, BuildContext context, WidgetRef ref) {
     PopupMenuItem<PrepStatus> transition(PrepStatus status, String label) =>
         PopupMenuItem(
           value: status,
@@ -1926,16 +2000,17 @@ class _OrderSection extends ConsumerWidget {
           child: Text(l.orderItemStorno,
               style: TextStyle(color: context.appColors.danger)),
         );
+    final canVoidItem = ref.read(hasPermissionProvider('orders.void_item'));
     switch (current) {
       case PrepStatus.created:
         return [
           transition(PrepStatus.ready, l.prepStatusReady),
-          voidItem(),
+          if (canVoidItem) voidItem(),
         ];
       case PrepStatus.ready:
         return [
           transition(PrepStatus.delivered, l.prepStatusDelivered),
-          voidItem(),
+          if (canVoidItem) voidItem(),
         ];
       default:
         return [];

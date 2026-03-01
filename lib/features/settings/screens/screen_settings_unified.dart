@@ -6,6 +6,7 @@ import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../l10n/app_localizations.dart';
 import '../widgets/cloud_tab.dart';
 import '../widgets/company_info_tab.dart';
+import '../widgets/fiscal_tab.dart';
 import '../widgets/floor_map_editor_tab.dart';
 import '../widgets/log_tab.dart';
 import '../widgets/mode_tab.dart';
@@ -31,14 +32,18 @@ class _ScreenSettingsUnifiedState extends ConsumerState<ScreenSettingsUnified>
   TabController? _topController;
   final Map<int, TabController> _innerControllers = {};
   List<_TopTab> _visibleTabs = [];
+  // Cached inner tab definitions per top-level tab index.
+  final Map<int, List<_InnerTabDef>> _innerTabDefs = {};
 
   @override
   void initState() {
     super.initState();
     // Listen for permission changes and rebuild tabs safely (outside build).
-    ref.listenManual(hasAnyPermissionInGroupProvider('settings_company'), (_, _) => _schedulRebuild());
-    ref.listenManual(hasAnyPermissionInGroupProvider('settings_venue'), (_, _) => _schedulRebuild());
-    ref.listenManual(hasAnyPermissionInGroupProvider('settings_register'), (_, _) => _schedulRebuild());
+    ref.listenManual(hasAnyPermissionInGroupProvider('settings_company'), (_, _) => _scheduleRebuild());
+    ref.listenManual(hasAnyPermissionInGroupProvider('settings_venue'), (_, _) => _scheduleRebuild());
+    ref.listenManual(hasAnyPermissionInGroupProvider('settings_register'), (_, _) => _scheduleRebuild());
+    // Cross-group permissions that affect settings visibility.
+    ref.listenManual(hasPermissionProvider('users.view'), (_, _) => _scheduleRebuild());
   }
 
   @override
@@ -47,7 +52,7 @@ class _ScreenSettingsUnifiedState extends ConsumerState<ScreenSettingsUnified>
     _rebuildTabs();
   }
 
-  void _schedulRebuild() {
+  void _scheduleRebuild() {
     if (!mounted) return;
     // Defer so we never dispose controllers inside build().
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -56,24 +61,85 @@ class _ScreenSettingsUnifiedState extends ConsumerState<ScreenSettingsUnified>
     });
   }
 
+  List<_InnerTabDef> _buildInnerTabs(_TopTab tab) {
+    final l = context.l10n;
+    bool p(String code) => ref.read(hasPermissionProvider(code));
+    switch (tab) {
+      case _TopTab.company:
+        return [
+          if (p('settings_company.info'))
+            _InnerTabDef(l.settingsTabInfo, const CompanyInfoTab()),
+          if (p('users.view'))
+            _InnerTabDef(l.settingsTabUsers, const UsersTab()),
+          if (p('settings_company.security'))
+            _InnerTabDef(l.settingsSectionSecurity, const SecurityTab()),
+          if (p('settings_company.cloud'))
+            _InnerTabDef(l.settingsSectionCloud, const CloudTab()),
+          if (p('settings_company.fiscal'))
+            _InnerTabDef(l.settingsTabFiscal, const FiscalTab()),
+          if (p('settings_register.tax_rates'))
+            _InnerTabDef(l.settingsTaxRates, const TaxRatesTab()),
+          if (p('settings_register.payment_methods'))
+            _InnerTabDef(l.settingsPaymentMethods, const PaymentMethodsTab()),
+          if (p('settings_company.view_log'))
+            _InnerTabDef(l.settingsTabLog, const LogTab()),
+        ];
+      case _TopTab.venue:
+        return [
+          if (p('settings_venue.sections'))
+            _InnerTabDef(l.settingsSections, const SectionsTab()),
+          if (p('settings_venue.tables'))
+            _InnerTabDef(l.settingsTables, const TablesTab()),
+          if (p('settings_venue.floor_plan'))
+            _InnerTabDef(l.settingsFloorMap, const FloorMapEditorTab()),
+          if (p('settings_register.manage_devices'))
+            _InnerTabDef(l.settingsRegisters, const RegistersTab()),
+        ];
+      case _TopTab.register:
+        return [
+          if (p('settings_register.manage'))
+            _InnerTabDef(l.modeTitle, const ModeTab()),
+          if (p('settings_register.manage'))
+            _InnerTabDef(l.sellTitle, const RegisterTab()),
+          if (p('settings_register.hardware'))
+            _InnerTabDef(l.peripheralsTitle, const PeripheralsTab()),
+        ];
+    }
+  }
+
   void _rebuildTabs() {
-    final canCompany = ref.read(hasAnyPermissionInGroupProvider('settings_company'));
-    final canVenue = ref.read(hasAnyPermissionInGroupProvider('settings_venue'));
-    final canRegister = ref.read(hasAnyPermissionInGroupProvider('settings_register'));
+    // Build inner tab lists first — top-level tab visible only if inner list is non-empty.
+    final companyInner = _buildInnerTabs(_TopTab.company);
+    final venueInner = _buildInnerTabs(_TopTab.venue);
+    final registerInner = _buildInnerTabs(_TopTab.register);
 
     final tabs = <_TopTab>[
-      if (canCompany) _TopTab.company,
-      if (canVenue) _TopTab.venue,
-      if (canRegister) _TopTab.register,
+      if (companyInner.isNotEmpty) _TopTab.company,
+      if (venueInner.isNotEmpty) _TopTab.venue,
+      if (registerInner.isNotEmpty) _TopTab.register,
     ];
 
-    if (_listEquals(tabs, _visibleTabs)) return;
+    // Build inner-tab map keyed by position in new tabs list.
+    final newInnerDefs = <int, List<_InnerTabDef>>{};
+    for (var i = 0; i < tabs.length; i++) {
+      newInnerDefs[i] = switch (tabs[i]) {
+        _TopTab.company => companyInner,
+        _TopTab.venue => venueInner,
+        _TopTab.register => registerInner,
+      };
+    }
+
+    // Check if anything actually changed.
+    if (_listEquals(tabs, _visibleTabs) && _innerDefsEqual(newInnerDefs)) return;
 
     final oldTab = _visibleTabs.isNotEmpty && _topController != null
         ? _visibleTabs[_topController!.index]
         : null;
 
     _visibleTabs = tabs;
+    _innerTabDefs
+      ..clear()
+      ..addAll(newInnerDefs);
 
     _topController?.removeListener(_onTopTabChanged);
     _topController?.dispose();
@@ -94,10 +160,22 @@ class _ScreenSettingsUnifiedState extends ConsumerState<ScreenSettingsUnified>
     _innerControllers.clear();
     for (var i = 0; i < tabs.length; i++) {
       _innerControllers[i] = TabController(
-        length: _innerTabCount(tabs[i]),
+        length: _innerTabDefs[i]!.length,
         vsync: this,
       );
     }
+  }
+
+  bool _innerDefsEqual(Map<int, List<_InnerTabDef>> newDefs) {
+    if (newDefs.length != _innerTabDefs.length) return false;
+    for (final entry in newDefs.entries) {
+      final old = _innerTabDefs[entry.key];
+      if (old == null || old.length != entry.value.length) return false;
+      for (var i = 0; i < old.length; i++) {
+        if (old[i].label != entry.value[i].label) return false;
+      }
+    }
+    return true;
   }
 
   static bool _listEquals(List<_TopTab> a, List<_TopTab> b) {
@@ -124,17 +202,6 @@ class _ScreenSettingsUnifiedState extends ConsumerState<ScreenSettingsUnified>
     }
   }
 
-  int _innerTabCount(_TopTab tab) {
-    switch (tab) {
-      case _TopTab.company:
-        return 7;
-      case _TopTab.venue:
-        return 4;
-      case _TopTab.register:
-        return 3;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
@@ -147,7 +214,7 @@ class _ScreenSettingsUnifiedState extends ConsumerState<ScreenSettingsUnified>
     }
 
     final topIndex = _topController!.index.clamp(0, _visibleTabs.length - 1);
-    final currentTop = _visibleTabs[topIndex];
+    final innerDefs = _innerTabDefs[topIndex] ?? [];
     final innerController = _innerControllers[topIndex]!;
 
     return Scaffold(
@@ -166,13 +233,13 @@ class _ScreenSettingsUnifiedState extends ConsumerState<ScreenSettingsUnified>
             color: Theme.of(context).colorScheme.surfaceContainerLow,
             child: TabBar(
               controller: innerController,
-              tabs: _innerTabs(l, currentTop),
+              tabs: [for (final def in innerDefs) Tab(text: def.label)],
             ),
           ),
           Expanded(
             child: TabBarView(
               controller: innerController,
-              children: _innerViews(currentTop),
+              children: [for (final def in innerDefs) def.view],
             ),
           ),
         ],
@@ -190,62 +257,12 @@ class _ScreenSettingsUnifiedState extends ConsumerState<ScreenSettingsUnified>
         return l.settingsTabRegister;
     }
   }
-
-  List<Tab> _innerTabs(AppLocalizations l, _TopTab tab) {
-    switch (tab) {
-      case _TopTab.company:
-        return [
-          Tab(text: l.settingsTabInfo),
-          Tab(text: l.settingsTabUsers),
-          Tab(text: l.settingsSectionSecurity),
-          Tab(text: l.settingsSectionCloud),
-          Tab(text: l.settingsTaxRates),
-          Tab(text: l.settingsPaymentMethods),
-          Tab(text: l.settingsTabLog),
-        ];
-      case _TopTab.venue:
-        return [
-          Tab(text: l.settingsSections),
-          Tab(text: l.settingsTables),
-          Tab(text: l.settingsFloorMap),
-          Tab(text: l.settingsRegisters),
-        ];
-      case _TopTab.register:
-        return [
-          Tab(text: l.modeTitle),
-          Tab(text: l.sellTitle),
-          Tab(text: l.peripheralsTitle),
-        ];
-    }
-  }
-
-  List<Widget> _innerViews(_TopTab tab) {
-    switch (tab) {
-      case _TopTab.company:
-        return const [
-          CompanyInfoTab(),
-          UsersTab(),
-          SecurityTab(),
-          CloudTab(),
-          TaxRatesTab(),
-          PaymentMethodsTab(),
-          LogTab(),
-        ];
-      case _TopTab.venue:
-        return const [
-          SectionsTab(),
-          TablesTab(),
-          FloorMapEditorTab(),
-          RegistersTab(),
-        ];
-      case _TopTab.register:
-        return const [
-          ModeTab(),
-          RegisterTab(),
-          PeripheralsTab(),
-        ];
-    }
-  }
 }
 
 enum _TopTab { company, venue, register }
+
+class _InnerTabDef {
+  const _InnerTabDef(this.label, this.view);
+  final String label;
+  final Widget view;
+}

@@ -6158,12 +6158,6 @@ abstract class AppLocalizations {
   /// **'Zobrazit vlastní objednávky'**
   String get permOrdersView;
 
-  /// No description provided for @permOrdersViewAll.
-  ///
-  /// In cs, this message translates to:
-  /// **'Zobrazit všechny objednávky'**
-  String get permOrdersViewAll;
-
   /// No description provided for @permOrdersViewPaid.
   ///
   /// In cs, this message translates to:
@@ -6187,12 +6181,6 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Upravit objednávku'**
   String get permOrdersEdit;
-
-  /// No description provided for @permOrdersEditOthers.
-  ///
-  /// In cs, this message translates to:
-  /// **'Upravit cizí objednávky'**
-  String get permOrdersEditOthers;
 
   /// No description provided for @permOrdersVoidItem.
   ///
@@ -6290,6 +6278,12 @@ abstract class AppLocalizations {
   /// **'Platba stravenkami'**
   String get permPaymentsMethodMealTicket;
 
+  /// No description provided for @permPaymentsMethodBank.
+  ///
+  /// In cs, this message translates to:
+  /// **'Bankovní převod'**
+  String get permPaymentsMethodBank;
+
   /// No description provided for @permPaymentsMethodCredit.
   ///
   /// In cs, this message translates to:
@@ -6385,12 +6379,6 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Otevřít zásuvku'**
   String get permRegisterOpenDrawer;
-
-  /// No description provided for @permShiftsClockInOut.
-  ///
-  /// In cs, this message translates to:
-  /// **'Příchod/odchod'**
-  String get permShiftsClockInOut;
 
   /// No description provided for @permShiftsViewOwn.
   ///
@@ -6811,12 +6799,6 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Editovat prodejní grid'**
   String get permSettingsRegisterGrid;
-
-  /// No description provided for @permSettingsRegisterDisplays.
-  ///
-  /// In cs, this message translates to:
-  /// **'Spravovat displeje'**
-  String get permSettingsRegisterDisplays;
 
   /// No description provided for @permSettingsRegisterPaymentMethods.
   ///
@@ -7722,6 +7704,246 @@ abstract class AppLocalizations {
   /// **'Obnovení lokální databáze ze záložního souboru.'**
   String get dataRestoreDescription;
 
+  /// No description provided for @dataExportProducts.
+  ///
+  /// In cs, this message translates to:
+  /// **'Produkty'**
+  String get dataExportProducts;
+
+  /// No description provided for @dataExportProductsDesc.
+  ///
+  /// In cs, this message translates to:
+  /// **'Export katalogu produktů včetně cen a daňových sazeb.'**
+  String get dataExportProductsDesc;
+
+  /// No description provided for @dataExportCategories.
+  ///
+  /// In cs, this message translates to:
+  /// **'Kategorie'**
+  String get dataExportCategories;
+
+  /// No description provided for @dataExportCategoriesDesc.
+  ///
+  /// In cs, this message translates to:
+  /// **'Export kategorií produktů a jejich hierarchie.'**
+  String get dataExportCategoriesDesc;
+
+  /// No description provided for @dataExportCustomers.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zákazníci'**
+  String get dataExportCustomers;
+
+  /// No description provided for @dataExportCustomersDesc.
+  ///
+  /// In cs, this message translates to:
+  /// **'Export databáze zákazníků s kontaktními údaji.'**
+  String get dataExportCustomersDesc;
+
+  /// No description provided for @dataExportSuppliers.
+  ///
+  /// In cs, this message translates to:
+  /// **'Dodavatelé'**
+  String get dataExportSuppliers;
+
+  /// No description provided for @dataExportSuppliersDesc.
+  ///
+  /// In cs, this message translates to:
+  /// **'Export seznamu dodavatelů s kontaktními údaji.'**
+  String get dataExportSuppliersDesc;
+
+  /// No description provided for @dataExportModifierGroups.
+  ///
+  /// In cs, this message translates to:
+  /// **'Skupiny modifikátorů'**
+  String get dataExportModifierGroups;
+
+  /// No description provided for @dataExportModifierGroupsDesc.
+  ///
+  /// In cs, this message translates to:
+  /// **'Export skupin modifikátorů a jejich voleb.'**
+  String get dataExportModifierGroupsDesc;
+
+  /// No description provided for @dataExportPaymentMethods.
+  ///
+  /// In cs, this message translates to:
+  /// **'Platební metody'**
+  String get dataExportPaymentMethods;
+
+  /// No description provided for @dataExportPaymentMethodsDesc.
+  ///
+  /// In cs, this message translates to:
+  /// **'Export nastavených platebních metod.'**
+  String get dataExportPaymentMethodsDesc;
+
+  /// No description provided for @dataExportTaxRates.
+  ///
+  /// In cs, this message translates to:
+  /// **'Sazby DPH'**
+  String get dataExportTaxRates;
+
+  /// No description provided for @dataExportTaxRatesDesc.
+  ///
+  /// In cs, this message translates to:
+  /// **'Export definic daňových sazeb.'**
+  String get dataExportTaxRatesDesc;
+
+  /// No description provided for @dataExportVouchers.
+  ///
+  /// In cs, this message translates to:
+  /// **'Poukazy'**
+  String get dataExportVouchers;
+
+  /// No description provided for @dataExportVouchersDesc.
+  ///
+  /// In cs, this message translates to:
+  /// **'Export poukazů s kódy a hodnotami.'**
+  String get dataExportVouchersDesc;
+
+  /// No description provided for @dataExportStockLevels.
+  ///
+  /// In cs, this message translates to:
+  /// **'Stav skladu'**
+  String get dataExportStockLevels;
+
+  /// No description provided for @dataExportStockLevelsDesc.
+  ///
+  /// In cs, this message translates to:
+  /// **'Export aktuálních množství na skladě.'**
+  String get dataExportStockLevelsDesc;
+
+  /// No description provided for @dataExportOrders.
+  ///
+  /// In cs, this message translates to:
+  /// **'Objednávky'**
+  String get dataExportOrders;
+
+  /// No description provided for @dataExportOrdersDesc.
+  ///
+  /// In cs, this message translates to:
+  /// **'Export historie objednávek s položkami a stavy.'**
+  String get dataExportOrdersDesc;
+
+  /// No description provided for @dataExportBills.
+  ///
+  /// In cs, this message translates to:
+  /// **'Účtenky'**
+  String get dataExportBills;
+
+  /// No description provided for @dataExportBillsDesc.
+  ///
+  /// In cs, this message translates to:
+  /// **'Export historie účtenek s platbami a součty.'**
+  String get dataExportBillsDesc;
+
+  /// No description provided for @dataImportProducts.
+  ///
+  /// In cs, this message translates to:
+  /// **'Produkty'**
+  String get dataImportProducts;
+
+  /// No description provided for @dataImportProductsDesc.
+  ///
+  /// In cs, this message translates to:
+  /// **'Import produktů ze souboru do katalogu.'**
+  String get dataImportProductsDesc;
+
+  /// No description provided for @dataImportCategories.
+  ///
+  /// In cs, this message translates to:
+  /// **'Kategorie'**
+  String get dataImportCategories;
+
+  /// No description provided for @dataImportCategoriesDesc.
+  ///
+  /// In cs, this message translates to:
+  /// **'Import kategorií produktů ze souboru.'**
+  String get dataImportCategoriesDesc;
+
+  /// No description provided for @dataImportCustomers.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zákazníci'**
+  String get dataImportCustomers;
+
+  /// No description provided for @dataImportCustomersDesc.
+  ///
+  /// In cs, this message translates to:
+  /// **'Import záznamů zákazníků ze souboru.'**
+  String get dataImportCustomersDesc;
+
+  /// No description provided for @dataImportSuppliers.
+  ///
+  /// In cs, this message translates to:
+  /// **'Dodavatelé'**
+  String get dataImportSuppliers;
+
+  /// No description provided for @dataImportSuppliersDesc.
+  ///
+  /// In cs, this message translates to:
+  /// **'Import záznamů dodavatelů ze souboru.'**
+  String get dataImportSuppliersDesc;
+
+  /// No description provided for @dataImportModifierGroups.
+  ///
+  /// In cs, this message translates to:
+  /// **'Skupiny modifikátorů'**
+  String get dataImportModifierGroups;
+
+  /// No description provided for @dataImportModifierGroupsDesc.
+  ///
+  /// In cs, this message translates to:
+  /// **'Import skupin modifikátorů ze souboru.'**
+  String get dataImportModifierGroupsDesc;
+
+  /// No description provided for @dataImportPaymentMethods.
+  ///
+  /// In cs, this message translates to:
+  /// **'Platební metody'**
+  String get dataImportPaymentMethods;
+
+  /// No description provided for @dataImportPaymentMethodsDesc.
+  ///
+  /// In cs, this message translates to:
+  /// **'Import definic platebních metod ze souboru.'**
+  String get dataImportPaymentMethodsDesc;
+
+  /// No description provided for @dataImportTaxRates.
+  ///
+  /// In cs, this message translates to:
+  /// **'Sazby DPH'**
+  String get dataImportTaxRates;
+
+  /// No description provided for @dataImportTaxRatesDesc.
+  ///
+  /// In cs, this message translates to:
+  /// **'Import definic daňových sazeb ze souboru.'**
+  String get dataImportTaxRatesDesc;
+
+  /// No description provided for @dataImportVouchers.
+  ///
+  /// In cs, this message translates to:
+  /// **'Poukazy'**
+  String get dataImportVouchers;
+
+  /// No description provided for @dataImportVouchersDesc.
+  ///
+  /// In cs, this message translates to:
+  /// **'Import poukazů ze souboru.'**
+  String get dataImportVouchersDesc;
+
+  /// No description provided for @dataImportStockLevels.
+  ///
+  /// In cs, this message translates to:
+  /// **'Stav skladu'**
+  String get dataImportStockLevels;
+
+  /// No description provided for @dataImportStockLevelsDesc.
+  ///
+  /// In cs, this message translates to:
+  /// **'Import množství na skladě ze souboru.'**
+  String get dataImportStockLevelsDesc;
+
   /// No description provided for @catalogSortName.
   ///
   /// In cs, this message translates to:
@@ -7985,6 +8207,30 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Pro provedení prodeje je nutné nejprve zahájit směnu.'**
   String get sessionRequiredMessage;
+
+  /// No description provided for @registerOpenDrawer.
+  ///
+  /// In cs, this message translates to:
+  /// **'Otevřít pokladnu'**
+  String get registerOpenDrawer;
+
+  /// No description provided for @settingsTabFiscal.
+  ///
+  /// In cs, this message translates to:
+  /// **'Fiskální'**
+  String get settingsTabFiscal;
+
+  /// No description provided for @billDetailReopen.
+  ///
+  /// In cs, this message translates to:
+  /// **'Znovu otevřít'**
+  String get billDetailReopen;
+
+  /// No description provided for @billDetailConfirmReopen.
+  ///
+  /// In cs, this message translates to:
+  /// **'Opravdu chcete znovu otevřít tento účet?'**
+  String get billDetailConfirmReopen;
 }
 
 class _AppLocalizationsDelegate

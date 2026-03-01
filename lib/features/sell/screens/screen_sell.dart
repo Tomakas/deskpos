@@ -2256,13 +2256,19 @@ class _RetailMenuButton extends ConsumerWidget {
       icon: const Icon(Icons.menu),
       tooltip: l.billsMore,
       itemBuilder: (_) => [
-        PopupMenuItem(
-          value: 'toggle-session',
-          height: 48,
-          child: Text(hasSession ? l.registerSessionClose : l.registerSessionStart),
-        ),
-        if (hasSession)
+        if (hasSession
+            ? ref.watch(hasPermissionProvider('register.close_session'))
+            : ref.watch(hasPermissionProvider('register.open_session')))
+          PopupMenuItem(
+            value: 'toggle-session',
+            height: 48,
+            child: Text(hasSession ? l.registerSessionClose : l.registerSessionStart),
+          ),
+        if (hasSession && ref.watch(hasPermissionProvider('stats.cash_journal')))
           PopupMenuItem(value: 'cash-journal', height: 48, child: Text(l.billsCashJournal)),
+        // TODO: Show when cash drawer hardware is connected
+        // if (hasSession)
+        //   PopupMenuItem(value: 'open-drawer', height: 48, child: Text(l.registerOpenDrawer)),
         if (canStats)
           PopupMenuItem(
             value: 'statistics',
@@ -2334,6 +2340,8 @@ class _RetailMenuButton extends ConsumerWidget {
         }
       case 'cash-journal':
         await helpers.showCashJournalDialog(context, ref);
+      case 'open-drawer':
+        AppLogger.info('Open cash drawer requested (no hardware connected)');
       case 'statistics':
         if (context.mounted) context.push('/statistics');
       case 'bills':

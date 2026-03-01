@@ -6,6 +6,7 @@ import '../../../core/data/enums/voucher_status.dart';
 import '../../../core/data/enums/voucher_type.dart';
 import '../../../core/data/models/voucher_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
+import '../../../core/data/providers/permission_providers.dart';
 import '../../../core/data/providers/printing_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/result.dart';
@@ -86,7 +87,7 @@ class _DialogVoucherDetailState extends ConsumerState<DialogVoucherDetail> {
           label: Text(l.voucherPrint),
         ),
         actions: [
-          if (voucher.status == VoucherStatus.active)
+          if (voucher.status == VoucherStatus.active && ref.watch(hasPermissionProvider('vouchers.manage')))
             FilledButton(
               style: PosButtonStyles.destructiveFilled(context),
               onPressed: () => _cancelVoucher(context, ref),

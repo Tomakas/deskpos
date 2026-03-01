@@ -130,11 +130,12 @@ class _UsersTabState extends ConsumerState<UsersTab> {
                       ],
                     ),
                     const SizedBox(width: 8),
-                    FilledButton.icon(
-                      onPressed: () => _showEditDialog(context, ref, roles, users, null),
-                      icon: const Icon(Icons.add),
-                      label: Text(l.actionAdd),
-                    ),
+                    if (ref.watch(hasPermissionProvider('users.manage')))
+                      FilledButton.icon(
+                        onPressed: () => _showEditDialog(context, ref, roles, users, null),
+                        icon: const Icon(Icons.add),
+                        label: Text(l.actionAdd),
+                      ),
                   ],
                 ),
                 Expanded(
@@ -174,12 +175,16 @@ class _UsersTabState extends ConsumerState<UsersTab> {
                       ),
                     ],
                     items: filtered,
-                    onRowTap: (user) => _showEditDialog(context, ref, roles, users, user),
-                    onRowLongPress: (user) async {
-                      if (_isLastAdmin(users, roles, user)) return;
-                      if (!await confirmDelete(context, context.l10n) || !context.mounted) return;
-                      await ref.read(userRepositoryProvider).delete(user.id);
-                    },
+                    onRowTap: ref.watch(hasPermissionProvider('users.manage'))
+                        ? (user) => _showEditDialog(context, ref, roles, users, user)
+                        : null,
+                    onRowLongPress: ref.watch(hasPermissionProvider('users.manage'))
+                        ? (user) async {
+                            if (_isLastAdmin(users, roles, user)) return;
+                            if (!await confirmDelete(context, context.l10n) || !context.mounted) return;
+                            await ref.read(userRepositoryProvider).delete(user.id);
+                          }
+                        : null,
                   ),
                 ),
               ],
@@ -553,7 +558,7 @@ class _UserEditDialogState extends ConsumerState<_UserEditDialog>
       maxHeight: 600,
       expandHeight: true,
       bottomActions: PosDialogActions(
-        leading: widget.existing != null && !widget.isLastAdmin
+        leading: widget.existing != null && !widget.isLastAdmin && ref.watch(hasPermissionProvider('users.manage'))
             ? OutlinedButton(
                 style: PosButtonStyles.destructiveOutlined(context),
                 onPressed: () async {
@@ -666,7 +671,9 @@ class _UserEditDialogState extends ConsumerState<_UserEditDialog>
                 };
                 return DropdownMenuItem(value: r.id, child: Text(label));
               }).toList(),
-              onChanged: widget.isLastAdmin ? null : (v) => _onRoleChanged(v!),
+              onChanged: widget.isLastAdmin || !ref.watch(hasPermissionProvider('users.assign_roles'))
+                  ? null
+                  : (v) => _onRoleChanged(v!),
             ),
             const SizedBox(height: 12),
             SwitchListTile(
@@ -684,6 +691,9 @@ class _UserEditDialogState extends ConsumerState<_UserEditDialog>
       return const Center(child: CircularProgressIndicator());
     }
 
+    final canManagePermissions = ref.watch(hasPermissionProvider('users.manage_permissions'));
+    final isReadOnly = widget.isLastAdmin || !canManagePermissions;
+
     // Group permissions by category in display order
     final grouped = <String, List<PermissionModel>>{};
     for (final category in permissionGroupOrder) {
@@ -694,7 +704,7 @@ class _UserEditDialogState extends ConsumerState<_UserEditDialog>
     return Column(
       children: [
         // Header with reset button
-        if (_isCustomized && !widget.isLastAdmin)
+        if (_isCustomized && !isReadOnly)
           Padding(
             padding: const EdgeInsets.only(top: 8, bottom: 4),
             child: Row(
@@ -737,14 +747,14 @@ class _UserEditDialogState extends ConsumerState<_UserEditDialog>
                           ? false
                           : null,
                   tristate: true,
-                  onChanged: widget.isLastAdmin ? null : (_) => _toggleGroup(category, !allGranted),
+                  onChanged: isReadOnly ? null : (_) => _toggleGroup(category, !allGranted),
                 ),
                 children: [
                   for (final perm in perms)
                     CheckboxListTile(
                       title: Text(localizedPermissionName(l, perm.code)),
                       value: _grantedPermissionIds.contains(perm.id),
-                      onChanged: widget.isLastAdmin ? null : (v) => _togglePermission(perm.id, v ?? false),
+                      onChanged: isReadOnly ? null : (v) => _togglePermission(perm.id, v ?? false),
                       dense: true,
                       controlAffinity: ListTileControlAffinity.leading,
                     ),

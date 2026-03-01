@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/data/enums/bill_status.dart';
 import '../../../core/data/enums/prep_status.dart';
+import '../../../core/logging/app_logger.dart';
 import '../../../core/data/enums/sell_mode.dart';
 import '../../../core/data/models/bill_model.dart';
 import '../../../core/data/models/company_settings_model.dart';
@@ -144,10 +145,16 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
                 onToggleMap: () => setState(() => _showMap = !_showMap),
                 onLogout: () => _logout(context),
                 onSwitchUser: () => _showSwitchUserDialog(context),
-                onNewBill: hasSession ? () => _createNewBill(context) : null,
-                onQuickBill: hasSession ? () => _createQuickBill(context) : null,
-                onToggleSession: () => _toggleSession(context, hasSession),
-                onCashMovement: hasSession ? () => _showCashMovement(context) : null,
+                onNewBill: hasSession && ref.watch(hasPermissionProvider('orders.create'))
+                    ? () => _createNewBill(context) : null,
+                onQuickBill: hasSession && ref.watch(hasPermissionProvider('orders.create'))
+                    ? () => _createQuickBill(context) : null,
+                onToggleSession: (hasSession
+                        ? ref.watch(hasPermissionProvider('register.close_session'))
+                        : ref.watch(hasPermissionProvider('register.open_session')))
+                    ? () => _toggleSession(context, hasSession) : null,
+                onCashMovement: hasSession && ref.watch(hasPermissionProvider('stats.cash_journal'))
+                    ? () => _showCashMovement(context) : null,
                 onSettings: () => context.push('/settings'),
               ),
             ),
@@ -864,7 +871,7 @@ class _RightPanel extends ConsumerWidget {
   final VoidCallback onSwitchUser;
   final VoidCallback? onNewBill;
   final VoidCallback? onQuickBill;
-  final VoidCallback onToggleSession;
+  final VoidCallback? onToggleSession;
   final VoidCallback? onCashMovement;
   final VoidCallback? onSettings;
 
@@ -954,6 +961,7 @@ class _RightPanel extends ConsumerWidget {
                           canStats: canStats,
                           canVouchers: canVouchers,
                           canData: canData,
+                          hasSession: hasSession,
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -1154,6 +1162,7 @@ void _showMoreMenu(
   required bool canStats,
   required bool canVouchers,
   required bool canData,
+  required bool hasSession,
 }) {
   final l = btnContext.l10n;
   final button = btnContext.findRenderObject()! as RenderBox;
@@ -1170,6 +1179,8 @@ void _showMoreMenu(
     context: btnContext,
     position: position,
     items: [
+      // TODO: Show when cash drawer hardware is connected
+      // if (hasSession) PopupMenuItem(value: 'open-drawer', height: 48, child: Row(children: [const Icon(Icons.point_of_sale, size: 20), const SizedBox(width: 12), Text(l.registerOpenDrawer)])),
       if (canStats) PopupMenuItem(value: 'statistics', height: 48, child: Row(children: [const Icon(Icons.bar_chart, size: 20), const SizedBox(width: 12), Text(l.moreStatistics)])),
       if (canVouchers) PopupMenuItem(value: 'vouchers', height: 48, child: Row(children: [const Icon(Icons.card_giftcard, size: 20), const SizedBox(width: 12), Text(l.vouchersTitle)])),
       PopupMenuItem(value: 'reservations', height: 48, child: Row(children: [const Icon(Icons.event_seat, size: 20), const SizedBox(width: 12), Text(l.moreReservations)])),
@@ -1178,6 +1189,8 @@ void _showMoreMenu(
   ).then((value) {
     if (value == null || !btnContext.mounted) return;
     switch (value) {
+      case 'open-drawer':
+        AppLogger.info('Open cash drawer requested (no hardware connected)');
       case 'statistics':
         btnContext.push('/statistics');
       case 'vouchers':

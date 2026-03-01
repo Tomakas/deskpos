@@ -3150,9 +3150,6 @@ class AppLocalizationsCs extends AppLocalizations {
   String get permOrdersView => 'Zobrazit vlastní objednávky';
 
   @override
-  String get permOrdersViewAll => 'Zobrazit všechny objednávky';
-
-  @override
   String get permOrdersViewPaid => 'Zobrazit zaplacené účty';
 
   @override
@@ -3163,9 +3160,6 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get permOrdersEdit => 'Upravit objednávku';
-
-  @override
-  String get permOrdersEditOthers => 'Upravit cizí objednávky';
 
   @override
   String get permOrdersVoidItem => 'Storno položky';
@@ -3216,6 +3210,9 @@ class AppLocalizationsCs extends AppLocalizations {
   String get permPaymentsMethodMealTicket => 'Platba stravenkami';
 
   @override
+  String get permPaymentsMethodBank => 'Bankovní převod';
+
+  @override
   String get permPaymentsMethodCredit => 'Platba na kredit';
 
   @override
@@ -3262,9 +3259,6 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get permRegisterOpenDrawer => 'Otevřít zásuvku';
-
-  @override
-  String get permShiftsClockInOut => 'Příchod/odchod';
 
   @override
   String get permShiftsViewOwn => 'Zobrazit vlastní směny';
@@ -3475,9 +3469,6 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get permSettingsRegisterGrid => 'Editovat prodejní grid';
-
-  @override
-  String get permSettingsRegisterDisplays => 'Spravovat displeje';
 
   @override
   String get permSettingsRegisterPaymentMethods => 'Platební metody';
@@ -3953,6 +3944,141 @@ class AppLocalizationsCs extends AppLocalizations {
       'Obnovení lokální databáze ze záložního souboru.';
 
   @override
+  String get dataExportProducts => 'Produkty';
+
+  @override
+  String get dataExportProductsDesc =>
+      'Export katalogu produktů včetně cen a daňových sazeb.';
+
+  @override
+  String get dataExportCategories => 'Kategorie';
+
+  @override
+  String get dataExportCategoriesDesc =>
+      'Export kategorií produktů a jejich hierarchie.';
+
+  @override
+  String get dataExportCustomers => 'Zákazníci';
+
+  @override
+  String get dataExportCustomersDesc =>
+      'Export databáze zákazníků s kontaktními údaji.';
+
+  @override
+  String get dataExportSuppliers => 'Dodavatelé';
+
+  @override
+  String get dataExportSuppliersDesc =>
+      'Export seznamu dodavatelů s kontaktními údaji.';
+
+  @override
+  String get dataExportModifierGroups => 'Skupiny modifikátorů';
+
+  @override
+  String get dataExportModifierGroupsDesc =>
+      'Export skupin modifikátorů a jejich voleb.';
+
+  @override
+  String get dataExportPaymentMethods => 'Platební metody';
+
+  @override
+  String get dataExportPaymentMethodsDesc =>
+      'Export nastavených platebních metod.';
+
+  @override
+  String get dataExportTaxRates => 'Sazby DPH';
+
+  @override
+  String get dataExportTaxRatesDesc => 'Export definic daňových sazeb.';
+
+  @override
+  String get dataExportVouchers => 'Poukazy';
+
+  @override
+  String get dataExportVouchersDesc => 'Export poukazů s kódy a hodnotami.';
+
+  @override
+  String get dataExportStockLevels => 'Stav skladu';
+
+  @override
+  String get dataExportStockLevelsDesc =>
+      'Export aktuálních množství na skladě.';
+
+  @override
+  String get dataExportOrders => 'Objednávky';
+
+  @override
+  String get dataExportOrdersDesc =>
+      'Export historie objednávek s položkami a stavy.';
+
+  @override
+  String get dataExportBills => 'Účtenky';
+
+  @override
+  String get dataExportBillsDesc =>
+      'Export historie účtenek s platbami a součty.';
+
+  @override
+  String get dataImportProducts => 'Produkty';
+
+  @override
+  String get dataImportProductsDesc =>
+      'Import produktů ze souboru do katalogu.';
+
+  @override
+  String get dataImportCategories => 'Kategorie';
+
+  @override
+  String get dataImportCategoriesDesc =>
+      'Import kategorií produktů ze souboru.';
+
+  @override
+  String get dataImportCustomers => 'Zákazníci';
+
+  @override
+  String get dataImportCustomersDesc => 'Import záznamů zákazníků ze souboru.';
+
+  @override
+  String get dataImportSuppliers => 'Dodavatelé';
+
+  @override
+  String get dataImportSuppliersDesc => 'Import záznamů dodavatelů ze souboru.';
+
+  @override
+  String get dataImportModifierGroups => 'Skupiny modifikátorů';
+
+  @override
+  String get dataImportModifierGroupsDesc =>
+      'Import skupin modifikátorů ze souboru.';
+
+  @override
+  String get dataImportPaymentMethods => 'Platební metody';
+
+  @override
+  String get dataImportPaymentMethodsDesc =>
+      'Import definic platebních metod ze souboru.';
+
+  @override
+  String get dataImportTaxRates => 'Sazby DPH';
+
+  @override
+  String get dataImportTaxRatesDesc =>
+      'Import definic daňových sazeb ze souboru.';
+
+  @override
+  String get dataImportVouchers => 'Poukazy';
+
+  @override
+  String get dataImportVouchersDesc => 'Import poukazů ze souboru.';
+
+  @override
+  String get dataImportStockLevels => 'Stav skladu';
+
+  @override
+  String get dataImportStockLevelsDesc =>
+      'Import množství na skladě ze souboru.';
+
+  @override
   String get catalogSortName => 'Název';
 
   @override
@@ -4084,4 +4210,17 @@ class AppLocalizationsCs extends AppLocalizations {
   @override
   String get sessionRequiredMessage =>
       'Pro provedení prodeje je nutné nejprve zahájit směnu.';
+
+  @override
+  String get registerOpenDrawer => 'Otevřít pokladnu';
+
+  @override
+  String get settingsTabFiscal => 'Fiskální';
+
+  @override
+  String get billDetailReopen => 'Znovu otevřít';
+
+  @override
+  String get billDetailConfirmReopen =>
+      'Opravdu chcete znovu otevřít tento účet?';
 }

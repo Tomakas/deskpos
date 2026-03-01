@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/data/providers/auth_providers.dart';
+import '../../../core/data/providers/permission_providers.dart';
 import '../../../core/data/providers/printing_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/repositories/stock_level_repository.dart';
@@ -75,11 +76,13 @@ class _DialogInventoryState extends ConsumerState<DialogInventory> {
       maxWidth: 700,
       maxHeight: 700,
       bottomActions: PosDialogActions(
-        leading: OutlinedButton.icon(
-          onPressed: _printing ? null : () => _printTemplate(context),
-          icon: const Icon(Icons.print_outlined),
-          label: Text(l.inventoryPrintTemplate),
-        ),
+        leading: ref.watch(hasPermissionProvider('printing.inventory_report'))
+            ? OutlinedButton.icon(
+                onPressed: _printing ? null : () => _printTemplate(context),
+                icon: const Icon(Icons.print_outlined),
+                label: Text(l.inventoryPrintTemplate),
+              )
+            : null,
         actions: [
           OutlinedButton(
             onPressed: () => Navigator.pop(context),

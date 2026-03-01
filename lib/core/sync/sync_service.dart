@@ -158,13 +158,28 @@ class SyncService {
 
       if (rows.isEmpty) break;
 
-      for (final row in rows) {
-        final json = row as Map<String, dynamic>;
-        final entityId = extractId(json);
-        maxUpdatedAt = json['updated_at'] as String;
+      bool hadFailure = false;
+      await _db.transaction(() async {
+        for (final row in rows) {
+          final json = row as Map<String, dynamic>;
+          final entityId = extractId(json);
 
-        await mergeRow(companyId, tableName, entityId, json);
-      }
+          try {
+            await mergeRow(companyId, tableName, entityId, json);
+            if (!hadFailure) {
+              maxUpdatedAt = json['updated_at'] as String;
+            }
+          } catch (e, s) {
+            hadFailure = true;
+            AppLogger.error(
+              'SyncService: mergeRow failed for $tableName/$entityId, skipping',
+              tag: 'SYNC',
+              error: e,
+              stackTrace: s,
+            );
+          }
+        }
+      });
 
       totalPulled += rows.length;
 
@@ -180,7 +195,7 @@ class SyncService {
     }
 
     if (maxUpdatedAt != null) {
-      await _syncMetadataRepo.setLastPulledAt(companyId, tableName, maxUpdatedAt);
+      await _syncMetadataRepo.setLastPulledAt(companyId, tableName, maxUpdatedAt!);
     }
   }
 

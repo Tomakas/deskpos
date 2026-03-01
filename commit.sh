@@ -12,7 +12,7 @@ menu_select() {
   local prompt="$1"
   shift
   local options=("$@")
-  local selected=0
+  local selected=-1
   local count=${#options[@]}
 
   tput civis 2>/dev/null
@@ -21,22 +21,33 @@ menu_select() {
   printf "\n%s\n" "$prompt"
 
   for i in "${!options[@]}"; do
-    if [ $i -eq $selected ]; then
-      printf "  \033[7m %s \033[0m\n" "${options[$i]}"
-    else
-      printf "   %s\n" "${options[$i]}"
-    fi
+    printf "   %s\n" "${options[$i]}"
   done
 
   while true; do
     read -rsn1 key
     case "$key" in
-      '') break ;;
+      '')
+        # Enter — only accept if something is selected
+        [ $selected -ge 0 ] && break
+        ;;
       $'\x1b')
         read -rsn2 key
         case "$key" in
-          '[A') ((selected > 0)) && ((selected--)) ;;
-          '[B') ((selected < count - 1)) && ((selected++)) ;;
+          '[A')
+            if [ $selected -le 0 ]; then
+              selected=$((count - 1))
+            else
+              ((selected--))
+            fi
+            ;;
+          '[B')
+            if [ $selected -lt 0 ] || [ $selected -ge $((count - 1)) ]; then
+              selected=0
+            else
+              ((selected++))
+            fi
+            ;;
         esac
         ;;
     esac

@@ -3153,9 +3153,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get permOrdersView => 'View own orders';
 
   @override
-  String get permOrdersViewAll => 'View all orders';
-
-  @override
   String get permOrdersViewPaid => 'View paid bills';
 
   @override
@@ -3166,9 +3163,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get permOrdersEdit => 'Edit order';
-
-  @override
-  String get permOrdersEditOthers => 'Edit others\' orders';
 
   @override
   String get permOrdersVoidItem => 'Void item';
@@ -3219,6 +3213,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get permPaymentsMethodMealTicket => 'Meal ticket payment';
 
   @override
+  String get permPaymentsMethodBank => 'Bank transfer';
+
+  @override
   String get permPaymentsMethodCredit => 'Credit payment';
 
   @override
@@ -3265,9 +3262,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get permRegisterOpenDrawer => 'Open cash drawer';
-
-  @override
-  String get permShiftsClockInOut => 'Clock in/out';
 
   @override
   String get permShiftsViewOwn => 'View own shifts';
@@ -3478,9 +3472,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get permSettingsRegisterGrid => 'Edit sell grid';
-
-  @override
-  String get permSettingsRegisterDisplays => 'Manage displays';
 
   @override
   String get permSettingsRegisterPaymentMethods => 'Payment methods';
@@ -3956,6 +3947,141 @@ class AppLocalizationsEn extends AppLocalizations {
       'Restore the local database from a backup file.';
 
   @override
+  String get dataExportProducts => 'Products';
+
+  @override
+  String get dataExportProductsDesc =>
+      'Export product catalog including prices and tax rates.';
+
+  @override
+  String get dataExportCategories => 'Categories';
+
+  @override
+  String get dataExportCategoriesDesc =>
+      'Export product categories and their hierarchy.';
+
+  @override
+  String get dataExportCustomers => 'Customers';
+
+  @override
+  String get dataExportCustomersDesc =>
+      'Export customer database with contact details.';
+
+  @override
+  String get dataExportSuppliers => 'Suppliers';
+
+  @override
+  String get dataExportSuppliersDesc =>
+      'Export supplier list with contact information.';
+
+  @override
+  String get dataExportModifierGroups => 'Modifier groups';
+
+  @override
+  String get dataExportModifierGroupsDesc =>
+      'Export modifier groups and their options.';
+
+  @override
+  String get dataExportPaymentMethods => 'Payment methods';
+
+  @override
+  String get dataExportPaymentMethodsDesc =>
+      'Export configured payment methods.';
+
+  @override
+  String get dataExportTaxRates => 'Tax rates';
+
+  @override
+  String get dataExportTaxRatesDesc => 'Export tax rate definitions.';
+
+  @override
+  String get dataExportVouchers => 'Vouchers';
+
+  @override
+  String get dataExportVouchersDesc => 'Export vouchers with codes and values.';
+
+  @override
+  String get dataExportStockLevels => 'Stock levels';
+
+  @override
+  String get dataExportStockLevelsDesc =>
+      'Export current stock quantities for all items.';
+
+  @override
+  String get dataExportOrders => 'Orders';
+
+  @override
+  String get dataExportOrdersDesc =>
+      'Export order history with items and statuses.';
+
+  @override
+  String get dataExportBills => 'Bills';
+
+  @override
+  String get dataExportBillsDesc =>
+      'Export bill history with payments and totals.';
+
+  @override
+  String get dataImportProducts => 'Products';
+
+  @override
+  String get dataImportProductsDesc =>
+      'Import products from a file into the catalog.';
+
+  @override
+  String get dataImportCategories => 'Categories';
+
+  @override
+  String get dataImportCategoriesDesc =>
+      'Import product categories from a file.';
+
+  @override
+  String get dataImportCustomers => 'Customers';
+
+  @override
+  String get dataImportCustomersDesc => 'Import customer records from a file.';
+
+  @override
+  String get dataImportSuppliers => 'Suppliers';
+
+  @override
+  String get dataImportSuppliersDesc => 'Import supplier records from a file.';
+
+  @override
+  String get dataImportModifierGroups => 'Modifier groups';
+
+  @override
+  String get dataImportModifierGroupsDesc =>
+      'Import modifier groups from a file.';
+
+  @override
+  String get dataImportPaymentMethods => 'Payment methods';
+
+  @override
+  String get dataImportPaymentMethodsDesc =>
+      'Import payment method definitions from a file.';
+
+  @override
+  String get dataImportTaxRates => 'Tax rates';
+
+  @override
+  String get dataImportTaxRatesDesc =>
+      'Import tax rate definitions from a file.';
+
+  @override
+  String get dataImportVouchers => 'Vouchers';
+
+  @override
+  String get dataImportVouchersDesc => 'Import vouchers from a file.';
+
+  @override
+  String get dataImportStockLevels => 'Stock levels';
+
+  @override
+  String get dataImportStockLevelsDesc =>
+      'Import stock quantities from a file.';
+
+  @override
   String get catalogSortName => 'Name';
 
   @override
@@ -4087,4 +4213,17 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get sessionRequiredMessage =>
       'You must start a session before making a sale.';
+
+  @override
+  String get registerOpenDrawer => 'Open drawer';
+
+  @override
+  String get settingsTabFiscal => 'Fiscal';
+
+  @override
+  String get billDetailReopen => 'Reopen';
+
+  @override
+  String get billDetailConfirmReopen =>
+      'Are you sure you want to reopen this bill?';
 }

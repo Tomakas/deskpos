@@ -2,20 +2,22 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/data/providers/permission_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/platform/platform_io.dart';
 import '../../../core/utils/file_opener.dart';
 
-class LogTab extends StatefulWidget {
+class LogTab extends ConsumerStatefulWidget {
   const LogTab({super.key});
 
   @override
-  State<LogTab> createState() => _LogTabState();
+  ConsumerState<LogTab> createState() => _LogTabState();
 }
 
-class _LogTabState extends State<LogTab> {
+class _LogTabState extends ConsumerState<LogTab> {
   String _logContent = '';
   bool _loading = true;
   Timer? _refreshTimer;
@@ -145,11 +147,12 @@ class _LogTabState extends State<LogTab> {
                     ? null
                     : () => Clipboard.setData(ClipboardData(text: _logContent)),
               ),
-              IconButton(
-                icon: const Icon(Icons.delete_outline),
-                tooltip: 'Clear',
-                onPressed: _logContent.isEmpty ? null : _clearLog,
-              ),
+              if (ref.watch(hasPermissionProvider('settings_company.clear_log')))
+                IconButton(
+                  icon: const Icon(Icons.delete_outline),
+                  tooltip: 'Clear',
+                  onPressed: _logContent.isEmpty ? null : _clearLog,
+                ),
               const SizedBox(width: 4),
               SizedBox(
                 height: 36,

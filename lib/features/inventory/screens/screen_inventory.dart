@@ -165,14 +165,18 @@ class _ScreenInventoryState extends ConsumerState<ScreenInventory> {
       appBar: AppBar(
         title: Text(l.inventoryTitle),
         actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: FilledButton.icon(
-              onPressed: () => _showNewDocumentDialog(context),
-              icon: const Icon(Icons.add),
-              label: Text(l.inventoryNewDocument),
+          if (ref.watch(hasPermissionProvider('stock.receive')) ||
+              ref.watch(hasPermissionProvider('stock.wastage')) ||
+              ref.watch(hasPermissionProvider('stock.adjust')) ||
+              ref.watch(hasPermissionProvider('stock.count')))
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: FilledButton.icon(
+                onPressed: () => _showNewDocumentDialog(context),
+                icon: const Icon(Icons.add),
+                label: Text(l.inventoryNewDocument),
+              ),
             ),
-          ),
         ],
       ),
       body: Column(
@@ -661,42 +665,46 @@ class _ScreenInventoryState extends ConsumerState<ScreenInventory> {
         maxWidth: 400,
         scrollable: true,
         children: [
-          _DocumentTypeOption(
-            icon: Icons.add_box_outlined,
-            title: l.inventoryReceipt,
-            subtitle: l.inventoryReceiptDesc,
-            onTap: () {
-              Navigator.of(ctx).pop();
-              _openStockDocument(context, StockDocumentType.receipt);
-            },
-          ),
-          _DocumentTypeOption(
-            icon: Icons.remove_circle_outline,
-            title: l.inventoryWaste,
-            subtitle: l.inventoryWasteDesc,
-            onTap: () {
-              Navigator.of(ctx).pop();
-              _openStockDocument(context, StockDocumentType.waste);
-            },
-          ),
-          _DocumentTypeOption(
-            icon: Icons.edit_outlined,
-            title: l.inventoryCorrection,
-            subtitle: l.inventoryCorrectionDesc,
-            onTap: () {
-              Navigator.of(ctx).pop();
-              _openStockDocument(context, StockDocumentType.correction);
-            },
-          ),
-          _DocumentTypeOption(
-            icon: Icons.fact_check_outlined,
-            title: l.inventoryInventory,
-            subtitle: l.inventoryInventoryDesc,
-            onTap: () {
-              Navigator.of(ctx).pop();
-              _openInventoryDialog(context);
-            },
-          ),
+          if (ref.read(hasPermissionProvider('stock.receive')))
+            _DocumentTypeOption(
+              icon: Icons.add_box_outlined,
+              title: l.inventoryReceipt,
+              subtitle: l.inventoryReceiptDesc,
+              onTap: () {
+                Navigator.of(ctx).pop();
+                _openStockDocument(context, StockDocumentType.receipt);
+              },
+            ),
+          if (ref.read(hasPermissionProvider('stock.wastage')))
+            _DocumentTypeOption(
+              icon: Icons.remove_circle_outline,
+              title: l.inventoryWaste,
+              subtitle: l.inventoryWasteDesc,
+              onTap: () {
+                Navigator.of(ctx).pop();
+                _openStockDocument(context, StockDocumentType.waste);
+              },
+            ),
+          if (ref.read(hasPermissionProvider('stock.adjust')))
+            _DocumentTypeOption(
+              icon: Icons.edit_outlined,
+              title: l.inventoryCorrection,
+              subtitle: l.inventoryCorrectionDesc,
+              onTap: () {
+                Navigator.of(ctx).pop();
+                _openStockDocument(context, StockDocumentType.correction);
+              },
+            ),
+          if (ref.read(hasPermissionProvider('stock.count')))
+            _DocumentTypeOption(
+              icon: Icons.fact_check_outlined,
+              title: l.inventoryInventory,
+              subtitle: l.inventoryInventoryDesc,
+              onTap: () {
+                Navigator.of(ctx).pop();
+                _openInventoryDialog(context);
+              },
+            ),
         ],
       ),
     );

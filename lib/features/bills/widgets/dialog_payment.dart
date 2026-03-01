@@ -387,11 +387,26 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
                         };
                       }
 
+                      // Filter by permission
+                      const methodPermissions = {
+                        PaymentType.cash: 'payments.method_cash',
+                        PaymentType.card: 'payments.method_card',
+                        PaymentType.voucher: 'payments.method_voucher',
+                        PaymentType.bank: 'payments.method_bank',
+                        PaymentType.credit: 'payments.method_credit',
+                      };
+                      bool isAllowedByPermission(PaymentMethodModel m) {
+                        final perm = methodPermissions[m.type];
+                        if (perm == null) return true;
+                        return ref.watch(hasPermissionProvider(perm));
+                      }
+
                       // Primary: cash, card, bank (foreign currency = cash only)
                       const primaryTypes = {PaymentType.cash, PaymentType.card, PaymentType.bank};
                       final primaryMethods = methods
                           .where((m) => primaryTypes.contains(m.type))
                           .where(isAllowedByRegister)
+                          .where(isAllowedByPermission)
                           .where((m) => _selectedForeignCurrencyId == null || m.type == PaymentType.cash)
                           .toList();
 
@@ -404,12 +419,13 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
                         final creditMethod = methods
                             .where((m) => m.type == PaymentType.credit)
                             .where(isAllowedByRegister)
+                            .where(isAllowedByPermission)
                             .firstOrNull;
                         secondaryMethods = <PaymentMethodModel>[
-                          ...methods.where((m) => m.type == PaymentType.voucher).where(isAllowedByRegister),
+                          ...methods.where((m) => m.type == PaymentType.voucher).where(isAllowedByRegister).where(isAllowedByPermission),
                           if (creditMethod != null && _customer != null && _customer!.credit > 0)
                             creditMethod,
-                          ...methods.where((m) => m.type == PaymentType.other).where(isAllowedByRegister),
+                          ...methods.where((m) => m.type == PaymentType.other).where(isAllowedByRegister).where(isAllowedByPermission),
                         ];
                       }
 

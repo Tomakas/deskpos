@@ -5,6 +5,7 @@ import '../../../core/data/enums/voucher_status.dart';
 import '../../../core/data/enums/voucher_type.dart';
 import '../../../core/data/models/voucher_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
+import '../../../core/data/providers/permission_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../l10n/app_localizations.dart';
@@ -35,14 +36,15 @@ class _ScreenVouchersState extends ConsumerState<ScreenVouchers> {
       appBar: AppBar(
         title: Text(l.vouchersTitle),
         actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: FilledButton.icon(
-              onPressed: () => _createVoucher(context),
-              icon: const Icon(Icons.add, size: 18),
-              label: Text(l.voucherCreate),
+          if (ref.watch(hasPermissionProvider('vouchers.manage')))
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: FilledButton.icon(
+                onPressed: () => _createVoucher(context),
+                icon: const Icon(Icons.add, size: 18),
+                label: Text(l.voucherCreate),
+              ),
             ),
-          ),
         ],
       ),
       body: Column(
