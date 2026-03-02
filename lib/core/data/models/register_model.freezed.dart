@@ -232,7 +232,7 @@ return $default(_that.id,_that.companyId,_that.code,_that.name,_that.registerNum
 
 
 class _RegisterModel implements RegisterModel {
-  const _RegisterModel({required this.id, required this.companyId, required this.code, this.name = '', this.registerNumber = 1, this.parentRegisterId, this.isMain = false, this.isActive = true, required this.type, this.allowCash = true, this.allowCard = true, this.allowTransfer = true, this.allowCredit = true, this.allowVoucher = true, this.allowMealTicket = true, this.allowOther = true, this.allowRefunds = false, this.boundDeviceId, this.activeBillId, this.gridRows = 5, this.gridCols = 8, this.displayCartJson, this.showStockBadge = false, this.sellMode = SellMode.gastro, required this.createdAt, required this.updatedAt, this.deletedAt});
+  const _RegisterModel({required this.id, required this.companyId, required this.code, this.name = '', this.registerNumber = 1, this.parentRegisterId, this.isMain = false, this.isActive = true, required this.type, this.allowCash = true, this.allowCard = true, this.allowTransfer = true, this.allowCredit = true, this.allowVoucher = true, this.allowMealTicket = true, this.allowOther = true, this.allowRefunds = false, this.boundDeviceId, this.activeBillId, this.gridRows = 7, this.gridCols = 8, this.displayCartJson, this.showStockBadge = false, this.sellMode = SellMode.gastro, required this.createdAt, required this.updatedAt, this.deletedAt});
   
 
 @override final  String id;

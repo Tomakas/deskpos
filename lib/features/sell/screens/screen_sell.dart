@@ -2244,7 +2244,7 @@ class _RetailMenuButton extends ConsumerWidget {
     final canViewOrders = ref.watch(hasPermissionProvider('orders.view'));
     final canCatalog = ref.watch(hasAnyPermissionInGroupProvider('products'));
     final canInventory = ref.watch(hasAnyPermissionInGroupProvider('stock'));
-    final canVouchers = ref.watch(hasAnyPermissionInGroupProvider('vouchers'));
+    final canVouchers = ref.watch(hasPermissionProvider('vouchers.view'));
     final canData = ref.watch(hasAnyPermissionInGroupProvider('data'));
     final canSettings = ref.watch(hasAnyPermissionInGroupProvider('settings_company')) ||
         ref.watch(hasAnyPermissionInGroupProvider('settings_venue')) ||

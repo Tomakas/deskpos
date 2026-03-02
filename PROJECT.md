@@ -1060,10 +1060,10 @@ Všechny aktivní tabulky obsahují společné sync sloupce (viz [SyncColumnsMix
 
 | Tabulka | Sloupce |
 |---------|---------|
-| **registers** | id (T), company_id →companies, code (T), name (T, default ''), register_number (I, default 1), parent_register_id →registers?, is_main (B, default false), is_active (B, default true), type (T — HardwareType), allow_cash (B, default true), allow_card (B, default true), allow_transfer (B, default true), allow_credit (B, default true), allow_voucher (B, default true), allow_other (B, default true), allow_refunds (B, default false), bound_device_id (T?), active_bill_id (T?), grid_rows (I, default 5), grid_cols (I, default 8), display_cart_json (T?), sell_mode (T — SellMode, default gastro), show_stock_badge (B, default false) |
+| **registers** | id (T), company_id →companies, code (T), name (T, default ''), register_number (I, default 1), parent_register_id →registers?, is_main (B, default false), is_active (B, default true), type (T — HardwareType), allow_cash (B, default true), allow_card (B, default true), allow_transfer (B, default true), allow_credit (B, default true), allow_voucher (B, default true), allow_meal_ticket (B, default true), allow_other (B, default true), allow_refunds (B, default false), bound_device_id (T?), active_bill_id (T?), grid_rows (I, default 7), grid_cols (I, default 8), display_cart_json (T?), sell_mode (T — SellMode, default gastro), show_stock_badge (B, default false) |
 | **register_sessions** | id (T), company_id →companies, register_id →registers, opened_by_user_id →users, parent_session_id →register_sessions?, opened_at (D), closed_at (D?), order_counter (I, default 0), bill_counter (I, default 0), opening_cash (I?), closing_cash (I?), expected_cash (I?), difference (I?), open_bills_at_open_count (I?), open_bills_at_open_amount (I?), open_bills_at_close_count (I?), open_bills_at_close_amount (I?) |
 | **cash_movements** | id (T), company_id →companies, register_session_id →register_sessions, user_id →users, type (T — CashMovementType), amount (I), reason (T?), currency_id →currencies? |
-| **shifts** | id (T), company_id →companies, register_session_id →register_sessions, user_id →users, login_at (D), logout_at (D?) |
+| **shifts** | id (T), company_id →companies, register_session_id →register_sessions, user_id →users, login_at (D), logout_at (D?), original_login_at (D?), original_logout_at (D?), edited_by (T?), edited_at (D?) |
 
 ##### Stoly
 
@@ -1141,7 +1141,7 @@ Všechny aktivní tabulky obsahují společné sync sloupce (viz [SyncColumnsMix
 - `category_id` — nastaveno když `type = category` (nullable)
 - `label` — volitelný custom popis tlačítka (nullable, jinak se použije název item/category)
 - `color` — volitelná custom barva tlačítka (nullable)
-- Grid rozměry (`grid_rows`, `grid_cols`) — minimum 5×8, tlačítka se automaticky přizpůsobí velikosti gridu. Uloženy na tabulce `registers` (per-pokladna).
+- Grid rozměry (`grid_rows`, `grid_cols`) — minimum 7×8, tlačítka se automaticky přizpůsobí velikosti gridu. Uloženy na tabulce `registers` (per-pokladna).
 
 ##### Device binding (lokální)
 
@@ -1349,12 +1349,14 @@ Edge Function `create-demo-data` (`supabase/functions/create-demo-data/index.ts`
 4. Označí firmu jako demo: `UPDATE companies SET is_demo = true, demo_expires_at = <now + 24h>` (JS Date, ne SQL now())
 5. Vrátí `{ company_id, register_id }`
 
-**SQL funkce `create_demo_company`** (`supabase/migrations/20260224_004_create_demo_company_function.sql`):
+**SQL funkce `create_demo_company`** (`supabase/migrations/20260226_006_retail_demo_templates.sql`, původně `20260224_004`):
 - `SECURITY DEFINER`, `SET search_path = public, extensions` (pgcrypto v extensions schématu)
 - Načítá šablony z tabulky `seed_demo_data` (4 varianty: cs/gastro, cs/retail, en/gastro, en/retail)
 - Generuje: firmu s kompletními údaji (IČO, DIČ, email, telefon, adresa — fiktivní, lokalizované), company_settings, 4 uživatele (PIN 1111), tax rates, payment methods, warehouses, sections, tables, categories, items, modifiers, suppliers, manufacturers, customers, vouchers (kódy `XXXX-XXXX` generovány náhodně v SQL)
 - **90-day history loop:** Pro každý den vytváří register sessions, shifts, bills s orders a payments, cash movements, stock documents, reservations, customer transactions
+- **Edited shifts demo (STEP 18b):** Po history loop upraví 2 nejstarší uzavřené směny — simuluje admin korekci (nastaví original_login_at/original_logout_at, edited_by, edited_at)
 - Multi-currency support (cizí měna s manuálním kurzem)
+- **Enum casty:** `p_mode` ('gastro'/'retail') → `business_type` (restaurant/grocery), `sell_mode` (gastro/retail) — explicitní `:: enum_type` cast pro PG enum sloupce
 - **Session open cap:** `IF v_is_today THEN v_session_open := least(v_session_open, v_now)` — zabraňuje `opened_at` v budoucnosti pro non-UTC timezóny (session_open_minutes=360 = 06:00 UTC, v CET to je 07:00)
 
 **Seed data** (`supabase/migrations/20260224_003_seed_demo_data.sql`):
@@ -1378,7 +1380,7 @@ Edge Function `wipe` (`supabase/functions/wipe/index.ts`) slouží k úplnému s
 
 ### Reset-DB Edge Function (dev-only)
 
-Edge Function `reset-db` (`supabase/functions/reset-db/index.ts`) je dev-only utilita pro úplný reset všech dat na Supabase.
+Edge Function `reset-db` (`supabase/functions/reset-db/index.ts`) je dev-only utilita pro úplný reset všech dat na Supabase. Ignoruje PostgREST chybu `0A000` ("FOR UPDATE is not allowed with aggregate functions"), která nastává u tabulek s RLS aggregate policies — delete přesto proběhne úspěšně.
 
 **Autentizace:** Sdílené tajemství přes hlavičku `X-Reset-Secret` (ne JWT).
 
@@ -2103,9 +2105,9 @@ stateDiagram-v2
 
 #### ShiftRepository
 
-- **Business:** create (vytvoří směnu s loginAt=now), closeShift (nastaví logoutAt), closeAllForSession (uzavře všechny otevřené směny pro danou register session)
-- **Query:** getByCompany, getBySession, getActiveShiftForUser
-- **Sync:** Injektovaný `SyncQueueRepository`, ruční enqueue `_enqueue` po vytvoření a uzavření
+- **Business:** create (vytvoří směnu s loginAt=now), closeShift (nastaví logoutAt), closeAllForSession (uzavře všechny otevřené směny pro danou register session), updateShift (úprava loginAt/logoutAt s audit trail — při prvním editu uloží originální čas do original_login_at/original_logout_at, při každém editu zapíše edited_by a edited_at), softDelete (nastaví deletedAt)
+- **Query:** getBySession, getActiveShiftForUser
+- **Sync:** Injektovaný `SyncQueueRepository`, ruční enqueue `_enqueue` po vytvoření, uzavření, úpravě a smazání
 
 #### LayoutItemRepository
 
@@ -2307,7 +2309,7 @@ Po odeslání formuláře se v jedné transakci vytvoří:
 | Supplier | 0 (2 s demo) | S `withTestData` gastro: Makro Cash & Carry, Nápoje s.r.o. Retail: Velkoobchod CZ, Distribuce Plus |
 | Manufacturer | 0 (2 s demo) | S `withTestData` gastro: Plzeňský Prazdroj, Kofola. Retail: Český výrobce, Import s.r.o. |
 | Customer | 0 (5 s demo) | S `withTestData`: Martin Svoboda, Lucie Černá, Tomáš Krejčí, Eva Nováková, Petr Veselý |
-| Register | 1 | code: `REG-1`, type: `local`, is_active: true, allow_cash/card/transfer/credit/voucher/other: true, allow_refunds: false, grid: 5×8, sell_mode: gastro |
+| Register | 1 | code: `REG-1`, type: `local`, is_active: true, allow_cash/card/transfer/credit/voucher/other: true, allow_refunds: false, grid: 7×8, sell_mode: gastro |
 | User | 1 | Admin s PIN hashem, role_id: admin |
 | UserPermission | 115 | Všech 115 oprávnění, granted_by: admin user ID (self-grant při onboardingu) |
 
@@ -2691,23 +2693,23 @@ Odpovídá obrazovce **Nastavení pokladny** (terminály, hardware, grid, disple
 
 #### Helper (Pomocník / Číšník)
 
-> **18 oprávnění.** Základní provoz — přijímá objednávky, inkasuje platby,
+> **15 oprávnění.** Základní provoz — přijímá objednávky, inkasuje platby,
 > vidí jen své věci, nemůže stornovat, refundovat, dávat slevy ani měnit
-> nastavení. V info panelu objednávek vidí pouze čas, stav a název
-> (bez cen a modifikátorů). Nemá přístup ke statistikám.
+> nastavení. Může otevřít detail účtu (bez akcí jako storno, refundace, slevy).
+> Nemá přístup ke statistikám.
 
 | Skupina | Oprávnění | Počet |
 |---------|-----------|:-----:|
-| orders | `create`, `view`, `edit`, `assign_customer`, `bump` | 5 |
+| orders | `create`, `view`, `view_detail`, `edit`, `assign_customer`, `bump` | 6 |
 | payments | `accept`, `method_cash`, `method_card`, `accept_tip` | 4 |
 | discounts | — | 0 |
-| register | `view_session` | 1 |
-| shifts | `view_own` | 1 |
+| register | — | 0 |
+| shifts | — | 0 |
 | products | `view` | 1 |
 | stock | — | 0 |
 | customers | `view` | 1 |
-| vouchers | `view`, `redeem` | 2 |
-| venue | `view`, `reservations_view` | 2 |
+| vouchers | `redeem` | 1 |
+| venue | `reservations_view` | 1 |
 | stats | — | 0 |
 | printing | `receipt` | 1 |
 | data | — | 0 |
@@ -2715,27 +2717,27 @@ Odpovídá obrazovce **Nastavení pokladny** (terminály, hardware, grid, disple
 | settings_company | — | 0 |
 | settings_venue | — | 0 |
 | settings_register | — | 0 |
-| | **Celkem** | **18** |
+| | **Celkem** | **15** |
 
 #### Operator (Směnový vedoucí)
 
-> **62 oprávnění.** Vše od helpera + storna, refundace, slevy (limitované na company limit), pokladní
+> **55 oprávnění.** Vše od helpera + storna, refundace, slevy (limitované na company limit), pokladní
 > operace, odpisy, správa zákazníků a rezervací. Plný detail v objednávkách.
 > Statistiky omezeny na aktuální session (bez date range selectoru).
 > Řídí provoz během směny.
 
 | Skupina | Navíc oproti helper | Celkem |
 |---------|---------------------|:------:|
-| orders | + `view_paid`, `view_cancelled`, `view_detail`, `void_item`, `void_bill`, `transfer`, `split`, `merge`, `bump_back` | 14 |
-| payments | + `refund`, `refund_item`, `method_voucher`, `method_meal_ticket`, `method_bank`, `method_credit`, `skip_cash_dialog`, `adjust_tip` | 12 |
+| orders | + `view_paid`, `view_cancelled`, `void_item`, `void_bill`, `transfer`, `split`, `merge`, `bump_back` | 14 |
+| payments | + `refund`, `refund_item`, `method_voucher`, `method_meal_ticket`, `method_bank`, `method_credit`, `skip_cash_dialog` | 11 |
 | discounts | + `apply_item_limited`, `apply_bill_limited`, `loyalty` | 3 |
-| register | + `open_session`, `close_session`, `view_all_sessions`, `cash_in`, `cash_out`, `open_drawer` | 7 |
-| shifts | + `view_all` | 2 |
+| register | + `open_close`, `cash_in`, `cash_out`, `open_drawer` | 4 |
+| shifts | — | 0 |
 | products | + `set_availability` | 2 |
 | stock | + `view_levels`, `view_documents`, `view_movements`, `wastage` | 4 |
 | customers | + `manage`, `manage_credit` | 3 |
-| vouchers | + `manage` | 3 |
-| venue | + `reservations_manage` | 3 |
+| vouchers | + `view`, `manage` | 3 |
+| venue | + `reservations_manage` | 2 |
 | stats | + `receipts`, `sales`, `orders`, `tips`, `cash_journal` | 5 |
 | printing | + `reprint`, `z_report` | 3 |
 | data | — | 0 |
@@ -2743,11 +2745,11 @@ Odpovídá obrazovce **Nastavení pokladny** (terminály, hardware, grid, disple
 | settings_company | — | 0 |
 | settings_venue | — | 0 |
 | settings_register | — | 0 |
-| | **Celkem** | **62** |
+| | **Celkem** | **55** |
 
 #### Manager (Manažer)
 
-> **92 oprávnění.** Vše od operátora + neomezené slevy, správa katalogu (produkty, kategorie,
+> **85 oprávnění.** Vše od operátora + neomezené slevy, správa katalogu (produkty, kategorie,
 > modifikátory, receptury, dodavatelé, výrobci), skladu (příjem, korekce,
 > inventura, přesun), zaměstnanců, nastavení provozovny a export dat.
 > Plný přístup ke statistikám včetně historie, směn a uzávěrek.
@@ -2756,15 +2758,15 @@ Odpovídá obrazovce **Nastavení pokladny** (terminály, hardware, grid, disple
 | Skupina | Navíc oproti operator | Celkem |
 |---------|----------------------|:------:|
 | orders | + `reopen` | 15 |
-| payments | — | 12 |
+| payments | — | 11 |
 | discounts | + `apply_item`, `apply_bill` | 5 |
-| register | — | 7 |
-| shifts | + `manage` | 3 |
+| register | — | 4 |
+| shifts | + `manage` | 1 |
 | products | + `view_cost`, `manage`, `manage_categories`, `manage_modifiers`, `manage_recipes`, `manage_suppliers`, `manage_manufacturers` | 9 |
 | stock | + `receive`, `adjust`, `count`, `transfer` | 8 |
 | customers | + `manage_loyalty` | 4 |
 | vouchers | — | 3 |
-| venue | — | 3 |
+| venue | — | 2 |
 | stats | + `receipts_all`, `sales_all`, `orders_all`, `tips_all`, `cash_journal_all`, `shifts`, `z_reports` | 12 |
 | printing | + `inventory_report` | 4 |
 | data | + `export` | 1 |
@@ -2772,26 +2774,26 @@ Odpovídá obrazovce **Nastavení pokladny** (terminály, hardware, grid, disple
 | settings_company | — | 0 |
 | settings_venue | + `sections`, `tables`, `floor_plan` | 3 |
 | settings_register | + `grid` | 1 |
-| | **Celkem** | **92** |
+| | **Celkem** | **85** |
 
 #### Admin (Administrátor / Majitel)
 
-> **112 oprávnění (vše).** Vše od manažera + systémová nastavení firmy,
+> **105 oprávnění (vše).** Vše od manažera + systémová nastavení firmy,
 > správa daní a nákupních cen, cenová strategie, sklady, role a oprávnění
 > uživatelů, import/záloha dat, registr a hardware, destruktivní akce.
 
 | Skupina | Navíc oproti manager | Celkem |
 |---------|---------------------|:------:|
 | orders | — | 15 |
-| payments | — | 12 |
+| payments | — | 11 |
 | discounts | — | 5 |
-| register | — | 7 |
-| shifts | — | 3 |
+| register | — | 4 |
+| shifts | — | 1 |
 | products | + `manage_purchase_price`, `manage_tax` | 11 |
 | stock | + `set_price_strategy`, `manage_warehouses` | 10 |
 | customers | — | 4 |
 | vouchers | — | 3 |
-| venue | — | 3 |
+| venue | — | 2 |
 | stats | — | 12 |
 | printing | — | 4 |
 | data | + `import`, `backup` | 3 |
@@ -2799,21 +2801,21 @@ Odpovídá obrazovce **Nastavení pokladny** (terminály, hardware, grid, disple
 | settings_company | + `info`, `security`, `fiscal`, `cloud`, `data_wipe`, `view_log`, `clear_log` | 7 |
 | settings_venue | — | 3 |
 | settings_register | + `manage`, `hardware`, `payment_methods`, `tax_rates`, `manage_devices` | 6 |
-| | **Celkem** | **112** |
+| | **Celkem** | **105** |
 
 #### Souhrnná matice
 
 | Skupina | Počet | helper | operator | manager | admin |
 |---------|:-----:|:------:|:--------:|:-------:|:-----:|
-| orders | 15 | 5 | 14 | 15 | 15 |
+| orders | 15 | 6 | 14 | 15 | 15 |
 | payments | 11 | 4 | 11 | 11 | 11 |
 | discounts | 5 | 0 | 3 | 5 | 5 |
-| register | 4 | 1 | 4 | 4 | 4 |
+| register | 4 | 0 | 4 | 4 | 4 |
 | shifts | 1 | 0 | 0 | 1 | 1 |
 | products | 11 | 1 | 2 | 9 | 11 |
 | stock | 10 | 0 | 4 | 8 | 10 |
 | customers | 4 | 1 | 3 | 4 | 4 |
-| vouchers | 3 | 2 | 3 | 3 | 3 |
+| vouchers | 3 | 1 | 3 | 3 | 3 |
 | venue | 2 | 1 | 2 | 2 | 2 |
 | stats | 12 | 0 | 5 | 12 | 12 |
 | printing | 4 | 1 | 3 | 4 | 4 |
@@ -2822,14 +2824,14 @@ Odpovídá obrazovce **Nastavení pokladny** (terminály, hardware, grid, disple
 | settings_company | 7 | 0 | 0 | 0 | 7 |
 | settings_venue | 3 | 0 | 0 | 3 | 3 |
 | settings_register | 6 | 0 | 0 | 1 | 6 |
-| **Celkem** | **105** | **15** | **56** | **85** | **105** |
+| **Celkem** | **105** | **15** | **55** | **85** | **105** |
 
 #### Progrese mezi rolemi
 
 | Přechod | Nových oprávnění | Hlavní oblasti |
 |---------|:----------------:|----------------|
-| helper → operator | +41 | Storna, refundace, slevy (limitované), pokladní operace, statistiky (session) |
-| operator → manager | +29 | Slevy (neomezené), katalog, sklad, zaměstnanci, statistiky (historie + směny + uzávěrky), nastavení provozovny |
+| helper → operator | +40 | Storna, refundace, slevy (limitované), pokladní operace, statistiky (session) |
+| operator → manager | +30 | Slevy (neomezené), katalog, sklad, zaměstnanci, statistiky (historie + směny + uzávěrky), nastavení provozovny |
 | manager → admin | +20 | Systém, daně, ceny, data, role, hardware, destruktivní akce |
 
 ### Přiřazení role uživateli
@@ -2853,13 +2855,15 @@ Kontrolovat **vždy v UI** (tlačítko se nezobrazí) **i v repozitáři** (nelz
 
 Přehled všech oprávnění, která se kontrolují na UI vrstvě (skrytí/zablokování prvků).
 
-#### Účty a objednávky (`dialog_bill_detail.dart`, `screen_bills.dart`, `screen_inventory.dart`)
+#### Účty a objednávky (`dialog_bill_detail.dart`, `screen_bills.dart`, `screen_sell.dart`)
 
 | Oprávnění | Efekt bez oprávnění |
 |-----------|-------------------|
+| `orders.create` | Tlačítko nového účtu / rychlého účtu skryto |
 | `orders.view_detail` | Klik na řádek účtu/stock movement neotevře detail |
 | `orders.view_paid` | Filtr "Zaplacené" skryt, zaplacené účty nezobrazeny |
 | `orders.view_cancelled` | Filtr "Stornované" skryt, stornované účty nezobrazeny |
+| `orders.edit` | Tlačítko editace objednávky v detailu skryto |
 | `orders.assign_customer` | Tlačítko zákazníka v detailu skryto |
 | `orders.transfer` | Tlačítko přesunu v detailu skryto |
 | `orders.merge` | Tlačítko sloučení v detailu skryto |
@@ -2867,10 +2871,15 @@ Přehled všech oprávnění, která se kontrolují na UI vrstvě (skrytí/zablo
 | `orders.void_item` | Tlačítko storna položky skryto |
 | `orders.void_bill` | Tlačítko storna účtu skryto |
 | `orders.reopen` | Tlačítko znovuotevření skryto |
+| `discounts.apply_item` / `apply_item_limited` | Tlačítko slevy na položku skryto |
 | `discounts.apply_bill` / `apply_bill_limited` | Tlačítko slevy na účet skryto |
 | `vouchers.redeem` | Tlačítko voucheru v detailu skryto |
-| `payments.method_*` | Příslušné platební metody skryty v dialogu platby |
+| `payments.accept` | Tlačítko platby v detailu skryto |
+| `payments.refund` | Tlačítko refundace účtu skryto |
+| `payments.refund_item` | Tlačítko refundace položky skryto |
+| `printing.receipt` / `printing.reprint` | Tlačítka tisku / dotisku účtenky skryta |
 | `register.open_close` | Tlačítko otevření/uzavření pokladny skryto |
+| `stats.cash_journal` | Tlačítko pokladních pohybů skryto |
 
 #### Platby (`dialog_payment.dart`)
 
@@ -2885,16 +2894,25 @@ Přehled všech oprávnění, která se kontrolují na UI vrstvě (skrytí/zablo
 |-----------|-------------------|
 | `venue.reservations_manage` | Tlačítko nové rezervace skryto, klik na řádek/Gantt blok neotevře edit |
 
-#### Sklad (`dialog_stock_document.dart`)
+#### Sklad (`screen_inventory.dart`, `dialog_stock_document.dart`)
 
 | Oprávnění | Efekt bez oprávnění |
 |-----------|-------------------|
+| `stock.view_levels` | Tab stavu skladu skryt |
+| `stock.view_documents` | Tab skladových dokumentů skryt |
+| `stock.view_movements` | Tab pohybů skladu skryt |
+| `stock.receive` | Tlačítko příjemky skryto |
+| `stock.wastage` | Tlačítko odpisu skryto |
+| `stock.adjust` | Tlačítko korekce skryto |
+| `stock.count` | Tlačítko inventury skryto |
 | `stock.set_price_strategy` | Dropdown strategie NC skryt (dokument i per-item), výchozí `overwrite` |
 
 #### Katalog — produkty (`catalog_products_tab.dart`)
 
 | Oprávnění | Efekt bez oprávnění |
 |-----------|-------------------|
+| `products.manage` | FAB pro přidání produktu skryt |
+| `products.view_cost` | Sloupec nákupní ceny v tabulce skryt |
 | `products.manage_purchase_price` | Pole nákupní ceny v edit dialogu skryto |
 | `products.manage_tax` | Dropdowny prodejní a nákupní DPH skryty |
 | `products.set_availability` | Switche Aktivní a V prodeji skryty |
@@ -2906,6 +2924,7 @@ Přehled všech oprávnění, která se kontrolují na UI vrstvě (skrytí/zablo
 | `stats.receipts/sales/orders/tips` | Příslušný tab skryt |
 | `stats.receipts_all/sales_all/orders_all/tips_all` | Data omezena na aktuální session; info banner "Pouze aktuální směna" |
 | Všechny `stats.*_all` | Dashboard tab vyžaduje všechny — bez nich skryt |
+| `shifts.manage` | V dialogu detailu směny skryto tlačítko Upravit a Smazat; bez oprávnění je dialog read-only |
 
 #### Nastavení (`screen_settings_unified.dart`)
 
@@ -2913,6 +2932,13 @@ Přehled všech oprávnění, která se kontrolují na UI vrstvě (skrytí/zablo
 |-----------|-------------------|
 | `settings_company.*` / `settings_venue.*` / `settings_register.*` | Příslušné taby skryty (13 oprávnění) |
 | `settings_register.grid` | Sekce správy gridu (auto-arrange, manuální editor) skryta |
+
+#### Vouchery (`screen_vouchers.dart`, navigace)
+
+| Oprávnění | Efekt bez oprávnění |
+|-----------|-------------------|
+| `vouchers.view` | Položka menu "Vouchery" skryta, route `/vouchers` přesměruje na home |
+| `vouchers.manage` | Tlačítko vytvoření voucheru a deaktivace v detailu skryty |
 
 #### Katalog — taby (`screen_catalog.dart`)
 
@@ -3256,14 +3282,14 @@ Layout: **20/80 horizontální split**
 
 **Pravý panel (80%) — Konfigurovatelný grid:**
 - **Top toolbar:** Search `IconButton` + 5 FilterChipů — Skenovat (disabled), Zákazník, Poznámka, Oddělit (jen gastro; vloží oddělovač do košíku), Akce (disabled, budoucí). Při navigaci v kategorii se zobrazí chip Zpět.
-- **Grid:** N×M konfigurovatelných tlačítek (minimum 5×8, tlačítka se velikostí automaticky přizpůsobí)
+- **Grid:** N×M konfigurovatelných tlačítek (minimum 7×8, tlačítka se velikostí automaticky přizpůsobí)
 - **Každé tlačítko** = položka (item), kategorie, nebo prázdné
 - **Klik na položku:** Přidá do košíku (quantity +1)
 - **Klik na kategorii:** Zobrazí podstránku s položkami dané kategorie ve stejném gridu
 - **Text na tlačítku:** Jednořádkový, s `ShaderMask` fade efektem na okrajích (plynulé zeslabení textu místo ořezu)
 - **Editační režim:** V nastavení lze každému tlačítku přiřadit položku nebo kategorii
 - **Auto-layout:** `DialogAutoArrange` — automatické rozmístění produktů do gridu (horizontální/vertikální varianta)
-- **Rozměry gridu:** Uloženy v tabulce `registers` (`grid_rows`, `grid_cols`). Výchozí 5×8 (seed).
+- **Rozměry gridu:** Uloženy v tabulce `registers` (`grid_rows`, `grid_cols`). Výchozí 7×8 (seed).
 
 Grid konfigurace je uložena v tabulce `layout_items` (viz [Schéma](#layout-grid)).
 

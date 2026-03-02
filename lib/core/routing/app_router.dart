@@ -192,7 +192,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/vouchers',
         redirect: (context, state) {
-          final hasPermission = ref.read(hasAnyPermissionInGroupProvider('vouchers'));
+          final hasPermission = ref.read(hasPermissionProvider('vouchers.view'));
           if (!hasPermission) return _homeRoute(ref);
           return null;
         },

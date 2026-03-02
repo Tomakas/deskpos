@@ -27,7 +27,7 @@ abstract class RegisterModel with _$RegisterModel {
     @Default(false) bool allowRefunds,
     String? boundDeviceId,
     String? activeBillId,
-    @Default(5) int gridRows,
+    @Default(7) int gridRows,
     @Default(8) int gridCols,
     String? displayCartJson,
     @Default(false) bool showStockBadge,

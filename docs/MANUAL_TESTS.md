@@ -1657,7 +1657,7 @@ Kompletní sada testovacích scénářů pro manuální testování POS aplikace
 
 1. ✅ Přístup na `/bills`, `/sell`, `/orders`.
 2. Zkuste přejít na `/settings/company`.
-3. ✅ Redirect zpět na `/bills` (nemá oprávnění `settings.manage`).
+3. ✅ Redirect zpět na `/bills` (nemá oprávnění `settings_company.*`, `settings_venue.*`, `settings_register.*`).
 4. ✅ V menu „Další" chybí položky nastavení nebo jsou neaktivní.
 
 ### OPR-03: Pomocník — minimální oprávnění
@@ -1666,15 +1666,15 @@ Kompletní sada testovacích scénářů pro manuální testování POS aplikace
 
 1. ✅ Přístup na `/bills`, `/sell`.
 2. Zkuste přejít na `/orders`.
-3. ✅ Redirect zpět (nemá `orders.view`).
+3. ✅ Redirect zpět (nemá `orders.view` — Zobrazit vlastní objednávky).
 4. Zkuste přejít na `/catalog`, `/inventory`, `/vouchers`.
-5. ✅ Redirect zpět (nemá `settings.manage`).
+5. ✅ Redirect zpět (nemá `products.view` — Zobrazit produkty / `stock.view_levels` — Zobrazit zásoby / `vouchers.view` — Zobrazit vouchery).
 
 ### OPR-04: Chráněné akce bez oprávnění
 
 **Předpoklady:** Přihlášen uživatel bez příslušného oprávnění.
 
-1. Zkuste provést akci vyžadující oprávnění (např. storno účtu bez `bills.cancel`).
+1. Zkuste provést akci vyžadující oprávnění (např. storno účtu bez `orders.void_bill` — Storno účtu).
 2. ✅ Akce je buď skrytá (tlačítko chybí) nebo se zobrazí „Nemáte oprávnění pro tuto akci".
 
 ### OPR-05: Změna role za běhu

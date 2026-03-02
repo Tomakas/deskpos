@@ -25,7 +25,7 @@ class Registers extends Table with SyncColumnsMixin {
   BoolColumn get allowRefunds => boolean().withDefault(const Constant(false))();
   TextColumn get boundDeviceId => text().nullable()();
   TextColumn get activeBillId => text().nullable()();
-  IntColumn get gridRows => integer().withDefault(const Constant(5))();
+  IntColumn get gridRows => integer().withDefault(const Constant(7))();
   IntColumn get gridCols => integer().withDefault(const Constant(8))();
   TextColumn get displayCartJson => text().nullable()();
   BoolColumn get showStockBadge => boolean().withDefault(const Constant(false))();

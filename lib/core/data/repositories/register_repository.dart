@@ -108,7 +108,7 @@ class RegisterRepository {
     bool allowMealTicket = true,
     bool allowOther = true,
     bool allowRefunds = false,
-    int gridRows = 5,
+    int gridRows = 7,
     int gridCols = 8,
   }) async {
     try {

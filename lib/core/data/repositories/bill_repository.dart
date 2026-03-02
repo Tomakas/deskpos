@@ -1188,7 +1188,7 @@ class BillRepository {
             .get();
 
         final number = count.length + 1;
-        return 'B$regNum-${number.toString().padLeft(3, '0')}';
+        return 'B$regNum-${number.toString().padLeft(4, '0')}';
       }
     }
 
@@ -1205,7 +1205,7 @@ class BillRepository {
         .get();
 
     final number = count.length + 1;
-    return 'B-${number.toString().padLeft(3, '0')}';
+    return 'B-${number.toString().padLeft(4, '0')}';
   }
 
   Future<void> _enqueueBill(String operation, BillModel m) async {

@@ -893,7 +893,7 @@ class _RightPanel extends ConsumerWidget {
     final canCatalog = ref.watch(hasAnyPermissionInGroupProvider('products'));
     final canInventory = ref.watch(hasAnyPermissionInGroupProvider('stock'));
     final canStats = ref.watch(hasAnyPermissionInGroupProvider('stats'));
-    final canVouchers = ref.watch(hasAnyPermissionInGroupProvider('vouchers'));
+    final canVouchers = ref.watch(hasPermissionProvider('vouchers.view'));
     final canData = ref.watch(hasAnyPermissionInGroupProvider('data'));
     final canCompanySettings = ref.watch(hasAnyPermissionInGroupProvider('settings_company'));
     final canVenueSettings = ref.watch(hasAnyPermissionInGroupProvider('settings_venue'));

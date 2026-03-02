@@ -593,7 +593,7 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
         allowMealTicket: Value(json['allow_meal_ticket'] as bool? ?? true),
         allowOther: Value(json['allow_other'] as bool? ?? true),
         allowRefunds: Value(json['allow_refunds'] as bool? ?? false),
-        gridRows: Value(json['grid_rows'] as int? ?? 5),
+        gridRows: Value(json['grid_rows'] as int? ?? 7),
         gridCols: Value(json['grid_cols'] as int? ?? 8),
         displayCartJson: Value(json['display_cart_json'] as String?),
         showStockBadge: Value(json['show_stock_badge'] as bool? ?? false),

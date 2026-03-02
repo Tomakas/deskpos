@@ -830,7 +830,7 @@ BEGIN
   VALUES (
     v_register_id,
     v_company_id,
-    'REG-001',
+    'REG-1',
     CASE p_locale WHEN 'cs' THEN 'Hlavní pokladna' ELSE 'Main Register' END,
     1,
     true,
@@ -1051,6 +1051,10 @@ BEGIN
             v_opening_cash, 0, 0,
             v_session_open, v_session_open);
 
+    -- Reset counters for this day's session
+    v_bill_counter := 0;
+    v_order_counter := 0;
+
     -- Create shifts
     v_morning_shift_id := gen_random_uuid()::text;
     INSERT INTO shifts (id, company_id, register_session_id, user_id, login_at, client_created_at, client_updated_at)
@@ -1170,7 +1174,7 @@ BEGIN
         v_order := v_orders->v_idx2;
         v_order_counter := v_order_counter + 1;
         v_order_id := gen_random_uuid()::text;
-        v_order_number := 'O-' || lpad(v_order_counter::text, 4, '0');
+        v_order_number := 'O1-' || lpad(v_order_counter::text, 4, '0');
         v_prep_status := COALESCE(v_order->>'prep_status', 'delivered');
 
         v_order_gross := 0;
@@ -1402,7 +1406,7 @@ BEGIN
         CASE WHEN v_customer_id IS NOT NULL THEN (SELECT first_name || ' ' || last_name FROM customers WHERE id = v_customer_id) ELSE NULL END,
         v_section_id, v_table_id,
         v_register_id, v_register_id, v_session_id, v_order_user,
-        'B-' || lpad(v_bill_counter::text, 4, '0'),
+        'B1-' || lpad(v_bill_counter::text, 4, '0'),
         v_guests, v_is_takeaway,
         v_bill_status::bill_status,
         v_currency_id,
@@ -1560,7 +1564,12 @@ BEGIN
             ELSE NULL
           END,
           v_morning_user,
-          upper(v_sdoc_type) || '-' || lpad(v_stock_doc_counter::text, 3, '0'),
+          CASE v_sdoc_type
+            WHEN 'receipt' THEN 'R'
+            WHEN 'waste' THEN 'W'
+            WHEN 'inventory' THEN 'I'
+            WHEN 'correction' THEN 'C'
+          END || '-' || lpad(v_stock_doc_counter::text, 4, '0'),
           v_sdoc_type::stock_document_type,
           CASE p_locale WHEN 'cs' THEN v_sdoc->>'note_cs' ELSE v_sdoc->>'note_en' END,
           v_sdoc_total::int,

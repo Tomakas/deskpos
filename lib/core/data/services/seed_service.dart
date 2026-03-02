@@ -9,6 +9,7 @@ import '../enums/company_status.dart';
 import '../enums/hardware_type.dart';
 import '../enums/item_type.dart';
 import '../enums/payment_type.dart';
+import '../enums/sell_mode.dart';
 import '../enums/role_name.dart';
 import '../enums/table_shape.dart';
 import '../enums/tax_calc_type.dart';
@@ -214,6 +215,9 @@ class SeedService {
         ));
 
         // 5. Register
+        final sellMode = (businessType?.category == BusinessCategory.retail)
+            ? SellMode.retail
+            : SellMode.gastro;
         final register = RegisterModel(
           id: registerId,
           companyId: companyId,
@@ -226,8 +230,9 @@ class SeedService {
           allowCard: true,
           allowTransfer: true,
           allowRefunds: false,
-          gridRows: 5,
+          gridRows: 7,
           gridCols: 8,
+          sellMode: sellMode,
           createdAt: now,
           updatedAt: now,
         );
@@ -240,6 +245,13 @@ class SeedService {
               isMain: const Value(true),
               boundDeviceId: Value(deviceId),
               type: register.type,
+              gridRows: Value(register.gridRows),
+              gridCols: Value(register.gridCols),
+              sellMode: Value(register.sellMode),
+              allowCash: Value(register.allowCash),
+              allowCard: Value(register.allowCard),
+              allowTransfer: Value(register.allowTransfer),
+              allowRefunds: Value(register.allowRefunds),
             ));
 
         // 5b. Auto-bind device to the main register

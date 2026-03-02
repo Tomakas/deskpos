@@ -26697,7 +26697,7 @@ class $RegistersTable extends Registers
     false,
     type: DriftSqlType.int,
     requiredDuringInsert: false,
-    defaultValue: const Constant(5),
+    defaultValue: const Constant(7),
   );
   static const VerificationMeta _gridColsMeta = const VerificationMeta(
     'gridCols',

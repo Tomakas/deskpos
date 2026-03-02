@@ -1,5 +1,54 @@
 # Changelog
 
+## 2026-03-02 (evening) — Demo/App Format Unification
+
+### Features
+- **Grid rows default 7:** changed grid_rows default from 5 to 7 across Drift schema, RegisterModel, RegisterRepository, SeedService, and Supabase pull mappers
+- **seedOnboarding sell_mode fix:** register now derives sellMode from businessType (retail business types → retail mode); RegistersCompanion.insert passes gridRows, gridCols, sellMode, allowCash, allowCard, allowTransfer, allowRefunds
+- **Immersive sticky mode:** added `SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky)` in `main.dart` — hides Android status and navigation bars for kiosk-style fullscreen
+
+### Fixes
+- **Bill number padding:** app now generates 4-digit bill numbers (`B1-0001`) instead of 3-digit (`B1-001`)
+- **Demo bill number prefix:** `B-` → `B1-` (matches app format with register prefix)
+- **Demo order number prefix:** `O-` → `O1-` (matches app format with register prefix)
+- **Demo register code:** `REG-001` → `REG-1` (matches app format)
+- **Demo counter reset per-day:** bill_counter and order_counter now reset to 0 at start of each day's session (matches app behavior)
+- **INTERNET permission:** added `android.permission.INTERNET` to AndroidManifest.xml (required for release builds)
+
+### Supabase
+- Migration `20260302_003`: remove `vouchers.view` from helper role (helpers can redeem vouchers during payment but should not access voucher management screen)
+- Migration `20260302_004`: add `orders.view_detail` to helper role (allows opening bill detail dialog; actions inside remain gated by their own permissions)
+
+### Documentation
+- Updated PROJECT.md: grid dimensions "5×8" → "7×8" (4 occurrences)
+- Fixed PROJECT.md: operator total 56 → 55, helper register 1 → 0, operator vouchers "navíc" added `view`, progression +41/+29 → +40/+30, grid_rows default 5 → 7
+
+---
+
+## 2026-03-02 — Shift Management + UI Permission Gates + Demo Fixes
+
+### Features
+- **`shifts.manage` implementation:** shift detail/edit dialog in statistics — tap a shift row to open detail, edit login/logout times (gated on `shifts.manage`), soft-delete shifts
+- **Shift audit trail:** 4 new columns on shifts table (`original_login_at`, `original_logout_at`, `edited_by`, `edited_at`); first edit preserves original timestamp, subsequent edits update editor info
+- **ShiftRepository:** added `updateShift()` (with audit trail) and `softDelete()` methods
+- **UI permission gates expanded:** added ~20 new gates across screens — `orders.create`, `orders.edit`, `payments.accept`, `payments.refund`, `payments.refund_item`, `printing.receipt`/`reprint`, `stats.cash_journal`, `stock.view_levels`/`view_documents`/`view_movements`/`receive`/`wastage`/`adjust`/`count`, `products.manage`/`view_cost`, `discounts.apply_item`/`apply_item_limited`
+
+### Fixes
+- **PosDialogActions:** `SizedBox.expand` → `SizedBox(height: double.infinity)` for leading widget (fixes overflow in dialogs with leading button)
+- **Demo `create_demo_company`:** added explicit `:: business_type` and `:: sell_mode` enum casts (fixes 500 error on demo creation)
+- **Demo payment methods:** renamed voucher "Stravenky" → "Poukázky"/"Gift Vouchers", added mealTicket payment method
+- **reset-db edge function:** ignore PostgREST `0A000` error ("FOR UPDATE not allowed with aggregate functions") — delete still succeeds
+
+### Supabase
+- Migration `20260302_001`: add 4 audit columns to shifts table
+- Migration `20260302_002`: drop `chk_shifts_login_before_logout` CHECK constraint (validation in Dart only)
+- Demo seed: STEP 18b — 2 edited shifts with audit trail in `create_demo_company`
+
+### Documentation
+- Updated PROJECT.md: shifts table schema, registers schema (`allow_meal_ticket`), ShiftRepository methods, role counts (15/56/85/105), UI gates table, demo function description, reset-db note
+
+---
+
 ## 2026-03-01 — Permission Catalog Cleanup + Meal Tickets
 
 ### Permissions
