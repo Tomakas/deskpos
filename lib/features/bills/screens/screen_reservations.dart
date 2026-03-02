@@ -6,6 +6,7 @@ import '../../../core/data/models/reservation_model.dart';
 import '../../../core/data/models/section_model.dart';
 import '../../../core/data/models/table_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
+import '../../../core/data/providers/permission_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/theme/app_colors.dart';
@@ -102,6 +103,7 @@ class _ScreenReservationsState extends ConsumerState<ScreenReservations> {
     final l = context.l10n;
     final theme = Theme.of(context);
     final company = ref.watch(currentCompanyProvider);
+    final canManageReservations = ref.watch(hasPermissionProvider('venue.reservations_manage'));
     final locale = ref.watch(appLocaleProvider).value ?? 'cs';
 
     if (company == null) return const SizedBox.shrink();
@@ -184,21 +186,23 @@ class _ScreenReservationsState extends ConsumerState<ScreenReservations> {
                         ),
                       ),
                     ],
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: SizedBox(
-                        height: 40,
-                        child: FilledButton.icon(
-                          onPressed: _openCreateDialog,
-                          icon: const Icon(Icons.add, size: 18),
-                          label: Text(
-                            l.reservationNew,
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 1,
+                    if (canManageReservations) ...[
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: SizedBox(
+                          height: 40,
+                          child: FilledButton.icon(
+                            onPressed: _openCreateDialog,
+                            icon: const Icon(Icons.add, size: 18),
+                            label: Text(
+                              l.reservationNew,
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            ),
                           ),
                         ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ),
@@ -252,7 +256,9 @@ class _ScreenReservationsState extends ConsumerState<ScreenReservations> {
                                     ),
                                   ],
                                   items: sectionReservations,
-                                  onRowTap: (r) => _openEditDialog(r),
+                                  onRowTap: canManageReservations
+                                      ? (r) => _openEditDialog(r)
+                                      : null,
                                   emptyMessage: l.reservationsEmpty,
                                 );
                               }
@@ -265,7 +271,9 @@ class _ScreenReservationsState extends ConsumerState<ScreenReservations> {
                                         tables: sectionTables,
                                         dateFrom: _dateFrom!,
                                         dateTo: _dateTo!,
-                                        onReservationTap: _openEditDialog,
+                                        onReservationTap: canManageReservations
+                                            ? _openEditDialog
+                                            : null,
                                       )
                                     : ReservationBarChart(
                                         reservations: sectionReservations,

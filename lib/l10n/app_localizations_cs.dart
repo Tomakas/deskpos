@@ -1217,6 +1217,35 @@ class AppLocalizationsCs extends AppLocalizations {
   String get shiftsOngoing => 'probíhá';
 
   @override
+  String get shiftDetailTitle => 'Detail směny';
+
+  @override
+  String get shiftEditLoginAt => 'Čas příchodu';
+
+  @override
+  String get shiftEditLogoutAt => 'Čas odchodu';
+
+  @override
+  String shiftEditOriginal(String time) {
+    return 'Původní: $time';
+  }
+
+  @override
+  String shiftEditEditedBy(String name) {
+    return 'Upravil/a $name';
+  }
+
+  @override
+  String get shiftEditOngoing => 'Probíhá';
+
+  @override
+  String get shiftEditValidation =>
+      'Odchod musí být po příchodu, bez budoucích dat';
+
+  @override
+  String get shiftEditDelete => 'Smazat směnu';
+
+  @override
   String get closingOpenBillsWarningTitle => 'Otevřené účty';
 
   @override
@@ -1900,7 +1929,10 @@ class AppLocalizationsCs extends AppLocalizations {
   String get paymentTypeCredit => 'Kredit';
 
   @override
-  String get paymentTypeVoucher => 'Stravenky';
+  String get paymentTypeVoucher => 'Poukázky';
+
+  @override
+  String get paymentTypeMealTicket => 'Stravenky';
 
   @override
   String get loyaltySectionTitle => 'Věrnostní program';
@@ -2429,7 +2461,10 @@ class AppLocalizationsCs extends AppLocalizations {
   String get registerAllowCredit => 'Kredit';
 
   @override
-  String get registerAllowVoucher => 'Stravenky';
+  String get registerAllowVoucher => 'Poukázky';
+
+  @override
+  String get registerAllowMealTicket => 'Stravenky';
 
   @override
   String get registerAllowOther => 'Ostatní';
@@ -3222,9 +3257,6 @@ class AppLocalizationsCs extends AppLocalizations {
   String get permPaymentsAcceptTip => 'Přijmout spropitné';
 
   @override
-  String get permPaymentsAdjustTip => 'Upravit spropitné';
-
-  @override
   String get permDiscountsApplyItemLimited => 'Sleva na položku (limitovaná)';
 
   @override
@@ -3240,16 +3272,7 @@ class AppLocalizationsCs extends AppLocalizations {
   String get permDiscountsLoyalty => 'Uplatnit věrnostní body';
 
   @override
-  String get permRegisterOpenSession => 'Otevřít pokladnu';
-
-  @override
-  String get permRegisterCloseSession => 'Uzavřít pokladnu';
-
-  @override
-  String get permRegisterViewSession => 'Zobrazit stav pokladny';
-
-  @override
-  String get permRegisterViewAllSessions => 'Historie uzávěrek';
+  String get permRegisterOpenClose => 'Otevřít/uzavřít pokladnu';
 
   @override
   String get permRegisterCashIn => 'Vklad hotovosti';
@@ -3259,12 +3282,6 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get permRegisterOpenDrawer => 'Otevřít zásuvku';
-
-  @override
-  String get permShiftsViewOwn => 'Zobrazit vlastní směny';
-
-  @override
-  String get permShiftsViewAll => 'Zobrazit všechny směny';
 
   @override
   String get permShiftsManage => 'Spravovat směny';
@@ -3352,9 +3369,6 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get permVouchersRedeem => 'Uplatnit voucher';
-
-  @override
-  String get permVenueView => 'Zobrazit stoly';
 
   @override
   String get permVenueReservationsView => 'Zobrazit rezervace';
@@ -4223,4 +4237,7 @@ class AppLocalizationsCs extends AppLocalizations {
   @override
   String get billDetailConfirmReopen =>
       'Opravdu chcete znovu otevřít tento účet?';
+
+  @override
+  String get statsSessionScoped => 'Pouze aktuální směna';
 }

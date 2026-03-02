@@ -26620,6 +26620,21 @@ class $RegistersTable extends Registers
     ),
     defaultValue: const Constant(true),
   );
+  static const VerificationMeta _allowMealTicketMeta = const VerificationMeta(
+    'allowMealTicket',
+  );
+  @override
+  late final GeneratedColumn<bool> allowMealTicket = GeneratedColumn<bool>(
+    'allow_meal_ticket',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("allow_meal_ticket" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
   static const VerificationMeta _allowOtherMeta = const VerificationMeta(
     'allowOther',
   );
@@ -26755,6 +26770,7 @@ class $RegistersTable extends Registers
     allowTransfer,
     allowCredit,
     allowVoucher,
+    allowMealTicket,
     allowOther,
     allowRefunds,
     boundDeviceId,
@@ -26924,6 +26940,15 @@ class $RegistersTable extends Registers
         ),
       );
     }
+    if (data.containsKey('allow_meal_ticket')) {
+      context.handle(
+        _allowMealTicketMeta,
+        allowMealTicket.isAcceptableOrUnknown(
+          data['allow_meal_ticket']!,
+          _allowMealTicketMeta,
+        ),
+      );
+    }
     if (data.containsKey('allow_other')) {
       context.handle(
         _allowOtherMeta,
@@ -27082,6 +27107,10 @@ class $RegistersTable extends Registers
         DriftSqlType.bool,
         data['${effectivePrefix}allow_voucher'],
       )!,
+      allowMealTicket: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}allow_meal_ticket'],
+      )!,
       allowOther: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}allow_other'],
@@ -27156,6 +27185,7 @@ class Register extends DataClass implements Insertable<Register> {
   final bool allowTransfer;
   final bool allowCredit;
   final bool allowVoucher;
+  final bool allowMealTicket;
   final bool allowOther;
   final bool allowRefunds;
   final String? boundDeviceId;
@@ -27187,6 +27217,7 @@ class Register extends DataClass implements Insertable<Register> {
     required this.allowTransfer,
     required this.allowCredit,
     required this.allowVoucher,
+    required this.allowMealTicket,
     required this.allowOther,
     required this.allowRefunds,
     this.boundDeviceId,
@@ -27235,6 +27266,7 @@ class Register extends DataClass implements Insertable<Register> {
     map['allow_transfer'] = Variable<bool>(allowTransfer);
     map['allow_credit'] = Variable<bool>(allowCredit);
     map['allow_voucher'] = Variable<bool>(allowVoucher);
+    map['allow_meal_ticket'] = Variable<bool>(allowMealTicket);
     map['allow_other'] = Variable<bool>(allowOther);
     map['allow_refunds'] = Variable<bool>(allowRefunds);
     if (!nullToAbsent || boundDeviceId != null) {
@@ -27290,6 +27322,7 @@ class Register extends DataClass implements Insertable<Register> {
       allowTransfer: Value(allowTransfer),
       allowCredit: Value(allowCredit),
       allowVoucher: Value(allowVoucher),
+      allowMealTicket: Value(allowMealTicket),
       allowOther: Value(allowOther),
       allowRefunds: Value(allowRefunds),
       boundDeviceId: boundDeviceId == null && nullToAbsent
@@ -27337,6 +27370,7 @@ class Register extends DataClass implements Insertable<Register> {
       allowTransfer: serializer.fromJson<bool>(json['allowTransfer']),
       allowCredit: serializer.fromJson<bool>(json['allowCredit']),
       allowVoucher: serializer.fromJson<bool>(json['allowVoucher']),
+      allowMealTicket: serializer.fromJson<bool>(json['allowMealTicket']),
       allowOther: serializer.fromJson<bool>(json['allowOther']),
       allowRefunds: serializer.fromJson<bool>(json['allowRefunds']),
       boundDeviceId: serializer.fromJson<String?>(json['boundDeviceId']),
@@ -27377,6 +27411,7 @@ class Register extends DataClass implements Insertable<Register> {
       'allowTransfer': serializer.toJson<bool>(allowTransfer),
       'allowCredit': serializer.toJson<bool>(allowCredit),
       'allowVoucher': serializer.toJson<bool>(allowVoucher),
+      'allowMealTicket': serializer.toJson<bool>(allowMealTicket),
       'allowOther': serializer.toJson<bool>(allowOther),
       'allowRefunds': serializer.toJson<bool>(allowRefunds),
       'boundDeviceId': serializer.toJson<String?>(boundDeviceId),
@@ -27413,6 +27448,7 @@ class Register extends DataClass implements Insertable<Register> {
     bool? allowTransfer,
     bool? allowCredit,
     bool? allowVoucher,
+    bool? allowMealTicket,
     bool? allowOther,
     bool? allowRefunds,
     Value<String?> boundDeviceId = const Value.absent(),
@@ -27450,6 +27486,7 @@ class Register extends DataClass implements Insertable<Register> {
     allowTransfer: allowTransfer ?? this.allowTransfer,
     allowCredit: allowCredit ?? this.allowCredit,
     allowVoucher: allowVoucher ?? this.allowVoucher,
+    allowMealTicket: allowMealTicket ?? this.allowMealTicket,
     allowOther: allowOther ?? this.allowOther,
     allowRefunds: allowRefunds ?? this.allowRefunds,
     boundDeviceId: boundDeviceId.present
@@ -27503,6 +27540,9 @@ class Register extends DataClass implements Insertable<Register> {
       allowVoucher: data.allowVoucher.present
           ? data.allowVoucher.value
           : this.allowVoucher,
+      allowMealTicket: data.allowMealTicket.present
+          ? data.allowMealTicket.value
+          : this.allowMealTicket,
       allowOther: data.allowOther.present
           ? data.allowOther.value
           : this.allowOther,
@@ -27551,6 +27591,7 @@ class Register extends DataClass implements Insertable<Register> {
           ..write('allowTransfer: $allowTransfer, ')
           ..write('allowCredit: $allowCredit, ')
           ..write('allowVoucher: $allowVoucher, ')
+          ..write('allowMealTicket: $allowMealTicket, ')
           ..write('allowOther: $allowOther, ')
           ..write('allowRefunds: $allowRefunds, ')
           ..write('boundDeviceId: $boundDeviceId, ')
@@ -27587,6 +27628,7 @@ class Register extends DataClass implements Insertable<Register> {
     allowTransfer,
     allowCredit,
     allowVoucher,
+    allowMealTicket,
     allowOther,
     allowRefunds,
     boundDeviceId,
@@ -27622,6 +27664,7 @@ class Register extends DataClass implements Insertable<Register> {
           other.allowTransfer == this.allowTransfer &&
           other.allowCredit == this.allowCredit &&
           other.allowVoucher == this.allowVoucher &&
+          other.allowMealTicket == this.allowMealTicket &&
           other.allowOther == this.allowOther &&
           other.allowRefunds == this.allowRefunds &&
           other.boundDeviceId == this.boundDeviceId &&
@@ -27655,6 +27698,7 @@ class RegistersCompanion extends UpdateCompanion<Register> {
   final Value<bool> allowTransfer;
   final Value<bool> allowCredit;
   final Value<bool> allowVoucher;
+  final Value<bool> allowMealTicket;
   final Value<bool> allowOther;
   final Value<bool> allowRefunds;
   final Value<String?> boundDeviceId;
@@ -27687,6 +27731,7 @@ class RegistersCompanion extends UpdateCompanion<Register> {
     this.allowTransfer = const Value.absent(),
     this.allowCredit = const Value.absent(),
     this.allowVoucher = const Value.absent(),
+    this.allowMealTicket = const Value.absent(),
     this.allowOther = const Value.absent(),
     this.allowRefunds = const Value.absent(),
     this.boundDeviceId = const Value.absent(),
@@ -27720,6 +27765,7 @@ class RegistersCompanion extends UpdateCompanion<Register> {
     this.allowTransfer = const Value.absent(),
     this.allowCredit = const Value.absent(),
     this.allowVoucher = const Value.absent(),
+    this.allowMealTicket = const Value.absent(),
     this.allowOther = const Value.absent(),
     this.allowRefunds = const Value.absent(),
     this.boundDeviceId = const Value.absent(),
@@ -27756,6 +27802,7 @@ class RegistersCompanion extends UpdateCompanion<Register> {
     Expression<bool>? allowTransfer,
     Expression<bool>? allowCredit,
     Expression<bool>? allowVoucher,
+    Expression<bool>? allowMealTicket,
     Expression<bool>? allowOther,
     Expression<bool>? allowRefunds,
     Expression<String>? boundDeviceId,
@@ -27789,6 +27836,7 @@ class RegistersCompanion extends UpdateCompanion<Register> {
       if (allowTransfer != null) 'allow_transfer': allowTransfer,
       if (allowCredit != null) 'allow_credit': allowCredit,
       if (allowVoucher != null) 'allow_voucher': allowVoucher,
+      if (allowMealTicket != null) 'allow_meal_ticket': allowMealTicket,
       if (allowOther != null) 'allow_other': allowOther,
       if (allowRefunds != null) 'allow_refunds': allowRefunds,
       if (boundDeviceId != null) 'bound_device_id': boundDeviceId,
@@ -27824,6 +27872,7 @@ class RegistersCompanion extends UpdateCompanion<Register> {
     Value<bool>? allowTransfer,
     Value<bool>? allowCredit,
     Value<bool>? allowVoucher,
+    Value<bool>? allowMealTicket,
     Value<bool>? allowOther,
     Value<bool>? allowRefunds,
     Value<String?>? boundDeviceId,
@@ -27857,6 +27906,7 @@ class RegistersCompanion extends UpdateCompanion<Register> {
       allowTransfer: allowTransfer ?? this.allowTransfer,
       allowCredit: allowCredit ?? this.allowCredit,
       allowVoucher: allowVoucher ?? this.allowVoucher,
+      allowMealTicket: allowMealTicket ?? this.allowMealTicket,
       allowOther: allowOther ?? this.allowOther,
       allowRefunds: allowRefunds ?? this.allowRefunds,
       boundDeviceId: boundDeviceId ?? this.boundDeviceId,
@@ -27938,6 +27988,9 @@ class RegistersCompanion extends UpdateCompanion<Register> {
     if (allowVoucher.present) {
       map['allow_voucher'] = Variable<bool>(allowVoucher.value);
     }
+    if (allowMealTicket.present) {
+      map['allow_meal_ticket'] = Variable<bool>(allowMealTicket.value);
+    }
     if (allowOther.present) {
       map['allow_other'] = Variable<bool>(allowOther.value);
     }
@@ -27997,6 +28050,7 @@ class RegistersCompanion extends UpdateCompanion<Register> {
           ..write('allowTransfer: $allowTransfer, ')
           ..write('allowCredit: $allowCredit, ')
           ..write('allowVoucher: $allowVoucher, ')
+          ..write('allowMealTicket: $allowMealTicket, ')
           ..write('allowOther: $allowOther, ')
           ..write('allowRefunds: $allowRefunds, ')
           ..write('boundDeviceId: $boundDeviceId, ')
@@ -32127,6 +32181,52 @@ class $ShiftsTable extends Shifts with TableInfo<$ShiftsTable, Shift> {
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _originalLoginAtMeta = const VerificationMeta(
+    'originalLoginAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> originalLoginAt =
+      GeneratedColumn<DateTime>(
+        'original_login_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _originalLogoutAtMeta = const VerificationMeta(
+    'originalLogoutAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> originalLogoutAt =
+      GeneratedColumn<DateTime>(
+        'original_logout_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _editedByMeta = const VerificationMeta(
+    'editedBy',
+  );
+  @override
+  late final GeneratedColumn<String> editedBy = GeneratedColumn<String>(
+    'edited_by',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _editedAtMeta = const VerificationMeta(
+    'editedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> editedAt = GeneratedColumn<DateTime>(
+    'edited_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     lastSyncedAt,
@@ -32142,6 +32242,10 @@ class $ShiftsTable extends Shifts with TableInfo<$ShiftsTable, Shift> {
     userId,
     loginAt,
     logoutAt,
+    originalLoginAt,
+    originalLogoutAt,
+    editedBy,
+    editedAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -32252,6 +32356,36 @@ class $ShiftsTable extends Shifts with TableInfo<$ShiftsTable, Shift> {
         logoutAt.isAcceptableOrUnknown(data['logout_at']!, _logoutAtMeta),
       );
     }
+    if (data.containsKey('original_login_at')) {
+      context.handle(
+        _originalLoginAtMeta,
+        originalLoginAt.isAcceptableOrUnknown(
+          data['original_login_at']!,
+          _originalLoginAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('original_logout_at')) {
+      context.handle(
+        _originalLogoutAtMeta,
+        originalLogoutAt.isAcceptableOrUnknown(
+          data['original_logout_at']!,
+          _originalLogoutAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('edited_by')) {
+      context.handle(
+        _editedByMeta,
+        editedBy.isAcceptableOrUnknown(data['edited_by']!, _editedByMeta),
+      );
+    }
+    if (data.containsKey('edited_at')) {
+      context.handle(
+        _editedAtMeta,
+        editedAt.isAcceptableOrUnknown(data['edited_at']!, _editedAtMeta),
+      );
+    }
     return context;
   }
 
@@ -32313,6 +32447,22 @@ class $ShiftsTable extends Shifts with TableInfo<$ShiftsTable, Shift> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}logout_at'],
       ),
+      originalLoginAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}original_login_at'],
+      ),
+      originalLogoutAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}original_logout_at'],
+      ),
+      editedBy: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}edited_by'],
+      ),
+      editedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}edited_at'],
+      ),
     );
   }
 
@@ -32336,6 +32486,10 @@ class Shift extends DataClass implements Insertable<Shift> {
   final String userId;
   final DateTime loginAt;
   final DateTime? logoutAt;
+  final DateTime? originalLoginAt;
+  final DateTime? originalLogoutAt;
+  final String? editedBy;
+  final DateTime? editedAt;
   const Shift({
     this.lastSyncedAt,
     required this.version,
@@ -32350,6 +32504,10 @@ class Shift extends DataClass implements Insertable<Shift> {
     required this.userId,
     required this.loginAt,
     this.logoutAt,
+    this.originalLoginAt,
+    this.originalLogoutAt,
+    this.editedBy,
+    this.editedAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -32376,6 +32534,18 @@ class Shift extends DataClass implements Insertable<Shift> {
     map['login_at'] = Variable<DateTime>(loginAt);
     if (!nullToAbsent || logoutAt != null) {
       map['logout_at'] = Variable<DateTime>(logoutAt);
+    }
+    if (!nullToAbsent || originalLoginAt != null) {
+      map['original_login_at'] = Variable<DateTime>(originalLoginAt);
+    }
+    if (!nullToAbsent || originalLogoutAt != null) {
+      map['original_logout_at'] = Variable<DateTime>(originalLogoutAt);
+    }
+    if (!nullToAbsent || editedBy != null) {
+      map['edited_by'] = Variable<String>(editedBy);
+    }
+    if (!nullToAbsent || editedAt != null) {
+      map['edited_at'] = Variable<DateTime>(editedAt);
     }
     return map;
   }
@@ -32405,6 +32575,18 @@ class Shift extends DataClass implements Insertable<Shift> {
       logoutAt: logoutAt == null && nullToAbsent
           ? const Value.absent()
           : Value(logoutAt),
+      originalLoginAt: originalLoginAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(originalLoginAt),
+      originalLogoutAt: originalLogoutAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(originalLogoutAt),
+      editedBy: editedBy == null && nullToAbsent
+          ? const Value.absent()
+          : Value(editedBy),
+      editedAt: editedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(editedAt),
     );
   }
 
@@ -32427,6 +32609,12 @@ class Shift extends DataClass implements Insertable<Shift> {
       userId: serializer.fromJson<String>(json['userId']),
       loginAt: serializer.fromJson<DateTime>(json['loginAt']),
       logoutAt: serializer.fromJson<DateTime?>(json['logoutAt']),
+      originalLoginAt: serializer.fromJson<DateTime?>(json['originalLoginAt']),
+      originalLogoutAt: serializer.fromJson<DateTime?>(
+        json['originalLogoutAt'],
+      ),
+      editedBy: serializer.fromJson<String?>(json['editedBy']),
+      editedAt: serializer.fromJson<DateTime?>(json['editedAt']),
     );
   }
   @override
@@ -32446,6 +32634,10 @@ class Shift extends DataClass implements Insertable<Shift> {
       'userId': serializer.toJson<String>(userId),
       'loginAt': serializer.toJson<DateTime>(loginAt),
       'logoutAt': serializer.toJson<DateTime?>(logoutAt),
+      'originalLoginAt': serializer.toJson<DateTime?>(originalLoginAt),
+      'originalLogoutAt': serializer.toJson<DateTime?>(originalLogoutAt),
+      'editedBy': serializer.toJson<String?>(editedBy),
+      'editedAt': serializer.toJson<DateTime?>(editedAt),
     };
   }
 
@@ -32463,6 +32655,10 @@ class Shift extends DataClass implements Insertable<Shift> {
     String? userId,
     DateTime? loginAt,
     Value<DateTime?> logoutAt = const Value.absent(),
+    Value<DateTime?> originalLoginAt = const Value.absent(),
+    Value<DateTime?> originalLogoutAt = const Value.absent(),
+    Value<String?> editedBy = const Value.absent(),
+    Value<DateTime?> editedAt = const Value.absent(),
   }) => Shift(
     lastSyncedAt: lastSyncedAt.present ? lastSyncedAt.value : this.lastSyncedAt,
     version: version ?? this.version,
@@ -32481,6 +32677,14 @@ class Shift extends DataClass implements Insertable<Shift> {
     userId: userId ?? this.userId,
     loginAt: loginAt ?? this.loginAt,
     logoutAt: logoutAt.present ? logoutAt.value : this.logoutAt,
+    originalLoginAt: originalLoginAt.present
+        ? originalLoginAt.value
+        : this.originalLoginAt,
+    originalLogoutAt: originalLogoutAt.present
+        ? originalLogoutAt.value
+        : this.originalLogoutAt,
+    editedBy: editedBy.present ? editedBy.value : this.editedBy,
+    editedAt: editedAt.present ? editedAt.value : this.editedAt,
   );
   Shift copyWithCompanion(ShiftsCompanion data) {
     return Shift(
@@ -32505,6 +32709,14 @@ class Shift extends DataClass implements Insertable<Shift> {
       userId: data.userId.present ? data.userId.value : this.userId,
       loginAt: data.loginAt.present ? data.loginAt.value : this.loginAt,
       logoutAt: data.logoutAt.present ? data.logoutAt.value : this.logoutAt,
+      originalLoginAt: data.originalLoginAt.present
+          ? data.originalLoginAt.value
+          : this.originalLoginAt,
+      originalLogoutAt: data.originalLogoutAt.present
+          ? data.originalLogoutAt.value
+          : this.originalLogoutAt,
+      editedBy: data.editedBy.present ? data.editedBy.value : this.editedBy,
+      editedAt: data.editedAt.present ? data.editedAt.value : this.editedAt,
     );
   }
 
@@ -32523,7 +32735,11 @@ class Shift extends DataClass implements Insertable<Shift> {
           ..write('registerSessionId: $registerSessionId, ')
           ..write('userId: $userId, ')
           ..write('loginAt: $loginAt, ')
-          ..write('logoutAt: $logoutAt')
+          ..write('logoutAt: $logoutAt, ')
+          ..write('originalLoginAt: $originalLoginAt, ')
+          ..write('originalLogoutAt: $originalLogoutAt, ')
+          ..write('editedBy: $editedBy, ')
+          ..write('editedAt: $editedAt')
           ..write(')'))
         .toString();
   }
@@ -32543,6 +32759,10 @@ class Shift extends DataClass implements Insertable<Shift> {
     userId,
     loginAt,
     logoutAt,
+    originalLoginAt,
+    originalLogoutAt,
+    editedBy,
+    editedAt,
   );
   @override
   bool operator ==(Object other) =>
@@ -32560,7 +32780,11 @@ class Shift extends DataClass implements Insertable<Shift> {
           other.registerSessionId == this.registerSessionId &&
           other.userId == this.userId &&
           other.loginAt == this.loginAt &&
-          other.logoutAt == this.logoutAt);
+          other.logoutAt == this.logoutAt &&
+          other.originalLoginAt == this.originalLoginAt &&
+          other.originalLogoutAt == this.originalLogoutAt &&
+          other.editedBy == this.editedBy &&
+          other.editedAt == this.editedAt);
 }
 
 class ShiftsCompanion extends UpdateCompanion<Shift> {
@@ -32577,6 +32801,10 @@ class ShiftsCompanion extends UpdateCompanion<Shift> {
   final Value<String> userId;
   final Value<DateTime> loginAt;
   final Value<DateTime?> logoutAt;
+  final Value<DateTime?> originalLoginAt;
+  final Value<DateTime?> originalLogoutAt;
+  final Value<String?> editedBy;
+  final Value<DateTime?> editedAt;
   final Value<int> rowid;
   const ShiftsCompanion({
     this.lastSyncedAt = const Value.absent(),
@@ -32592,6 +32820,10 @@ class ShiftsCompanion extends UpdateCompanion<Shift> {
     this.userId = const Value.absent(),
     this.loginAt = const Value.absent(),
     this.logoutAt = const Value.absent(),
+    this.originalLoginAt = const Value.absent(),
+    this.originalLogoutAt = const Value.absent(),
+    this.editedBy = const Value.absent(),
+    this.editedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ShiftsCompanion.insert({
@@ -32608,6 +32840,10 @@ class ShiftsCompanion extends UpdateCompanion<Shift> {
     required String userId,
     required DateTime loginAt,
     this.logoutAt = const Value.absent(),
+    this.originalLoginAt = const Value.absent(),
+    this.originalLogoutAt = const Value.absent(),
+    this.editedBy = const Value.absent(),
+    this.editedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        companyId = Value(companyId),
@@ -32628,6 +32864,10 @@ class ShiftsCompanion extends UpdateCompanion<Shift> {
     Expression<String>? userId,
     Expression<DateTime>? loginAt,
     Expression<DateTime>? logoutAt,
+    Expression<DateTime>? originalLoginAt,
+    Expression<DateTime>? originalLogoutAt,
+    Expression<String>? editedBy,
+    Expression<DateTime>? editedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -32644,6 +32884,10 @@ class ShiftsCompanion extends UpdateCompanion<Shift> {
       if (userId != null) 'user_id': userId,
       if (loginAt != null) 'login_at': loginAt,
       if (logoutAt != null) 'logout_at': logoutAt,
+      if (originalLoginAt != null) 'original_login_at': originalLoginAt,
+      if (originalLogoutAt != null) 'original_logout_at': originalLogoutAt,
+      if (editedBy != null) 'edited_by': editedBy,
+      if (editedAt != null) 'edited_at': editedAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -32662,6 +32906,10 @@ class ShiftsCompanion extends UpdateCompanion<Shift> {
     Value<String>? userId,
     Value<DateTime>? loginAt,
     Value<DateTime?>? logoutAt,
+    Value<DateTime?>? originalLoginAt,
+    Value<DateTime?>? originalLogoutAt,
+    Value<String?>? editedBy,
+    Value<DateTime?>? editedAt,
     Value<int>? rowid,
   }) {
     return ShiftsCompanion(
@@ -32678,6 +32926,10 @@ class ShiftsCompanion extends UpdateCompanion<Shift> {
       userId: userId ?? this.userId,
       loginAt: loginAt ?? this.loginAt,
       logoutAt: logoutAt ?? this.logoutAt,
+      originalLoginAt: originalLoginAt ?? this.originalLoginAt,
+      originalLogoutAt: originalLogoutAt ?? this.originalLogoutAt,
+      editedBy: editedBy ?? this.editedBy,
+      editedAt: editedAt ?? this.editedAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -32724,6 +32976,18 @@ class ShiftsCompanion extends UpdateCompanion<Shift> {
     if (logoutAt.present) {
       map['logout_at'] = Variable<DateTime>(logoutAt.value);
     }
+    if (originalLoginAt.present) {
+      map['original_login_at'] = Variable<DateTime>(originalLoginAt.value);
+    }
+    if (originalLogoutAt.present) {
+      map['original_logout_at'] = Variable<DateTime>(originalLogoutAt.value);
+    }
+    if (editedBy.present) {
+      map['edited_by'] = Variable<String>(editedBy.value);
+    }
+    if (editedAt.present) {
+      map['edited_at'] = Variable<DateTime>(editedAt.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -32746,6 +33010,10 @@ class ShiftsCompanion extends UpdateCompanion<Shift> {
           ..write('userId: $userId, ')
           ..write('loginAt: $loginAt, ')
           ..write('logoutAt: $logoutAt, ')
+          ..write('originalLoginAt: $originalLoginAt, ')
+          ..write('originalLogoutAt: $originalLogoutAt, ')
+          ..write('editedBy: $editedBy, ')
+          ..write('editedAt: $editedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -55679,6 +55947,7 @@ typedef $$RegistersTableCreateCompanionBuilder =
       Value<bool> allowTransfer,
       Value<bool> allowCredit,
       Value<bool> allowVoucher,
+      Value<bool> allowMealTicket,
       Value<bool> allowOther,
       Value<bool> allowRefunds,
       Value<String?> boundDeviceId,
@@ -55713,6 +55982,7 @@ typedef $$RegistersTableUpdateCompanionBuilder =
       Value<bool> allowTransfer,
       Value<bool> allowCredit,
       Value<bool> allowVoucher,
+      Value<bool> allowMealTicket,
       Value<bool> allowOther,
       Value<bool> allowRefunds,
       Value<String?> boundDeviceId,
@@ -55837,6 +56107,11 @@ class $$RegistersTableFilterComposer
 
   ColumnFilters<bool> get allowVoucher => $composableBuilder(
     column: $table.allowVoucher,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get allowMealTicket => $composableBuilder(
+    column: $table.allowMealTicket,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -56001,6 +56276,11 @@ class $$RegistersTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get allowMealTicket => $composableBuilder(
+    column: $table.allowMealTicket,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<bool> get allowOther => $composableBuilder(
     column: $table.allowOther,
     builder: (column) => ColumnOrderings(column),
@@ -56135,6 +56415,11 @@ class $$RegistersTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<bool> get allowMealTicket => $composableBuilder(
+    column: $table.allowMealTicket,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<bool> get allowOther => $composableBuilder(
     column: $table.allowOther,
     builder: (column) => column,
@@ -56224,6 +56509,7 @@ class $$RegistersTableTableManager
                 Value<bool> allowTransfer = const Value.absent(),
                 Value<bool> allowCredit = const Value.absent(),
                 Value<bool> allowVoucher = const Value.absent(),
+                Value<bool> allowMealTicket = const Value.absent(),
                 Value<bool> allowOther = const Value.absent(),
                 Value<bool> allowRefunds = const Value.absent(),
                 Value<String?> boundDeviceId = const Value.absent(),
@@ -56256,6 +56542,7 @@ class $$RegistersTableTableManager
                 allowTransfer: allowTransfer,
                 allowCredit: allowCredit,
                 allowVoucher: allowVoucher,
+                allowMealTicket: allowMealTicket,
                 allowOther: allowOther,
                 allowRefunds: allowRefunds,
                 boundDeviceId: boundDeviceId,
@@ -56290,6 +56577,7 @@ class $$RegistersTableTableManager
                 Value<bool> allowTransfer = const Value.absent(),
                 Value<bool> allowCredit = const Value.absent(),
                 Value<bool> allowVoucher = const Value.absent(),
+                Value<bool> allowMealTicket = const Value.absent(),
                 Value<bool> allowOther = const Value.absent(),
                 Value<bool> allowRefunds = const Value.absent(),
                 Value<String?> boundDeviceId = const Value.absent(),
@@ -56322,6 +56610,7 @@ class $$RegistersTableTableManager
                 allowTransfer: allowTransfer,
                 allowCredit: allowCredit,
                 allowVoucher: allowVoucher,
+                allowMealTicket: allowMealTicket,
                 allowOther: allowOther,
                 allowRefunds: allowRefunds,
                 boundDeviceId: boundDeviceId,
@@ -58214,6 +58503,10 @@ typedef $$ShiftsTableCreateCompanionBuilder =
       required String userId,
       required DateTime loginAt,
       Value<DateTime?> logoutAt,
+      Value<DateTime?> originalLoginAt,
+      Value<DateTime?> originalLogoutAt,
+      Value<String?> editedBy,
+      Value<DateTime?> editedAt,
       Value<int> rowid,
     });
 typedef $$ShiftsTableUpdateCompanionBuilder =
@@ -58231,6 +58524,10 @@ typedef $$ShiftsTableUpdateCompanionBuilder =
       Value<String> userId,
       Value<DateTime> loginAt,
       Value<DateTime?> logoutAt,
+      Value<DateTime?> originalLoginAt,
+      Value<DateTime?> originalLogoutAt,
+      Value<String?> editedBy,
+      Value<DateTime?> editedAt,
       Value<int> rowid,
     });
 
@@ -58305,6 +58602,26 @@ class $$ShiftsTableFilterComposer
 
   ColumnFilters<DateTime> get logoutAt => $composableBuilder(
     column: $table.logoutAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get originalLoginAt => $composableBuilder(
+    column: $table.originalLoginAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get originalLogoutAt => $composableBuilder(
+    column: $table.originalLogoutAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get editedBy => $composableBuilder(
+    column: $table.editedBy,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get editedAt => $composableBuilder(
+    column: $table.editedAt,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -58382,6 +58699,26 @@ class $$ShiftsTableOrderingComposer
     column: $table.logoutAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<DateTime> get originalLoginAt => $composableBuilder(
+    column: $table.originalLoginAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get originalLogoutAt => $composableBuilder(
+    column: $table.originalLogoutAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get editedBy => $composableBuilder(
+    column: $table.editedBy,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get editedAt => $composableBuilder(
+    column: $table.editedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$ShiftsTableAnnotationComposer
@@ -58439,6 +58776,22 @@ class $$ShiftsTableAnnotationComposer
 
   GeneratedColumn<DateTime> get logoutAt =>
       $composableBuilder(column: $table.logoutAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get originalLoginAt => $composableBuilder(
+    column: $table.originalLoginAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get originalLogoutAt => $composableBuilder(
+    column: $table.originalLogoutAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get editedBy =>
+      $composableBuilder(column: $table.editedBy, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get editedAt =>
+      $composableBuilder(column: $table.editedAt, builder: (column) => column);
 }
 
 class $$ShiftsTableTableManager
@@ -58482,6 +58835,10 @@ class $$ShiftsTableTableManager
                 Value<String> userId = const Value.absent(),
                 Value<DateTime> loginAt = const Value.absent(),
                 Value<DateTime?> logoutAt = const Value.absent(),
+                Value<DateTime?> originalLoginAt = const Value.absent(),
+                Value<DateTime?> originalLogoutAt = const Value.absent(),
+                Value<String?> editedBy = const Value.absent(),
+                Value<DateTime?> editedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ShiftsCompanion(
                 lastSyncedAt: lastSyncedAt,
@@ -58497,6 +58854,10 @@ class $$ShiftsTableTableManager
                 userId: userId,
                 loginAt: loginAt,
                 logoutAt: logoutAt,
+                originalLoginAt: originalLoginAt,
+                originalLogoutAt: originalLogoutAt,
+                editedBy: editedBy,
+                editedAt: editedAt,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -58514,6 +58875,10 @@ class $$ShiftsTableTableManager
                 required String userId,
                 required DateTime loginAt,
                 Value<DateTime?> logoutAt = const Value.absent(),
+                Value<DateTime?> originalLoginAt = const Value.absent(),
+                Value<DateTime?> originalLogoutAt = const Value.absent(),
+                Value<String?> editedBy = const Value.absent(),
+                Value<DateTime?> editedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ShiftsCompanion.insert(
                 lastSyncedAt: lastSyncedAt,
@@ -58529,6 +58894,10 @@ class $$ShiftsTableTableManager
                 userId: userId,
                 loginAt: loginAt,
                 logoutAt: logoutAt,
+                originalLoginAt: originalLoginAt,
+                originalLogoutAt: originalLogoutAt,
+                editedBy: editedBy,
+                editedAt: editedAt,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

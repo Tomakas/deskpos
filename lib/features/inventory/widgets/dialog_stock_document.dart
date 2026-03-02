@@ -7,6 +7,7 @@ import '../../../core/data/enums/stock_document_type.dart';
 import '../../../core/data/models/item_model.dart';
 import '../../../core/data/models/supplier_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
+import '../../../core/data/providers/permission_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/repositories/stock_document_repository.dart';
 import '../../../core/data/result.dart';
@@ -66,6 +67,7 @@ class _DialogStockDocumentState extends ConsumerState<DialogStockDocument> {
   Widget build(BuildContext context) {
     final l = context.l10n;
     final isReceipt = widget.type == StockDocumentType.receipt;
+    final canSetPriceStrategy = ref.watch(hasPermissionProvider('stock.set_price_strategy'));
 
     final title = switch (widget.type) {
       StockDocumentType.receipt => l.inventoryReceipt,
@@ -149,24 +151,27 @@ class _DialogStockDocumentState extends ConsumerState<DialogStockDocument> {
                   },
                 ),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: DropdownButtonFormField<PurchasePriceStrategy>(
-                  decoration: InputDecoration(
-                    labelText: l.stockDocumentPriceStrategy,
+              if (canSetPriceStrategy) ...[
+                const SizedBox(width: 12),
+                Expanded(
+                  child: DropdownButtonFormField<PurchasePriceStrategy>(
+                    decoration: InputDecoration(
+                      labelText: l.stockDocumentPriceStrategy,
+                    ),
+                    initialValue: _documentStrategy,
+                    items: PurchasePriceStrategy.values.map((s) {
+                      return DropdownMenuItem(
+                        value: s,
+                        child: Text(_strategyLabel(l, s)),
+                      );
+                    }).toList(),
+                    onChanged: (v) {
+                      if (v != null) setState(() => _documentStrategy = v);
+                    },
                   ),
-                  initialValue: _documentStrategy,
-                  items: PurchasePriceStrategy.values.map((s) {
-                    return DropdownMenuItem(
-                      value: s,
-                      child: Text(_strategyLabel(l, s)),
-                    );
-                  }).toList(),
-                  onChanged: (v) {
-                    if (v != null) setState(() => _documentStrategy = v);
-                  },
                 ),
-              ),
+              ] else
+                const Spacer(),
             ],
           ),
           const SizedBox(height: 12),
@@ -240,37 +245,39 @@ class _DialogStockDocumentState extends ConsumerState<DialogStockDocument> {
                                   ],
                                 ),
                               ),
-                              const SizedBox(width: 8),
-                              // Per-item strategy override
-                              SizedBox(
-                                width: 130,
-                                child:
-                                    DropdownButtonFormField<
-                                      PurchasePriceStrategy?
-                                    >(
-                                      decoration: InputDecoration(
-                                        labelText:
-                                            l.stockDocumentItemOverrideStrategy,
-                                        isDense: true,
-                                      ),
-                                      isExpanded: true,
-                                      initialValue: line.strategyOverride,
-                                      items: [
-                                        DropdownMenuItem<
-                                          PurchasePriceStrategy?
-                                        >(value: null, child: Text('-')),
-                                        ...PurchasePriceStrategy.values.map(
-                                          (s) => DropdownMenuItem(
-                                            value: s,
-                                            child: Text(_strategyLabel(l, s)),
-                                          ),
+                              if (canSetPriceStrategy) ...[
+                                const SizedBox(width: 8),
+                                // Per-item strategy override
+                                SizedBox(
+                                  width: 130,
+                                  child:
+                                      DropdownButtonFormField<
+                                        PurchasePriceStrategy?
+                                      >(
+                                        decoration: InputDecoration(
+                                          labelText:
+                                              l.stockDocumentItemOverrideStrategy,
+                                          isDense: true,
                                         ),
-                                      ],
-                                      onChanged: (v) => setState(
-                                        () => line.strategyOverride = v,
+                                        isExpanded: true,
+                                        initialValue: line.strategyOverride,
+                                        items: [
+                                          DropdownMenuItem<
+                                            PurchasePriceStrategy?
+                                          >(value: null, child: Text('-')),
+                                          ...PurchasePriceStrategy.values.map(
+                                            (s) => DropdownMenuItem(
+                                              value: s,
+                                              child: Text(_strategyLabel(l, s)),
+                                            ),
+                                          ),
+                                        ],
+                                        onChanged: (v) => setState(
+                                          () => line.strategyOverride = v,
+                                        ),
                                       ),
-                                    ),
-                              ),
+                                ),
+                              ],
                             ],
                             IconButton(
                               icon: const Icon(Icons.close),

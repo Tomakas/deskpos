@@ -1182,6 +1182,7 @@ class _StockMovementsTab extends ConsumerWidget {
                 ),
               );
             } else if (item.billId != null) {
+              if (!ref.read(hasPermissionProvider('orders.view_detail'))) return;
               showDialog(
                 context: context,
                 builder: (_) => DialogBillDetail(billId: item.billId!),

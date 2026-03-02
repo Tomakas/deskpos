@@ -33,7 +33,8 @@ INSERT INTO seed_demo_data (locale, mode, entity_type, ref, data, sort_order) VA
 (NULL, '_all', 'payment_methods', 'pm:card',    '{"type":"card"}', 1),
 (NULL, '_all', 'payment_methods', 'pm:bank',    '{"type":"bank"}', 2),
 (NULL, '_all', 'payment_methods', 'pm:credit',  '{"type":"credit"}', 3),
-(NULL, '_all', 'payment_methods', 'pm:voucher', '{"type":"voucher"}', 4);
+(NULL, '_all', 'payment_methods', 'pm:voucher', '{"type":"voucher"}', 4),
+(NULL, '_all', 'payment_methods', 'pm:mealTicket', '{"type":"mealTicket"}', 5);
 
 -- Warehouses (name resolved by function per locale)
 INSERT INTO seed_demo_data (locale, mode, entity_type, ref, data, sort_order) VALUES

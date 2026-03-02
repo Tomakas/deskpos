@@ -25,7 +25,7 @@ class PosDialogActions extends StatelessWidget {
     if (leading != null) {
       row = Row(
         children: [
-          SizedBox.expand(child: leading!),
+          SizedBox(height: double.infinity, child: leading!),
           Expanded(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,

@@ -149,9 +149,7 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
                     ? () => _createNewBill(context) : null,
                 onQuickBill: hasSession && ref.watch(hasPermissionProvider('orders.create'))
                     ? () => _createQuickBill(context) : null,
-                onToggleSession: (hasSession
-                        ? ref.watch(hasPermissionProvider('register.close_session'))
-                        : ref.watch(hasPermissionProvider('register.open_session')))
+                onToggleSession: ref.watch(hasPermissionProvider('register.open_close'))
                     ? () => _toggleSession(context, hasSession) : null,
                 onCashMovement: hasSession && ref.watch(hasPermissionProvider('stats.cash_journal'))
                     ? () => _showCashMovement(context) : null,
@@ -179,6 +177,7 @@ class _ScreenBillsState extends ConsumerState<ScreenBills> {
   }
 
   void _openBillDetail(BuildContext context, BillModel bill) {
+    if (!ref.read(hasPermissionProvider('orders.view_detail'))) return;
     showDialog(
       context: context,
       builder: (_) => DialogBillDetail(billId: bill.id),
@@ -602,6 +601,13 @@ class _BillsTable extends ConsumerWidget {
         if (effectiveFilters.contains(BillStatus.paid)) {
           effectiveFilters.add(BillStatus.refunded);
         }
+        if (!ref.watch(hasPermissionProvider('orders.view_paid'))) {
+          effectiveFilters.remove(BillStatus.paid);
+          effectiveFilters.remove(BillStatus.refunded);
+        }
+        if (!ref.watch(hasPermissionProvider('orders.view_cancelled'))) {
+          effectiveFilters.remove(BillStatus.cancelled);
+        }
         final bills = allBills.where((b) => effectiveFilters.contains(b.status)).toList();
 
         // Apply sorting
@@ -782,7 +788,7 @@ class _RelativeTimeCellState extends State<_RelativeTimeCell> {
 // ---------------------------------------------------------------------------
 // Status Filter Bar (multi-select toggles)
 // ---------------------------------------------------------------------------
-class _StatusFilterBar extends StatelessWidget {
+class _StatusFilterBar extends ConsumerWidget {
   const _StatusFilterBar({
     required this.selected,
     required this.onChanged,
@@ -791,12 +797,16 @@ class _StatusFilterBar extends StatelessWidget {
   final ValueChanged<Set<BillStatus>> onChanged;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
+    final canViewPaid = ref.watch(hasPermissionProvider('orders.view_paid'));
+    final canViewCancelled = ref.watch(hasPermissionProvider('orders.view_cancelled'));
     final filters = [
       (BillStatus.opened, l.billsFilterOpened, BillStatus.opened.color(context)),
-      (BillStatus.paid, l.billsFilterPaid, BillStatus.paid.color(context)),
-      (BillStatus.cancelled, l.billsFilterCancelled, BillStatus.cancelled.color(context)),
+      if (canViewPaid)
+        (BillStatus.paid, l.billsFilterPaid, BillStatus.paid.color(context)),
+      if (canViewCancelled)
+        (BillStatus.cancelled, l.billsFilterCancelled, BillStatus.cancelled.color(context)),
     ];
 
     return Container(

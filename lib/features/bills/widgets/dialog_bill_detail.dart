@@ -578,6 +578,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
     final canSplit = ref.watch(hasPermissionProvider('orders.split'));
     final canDiscount = ref.watch(hasPermissionProvider('discounts.apply_bill')) ||
         ref.watch(hasPermissionProvider('discounts.apply_bill_limited'));
+    final canVoucher = ref.watch(hasPermissionProvider('vouchers.redeem'));
 
     final buttons = <Widget>[
       if (canAssignCustomer)
@@ -619,16 +620,17 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
                 : null,
           ),
         ),
-      Expanded(
-        child: _SideButton(
-          label: bill.voucherId != null ? l.billDetailRemoveVoucher : l.billDetailVoucher,
-          onPressed: isOpened && !_isProcessing
-              ? () => bill.voucherId != null
-                  ? _removeVoucher(context, ref, bill)
-                  : _applyVoucher(context, ref, bill)
-              : null,
+      if (canVoucher)
+        Expanded(
+          child: _SideButton(
+            label: bill.voucherId != null ? l.billDetailRemoveVoucher : l.billDetailVoucher,
+            onPressed: isOpened && !_isProcessing
+                ? () => bill.voucherId != null
+                    ? _removeVoucher(context, ref, bill)
+                    : _applyVoucher(context, ref, bill)
+                : null,
+          ),
         ),
-      ),
     ];
 
     return SizedBox(

@@ -2256,9 +2256,7 @@ class _RetailMenuButton extends ConsumerWidget {
       icon: const Icon(Icons.menu),
       tooltip: l.billsMore,
       itemBuilder: (_) => [
-        if (hasSession
-            ? ref.watch(hasPermissionProvider('register.close_session'))
-            : ref.watch(hasPermissionProvider('register.open_session')))
+        if (ref.watch(hasPermissionProvider('register.open_close')))
           PopupMenuItem(
             value: 'toggle-session',
             height: 48,

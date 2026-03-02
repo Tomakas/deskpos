@@ -10,6 +10,10 @@ class Shifts extends Table with SyncColumnsMixin {
   TextColumn get userId => text()();
   DateTimeColumn get loginAt => dateTime()();
   DateTimeColumn get logoutAt => dateTime().nullable()();
+  DateTimeColumn get originalLoginAt => dateTime().nullable()();
+  DateTimeColumn get originalLogoutAt => dateTime().nullable()();
+  TextColumn get editedBy => text().nullable()();
+  DateTimeColumn get editedAt => dateTime().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};

@@ -96,14 +96,87 @@ class ShiftRepository {
     }
   }
 
-  Future<List<ShiftModel>> getByCompany(String companyId) async {
-    final entities = await (_db.select(_db.shifts)
-          ..where((t) =>
-              t.companyId.equals(companyId) &
-              t.deletedAt.isNull())
-          ..orderBy([(t) => OrderingTerm.desc(t.loginAt)]))
-        .get();
-    return entities.map(shiftFromEntity).toList();
+  Future<Result<ShiftModel>> updateShift({
+    required String id,
+    required DateTime loginAt,
+    DateTime? logoutAt,
+    required String editedByUserId,
+  }) async {
+    try {
+      return await _db.transaction(() async {
+        final entity = await (_db.select(_db.shifts)
+              ..where((t) => t.id.equals(id)))
+            .getSingleOrNull();
+        if (entity == null || entity.deletedAt != null) {
+          return Failure('Shift not found or deleted');
+        }
+
+        final now = DateTime.now();
+
+        // Validate: no future dates
+        if (loginAt.isAfter(now)) {
+          return Failure('Login time cannot be in the future');
+        }
+        if (logoutAt != null && logoutAt.isAfter(now)) {
+          return Failure('Logout time cannot be in the future');
+        }
+        if (logoutAt != null && !logoutAt.isAfter(loginAt)) {
+          return Failure('Logout must be after login');
+        }
+
+        // Preserve original values on first edit only
+        DateTime? origLogin = entity.originalLoginAt;
+        if (origLogin == null && loginAt != entity.loginAt) {
+          origLogin = entity.loginAt;
+        }
+        DateTime? origLogout = entity.originalLogoutAt;
+        if (origLogout == null && logoutAt != entity.logoutAt) {
+          origLogout = entity.logoutAt;
+        }
+
+        await (_db.update(_db.shifts)..where((t) => t.id.equals(id)))
+            .write(ShiftsCompanion(
+          loginAt: Value(loginAt),
+          logoutAt: Value(logoutAt),
+          originalLoginAt: Value(origLogin),
+          originalLogoutAt: Value(origLogout),
+          editedBy: Value(editedByUserId),
+          editedAt: Value(now),
+          updatedAt: Value(now),
+        ));
+
+        final updated = await (_db.select(_db.shifts)
+              ..where((t) => t.id.equals(id)))
+            .getSingle();
+        final model = shiftFromEntity(updated);
+        await _enqueue('update', model);
+        return Success(model);
+      });
+    } catch (e, s) {
+      AppLogger.error('Failed to update shift', error: e, stackTrace: s);
+      return Failure('Failed to update shift: $e');
+    }
+  }
+
+  Future<Result<void>> softDelete(String id) async {
+    try {
+      return await _db.transaction(() async {
+        final now = DateTime.now();
+        await (_db.update(_db.shifts)..where((t) => t.id.equals(id)))
+            .write(ShiftsCompanion(
+          deletedAt: Value(now),
+          updatedAt: Value(now),
+        ));
+        final entity = await (_db.select(_db.shifts)
+              ..where((t) => t.id.equals(id)))
+            .getSingle();
+        await _enqueue('update', shiftFromEntity(entity));
+        return const Success(null);
+      });
+    } catch (e, s) {
+      AppLogger.error('Failed to soft-delete shift', error: e, stackTrace: s);
+      return Failure('Failed to delete shift: $e');
+    }
   }
 
   Future<List<ShiftModel>> getByCompanyInRange(String companyId, DateTime from, DateTime to) async {

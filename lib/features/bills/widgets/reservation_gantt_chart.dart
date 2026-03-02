@@ -14,14 +14,14 @@ class ReservationGanttChart extends StatelessWidget {
     required this.tables,
     required this.dateFrom,
     required this.dateTo,
-    required this.onReservationTap,
+    this.onReservationTap,
   });
 
   final List<ReservationModel> reservations;
   final List<TableModel> tables;
   final DateTime dateFrom;
   final DateTime dateTo;
-  final void Function(ReservationModel) onReservationTap;
+  final void Function(ReservationModel)? onReservationTap;
 
   static const double _minRowHeight = 32;
   static const double _labelWidth = 100;
@@ -366,7 +366,7 @@ class ReservationGanttChart extends StatelessWidget {
           borderRadius: BorderRadius.circular(4),
           child: InkWell(
             borderRadius: BorderRadius.circular(4),
-            onTap: () => onReservationTap(r),
+            onTap: onReservationTap != null ? () => onReservationTap!(r) : null,
             child: Container(
               decoration: isCancelled
                   ? BoxDecoration(

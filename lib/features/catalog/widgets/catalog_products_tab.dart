@@ -489,6 +489,9 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
     ItemModel? existing,
   ) async {
     final l = context.l10n;
+    final canPurchasePrice = ref.read(hasPermissionProvider('products.manage_purchase_price'));
+    final canTax = ref.read(hasPermissionProvider('products.manage_tax'));
+    final canAvailability = ref.read(hasPermissionProvider('products.set_availability'));
     final nameCtrl = TextEditingController(text: existing?.name ?? '');
     final currency = ref.read(currentCurrencyProvider).value;
     final locale = ref.read(appLocaleProvider).value ?? 'cs';
@@ -582,46 +585,50 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: TextField(
-                    controller: purchasePriceCtrl,
-                    decoration: InputDecoration(labelText: l.fieldPurchasePrice),
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                if (canPurchasePrice) ...[
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextField(
+                      controller: purchasePriceCtrl,
+                      decoration: InputDecoration(labelText: l.fieldPurchasePrice),
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    ),
                   ),
-                ),
+                ],
               ],
             ),
-            const SizedBox(height: 12),
-            // Row 3: Sale Tax + Purchase Tax
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: DropdownButtonFormField<String?>(
-                    initialValue: taxRateId,
-                    decoration: InputDecoration(labelText: l.fieldTaxRate),
-                    items: taxRates
-                        .map((t) => DropdownMenuItem(value: t.id, child: Text(t.label)))
-                        .toList(),
-                    onChanged: (v) => setDialogState(() => taxRateId = v),
+            if (canTax) ...[
+              const SizedBox(height: 12),
+              // Row 3: Sale Tax + Purchase Tax
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: DropdownButtonFormField<String?>(
+                      initialValue: taxRateId,
+                      decoration: InputDecoration(labelText: l.fieldTaxRate),
+                      items: taxRates
+                          .map((t) => DropdownMenuItem(value: t.id, child: Text(t.label)))
+                          .toList(),
+                      onChanged: (v) => setDialogState(() => taxRateId = v),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: DropdownButtonFormField<String?>(
-                    initialValue: purchaseTaxRateId,
-                    decoration: InputDecoration(labelText: l.fieldPurchaseTaxRate),
-                    items: [
-                      const DropdownMenuItem(value: null, child: Text('-')),
-                      ...taxRates
-                          .map((t) => DropdownMenuItem(value: t.id, child: Text(t.label))),
-                    ],
-                    onChanged: (v) => setDialogState(() => purchaseTaxRateId = v),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: DropdownButtonFormField<String?>(
+                      initialValue: purchaseTaxRateId,
+                      decoration: InputDecoration(labelText: l.fieldPurchaseTaxRate),
+                      items: [
+                        const DropdownMenuItem(value: null, child: Text('-')),
+                        ...taxRates
+                            .map((t) => DropdownMenuItem(value: t.id, child: Text(t.label))),
+                      ],
+                      onChanged: (v) => setDialogState(() => purchaseTaxRateId = v),
+                    ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              ),
+            ],
             const SizedBox(height: 12),
             // Row 4: Supplier + Manufacturer
             Row(
@@ -719,16 +726,18 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
             ),
             const SizedBox(height: 12),
             // Switches
-            SwitchListTile(
-              title: Text(l.fieldActive),
-              value: isActive,
-              onChanged: (v) => setDialogState(() => isActive = v),
-            ),
-            SwitchListTile(
-              title: Text(l.fieldOnSale),
-              value: isOnSale,
-              onChanged: (v) => setDialogState(() => isOnSale = v),
-            ),
+            if (canAvailability) ...[
+              SwitchListTile(
+                title: Text(l.fieldActive),
+                value: isActive,
+                onChanged: (v) => setDialogState(() => isActive = v),
+              ),
+              SwitchListTile(
+                title: Text(l.fieldOnSale),
+                value: isOnSale,
+                onChanged: (v) => setDialogState(() => isOnSale = v),
+              ),
+            ],
             SwitchListTile(
               title: Text(l.fieldStockTracked),
               value: isStockTracked,

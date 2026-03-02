@@ -4,5 +4,6 @@ enum PaymentType {
   bank,
   credit,
   voucher,
+  mealTicket,
   other,
 }

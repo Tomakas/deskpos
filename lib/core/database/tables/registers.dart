@@ -20,6 +20,7 @@ class Registers extends Table with SyncColumnsMixin {
   BoolColumn get allowTransfer => boolean().withDefault(const Constant(true))();
   BoolColumn get allowCredit => boolean().withDefault(const Constant(true))();
   BoolColumn get allowVoucher => boolean().withDefault(const Constant(true))();
+  BoolColumn get allowMealTicket => boolean().withDefault(const Constant(true))();
   BoolColumn get allowOther => boolean().withDefault(const Constant(true))();
   BoolColumn get allowRefunds => boolean().withDefault(const Constant(false))();
   TextColumn get boundDeviceId => text().nullable()();

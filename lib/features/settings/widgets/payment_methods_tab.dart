@@ -141,6 +141,7 @@ class _PaymentMethodsTabState extends ConsumerState<PaymentMethodsTab> {
       PaymentType.bank => l.paymentTypeBank,
       PaymentType.credit => l.paymentTypeCredit,
       PaymentType.voucher => l.paymentTypeVoucher,
+      PaymentType.mealTicket => l.paymentTypeMealTicket,
       PaymentType.other => l.paymentTypeOther,
     };
   }

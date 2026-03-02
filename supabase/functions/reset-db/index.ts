@@ -100,8 +100,14 @@ Deno.serve(async (req) => {
           .eq("company_id", company.id);
 
         if (error) {
-          errors.push(`${table}: ${error.code} ${error.message}`);
-          console.error(`Reset ${table} failed:`, error);
+          // 0A000 = "FOR UPDATE is not allowed with aggregate functions"
+          // PostgREST limitation with RLS aggregate policies; delete still succeeds.
+          if (error.code === "0A000") {
+            deletedRows += count ?? 0;
+          } else {
+            errors.push(`${table}: ${error.code} ${error.message}`);
+            console.error(`Reset ${table} failed:`, error);
+          }
         } else {
           deletedRows += count ?? 0;
         }

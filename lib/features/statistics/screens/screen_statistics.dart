@@ -8,6 +8,7 @@ import '../../../core/data/enums/discount_type.dart';
 import '../../../core/data/models/bill_model.dart';
 import '../../../core/data/models/order_item_model.dart';
 import '../../../core/data/models/order_item_modifier_model.dart';
+import '../../../core/data/models/shift_model.dart';
 import '../../../core/data/models/user_model.dart';
 import '../../../core/data/enums/prep_status.dart';
 import '../../../core/data/result.dart';
@@ -28,6 +29,7 @@ import '../../bills/providers/z_report_providers.dart';
 import '../../bills/widgets/dialog_z_report.dart';
 import '../models/dashboard_data.dart';
 import '../widgets/dashboard_tab.dart';
+import '../widgets/dialog_shift_edit.dart';
 
 // ---------------------------------------------------------------------------
 // Section enum
@@ -123,15 +125,15 @@ class _TipRow {
 
 class _ShiftRow {
   _ShiftRow({
-    required this.loginAt,
+    required this.shift,
     required this.userName,
-    required this.logoutAt,
     required this.duration,
+    this.editedByName,
   });
-  final DateTime loginAt;
+  final ShiftModel shift;
   final String userName;
-  final DateTime? logoutAt;
   final Duration duration;
+  final String? editedByName;
 }
 
 // ---------------------------------------------------------------------------
@@ -243,6 +245,26 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
     _StatSection.tips: 'stats.tips',
   };
 
+  static const _sectionAllPermissions = {
+    _StatSection.receipts: 'stats.receipts_all',
+    _StatSection.sales: 'stats.sales_all',
+    _StatSection.orders: 'stats.orders_all',
+    _StatSection.tips: 'stats.tips_all',
+  };
+
+  ({DateTime from, DateTime to})? _effectiveRange(_StatSection section) {
+    final permCode = _sectionAllPermissions[section];
+    if (permCode == null || ref.read(hasPermissionProvider(permCode))) {
+      return (from: _from!, to: _to!);
+    }
+    final session = ref.read(activeRegisterSessionProvider).valueOrNull;
+    if (session == null) return null;
+    final sFrom = _from!.isAfter(session.openedAt) ? _from! : session.openedAt;
+    final sTo = _to!.isBefore(DateTime.now()) ? _to! : DateTime.now();
+    if (sFrom.isAfter(sTo)) return null;
+    return (from: sFrom, to: sTo);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -267,7 +289,9 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
     bool p(String code) => ref.read(hasPermissionProvider(code));
 
     final tabs = <_StatSection>[
-      _StatSection.dashboard, // always visible if user has any stats perm
+      // Dashboard requires all _all permissions (it aggregates all sections)
+      if (_sectionAllPermissions.values.every((code) => p(code)))
+        _StatSection.dashboard,
       for (final section in _StatSection.values)
         if (section != _StatSection.dashboard)
           if (_sectionPermissions[section] == null || p(_sectionPermissions[section]!))
@@ -334,7 +358,12 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
   }
 
   Future<void> _loadReceipts(String companyId) async {
-    final bills = await ref.read(billRepositoryProvider).getPaidOrRefundedInRange(companyId, _from!, _to!);
+    final range = _effectiveRange(_StatSection.receipts);
+    if (range == null) {
+      setState(() { _receipts = []; _customerNames = {}; _paymentMethods = {}; });
+      return;
+    }
+    final bills = await ref.read(billRepositoryProvider).getPaidOrRefundedInRange(companyId, range.from, range.to);
     if (!mounted) return;
 
     // Resolve customerId → display name
@@ -378,12 +407,23 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
   }
 
   Future<void> _loadSales(String companyId) async {
+    final range = _effectiveRange(_StatSection.sales);
+    if (range == null) {
+      setState(() {
+        _salesRows = [];
+        _salesTotalBillDiscount = 0;
+        _salesTotalLoyaltyDiscount = 0;
+        _salesTotalVoucherDiscount = 0;
+        _salesTotalRounding = 0;
+      });
+      return;
+    }
     final billRepo = ref.read(billRepositoryProvider);
     final orderRepo = ref.read(orderRepositoryProvider);
     final modifierRepo = ref.read(orderItemModifierRepositoryProvider);
 
     // 1. Load bills (paid + refunded)
-    final bills = await billRepo.getPaidOrRefundedInRange(companyId, _from!, _to!);
+    final bills = await billRepo.getPaidOrRefundedInRange(companyId, range.from, range.to);
     if (!mounted) return;
     if (bills.isEmpty) {
       setState(() {
@@ -553,7 +593,12 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
   }
 
   Future<void> _loadOrders(String companyId) async {
-    final orders = await ref.read(orderRepositoryProvider).getByCompanyInRange(companyId, _from!, _to!);
+    final range = _effectiveRange(_StatSection.orders);
+    if (range == null) {
+      setState(() => _orderRows = []);
+      return;
+    }
+    final orders = await ref.read(orderRepositoryProvider).getByCompanyInRange(companyId, range.from, range.to);
     if (!mounted) return;
 
     final userRepo = ref.read(userRepositoryProvider);
@@ -594,16 +639,25 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
     }
     if (!mounted) return;
 
+    // Also resolve editedBy user names
+    final editorIds = shifts.map((s) => s.editedBy).whereType<String>().toSet();
+    for (final eid in editorIds) {
+      if (!userMap.containsKey(eid)) {
+        userMap[eid] = await userRepo.getById(eid, includeDeleted: true);
+      }
+    }
+    if (!mounted) return;
+
     final rows = shifts.map((s) {
       final logoutAt = s.logoutAt;
       final duration = logoutAt != null
           ? logoutAt.difference(s.loginAt)
           : DateTime.now().difference(s.loginAt);
       return _ShiftRow(
-        loginAt: s.loginAt,
+        shift: s,
         userName: userMap[s.userId]?.username ?? '-',
-        logoutAt: logoutAt,
         duration: duration,
+        editedByName: s.editedBy != null ? userMap[s.editedBy]?.username : null,
       );
     }).toList();
     setState(() => _shiftRows = rows);
@@ -648,7 +702,12 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
   }
 
   Future<void> _loadTips(String companyId) async {
-    final payments = await ref.read(paymentRepositoryProvider).getTipsInRange(companyId, _from!, _to!);
+    final range = _effectiveRange(_StatSection.tips);
+    if (range == null) {
+      setState(() => _tipRows = []);
+      return;
+    }
+    final payments = await ref.read(paymentRepositoryProvider).getTipsInRange(companyId, range.from, range.to);
     if (!mounted) return;
 
     final userRepo = ref.read(userRepositoryProvider);
@@ -1164,9 +1223,9 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
     }
     switch (_shiftSort) {
       case _ShiftSort.dateDesc:
-        list.sort((a, b) => b.loginAt.compareTo(a.loginAt));
+        list.sort((a, b) => b.shift.loginAt.compareTo(a.shift.loginAt));
       case _ShiftSort.dateAsc:
-        list.sort((a, b) => a.loginAt.compareTo(b.loginAt));
+        list.sort((a, b) => a.shift.loginAt.compareTo(b.shift.loginAt));
       case _ShiftSort.durationDesc:
         list.sort((a, b) => b.duration.compareTo(a.duration));
       case _ShiftSort.durationAsc:
@@ -1992,6 +2051,25 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
   }
 
   // ---------------------------------------------------------------------------
+  // Shift row tap → detail/edit dialog
+  // ---------------------------------------------------------------------------
+
+  Future<void> _onShiftTap(_ShiftRow row) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (_) => DialogShiftEdit(
+        shift: row.shift,
+        userName: row.userName,
+        editedByName: row.editedByName,
+      ),
+    );
+    if (result == true && mounted) {
+      final company = ref.read(currentCompanyProvider);
+      if (company != null) _loadShifts(company.id);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
   // Z-report row tap
   // ---------------------------------------------------------------------------
 
@@ -2280,6 +2358,18 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
               l10n: l,
             ),
           ),
+          // Session-scoped indicator
+          if (_sectionAllPermissions.containsKey(_section) &&
+              !ref.watch(hasPermissionProvider(_sectionAllPermissions[_section]!)))
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              child: Row(children: [
+                Icon(Icons.info_outline, size: 16, color: Theme.of(context).colorScheme.primary),
+                const SizedBox(width: 6),
+                Text(l.statsSessionScoped, style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.primary)),
+              ]),
+            ),
           // Toolbar (hidden for dashboard)
           if (_section != _StatSection.dashboard)
             PosTableToolbar(
@@ -2508,28 +2598,40 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
     final data = _filteredShifts;
     return PosTable<_ShiftRow>(
       emptyMessage: l.statsEmpty,
+      onRowTap: _onShiftTap,
       columns: [
         PosColumn(
           label: l.shiftsColumnDate,
           flex: 10,
-          cellBuilder: (r) => Text(ref.fmtDate(r.loginAt)),
+          cellBuilder: (r) => Text(ref.fmtDate(r.shift.loginAt)),
         ),
         PosColumn(
           label: l.shiftsColumnUser,
           flex: 15,
-          cellBuilder: (r) => HighlightedText(r.userName, query: _query, overflow: TextOverflow.ellipsis),
+          cellBuilder: (r) => Row(
+            children: [
+              if (r.shift.editedBy != null)
+                Padding(
+                  padding: const EdgeInsets.only(right: 4),
+                  child: Icon(Icons.edit, size: 14, color: Theme.of(context).colorScheme.outline),
+                ),
+              Expanded(
+                child: HighlightedText(r.userName, query: _query, overflow: TextOverflow.ellipsis),
+              ),
+            ],
+          ),
         ),
         PosColumn(
           label: l.shiftsColumnLogin,
           flex: 6,
-          cellBuilder: (r) => Text(ref.fmtTime(r.loginAt)),
+          cellBuilder: (r) => Text(ref.fmtTime(r.shift.loginAt)),
         ),
         PosColumn(
           label: l.shiftsColumnLogout,
           flex: 8,
           numeric: true,
           cellBuilder: (r) => Text(
-            r.logoutAt != null ? ref.fmtTime(r.logoutAt!) : l.shiftsOngoing,
+            r.shift.logoutAt != null ? ref.fmtTime(r.shift.logoutAt!) : l.shiftsOngoing,
             textAlign: TextAlign.right,
           ),
         ),

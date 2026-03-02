@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ShiftModel {
 
- String get id; String get companyId; String get registerSessionId; String get userId; DateTime get loginAt; DateTime? get logoutAt; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+ String get id; String get companyId; String get registerSessionId; String get userId; DateTime get loginAt; DateTime? get logoutAt; DateTime? get originalLoginAt; DateTime? get originalLogoutAt; String? get editedBy; DateTime? get editedAt; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
 /// Create a copy of ShiftModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $ShiftModelCopyWith<ShiftModel> get copyWith => _$ShiftModelCopyWithImpl<ShiftMo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ShiftModel&&(identical(other.id, id) || other.id == id)&&(identical(other.companyId, companyId) || other.companyId == companyId)&&(identical(other.registerSessionId, registerSessionId) || other.registerSessionId == registerSessionId)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.loginAt, loginAt) || other.loginAt == loginAt)&&(identical(other.logoutAt, logoutAt) || other.logoutAt == logoutAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ShiftModel&&(identical(other.id, id) || other.id == id)&&(identical(other.companyId, companyId) || other.companyId == companyId)&&(identical(other.registerSessionId, registerSessionId) || other.registerSessionId == registerSessionId)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.loginAt, loginAt) || other.loginAt == loginAt)&&(identical(other.logoutAt, logoutAt) || other.logoutAt == logoutAt)&&(identical(other.originalLoginAt, originalLoginAt) || other.originalLoginAt == originalLoginAt)&&(identical(other.originalLogoutAt, originalLogoutAt) || other.originalLogoutAt == originalLogoutAt)&&(identical(other.editedBy, editedBy) || other.editedBy == editedBy)&&(identical(other.editedAt, editedAt) || other.editedAt == editedAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,companyId,registerSessionId,userId,loginAt,logoutAt,createdAt,updatedAt,deletedAt);
+int get hashCode => Object.hash(runtimeType,id,companyId,registerSessionId,userId,loginAt,logoutAt,originalLoginAt,originalLogoutAt,editedBy,editedAt,createdAt,updatedAt,deletedAt);
 
 @override
 String toString() {
-  return 'ShiftModel(id: $id, companyId: $companyId, registerSessionId: $registerSessionId, userId: $userId, loginAt: $loginAt, logoutAt: $logoutAt, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'ShiftModel(id: $id, companyId: $companyId, registerSessionId: $registerSessionId, userId: $userId, loginAt: $loginAt, logoutAt: $logoutAt, originalLoginAt: $originalLoginAt, originalLogoutAt: $originalLogoutAt, editedBy: $editedBy, editedAt: $editedAt, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $ShiftModelCopyWith<$Res>  {
   factory $ShiftModelCopyWith(ShiftModel value, $Res Function(ShiftModel) _then) = _$ShiftModelCopyWithImpl;
 @useResult
 $Res call({
- String id, String companyId, String registerSessionId, String userId, DateTime loginAt, DateTime? logoutAt, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String companyId, String registerSessionId, String userId, DateTime loginAt, DateTime? logoutAt, DateTime? originalLoginAt, DateTime? originalLogoutAt, String? editedBy, DateTime? editedAt, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -62,7 +62,7 @@ class _$ShiftModelCopyWithImpl<$Res>
 
 /// Create a copy of ShiftModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? companyId = null,Object? registerSessionId = null,Object? userId = null,Object? loginAt = null,Object? logoutAt = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? companyId = null,Object? registerSessionId = null,Object? userId = null,Object? loginAt = null,Object? logoutAt = freezed,Object? originalLoginAt = freezed,Object? originalLogoutAt = freezed,Object? editedBy = freezed,Object? editedAt = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,companyId: null == companyId ? _self.companyId : companyId // ignore: cast_nullable_to_non_nullable
@@ -70,6 +70,10 @@ as String,registerSessionId: null == registerSessionId ? _self.registerSessionId
 as String,userId: null == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
 as String,loginAt: null == loginAt ? _self.loginAt : loginAt // ignore: cast_nullable_to_non_nullable
 as DateTime,logoutAt: freezed == logoutAt ? _self.logoutAt : logoutAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,originalLoginAt: freezed == originalLoginAt ? _self.originalLoginAt : originalLoginAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,originalLogoutAt: freezed == originalLogoutAt ? _self.originalLogoutAt : originalLogoutAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,editedBy: freezed == editedBy ? _self.editedBy : editedBy // ignore: cast_nullable_to_non_nullable
+as String?,editedAt: freezed == editedAt ? _self.editedAt : editedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
@@ -158,10 +162,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String companyId,  String registerSessionId,  String userId,  DateTime loginAt,  DateTime? logoutAt,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String companyId,  String registerSessionId,  String userId,  DateTime loginAt,  DateTime? logoutAt,  DateTime? originalLoginAt,  DateTime? originalLogoutAt,  String? editedBy,  DateTime? editedAt,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ShiftModel() when $default != null:
-return $default(_that.id,_that.companyId,_that.registerSessionId,_that.userId,_that.loginAt,_that.logoutAt,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.companyId,_that.registerSessionId,_that.userId,_that.loginAt,_that.logoutAt,_that.originalLoginAt,_that.originalLogoutAt,_that.editedBy,_that.editedAt,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   return orElse();
 
 }
@@ -179,10 +183,10 @@ return $default(_that.id,_that.companyId,_that.registerSessionId,_that.userId,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String companyId,  String registerSessionId,  String userId,  DateTime loginAt,  DateTime? logoutAt,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String companyId,  String registerSessionId,  String userId,  DateTime loginAt,  DateTime? logoutAt,  DateTime? originalLoginAt,  DateTime? originalLogoutAt,  String? editedBy,  DateTime? editedAt,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
 switch (_that) {
 case _ShiftModel():
-return $default(_that.id,_that.companyId,_that.registerSessionId,_that.userId,_that.loginAt,_that.logoutAt,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.companyId,_that.registerSessionId,_that.userId,_that.loginAt,_that.logoutAt,_that.originalLoginAt,_that.originalLogoutAt,_that.editedBy,_that.editedAt,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -199,10 +203,10 @@ return $default(_that.id,_that.companyId,_that.registerSessionId,_that.userId,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String companyId,  String registerSessionId,  String userId,  DateTime loginAt,  DateTime? logoutAt,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String companyId,  String registerSessionId,  String userId,  DateTime loginAt,  DateTime? logoutAt,  DateTime? originalLoginAt,  DateTime? originalLogoutAt,  String? editedBy,  DateTime? editedAt,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _ShiftModel() when $default != null:
-return $default(_that.id,_that.companyId,_that.registerSessionId,_that.userId,_that.loginAt,_that.logoutAt,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.companyId,_that.registerSessionId,_that.userId,_that.loginAt,_that.logoutAt,_that.originalLoginAt,_that.originalLogoutAt,_that.editedBy,_that.editedAt,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   return null;
 
 }
@@ -214,7 +218,7 @@ return $default(_that.id,_that.companyId,_that.registerSessionId,_that.userId,_t
 
 
 class _ShiftModel implements ShiftModel {
-  const _ShiftModel({required this.id, required this.companyId, required this.registerSessionId, required this.userId, required this.loginAt, this.logoutAt, required this.createdAt, required this.updatedAt, this.deletedAt});
+  const _ShiftModel({required this.id, required this.companyId, required this.registerSessionId, required this.userId, required this.loginAt, this.logoutAt, this.originalLoginAt, this.originalLogoutAt, this.editedBy, this.editedAt, required this.createdAt, required this.updatedAt, this.deletedAt});
   
 
 @override final  String id;
@@ -223,6 +227,10 @@ class _ShiftModel implements ShiftModel {
 @override final  String userId;
 @override final  DateTime loginAt;
 @override final  DateTime? logoutAt;
+@override final  DateTime? originalLoginAt;
+@override final  DateTime? originalLogoutAt;
+@override final  String? editedBy;
+@override final  DateTime? editedAt;
 @override final  DateTime createdAt;
 @override final  DateTime updatedAt;
 @override final  DateTime? deletedAt;
@@ -237,16 +245,16 @@ _$ShiftModelCopyWith<_ShiftModel> get copyWith => __$ShiftModelCopyWithImpl<_Shi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ShiftModel&&(identical(other.id, id) || other.id == id)&&(identical(other.companyId, companyId) || other.companyId == companyId)&&(identical(other.registerSessionId, registerSessionId) || other.registerSessionId == registerSessionId)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.loginAt, loginAt) || other.loginAt == loginAt)&&(identical(other.logoutAt, logoutAt) || other.logoutAt == logoutAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ShiftModel&&(identical(other.id, id) || other.id == id)&&(identical(other.companyId, companyId) || other.companyId == companyId)&&(identical(other.registerSessionId, registerSessionId) || other.registerSessionId == registerSessionId)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.loginAt, loginAt) || other.loginAt == loginAt)&&(identical(other.logoutAt, logoutAt) || other.logoutAt == logoutAt)&&(identical(other.originalLoginAt, originalLoginAt) || other.originalLoginAt == originalLoginAt)&&(identical(other.originalLogoutAt, originalLogoutAt) || other.originalLogoutAt == originalLogoutAt)&&(identical(other.editedBy, editedBy) || other.editedBy == editedBy)&&(identical(other.editedAt, editedAt) || other.editedAt == editedAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,companyId,registerSessionId,userId,loginAt,logoutAt,createdAt,updatedAt,deletedAt);
+int get hashCode => Object.hash(runtimeType,id,companyId,registerSessionId,userId,loginAt,logoutAt,originalLoginAt,originalLogoutAt,editedBy,editedAt,createdAt,updatedAt,deletedAt);
 
 @override
 String toString() {
-  return 'ShiftModel(id: $id, companyId: $companyId, registerSessionId: $registerSessionId, userId: $userId, loginAt: $loginAt, logoutAt: $logoutAt, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'ShiftModel(id: $id, companyId: $companyId, registerSessionId: $registerSessionId, userId: $userId, loginAt: $loginAt, logoutAt: $logoutAt, originalLoginAt: $originalLoginAt, originalLogoutAt: $originalLogoutAt, editedBy: $editedBy, editedAt: $editedAt, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -257,7 +265,7 @@ abstract mixin class _$ShiftModelCopyWith<$Res> implements $ShiftModelCopyWith<$
   factory _$ShiftModelCopyWith(_ShiftModel value, $Res Function(_ShiftModel) _then) = __$ShiftModelCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String companyId, String registerSessionId, String userId, DateTime loginAt, DateTime? logoutAt, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String companyId, String registerSessionId, String userId, DateTime loginAt, DateTime? logoutAt, DateTime? originalLoginAt, DateTime? originalLogoutAt, String? editedBy, DateTime? editedAt, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -274,7 +282,7 @@ class __$ShiftModelCopyWithImpl<$Res>
 
 /// Create a copy of ShiftModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? companyId = null,Object? registerSessionId = null,Object? userId = null,Object? loginAt = null,Object? logoutAt = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? companyId = null,Object? registerSessionId = null,Object? userId = null,Object? loginAt = null,Object? logoutAt = freezed,Object? originalLoginAt = freezed,Object? originalLogoutAt = freezed,Object? editedBy = freezed,Object? editedAt = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_ShiftModel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,companyId: null == companyId ? _self.companyId : companyId // ignore: cast_nullable_to_non_nullable
@@ -282,6 +290,10 @@ as String,registerSessionId: null == registerSessionId ? _self.registerSessionId
 as String,userId: null == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
 as String,loginAt: null == loginAt ? _self.loginAt : loginAt // ignore: cast_nullable_to_non_nullable
 as DateTime,logoutAt: freezed == logoutAt ? _self.logoutAt : logoutAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,originalLoginAt: freezed == originalLoginAt ? _self.originalLoginAt : originalLoginAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,originalLogoutAt: freezed == originalLogoutAt ? _self.originalLogoutAt : originalLogoutAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,editedBy: freezed == editedBy ? _self.editedBy : editedBy // ignore: cast_nullable_to_non_nullable
+as String?,editedAt: freezed == editedAt ? _self.editedAt : editedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable

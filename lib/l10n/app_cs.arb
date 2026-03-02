@@ -488,6 +488,24 @@
   "shiftsColumnLogout": "Odhlášení",
   "shiftsColumnDuration": "Trvání",
   "shiftsOngoing": "probíhá",
+  "shiftDetailTitle": "Detail směny",
+  "shiftEditLoginAt": "Čas příchodu",
+  "shiftEditLogoutAt": "Čas odchodu",
+  "shiftEditOriginal": "Původní: {time}",
+  "@shiftEditOriginal": {
+    "placeholders": {
+      "time": { "type": "String" }
+    }
+  },
+  "shiftEditEditedBy": "Upravil/a {name}",
+  "@shiftEditEditedBy": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "shiftEditOngoing": "Probíhá",
+  "shiftEditValidation": "Odchod musí být po příchodu, bez budoucích dat",
+  "shiftEditDelete": "Smazat směnu",
 
   "closingOpenBillsWarningTitle": "Otevřené účty",
   "closingOpenBillsWarningMessage": "Na konci prodeje je {count} otevřených účtů v celkové hodnotě {amount}.",
@@ -759,7 +777,8 @@
   "reservationSectionAll": "Vše",
 
   "paymentTypeCredit": "Kredit",
-  "paymentTypeVoucher": "Stravenky",
+  "paymentTypeVoucher": "Poukázky",
+  "paymentTypeMealTicket": "Stravenky",
 
   "loyaltySectionTitle": "Věrnostní program",
   "loyaltyEarnRate": "Bodů za {unit}",
@@ -995,7 +1014,8 @@
   "registerAllowCard": "Karta",
   "registerAllowTransfer": "Převod",
   "registerAllowCredit": "Kredit",
-  "registerAllowVoucher": "Stravenky",
+  "registerAllowVoucher": "Poukázky",
+  "registerAllowMealTicket": "Stravenky",
   "registerAllowOther": "Ostatní",
   "registerAllowRefunds": "Refundy",
   "registerPaymentFlags": "Povolené platby",
@@ -1300,7 +1320,6 @@
   "permPaymentsMethodCredit": "Platba na kredit",
   "permPaymentsSkipCashDialog": "Přeskočit dialog hotovosti",
   "permPaymentsAcceptTip": "Přijmout spropitné",
-  "permPaymentsAdjustTip": "Upravit spropitné",
 
   "permDiscountsApplyItemLimited": "Sleva na položku (limitovaná)",
   "permDiscountsApplyItem": "Sleva na položku (neomezená)",
@@ -1308,16 +1327,11 @@
   "permDiscountsApplyBill": "Sleva na účet (neomezená)",
   "permDiscountsLoyalty": "Uplatnit věrnostní body",
 
-  "permRegisterOpenSession": "Otevřít pokladnu",
-  "permRegisterCloseSession": "Uzavřít pokladnu",
-  "permRegisterViewSession": "Zobrazit stav pokladny",
-  "permRegisterViewAllSessions": "Historie uzávěrek",
+  "permRegisterOpenClose": "Otevřít/uzavřít pokladnu",
   "permRegisterCashIn": "Vklad hotovosti",
   "permRegisterCashOut": "Výběr hotovosti",
   "permRegisterOpenDrawer": "Otevřít zásuvku",
 
-  "permShiftsViewOwn": "Zobrazit vlastní směny",
-  "permShiftsViewAll": "Zobrazit všechny směny",
   "permShiftsManage": "Spravovat směny",
 
   "permProductsView": "Zobrazit produkty",
@@ -1352,7 +1366,6 @@
   "permVouchersManage": "Spravovat vouchery",
   "permVouchersRedeem": "Uplatnit voucher",
 
-  "permVenueView": "Zobrazit stoly",
   "permVenueReservationsView": "Zobrazit rezervace",
   "permVenueReservationsManage": "Spravovat rezervace",
 
@@ -1687,5 +1700,7 @@
   "registerOpenDrawer": "Otevřít pokladnu",
   "settingsTabFiscal": "Fiskální",
   "billDetailReopen": "Znovu otevřít",
-  "billDetailConfirmReopen": "Opravdu chcete znovu otevřít tento účet?"
+  "billDetailConfirmReopen": "Opravdu chcete znovu otevřít tento účet?",
+
+  "statsSessionScoped": "Pouze aktuální směna"
 }

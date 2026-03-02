@@ -72,7 +72,7 @@ Admin vytvoří firmu, nastaví uživatele, stoly a produkty. Více uživatelů 
 
 #### Milník 1.4 — Oprávnění (engine)
 
-- **Task1.10** Permission engine — 115 permissions v 17 skupinách, O(1) check přes in-memory Set
+- **Task1.10** Permission engine — 105 permissions v 17 skupinách, O(1) check přes in-memory Set
 - **Task1.11** Role šablony — helper (19), operator (64), manager (95), admin (115)
 - **Výsledek:** Permission engine a role šablony jsou připraveny. Admin má všech 115 oprávnění.
 
@@ -1207,7 +1207,7 @@ Klientské timestampy se ukládají v **UTC**.
 | `UnitType` | `ItemModel`, `OrderItemModel` | ks, g, kg, ml, cl, l, mm, cm, m, min, h |
 | `BillStatus` | `BillModel` | opened, paid, cancelled, refunded |
 | `PrepStatus` | `OrderModel`, `OrderItemModel` | created, ready, delivered, voided |
-| `PaymentType` | `PaymentMethodModel` | cash, card, bank, credit, voucher, other — PG sort order se liší: cash, card, bank, voucher, other, credit (voucher a credit přidány ALTER TYPE) |
+| `PaymentType` | `PaymentMethodModel` | cash, card, bank, credit, voucher, mealTicket, other — PG sort order se liší: cash, card, bank, voucher, mealTicket, other, credit (voucher, mealTicket a credit přidány ALTER TYPE) |
 | `RoleName` | `RoleModel` | helper, operator, manager, admin — PG sort order: helper, operator, admin, manager (manager přidán dodatečně) |
 | `TaxCalcType` | `TaxRateModel` | regular, noTax, constant, mixed |
 | `HardwareType` | `RegisterModel` | local, mobile, virtual |
@@ -2443,15 +2443,15 @@ Systém oprávnění funguje **offline-first**. Veškerá data jsou uložena lok
 | # | Skupina | Prefix | Počet |
 |---|---------|--------|:-----:|
 | 1 | Objednávky | `orders.*` | 15 |
-| 2 | Platby | `payments.*` | 12 |
+| 2 | Platby | `payments.*` | 11 |
 | 3 | Slevy a ceny | `discounts.*` | 5 |
-| 4 | Pokladna | `register.*` | 7 |
-| 5 | Směny zaměstnanců | `shifts.*` | 3 |
+| 4 | Pokladna | `register.*` | 4 |
+| 5 | Směny zaměstnanců | `shifts.*` | 1 |
 | 6 | Produkty a katalog | `products.*` | 11 |
 | 7 | Sklad | `stock.*` | 10 |
 | 8 | Zákazníci a věrnost | `customers.*` | 4 |
 | 9 | Vouchery | `vouchers.*` | 3 |
-| 10 | Provoz — stoly a rezervace | `venue.*` | 3 |
+| 10 | Provoz — stoly a rezervace | `venue.*` | 2 |
 | 11 | Statistiky a reporty | `stats.*` | 12 |
 | 12 | Tisk | `printing.*` | 4 |
 | 13 | Data | `data.*` | 3 |
@@ -2459,7 +2459,7 @@ Systém oprávnění funguje **offline-first**. Veškerá data jsou uložena lok
 | 15 | Nastavení — firma | `settings_company.*` | 7 |
 | 16 | Nastavení — provozovna | `settings_venue.*` | 3 |
 | 17 | Nastavení — pokladna | `settings_register.*` | 6 |
-| | | **Celkem** | **112** |
+| | | **Celkem** | **105** |
 
 #### Objednávky (`orders`)
 
@@ -2499,7 +2499,6 @@ propojené workflow se sdílenými akcemi.
 | `payments.method_credit` | Platba na kredit | Platba z kreditu zákazníka |
 | `payments.skip_cash_dialog` | Přeskočit dialog hotovosti | Dokončit hotovostní platbu bez zadání přijaté částky; bez tohoto oprávnění musí obsluha zadat kolik zákazník dal a systém zobrazí kolik vrátit |
 | `payments.accept_tip` | Přijmout spropitné | Přijmout spropitné při platbě |
-| `payments.adjust_tip` | Upravit spropitné | Upravit spropitné po zaplacení |
 
 #### Slevy a ceny (`discounts`)
 
@@ -2522,10 +2521,7 @@ Správa pokladních sessions — otevření a uzavření pokladny, hotovostní o
 
 | Kód | Název | Popis |
 |-----|-------|-------|
-| `register.open_session` | Otevřít pokladnu | Zahájit pokladní session s počátečním stavem hotovosti |
-| `register.close_session` | Uzavřít pokladnu | Provést uzávěrku (Z-report) |
-| `register.view_session` | Zobrazit stav pokladny | Vidět X-report a aktuální stav hotovosti |
-| `register.view_all_sessions` | Historie uzávěrek | Vidět uzávěrky všech pokladen a uživatelů |
+| `register.open_close` | Otevřít/uzavřít pokladnu | Zahájit nebo uzavřít pokladní session |
 | `register.cash_in` | Vklad hotovosti | Zaznamenat vklad do pokladny |
 | `register.cash_out` | Výběr hotovosti | Zaznamenat výběr z pokladny |
 | `register.open_drawer` | Otevřít zásuvku | Otevřít pokladní zásuvku bez transakce ("no sale") |
@@ -2536,8 +2532,6 @@ Evidence pracovních směn — příchod, odchod, docházka.
 
 | Kód | Název | Popis |
 |-----|-------|-------|
-| `shifts.view_own` | Zobrazit vlastní směny | Vidět historii vlastních směn |
-| `shifts.view_all` | Zobrazit všechny směny | Vidět směny všech zaměstnanců |
 | `shifts.manage` | Spravovat směny | Vytvářet, upravovat a mazat směny zaměstnanců |
 
 #### Produkty a katalog (`products`)
@@ -2598,17 +2592,18 @@ nebo seznamu je uživatelská preference, ne oprávnění.
 
 | Kód | Název | Popis |
 |-----|-------|-------|
-| `venue.view` | Zobrazit stoly | Vidět stoly a jejich stav (mapa nebo seznam dle preferencí) |
 | `venue.reservations_view` | Zobrazit rezervace | Vidět seznam rezervací |
 | `venue.reservations_manage` | Spravovat rezervace | Vytvářet, upravovat a rušit rezervace |
 
 #### Statistiky a reporty (`stats`)
 
 Odpovídá obrazovce **Statistiky** se 7 taby (Dashboard, Receipts, Sales, Orders, Shifts, Z-Reports, Tips). Každý tab má dvě úrovně:
-- **session** — data pouze z aktuální pokladní session (date range selector skrytý)
-- **all** (`*_all`) — data za libovolné období (date range selector viditelný)
+- **session** — data omezena na aktuální pokladní session
+- **all** (`*_all`) — data za libovolné období (date range selector plně funkční)
 
 `*_all` implikuje base permission — kdo má `stats.receipts_all`, nepotřebuje zvlášť `stats.receipts`.
+
+**Dashboard tab** vyžaduje **všechny** `*_all` permissions (`stats.receipts_all`, `stats.sales_all`, `stats.orders_all`, `stats.tips_all`). Kdo nemá všechny, dashboard tab nevidí — dashboard agreguje data ze všech sekcí, takže session-scoped zobrazení nemá smysl.
 
 Tisk a export nejsou omezeny zvlášť — kdo může data vidět, může je i tisknout/exportovat.
 
@@ -2811,15 +2806,15 @@ Odpovídá obrazovce **Nastavení pokladny** (terminály, hardware, grid, disple
 | Skupina | Počet | helper | operator | manager | admin |
 |---------|:-----:|:------:|:--------:|:-------:|:-----:|
 | orders | 15 | 5 | 14 | 15 | 15 |
-| payments | 12 | 4 | 12 | 12 | 12 |
+| payments | 11 | 4 | 11 | 11 | 11 |
 | discounts | 5 | 0 | 3 | 5 | 5 |
-| register | 7 | 1 | 7 | 7 | 7 |
-| shifts | 3 | 1 | 2 | 3 | 3 |
+| register | 4 | 1 | 4 | 4 | 4 |
+| shifts | 1 | 0 | 0 | 1 | 1 |
 | products | 11 | 1 | 2 | 9 | 11 |
 | stock | 10 | 0 | 4 | 8 | 10 |
 | customers | 4 | 1 | 3 | 4 | 4 |
 | vouchers | 3 | 2 | 3 | 3 | 3 |
-| venue | 3 | 2 | 3 | 3 | 3 |
+| venue | 2 | 1 | 2 | 2 | 2 |
 | stats | 12 | 0 | 5 | 12 | 12 |
 | printing | 4 | 1 | 3 | 4 | 4 |
 | data | 3 | 0 | 0 | 1 | 3 |
@@ -2827,14 +2822,14 @@ Odpovídá obrazovce **Nastavení pokladny** (terminály, hardware, grid, disple
 | settings_company | 7 | 0 | 0 | 0 | 7 |
 | settings_venue | 3 | 0 | 0 | 3 | 3 |
 | settings_register | 6 | 0 | 0 | 1 | 6 |
-| **Celkem** | **112** | **18** | **62** | **92** | **112** |
+| **Celkem** | **105** | **15** | **56** | **85** | **105** |
 
 #### Progrese mezi rolemi
 
 | Přechod | Nových oprávnění | Hlavní oblasti |
 |---------|:----------------:|----------------|
-| helper → operator | +44 | Storna, refundace, slevy (limitované), pokladní operace, statistiky (session) |
-| operator → manager | +30 | Slevy (neomezené), katalog, sklad, zaměstnanci, statistiky (historie + směny + uzávěrky), nastavení provozovny |
+| helper → operator | +41 | Storna, refundace, slevy (limitované), pokladní operace, statistiky (session) |
+| operator → manager | +29 | Slevy (neomezené), katalog, sklad, zaměstnanci, statistiky (historie + směny + uzávěrky), nastavení provozovny |
 | manager → admin | +20 | Systém, daně, ceny, data, role, hardware, destruktivní akce |
 
 ### Přiřazení role uživateli
@@ -2853,6 +2848,77 @@ Metoda `applyRoleToUser`:
 | **Repository** | Vynucení při operaci | `billRepo.cancelBill()` → `orders.void_bill` |
 
 Kontrolovat **vždy v UI** (tlačítko se nezobrazí) **i v repozitáři** (nelze obejít přímým voláním).
+
+### Implementované UI permission gates
+
+Přehled všech oprávnění, která se kontrolují na UI vrstvě (skrytí/zablokování prvků).
+
+#### Účty a objednávky (`dialog_bill_detail.dart`, `screen_bills.dart`, `screen_inventory.dart`)
+
+| Oprávnění | Efekt bez oprávnění |
+|-----------|-------------------|
+| `orders.view_detail` | Klik na řádek účtu/stock movement neotevře detail |
+| `orders.view_paid` | Filtr "Zaplacené" skryt, zaplacené účty nezobrazeny |
+| `orders.view_cancelled` | Filtr "Stornované" skryt, stornované účty nezobrazeny |
+| `orders.assign_customer` | Tlačítko zákazníka v detailu skryto |
+| `orders.transfer` | Tlačítko přesunu v detailu skryto |
+| `orders.merge` | Tlačítko sloučení v detailu skryto |
+| `orders.split` | Tlačítko rozdělení v detailu skryto |
+| `orders.void_item` | Tlačítko storna položky skryto |
+| `orders.void_bill` | Tlačítko storna účtu skryto |
+| `orders.reopen` | Tlačítko znovuotevření skryto |
+| `discounts.apply_bill` / `apply_bill_limited` | Tlačítko slevy na účet skryto |
+| `vouchers.redeem` | Tlačítko voucheru v detailu skryto |
+| `payments.method_*` | Příslušné platební metody skryty v dialogu platby |
+| `register.open_close` | Tlačítko otevření/uzavření pokladny skryto |
+
+#### Platby (`dialog_payment.dart`)
+
+| Oprávnění | Efekt bez oprávnění |
+|-----------|-------------------|
+| `payments.method_cash/card/voucher/meal_ticket/bank/credit` | Příslušná platební metoda skryta |
+| `payments.accept_tip` | Spropitné = 0, štítek "(Tip: X)" skryt |
+
+#### Rezervace (`screen_reservations.dart`, `reservation_gantt_chart.dart`)
+
+| Oprávnění | Efekt bez oprávnění |
+|-----------|-------------------|
+| `venue.reservations_manage` | Tlačítko nové rezervace skryto, klik na řádek/Gantt blok neotevře edit |
+
+#### Sklad (`dialog_stock_document.dart`)
+
+| Oprávnění | Efekt bez oprávnění |
+|-----------|-------------------|
+| `stock.set_price_strategy` | Dropdown strategie NC skryt (dokument i per-item), výchozí `overwrite` |
+
+#### Katalog — produkty (`catalog_products_tab.dart`)
+
+| Oprávnění | Efekt bez oprávnění |
+|-----------|-------------------|
+| `products.manage_purchase_price` | Pole nákupní ceny v edit dialogu skryto |
+| `products.manage_tax` | Dropdowny prodejní a nákupní DPH skryty |
+| `products.set_availability` | Switche Aktivní a V prodeji skryty |
+
+#### Statistiky (`screen_statistics.dart`)
+
+| Oprávnění | Efekt bez oprávnění |
+|-----------|-------------------|
+| `stats.receipts/sales/orders/tips` | Příslušný tab skryt |
+| `stats.receipts_all/sales_all/orders_all/tips_all` | Data omezena na aktuální session; info banner "Pouze aktuální směna" |
+| Všechny `stats.*_all` | Dashboard tab vyžaduje všechny — bez nich skryt |
+
+#### Nastavení (`screen_settings_unified.dart`)
+
+| Oprávnění | Efekt bez oprávnění |
+|-----------|-------------------|
+| `settings_company.*` / `settings_venue.*` / `settings_register.*` | Příslušné taby skryty (13 oprávnění) |
+| `settings_register.grid` | Sekce správy gridu (auto-arrange, manuální editor) skryta |
+
+#### Katalog — taby (`screen_catalog.dart`)
+
+| Oprávnění | Efekt bez oprávnění |
+|-----------|-------------------|
+| `products.manage_categories/modifiers/suppliers/manufacturers/recipes` | Příslušné taby skryty |
 
 ### Last Admin Guard
 

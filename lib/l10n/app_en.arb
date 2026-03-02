@@ -488,6 +488,24 @@
   "shiftsColumnLogout": "Logout",
   "shiftsColumnDuration": "Duration",
   "shiftsOngoing": "ongoing",
+  "shiftDetailTitle": "Shift Detail",
+  "shiftEditLoginAt": "Login Time",
+  "shiftEditLogoutAt": "Logout Time",
+  "shiftEditOriginal": "Original: {time}",
+  "@shiftEditOriginal": {
+    "placeholders": {
+      "time": { "type": "String" }
+    }
+  },
+  "shiftEditEditedBy": "Edited by {name}",
+  "@shiftEditEditedBy": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "shiftEditOngoing": "Ongoing",
+  "shiftEditValidation": "Logout must be after login, no future dates",
+  "shiftEditDelete": "Delete shift",
 
   "closingOpenBillsWarningTitle": "Open Bills",
   "closingOpenBillsWarningMessage": "There are {count} open bills at closing worth {amount}.",
@@ -759,7 +777,8 @@
   "reservationSectionAll": "All",
 
   "paymentTypeCredit": "Credit",
-  "paymentTypeVoucher": "Meal Vouchers",
+  "paymentTypeVoucher": "Gift Vouchers",
+  "paymentTypeMealTicket": "Meal Tickets",
 
   "loyaltySectionTitle": "Loyalty Program",
   "loyaltyEarnRate": "Points per {unit}",
@@ -995,7 +1014,8 @@
   "registerAllowCard": "Card",
   "registerAllowTransfer": "Transfer",
   "registerAllowCredit": "Credit",
-  "registerAllowVoucher": "Meal Vouchers",
+  "registerAllowVoucher": "Gift Vouchers",
+  "registerAllowMealTicket": "Meal Tickets",
   "registerAllowOther": "Other",
   "registerAllowRefunds": "Refunds",
   "registerPaymentFlags": "Allowed Payments",
@@ -1300,7 +1320,6 @@
   "permPaymentsMethodCredit": "Credit payment",
   "permPaymentsSkipCashDialog": "Skip cash dialog",
   "permPaymentsAcceptTip": "Accept tip",
-  "permPaymentsAdjustTip": "Adjust tip",
 
   "permDiscountsApplyItemLimited": "Item discount (limited)",
   "permDiscountsApplyItem": "Item discount (unlimited)",
@@ -1308,16 +1327,11 @@
   "permDiscountsApplyBill": "Bill discount (unlimited)",
   "permDiscountsLoyalty": "Redeem loyalty points",
 
-  "permRegisterOpenSession": "Open register session",
-  "permRegisterCloseSession": "Close register session",
-  "permRegisterViewSession": "View register session",
-  "permRegisterViewAllSessions": "View all sessions",
+  "permRegisterOpenClose": "Open/close register",
   "permRegisterCashIn": "Cash deposit",
   "permRegisterCashOut": "Cash withdrawal",
   "permRegisterOpenDrawer": "Open cash drawer",
 
-  "permShiftsViewOwn": "View own shifts",
-  "permShiftsViewAll": "View all shifts",
   "permShiftsManage": "Manage shifts",
 
   "permProductsView": "View products",
@@ -1352,7 +1366,6 @@
   "permVouchersManage": "Manage vouchers",
   "permVouchersRedeem": "Redeem voucher",
 
-  "permVenueView": "View venue",
   "permVenueReservationsView": "View reservations",
   "permVenueReservationsManage": "Manage reservations",
 
@@ -1687,5 +1700,7 @@
   "registerOpenDrawer": "Open drawer",
   "settingsTabFiscal": "Fiscal",
   "billDetailReopen": "Reopen",
-  "billDetailConfirmReopen": "Are you sure you want to reopen this bill?"
+  "billDetailConfirmReopen": "Are you sure you want to reopen this bill?",
+
+  "statsSessionScoped": "Showing current session only"
 }

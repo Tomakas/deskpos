@@ -1,5 +1,29 @@
 # Changelog
 
+## 2026-03-01 — Permission Catalog Cleanup + Meal Tickets
+
+### Permissions
+- Removed 8 redundant permissions: `venue.view`, `shifts.view_own`, `shifts.view_all`, `payments.adjust_tip`, `register.open_session`, `register.close_session`, `register.view_session`, `register.view_all_sessions`
+- Added `register.open_close` (replaces open/close session pair)
+- Total permission count: 112 → 105
+- Updated permission implications: `shifts.manage` now requires `stats.shifts` instead of `shifts.view_all`
+
+### Features
+- Added `PaymentType.mealTicket` enum value + `allow_meal_ticket` column on registers
+- Meal ticket payment method seeded in demo data
+- Renamed voucher label: "Meal Vouchers"/"Stravenky" → "Gift Vouchers"/"Poukázky"
+- New UI gate: `settings_register.grid` hides auto-arrange and manual editor sections
+- New UI gate: `payments.accept_tip` gates tip calculation and tip label display
+
+### Supabase
+- Migration `20260301_002`: delete 8 permissions, add `register.open_close`, add `mealTicket` to `payment_type` enum, add `allow_meal_ticket` column
+
+### Documentation
+- Updated PROJECT.md: permission catalog (105 perms), role matrix, gate matrix, PaymentType enum
+- Updated test_permission_gates.md: new tests for `register.open_close`, `payments.accept_tip`
+
+---
+
 ## 2026-02-28 — Documentation Audit Fixes
 
 ### Documentation

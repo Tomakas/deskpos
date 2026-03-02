@@ -350,7 +350,7 @@ BEGIN
       ELSE 'AT'
     END,
     CASE p_locale WHEN 'cs' THEN 'Europe/Prague' ELSE 'Europe/Vienna' END,
-    p_mode,
+    CASE p_mode WHEN 'gastro' THEN 'restaurant' ELSE 'grocery' END :: business_type,
     true, v_now + interval '6 hours',
     v_now, v_now
   );
@@ -407,7 +407,8 @@ BEGIN
         WHEN 'pm:card'    THEN CASE p_locale WHEN 'cs' THEN 'Karta' ELSE 'Card' END
         WHEN 'pm:bank'    THEN CASE p_locale WHEN 'cs' THEN 'Převod' ELSE 'Bank Transfer' END
         WHEN 'pm:credit'  THEN CASE p_locale WHEN 'cs' THEN 'Zákaznický kredit' ELSE 'Customer Credit' END
-        WHEN 'pm:voucher' THEN CASE p_locale WHEN 'cs' THEN 'Stravenky' ELSE 'Meal Vouchers' END
+        WHEN 'pm:voucher' THEN CASE p_locale WHEN 'cs' THEN 'Poukázky' ELSE 'Gift Vouchers' END
+        WHEN 'pm:mealTicket' THEN CASE p_locale WHEN 'cs' THEN 'Stravenky' ELSE 'Meal Tickets' END
       END,
       (v_rec.data->>'type')::payment_type,
       true,
@@ -902,7 +903,7 @@ BEGIN
     'local'::hardware_type,
     true, true, true, true, true, true,
     v_grid_rows, v_grid_cols,
-    CASE p_mode WHEN 'retail' THEN 'retail' ELSE 'gastro' END,
+    CASE p_mode WHEN 'retail' THEN 'retail' ELSE 'gastro' END :: sell_mode,
     v_now, v_now
   );
 
@@ -1823,6 +1824,33 @@ BEGIN
     END IF;
 
   END LOOP;  -- end day loop
+
+  -- ========================================================================
+  -- STEP 18b: Simulate edited shifts (admin corrected 2 oldest closed shifts)
+  -- ========================================================================
+  UPDATE shifts SET
+    original_login_at = login_at,
+    login_at = login_at - interval '15 minutes',
+    edited_by = v_admin_user_id,
+    edited_at = now(),
+    client_updated_at = now()
+  WHERE id = (
+    SELECT id FROM shifts
+    WHERE company_id = v_company_id AND logout_at IS NOT NULL AND deleted_at IS NULL
+    ORDER BY login_at ASC LIMIT 1
+  );
+
+  UPDATE shifts SET
+    original_logout_at = logout_at,
+    logout_at = logout_at + interval '30 minutes',
+    edited_by = v_admin_user_id,
+    edited_at = now(),
+    client_updated_at = now()
+  WHERE id = (
+    SELECT id FROM shifts
+    WHERE company_id = v_company_id AND logout_at IS NOT NULL AND deleted_at IS NULL
+    ORDER BY login_at ASC LIMIT 1 OFFSET 1
+  );
 
   -- ========================================================================
   -- STEP 19: Update stock_levels

@@ -2438,6 +2438,54 @@ abstract class AppLocalizations {
   /// **'probíhá'**
   String get shiftsOngoing;
 
+  /// No description provided for @shiftDetailTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Detail směny'**
+  String get shiftDetailTitle;
+
+  /// No description provided for @shiftEditLoginAt.
+  ///
+  /// In cs, this message translates to:
+  /// **'Čas příchodu'**
+  String get shiftEditLoginAt;
+
+  /// No description provided for @shiftEditLogoutAt.
+  ///
+  /// In cs, this message translates to:
+  /// **'Čas odchodu'**
+  String get shiftEditLogoutAt;
+
+  /// No description provided for @shiftEditOriginal.
+  ///
+  /// In cs, this message translates to:
+  /// **'Původní: {time}'**
+  String shiftEditOriginal(String time);
+
+  /// No description provided for @shiftEditEditedBy.
+  ///
+  /// In cs, this message translates to:
+  /// **'Upravil/a {name}'**
+  String shiftEditEditedBy(String name);
+
+  /// No description provided for @shiftEditOngoing.
+  ///
+  /// In cs, this message translates to:
+  /// **'Probíhá'**
+  String get shiftEditOngoing;
+
+  /// No description provided for @shiftEditValidation.
+  ///
+  /// In cs, this message translates to:
+  /// **'Odchod musí být po příchodu, bez budoucích dat'**
+  String get shiftEditValidation;
+
+  /// No description provided for @shiftEditDelete.
+  ///
+  /// In cs, this message translates to:
+  /// **'Smazat směnu'**
+  String get shiftEditDelete;
+
   /// No description provided for @closingOpenBillsWarningTitle.
   ///
   /// In cs, this message translates to:
@@ -3773,8 +3821,14 @@ abstract class AppLocalizations {
   /// No description provided for @paymentTypeVoucher.
   ///
   /// In cs, this message translates to:
-  /// **'Stravenky'**
+  /// **'Poukázky'**
   String get paymentTypeVoucher;
+
+  /// No description provided for @paymentTypeMealTicket.
+  ///
+  /// In cs, this message translates to:
+  /// **'Stravenky'**
+  String get paymentTypeMealTicket;
 
   /// No description provided for @loyaltySectionTitle.
   ///
@@ -4769,8 +4823,14 @@ abstract class AppLocalizations {
   /// No description provided for @registerAllowVoucher.
   ///
   /// In cs, this message translates to:
-  /// **'Stravenky'**
+  /// **'Poukázky'**
   String get registerAllowVoucher;
+
+  /// No description provided for @registerAllowMealTicket.
+  ///
+  /// In cs, this message translates to:
+  /// **'Stravenky'**
+  String get registerAllowMealTicket;
 
   /// No description provided for @registerAllowOther.
   ///
@@ -6302,12 +6362,6 @@ abstract class AppLocalizations {
   /// **'Přijmout spropitné'**
   String get permPaymentsAcceptTip;
 
-  /// No description provided for @permPaymentsAdjustTip.
-  ///
-  /// In cs, this message translates to:
-  /// **'Upravit spropitné'**
-  String get permPaymentsAdjustTip;
-
   /// No description provided for @permDiscountsApplyItemLimited.
   ///
   /// In cs, this message translates to:
@@ -6338,29 +6392,11 @@ abstract class AppLocalizations {
   /// **'Uplatnit věrnostní body'**
   String get permDiscountsLoyalty;
 
-  /// No description provided for @permRegisterOpenSession.
+  /// No description provided for @permRegisterOpenClose.
   ///
   /// In cs, this message translates to:
-  /// **'Otevřít pokladnu'**
-  String get permRegisterOpenSession;
-
-  /// No description provided for @permRegisterCloseSession.
-  ///
-  /// In cs, this message translates to:
-  /// **'Uzavřít pokladnu'**
-  String get permRegisterCloseSession;
-
-  /// No description provided for @permRegisterViewSession.
-  ///
-  /// In cs, this message translates to:
-  /// **'Zobrazit stav pokladny'**
-  String get permRegisterViewSession;
-
-  /// No description provided for @permRegisterViewAllSessions.
-  ///
-  /// In cs, this message translates to:
-  /// **'Historie uzávěrek'**
-  String get permRegisterViewAllSessions;
+  /// **'Otevřít/uzavřít pokladnu'**
+  String get permRegisterOpenClose;
 
   /// No description provided for @permRegisterCashIn.
   ///
@@ -6379,18 +6415,6 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Otevřít zásuvku'**
   String get permRegisterOpenDrawer;
-
-  /// No description provided for @permShiftsViewOwn.
-  ///
-  /// In cs, this message translates to:
-  /// **'Zobrazit vlastní směny'**
-  String get permShiftsViewOwn;
-
-  /// No description provided for @permShiftsViewAll.
-  ///
-  /// In cs, this message translates to:
-  /// **'Zobrazit všechny směny'**
-  String get permShiftsViewAll;
 
   /// No description provided for @permShiftsManage.
   ///
@@ -6565,12 +6589,6 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Uplatnit voucher'**
   String get permVouchersRedeem;
-
-  /// No description provided for @permVenueView.
-  ///
-  /// In cs, this message translates to:
-  /// **'Zobrazit stoly'**
-  String get permVenueView;
 
   /// No description provided for @permVenueReservationsView.
   ///
@@ -8231,6 +8249,12 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Opravdu chcete znovu otevřít tento účet?'**
   String get billDetailConfirmReopen;
+
+  /// No description provided for @statsSessionScoped.
+  ///
+  /// In cs, this message translates to:
+  /// **'Pouze aktuální směna'**
+  String get statsSessionScoped;
 }
 
 class _AppLocalizationsDelegate

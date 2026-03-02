@@ -188,8 +188,17 @@ class SeedService {
           PaymentMethodModel(
             id: _id(),
             companyId: companyId,
-            name: t('Stravenky', 'Meal Vouchers'),
+            name: t('Poukázky', 'Gift Vouchers'),
             type: PaymentType.voucher,
+            isActive: true,
+            createdAt: now,
+            updatedAt: now,
+          ),
+          PaymentMethodModel(
+            id: _id(),
+            companyId: companyId,
+            name: t('Stravenky', 'Meal Tickets'),
+            type: PaymentType.mealTicket,
             isActive: true,
             createdAt: now,
             updatedAt: now,

@@ -24,15 +24,9 @@ const Map<String, List<String>> _directRequirements = {
   'payments.refund': ['payments.accept'],
   'payments.refund_item': ['payments.accept'],
   'payments.skip_cash_dialog': ['payments.method_cash'],
-  'payments.adjust_tip': ['payments.accept_tip'],
-
-  // register
-  'register.close_session': ['register.view_session'],
-  'register.view_all_sessions': ['register.view_session'],
 
   // shifts
-  'shifts.view_all': ['shifts.view_own'],
-  'shifts.manage': ['shifts.view_all'],
+  'shifts.manage': ['stats.shifts'],
 
   // products
   'products.view_cost': ['products.view'],

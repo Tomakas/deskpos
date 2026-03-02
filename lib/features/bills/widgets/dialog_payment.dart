@@ -128,6 +128,7 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
     final theme = Theme.of(context);
     final company = ref.watch(currentCompanyProvider);
     if (company == null) return const SizedBox.shrink();
+    final canAcceptTip = ref.watch(hasPermissionProvider('payments.accept_tip'));
 
     return Dialog(
       insetPadding: const EdgeInsets.all(12),
@@ -319,7 +320,7 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
                                         fontStyle: FontStyle.italic,
                                       ),
                                     ),
-                                    if (_foreignToBase(_foreignPayAmount) > _remaining)
+                                    if (canAcceptTip && _foreignToBase(_foreignPayAmount) > _remaining)
                                       Text(
                                         '(${l.paymentTip(ref.money(_foreignToBase(_foreignPayAmount) - _remaining))})',
                                         style: theme.textTheme.bodySmall?.copyWith(
@@ -333,7 +334,7 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
                                       ref.money(_customAmount!),
                                       onTap: _remaining > 0 ? () => _editAmount(context) : null,
                                     ),
-                                    if (_customAmount! != _remaining) ...[
+                                    if (_customAmount! != _remaining && !(_customAmount! > _remaining && !canAcceptTip)) ...[
                                       const SizedBox(height: 4),
                                       Text(
                                         _customAmount! > _remaining
@@ -383,6 +384,7 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
                           PaymentType.bank => register.allowTransfer,
                           PaymentType.credit => register.allowCredit,
                           PaymentType.voucher => register.allowVoucher,
+                          PaymentType.mealTicket => register.allowMealTicket,
                           PaymentType.other => register.allowOther,
                         };
                       }
@@ -392,6 +394,7 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
                         PaymentType.cash: 'payments.method_cash',
                         PaymentType.card: 'payments.method_card',
                         PaymentType.voucher: 'payments.method_voucher',
+                        PaymentType.mealTicket: 'payments.method_meal_ticket',
                         PaymentType.bank: 'payments.method_bank',
                         PaymentType.credit: 'payments.method_credit',
                       };
@@ -423,6 +426,7 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
                             .firstOrNull;
                         secondaryMethods = <PaymentMethodModel>[
                           ...methods.where((m) => m.type == PaymentType.voucher).where(isAllowedByRegister).where(isAllowedByPermission),
+                          ...methods.where((m) => m.type == PaymentType.mealTicket).where(isAllowedByRegister).where(isAllowedByPermission),
                           if (creditMethod != null && _customer != null && _customer!.credit > 0)
                             creditMethod,
                           ...methods.where((m) => m.type == PaymentType.other).where(isAllowedByRegister).where(isAllowedByPermission),
@@ -461,10 +465,10 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
                           ],
                         );
                       } else {
-                        // Secondary view: up to 3 secondary methods + "Zpět"
+                        // Secondary view: up to 4 secondary methods + "Zpět"
                         return Column(
                           children: [
-                            for (var i = 0; i < 3; i++) ...[
+                            for (var i = 0; i < 4; i++) ...[
                               if (i > 0) const SizedBox(height: 8),
                               Expanded(
                                 child: i < secondaryMethods.length
@@ -805,19 +809,20 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
     double? payExchangeRate;
     int effectiveAmount;
     int tipAmount;
+    final canAcceptTip = ref.read(hasPermissionProvider('payments.accept_tip'));
 
     if (_selectedForeignCurrencyId != null) {
       final foreignAmt = _foreignPayAmount;
       final baseAmount = _foreignToBase(foreignAmt);
 
       effectiveAmount = baseAmount > _remaining ? _remaining : baseAmount;
-      tipAmount = baseAmount > _remaining ? baseAmount - _remaining : 0;
+      tipAmount = canAcceptTip && baseAmount > _remaining ? baseAmount - _remaining : 0;
       foreignCurrencyId = _selectedForeignCurrencyId;
       foreignAmount = foreignAmt;
       payExchangeRate = _selectedCompanyCurrency!.exchangeRate;
     } else {
       final amount = _payAmount;
-      tipAmount = amount > _remaining ? amount - _remaining : 0;
+      tipAmount = canAcceptTip && amount > _remaining ? amount - _remaining : 0;
       effectiveAmount = amount > _remaining ? _remaining : amount;
     }
 

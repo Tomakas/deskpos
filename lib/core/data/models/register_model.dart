@@ -22,6 +22,7 @@ abstract class RegisterModel with _$RegisterModel {
     @Default(true) bool allowTransfer,
     @Default(true) bool allowCredit,
     @Default(true) bool allowVoucher,
+    @Default(true) bool allowMealTicket,
     @Default(true) bool allowOther,
     @Default(false) bool allowRefunds,
     String? boundDeviceId,

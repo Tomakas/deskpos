@@ -516,6 +516,7 @@ Map<String, dynamic> registerToSupabaseJson(RegisterModel m) => {
       'allow_transfer': m.allowTransfer,
       'allow_credit': m.allowCredit,
       'allow_voucher': m.allowVoucher,
+      'allow_meal_ticket': m.allowMealTicket,
       'allow_other': m.allowOther,
       'allow_refunds': m.allowRefunds,
       'grid_rows': m.gridRows,
@@ -613,6 +614,10 @@ Map<String, dynamic> shiftToSupabaseJson(ShiftModel m) => {
       'user_id': m.userId,
       'login_at': toIso8601Utc(m.loginAt),
       'logout_at': toIso8601Utc(m.logoutAt),
+      'original_login_at': toIso8601Utc(m.originalLoginAt),
+      'original_logout_at': toIso8601Utc(m.originalLogoutAt),
+      'edited_by': m.editedBy,
+      'edited_at': toIso8601Utc(m.editedAt),
     };
 
 Map<String, dynamic> userPermissionToSupabaseJson(UserPermissionModel m) => {

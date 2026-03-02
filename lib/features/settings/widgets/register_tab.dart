@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/data/providers/auth_providers.dart';
+import '../../../core/data/providers/permission_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import 'dialog_auto_arrange.dart';
@@ -102,32 +103,34 @@ class RegisterTab extends ConsumerWidget {
                 ref.invalidate(activeRegisterProvider);
               },
             ),
-            const Divider(),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Text(
-                l.settingsSectionGridManagement,
-                style: Theme.of(context).textTheme.titleMedium,
+            if (ref.watch(hasPermissionProvider('settings_register.grid'))) ...[
+              const Divider(),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Text(
+                  l.settingsSectionGridManagement,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
               ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.auto_awesome),
-              title: Text(l.settingsAutoArrange),
-              subtitle: Text(l.settingsAutoArrangeDescription),
-              onTap: () => showDialog(
-                context: context,
-                builder: (_) => const DialogAutoArrange(),
+              ListTile(
+                leading: const Icon(Icons.auto_awesome),
+                title: Text(l.settingsAutoArrange),
+                subtitle: Text(l.settingsAutoArrangeDescription),
+                onTap: () => showDialog(
+                  context: context,
+                  builder: (_) => const DialogAutoArrange(),
+                ),
               ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.grid_on),
-              title: Text(l.settingsManualEditor),
-              subtitle: Text(l.settingsManualEditorDescription),
-              onTap: () => showDialog(
-                context: context,
-                builder: (_) => const DialogGridEditor(),
+              ListTile(
+                leading: const Icon(Icons.grid_on),
+                title: Text(l.settingsManualEditor),
+                subtitle: Text(l.settingsManualEditorDescription),
+                onTap: () => showDialog(
+                  context: context,
+                  builder: (_) => const DialogGridEditor(),
+                ),
               ),
-            ),
+            ],
           ],
         );
       },

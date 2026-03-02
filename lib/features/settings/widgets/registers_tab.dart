@@ -496,6 +496,7 @@ class _RegistersTabState extends ConsumerState<RegistersTab> {
     var allowTransfer = existing?.allowTransfer ?? true;
     var allowCredit = existing?.allowCredit ?? true;
     var allowVoucher = existing?.allowVoucher ?? true;
+    var allowMealTicket = existing?.allowMealTicket ?? true;
     var allowOther = existing?.allowOther ?? true;
     var allowRefunds = existing?.allowRefunds ?? false;
 
@@ -600,6 +601,12 @@ class _RegistersTabState extends ConsumerState<RegistersTab> {
                   setDialogState(() => allowVoucher = v),
             ),
             SwitchListTile(
+              title: Text(l.registerAllowMealTicket),
+              value: allowMealTicket,
+              onChanged: (v) =>
+                  setDialogState(() => allowMealTicket = v),
+            ),
+            SwitchListTile(
               title: Text(l.registerAllowOther),
               value: allowOther,
               onChanged: (v) =>
@@ -633,6 +640,7 @@ class _RegistersTabState extends ConsumerState<RegistersTab> {
         allowTransfer: allowTransfer,
         allowCredit: allowCredit,
         allowVoucher: allowVoucher,
+        allowMealTicket: allowMealTicket,
         allowOther: allowOther,
         allowRefunds: allowRefunds,
       ));
@@ -653,6 +661,7 @@ class _RegistersTabState extends ConsumerState<RegistersTab> {
         allowTransfer: allowTransfer,
         allowCredit: allowCredit,
         allowVoucher: allowVoucher,
+        allowMealTicket: allowMealTicket,
         allowOther: allowOther,
         allowRefunds: allowRefunds,
       );
@@ -840,6 +849,7 @@ class _PaymentFlags extends StatelessWidget {
     if (register.allowTransfer) flags.add(l.registerAllowTransfer);
     if (register.allowCredit) flags.add(l.registerAllowCredit);
     if (register.allowVoucher) flags.add(l.registerAllowVoucher);
+    if (register.allowMealTicket) flags.add(l.registerAllowMealTicket);
     if (register.allowOther) flags.add(l.registerAllowOther);
     if (register.allowRefunds) flags.add(l.registerAllowRefunds);
     return Text(

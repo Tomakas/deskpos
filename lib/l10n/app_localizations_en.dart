@@ -1220,6 +1220,35 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shiftsOngoing => 'ongoing';
 
   @override
+  String get shiftDetailTitle => 'Shift Detail';
+
+  @override
+  String get shiftEditLoginAt => 'Login Time';
+
+  @override
+  String get shiftEditLogoutAt => 'Logout Time';
+
+  @override
+  String shiftEditOriginal(String time) {
+    return 'Original: $time';
+  }
+
+  @override
+  String shiftEditEditedBy(String name) {
+    return 'Edited by $name';
+  }
+
+  @override
+  String get shiftEditOngoing => 'Ongoing';
+
+  @override
+  String get shiftEditValidation =>
+      'Logout must be after login, no future dates';
+
+  @override
+  String get shiftEditDelete => 'Delete shift';
+
+  @override
   String get closingOpenBillsWarningTitle => 'Open Bills';
 
   @override
@@ -1901,7 +1930,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paymentTypeCredit => 'Credit';
 
   @override
-  String get paymentTypeVoucher => 'Meal Vouchers';
+  String get paymentTypeVoucher => 'Gift Vouchers';
+
+  @override
+  String get paymentTypeMealTicket => 'Meal Tickets';
 
   @override
   String get loyaltySectionTitle => 'Loyalty Program';
@@ -2430,7 +2462,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get registerAllowCredit => 'Credit';
 
   @override
-  String get registerAllowVoucher => 'Meal Vouchers';
+  String get registerAllowVoucher => 'Gift Vouchers';
+
+  @override
+  String get registerAllowMealTicket => 'Meal Tickets';
 
   @override
   String get registerAllowOther => 'Other';
@@ -3225,9 +3260,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get permPaymentsAcceptTip => 'Accept tip';
 
   @override
-  String get permPaymentsAdjustTip => 'Adjust tip';
-
-  @override
   String get permDiscountsApplyItemLimited => 'Item discount (limited)';
 
   @override
@@ -3243,16 +3275,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get permDiscountsLoyalty => 'Redeem loyalty points';
 
   @override
-  String get permRegisterOpenSession => 'Open register session';
-
-  @override
-  String get permRegisterCloseSession => 'Close register session';
-
-  @override
-  String get permRegisterViewSession => 'View register session';
-
-  @override
-  String get permRegisterViewAllSessions => 'View all sessions';
+  String get permRegisterOpenClose => 'Open/close register';
 
   @override
   String get permRegisterCashIn => 'Cash deposit';
@@ -3262,12 +3285,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get permRegisterOpenDrawer => 'Open cash drawer';
-
-  @override
-  String get permShiftsViewOwn => 'View own shifts';
-
-  @override
-  String get permShiftsViewAll => 'View all shifts';
 
   @override
   String get permShiftsManage => 'Manage shifts';
@@ -3355,9 +3372,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get permVouchersRedeem => 'Redeem voucher';
-
-  @override
-  String get permVenueView => 'View venue';
 
   @override
   String get permVenueReservationsView => 'View reservations';
@@ -4226,4 +4240,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get billDetailConfirmReopen =>
       'Are you sure you want to reopen this bill?';
+
+  @override
+  String get statsSessionScoped => 'Showing current session only';
 }
