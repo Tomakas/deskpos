@@ -291,7 +291,7 @@ git commit -m "$COMMIT_MSG"
 
 # Push
 if [ "$DO_PUSH" = true ]; then
-  git push
+  git push --set-upstream origin "$(git branch --show-current)"
   if [ "$DO_BUILD" = true ]; then
     echo "Triggering build workflow..."
     gh workflow run build.yml --ref "$BUILD_REF"
