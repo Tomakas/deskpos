@@ -5,6 +5,9 @@ import 'package:path_provider/path_provider.dart';
 import '../logging/app_logger.dart';
 
 import '../data/enums/enums.dart';
+import 'tables/ai_conversations.dart';
+import 'tables/ai_messages.dart';
+import 'tables/ai_undo_logs.dart';
 import 'tables/bills.dart';
 import 'tables/cash_movements.dart';
 import 'tables/categories.dart';
@@ -54,6 +57,9 @@ import 'tables/users.dart';
 part 'app_database.g.dart';
 
 @DriftDatabase(tables: [
+  AiConversations,
+  AiMessages,
+  AiUndoLogs,
   Bills,
   CashMovements,
   Categories,

@@ -24,6 +24,7 @@ Future<void> showReceiptPrintDialog(
     subtotal: l.receiptSubtotal,
     discount: l.receiptDiscount,
     voucherDiscount: l.receiptVoucherDiscount,
+    loyaltyDiscount: l.receiptLoyaltyDiscount,
     total: l.receiptTotal,
     rounding: l.receiptRounding,
     taxTitle: l.receiptTaxTitle,

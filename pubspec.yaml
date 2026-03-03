@@ -1,7 +1,7 @@
 name: maty
 description: "Maty — offline-first POS system"
 publish_to: 'none'
-version: 0.8.1
+version: 0.8.2
 
 environment:
   sdk: ^3.10.8
@@ -46,6 +46,8 @@ dependencies:
   share_plus: ^10.1.4
   package_info_plus: ^8.0.0
   web: ^1.1.0
+  flutter_markdown: ^0.7.7+1
+  record: ^6.2.0
 
 dependency_overrides:
   path_provider_foundation: 2.4.3

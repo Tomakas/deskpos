@@ -11,6 +11,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/search_utils.dart';
 import '../../../core/widgets/highlighted_text.dart';
+import '../../../core/widgets/pos_color_palette.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_table.dart';
@@ -143,6 +144,21 @@ class _TablesTabState extends ConsumerState<TablesTab> {
                     columns: [
                       PosColumn(label: l.fieldName, flex: 3, cellBuilder: (t) => HighlightedText(t.name, query: _query, overflow: TextOverflow.ellipsis)),
                       PosColumn(
+                        label: l.fieldColor,
+                        flex: 1,
+                        cellBuilder: (t) => t.color != null
+                            ? Container(
+                                width: 24,
+                                height: 24,
+                                decoration: BoxDecoration(
+                                  color: !isGradient(t.color) ? parseHexColor(t.color) : null,
+                                  gradient: parseGradient(t.color),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                              )
+                            : const Text('-'),
+                      ),
+                      PosColumn(
                         label: l.fieldSection,
                         flex: 2,
                         cellBuilder: (t) => HighlightedText(
@@ -253,6 +269,7 @@ class _TablesTabState extends ConsumerState<TablesTab> {
     final nameCtrl = TextEditingController(text: existing?.name ?? '');
     final capacityCtrl = TextEditingController(text: '${existing?.capacity ?? 0}');
     var sectionId = existing?.sectionId;
+    String? selectedColor = existing?.color;
     var isActive = existing?.isActive ?? true;
 
     final result = await showDialog<bool>(
@@ -260,7 +277,7 @@ class _TablesTabState extends ConsumerState<TablesTab> {
       builder: (_) => StatefulBuilder(
         builder: (ctx, setDialogState) => PosDialogShell(
           title: existing == null ? l.actionAdd : l.actionEdit,
-          maxWidth: 350,
+          maxWidth: 400,
           scrollable: true,
           bottomActions: PosDialogActions(
             leading: existing != null
@@ -301,6 +318,16 @@ class _TablesTabState extends ConsumerState<TablesTab> {
               decoration: InputDecoration(labelText: l.fieldCapacity),
               keyboardType: TextInputType.number,
             ),
+            const SizedBox(height: 16),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(l.fieldColor, style: Theme.of(ctx).textTheme.bodySmall),
+            ),
+            const SizedBox(height: 8),
+            PosColorPalette(
+              selectedColor: selectedColor,
+              onColorSelected: (c) => setDialogState(() => selectedColor = c),
+            ),
             const SizedBox(height: 12),
             SwitchListTile(
               title: Text(l.fieldActive),
@@ -324,6 +351,7 @@ class _TablesTabState extends ConsumerState<TablesTab> {
         name: nameCtrl.text.trim(),
         sectionId: sectionId,
         capacity: int.tryParse(capacityCtrl.text) ?? 0,
+        color: selectedColor,
         isActive: isActive,
       ));
     } else {
@@ -333,6 +361,7 @@ class _TablesTabState extends ConsumerState<TablesTab> {
         name: nameCtrl.text.trim(),
         sectionId: sectionId,
         capacity: int.tryParse(capacityCtrl.text) ?? 0,
+        color: selectedColor,
         isActive: isActive,
         createdAt: now,
         updatedAt: now,

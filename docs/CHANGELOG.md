@@ -1,5 +1,39 @@
 # Changelog
 
+## 2026-03-03 — Gradient Presets & Demo Seed Colors
+
+### Features
+- **Gradient presets:** 12 predefined diagonal (135°) gradient presets in `PosColorPalette` — available across sell grid, floor map, catalog grid editor, and sections
+- **Color format:** extended `color` column format to support `linear:{angle}:{color1},{color2}` alongside solid hex (`#E53935`); detection via `startsWith('linear:')`
+- **Helpers:** `isGradient()`, `parseGradient()`, `parsePrimaryColor()` in `pos_color_palette.dart`
+
+### UI
+- **Sell grid:** `_ItemButton` renders gradient backgrounds via `Container(decoration: BoxDecoration(gradient:))` + transparent `Material` for ink effects
+- **Grid editor:** gradient preview in `dialog_grid_editor.dart`
+- **Floor map:** gradient fill for tables (`_TableCell`) and elements (`_EditorElementCell`) — solid fill uses gradient, translucent fill degrades to primary color
+- **Sections tab:** gradient preview in 24px color box
+
+### Demo Data
+- **Page 0 categories:** brown (`#6D4C41`) background
+- **Page 0 items:** per-category gradient colors (7 presets cycling: Blue→Cyan, Yellow→Orange, Red→Deep Orange, Green→Lime, Pink→Purple, Orange→Deep Orange, Purple→Indigo)
+- **Subpage categories:** brown background; subpage items have no custom color (inherit default)
+
+### Documentation
+- Updated `PROJECT.md` layout_items color field description with gradient format
+
+---
+
+## 2026-03-02 (night) — Documentation Audit Fixes
+
+### Documentation
+- **PROJECT.md audit:** Applied 20 fixes from automated 7-agent documentation audit
+- **CRITICAL fixes:** (1) Fixed claim that global tables lack SyncColumnsMixin — they DO have it, (2) Updated 8+ stale permission number locations (115→105, 293→260, role counts updated), (3) Fixed DialogBillDetail right column description (9→6 buttons, corrected names and placement)
+- **HIGH fixes:** Added reopenBill() transitions to BillStatus state diagram (paid/cancelled/refunded are no longer terminal), fixed payment methods count (5→6, added mealTicket), rewrote DialogPayment layout description (flex 1:2:1, maxWidth 500), fixed ScreenBills Row 3 (NASTAVENÍ, not REZERVACE)
+- **MEDIUM fixes:** SellMode is now PG enum (not TEXT), guard_last_admin trigger IS deployed, bill/stock numbers use 4 digits, /vouchers guard uses vouchers.view (not vouchers.*), ScreenSettingsUnified has 8 company tabs (Fiscal stub), layout proportions corrected for ScreenBills and ScreenSell, DialogPayment left column buttons updated, status chips permission-gated, quick sale button label "Zaplatit"
+- **LOW + DOC DEBT:** PosNumpad count 15, dialog count 31, VoidQuantityDialog added to widget list, DialogShiftEdit and FiscalTab added to file trees
+
+---
+
 ## 2026-03-02 (evening) — Demo/App Format Unification
 
 ### Features

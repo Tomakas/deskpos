@@ -1930,7 +1930,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paymentTypeCredit => 'Credit';
 
   @override
-  String get paymentTypeVoucher => 'Gift Vouchers';
+  String get paymentTypeVoucher => 'Vouchers';
 
   @override
   String get paymentTypeMealTicket => 'Meal Tickets';
@@ -2300,6 +2300,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Voucher is assigned to another customer';
 
   @override
+  String get voucherAlreadyAppliedOnBill =>
+      'A voucher is already applied to this bill. Remove it first.';
+
+  @override
   String get voucherDepositReturn => 'Deposit overpayment return';
 
   @override
@@ -2462,7 +2466,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get registerAllowCredit => 'Credit';
 
   @override
-  String get registerAllowVoucher => 'Gift Vouchers';
+  String get registerAllowVoucher => 'Vouchers';
 
   @override
   String get registerAllowMealTicket => 'Meal Tickets';
@@ -4243,4 +4247,166 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statsSessionScoped => 'Showing current session only';
+
+  @override
+  String get aiAssistant => 'AI Assistant';
+
+  @override
+  String get aiNewConversation => 'New conversation';
+
+  @override
+  String get aiConversationHistory => 'Conversation history';
+
+  @override
+  String get aiTypeMessage => 'Type a message...';
+
+  @override
+  String get aiSend => 'Send';
+
+  @override
+  String get aiThinking => 'Thinking...';
+
+  @override
+  String get aiUndoAction => 'Undo';
+
+  @override
+  String get aiRetry => 'Try again';
+
+  @override
+  String get aiNoConversations => 'No conversations';
+
+  @override
+  String get aiOfflineMessage => 'AI assistant requires internet connection.';
+
+  @override
+  String get aiConfirmAction => 'Confirm action';
+
+  @override
+  String get aiConfirmExecute => 'Execute';
+
+  @override
+  String get aiErrorNotConfigured =>
+      'AI assistant is not configured. Set it up in Settings.';
+
+  @override
+  String get aiErrorRateLimit => 'Too many requests. Try again later.';
+
+  @override
+  String get aiErrorGeneral => 'An error occurred. Please try again.';
+
+  @override
+  String get moreAiAssistant => 'AI Assistant';
+
+  @override
+  String get permAiUse => 'Use AI assistant';
+
+  @override
+  String get settingsAiProvider => 'Provider';
+
+  @override
+  String get settingsAiProviderNone => 'Disabled';
+
+  @override
+  String get settingsAiProviderOpenai => 'OpenAI';
+
+  @override
+  String get settingsAiProviderGoogle => 'Google';
+
+  @override
+  String get settingsAiProviderAnthropic => 'Anthropic';
+
+  @override
+  String get settingsAiModel => 'Model';
+
+  @override
+  String get settingsAiModelHint => 'e.g. gpt-4o';
+
+  @override
+  String get settingsAiRateLimit => 'Rate limit (req/hour)';
+
+  @override
+  String get aiCopyConversation => 'Copy conversation';
+
+  @override
+  String get aiWelcomeName => 'Hi, I\'m Maty!';
+
+  @override
+  String get aiWelcomeDescription =>
+      'I\'m your AI assistant for the POS system. Here are some things I can help you with:';
+
+  @override
+  String get aiWelcomeBills =>
+      'Bills & orders — list bills by status, bill detail with items and payments, order detail';
+
+  @override
+  String get aiWelcomeCatalog =>
+      'Catalog — search, create and edit items, categories, tax rates, manufacturers and suppliers';
+
+  @override
+  String get aiWelcomeCustomers =>
+      'Customers — search, create, edit, manage points and credits';
+
+  @override
+  String get aiWelcomeVouchers => 'Vouchers — view, create and edit';
+
+  @override
+  String get aiWelcomeVenue => 'Venue — manage sections and tables';
+
+  @override
+  String get aiWelcomeUsers => 'Users — view and edit details';
+
+  @override
+  String get aiWelcomeStats =>
+      'Statistics — sales, revenue, tips, orders, shifts, Z-reports';
+
+  @override
+  String get aiWelcomeStock =>
+      'Stock — inventory levels, stock documents (receipt, waste, correction, inventory)';
+
+  @override
+  String get aiWelcomePayments => 'Payment methods — view';
+
+  @override
+  String get aiWelcomeSettings => 'Company settings — view and edit';
+
+  @override
+  String get aiVoiceRecord => 'Voice input';
+
+  @override
+  String get aiVoiceStop => 'Stop recording';
+
+  @override
+  String get aiVoiceTranscribing => 'Transcribing...';
+
+  @override
+  String get discountLineManual => 'Discount';
+
+  @override
+  String get discountLineVoucher => 'Voucher';
+
+  @override
+  String get summarySubtotal => 'Subtotal';
+
+  @override
+  String get summaryBillDiscount => 'Bill discount';
+
+  @override
+  String get summaryLoyalty => 'Loyalty points';
+
+  @override
+  String get summaryVoucher => 'Voucher';
+
+  @override
+  String get summaryTotal => 'Total';
+
+  @override
+  String get receiptLoyaltyDiscount => 'Loyalty points';
+
+  @override
+  String get discountBlockedByVoucher =>
+      'Item has a voucher discount, manual discount is not allowed.';
+
+  @override
+  String get billDiscountBlockedByVoucher =>
+      'A voucher is applied to this bill, manual bill discount is not allowed.';
 }

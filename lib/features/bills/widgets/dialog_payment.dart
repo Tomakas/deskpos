@@ -5,23 +5,31 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/data/enums/cash_movement_type.dart';
 import '../../../core/data/enums/payment_type.dart';
+import '../../../core/data/enums/prep_status.dart';
+import '../../../core/data/enums/voucher_discount_scope.dart';
+import '../../../core/data/enums/voucher_type.dart';
 import '../../../core/data/models/bill_model.dart';
 import '../../../core/data/models/company_currency_model.dart';
 import '../../../core/data/models/currency_model.dart';
 import '../../../core/data/models/customer_model.dart';
+import '../../../core/data/models/order_item_modifier_model.dart';
 import '../../../core/data/models/payment_method_model.dart';
 import '../../../core/data/models/payment_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/permission_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/result.dart';
+import '../../../core/data/utils/voucher_discount_calculator.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/utils/formatting_ext.dart';
+import '../../../core/widgets/pos_dialog_actions.dart';
+import '../../../core/widgets/pos_dialog_shell.dart';
 import 'dialog_cash_tender.dart';
 import 'dialog_change_total.dart';
 import 'dialog_loyalty_redeem.dart';
+import 'dialog_voucher_redeem.dart';
 
 class DialogPayment extends ConsumerStatefulWidget {
   const DialogPayment({
@@ -107,7 +115,8 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
     }
   }
 
-  bool get _hasMoreActions => _canRedeemLoyalty;
+  // EET is the only remaining item — always disabled for now
+  bool get _hasMoreActions => false;
 
   bool get _canRedeemLoyalty =>
       _customer != null &&
@@ -135,7 +144,7 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
       child: ConstrainedBox(
         constraints: BoxConstraints(
           maxWidth: 500,
-          maxHeight: (MediaQuery.sizeOf(context).height - 24).clamp(0, 240),
+          maxHeight: (MediaQuery.sizeOf(context).height - 24).clamp(0, 296),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -174,6 +183,13 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
                                   icon: _printReceipt
                                       ? Icon(Icons.check_circle, size: 16, color: Colors.green.shade300)
                                       : Icon(Icons.block, size: 16, color: Colors.red.shade300),
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Expanded(
+                                child: _SideButton(
+                                  label: l.loyaltyRedeem,
+                                  onPressed: _canRedeemLoyalty ? () => _redeemLoyalty(context) : null,
                                 ),
                               ),
                               const SizedBox(height: 8),
@@ -365,7 +381,7 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
                   ),
                 ),
               ),
-              // Right sidebar — payment methods (4 slots: 3 methods + 1 action)
+              // Right sidebar — payment methods (5 slots: 4 methods + 1 action)
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.all(12),
@@ -404,51 +420,51 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
                         return ref.watch(hasPermissionProvider(perm));
                       }
 
-                      // Primary: cash, card, bank (foreign currency = cash only)
-                      const primaryTypes = {PaymentType.cash, PaymentType.card, PaymentType.bank};
-                      final primaryMethods = methods
-                          .where((m) => primaryTypes.contains(m.type))
+                      // Build single ordered list of all allowed methods
+                      // Credit requires customer with positive balance
+                      final allAllowed = methods
                           .where(isAllowedByRegister)
                           .where(isAllowedByPermission)
                           .where((m) => _selectedForeignCurrencyId == null || m.type == PaymentType.cash)
+                          .where((m) => m.type != PaymentType.credit ||
+                              (_customer != null && _customer!.credit > 0))
                           .toList();
 
-                      // Secondary: credit (only with customer + credit), voucher, other
-                      // Disabled when foreign currency selected
-                      final List<PaymentMethodModel> secondaryMethods;
-                      if (_selectedForeignCurrencyId != null) {
-                        secondaryMethods = [];
-                      } else {
-                        final creditMethod = methods
-                            .where((m) => m.type == PaymentType.credit)
-                            .where(isAllowedByRegister)
-                            .where(isAllowedByPermission)
-                            .firstOrNull;
-                        secondaryMethods = <PaymentMethodModel>[
-                          ...methods.where((m) => m.type == PaymentType.voucher).where(isAllowedByRegister).where(isAllowedByPermission),
-                          ...methods.where((m) => m.type == PaymentType.mealTicket).where(isAllowedByRegister).where(isAllowedByPermission),
-                          if (creditMethod != null && _customer != null && _customer!.credit > 0)
-                            creditMethod,
-                          ...methods.where((m) => m.type == PaymentType.other).where(isAllowedByRegister).where(isAllowedByPermission),
-                        ];
+                      // First 4 shown directly, rest overflow to "Jiná platba"
+                      final visible = allAllowed.take(4).toList();
+                      final overflow = allAllowed.skip(4).toList();
+
+                      // Helper to build the right onPressed for a method
+                      VoidCallback? onPressedFor(PaymentMethodModel m) {
+                        if (_processing || _remaining <= 0) return null;
+                        if (m.type == PaymentType.voucher) {
+                          return () => _payWithVoucher(context, m.id);
+                        }
+                        if (m.type == PaymentType.credit) {
+                          return () => _payWithCredit(context, m.id);
+                        }
+                        return () => _pay(context, m.id);
+                      }
+
+                      String labelFor(PaymentMethodModel m) {
+                        if (m.type == PaymentType.credit) return l.paymentTypeCredit.toUpperCase();
+                        return m.name.toUpperCase();
                       }
 
                       if (!_showOtherPayments) {
-                        // Primary view: up to 3 payment methods + "Jiná platba"
+                        // Primary view: up to 4 methods + "Jiná platba"
                         return Column(
                           children: [
-                            for (var i = 0; i < 3; i++) ...[
+                            for (var i = 0; i < 4; i++) ...[
                               if (i > 0) const SizedBox(height: 8),
                               Expanded(
-                                child: i < primaryMethods.length
+                                child: i < visible.length
                                     ? _PaymentMethodButton(
-                                        label: primaryMethods[i].name.toUpperCase(),
-                                        onPressed: _processing || _remaining <= 0
+                                        label: labelFor(visible[i]),
+                                        onPressed: onPressedFor(visible[i]),
+                                        onLongPress: _processing || _remaining <= 0 || visible[i].type != PaymentType.cash
                                             ? null
-                                            : () => _pay(context, primaryMethods[i].id),
-                                        onLongPress: _processing || _remaining <= 0 || primaryMethods[i].type != PaymentType.cash
-                                            ? null
-                                            : () => _pay(context, primaryMethods[i].id, forceTender: true),
+                                            : () => _pay(context, visible[i].id, forceTender: true),
                                       )
                                     : const SizedBox.shrink(),
                               ),
@@ -457,7 +473,7 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
                             Expanded(
                               child: _SideButton(
                                 label: l.paymentOtherPayment,
-                                onPressed: secondaryMethods.isNotEmpty
+                                onPressed: overflow.isNotEmpty
                                     ? () => setState(() => _showOtherPayments = true)
                                     : null,
                               ),
@@ -465,22 +481,16 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
                           ],
                         );
                       } else {
-                        // Secondary view: up to 4 secondary methods + "Zpět"
+                        // Overflow view: up to 4 overflow methods + "Zpět"
                         return Column(
                           children: [
                             for (var i = 0; i < 4; i++) ...[
                               if (i > 0) const SizedBox(height: 8),
                               Expanded(
-                                child: i < secondaryMethods.length
+                                child: i < overflow.length
                                     ? _PaymentMethodButton(
-                                        label: (secondaryMethods[i].type == PaymentType.credit
-                                            ? l.paymentTypeCredit
-                                            : secondaryMethods[i].name).toUpperCase(),
-                                        onPressed: _processing || _remaining <= 0
-                                            ? null
-                                            : secondaryMethods[i].type == PaymentType.credit
-                                                ? () => _payWithCredit(context, secondaryMethods[i].id)
-                                                : () => _pay(context, secondaryMethods[i].id),
+                                        label: labelFor(overflow[i]),
+                                        onPressed: onPressedFor(overflow[i]),
                                       )
                                     : const SizedBox.shrink(),
                               ),
@@ -595,8 +605,8 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
             ),
           ),
         ],
-        if (_availableForeignCurrencies.length < 3) ...[
-          for (var i = _availableForeignCurrencies.length; i < 3; i++) ...[
+        if (_availableForeignCurrencies.length < 4) ...[
+          for (var i = _availableForeignCurrencies.length; i < 4; i++) ...[
             const SizedBox(height: 8),
             const Expanded(child: SizedBox.shrink()),
           ],
@@ -615,14 +625,11 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
   Widget _buildMoreActions(BuildContext context, dynamic l) {
     return Column(
       children: [
-        Expanded(
-          child: _SideButton(
-            label: l.loyaltyRedeem,
-            onPressed: _canRedeemLoyalty ? () => _redeemLoyalty(context) : null,
-          ),
-        ),
-        const SizedBox(height: 8),
         Expanded(child: _SideButton(label: l.paymentEet, onPressed: null)),
+        const SizedBox(height: 8),
+        const Expanded(child: SizedBox.shrink()),
+        const SizedBox(height: 8),
+        const Expanded(child: SizedBox.shrink()),
         const SizedBox(height: 8),
         const Expanded(child: SizedBox.shrink()),
         const SizedBox(height: 8),
@@ -888,6 +895,211 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
       }
     } else {
       setState(() => _processing = false);
+    }
+  }
+
+  Future<void> _payWithVoucher(BuildContext context, String voucherMethodId) async {
+    if (_remaining <= 0) return;
+    setState(() => _processing = true);
+    try {
+      // Defense-in-depth permission check
+      if (!ref.read(hasPermissionProvider('vouchers.redeem'))) return;
+
+      final company = ref.read(currentCompanyProvider);
+      if (company == null) return;
+
+      // Show numpad dialog to enter voucher code
+      final code = await showDialog<String>(
+        context: context,
+        builder: (_) => const DialogVoucherRedeem(),
+      );
+      if (code == null || !mounted) return;
+
+      // Validate voucher against current bill
+      final voucherRepo = ref.read(voucherRepositoryProvider);
+      final result = await voucherRepo.validateForBill(code, company.id, _bill);
+      if (!context.mounted) return;
+      if (result is Failure) {
+        final l = context.l10n;
+        final errorKey = (result as Failure).message;
+        final errorMsg = switch (errorKey) {
+          'voucherInvalid' => l.voucherInvalid,
+          'voucherExpiredError' => l.voucherExpiredError,
+          'voucherAlreadyUsed' => l.voucherAlreadyUsed,
+          'voucherMinOrderNotMet' => l.voucherMinOrderNotMet,
+          'voucherCustomerMismatch' => l.voucherCustomerMismatch,
+          _ => errorKey,
+        };
+        showDialog(
+          context: context,
+          builder: (_) => PosDialogShell(
+            title: '',
+            maxWidth: 400,
+            scrollable: true,
+            bottomActions: PosDialogActions(
+              actions: [
+                OutlinedButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(context.l10n.actionOk),
+                ),
+              ],
+            ),
+            children: [
+              Text(errorMsg),
+              const SizedBox(height: 16),
+            ],
+          ),
+        );
+        return;
+      }
+
+      final voucher = (result as Success).value;
+
+      if (voucher.type == VoucherType.gift || voucher.type == VoucherType.deposit) {
+        // GIFT / DEPOSIT → treat as payment (single-use, surplus forfeited)
+        final effectiveAmount = voucher.value.clamp(0, _remaining);
+
+        final billRepo = ref.read(billRepositoryProvider);
+        final register = ref.read(activeRegisterProvider).value;
+        final session = ref.read(activeRegisterSessionProvider).valueOrNull;
+        final loyaltyEarn = _bill.customerId != null && !widget.skipLoyaltyEarn
+            ? _loyaltyEarnRate
+            : 0;
+
+        final payResult = await billRepo.recordPayment(
+          companyId: _bill.companyId,
+          billId: _bill.id,
+          paymentMethodId: voucherMethodId,
+          currencyId: _bill.currencyId,
+          amount: effectiveAmount,
+          tipAmount: 0,
+          userId: ref.read(activeUserProvider)?.id,
+          registerId: register?.id,
+          registerSessionId: session?.id,
+          loyaltyEarnRate: loyaltyEarn,
+        );
+
+        // Redeem voucher (single-use)
+        await voucherRepo.redeem(voucher.id, _bill.id);
+
+        if (!context.mounted) return;
+
+        if (payResult is Success<BillModel>) {
+          final updatedBill = payResult.value;
+          if (updatedBill.paidAmount >= updatedBill.totalGross) {
+            Navigator.pop(context, true);
+          } else {
+            setState(() {
+              _bill = updatedBill;
+              _customAmount = null;
+            });
+          }
+        }
+      } else {
+        // DISCOUNT → apply as discount on items (same logic as bill detail)
+        if (_bill.voucherId != null) {
+          // Bill already has a voucher applied
+          final l = context.l10n;
+          showDialog(
+            context: context,
+            builder: (_) => PosDialogShell(
+              title: '',
+              maxWidth: 400,
+              scrollable: true,
+              bottomActions: PosDialogActions(
+                actions: [
+                  OutlinedButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text(l.actionOk),
+                  ),
+                ],
+              ),
+              children: [
+                Text(l.voucherAlreadyAppliedOnBill),
+                const SizedBox(height: 16),
+              ],
+            ),
+          );
+          return;
+        }
+
+        // Compute discount using VoucherDiscountCalculator
+        final orderRepo = ref.read(orderRepositoryProvider);
+        final modifierRepo = ref.read(orderItemModifierRepositoryProvider);
+        final activeItems = await orderRepo.getOrderItemsByBill(_bill.id);
+        final filtered = activeItems
+            .where((i) => i.status != PrepStatus.voided)
+            .toList();
+        final itemIds = filtered.map((i) => i.id).toList();
+        final allMods = await modifierRepo.getByOrderItemIds(itemIds);
+        final modsByItem = <String, List<OrderItemModifierModel>>{};
+        for (final mod in allMods) {
+          modsByItem.putIfAbsent(mod.orderItemId, () => []).add(mod);
+        }
+
+        // Build itemId→categoryId map for category scope
+        Map<String, String>? itemCategoryMap;
+        if (voucher.discountScope == VoucherDiscountScope.category &&
+            voucher.categoryId != null) {
+          final itemRepo = ref.read(itemRepositoryProvider);
+          itemCategoryMap = {};
+          final catalogIds = filtered.map((i) => i.itemId).toSet();
+          for (final catId in catalogIds) {
+            final catalogItem = await itemRepo.getById(catId, includeDeleted: true);
+            if (catalogItem?.categoryId != null) {
+              itemCategoryMap[catId] = catalogItem!.categoryId!;
+            }
+          }
+        }
+
+        final vResult = VoucherDiscountCalculator.compute(
+          voucher: voucher,
+          activeItems: filtered,
+          modsByItem: modsByItem,
+          subtotalGross: _bill.subtotalGross,
+          itemCategoryMap: itemCategoryMap,
+        );
+
+        // Apply per-item voucher discounts (physical item splitting)
+        for (final attr in vResult.attributions) {
+          await orderRepo.applyVoucherToOrderItem(
+            orderItemId: attr.orderItemId,
+            coveredQty: attr.coveredQty,
+            voucherDiscountAmount: attr.discountAmount,
+          );
+        }
+
+        // Bill-level: discount embedded in items, so voucherDiscountAmount = 0
+        final billRepo = ref.read(billRepositoryProvider);
+        await billRepo.applyVoucher(
+          billId: _bill.id,
+          voucherId: voucher.id,
+          voucherDiscountAmount: 0,
+        );
+
+        final usesConsumed = vResult.attributions
+            .fold<double>(0, (s, a) => s + a.coveredQty)
+            .ceil();
+        await voucherRepo.redeem(voucher.id, _bill.id, usesConsumed: usesConsumed);
+
+        // Reload bill to get updated totals
+        final freshBill = await billRepo.getById(_bill.id);
+        if (!mounted) return;
+        if (freshBill is Success<BillModel>) {
+          _bill = freshBill.value;
+          _customAmount = null;
+
+          // If discount covers everything, auto-close
+          if (_bill.totalGross - _bill.paidAmount <= 0) {
+            await _recordZeroPayment();
+            if (context.mounted) Navigator.pop(context, true);
+            return;
+          }
+          setState(() {});
+        }
+      }
+    } finally {
+      if (mounted) setState(() => _processing = false);
     }
   }
 

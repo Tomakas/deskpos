@@ -52,10 +52,12 @@ class VoucherDiscountCalculator {
       return const VoucherDiscountResult(totalDiscount: 0, attributions: []);
     }
 
-    // 1. Filter by scope
+    // 1. Filter by scope (skip items with manual discount — voucher and manual
+    //    discount cannot coexist on the same item)
     final scope = voucher.discountScope ?? VoucherDiscountScope.bill;
     final matchingItems = <OrderItemModel>[];
     for (final item in activeItems) {
+      if (item.discount > 0) continue; // skip items with manual discount
       switch (scope) {
         case VoucherDiscountScope.bill:
           matchingItems.add(item);

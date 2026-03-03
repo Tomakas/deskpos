@@ -460,6 +460,15 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
         billAgeWarningMinutes: Value(json['bill_age_warning_minutes'] as int? ?? 15),
         billAgeDangerMinutes: Value(json['bill_age_danger_minutes'] as int? ?? 30),
         billAgeCriticalMinutes: Value(json['bill_age_critical_minutes'] as int? ?? 45),
+        aiProviderType: Value(
+          json['ai_provider_type'] != null
+              ? AiProviderType.values.byName(json['ai_provider_type'] as String)
+              : AiProviderType.none,
+        ),
+        aiModel: Value(json['ai_model'] as String?),
+        aiRateLimitPerHour: Value(json['ai_rate_limit_per_hour'] as int? ?? 60),
+        aiMaxTokensPerRequest: Value(json['ai_max_tokens_per_request'] as int? ?? 4096),
+        aiMaxConversationTokens: Value(json['ai_max_conversation_tokens'] as int? ?? 16000),
         createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
         updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
         deletedAt: Value(_parseDateTime(json['deleted_at'])),

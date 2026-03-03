@@ -453,6 +453,11 @@ Map<String, dynamic> companySettingsToSupabaseJson(CompanySettingsModel m) => {
       'bill_age_warning_minutes': m.billAgeWarningMinutes,
       'bill_age_danger_minutes': m.billAgeDangerMinutes,
       'bill_age_critical_minutes': m.billAgeCriticalMinutes,
+      'ai_provider_type': m.aiProviderType.name,
+      'ai_model': m.aiModel,
+      'ai_rate_limit_per_hour': m.aiRateLimitPerHour,
+      'ai_max_tokens_per_request': m.aiMaxTokensPerRequest,
+      'ai_max_conversation_tokens': m.aiMaxConversationTokens,
     };
 
 Map<String, dynamic> companyToSupabaseJson(CompanyModel m) => {

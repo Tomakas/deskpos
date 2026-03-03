@@ -436,7 +436,60 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
             },
           ),
         ),
+        // Bill-level summary (discounts, loyalty, voucher)
+        if (bill.discountAmount > 0 || bill.loyaltyDiscountAmount > 0 || bill.voucherDiscountAmount > 0)
+          _buildBillLevelSummary(context, ref, bill, l),
       ],
+    );
+  }
+
+  Widget _buildBillLevelSummary(BuildContext context, WidgetRef ref, BillModel bill, AppLocalizations l) {
+    int billDiscountAbsolute = 0;
+    if (bill.discountAmount > 0) {
+      billDiscountAbsolute = bill.discountType == DiscountType.percent
+          ? (bill.subtotalGross * bill.discountAmount / 10000).round()
+          : bill.discountAmount;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: Theme.of(context).dividerColor)),
+      ),
+      child: Column(
+        children: [
+          _summaryRow(context, ref, l.summarySubtotal, ref.money(bill.subtotalGross)),
+          if (billDiscountAbsolute > 0)
+            _summaryRow(context, ref, l.summaryBillDiscount, '-${ref.money(billDiscountAbsolute)}',
+                color: Theme.of(context).colorScheme.error),
+          if (bill.loyaltyDiscountAmount > 0)
+            _summaryRow(context, ref, l.summaryLoyalty, '-${ref.money(bill.loyaltyDiscountAmount)}',
+                color: Theme.of(context).colorScheme.primary),
+          if (bill.voucherDiscountAmount > 0)
+            _summaryRow(context, ref, l.summaryVoucher, '-${ref.money(bill.voucherDiscountAmount)}',
+                color: Theme.of(context).colorScheme.tertiary),
+          const SizedBox(height: 2),
+          _summaryRow(context, ref, l.summaryTotal, ref.money(bill.totalGross), bold: true),
+        ],
+      ),
+    );
+  }
+
+  Widget _summaryRow(BuildContext context, WidgetRef ref, String label, String value,
+      {Color? color, bool bold = false}) {
+    final style = Theme.of(context).textTheme.bodyMedium?.copyWith(
+      color: color,
+      fontWeight: bold ? FontWeight.bold : null,
+    );
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 1),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: style),
+          Text(value, style: style),
+        ],
+      ),
     );
   }
 
@@ -465,19 +518,22 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
 
         if (allItems.isEmpty) return const SizedBox.shrink();
 
-        // Group by itemName + salePriceAtt + hasVoucherDiscount
-        // When voucher covers only part of an item's qty, split into two entries.
+        // Group by itemName + salePriceAtt + hasVoucherDiscount + hasManualDiscount
+        // Items with different discount states are kept separate.
         final grouped = <String, _SummaryItem>{};
 
-        void addToGroup(String key, String name, int unitPrice, double qty, int total, int totalBeforeVoucher, UnitType unit) {
+        void addToGroup(String key, String name, int unitPrice, double qty,
+            int total, int fullSub, int manualDisc, int voucherDisc, UnitType unit) {
           final existing = grouped[key];
           if (existing != null) {
             grouped[key] = _SummaryItem(
               name: name,
               unitPrice: unitPrice,
               quantity: existing.quantity + qty,
+              fullSubtotal: existing.fullSubtotal + fullSub,
               totalGross: existing.totalGross + total,
-              totalBeforeVoucher: existing.totalBeforeVoucher + totalBeforeVoucher,
+              manualDiscount: existing.manualDiscount + manualDisc,
+              voucherDiscount: existing.voucherDiscount + voucherDisc,
               unit: unit,
             );
           } else {
@@ -485,8 +541,10 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
               name: name,
               unitPrice: unitPrice,
               quantity: qty,
+              fullSubtotal: fullSub,
               totalGross: total,
-              totalBeforeVoucher: totalBeforeVoucher,
+              manualDiscount: manualDisc,
+              voucherDiscount: voucherDisc,
               unit: unit,
             );
           }
@@ -503,16 +561,17 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
             }
           }
           final itemTotal = fullSubtotal - fullDiscount - item.voucherDiscount;
-          final totalBeforeVoucher = fullSubtotal - fullDiscount;
           final hasVoucher = item.voucherDiscount > 0;
-          final key = '${item.itemName}|${item.salePriceAtt}|$hasVoucher';
+          final hasManualDiscount = fullDiscount > 0;
+          final key = '${item.itemName}|${item.salePriceAtt}|$hasVoucher|$hasManualDiscount';
           addToGroup(key, item.itemName, item.salePriceAtt, item.quantity,
-              itemTotal, totalBeforeVoucher, item.unit);
+              itemTotal, fullSubtotal, fullDiscount, item.voucherDiscount, item.unit);
         }
 
         final summaryItems = grouped.values.toList()
           ..sort((a, b) => a.name.compareTo(b.name));
 
+        final l = context.l10n;
         return ListView.builder(
           padding: const EdgeInsets.all(8),
           itemCount: summaryItems.length,
@@ -525,42 +584,75 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
                   bottom: BorderSide(color: Theme.of(context).dividerColor.withValues(alpha: 0.2)),
                 ),
               ),
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    flex: 2,
-                    child: Text(
-                      '${ref.fmtQty(item.quantity, maxDecimals: 1)} ${localizedUnitType(context.l10n, item.unit)}',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: Text(
+                          '${ref.fmtQty(item.quantity, maxDecimals: 1)} ${localizedUnitType(context.l10n, item.unit)}',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ),
+                      Expanded(flex: 5, child: Text(item.name, style: Theme.of(context).textTheme.bodyMedium)),
+                      Expanded(
+                        flex: 3,
+                        child: Text(
+                          ref.money(item.fullSubtotal),
+                          textAlign: TextAlign.right,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                      ),
+                    ],
                   ),
-                  Expanded(flex: 5, child: Text(item.name, style: Theme.of(context).textTheme.bodyMedium)),
-                  Expanded(
-                    flex: 3,
-                    child: item.totalGross != item.totalBeforeVoucher
-                        ? Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              Text(
-                                ref.moneyValue(item.totalBeforeVoucher),
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  decoration: TextDecoration.lineThrough,
-                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                ),
+                  // Manual discount sub-line
+                  if (item.manualDiscount > 0)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 80, bottom: 2),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              l.discountLineManual,
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: Theme.of(context).colorScheme.error,
                               ),
-                              const SizedBox(width: 4),
-                              Text(
-                                ref.money(item.totalGross),
-                                style: Theme.of(context).textTheme.bodyMedium,
-                              ),
-                            ],
-                          )
-                        : Text(
-                            ref.money(item.totalGross),
-                            textAlign: TextAlign.right,
-                            style: Theme.of(context).textTheme.bodyMedium,
+                            ),
                           ),
-                  ),
+                          Text(
+                            '-${ref.money(item.manualDiscount)}',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Theme.of(context).colorScheme.error,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  // Voucher discount sub-line
+                  if (item.voucherDiscount > 0)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 80, bottom: 2),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              l.discountLineVoucher,
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: Theme.of(context).colorScheme.tertiary,
+                              ),
+                            ),
+                          ),
+                          Text(
+                            '-${ref.money(item.voucherDiscount)}',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Theme.of(context).colorScheme.tertiary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                 ],
               ),
             );
@@ -943,6 +1035,28 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
 
   Future<void> _applyBillDiscount(BuildContext context, WidgetRef ref, BillModel bill) async {
     if (_isProcessing) return;
+    // Block bill discount if a voucher is applied
+    if (bill.voucherDiscountAmount > 0) {
+      final l = context.l10n;
+      showDialog(
+        context: context,
+        builder: (_) => PosDialogShell(
+          title: '',
+          maxWidth: 400,
+          scrollable: true,
+          bottomActions: PosDialogActions(
+            actions: [
+              OutlinedButton(onPressed: () => Navigator.pop(context), child: Text(l.actionOk)),
+            ],
+          ),
+          children: [
+            Text(l.billDiscountBlockedByVoucher),
+            const SizedBox(height: 16),
+          ],
+        ),
+      );
+      return;
+    }
     setState(() => _isProcessing = true);
     try {
       final l = context.l10n;
@@ -1063,6 +1177,34 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
       }
 
       final voucher = (result as Success).value;
+      // Block: bill-scope voucher when bill already has manual discount
+      final isBillScope = voucher.type == VoucherType.gift ||
+          voucher.type == VoucherType.deposit ||
+          (voucher.type == VoucherType.discount &&
+              (voucher.discountScope == null || voucher.discountScope == VoucherDiscountScope.bill));
+      if (isBillScope && bill.discountAmount > 0) {
+        if (context.mounted) {
+          final l = context.l10n;
+          showDialog(
+            context: context,
+            builder: (_) => PosDialogShell(
+              title: '',
+              maxWidth: 400,
+              scrollable: true,
+              bottomActions: PosDialogActions(
+                actions: [
+                  OutlinedButton(onPressed: () => Navigator.pop(context), child: Text(l.actionOk)),
+                ],
+              ),
+              children: [
+                Text(l.billDiscountBlockedByVoucher),
+                const SizedBox(height: 16),
+              ],
+            ),
+          );
+        }
+        return;
+      }
       // Calculate discount amount based on voucher type
       int discountAmount;
       int usesConsumed = 1;
@@ -1282,6 +1424,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
           companyId: company.id,
           userId: user.id,
           currencyId: bill.currencyId,
+          sectionId: bill.sectionId,
           tableId: bill.tableId,
           registerId: register?.id,
           registerSessionId: activeSession?.id,
@@ -1340,6 +1483,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
           companyId: company.id,
           userId: user.id,
           currencyId: bill.currencyId,
+          sectionId: newBillConfig.sectionId,
           tableId: newBillConfig.tableId,
           numberOfGuests: newBillConfig.numberOfGuests,
           registerId: register2?.id,
@@ -1581,6 +1725,13 @@ class _OrderSection extends ConsumerWidget {
                       final isVoided = item.status == PrepStatus.voided;
                       final voidedDecoration = isVoided ? TextDecoration.lineThrough : null;
                       final voidedColor = isVoided ? Theme.of(context).colorScheme.onSurfaceVariant : null;
+                      final itemSubtotal = (item.salePriceAtt * item.quantity).round() + modTotal;
+                      int itemDiscount = 0;
+                      if (item.discount > 0) {
+                        itemDiscount = item.discountType == DiscountType.percent
+                            ? (itemSubtotal * item.discount / 10000).round()
+                            : item.discount;
+                      }
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -1612,44 +1763,14 @@ class _OrderSection extends ConsumerWidget {
                               ))),
                               Expanded(
                                 flex: 3,
-                                child: () {
-                                  final itemSubtotal = (item.salePriceAtt * item.quantity).round() + modTotal;
-                                  int itemDiscount = 0;
-                                  if (item.discount > 0) {
-                                    itemDiscount = item.discountType == DiscountType.percent
-                                        ? (itemSubtotal * item.discount / 10000).round()
-                                        : item.discount;
-                                  }
-                                  final totalDiscount = itemDiscount + item.voucherDiscount;
-                                  if (totalDiscount > 0 && !isVoided) {
-                                    final discountedPrice = itemSubtotal - totalDiscount;
-                                    return Row(
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      children: [
-                                        Text(
-                                          ref.moneyValue(itemSubtotal),
-                                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                            decoration: TextDecoration.lineThrough,
-                                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          ref.money(discountedPrice),
-                                          style: Theme.of(context).textTheme.bodyMedium,
-                                        ),
-                                      ],
-                                    );
-                                  }
-                                  return Text(
-                                    ref.money(itemSubtotal),
-                                    textAlign: TextAlign.right,
-                                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                      decoration: voidedDecoration,
-                                      color: voidedColor,
-                                    ),
-                                  );
-                                }(),
+                                child: Text(
+                                  ref.money(itemSubtotal),
+                                  textAlign: TextAlign.right,
+                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    decoration: voidedDecoration,
+                                    color: voidedColor,
+                                  ),
+                                ),
                               ),
                               SizedBox(
                                 width: 40,
@@ -1707,6 +1828,54 @@ class _OrderSection extends ConsumerWidget {
                                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                                       ),
                                     ),
+                                ],
+                              ),
+                            ),
+                          // Manual discount sub-line
+                          if (itemDiscount > 0 && !isVoided)
+                            Padding(
+                              padding: const EdgeInsets.only(left: 80, bottom: 2),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      l.discountLineManual,
+                                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                        color: Theme.of(context).colorScheme.error,
+                                      ),
+                                    ),
+                                  ),
+                                  Text(
+                                    '-${ref.money(itemDiscount)}',
+                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: Theme.of(context).colorScheme.error,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 40),
+                                ],
+                              ),
+                            ),
+                          // Voucher discount sub-line
+                          if (item.voucherDiscount > 0 && !isVoided)
+                            Padding(
+                              padding: const EdgeInsets.only(left: 80, bottom: 2),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      l.discountLineVoucher,
+                                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                        color: Theme.of(context).colorScheme.tertiary,
+                                      ),
+                                    ),
+                                  ),
+                                  Text(
+                                    '-${ref.money(item.voucherDiscount)}',
+                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: Theme.of(context).colorScheme.tertiary,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 40),
                                 ],
                               ),
                             ),
@@ -1908,6 +2077,28 @@ class _OrderSection extends ConsumerWidget {
   }
 
   Future<void> _editItemDiscount(BuildContext context, WidgetRef ref, OrderItemModel item) async {
+    // Block manual discount if item has a voucher discount
+    if (item.voucherDiscount > 0) {
+      final l = context.l10n;
+      showDialog(
+        context: context,
+        builder: (_) => PosDialogShell(
+          title: '',
+          maxWidth: 400,
+          scrollable: true,
+          bottomActions: PosDialogActions(
+            actions: [
+              OutlinedButton(onPressed: () => Navigator.pop(context), child: Text(l.actionOk)),
+            ],
+          ),
+          children: [
+            Text(l.discountBlockedByVoucher),
+            const SizedBox(height: 16),
+          ],
+        ),
+      );
+      return;
+    }
     final hasUnlimited = ref.read(hasPermissionProvider('discounts.apply_item'));
     int? maxPercent;
     if (!hasUnlimited) {
@@ -2025,14 +2216,19 @@ class _SummaryItem {
     required this.name,
     required this.unitPrice,
     required this.quantity,
+    required this.fullSubtotal,
     required this.totalGross,
-    int? totalBeforeVoucher,
     required this.unit,
-  }) : totalBeforeVoucher = totalBeforeVoucher ?? totalGross;
+    this.manualDiscount = 0,
+    this.voucherDiscount = 0,
+  });
   final String name;
   final int unitPrice;
   final double quantity;
+  /// Sum of (salePriceAtt * qty) — before any discounts
+  final int fullSubtotal;
   final int totalGross;
-  final int totalBeforeVoucher;
   final UnitType unit;
+  final int manualDiscount;
+  final int voucherDiscount;
 }

@@ -61,6 +61,11 @@ class CompanySettingsRepository
         billAgeWarningMinutes: Value(m.billAgeWarningMinutes),
         billAgeDangerMinutes: Value(m.billAgeDangerMinutes),
         billAgeCriticalMinutes: Value(m.billAgeCriticalMinutes),
+        aiProviderType: Value(m.aiProviderType),
+        aiModel: Value(m.aiModel),
+        aiRateLimitPerHour: Value(m.aiRateLimitPerHour),
+        aiMaxTokensPerRequest: Value(m.aiMaxTokensPerRequest),
+        aiMaxConversationTokens: Value(m.aiMaxConversationTokens),
         updatedAt: Value(DateTime.now()),
       );
 

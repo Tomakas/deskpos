@@ -107,6 +107,7 @@ String localizedPermissionName(AppLocalizations l, String code) {
     'settings_register.payment_methods' => l.permSettingsRegisterPaymentMethods,
     'settings_register.tax_rates' => l.permSettingsRegisterTaxRates,
     'settings_register.manage_devices' => l.permSettingsRegisterManageDevices,
+    'ai.use' => l.permAiUse,
     _ => code,
   };
 }
@@ -130,6 +131,7 @@ String localizedPermissionGroup(AppLocalizations l, String category) {
     'settings_company' => l.permGroupSettingsCompany,
     'settings_venue' => l.permGroupSettingsVenue,
     'settings_register' => l.permGroupSettingsRegister,
+    'ai' => l.aiAssistant,
     _ => category,
   };
 }
@@ -153,4 +155,5 @@ const permissionGroupOrder = [
   'settings_company',
   'settings_venue',
   'settings_register',
+  'ai',
 ];

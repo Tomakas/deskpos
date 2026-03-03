@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 
+import '../../data/enums/ai_provider_type.dart';
 import '../../data/enums/negative_stock_policy.dart';
 import 'sync_columns_mixin.dart';
 
@@ -23,6 +24,14 @@ class CompanySettings extends Table with SyncColumnsMixin {
   IntColumn get billAgeWarningMinutes => integer().withDefault(const Constant(15))();
   IntColumn get billAgeDangerMinutes => integer().withDefault(const Constant(30))();
   IntColumn get billAgeCriticalMinutes => integer().withDefault(const Constant(45))();
+
+  // AI assistant
+  TextColumn get aiProviderType =>
+      textEnum<AiProviderType>().withDefault(Constant(AiProviderType.none.name))();
+  TextColumn get aiModel => text().nullable()();
+  IntColumn get aiRateLimitPerHour => integer().withDefault(const Constant(60))();
+  IntColumn get aiMaxTokensPerRequest => integer().withDefault(const Constant(4096))();
+  IntColumn get aiMaxConversationTokens => integer().withDefault(const Constant(16000))();
 
   @override
   Set<Column> get primaryKey => {id};

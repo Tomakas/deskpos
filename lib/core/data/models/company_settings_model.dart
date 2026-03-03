@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../enums/ai_provider_type.dart';
 import '../enums/negative_stock_policy.dart';
 import 'company_scoped_model.dart';
 
@@ -22,6 +23,12 @@ abstract class CompanySettingsModel with _$CompanySettingsModel implements Compa
     @Default(15) int billAgeWarningMinutes,
     @Default(30) int billAgeDangerMinutes,
     @Default(45) int billAgeCriticalMinutes,
+    // AI assistant
+    @Default(AiProviderType.none) AiProviderType aiProviderType,
+    String? aiModel,
+    @Default(60) int aiRateLimitPerHour,
+    @Default(4096) int aiMaxTokensPerRequest,
+    @Default(16000) int aiMaxConversationTokens,
     required DateTime createdAt,
     required DateTime updatedAt,
     DateTime? deletedAt,

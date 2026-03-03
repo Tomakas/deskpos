@@ -21,6 +21,8 @@ class ReceiptData {
     required this.payments,
     required this.subtotalGross,
     required this.discountAmount,
+    this.loyaltyDiscountAmount = 0,
+    this.voucherDiscountAmount = 0,
     required this.totalGross,
     required this.roundingAmount,
     required this.currencySymbol,
@@ -50,6 +52,8 @@ class ReceiptData {
   /// All amounts in minor units
   final int subtotalGross;
   final int discountAmount;
+  final int loyaltyDiscountAmount;
+  final int voucherDiscountAmount;
   final int totalGross;
   final int roundingAmount;
 
@@ -138,6 +142,7 @@ class ReceiptLabels {
     required this.subtotal,
     required this.discount,
     required this.voucherDiscount,
+    required this.loyaltyDiscount,
     required this.total,
     required this.rounding,
     required this.taxTitle,
@@ -161,6 +166,7 @@ class ReceiptLabels {
   final String subtotal;
   final String discount;
   final String voucherDiscount;
+  final String loyaltyDiscount;
   final String total;
   final String rounding;
   final String taxTitle;

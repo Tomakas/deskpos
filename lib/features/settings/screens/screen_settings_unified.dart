@@ -15,6 +15,7 @@ import '../widgets/register_tab.dart';
 import '../widgets/peripherals_tab.dart';
 import '../widgets/registers_tab.dart';
 import '../widgets/sections_tab.dart';
+import '../widgets/ai_settings_tab.dart';
 import '../widgets/security_tab.dart';
 import '../widgets/tables_tab.dart';
 import '../widgets/tax_rates_tab.dart';
@@ -77,6 +78,8 @@ class _ScreenSettingsUnifiedState extends ConsumerState<ScreenSettingsUnified>
             _InnerTabDef(l.settingsSectionCloud, const CloudTab()),
           if (p('settings_company.fiscal'))
             _InnerTabDef(l.settingsTabFiscal, const FiscalTab()),
+          if (p('settings_company.info'))
+            _InnerTabDef(l.aiAssistant, const AiSettingsTab()),
           if (p('settings_register.tax_rates'))
             _InnerTabDef(l.settingsTaxRates, const TaxRatesTab()),
           if (p('settings_register.payment_methods'))

@@ -3821,7 +3821,7 @@ abstract class AppLocalizations {
   /// No description provided for @paymentTypeVoucher.
   ///
   /// In cs, this message translates to:
-  /// **'Poukázky'**
+  /// **'Vouchery'**
   String get paymentTypeVoucher;
 
   /// No description provided for @paymentTypeMealTicket.
@@ -4508,6 +4508,12 @@ abstract class AppLocalizations {
   /// **'Voucher je vázán na jiného zákazníka'**
   String get voucherCustomerMismatch;
 
+  /// No description provided for @voucherAlreadyAppliedOnBill.
+  ///
+  /// In cs, this message translates to:
+  /// **'Na tomto účtu je již uplatněn voucher. Nejdříve ho odeberte.'**
+  String get voucherAlreadyAppliedOnBill;
+
   /// No description provided for @voucherDepositReturn.
   ///
   /// In cs, this message translates to:
@@ -4823,7 +4829,7 @@ abstract class AppLocalizations {
   /// No description provided for @registerAllowVoucher.
   ///
   /// In cs, this message translates to:
-  /// **'Poukázky'**
+  /// **'Vouchery'**
   String get registerAllowVoucher;
 
   /// No description provided for @registerAllowMealTicket.
@@ -7809,13 +7815,13 @@ abstract class AppLocalizations {
   /// No description provided for @dataExportVouchers.
   ///
   /// In cs, this message translates to:
-  /// **'Poukazy'**
+  /// **'Vouchery'**
   String get dataExportVouchers;
 
   /// No description provided for @dataExportVouchersDesc.
   ///
   /// In cs, this message translates to:
-  /// **'Export poukazů s kódy a hodnotami.'**
+  /// **'Export voucherů s kódy a hodnotami.'**
   String get dataExportVouchersDesc;
 
   /// No description provided for @dataExportStockLevels.
@@ -7941,13 +7947,13 @@ abstract class AppLocalizations {
   /// No description provided for @dataImportVouchers.
   ///
   /// In cs, this message translates to:
-  /// **'Poukazy'**
+  /// **'Vouchery'**
   String get dataImportVouchers;
 
   /// No description provided for @dataImportVouchersDesc.
   ///
   /// In cs, this message translates to:
-  /// **'Import poukazů ze souboru.'**
+  /// **'Import voucherů ze souboru.'**
   String get dataImportVouchersDesc;
 
   /// No description provided for @dataImportStockLevels.
@@ -8255,6 +8261,312 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Pouze aktuální směna'**
   String get statsSessionScoped;
+
+  /// No description provided for @aiAssistant.
+  ///
+  /// In cs, this message translates to:
+  /// **'AI Asistent'**
+  String get aiAssistant;
+
+  /// No description provided for @aiNewConversation.
+  ///
+  /// In cs, this message translates to:
+  /// **'Nová konverzace'**
+  String get aiNewConversation;
+
+  /// No description provided for @aiConversationHistory.
+  ///
+  /// In cs, this message translates to:
+  /// **'Historie konverzací'**
+  String get aiConversationHistory;
+
+  /// No description provided for @aiTypeMessage.
+  ///
+  /// In cs, this message translates to:
+  /// **'Napište zprávu...'**
+  String get aiTypeMessage;
+
+  /// No description provided for @aiSend.
+  ///
+  /// In cs, this message translates to:
+  /// **'Odeslat'**
+  String get aiSend;
+
+  /// No description provided for @aiThinking.
+  ///
+  /// In cs, this message translates to:
+  /// **'Přemýšlím...'**
+  String get aiThinking;
+
+  /// No description provided for @aiUndoAction.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vrátit zpět'**
+  String get aiUndoAction;
+
+  /// No description provided for @aiRetry.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zkusit znovu'**
+  String get aiRetry;
+
+  /// No description provided for @aiNoConversations.
+  ///
+  /// In cs, this message translates to:
+  /// **'Žádné konverzace'**
+  String get aiNoConversations;
+
+  /// No description provided for @aiOfflineMessage.
+  ///
+  /// In cs, this message translates to:
+  /// **'AI asistent vyžaduje připojení k internetu.'**
+  String get aiOfflineMessage;
+
+  /// No description provided for @aiConfirmAction.
+  ///
+  /// In cs, this message translates to:
+  /// **'Potvrdit akci'**
+  String get aiConfirmAction;
+
+  /// No description provided for @aiConfirmExecute.
+  ///
+  /// In cs, this message translates to:
+  /// **'Provést'**
+  String get aiConfirmExecute;
+
+  /// No description provided for @aiErrorNotConfigured.
+  ///
+  /// In cs, this message translates to:
+  /// **'AI asistent není nakonfigurován. Nastavte ho v Nastavení.'**
+  String get aiErrorNotConfigured;
+
+  /// No description provided for @aiErrorRateLimit.
+  ///
+  /// In cs, this message translates to:
+  /// **'Příliš mnoho požadavků. Zkuste to znovu později.'**
+  String get aiErrorRateLimit;
+
+  /// No description provided for @aiErrorGeneral.
+  ///
+  /// In cs, this message translates to:
+  /// **'Nastala chyba. Zkuste to prosím znovu.'**
+  String get aiErrorGeneral;
+
+  /// No description provided for @moreAiAssistant.
+  ///
+  /// In cs, this message translates to:
+  /// **'AI Asistent'**
+  String get moreAiAssistant;
+
+  /// No description provided for @permAiUse.
+  ///
+  /// In cs, this message translates to:
+  /// **'Použití AI asistenta'**
+  String get permAiUse;
+
+  /// No description provided for @settingsAiProvider.
+  ///
+  /// In cs, this message translates to:
+  /// **'Poskytovatel'**
+  String get settingsAiProvider;
+
+  /// No description provided for @settingsAiProviderNone.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vypnuto'**
+  String get settingsAiProviderNone;
+
+  /// No description provided for @settingsAiProviderOpenai.
+  ///
+  /// In cs, this message translates to:
+  /// **'OpenAI'**
+  String get settingsAiProviderOpenai;
+
+  /// No description provided for @settingsAiProviderGoogle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Google'**
+  String get settingsAiProviderGoogle;
+
+  /// No description provided for @settingsAiProviderAnthropic.
+  ///
+  /// In cs, this message translates to:
+  /// **'Anthropic'**
+  String get settingsAiProviderAnthropic;
+
+  /// No description provided for @settingsAiModel.
+  ///
+  /// In cs, this message translates to:
+  /// **'Model'**
+  String get settingsAiModel;
+
+  /// No description provided for @settingsAiModelHint.
+  ///
+  /// In cs, this message translates to:
+  /// **'např. gpt-4o'**
+  String get settingsAiModelHint;
+
+  /// No description provided for @settingsAiRateLimit.
+  ///
+  /// In cs, this message translates to:
+  /// **'Limit požadavků (za hodinu)'**
+  String get settingsAiRateLimit;
+
+  /// No description provided for @aiCopyConversation.
+  ///
+  /// In cs, this message translates to:
+  /// **'Kopírovat konverzaci'**
+  String get aiCopyConversation;
+
+  /// No description provided for @aiWelcomeName.
+  ///
+  /// In cs, this message translates to:
+  /// **'Ahoj, jsem Maty!'**
+  String get aiWelcomeName;
+
+  /// No description provided for @aiWelcomeDescription.
+  ///
+  /// In cs, this message translates to:
+  /// **'Jsem tvůj AI asistent pro pokladní systém. Tady je pár věcí, se kterými ti pomůžu:'**
+  String get aiWelcomeDescription;
+
+  /// No description provided for @aiWelcomeBills.
+  ///
+  /// In cs, this message translates to:
+  /// **'Účtenky a objednávky — výpis účtenek dle stavu, detail s položkami a platbami, detail objednávky'**
+  String get aiWelcomeBills;
+
+  /// No description provided for @aiWelcomeCatalog.
+  ///
+  /// In cs, this message translates to:
+  /// **'Katalog — vyhledávání, tvorba a úprava položek, kategorií, daňových sazeb, výrobců a dodavatelů'**
+  String get aiWelcomeCatalog;
+
+  /// No description provided for @aiWelcomeCustomers.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zákazníci — vyhledávání, tvorba, úprava, správa bodů a kreditů'**
+  String get aiWelcomeCustomers;
+
+  /// No description provided for @aiWelcomeVouchers.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vouchery — zobrazení, tvorba a úprava'**
+  String get aiWelcomeVouchers;
+
+  /// No description provided for @aiWelcomeVenue.
+  ///
+  /// In cs, this message translates to:
+  /// **'Prostory — správa sekcí a stolů'**
+  String get aiWelcomeVenue;
+
+  /// No description provided for @aiWelcomeUsers.
+  ///
+  /// In cs, this message translates to:
+  /// **'Uživatelé — zobrazení a úprava údajů'**
+  String get aiWelcomeUsers;
+
+  /// No description provided for @aiWelcomeStats.
+  ///
+  /// In cs, this message translates to:
+  /// **'Statistiky — prodeje, tržby, spropitné, objednávky, směny, Z-reporty'**
+  String get aiWelcomeStats;
+
+  /// No description provided for @aiWelcomeStock.
+  ///
+  /// In cs, this message translates to:
+  /// **'Sklad — přehled zásob, skladové doklady (příjem, odpad, korekce, inventura)'**
+  String get aiWelcomeStock;
+
+  /// No description provided for @aiWelcomePayments.
+  ///
+  /// In cs, this message translates to:
+  /// **'Platební metody — zobrazení'**
+  String get aiWelcomePayments;
+
+  /// No description provided for @aiWelcomeSettings.
+  ///
+  /// In cs, this message translates to:
+  /// **'Nastavení firmy — zobrazení a úprava'**
+  String get aiWelcomeSettings;
+
+  /// No description provided for @aiVoiceRecord.
+  ///
+  /// In cs, this message translates to:
+  /// **'Hlasový vstup'**
+  String get aiVoiceRecord;
+
+  /// No description provided for @aiVoiceStop.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zastavit nahrávání'**
+  String get aiVoiceStop;
+
+  /// No description provided for @aiVoiceTranscribing.
+  ///
+  /// In cs, this message translates to:
+  /// **'Přepisuji...'**
+  String get aiVoiceTranscribing;
+
+  /// No description provided for @discountLineManual.
+  ///
+  /// In cs, this message translates to:
+  /// **'Sleva'**
+  String get discountLineManual;
+
+  /// No description provided for @discountLineVoucher.
+  ///
+  /// In cs, this message translates to:
+  /// **'Voucher'**
+  String get discountLineVoucher;
+
+  /// No description provided for @summarySubtotal.
+  ///
+  /// In cs, this message translates to:
+  /// **'Mezisoučet'**
+  String get summarySubtotal;
+
+  /// No description provided for @summaryBillDiscount.
+  ///
+  /// In cs, this message translates to:
+  /// **'Sleva na účet'**
+  String get summaryBillDiscount;
+
+  /// No description provided for @summaryLoyalty.
+  ///
+  /// In cs, this message translates to:
+  /// **'Věrnostní body'**
+  String get summaryLoyalty;
+
+  /// No description provided for @summaryVoucher.
+  ///
+  /// In cs, this message translates to:
+  /// **'Voucher'**
+  String get summaryVoucher;
+
+  /// No description provided for @summaryTotal.
+  ///
+  /// In cs, this message translates to:
+  /// **'Celkem'**
+  String get summaryTotal;
+
+  /// No description provided for @receiptLoyaltyDiscount.
+  ///
+  /// In cs, this message translates to:
+  /// **'Věrnostní body'**
+  String get receiptLoyaltyDiscount;
+
+  /// No description provided for @discountBlockedByVoucher.
+  ///
+  /// In cs, this message translates to:
+  /// **'Položka má slevu z voucheru, manuální sleva není možná.'**
+  String get discountBlockedByVoucher;
+
+  /// No description provided for @billDiscountBlockedByVoucher.
+  ///
+  /// In cs, this message translates to:
+  /// **'Na účtu je uplatněn voucher, manuální sleva na účet není možná.'**
+  String get billDiscountBlockedByVoucher;
 }
 
 class _AppLocalizationsDelegate

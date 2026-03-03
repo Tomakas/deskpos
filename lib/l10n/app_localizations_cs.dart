@@ -1929,7 +1929,7 @@ class AppLocalizationsCs extends AppLocalizations {
   String get paymentTypeCredit => 'Kredit';
 
   @override
-  String get paymentTypeVoucher => 'Poukázky';
+  String get paymentTypeVoucher => 'Vouchery';
 
   @override
   String get paymentTypeMealTicket => 'Stravenky';
@@ -2300,6 +2300,10 @@ class AppLocalizationsCs extends AppLocalizations {
   String get voucherCustomerMismatch => 'Voucher je vázán na jiného zákazníka';
 
   @override
+  String get voucherAlreadyAppliedOnBill =>
+      'Na tomto účtu je již uplatněn voucher. Nejdříve ho odeberte.';
+
+  @override
   String get voucherDepositReturn => 'Vrácení přeplatku zálohy';
 
   @override
@@ -2461,7 +2465,7 @@ class AppLocalizationsCs extends AppLocalizations {
   String get registerAllowCredit => 'Kredit';
 
   @override
-  String get registerAllowVoucher => 'Poukázky';
+  String get registerAllowVoucher => 'Vouchery';
 
   @override
   String get registerAllowMealTicket => 'Stravenky';
@@ -4006,10 +4010,10 @@ class AppLocalizationsCs extends AppLocalizations {
   String get dataExportTaxRatesDesc => 'Export definic daňových sazeb.';
 
   @override
-  String get dataExportVouchers => 'Poukazy';
+  String get dataExportVouchers => 'Vouchery';
 
   @override
-  String get dataExportVouchersDesc => 'Export poukazů s kódy a hodnotami.';
+  String get dataExportVouchersDesc => 'Export voucherů s kódy a hodnotami.';
 
   @override
   String get dataExportStockLevels => 'Stav skladu';
@@ -4080,10 +4084,10 @@ class AppLocalizationsCs extends AppLocalizations {
       'Import definic daňových sazeb ze souboru.';
 
   @override
-  String get dataImportVouchers => 'Poukazy';
+  String get dataImportVouchers => 'Vouchery';
 
   @override
-  String get dataImportVouchersDesc => 'Import poukazů ze souboru.';
+  String get dataImportVouchersDesc => 'Import voucherů ze souboru.';
 
   @override
   String get dataImportStockLevels => 'Stav skladu';
@@ -4240,4 +4244,167 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get statsSessionScoped => 'Pouze aktuální směna';
+
+  @override
+  String get aiAssistant => 'AI Asistent';
+
+  @override
+  String get aiNewConversation => 'Nová konverzace';
+
+  @override
+  String get aiConversationHistory => 'Historie konverzací';
+
+  @override
+  String get aiTypeMessage => 'Napište zprávu...';
+
+  @override
+  String get aiSend => 'Odeslat';
+
+  @override
+  String get aiThinking => 'Přemýšlím...';
+
+  @override
+  String get aiUndoAction => 'Vrátit zpět';
+
+  @override
+  String get aiRetry => 'Zkusit znovu';
+
+  @override
+  String get aiNoConversations => 'Žádné konverzace';
+
+  @override
+  String get aiOfflineMessage => 'AI asistent vyžaduje připojení k internetu.';
+
+  @override
+  String get aiConfirmAction => 'Potvrdit akci';
+
+  @override
+  String get aiConfirmExecute => 'Provést';
+
+  @override
+  String get aiErrorNotConfigured =>
+      'AI asistent není nakonfigurován. Nastavte ho v Nastavení.';
+
+  @override
+  String get aiErrorRateLimit =>
+      'Příliš mnoho požadavků. Zkuste to znovu později.';
+
+  @override
+  String get aiErrorGeneral => 'Nastala chyba. Zkuste to prosím znovu.';
+
+  @override
+  String get moreAiAssistant => 'AI Asistent';
+
+  @override
+  String get permAiUse => 'Použití AI asistenta';
+
+  @override
+  String get settingsAiProvider => 'Poskytovatel';
+
+  @override
+  String get settingsAiProviderNone => 'Vypnuto';
+
+  @override
+  String get settingsAiProviderOpenai => 'OpenAI';
+
+  @override
+  String get settingsAiProviderGoogle => 'Google';
+
+  @override
+  String get settingsAiProviderAnthropic => 'Anthropic';
+
+  @override
+  String get settingsAiModel => 'Model';
+
+  @override
+  String get settingsAiModelHint => 'např. gpt-4o';
+
+  @override
+  String get settingsAiRateLimit => 'Limit požadavků (za hodinu)';
+
+  @override
+  String get aiCopyConversation => 'Kopírovat konverzaci';
+
+  @override
+  String get aiWelcomeName => 'Ahoj, jsem Maty!';
+
+  @override
+  String get aiWelcomeDescription =>
+      'Jsem tvůj AI asistent pro pokladní systém. Tady je pár věcí, se kterými ti pomůžu:';
+
+  @override
+  String get aiWelcomeBills =>
+      'Účtenky a objednávky — výpis účtenek dle stavu, detail s položkami a platbami, detail objednávky';
+
+  @override
+  String get aiWelcomeCatalog =>
+      'Katalog — vyhledávání, tvorba a úprava položek, kategorií, daňových sazeb, výrobců a dodavatelů';
+
+  @override
+  String get aiWelcomeCustomers =>
+      'Zákazníci — vyhledávání, tvorba, úprava, správa bodů a kreditů';
+
+  @override
+  String get aiWelcomeVouchers => 'Vouchery — zobrazení, tvorba a úprava';
+
+  @override
+  String get aiWelcomeVenue => 'Prostory — správa sekcí a stolů';
+
+  @override
+  String get aiWelcomeUsers => 'Uživatelé — zobrazení a úprava údajů';
+
+  @override
+  String get aiWelcomeStats =>
+      'Statistiky — prodeje, tržby, spropitné, objednávky, směny, Z-reporty';
+
+  @override
+  String get aiWelcomeStock =>
+      'Sklad — přehled zásob, skladové doklady (příjem, odpad, korekce, inventura)';
+
+  @override
+  String get aiWelcomePayments => 'Platební metody — zobrazení';
+
+  @override
+  String get aiWelcomeSettings => 'Nastavení firmy — zobrazení a úprava';
+
+  @override
+  String get aiVoiceRecord => 'Hlasový vstup';
+
+  @override
+  String get aiVoiceStop => 'Zastavit nahrávání';
+
+  @override
+  String get aiVoiceTranscribing => 'Přepisuji...';
+
+  @override
+  String get discountLineManual => 'Sleva';
+
+  @override
+  String get discountLineVoucher => 'Voucher';
+
+  @override
+  String get summarySubtotal => 'Mezisoučet';
+
+  @override
+  String get summaryBillDiscount => 'Sleva na účet';
+
+  @override
+  String get summaryLoyalty => 'Věrnostní body';
+
+  @override
+  String get summaryVoucher => 'Voucher';
+
+  @override
+  String get summaryTotal => 'Celkem';
+
+  @override
+  String get receiptLoyaltyDiscount => 'Věrnostní body';
+
+  @override
+  String get discountBlockedByVoucher =>
+      'Položka má slevu z voucheru, manuální sleva není možná.';
+
+  @override
+  String get billDiscountBlockedByVoucher =>
+      'Na účtu je uplatněn voucher, manuální sleva na účet není možná.';
 }

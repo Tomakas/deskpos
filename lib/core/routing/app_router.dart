@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/ai/screens/screen_ai_chat.dart';
 import '../../features/auth/screens/screen_login.dart';
 import '../../features/bills/screens/screen_bills.dart';
 import '../../features/bills/screens/screen_reservations.dart';
@@ -215,6 +216,15 @@ final routerProvider = Provider<GoRouter>((ref) {
           return null;
         },
         builder: (context, state) => const ScreenStatistics(),
+      ),
+      GoRoute(
+        path: '/ai',
+        redirect: (context, state) {
+          final hasPermission = ref.read(hasPermissionProvider('ai.use'));
+          if (!hasPermission) return _homeRoute(ref);
+          return null;
+        },
+        builder: (context, state) => const ScreenAiChat(),
       ),
       GoRoute(
         path: '/reservations',

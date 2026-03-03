@@ -786,8 +786,9 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
       return _ItemButton(
         label: layoutItem.label ?? cat?.name ?? '?',
         color: layoutItem.color != null
-            ? parseHexColor(layoutItem.color)
+            ? parsePrimaryColor(layoutItem.color)
             : Theme.of(context).colorScheme.secondaryContainer,
+        gradient: parseGradient(layoutItem.color),
         isCategory: true,
         cellHeight: cellHeight,
         onTap: () => _onCategoryTap(register.id, layoutItem),
@@ -846,8 +847,9 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
       label: layoutItem.label ?? item.name,
       subtitle: hasVariants ? null : (item.unitPrice != null ? ref.moneyValue(item.unitPrice!) : '???'),
       color: layoutItem.color != null
-          ? parseHexColor(layoutItem.color)
+          ? parsePrimaryColor(layoutItem.color)
           : Theme.of(context).colorScheme.primaryContainer,
+      gradient: parseGradient(layoutItem.color),
       cellHeight: cellHeight,
       stockBadge: stockBadge,
       badgeLevel: badgeLevel,
@@ -855,7 +857,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
           cellWidth: cellWidth,
           cellHeight: cellHeight,
           cellColor: layoutItem.color != null
-              ? parseHexColor(layoutItem.color)
+              ? parsePrimaryColor(layoutItem.color)
               : Theme.of(context).colorScheme.primaryContainer,
       ) : null,
       onLongPress: item.isSellable ? () => _addToCart(ref, item, companyId,
@@ -863,7 +865,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
           cellWidth: cellWidth,
           cellHeight: cellHeight,
           cellColor: layoutItem.color != null
-              ? parseHexColor(layoutItem.color)
+              ? parsePrimaryColor(layoutItem.color)
               : Theme.of(context).colorScheme.primaryContainer,
       ) : null,
     );
@@ -2309,6 +2311,12 @@ class _RetailMenuButton extends ConsumerWidget {
             height: 48,
             child: Text(l.dataTitle),
           ),
+        if (ref.watch(hasPermissionProvider('ai.use')))
+          PopupMenuItem(
+            value: 'ai',
+            height: 48,
+            child: Text(l.moreAiAssistant),
+          ),
         const PopupMenuDivider(),
         if (canSettings)
           PopupMenuItem(
@@ -2358,6 +2366,8 @@ class _RetailMenuButton extends ConsumerWidget {
         if (context.mounted) context.push('/vouchers');
       case 'data':
         if (context.mounted) context.push('/data');
+      case 'ai':
+        if (context.mounted) context.push('/ai');
       case 'settings':
         if (context.mounted) context.push('/settings');
       case 'logout':
@@ -2581,6 +2591,7 @@ class _ItemButton extends StatelessWidget {
   const _ItemButton({
     required this.label,
     required this.color,
+    this.gradient,
     this.onTap,
     this.onLongPress,
     this.subtitle,
@@ -2592,6 +2603,7 @@ class _ItemButton extends StatelessWidget {
   });
   final String label;
   final Color color;
+  final Gradient? gradient;
   final VoidCallback? onTap;
   final VoidCallback? onLongPress;
   final String? subtitle;
@@ -2612,21 +2624,26 @@ class _ItemButton extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.all(2),
-      child: Material(
-        color: color,
-        borderRadius: BorderRadius.circular(8),
-        clipBehavior: Clip.hardEdge,
-        child: InkWell(
-          onTap: onTap,
-          onLongPress: onLongPress,
+      child: Container(
+        decoration: BoxDecoration(
+          color: gradient == null ? color : null,
+          gradient: gradient,
           borderRadius: BorderRadius.circular(8),
-          child: Container(
-            decoration: selected
-                ? BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: primaryColor, width: 2.5),
-                  )
-                : null,
+        ),
+        clipBehavior: Clip.hardEdge,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            onLongPress: onLongPress,
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              decoration: selected
+                  ? BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: primaryColor, width: 2.5),
+                    )
+                  : null,
             child: Stack(
               children: [
                 Padding(
@@ -2679,6 +2696,7 @@ class _ItemButton extends StatelessWidget {
               ],
             ),
           ),
+        ),
         ),
       ),
     );

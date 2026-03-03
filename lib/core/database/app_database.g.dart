@@ -3,6 +3,2290 @@
 part of 'app_database.dart';
 
 // ignore_for_file: type=lint
+class $AiConversationsTable extends AiConversations
+    with TableInfo<$AiConversationsTable, AiConversation> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AiConversationsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _companyIdMeta = const VerificationMeta(
+    'companyId',
+  );
+  @override
+  late final GeneratedColumn<String> companyId = GeneratedColumn<String>(
+    'company_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _screenContextMeta = const VerificationMeta(
+    'screenContext',
+  );
+  @override
+  late final GeneratedColumn<String> screenContext = GeneratedColumn<String>(
+    'screen_context',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _isArchivedMeta = const VerificationMeta(
+    'isArchived',
+  );
+  @override
+  late final GeneratedColumn<bool> isArchived = GeneratedColumn<bool>(
+    'is_archived',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_archived" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    companyId,
+    userId,
+    title,
+    screenContext,
+    isArchived,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'ai_conversations';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AiConversation> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('company_id')) {
+      context.handle(
+        _companyIdMeta,
+        companyId.isAcceptableOrUnknown(data['company_id']!, _companyIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_companyIdMeta);
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    }
+    if (data.containsKey('screen_context')) {
+      context.handle(
+        _screenContextMeta,
+        screenContext.isAcceptableOrUnknown(
+          data['screen_context']!,
+          _screenContextMeta,
+        ),
+      );
+    }
+    if (data.containsKey('is_archived')) {
+      context.handle(
+        _isArchivedMeta,
+        isArchived.isAcceptableOrUnknown(data['is_archived']!, _isArchivedMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  AiConversation map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AiConversation(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      companyId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}company_id'],
+      )!,
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_id'],
+      )!,
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      ),
+      screenContext: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}screen_context'],
+      ),
+      isArchived: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_archived'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+    );
+  }
+
+  @override
+  $AiConversationsTable createAlias(String alias) {
+    return $AiConversationsTable(attachedDatabase, alias);
+  }
+}
+
+class AiConversation extends DataClass implements Insertable<AiConversation> {
+  final String id;
+  final String companyId;
+  final String userId;
+  final String? title;
+  final String? screenContext;
+  final bool isArchived;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  const AiConversation({
+    required this.id,
+    required this.companyId,
+    required this.userId,
+    this.title,
+    this.screenContext,
+    required this.isArchived,
+    required this.createdAt,
+    required this.updatedAt,
+    this.deletedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['company_id'] = Variable<String>(companyId);
+    map['user_id'] = Variable<String>(userId);
+    if (!nullToAbsent || title != null) {
+      map['title'] = Variable<String>(title);
+    }
+    if (!nullToAbsent || screenContext != null) {
+      map['screen_context'] = Variable<String>(screenContext);
+    }
+    map['is_archived'] = Variable<bool>(isArchived);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    return map;
+  }
+
+  AiConversationsCompanion toCompanion(bool nullToAbsent) {
+    return AiConversationsCompanion(
+      id: Value(id),
+      companyId: Value(companyId),
+      userId: Value(userId),
+      title: title == null && nullToAbsent
+          ? const Value.absent()
+          : Value(title),
+      screenContext: screenContext == null && nullToAbsent
+          ? const Value.absent()
+          : Value(screenContext),
+      isArchived: Value(isArchived),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+    );
+  }
+
+  factory AiConversation.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AiConversation(
+      id: serializer.fromJson<String>(json['id']),
+      companyId: serializer.fromJson<String>(json['companyId']),
+      userId: serializer.fromJson<String>(json['userId']),
+      title: serializer.fromJson<String?>(json['title']),
+      screenContext: serializer.fromJson<String?>(json['screenContext']),
+      isArchived: serializer.fromJson<bool>(json['isArchived']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'companyId': serializer.toJson<String>(companyId),
+      'userId': serializer.toJson<String>(userId),
+      'title': serializer.toJson<String?>(title),
+      'screenContext': serializer.toJson<String?>(screenContext),
+      'isArchived': serializer.toJson<bool>(isArchived),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+    };
+  }
+
+  AiConversation copyWith({
+    String? id,
+    String? companyId,
+    String? userId,
+    Value<String?> title = const Value.absent(),
+    Value<String?> screenContext = const Value.absent(),
+    bool? isArchived,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+  }) => AiConversation(
+    id: id ?? this.id,
+    companyId: companyId ?? this.companyId,
+    userId: userId ?? this.userId,
+    title: title.present ? title.value : this.title,
+    screenContext: screenContext.present
+        ? screenContext.value
+        : this.screenContext,
+    isArchived: isArchived ?? this.isArchived,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+  );
+  AiConversation copyWithCompanion(AiConversationsCompanion data) {
+    return AiConversation(
+      id: data.id.present ? data.id.value : this.id,
+      companyId: data.companyId.present ? data.companyId.value : this.companyId,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      title: data.title.present ? data.title.value : this.title,
+      screenContext: data.screenContext.present
+          ? data.screenContext.value
+          : this.screenContext,
+      isArchived: data.isArchived.present
+          ? data.isArchived.value
+          : this.isArchived,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AiConversation(')
+          ..write('id: $id, ')
+          ..write('companyId: $companyId, ')
+          ..write('userId: $userId, ')
+          ..write('title: $title, ')
+          ..write('screenContext: $screenContext, ')
+          ..write('isArchived: $isArchived, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    companyId,
+    userId,
+    title,
+    screenContext,
+    isArchived,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AiConversation &&
+          other.id == this.id &&
+          other.companyId == this.companyId &&
+          other.userId == this.userId &&
+          other.title == this.title &&
+          other.screenContext == this.screenContext &&
+          other.isArchived == this.isArchived &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt);
+}
+
+class AiConversationsCompanion extends UpdateCompanion<AiConversation> {
+  final Value<String> id;
+  final Value<String> companyId;
+  final Value<String> userId;
+  final Value<String?> title;
+  final Value<String?> screenContext;
+  final Value<bool> isArchived;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<int> rowid;
+  const AiConversationsCompanion({
+    this.id = const Value.absent(),
+    this.companyId = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.title = const Value.absent(),
+    this.screenContext = const Value.absent(),
+    this.isArchived = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  AiConversationsCompanion.insert({
+    required String id,
+    required String companyId,
+    required String userId,
+    this.title = const Value.absent(),
+    this.screenContext = const Value.absent(),
+    this.isArchived = const Value.absent(),
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       companyId = Value(companyId),
+       userId = Value(userId),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<AiConversation> custom({
+    Expression<String>? id,
+    Expression<String>? companyId,
+    Expression<String>? userId,
+    Expression<String>? title,
+    Expression<String>? screenContext,
+    Expression<bool>? isArchived,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (companyId != null) 'company_id': companyId,
+      if (userId != null) 'user_id': userId,
+      if (title != null) 'title': title,
+      if (screenContext != null) 'screen_context': screenContext,
+      if (isArchived != null) 'is_archived': isArchived,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  AiConversationsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? companyId,
+    Value<String>? userId,
+    Value<String?>? title,
+    Value<String?>? screenContext,
+    Value<bool>? isArchived,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? deletedAt,
+    Value<int>? rowid,
+  }) {
+    return AiConversationsCompanion(
+      id: id ?? this.id,
+      companyId: companyId ?? this.companyId,
+      userId: userId ?? this.userId,
+      title: title ?? this.title,
+      screenContext: screenContext ?? this.screenContext,
+      isArchived: isArchived ?? this.isArchived,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (companyId.present) {
+      map['company_id'] = Variable<String>(companyId.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (screenContext.present) {
+      map['screen_context'] = Variable<String>(screenContext.value);
+    }
+    if (isArchived.present) {
+      map['is_archived'] = Variable<bool>(isArchived.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AiConversationsCompanion(')
+          ..write('id: $id, ')
+          ..write('companyId: $companyId, ')
+          ..write('userId: $userId, ')
+          ..write('title: $title, ')
+          ..write('screenContext: $screenContext, ')
+          ..write('isArchived: $isArchived, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $AiMessagesTable extends AiMessages
+    with TableInfo<$AiMessagesTable, AiMessage> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AiMessagesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _companyIdMeta = const VerificationMeta(
+    'companyId',
+  );
+  @override
+  late final GeneratedColumn<String> companyId = GeneratedColumn<String>(
+    'company_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _conversationIdMeta = const VerificationMeta(
+    'conversationId',
+  );
+  @override
+  late final GeneratedColumn<String> conversationId = GeneratedColumn<String>(
+    'conversation_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<AiMessageRole, String> role =
+      GeneratedColumn<String>(
+        'role',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<AiMessageRole>($AiMessagesTable.$converterrole);
+  static const VerificationMeta _contentMeta = const VerificationMeta(
+    'content',
+  );
+  @override
+  late final GeneratedColumn<String> content = GeneratedColumn<String>(
+    'content',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _toolCallsMeta = const VerificationMeta(
+    'toolCalls',
+  );
+  @override
+  late final GeneratedColumn<String> toolCalls = GeneratedColumn<String>(
+    'tool_calls',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _toolResultsMeta = const VerificationMeta(
+    'toolResults',
+  );
+  @override
+  late final GeneratedColumn<String> toolResults = GeneratedColumn<String>(
+    'tool_results',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<AiMessageStatus, String> status =
+      GeneratedColumn<String>(
+        'status',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<AiMessageStatus>($AiMessagesTable.$converterstatus);
+  static const VerificationMeta _errorMessageMeta = const VerificationMeta(
+    'errorMessage',
+  );
+  @override
+  late final GeneratedColumn<String> errorMessage = GeneratedColumn<String>(
+    'error_message',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _tokenCountMeta = const VerificationMeta(
+    'tokenCount',
+  );
+  @override
+  late final GeneratedColumn<int> tokenCount = GeneratedColumn<int>(
+    'token_count',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    companyId,
+    conversationId,
+    role,
+    content,
+    toolCalls,
+    toolResults,
+    status,
+    errorMessage,
+    tokenCount,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'ai_messages';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AiMessage> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('company_id')) {
+      context.handle(
+        _companyIdMeta,
+        companyId.isAcceptableOrUnknown(data['company_id']!, _companyIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_companyIdMeta);
+    }
+    if (data.containsKey('conversation_id')) {
+      context.handle(
+        _conversationIdMeta,
+        conversationId.isAcceptableOrUnknown(
+          data['conversation_id']!,
+          _conversationIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_conversationIdMeta);
+    }
+    if (data.containsKey('content')) {
+      context.handle(
+        _contentMeta,
+        content.isAcceptableOrUnknown(data['content']!, _contentMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_contentMeta);
+    }
+    if (data.containsKey('tool_calls')) {
+      context.handle(
+        _toolCallsMeta,
+        toolCalls.isAcceptableOrUnknown(data['tool_calls']!, _toolCallsMeta),
+      );
+    }
+    if (data.containsKey('tool_results')) {
+      context.handle(
+        _toolResultsMeta,
+        toolResults.isAcceptableOrUnknown(
+          data['tool_results']!,
+          _toolResultsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('error_message')) {
+      context.handle(
+        _errorMessageMeta,
+        errorMessage.isAcceptableOrUnknown(
+          data['error_message']!,
+          _errorMessageMeta,
+        ),
+      );
+    }
+    if (data.containsKey('token_count')) {
+      context.handle(
+        _tokenCountMeta,
+        tokenCount.isAcceptableOrUnknown(data['token_count']!, _tokenCountMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  AiMessage map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AiMessage(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      companyId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}company_id'],
+      )!,
+      conversationId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}conversation_id'],
+      )!,
+      role: $AiMessagesTable.$converterrole.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}role'],
+        )!,
+      ),
+      content: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}content'],
+      )!,
+      toolCalls: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}tool_calls'],
+      ),
+      toolResults: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}tool_results'],
+      ),
+      status: $AiMessagesTable.$converterstatus.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}status'],
+        )!,
+      ),
+      errorMessage: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}error_message'],
+      ),
+      tokenCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}token_count'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+    );
+  }
+
+  @override
+  $AiMessagesTable createAlias(String alias) {
+    return $AiMessagesTable(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<AiMessageRole, String, String> $converterrole =
+      const EnumNameConverter<AiMessageRole>(AiMessageRole.values);
+  static JsonTypeConverter2<AiMessageStatus, String, String> $converterstatus =
+      const EnumNameConverter<AiMessageStatus>(AiMessageStatus.values);
+}
+
+class AiMessage extends DataClass implements Insertable<AiMessage> {
+  final String id;
+  final String companyId;
+  final String conversationId;
+  final AiMessageRole role;
+  final String content;
+  final String? toolCalls;
+  final String? toolResults;
+  final AiMessageStatus status;
+  final String? errorMessage;
+  final int? tokenCount;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  const AiMessage({
+    required this.id,
+    required this.companyId,
+    required this.conversationId,
+    required this.role,
+    required this.content,
+    this.toolCalls,
+    this.toolResults,
+    required this.status,
+    this.errorMessage,
+    this.tokenCount,
+    required this.createdAt,
+    required this.updatedAt,
+    this.deletedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['company_id'] = Variable<String>(companyId);
+    map['conversation_id'] = Variable<String>(conversationId);
+    {
+      map['role'] = Variable<String>(
+        $AiMessagesTable.$converterrole.toSql(role),
+      );
+    }
+    map['content'] = Variable<String>(content);
+    if (!nullToAbsent || toolCalls != null) {
+      map['tool_calls'] = Variable<String>(toolCalls);
+    }
+    if (!nullToAbsent || toolResults != null) {
+      map['tool_results'] = Variable<String>(toolResults);
+    }
+    {
+      map['status'] = Variable<String>(
+        $AiMessagesTable.$converterstatus.toSql(status),
+      );
+    }
+    if (!nullToAbsent || errorMessage != null) {
+      map['error_message'] = Variable<String>(errorMessage);
+    }
+    if (!nullToAbsent || tokenCount != null) {
+      map['token_count'] = Variable<int>(tokenCount);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    return map;
+  }
+
+  AiMessagesCompanion toCompanion(bool nullToAbsent) {
+    return AiMessagesCompanion(
+      id: Value(id),
+      companyId: Value(companyId),
+      conversationId: Value(conversationId),
+      role: Value(role),
+      content: Value(content),
+      toolCalls: toolCalls == null && nullToAbsent
+          ? const Value.absent()
+          : Value(toolCalls),
+      toolResults: toolResults == null && nullToAbsent
+          ? const Value.absent()
+          : Value(toolResults),
+      status: Value(status),
+      errorMessage: errorMessage == null && nullToAbsent
+          ? const Value.absent()
+          : Value(errorMessage),
+      tokenCount: tokenCount == null && nullToAbsent
+          ? const Value.absent()
+          : Value(tokenCount),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+    );
+  }
+
+  factory AiMessage.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AiMessage(
+      id: serializer.fromJson<String>(json['id']),
+      companyId: serializer.fromJson<String>(json['companyId']),
+      conversationId: serializer.fromJson<String>(json['conversationId']),
+      role: $AiMessagesTable.$converterrole.fromJson(
+        serializer.fromJson<String>(json['role']),
+      ),
+      content: serializer.fromJson<String>(json['content']),
+      toolCalls: serializer.fromJson<String?>(json['toolCalls']),
+      toolResults: serializer.fromJson<String?>(json['toolResults']),
+      status: $AiMessagesTable.$converterstatus.fromJson(
+        serializer.fromJson<String>(json['status']),
+      ),
+      errorMessage: serializer.fromJson<String?>(json['errorMessage']),
+      tokenCount: serializer.fromJson<int?>(json['tokenCount']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'companyId': serializer.toJson<String>(companyId),
+      'conversationId': serializer.toJson<String>(conversationId),
+      'role': serializer.toJson<String>(
+        $AiMessagesTable.$converterrole.toJson(role),
+      ),
+      'content': serializer.toJson<String>(content),
+      'toolCalls': serializer.toJson<String?>(toolCalls),
+      'toolResults': serializer.toJson<String?>(toolResults),
+      'status': serializer.toJson<String>(
+        $AiMessagesTable.$converterstatus.toJson(status),
+      ),
+      'errorMessage': serializer.toJson<String?>(errorMessage),
+      'tokenCount': serializer.toJson<int?>(tokenCount),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+    };
+  }
+
+  AiMessage copyWith({
+    String? id,
+    String? companyId,
+    String? conversationId,
+    AiMessageRole? role,
+    String? content,
+    Value<String?> toolCalls = const Value.absent(),
+    Value<String?> toolResults = const Value.absent(),
+    AiMessageStatus? status,
+    Value<String?> errorMessage = const Value.absent(),
+    Value<int?> tokenCount = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+  }) => AiMessage(
+    id: id ?? this.id,
+    companyId: companyId ?? this.companyId,
+    conversationId: conversationId ?? this.conversationId,
+    role: role ?? this.role,
+    content: content ?? this.content,
+    toolCalls: toolCalls.present ? toolCalls.value : this.toolCalls,
+    toolResults: toolResults.present ? toolResults.value : this.toolResults,
+    status: status ?? this.status,
+    errorMessage: errorMessage.present ? errorMessage.value : this.errorMessage,
+    tokenCount: tokenCount.present ? tokenCount.value : this.tokenCount,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+  );
+  AiMessage copyWithCompanion(AiMessagesCompanion data) {
+    return AiMessage(
+      id: data.id.present ? data.id.value : this.id,
+      companyId: data.companyId.present ? data.companyId.value : this.companyId,
+      conversationId: data.conversationId.present
+          ? data.conversationId.value
+          : this.conversationId,
+      role: data.role.present ? data.role.value : this.role,
+      content: data.content.present ? data.content.value : this.content,
+      toolCalls: data.toolCalls.present ? data.toolCalls.value : this.toolCalls,
+      toolResults: data.toolResults.present
+          ? data.toolResults.value
+          : this.toolResults,
+      status: data.status.present ? data.status.value : this.status,
+      errorMessage: data.errorMessage.present
+          ? data.errorMessage.value
+          : this.errorMessage,
+      tokenCount: data.tokenCount.present
+          ? data.tokenCount.value
+          : this.tokenCount,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AiMessage(')
+          ..write('id: $id, ')
+          ..write('companyId: $companyId, ')
+          ..write('conversationId: $conversationId, ')
+          ..write('role: $role, ')
+          ..write('content: $content, ')
+          ..write('toolCalls: $toolCalls, ')
+          ..write('toolResults: $toolResults, ')
+          ..write('status: $status, ')
+          ..write('errorMessage: $errorMessage, ')
+          ..write('tokenCount: $tokenCount, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    companyId,
+    conversationId,
+    role,
+    content,
+    toolCalls,
+    toolResults,
+    status,
+    errorMessage,
+    tokenCount,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AiMessage &&
+          other.id == this.id &&
+          other.companyId == this.companyId &&
+          other.conversationId == this.conversationId &&
+          other.role == this.role &&
+          other.content == this.content &&
+          other.toolCalls == this.toolCalls &&
+          other.toolResults == this.toolResults &&
+          other.status == this.status &&
+          other.errorMessage == this.errorMessage &&
+          other.tokenCount == this.tokenCount &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt);
+}
+
+class AiMessagesCompanion extends UpdateCompanion<AiMessage> {
+  final Value<String> id;
+  final Value<String> companyId;
+  final Value<String> conversationId;
+  final Value<AiMessageRole> role;
+  final Value<String> content;
+  final Value<String?> toolCalls;
+  final Value<String?> toolResults;
+  final Value<AiMessageStatus> status;
+  final Value<String?> errorMessage;
+  final Value<int?> tokenCount;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<int> rowid;
+  const AiMessagesCompanion({
+    this.id = const Value.absent(),
+    this.companyId = const Value.absent(),
+    this.conversationId = const Value.absent(),
+    this.role = const Value.absent(),
+    this.content = const Value.absent(),
+    this.toolCalls = const Value.absent(),
+    this.toolResults = const Value.absent(),
+    this.status = const Value.absent(),
+    this.errorMessage = const Value.absent(),
+    this.tokenCount = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  AiMessagesCompanion.insert({
+    required String id,
+    required String companyId,
+    required String conversationId,
+    required AiMessageRole role,
+    required String content,
+    this.toolCalls = const Value.absent(),
+    this.toolResults = const Value.absent(),
+    required AiMessageStatus status,
+    this.errorMessage = const Value.absent(),
+    this.tokenCount = const Value.absent(),
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       companyId = Value(companyId),
+       conversationId = Value(conversationId),
+       role = Value(role),
+       content = Value(content),
+       status = Value(status),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<AiMessage> custom({
+    Expression<String>? id,
+    Expression<String>? companyId,
+    Expression<String>? conversationId,
+    Expression<String>? role,
+    Expression<String>? content,
+    Expression<String>? toolCalls,
+    Expression<String>? toolResults,
+    Expression<String>? status,
+    Expression<String>? errorMessage,
+    Expression<int>? tokenCount,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (companyId != null) 'company_id': companyId,
+      if (conversationId != null) 'conversation_id': conversationId,
+      if (role != null) 'role': role,
+      if (content != null) 'content': content,
+      if (toolCalls != null) 'tool_calls': toolCalls,
+      if (toolResults != null) 'tool_results': toolResults,
+      if (status != null) 'status': status,
+      if (errorMessage != null) 'error_message': errorMessage,
+      if (tokenCount != null) 'token_count': tokenCount,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  AiMessagesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? companyId,
+    Value<String>? conversationId,
+    Value<AiMessageRole>? role,
+    Value<String>? content,
+    Value<String?>? toolCalls,
+    Value<String?>? toolResults,
+    Value<AiMessageStatus>? status,
+    Value<String?>? errorMessage,
+    Value<int?>? tokenCount,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? deletedAt,
+    Value<int>? rowid,
+  }) {
+    return AiMessagesCompanion(
+      id: id ?? this.id,
+      companyId: companyId ?? this.companyId,
+      conversationId: conversationId ?? this.conversationId,
+      role: role ?? this.role,
+      content: content ?? this.content,
+      toolCalls: toolCalls ?? this.toolCalls,
+      toolResults: toolResults ?? this.toolResults,
+      status: status ?? this.status,
+      errorMessage: errorMessage ?? this.errorMessage,
+      tokenCount: tokenCount ?? this.tokenCount,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (companyId.present) {
+      map['company_id'] = Variable<String>(companyId.value);
+    }
+    if (conversationId.present) {
+      map['conversation_id'] = Variable<String>(conversationId.value);
+    }
+    if (role.present) {
+      map['role'] = Variable<String>(
+        $AiMessagesTable.$converterrole.toSql(role.value),
+      );
+    }
+    if (content.present) {
+      map['content'] = Variable<String>(content.value);
+    }
+    if (toolCalls.present) {
+      map['tool_calls'] = Variable<String>(toolCalls.value);
+    }
+    if (toolResults.present) {
+      map['tool_results'] = Variable<String>(toolResults.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(
+        $AiMessagesTable.$converterstatus.toSql(status.value),
+      );
+    }
+    if (errorMessage.present) {
+      map['error_message'] = Variable<String>(errorMessage.value);
+    }
+    if (tokenCount.present) {
+      map['token_count'] = Variable<int>(tokenCount.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AiMessagesCompanion(')
+          ..write('id: $id, ')
+          ..write('companyId: $companyId, ')
+          ..write('conversationId: $conversationId, ')
+          ..write('role: $role, ')
+          ..write('content: $content, ')
+          ..write('toolCalls: $toolCalls, ')
+          ..write('toolResults: $toolResults, ')
+          ..write('status: $status, ')
+          ..write('errorMessage: $errorMessage, ')
+          ..write('tokenCount: $tokenCount, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $AiUndoLogsTable extends AiUndoLogs
+    with TableInfo<$AiUndoLogsTable, AiUndoLog> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AiUndoLogsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _companyIdMeta = const VerificationMeta(
+    'companyId',
+  );
+  @override
+  late final GeneratedColumn<String> companyId = GeneratedColumn<String>(
+    'company_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _conversationIdMeta = const VerificationMeta(
+    'conversationId',
+  );
+  @override
+  late final GeneratedColumn<String> conversationId = GeneratedColumn<String>(
+    'conversation_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _messageIdMeta = const VerificationMeta(
+    'messageId',
+  );
+  @override
+  late final GeneratedColumn<String> messageId = GeneratedColumn<String>(
+    'message_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _toolCallIdMeta = const VerificationMeta(
+    'toolCallId',
+  );
+  @override
+  late final GeneratedColumn<String> toolCallId = GeneratedColumn<String>(
+    'tool_call_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _operationTypeMeta = const VerificationMeta(
+    'operationType',
+  );
+  @override
+  late final GeneratedColumn<String> operationType = GeneratedColumn<String>(
+    'operation_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _entityTypeMeta = const VerificationMeta(
+    'entityType',
+  );
+  @override
+  late final GeneratedColumn<String> entityType = GeneratedColumn<String>(
+    'entity_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _entityIdMeta = const VerificationMeta(
+    'entityId',
+  );
+  @override
+  late final GeneratedColumn<String> entityId = GeneratedColumn<String>(
+    'entity_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _snapshotBeforeMeta = const VerificationMeta(
+    'snapshotBefore',
+  );
+  @override
+  late final GeneratedColumn<String> snapshotBefore = GeneratedColumn<String>(
+    'snapshot_before',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _snapshotAfterMeta = const VerificationMeta(
+    'snapshotAfter',
+  );
+  @override
+  late final GeneratedColumn<String> snapshotAfter = GeneratedColumn<String>(
+    'snapshot_after',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _isUndoneMeta = const VerificationMeta(
+    'isUndone',
+  );
+  @override
+  late final GeneratedColumn<bool> isUndone = GeneratedColumn<bool>(
+    'is_undone',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_undone" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _undoneAtMeta = const VerificationMeta(
+    'undoneAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> undoneAt = GeneratedColumn<DateTime>(
+    'undone_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _expiresAtMeta = const VerificationMeta(
+    'expiresAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> expiresAt = GeneratedColumn<DateTime>(
+    'expires_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    companyId,
+    conversationId,
+    messageId,
+    toolCallId,
+    operationType,
+    entityType,
+    entityId,
+    snapshotBefore,
+    snapshotAfter,
+    isUndone,
+    undoneAt,
+    expiresAt,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'ai_undo_logs';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AiUndoLog> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('company_id')) {
+      context.handle(
+        _companyIdMeta,
+        companyId.isAcceptableOrUnknown(data['company_id']!, _companyIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_companyIdMeta);
+    }
+    if (data.containsKey('conversation_id')) {
+      context.handle(
+        _conversationIdMeta,
+        conversationId.isAcceptableOrUnknown(
+          data['conversation_id']!,
+          _conversationIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_conversationIdMeta);
+    }
+    if (data.containsKey('message_id')) {
+      context.handle(
+        _messageIdMeta,
+        messageId.isAcceptableOrUnknown(data['message_id']!, _messageIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_messageIdMeta);
+    }
+    if (data.containsKey('tool_call_id')) {
+      context.handle(
+        _toolCallIdMeta,
+        toolCallId.isAcceptableOrUnknown(
+          data['tool_call_id']!,
+          _toolCallIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_toolCallIdMeta);
+    }
+    if (data.containsKey('operation_type')) {
+      context.handle(
+        _operationTypeMeta,
+        operationType.isAcceptableOrUnknown(
+          data['operation_type']!,
+          _operationTypeMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_operationTypeMeta);
+    }
+    if (data.containsKey('entity_type')) {
+      context.handle(
+        _entityTypeMeta,
+        entityType.isAcceptableOrUnknown(data['entity_type']!, _entityTypeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_entityTypeMeta);
+    }
+    if (data.containsKey('entity_id')) {
+      context.handle(
+        _entityIdMeta,
+        entityId.isAcceptableOrUnknown(data['entity_id']!, _entityIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_entityIdMeta);
+    }
+    if (data.containsKey('snapshot_before')) {
+      context.handle(
+        _snapshotBeforeMeta,
+        snapshotBefore.isAcceptableOrUnknown(
+          data['snapshot_before']!,
+          _snapshotBeforeMeta,
+        ),
+      );
+    }
+    if (data.containsKey('snapshot_after')) {
+      context.handle(
+        _snapshotAfterMeta,
+        snapshotAfter.isAcceptableOrUnknown(
+          data['snapshot_after']!,
+          _snapshotAfterMeta,
+        ),
+      );
+    }
+    if (data.containsKey('is_undone')) {
+      context.handle(
+        _isUndoneMeta,
+        isUndone.isAcceptableOrUnknown(data['is_undone']!, _isUndoneMeta),
+      );
+    }
+    if (data.containsKey('undone_at')) {
+      context.handle(
+        _undoneAtMeta,
+        undoneAt.isAcceptableOrUnknown(data['undone_at']!, _undoneAtMeta),
+      );
+    }
+    if (data.containsKey('expires_at')) {
+      context.handle(
+        _expiresAtMeta,
+        expiresAt.isAcceptableOrUnknown(data['expires_at']!, _expiresAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_expiresAtMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  AiUndoLog map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AiUndoLog(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      companyId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}company_id'],
+      )!,
+      conversationId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}conversation_id'],
+      )!,
+      messageId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}message_id'],
+      )!,
+      toolCallId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}tool_call_id'],
+      )!,
+      operationType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}operation_type'],
+      )!,
+      entityType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}entity_type'],
+      )!,
+      entityId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}entity_id'],
+      )!,
+      snapshotBefore: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}snapshot_before'],
+      ),
+      snapshotAfter: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}snapshot_after'],
+      ),
+      isUndone: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_undone'],
+      )!,
+      undoneAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}undone_at'],
+      ),
+      expiresAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}expires_at'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+    );
+  }
+
+  @override
+  $AiUndoLogsTable createAlias(String alias) {
+    return $AiUndoLogsTable(attachedDatabase, alias);
+  }
+}
+
+class AiUndoLog extends DataClass implements Insertable<AiUndoLog> {
+  final String id;
+  final String companyId;
+  final String conversationId;
+  final String messageId;
+  final String toolCallId;
+  final String operationType;
+  final String entityType;
+  final String entityId;
+  final String? snapshotBefore;
+  final String? snapshotAfter;
+  final bool isUndone;
+  final DateTime? undoneAt;
+  final DateTime expiresAt;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  const AiUndoLog({
+    required this.id,
+    required this.companyId,
+    required this.conversationId,
+    required this.messageId,
+    required this.toolCallId,
+    required this.operationType,
+    required this.entityType,
+    required this.entityId,
+    this.snapshotBefore,
+    this.snapshotAfter,
+    required this.isUndone,
+    this.undoneAt,
+    required this.expiresAt,
+    required this.createdAt,
+    required this.updatedAt,
+    this.deletedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['company_id'] = Variable<String>(companyId);
+    map['conversation_id'] = Variable<String>(conversationId);
+    map['message_id'] = Variable<String>(messageId);
+    map['tool_call_id'] = Variable<String>(toolCallId);
+    map['operation_type'] = Variable<String>(operationType);
+    map['entity_type'] = Variable<String>(entityType);
+    map['entity_id'] = Variable<String>(entityId);
+    if (!nullToAbsent || snapshotBefore != null) {
+      map['snapshot_before'] = Variable<String>(snapshotBefore);
+    }
+    if (!nullToAbsent || snapshotAfter != null) {
+      map['snapshot_after'] = Variable<String>(snapshotAfter);
+    }
+    map['is_undone'] = Variable<bool>(isUndone);
+    if (!nullToAbsent || undoneAt != null) {
+      map['undone_at'] = Variable<DateTime>(undoneAt);
+    }
+    map['expires_at'] = Variable<DateTime>(expiresAt);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    return map;
+  }
+
+  AiUndoLogsCompanion toCompanion(bool nullToAbsent) {
+    return AiUndoLogsCompanion(
+      id: Value(id),
+      companyId: Value(companyId),
+      conversationId: Value(conversationId),
+      messageId: Value(messageId),
+      toolCallId: Value(toolCallId),
+      operationType: Value(operationType),
+      entityType: Value(entityType),
+      entityId: Value(entityId),
+      snapshotBefore: snapshotBefore == null && nullToAbsent
+          ? const Value.absent()
+          : Value(snapshotBefore),
+      snapshotAfter: snapshotAfter == null && nullToAbsent
+          ? const Value.absent()
+          : Value(snapshotAfter),
+      isUndone: Value(isUndone),
+      undoneAt: undoneAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(undoneAt),
+      expiresAt: Value(expiresAt),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+    );
+  }
+
+  factory AiUndoLog.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AiUndoLog(
+      id: serializer.fromJson<String>(json['id']),
+      companyId: serializer.fromJson<String>(json['companyId']),
+      conversationId: serializer.fromJson<String>(json['conversationId']),
+      messageId: serializer.fromJson<String>(json['messageId']),
+      toolCallId: serializer.fromJson<String>(json['toolCallId']),
+      operationType: serializer.fromJson<String>(json['operationType']),
+      entityType: serializer.fromJson<String>(json['entityType']),
+      entityId: serializer.fromJson<String>(json['entityId']),
+      snapshotBefore: serializer.fromJson<String?>(json['snapshotBefore']),
+      snapshotAfter: serializer.fromJson<String?>(json['snapshotAfter']),
+      isUndone: serializer.fromJson<bool>(json['isUndone']),
+      undoneAt: serializer.fromJson<DateTime?>(json['undoneAt']),
+      expiresAt: serializer.fromJson<DateTime>(json['expiresAt']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'companyId': serializer.toJson<String>(companyId),
+      'conversationId': serializer.toJson<String>(conversationId),
+      'messageId': serializer.toJson<String>(messageId),
+      'toolCallId': serializer.toJson<String>(toolCallId),
+      'operationType': serializer.toJson<String>(operationType),
+      'entityType': serializer.toJson<String>(entityType),
+      'entityId': serializer.toJson<String>(entityId),
+      'snapshotBefore': serializer.toJson<String?>(snapshotBefore),
+      'snapshotAfter': serializer.toJson<String?>(snapshotAfter),
+      'isUndone': serializer.toJson<bool>(isUndone),
+      'undoneAt': serializer.toJson<DateTime?>(undoneAt),
+      'expiresAt': serializer.toJson<DateTime>(expiresAt),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+    };
+  }
+
+  AiUndoLog copyWith({
+    String? id,
+    String? companyId,
+    String? conversationId,
+    String? messageId,
+    String? toolCallId,
+    String? operationType,
+    String? entityType,
+    String? entityId,
+    Value<String?> snapshotBefore = const Value.absent(),
+    Value<String?> snapshotAfter = const Value.absent(),
+    bool? isUndone,
+    Value<DateTime?> undoneAt = const Value.absent(),
+    DateTime? expiresAt,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+  }) => AiUndoLog(
+    id: id ?? this.id,
+    companyId: companyId ?? this.companyId,
+    conversationId: conversationId ?? this.conversationId,
+    messageId: messageId ?? this.messageId,
+    toolCallId: toolCallId ?? this.toolCallId,
+    operationType: operationType ?? this.operationType,
+    entityType: entityType ?? this.entityType,
+    entityId: entityId ?? this.entityId,
+    snapshotBefore: snapshotBefore.present
+        ? snapshotBefore.value
+        : this.snapshotBefore,
+    snapshotAfter: snapshotAfter.present
+        ? snapshotAfter.value
+        : this.snapshotAfter,
+    isUndone: isUndone ?? this.isUndone,
+    undoneAt: undoneAt.present ? undoneAt.value : this.undoneAt,
+    expiresAt: expiresAt ?? this.expiresAt,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+  );
+  AiUndoLog copyWithCompanion(AiUndoLogsCompanion data) {
+    return AiUndoLog(
+      id: data.id.present ? data.id.value : this.id,
+      companyId: data.companyId.present ? data.companyId.value : this.companyId,
+      conversationId: data.conversationId.present
+          ? data.conversationId.value
+          : this.conversationId,
+      messageId: data.messageId.present ? data.messageId.value : this.messageId,
+      toolCallId: data.toolCallId.present
+          ? data.toolCallId.value
+          : this.toolCallId,
+      operationType: data.operationType.present
+          ? data.operationType.value
+          : this.operationType,
+      entityType: data.entityType.present
+          ? data.entityType.value
+          : this.entityType,
+      entityId: data.entityId.present ? data.entityId.value : this.entityId,
+      snapshotBefore: data.snapshotBefore.present
+          ? data.snapshotBefore.value
+          : this.snapshotBefore,
+      snapshotAfter: data.snapshotAfter.present
+          ? data.snapshotAfter.value
+          : this.snapshotAfter,
+      isUndone: data.isUndone.present ? data.isUndone.value : this.isUndone,
+      undoneAt: data.undoneAt.present ? data.undoneAt.value : this.undoneAt,
+      expiresAt: data.expiresAt.present ? data.expiresAt.value : this.expiresAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AiUndoLog(')
+          ..write('id: $id, ')
+          ..write('companyId: $companyId, ')
+          ..write('conversationId: $conversationId, ')
+          ..write('messageId: $messageId, ')
+          ..write('toolCallId: $toolCallId, ')
+          ..write('operationType: $operationType, ')
+          ..write('entityType: $entityType, ')
+          ..write('entityId: $entityId, ')
+          ..write('snapshotBefore: $snapshotBefore, ')
+          ..write('snapshotAfter: $snapshotAfter, ')
+          ..write('isUndone: $isUndone, ')
+          ..write('undoneAt: $undoneAt, ')
+          ..write('expiresAt: $expiresAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    companyId,
+    conversationId,
+    messageId,
+    toolCallId,
+    operationType,
+    entityType,
+    entityId,
+    snapshotBefore,
+    snapshotAfter,
+    isUndone,
+    undoneAt,
+    expiresAt,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AiUndoLog &&
+          other.id == this.id &&
+          other.companyId == this.companyId &&
+          other.conversationId == this.conversationId &&
+          other.messageId == this.messageId &&
+          other.toolCallId == this.toolCallId &&
+          other.operationType == this.operationType &&
+          other.entityType == this.entityType &&
+          other.entityId == this.entityId &&
+          other.snapshotBefore == this.snapshotBefore &&
+          other.snapshotAfter == this.snapshotAfter &&
+          other.isUndone == this.isUndone &&
+          other.undoneAt == this.undoneAt &&
+          other.expiresAt == this.expiresAt &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt);
+}
+
+class AiUndoLogsCompanion extends UpdateCompanion<AiUndoLog> {
+  final Value<String> id;
+  final Value<String> companyId;
+  final Value<String> conversationId;
+  final Value<String> messageId;
+  final Value<String> toolCallId;
+  final Value<String> operationType;
+  final Value<String> entityType;
+  final Value<String> entityId;
+  final Value<String?> snapshotBefore;
+  final Value<String?> snapshotAfter;
+  final Value<bool> isUndone;
+  final Value<DateTime?> undoneAt;
+  final Value<DateTime> expiresAt;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<int> rowid;
+  const AiUndoLogsCompanion({
+    this.id = const Value.absent(),
+    this.companyId = const Value.absent(),
+    this.conversationId = const Value.absent(),
+    this.messageId = const Value.absent(),
+    this.toolCallId = const Value.absent(),
+    this.operationType = const Value.absent(),
+    this.entityType = const Value.absent(),
+    this.entityId = const Value.absent(),
+    this.snapshotBefore = const Value.absent(),
+    this.snapshotAfter = const Value.absent(),
+    this.isUndone = const Value.absent(),
+    this.undoneAt = const Value.absent(),
+    this.expiresAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  AiUndoLogsCompanion.insert({
+    required String id,
+    required String companyId,
+    required String conversationId,
+    required String messageId,
+    required String toolCallId,
+    required String operationType,
+    required String entityType,
+    required String entityId,
+    this.snapshotBefore = const Value.absent(),
+    this.snapshotAfter = const Value.absent(),
+    this.isUndone = const Value.absent(),
+    this.undoneAt = const Value.absent(),
+    required DateTime expiresAt,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       companyId = Value(companyId),
+       conversationId = Value(conversationId),
+       messageId = Value(messageId),
+       toolCallId = Value(toolCallId),
+       operationType = Value(operationType),
+       entityType = Value(entityType),
+       entityId = Value(entityId),
+       expiresAt = Value(expiresAt),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<AiUndoLog> custom({
+    Expression<String>? id,
+    Expression<String>? companyId,
+    Expression<String>? conversationId,
+    Expression<String>? messageId,
+    Expression<String>? toolCallId,
+    Expression<String>? operationType,
+    Expression<String>? entityType,
+    Expression<String>? entityId,
+    Expression<String>? snapshotBefore,
+    Expression<String>? snapshotAfter,
+    Expression<bool>? isUndone,
+    Expression<DateTime>? undoneAt,
+    Expression<DateTime>? expiresAt,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (companyId != null) 'company_id': companyId,
+      if (conversationId != null) 'conversation_id': conversationId,
+      if (messageId != null) 'message_id': messageId,
+      if (toolCallId != null) 'tool_call_id': toolCallId,
+      if (operationType != null) 'operation_type': operationType,
+      if (entityType != null) 'entity_type': entityType,
+      if (entityId != null) 'entity_id': entityId,
+      if (snapshotBefore != null) 'snapshot_before': snapshotBefore,
+      if (snapshotAfter != null) 'snapshot_after': snapshotAfter,
+      if (isUndone != null) 'is_undone': isUndone,
+      if (undoneAt != null) 'undone_at': undoneAt,
+      if (expiresAt != null) 'expires_at': expiresAt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  AiUndoLogsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? companyId,
+    Value<String>? conversationId,
+    Value<String>? messageId,
+    Value<String>? toolCallId,
+    Value<String>? operationType,
+    Value<String>? entityType,
+    Value<String>? entityId,
+    Value<String?>? snapshotBefore,
+    Value<String?>? snapshotAfter,
+    Value<bool>? isUndone,
+    Value<DateTime?>? undoneAt,
+    Value<DateTime>? expiresAt,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? deletedAt,
+    Value<int>? rowid,
+  }) {
+    return AiUndoLogsCompanion(
+      id: id ?? this.id,
+      companyId: companyId ?? this.companyId,
+      conversationId: conversationId ?? this.conversationId,
+      messageId: messageId ?? this.messageId,
+      toolCallId: toolCallId ?? this.toolCallId,
+      operationType: operationType ?? this.operationType,
+      entityType: entityType ?? this.entityType,
+      entityId: entityId ?? this.entityId,
+      snapshotBefore: snapshotBefore ?? this.snapshotBefore,
+      snapshotAfter: snapshotAfter ?? this.snapshotAfter,
+      isUndone: isUndone ?? this.isUndone,
+      undoneAt: undoneAt ?? this.undoneAt,
+      expiresAt: expiresAt ?? this.expiresAt,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (companyId.present) {
+      map['company_id'] = Variable<String>(companyId.value);
+    }
+    if (conversationId.present) {
+      map['conversation_id'] = Variable<String>(conversationId.value);
+    }
+    if (messageId.present) {
+      map['message_id'] = Variable<String>(messageId.value);
+    }
+    if (toolCallId.present) {
+      map['tool_call_id'] = Variable<String>(toolCallId.value);
+    }
+    if (operationType.present) {
+      map['operation_type'] = Variable<String>(operationType.value);
+    }
+    if (entityType.present) {
+      map['entity_type'] = Variable<String>(entityType.value);
+    }
+    if (entityId.present) {
+      map['entity_id'] = Variable<String>(entityId.value);
+    }
+    if (snapshotBefore.present) {
+      map['snapshot_before'] = Variable<String>(snapshotBefore.value);
+    }
+    if (snapshotAfter.present) {
+      map['snapshot_after'] = Variable<String>(snapshotAfter.value);
+    }
+    if (isUndone.present) {
+      map['is_undone'] = Variable<bool>(isUndone.value);
+    }
+    if (undoneAt.present) {
+      map['undone_at'] = Variable<DateTime>(undoneAt.value);
+    }
+    if (expiresAt.present) {
+      map['expires_at'] = Variable<DateTime>(expiresAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AiUndoLogsCompanion(')
+          ..write('id: $id, ')
+          ..write('companyId: $companyId, ')
+          ..write('conversationId: $conversationId, ')
+          ..write('messageId: $messageId, ')
+          ..write('toolCallId: $toolCallId, ')
+          ..write('operationType: $operationType, ')
+          ..write('entityType: $entityType, ')
+          ..write('entityId: $entityId, ')
+          ..write('snapshotBefore: $snapshotBefore, ')
+          ..write('snapshotAfter: $snapshotAfter, ')
+          ..write('isUndone: $isUndone, ')
+          ..write('undoneAt: $undoneAt, ')
+          ..write('expiresAt: $expiresAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $BillsTable extends Bills with TableInfo<$BillsTable, Bill> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -8069,6 +10353,64 @@ class $CompanySettingsTable extends CompanySettings
     defaultValue: const Constant(45),
   );
   @override
+  late final GeneratedColumnWithTypeConverter<AiProviderType, String>
+  aiProviderType =
+      GeneratedColumn<String>(
+        'ai_provider_type',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultValue: Constant(AiProviderType.none.name),
+      ).withConverter<AiProviderType>(
+        $CompanySettingsTable.$converteraiProviderType,
+      );
+  static const VerificationMeta _aiModelMeta = const VerificationMeta(
+    'aiModel',
+  );
+  @override
+  late final GeneratedColumn<String> aiModel = GeneratedColumn<String>(
+    'ai_model',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _aiRateLimitPerHourMeta =
+      const VerificationMeta('aiRateLimitPerHour');
+  @override
+  late final GeneratedColumn<int> aiRateLimitPerHour = GeneratedColumn<int>(
+    'ai_rate_limit_per_hour',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(60),
+  );
+  static const VerificationMeta _aiMaxTokensPerRequestMeta =
+      const VerificationMeta('aiMaxTokensPerRequest');
+  @override
+  late final GeneratedColumn<int> aiMaxTokensPerRequest = GeneratedColumn<int>(
+    'ai_max_tokens_per_request',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(4096),
+  );
+  static const VerificationMeta _aiMaxConversationTokensMeta =
+      const VerificationMeta('aiMaxConversationTokens');
+  @override
+  late final GeneratedColumn<int> aiMaxConversationTokens =
+      GeneratedColumn<int>(
+        'ai_max_conversation_tokens',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: false,
+        defaultValue: const Constant(16000),
+      );
+  @override
   List<GeneratedColumn> get $columns => [
     lastSyncedAt,
     version,
@@ -8090,6 +10432,11 @@ class $CompanySettingsTable extends CompanySettings
     billAgeWarningMinutes,
     billAgeDangerMinutes,
     billAgeCriticalMinutes,
+    aiProviderType,
+    aiModel,
+    aiRateLimitPerHour,
+    aiMaxTokensPerRequest,
+    aiMaxConversationTokens,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -8254,6 +10601,39 @@ class $CompanySettingsTable extends CompanySettings
         ),
       );
     }
+    if (data.containsKey('ai_model')) {
+      context.handle(
+        _aiModelMeta,
+        aiModel.isAcceptableOrUnknown(data['ai_model']!, _aiModelMeta),
+      );
+    }
+    if (data.containsKey('ai_rate_limit_per_hour')) {
+      context.handle(
+        _aiRateLimitPerHourMeta,
+        aiRateLimitPerHour.isAcceptableOrUnknown(
+          data['ai_rate_limit_per_hour']!,
+          _aiRateLimitPerHourMeta,
+        ),
+      );
+    }
+    if (data.containsKey('ai_max_tokens_per_request')) {
+      context.handle(
+        _aiMaxTokensPerRequestMeta,
+        aiMaxTokensPerRequest.isAcceptableOrUnknown(
+          data['ai_max_tokens_per_request']!,
+          _aiMaxTokensPerRequestMeta,
+        ),
+      );
+    }
+    if (data.containsKey('ai_max_conversation_tokens')) {
+      context.handle(
+        _aiMaxConversationTokensMeta,
+        aiMaxConversationTokens.isAcceptableOrUnknown(
+          data['ai_max_conversation_tokens']!,
+          _aiMaxConversationTokensMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -8346,6 +10726,28 @@ class $CompanySettingsTable extends CompanySettings
         DriftSqlType.int,
         data['${effectivePrefix}bill_age_critical_minutes'],
       )!,
+      aiProviderType: $CompanySettingsTable.$converteraiProviderType.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}ai_provider_type'],
+        )!,
+      ),
+      aiModel: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}ai_model'],
+      ),
+      aiRateLimitPerHour: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}ai_rate_limit_per_hour'],
+      )!,
+      aiMaxTokensPerRequest: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}ai_max_tokens_per_request'],
+      )!,
+      aiMaxConversationTokens: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}ai_max_conversation_tokens'],
+      )!,
     );
   }
 
@@ -8357,6 +10759,10 @@ class $CompanySettingsTable extends CompanySettings
   static JsonTypeConverter2<NegativeStockPolicy, String, String>
   $converternegativeStockPolicy = const EnumNameConverter<NegativeStockPolicy>(
     NegativeStockPolicy.values,
+  );
+  static JsonTypeConverter2<AiProviderType, String, String>
+  $converteraiProviderType = const EnumNameConverter<AiProviderType>(
+    AiProviderType.values,
   );
 }
 
@@ -8381,6 +10787,11 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
   final int billAgeWarningMinutes;
   final int billAgeDangerMinutes;
   final int billAgeCriticalMinutes;
+  final AiProviderType aiProviderType;
+  final String? aiModel;
+  final int aiRateLimitPerHour;
+  final int aiMaxTokensPerRequest;
+  final int aiMaxConversationTokens;
   const CompanySetting({
     this.lastSyncedAt,
     required this.version,
@@ -8402,6 +10813,11 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
     required this.billAgeWarningMinutes,
     required this.billAgeDangerMinutes,
     required this.billAgeCriticalMinutes,
+    required this.aiProviderType,
+    this.aiModel,
+    required this.aiRateLimitPerHour,
+    required this.aiMaxTokensPerRequest,
+    required this.aiMaxConversationTokens,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -8442,6 +10858,17 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
     map['bill_age_warning_minutes'] = Variable<int>(billAgeWarningMinutes);
     map['bill_age_danger_minutes'] = Variable<int>(billAgeDangerMinutes);
     map['bill_age_critical_minutes'] = Variable<int>(billAgeCriticalMinutes);
+    {
+      map['ai_provider_type'] = Variable<String>(
+        $CompanySettingsTable.$converteraiProviderType.toSql(aiProviderType),
+      );
+    }
+    if (!nullToAbsent || aiModel != null) {
+      map['ai_model'] = Variable<String>(aiModel);
+    }
+    map['ai_rate_limit_per_hour'] = Variable<int>(aiRateLimitPerHour);
+    map['ai_max_tokens_per_request'] = Variable<int>(aiMaxTokensPerRequest);
+    map['ai_max_conversation_tokens'] = Variable<int>(aiMaxConversationTokens);
     return map;
   }
 
@@ -8477,6 +10904,13 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
       billAgeWarningMinutes: Value(billAgeWarningMinutes),
       billAgeDangerMinutes: Value(billAgeDangerMinutes),
       billAgeCriticalMinutes: Value(billAgeCriticalMinutes),
+      aiProviderType: Value(aiProviderType),
+      aiModel: aiModel == null && nullToAbsent
+          ? const Value.absent()
+          : Value(aiModel),
+      aiRateLimitPerHour: Value(aiRateLimitPerHour),
+      aiMaxTokensPerRequest: Value(aiMaxTokensPerRequest),
+      aiMaxConversationTokens: Value(aiMaxConversationTokens),
     );
   }
 
@@ -8519,6 +10953,17 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
       billAgeCriticalMinutes: serializer.fromJson<int>(
         json['billAgeCriticalMinutes'],
       ),
+      aiProviderType: $CompanySettingsTable.$converteraiProviderType.fromJson(
+        serializer.fromJson<String>(json['aiProviderType']),
+      ),
+      aiModel: serializer.fromJson<String?>(json['aiModel']),
+      aiRateLimitPerHour: serializer.fromJson<int>(json['aiRateLimitPerHour']),
+      aiMaxTokensPerRequest: serializer.fromJson<int>(
+        json['aiMaxTokensPerRequest'],
+      ),
+      aiMaxConversationTokens: serializer.fromJson<int>(
+        json['aiMaxConversationTokens'],
+      ),
     );
   }
   @override
@@ -8549,6 +10994,15 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
       'billAgeWarningMinutes': serializer.toJson<int>(billAgeWarningMinutes),
       'billAgeDangerMinutes': serializer.toJson<int>(billAgeDangerMinutes),
       'billAgeCriticalMinutes': serializer.toJson<int>(billAgeCriticalMinutes),
+      'aiProviderType': serializer.toJson<String>(
+        $CompanySettingsTable.$converteraiProviderType.toJson(aiProviderType),
+      ),
+      'aiModel': serializer.toJson<String?>(aiModel),
+      'aiRateLimitPerHour': serializer.toJson<int>(aiRateLimitPerHour),
+      'aiMaxTokensPerRequest': serializer.toJson<int>(aiMaxTokensPerRequest),
+      'aiMaxConversationTokens': serializer.toJson<int>(
+        aiMaxConversationTokens,
+      ),
     };
   }
 
@@ -8573,6 +11027,11 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
     int? billAgeWarningMinutes,
     int? billAgeDangerMinutes,
     int? billAgeCriticalMinutes,
+    AiProviderType? aiProviderType,
+    Value<String?> aiModel = const Value.absent(),
+    int? aiRateLimitPerHour,
+    int? aiMaxTokensPerRequest,
+    int? aiMaxConversationTokens,
   }) => CompanySetting(
     lastSyncedAt: lastSyncedAt.present ? lastSyncedAt.value : this.lastSyncedAt,
     version: version ?? this.version,
@@ -8603,6 +11062,12 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
     billAgeDangerMinutes: billAgeDangerMinutes ?? this.billAgeDangerMinutes,
     billAgeCriticalMinutes:
         billAgeCriticalMinutes ?? this.billAgeCriticalMinutes,
+    aiProviderType: aiProviderType ?? this.aiProviderType,
+    aiModel: aiModel.present ? aiModel.value : this.aiModel,
+    aiRateLimitPerHour: aiRateLimitPerHour ?? this.aiRateLimitPerHour,
+    aiMaxTokensPerRequest: aiMaxTokensPerRequest ?? this.aiMaxTokensPerRequest,
+    aiMaxConversationTokens:
+        aiMaxConversationTokens ?? this.aiMaxConversationTokens,
   );
   CompanySetting copyWithCompanion(CompanySettingsCompanion data) {
     return CompanySetting(
@@ -8652,6 +11117,19 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
       billAgeCriticalMinutes: data.billAgeCriticalMinutes.present
           ? data.billAgeCriticalMinutes.value
           : this.billAgeCriticalMinutes,
+      aiProviderType: data.aiProviderType.present
+          ? data.aiProviderType.value
+          : this.aiProviderType,
+      aiModel: data.aiModel.present ? data.aiModel.value : this.aiModel,
+      aiRateLimitPerHour: data.aiRateLimitPerHour.present
+          ? data.aiRateLimitPerHour.value
+          : this.aiRateLimitPerHour,
+      aiMaxTokensPerRequest: data.aiMaxTokensPerRequest.present
+          ? data.aiMaxTokensPerRequest.value
+          : this.aiMaxTokensPerRequest,
+      aiMaxConversationTokens: data.aiMaxConversationTokens.present
+          ? data.aiMaxConversationTokens.value
+          : this.aiMaxConversationTokens,
     );
   }
 
@@ -8677,13 +11155,18 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
           ..write('maxBillDiscountPercent: $maxBillDiscountPercent, ')
           ..write('billAgeWarningMinutes: $billAgeWarningMinutes, ')
           ..write('billAgeDangerMinutes: $billAgeDangerMinutes, ')
-          ..write('billAgeCriticalMinutes: $billAgeCriticalMinutes')
+          ..write('billAgeCriticalMinutes: $billAgeCriticalMinutes, ')
+          ..write('aiProviderType: $aiProviderType, ')
+          ..write('aiModel: $aiModel, ')
+          ..write('aiRateLimitPerHour: $aiRateLimitPerHour, ')
+          ..write('aiMaxTokensPerRequest: $aiMaxTokensPerRequest, ')
+          ..write('aiMaxConversationTokens: $aiMaxConversationTokens')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     lastSyncedAt,
     version,
     serverCreatedAt,
@@ -8704,7 +11187,12 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
     billAgeWarningMinutes,
     billAgeDangerMinutes,
     billAgeCriticalMinutes,
-  );
+    aiProviderType,
+    aiModel,
+    aiRateLimitPerHour,
+    aiMaxTokensPerRequest,
+    aiMaxConversationTokens,
+  ]);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -8728,7 +11216,12 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
           other.maxBillDiscountPercent == this.maxBillDiscountPercent &&
           other.billAgeWarningMinutes == this.billAgeWarningMinutes &&
           other.billAgeDangerMinutes == this.billAgeDangerMinutes &&
-          other.billAgeCriticalMinutes == this.billAgeCriticalMinutes);
+          other.billAgeCriticalMinutes == this.billAgeCriticalMinutes &&
+          other.aiProviderType == this.aiProviderType &&
+          other.aiModel == this.aiModel &&
+          other.aiRateLimitPerHour == this.aiRateLimitPerHour &&
+          other.aiMaxTokensPerRequest == this.aiMaxTokensPerRequest &&
+          other.aiMaxConversationTokens == this.aiMaxConversationTokens);
 }
 
 class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
@@ -8752,6 +11245,11 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
   final Value<int> billAgeWarningMinutes;
   final Value<int> billAgeDangerMinutes;
   final Value<int> billAgeCriticalMinutes;
+  final Value<AiProviderType> aiProviderType;
+  final Value<String?> aiModel;
+  final Value<int> aiRateLimitPerHour;
+  final Value<int> aiMaxTokensPerRequest;
+  final Value<int> aiMaxConversationTokens;
   final Value<int> rowid;
   const CompanySettingsCompanion({
     this.lastSyncedAt = const Value.absent(),
@@ -8774,6 +11272,11 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
     this.billAgeWarningMinutes = const Value.absent(),
     this.billAgeDangerMinutes = const Value.absent(),
     this.billAgeCriticalMinutes = const Value.absent(),
+    this.aiProviderType = const Value.absent(),
+    this.aiModel = const Value.absent(),
+    this.aiRateLimitPerHour = const Value.absent(),
+    this.aiMaxTokensPerRequest = const Value.absent(),
+    this.aiMaxConversationTokens = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   CompanySettingsCompanion.insert({
@@ -8797,6 +11300,11 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
     this.billAgeWarningMinutes = const Value.absent(),
     this.billAgeDangerMinutes = const Value.absent(),
     this.billAgeCriticalMinutes = const Value.absent(),
+    this.aiProviderType = const Value.absent(),
+    this.aiModel = const Value.absent(),
+    this.aiRateLimitPerHour = const Value.absent(),
+    this.aiMaxTokensPerRequest = const Value.absent(),
+    this.aiMaxConversationTokens = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        companyId = Value(companyId);
@@ -8821,6 +11329,11 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
     Expression<int>? billAgeWarningMinutes,
     Expression<int>? billAgeDangerMinutes,
     Expression<int>? billAgeCriticalMinutes,
+    Expression<String>? aiProviderType,
+    Expression<String>? aiModel,
+    Expression<int>? aiRateLimitPerHour,
+    Expression<int>? aiMaxTokensPerRequest,
+    Expression<int>? aiMaxConversationTokens,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -8852,6 +11365,14 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
         'bill_age_danger_minutes': billAgeDangerMinutes,
       if (billAgeCriticalMinutes != null)
         'bill_age_critical_minutes': billAgeCriticalMinutes,
+      if (aiProviderType != null) 'ai_provider_type': aiProviderType,
+      if (aiModel != null) 'ai_model': aiModel,
+      if (aiRateLimitPerHour != null)
+        'ai_rate_limit_per_hour': aiRateLimitPerHour,
+      if (aiMaxTokensPerRequest != null)
+        'ai_max_tokens_per_request': aiMaxTokensPerRequest,
+      if (aiMaxConversationTokens != null)
+        'ai_max_conversation_tokens': aiMaxConversationTokens,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -8877,6 +11398,11 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
     Value<int>? billAgeWarningMinutes,
     Value<int>? billAgeDangerMinutes,
     Value<int>? billAgeCriticalMinutes,
+    Value<AiProviderType>? aiProviderType,
+    Value<String?>? aiModel,
+    Value<int>? aiRateLimitPerHour,
+    Value<int>? aiMaxTokensPerRequest,
+    Value<int>? aiMaxConversationTokens,
     Value<int>? rowid,
   }) {
     return CompanySettingsCompanion(
@@ -8905,6 +11431,13 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
       billAgeDangerMinutes: billAgeDangerMinutes ?? this.billAgeDangerMinutes,
       billAgeCriticalMinutes:
           billAgeCriticalMinutes ?? this.billAgeCriticalMinutes,
+      aiProviderType: aiProviderType ?? this.aiProviderType,
+      aiModel: aiModel ?? this.aiModel,
+      aiRateLimitPerHour: aiRateLimitPerHour ?? this.aiRateLimitPerHour,
+      aiMaxTokensPerRequest:
+          aiMaxTokensPerRequest ?? this.aiMaxTokensPerRequest,
+      aiMaxConversationTokens:
+          aiMaxConversationTokens ?? this.aiMaxConversationTokens,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -8988,6 +11521,29 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
         billAgeCriticalMinutes.value,
       );
     }
+    if (aiProviderType.present) {
+      map['ai_provider_type'] = Variable<String>(
+        $CompanySettingsTable.$converteraiProviderType.toSql(
+          aiProviderType.value,
+        ),
+      );
+    }
+    if (aiModel.present) {
+      map['ai_model'] = Variable<String>(aiModel.value);
+    }
+    if (aiRateLimitPerHour.present) {
+      map['ai_rate_limit_per_hour'] = Variable<int>(aiRateLimitPerHour.value);
+    }
+    if (aiMaxTokensPerRequest.present) {
+      map['ai_max_tokens_per_request'] = Variable<int>(
+        aiMaxTokensPerRequest.value,
+      );
+    }
+    if (aiMaxConversationTokens.present) {
+      map['ai_max_conversation_tokens'] = Variable<int>(
+        aiMaxConversationTokens.value,
+      );
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -9017,6 +11573,11 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
           ..write('billAgeWarningMinutes: $billAgeWarningMinutes, ')
           ..write('billAgeDangerMinutes: $billAgeDangerMinutes, ')
           ..write('billAgeCriticalMinutes: $billAgeCriticalMinutes, ')
+          ..write('aiProviderType: $aiProviderType, ')
+          ..write('aiModel: $aiModel, ')
+          ..write('aiRateLimitPerHour: $aiRateLimitPerHour, ')
+          ..write('aiMaxTokensPerRequest: $aiMaxTokensPerRequest, ')
+          ..write('aiMaxConversationTokens: $aiMaxConversationTokens, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -43702,6 +46263,11 @@ class WarehousesCompanion extends UpdateCompanion<Warehouse> {
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
+  late final $AiConversationsTable aiConversations = $AiConversationsTable(
+    this,
+  );
+  late final $AiMessagesTable aiMessages = $AiMessagesTable(this);
+  late final $AiUndoLogsTable aiUndoLogs = $AiUndoLogsTable(this);
   late final $BillsTable bills = $BillsTable(this);
   late final $CashMovementsTable cashMovements = $CashMovementsTable(this);
   late final $CategoriesTable categories = $CategoriesTable(this);
@@ -43762,6 +46328,22 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $UsersTable users = $UsersTable(this);
   late final $VouchersTable vouchers = $VouchersTable(this);
   late final $WarehousesTable warehouses = $WarehousesTable(this);
+  late final Index idxAiConversationsCompanyUser = Index(
+    'idx_ai_conversations_company_user',
+    'CREATE INDEX idx_ai_conversations_company_user ON ai_conversations (company_id, user_id)',
+  );
+  late final Index idxAiMessagesConversation = Index(
+    'idx_ai_messages_conversation',
+    'CREATE INDEX idx_ai_messages_conversation ON ai_messages (conversation_id, created_at)',
+  );
+  late final Index idxAiUndoLogsConversation = Index(
+    'idx_ai_undo_logs_conversation',
+    'CREATE INDEX idx_ai_undo_logs_conversation ON ai_undo_logs (conversation_id, created_at)',
+  );
+  late final Index idxAiUndoLogsMessage = Index(
+    'idx_ai_undo_logs_message',
+    'CREATE INDEX idx_ai_undo_logs_message ON ai_undo_logs (message_id)',
+  );
   late final Index idxBillsCompanyUpdated = Index(
     'idx_bills_company_updated',
     'CREATE INDEX idx_bills_company_updated ON bills (company_id, updated_at)',
@@ -43967,6 +46549,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [
+    aiConversations,
+    aiMessages,
+    aiUndoLogs,
     bills,
     cashMovements,
     categories,
@@ -44012,6 +46597,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     users,
     vouchers,
     warehouses,
+    idxAiConversationsCompanyUser,
+    idxAiMessagesConversation,
+    idxAiUndoLogsConversation,
+    idxAiUndoLogsMessage,
     idxBillsCompanyUpdated,
     idxCashMovementsCompanyUpdated,
     idxCategoriesCompanyUpdated,
@@ -44065,6 +46654,1069 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   ];
 }
 
+typedef $$AiConversationsTableCreateCompanionBuilder =
+    AiConversationsCompanion Function({
+      required String id,
+      required String companyId,
+      required String userId,
+      Value<String?> title,
+      Value<String?> screenContext,
+      Value<bool> isArchived,
+      required DateTime createdAt,
+      required DateTime updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+typedef $$AiConversationsTableUpdateCompanionBuilder =
+    AiConversationsCompanion Function({
+      Value<String> id,
+      Value<String> companyId,
+      Value<String> userId,
+      Value<String?> title,
+      Value<String?> screenContext,
+      Value<bool> isArchived,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+
+class $$AiConversationsTableFilterComposer
+    extends Composer<_$AppDatabase, $AiConversationsTable> {
+  $$AiConversationsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get companyId => $composableBuilder(
+    column: $table.companyId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get screenContext => $composableBuilder(
+    column: $table.screenContext,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isArchived => $composableBuilder(
+    column: $table.isArchived,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$AiConversationsTableOrderingComposer
+    extends Composer<_$AppDatabase, $AiConversationsTable> {
+  $$AiConversationsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get companyId => $composableBuilder(
+    column: $table.companyId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get screenContext => $composableBuilder(
+    column: $table.screenContext,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isArchived => $composableBuilder(
+    column: $table.isArchived,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$AiConversationsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $AiConversationsTable> {
+  $$AiConversationsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get companyId =>
+      $composableBuilder(column: $table.companyId, builder: (column) => column);
+
+  GeneratedColumn<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get screenContext => $composableBuilder(
+    column: $table.screenContext,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get isArchived => $composableBuilder(
+    column: $table.isArchived,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+}
+
+class $$AiConversationsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $AiConversationsTable,
+          AiConversation,
+          $$AiConversationsTableFilterComposer,
+          $$AiConversationsTableOrderingComposer,
+          $$AiConversationsTableAnnotationComposer,
+          $$AiConversationsTableCreateCompanionBuilder,
+          $$AiConversationsTableUpdateCompanionBuilder,
+          (
+            AiConversation,
+            BaseReferences<
+              _$AppDatabase,
+              $AiConversationsTable,
+              AiConversation
+            >,
+          ),
+          AiConversation,
+          PrefetchHooks Function()
+        > {
+  $$AiConversationsTableTableManager(
+    _$AppDatabase db,
+    $AiConversationsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AiConversationsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$AiConversationsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$AiConversationsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> companyId = const Value.absent(),
+                Value<String> userId = const Value.absent(),
+                Value<String?> title = const Value.absent(),
+                Value<String?> screenContext = const Value.absent(),
+                Value<bool> isArchived = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AiConversationsCompanion(
+                id: id,
+                companyId: companyId,
+                userId: userId,
+                title: title,
+                screenContext: screenContext,
+                isArchived: isArchived,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String companyId,
+                required String userId,
+                Value<String?> title = const Value.absent(),
+                Value<String?> screenContext = const Value.absent(),
+                Value<bool> isArchived = const Value.absent(),
+                required DateTime createdAt,
+                required DateTime updatedAt,
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AiConversationsCompanion.insert(
+                id: id,
+                companyId: companyId,
+                userId: userId,
+                title: title,
+                screenContext: screenContext,
+                isArchived: isArchived,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$AiConversationsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $AiConversationsTable,
+      AiConversation,
+      $$AiConversationsTableFilterComposer,
+      $$AiConversationsTableOrderingComposer,
+      $$AiConversationsTableAnnotationComposer,
+      $$AiConversationsTableCreateCompanionBuilder,
+      $$AiConversationsTableUpdateCompanionBuilder,
+      (
+        AiConversation,
+        BaseReferences<_$AppDatabase, $AiConversationsTable, AiConversation>,
+      ),
+      AiConversation,
+      PrefetchHooks Function()
+    >;
+typedef $$AiMessagesTableCreateCompanionBuilder =
+    AiMessagesCompanion Function({
+      required String id,
+      required String companyId,
+      required String conversationId,
+      required AiMessageRole role,
+      required String content,
+      Value<String?> toolCalls,
+      Value<String?> toolResults,
+      required AiMessageStatus status,
+      Value<String?> errorMessage,
+      Value<int?> tokenCount,
+      required DateTime createdAt,
+      required DateTime updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+typedef $$AiMessagesTableUpdateCompanionBuilder =
+    AiMessagesCompanion Function({
+      Value<String> id,
+      Value<String> companyId,
+      Value<String> conversationId,
+      Value<AiMessageRole> role,
+      Value<String> content,
+      Value<String?> toolCalls,
+      Value<String?> toolResults,
+      Value<AiMessageStatus> status,
+      Value<String?> errorMessage,
+      Value<int?> tokenCount,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+
+class $$AiMessagesTableFilterComposer
+    extends Composer<_$AppDatabase, $AiMessagesTable> {
+  $$AiMessagesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get companyId => $composableBuilder(
+    column: $table.companyId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get conversationId => $composableBuilder(
+    column: $table.conversationId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<AiMessageRole, AiMessageRole, String>
+  get role => $composableBuilder(
+    column: $table.role,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<String> get content => $composableBuilder(
+    column: $table.content,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get toolCalls => $composableBuilder(
+    column: $table.toolCalls,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get toolResults => $composableBuilder(
+    column: $table.toolResults,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<AiMessageStatus, AiMessageStatus, String>
+  get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<String> get errorMessage => $composableBuilder(
+    column: $table.errorMessage,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get tokenCount => $composableBuilder(
+    column: $table.tokenCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$AiMessagesTableOrderingComposer
+    extends Composer<_$AppDatabase, $AiMessagesTable> {
+  $$AiMessagesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get companyId => $composableBuilder(
+    column: $table.companyId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get conversationId => $composableBuilder(
+    column: $table.conversationId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get role => $composableBuilder(
+    column: $table.role,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get content => $composableBuilder(
+    column: $table.content,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get toolCalls => $composableBuilder(
+    column: $table.toolCalls,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get toolResults => $composableBuilder(
+    column: $table.toolResults,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get errorMessage => $composableBuilder(
+    column: $table.errorMessage,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get tokenCount => $composableBuilder(
+    column: $table.tokenCount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$AiMessagesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $AiMessagesTable> {
+  $$AiMessagesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get companyId =>
+      $composableBuilder(column: $table.companyId, builder: (column) => column);
+
+  GeneratedColumn<String> get conversationId => $composableBuilder(
+    column: $table.conversationId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumnWithTypeConverter<AiMessageRole, String> get role =>
+      $composableBuilder(column: $table.role, builder: (column) => column);
+
+  GeneratedColumn<String> get content =>
+      $composableBuilder(column: $table.content, builder: (column) => column);
+
+  GeneratedColumn<String> get toolCalls =>
+      $composableBuilder(column: $table.toolCalls, builder: (column) => column);
+
+  GeneratedColumn<String> get toolResults => $composableBuilder(
+    column: $table.toolResults,
+    builder: (column) => column,
+  );
+
+  GeneratedColumnWithTypeConverter<AiMessageStatus, String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<String> get errorMessage => $composableBuilder(
+    column: $table.errorMessage,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get tokenCount => $composableBuilder(
+    column: $table.tokenCount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+}
+
+class $$AiMessagesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $AiMessagesTable,
+          AiMessage,
+          $$AiMessagesTableFilterComposer,
+          $$AiMessagesTableOrderingComposer,
+          $$AiMessagesTableAnnotationComposer,
+          $$AiMessagesTableCreateCompanionBuilder,
+          $$AiMessagesTableUpdateCompanionBuilder,
+          (
+            AiMessage,
+            BaseReferences<_$AppDatabase, $AiMessagesTable, AiMessage>,
+          ),
+          AiMessage,
+          PrefetchHooks Function()
+        > {
+  $$AiMessagesTableTableManager(_$AppDatabase db, $AiMessagesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AiMessagesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$AiMessagesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$AiMessagesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> companyId = const Value.absent(),
+                Value<String> conversationId = const Value.absent(),
+                Value<AiMessageRole> role = const Value.absent(),
+                Value<String> content = const Value.absent(),
+                Value<String?> toolCalls = const Value.absent(),
+                Value<String?> toolResults = const Value.absent(),
+                Value<AiMessageStatus> status = const Value.absent(),
+                Value<String?> errorMessage = const Value.absent(),
+                Value<int?> tokenCount = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AiMessagesCompanion(
+                id: id,
+                companyId: companyId,
+                conversationId: conversationId,
+                role: role,
+                content: content,
+                toolCalls: toolCalls,
+                toolResults: toolResults,
+                status: status,
+                errorMessage: errorMessage,
+                tokenCount: tokenCount,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String companyId,
+                required String conversationId,
+                required AiMessageRole role,
+                required String content,
+                Value<String?> toolCalls = const Value.absent(),
+                Value<String?> toolResults = const Value.absent(),
+                required AiMessageStatus status,
+                Value<String?> errorMessage = const Value.absent(),
+                Value<int?> tokenCount = const Value.absent(),
+                required DateTime createdAt,
+                required DateTime updatedAt,
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AiMessagesCompanion.insert(
+                id: id,
+                companyId: companyId,
+                conversationId: conversationId,
+                role: role,
+                content: content,
+                toolCalls: toolCalls,
+                toolResults: toolResults,
+                status: status,
+                errorMessage: errorMessage,
+                tokenCount: tokenCount,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$AiMessagesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $AiMessagesTable,
+      AiMessage,
+      $$AiMessagesTableFilterComposer,
+      $$AiMessagesTableOrderingComposer,
+      $$AiMessagesTableAnnotationComposer,
+      $$AiMessagesTableCreateCompanionBuilder,
+      $$AiMessagesTableUpdateCompanionBuilder,
+      (AiMessage, BaseReferences<_$AppDatabase, $AiMessagesTable, AiMessage>),
+      AiMessage,
+      PrefetchHooks Function()
+    >;
+typedef $$AiUndoLogsTableCreateCompanionBuilder =
+    AiUndoLogsCompanion Function({
+      required String id,
+      required String companyId,
+      required String conversationId,
+      required String messageId,
+      required String toolCallId,
+      required String operationType,
+      required String entityType,
+      required String entityId,
+      Value<String?> snapshotBefore,
+      Value<String?> snapshotAfter,
+      Value<bool> isUndone,
+      Value<DateTime?> undoneAt,
+      required DateTime expiresAt,
+      required DateTime createdAt,
+      required DateTime updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+typedef $$AiUndoLogsTableUpdateCompanionBuilder =
+    AiUndoLogsCompanion Function({
+      Value<String> id,
+      Value<String> companyId,
+      Value<String> conversationId,
+      Value<String> messageId,
+      Value<String> toolCallId,
+      Value<String> operationType,
+      Value<String> entityType,
+      Value<String> entityId,
+      Value<String?> snapshotBefore,
+      Value<String?> snapshotAfter,
+      Value<bool> isUndone,
+      Value<DateTime?> undoneAt,
+      Value<DateTime> expiresAt,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+
+class $$AiUndoLogsTableFilterComposer
+    extends Composer<_$AppDatabase, $AiUndoLogsTable> {
+  $$AiUndoLogsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get companyId => $composableBuilder(
+    column: $table.companyId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get conversationId => $composableBuilder(
+    column: $table.conversationId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get messageId => $composableBuilder(
+    column: $table.messageId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get toolCallId => $composableBuilder(
+    column: $table.toolCallId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get operationType => $composableBuilder(
+    column: $table.operationType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get entityType => $composableBuilder(
+    column: $table.entityType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get entityId => $composableBuilder(
+    column: $table.entityId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get snapshotBefore => $composableBuilder(
+    column: $table.snapshotBefore,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get snapshotAfter => $composableBuilder(
+    column: $table.snapshotAfter,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isUndone => $composableBuilder(
+    column: $table.isUndone,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get undoneAt => $composableBuilder(
+    column: $table.undoneAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get expiresAt => $composableBuilder(
+    column: $table.expiresAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$AiUndoLogsTableOrderingComposer
+    extends Composer<_$AppDatabase, $AiUndoLogsTable> {
+  $$AiUndoLogsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get companyId => $composableBuilder(
+    column: $table.companyId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get conversationId => $composableBuilder(
+    column: $table.conversationId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get messageId => $composableBuilder(
+    column: $table.messageId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get toolCallId => $composableBuilder(
+    column: $table.toolCallId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get operationType => $composableBuilder(
+    column: $table.operationType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get entityType => $composableBuilder(
+    column: $table.entityType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get entityId => $composableBuilder(
+    column: $table.entityId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get snapshotBefore => $composableBuilder(
+    column: $table.snapshotBefore,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get snapshotAfter => $composableBuilder(
+    column: $table.snapshotAfter,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isUndone => $composableBuilder(
+    column: $table.isUndone,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get undoneAt => $composableBuilder(
+    column: $table.undoneAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get expiresAt => $composableBuilder(
+    column: $table.expiresAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$AiUndoLogsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $AiUndoLogsTable> {
+  $$AiUndoLogsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get companyId =>
+      $composableBuilder(column: $table.companyId, builder: (column) => column);
+
+  GeneratedColumn<String> get conversationId => $composableBuilder(
+    column: $table.conversationId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get messageId =>
+      $composableBuilder(column: $table.messageId, builder: (column) => column);
+
+  GeneratedColumn<String> get toolCallId => $composableBuilder(
+    column: $table.toolCallId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get operationType => $composableBuilder(
+    column: $table.operationType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get entityType => $composableBuilder(
+    column: $table.entityType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get entityId =>
+      $composableBuilder(column: $table.entityId, builder: (column) => column);
+
+  GeneratedColumn<String> get snapshotBefore => $composableBuilder(
+    column: $table.snapshotBefore,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get snapshotAfter => $composableBuilder(
+    column: $table.snapshotAfter,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get isUndone =>
+      $composableBuilder(column: $table.isUndone, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get undoneAt =>
+      $composableBuilder(column: $table.undoneAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get expiresAt =>
+      $composableBuilder(column: $table.expiresAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+}
+
+class $$AiUndoLogsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $AiUndoLogsTable,
+          AiUndoLog,
+          $$AiUndoLogsTableFilterComposer,
+          $$AiUndoLogsTableOrderingComposer,
+          $$AiUndoLogsTableAnnotationComposer,
+          $$AiUndoLogsTableCreateCompanionBuilder,
+          $$AiUndoLogsTableUpdateCompanionBuilder,
+          (
+            AiUndoLog,
+            BaseReferences<_$AppDatabase, $AiUndoLogsTable, AiUndoLog>,
+          ),
+          AiUndoLog,
+          PrefetchHooks Function()
+        > {
+  $$AiUndoLogsTableTableManager(_$AppDatabase db, $AiUndoLogsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AiUndoLogsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$AiUndoLogsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$AiUndoLogsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> companyId = const Value.absent(),
+                Value<String> conversationId = const Value.absent(),
+                Value<String> messageId = const Value.absent(),
+                Value<String> toolCallId = const Value.absent(),
+                Value<String> operationType = const Value.absent(),
+                Value<String> entityType = const Value.absent(),
+                Value<String> entityId = const Value.absent(),
+                Value<String?> snapshotBefore = const Value.absent(),
+                Value<String?> snapshotAfter = const Value.absent(),
+                Value<bool> isUndone = const Value.absent(),
+                Value<DateTime?> undoneAt = const Value.absent(),
+                Value<DateTime> expiresAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AiUndoLogsCompanion(
+                id: id,
+                companyId: companyId,
+                conversationId: conversationId,
+                messageId: messageId,
+                toolCallId: toolCallId,
+                operationType: operationType,
+                entityType: entityType,
+                entityId: entityId,
+                snapshotBefore: snapshotBefore,
+                snapshotAfter: snapshotAfter,
+                isUndone: isUndone,
+                undoneAt: undoneAt,
+                expiresAt: expiresAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String companyId,
+                required String conversationId,
+                required String messageId,
+                required String toolCallId,
+                required String operationType,
+                required String entityType,
+                required String entityId,
+                Value<String?> snapshotBefore = const Value.absent(),
+                Value<String?> snapshotAfter = const Value.absent(),
+                Value<bool> isUndone = const Value.absent(),
+                Value<DateTime?> undoneAt = const Value.absent(),
+                required DateTime expiresAt,
+                required DateTime createdAt,
+                required DateTime updatedAt,
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AiUndoLogsCompanion.insert(
+                id: id,
+                companyId: companyId,
+                conversationId: conversationId,
+                messageId: messageId,
+                toolCallId: toolCallId,
+                operationType: operationType,
+                entityType: entityType,
+                entityId: entityId,
+                snapshotBefore: snapshotBefore,
+                snapshotAfter: snapshotAfter,
+                isUndone: isUndone,
+                undoneAt: undoneAt,
+                expiresAt: expiresAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$AiUndoLogsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $AiUndoLogsTable,
+      AiUndoLog,
+      $$AiUndoLogsTableFilterComposer,
+      $$AiUndoLogsTableOrderingComposer,
+      $$AiUndoLogsTableAnnotationComposer,
+      $$AiUndoLogsTableCreateCompanionBuilder,
+      $$AiUndoLogsTableUpdateCompanionBuilder,
+      (AiUndoLog, BaseReferences<_$AppDatabase, $AiUndoLogsTable, AiUndoLog>),
+      AiUndoLog,
+      PrefetchHooks Function()
+    >;
 typedef $$BillsTableCreateCompanionBuilder =
     BillsCompanion Function({
       Value<DateTime?> lastSyncedAt,
@@ -47567,6 +51219,11 @@ typedef $$CompanySettingsTableCreateCompanionBuilder =
       Value<int> billAgeWarningMinutes,
       Value<int> billAgeDangerMinutes,
       Value<int> billAgeCriticalMinutes,
+      Value<AiProviderType> aiProviderType,
+      Value<String?> aiModel,
+      Value<int> aiRateLimitPerHour,
+      Value<int> aiMaxTokensPerRequest,
+      Value<int> aiMaxConversationTokens,
       Value<int> rowid,
     });
 typedef $$CompanySettingsTableUpdateCompanionBuilder =
@@ -47591,6 +51248,11 @@ typedef $$CompanySettingsTableUpdateCompanionBuilder =
       Value<int> billAgeWarningMinutes,
       Value<int> billAgeDangerMinutes,
       Value<int> billAgeCriticalMinutes,
+      Value<AiProviderType> aiProviderType,
+      Value<String?> aiModel,
+      Value<int> aiRateLimitPerHour,
+      Value<int> aiMaxTokensPerRequest,
+      Value<int> aiMaxConversationTokens,
       Value<int> rowid,
     });
 
@@ -47707,6 +51369,32 @@ class $$CompanySettingsTableFilterComposer
     column: $table.billAgeCriticalMinutes,
     builder: (column) => ColumnFilters(column),
   );
+
+  ColumnWithTypeConverterFilters<AiProviderType, AiProviderType, String>
+  get aiProviderType => $composableBuilder(
+    column: $table.aiProviderType,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<String> get aiModel => $composableBuilder(
+    column: $table.aiModel,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get aiRateLimitPerHour => $composableBuilder(
+    column: $table.aiRateLimitPerHour,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get aiMaxTokensPerRequest => $composableBuilder(
+    column: $table.aiMaxTokensPerRequest,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get aiMaxConversationTokens => $composableBuilder(
+    column: $table.aiMaxConversationTokens,
+    builder: (column) => ColumnFilters(column),
+  );
 }
 
 class $$CompanySettingsTableOrderingComposer
@@ -47817,6 +51505,31 @@ class $$CompanySettingsTableOrderingComposer
     column: $table.billAgeCriticalMinutes,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get aiProviderType => $composableBuilder(
+    column: $table.aiProviderType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get aiModel => $composableBuilder(
+    column: $table.aiModel,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get aiRateLimitPerHour => $composableBuilder(
+    column: $table.aiRateLimitPerHour,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get aiMaxTokensPerRequest => $composableBuilder(
+    column: $table.aiMaxTokensPerRequest,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get aiMaxConversationTokens => $composableBuilder(
+    column: $table.aiMaxConversationTokens,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$CompanySettingsTableAnnotationComposer
@@ -47914,6 +51627,30 @@ class $$CompanySettingsTableAnnotationComposer
     column: $table.billAgeCriticalMinutes,
     builder: (column) => column,
   );
+
+  GeneratedColumnWithTypeConverter<AiProviderType, String> get aiProviderType =>
+      $composableBuilder(
+        column: $table.aiProviderType,
+        builder: (column) => column,
+      );
+
+  GeneratedColumn<String> get aiModel =>
+      $composableBuilder(column: $table.aiModel, builder: (column) => column);
+
+  GeneratedColumn<int> get aiRateLimitPerHour => $composableBuilder(
+    column: $table.aiRateLimitPerHour,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get aiMaxTokensPerRequest => $composableBuilder(
+    column: $table.aiMaxTokensPerRequest,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get aiMaxConversationTokens => $composableBuilder(
+    column: $table.aiMaxConversationTokens,
+    builder: (column) => column,
+  );
 }
 
 class $$CompanySettingsTableTableManager
@@ -47974,6 +51711,11 @@ class $$CompanySettingsTableTableManager
                 Value<int> billAgeWarningMinutes = const Value.absent(),
                 Value<int> billAgeDangerMinutes = const Value.absent(),
                 Value<int> billAgeCriticalMinutes = const Value.absent(),
+                Value<AiProviderType> aiProviderType = const Value.absent(),
+                Value<String?> aiModel = const Value.absent(),
+                Value<int> aiRateLimitPerHour = const Value.absent(),
+                Value<int> aiMaxTokensPerRequest = const Value.absent(),
+                Value<int> aiMaxConversationTokens = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => CompanySettingsCompanion(
                 lastSyncedAt: lastSyncedAt,
@@ -47996,6 +51738,11 @@ class $$CompanySettingsTableTableManager
                 billAgeWarningMinutes: billAgeWarningMinutes,
                 billAgeDangerMinutes: billAgeDangerMinutes,
                 billAgeCriticalMinutes: billAgeCriticalMinutes,
+                aiProviderType: aiProviderType,
+                aiModel: aiModel,
+                aiRateLimitPerHour: aiRateLimitPerHour,
+                aiMaxTokensPerRequest: aiMaxTokensPerRequest,
+                aiMaxConversationTokens: aiMaxConversationTokens,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -48021,6 +51768,11 @@ class $$CompanySettingsTableTableManager
                 Value<int> billAgeWarningMinutes = const Value.absent(),
                 Value<int> billAgeDangerMinutes = const Value.absent(),
                 Value<int> billAgeCriticalMinutes = const Value.absent(),
+                Value<AiProviderType> aiProviderType = const Value.absent(),
+                Value<String?> aiModel = const Value.absent(),
+                Value<int> aiRateLimitPerHour = const Value.absent(),
+                Value<int> aiMaxTokensPerRequest = const Value.absent(),
+                Value<int> aiMaxConversationTokens = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => CompanySettingsCompanion.insert(
                 lastSyncedAt: lastSyncedAt,
@@ -48043,6 +51795,11 @@ class $$CompanySettingsTableTableManager
                 billAgeWarningMinutes: billAgeWarningMinutes,
                 billAgeDangerMinutes: billAgeDangerMinutes,
                 billAgeCriticalMinutes: billAgeCriticalMinutes,
+                aiProviderType: aiProviderType,
+                aiModel: aiModel,
+                aiRateLimitPerHour: aiRateLimitPerHour,
+                aiMaxTokensPerRequest: aiMaxTokensPerRequest,
+                aiMaxConversationTokens: aiMaxConversationTokens,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -63790,6 +67547,12 @@ typedef $$WarehousesTableProcessedTableManager =
 class $AppDatabaseManager {
   final _$AppDatabase _db;
   $AppDatabaseManager(this._db);
+  $$AiConversationsTableTableManager get aiConversations =>
+      $$AiConversationsTableTableManager(_db, _db.aiConversations);
+  $$AiMessagesTableTableManager get aiMessages =>
+      $$AiMessagesTableTableManager(_db, _db.aiMessages);
+  $$AiUndoLogsTableTableManager get aiUndoLogs =>
+      $$AiUndoLogsTableTableManager(_db, _db.aiUndoLogs);
   $$BillsTableTableManager get bills =>
       $$BillsTableTableManager(_db, _db.bills);
   $$CashMovementsTableTableManager get cashMovements =>

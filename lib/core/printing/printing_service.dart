@@ -223,7 +223,11 @@ class PrintingService {
       taxRows: taxRows,
       payments: receiptPayments,
       subtotalGross: bill.subtotalGross,
-      discountAmount: bill.discountAmount,
+      discountAmount: bill.discountType == DiscountType.percent
+          ? (bill.subtotalGross * bill.discountAmount / 10000).round()
+          : bill.discountAmount,
+      loyaltyDiscountAmount: bill.loyaltyDiscountAmount,
+      voucherDiscountAmount: bill.voucherDiscountAmount,
       totalGross: bill.totalGross,
       roundingAmount: bill.roundingAmount,
       currencySymbol: currency?.symbol ?? '',

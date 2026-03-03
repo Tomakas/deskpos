@@ -189,7 +189,7 @@ class SeedService {
           PaymentMethodModel(
             id: _id(),
             companyId: companyId,
-            name: t('Poukázky', 'Gift Vouchers'),
+            name: t('Vouchery', 'Vouchers'),
             type: PaymentType.voucher,
             isActive: true,
             createdAt: now,

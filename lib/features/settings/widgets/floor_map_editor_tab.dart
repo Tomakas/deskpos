@@ -1500,7 +1500,8 @@ class _TableCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = table.color != null ? parseHexColor(table.color) : parseHexColor(section?.color);
+    final colorStr = table.color ?? section?.color;
+    final color = parsePrimaryColor(colorStr, fallback: Colors.blueGrey);
     final customShape = table.shape == TableShape.triangle || table.shape == TableShape.diamond;
     final radius = switch (table.shape) {
       TableShape.round => BorderRadius.circular(999),
@@ -1508,6 +1509,7 @@ class _TableCell extends StatelessWidget {
     };
     final fill = table.fillStyle;
     final border = table.borderStyle;
+    final gradient = fill == 2 ? parseGradient(colorStr) : null;
     final fillColor = fill == 0
         ? Colors.transparent
         : fill == 2
@@ -1543,7 +1545,9 @@ class _TableCell extends StatelessWidget {
               : null,
           child: ClipPath(
             clipper: _ShapeClipper(table.shape),
-            child: ColoredBox(color: fillColor, child: content),
+            child: gradient != null
+                ? DecoratedBox(decoration: BoxDecoration(gradient: gradient), child: content)
+                : ColoredBox(color: fillColor, child: content),
           ),
         ),
       );
@@ -1551,9 +1555,12 @@ class _TableCell extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.all(1),
-      child: Material(
-        color: fillColor,
-        borderRadius: radius,
+      child: Container(
+        decoration: BoxDecoration(
+          color: gradient == null ? fillColor : null,
+          gradient: fill == 2 ? gradient : null,
+          borderRadius: radius,
+        ),
         child: Container(
           decoration: BoxDecoration(
             border: borderColor != null ? Border.all(color: borderColor, width: 2) : null,
@@ -1593,7 +1600,8 @@ class _EditorElementCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = element.color != null ? parseHexColor(element.color) : null;
+    final color = element.color != null ? parsePrimaryColor(element.color) : null;
+    final gradient = element.fillStyle == 2 ? parseGradient(element.color) : null;
     final customShape = element.shape == TableShape.triangle || element.shape == TableShape.diamond;
     final radius = switch (element.shape) {
       TableShape.round => BorderRadius.circular(999),
@@ -1635,7 +1643,9 @@ class _EditorElementCell extends StatelessWidget {
               : null,
           child: ClipPath(
             clipper: _ShapeClipper(element.shape),
-            child: ColoredBox(color: fillColor, child: content),
+            child: gradient != null
+                ? DecoratedBox(decoration: BoxDecoration(gradient: gradient), child: content)
+                : ColoredBox(color: fillColor, child: content),
           ),
         ),
       );
@@ -1643,9 +1653,12 @@ class _EditorElementCell extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.all(1),
-      child: Material(
-        color: fillColor,
-        borderRadius: radius,
+      child: Container(
+        decoration: BoxDecoration(
+          color: gradient == null ? fillColor : null,
+          gradient: gradient,
+          borderRadius: radius,
+        ),
         child: Container(
           decoration: BoxDecoration(
             border: _borderForStyle(color, element.borderStyle, context),

@@ -127,6 +127,23 @@ case "$MENU_RESULT" in
   2) DO_PUSH=true; DO_BUILD=true ;;
 esac
 
+# Build branch selection
+BUILD_REF=""
+if [ "$DO_BUILD" = true ]; then
+  CURRENT_BRANCH=$(git branch --show-current)
+  ALL_BRANCHES=()
+  while IFS= read -r b; do ALL_BRANCHES+=("$b"); done < <(git branch --format='%(refname:short)' | sort)
+
+  # Current branch first, then the rest
+  BUILD_BRANCH_OPTIONS=("$CURRENT_BRANCH")
+  for b in "${ALL_BRANCHES[@]}"; do
+    [ "$b" != "$CURRENT_BRANCH" ] && BUILD_BRANCH_OPTIONS+=("$b")
+  done
+
+  menu_select "Build from which branch?" "${BUILD_BRANCH_OPTIONS[@]}"
+  BUILD_REF="${BUILD_BRANCH_OPTIONS[$MENU_RESULT]}"
+fi
+
 # ── Phase 2: Execute ─────────────────────────────────────────────────────────
 
 echo ""
@@ -277,7 +294,7 @@ if [ "$DO_PUSH" = true ]; then
   git push
   if [ "$DO_BUILD" = true ]; then
     echo "Triggering build workflow..."
-    gh workflow run build.yml --ref main
+    gh workflow run build.yml --ref "$BUILD_REF"
     echo "Build triggered."
   fi
 fi

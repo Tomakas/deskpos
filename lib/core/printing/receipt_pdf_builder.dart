@@ -167,14 +167,27 @@ class ReceiptPdfBuilder {
 
             _divider(),
 
-            // --- Subtotal (only if discount exists) ---
-            if (data.discountAmount > 0) ...[
+            // --- Subtotal (only if any bill-level discount exists) ---
+            if (data.discountAmount > 0 || data.loyaltyDiscountAmount > 0 || data.voucherDiscountAmount > 0) ...[
               _totalRow(labels.subtotal, _fmtMoney(data.subtotalGross), baseStyle),
-              _totalRow(
-                labels.discount,
-                '-${_fmtMoney(data.discountAmount)}',
-                baseStyle,
-              ),
+              if (data.discountAmount > 0)
+                _totalRow(
+                  labels.discount,
+                  '-${_fmtMoney(data.discountAmount)}',
+                  baseStyle,
+                ),
+              if (data.loyaltyDiscountAmount > 0)
+                _totalRow(
+                  labels.loyaltyDiscount,
+                  '-${_fmtMoney(data.loyaltyDiscountAmount)}',
+                  baseStyle,
+                ),
+              if (data.voucherDiscountAmount > 0)
+                _totalRow(
+                  labels.voucherDiscount,
+                  '-${_fmtMoney(data.voucherDiscountAmount)}',
+                  baseStyle,
+                ),
             ],
 
             // --- Rounding ---

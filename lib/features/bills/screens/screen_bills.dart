@@ -972,6 +972,7 @@ class _RightPanel extends ConsumerWidget {
                           canVouchers: canVouchers,
                           canData: canData,
                           hasSession: hasSession,
+                          canAi: ref.read(hasPermissionProvider('ai.use')),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -1173,6 +1174,7 @@ void _showMoreMenu(
   required bool canVouchers,
   required bool canData,
   required bool hasSession,
+  required bool canAi,
 }) {
   final l = btnContext.l10n;
   final button = btnContext.findRenderObject()! as RenderBox;
@@ -1195,6 +1197,7 @@ void _showMoreMenu(
       if (canVouchers) PopupMenuItem(value: 'vouchers', height: 48, child: Row(children: [const Icon(Icons.card_giftcard, size: 20), const SizedBox(width: 12), Text(l.vouchersTitle)])),
       PopupMenuItem(value: 'reservations', height: 48, child: Row(children: [const Icon(Icons.event_seat, size: 20), const SizedBox(width: 12), Text(l.moreReservations)])),
       if (canData) PopupMenuItem(value: 'data', height: 48, child: Row(children: [const Icon(Icons.sd_card, size: 20), const SizedBox(width: 12), Text(l.dataTitle)])),
+      if (canAi) PopupMenuItem(value: 'ai', height: 48, child: Row(children: [const Icon(Icons.auto_awesome, size: 20), const SizedBox(width: 12), Text(l.moreAiAssistant)])),
     ],
   ).then((value) {
     if (value == null || !btnContext.mounted) return;
@@ -1209,6 +1212,8 @@ void _showMoreMenu(
         btnContext.push('/reservations');
       case 'data':
         btnContext.push('/data');
+      case 'ai':
+        btnContext.push('/ai');
     }
   });
 }

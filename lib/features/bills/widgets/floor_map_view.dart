@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/data/enums/bill_status.dart';
-import '../../../core/logging/app_logger.dart';
 import '../../../core/data/enums/table_shape.dart';
 import '../../../core/data/models/bill_model.dart';
 import '../../../core/data/models/company_settings_model.dart';
@@ -16,6 +15,7 @@ import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
+import '../../../core/widgets/pos_color_palette.dart';
 
 const _gridCols = 32;
 const _gridRows = 20;
@@ -500,16 +500,6 @@ class _BillCircle extends ConsumerWidget {
   }
 }
 
-Color _parseColor(String? hex) {
-  if (hex == null || hex.isEmpty) return Colors.blueGrey;
-  try {
-    final colorValue = int.parse(hex.replaceFirst('#', ''), radix: 16);
-    return Color(colorValue | 0xFF000000);
-  } catch (e) {
-    AppLogger.warn('Invalid hex color: $hex', error: e);
-    return Colors.blueGrey;
-  }
-}
 
 class _MapTableCell extends StatelessWidget {
   const _MapTableCell({
@@ -525,7 +515,9 @@ class _MapTableCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = table.color != null ? _parseColor(table.color) : _parseColor(section?.color);
+    final colorStr = table.color ?? section?.color;
+    final color = parsePrimaryColor(colorStr);
+    final gradient = parseGradient(colorStr);
     final customShape = table.shape == TableShape.triangle || table.shape == TableShape.diamond;
     final radius = switch (table.shape) {
       TableShape.round => BorderRadius.circular(999),
@@ -538,6 +530,7 @@ class _MapTableCell extends StatelessWidget {
         : fill == 2
             ? color
             : color.withValues(alpha: 0.25);
+    final fillGradient = fill == 2 ? gradient : null;
     final borderColor = border == 0
         ? null
         : border == 2 ? color : color.withValues(alpha: 0.6);
@@ -572,7 +565,13 @@ class _MapTableCell extends StatelessWidget {
                 : null,
             child: ClipPath(
               clipper: _ShapeClipper(table.shape),
-              child: ColoredBox(color: fillColor, child: content),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: fillGradient == null ? fillColor : null,
+                  gradient: fillGradient,
+                ),
+                child: content,
+              ),
             ),
           ),
         ),
@@ -582,13 +581,15 @@ class _MapTableCell extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(2),
       child: Material(
-        color: fillColor,
+        color: fillGradient == null ? fillColor : Colors.transparent,
         borderRadius: radius,
         child: InkWell(
           onTap: onTap,
           borderRadius: radius,
           child: Container(
             decoration: BoxDecoration(
+              color: fillGradient != null ? null : null,
+              gradient: fillGradient,
               border: borderColor != null ? Border.all(color: borderColor, width: 2) : null,
               borderRadius: radius,
             ),
@@ -623,7 +624,7 @@ class _MapElementCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = element.color != null ? _parseColor(element.color) : null;
+    final color = element.color != null ? parsePrimaryColor(element.color) : null;
     final customShape = element.shape == TableShape.triangle || element.shape == TableShape.diamond;
     final radius = switch (element.shape) {
       TableShape.round => BorderRadius.circular(999),

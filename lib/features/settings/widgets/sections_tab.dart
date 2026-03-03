@@ -116,7 +116,8 @@ class _SectionsTabState extends ConsumerState<SectionsTab> {
                             width: 24,
                             height: 24,
                             decoration: BoxDecoration(
-                              color: parseHexColor(s.color),
+                              color: !isGradient(s.color) ? parseHexColor(s.color) : null,
+                              gradient: parseGradient(s.color),
                               borderRadius: BorderRadius.circular(4),
                             ),
                           )

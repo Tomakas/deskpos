@@ -15,7 +15,8 @@ T _$identity<T>(T value) => value;
 mixin _$CompanySettingsModel {
 
  String get id; String get companyId; bool get requirePinOnSwitch; int? get autoLockTimeoutMinutes; int get loyaltyEarnRate; int get loyaltyPointValue; String get locale; NegativeStockPolicy get negativeStockPolicy; int get maxItemDiscountPercent; int get maxBillDiscountPercent;// TODO: Add UI for editing these thresholds in company settings screen.
- int get billAgeWarningMinutes; int get billAgeDangerMinutes; int get billAgeCriticalMinutes; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+ int get billAgeWarningMinutes; int get billAgeDangerMinutes; int get billAgeCriticalMinutes;// AI assistant
+ AiProviderType get aiProviderType; String? get aiModel; int get aiRateLimitPerHour; int get aiMaxTokensPerRequest; int get aiMaxConversationTokens; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
 /// Create a copy of CompanySettingsModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -26,16 +27,16 @@ $CompanySettingsModelCopyWith<CompanySettingsModel> get copyWith => _$CompanySet
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CompanySettingsModel&&(identical(other.id, id) || other.id == id)&&(identical(other.companyId, companyId) || other.companyId == companyId)&&(identical(other.requirePinOnSwitch, requirePinOnSwitch) || other.requirePinOnSwitch == requirePinOnSwitch)&&(identical(other.autoLockTimeoutMinutes, autoLockTimeoutMinutes) || other.autoLockTimeoutMinutes == autoLockTimeoutMinutes)&&(identical(other.loyaltyEarnRate, loyaltyEarnRate) || other.loyaltyEarnRate == loyaltyEarnRate)&&(identical(other.loyaltyPointValue, loyaltyPointValue) || other.loyaltyPointValue == loyaltyPointValue)&&(identical(other.locale, locale) || other.locale == locale)&&(identical(other.negativeStockPolicy, negativeStockPolicy) || other.negativeStockPolicy == negativeStockPolicy)&&(identical(other.maxItemDiscountPercent, maxItemDiscountPercent) || other.maxItemDiscountPercent == maxItemDiscountPercent)&&(identical(other.maxBillDiscountPercent, maxBillDiscountPercent) || other.maxBillDiscountPercent == maxBillDiscountPercent)&&(identical(other.billAgeWarningMinutes, billAgeWarningMinutes) || other.billAgeWarningMinutes == billAgeWarningMinutes)&&(identical(other.billAgeDangerMinutes, billAgeDangerMinutes) || other.billAgeDangerMinutes == billAgeDangerMinutes)&&(identical(other.billAgeCriticalMinutes, billAgeCriticalMinutes) || other.billAgeCriticalMinutes == billAgeCriticalMinutes)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CompanySettingsModel&&(identical(other.id, id) || other.id == id)&&(identical(other.companyId, companyId) || other.companyId == companyId)&&(identical(other.requirePinOnSwitch, requirePinOnSwitch) || other.requirePinOnSwitch == requirePinOnSwitch)&&(identical(other.autoLockTimeoutMinutes, autoLockTimeoutMinutes) || other.autoLockTimeoutMinutes == autoLockTimeoutMinutes)&&(identical(other.loyaltyEarnRate, loyaltyEarnRate) || other.loyaltyEarnRate == loyaltyEarnRate)&&(identical(other.loyaltyPointValue, loyaltyPointValue) || other.loyaltyPointValue == loyaltyPointValue)&&(identical(other.locale, locale) || other.locale == locale)&&(identical(other.negativeStockPolicy, negativeStockPolicy) || other.negativeStockPolicy == negativeStockPolicy)&&(identical(other.maxItemDiscountPercent, maxItemDiscountPercent) || other.maxItemDiscountPercent == maxItemDiscountPercent)&&(identical(other.maxBillDiscountPercent, maxBillDiscountPercent) || other.maxBillDiscountPercent == maxBillDiscountPercent)&&(identical(other.billAgeWarningMinutes, billAgeWarningMinutes) || other.billAgeWarningMinutes == billAgeWarningMinutes)&&(identical(other.billAgeDangerMinutes, billAgeDangerMinutes) || other.billAgeDangerMinutes == billAgeDangerMinutes)&&(identical(other.billAgeCriticalMinutes, billAgeCriticalMinutes) || other.billAgeCriticalMinutes == billAgeCriticalMinutes)&&(identical(other.aiProviderType, aiProviderType) || other.aiProviderType == aiProviderType)&&(identical(other.aiModel, aiModel) || other.aiModel == aiModel)&&(identical(other.aiRateLimitPerHour, aiRateLimitPerHour) || other.aiRateLimitPerHour == aiRateLimitPerHour)&&(identical(other.aiMaxTokensPerRequest, aiMaxTokensPerRequest) || other.aiMaxTokensPerRequest == aiMaxTokensPerRequest)&&(identical(other.aiMaxConversationTokens, aiMaxConversationTokens) || other.aiMaxConversationTokens == aiMaxConversationTokens)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,companyId,requirePinOnSwitch,autoLockTimeoutMinutes,loyaltyEarnRate,loyaltyPointValue,locale,negativeStockPolicy,maxItemDiscountPercent,maxBillDiscountPercent,billAgeWarningMinutes,billAgeDangerMinutes,billAgeCriticalMinutes,createdAt,updatedAt,deletedAt);
+int get hashCode => Object.hashAll([runtimeType,id,companyId,requirePinOnSwitch,autoLockTimeoutMinutes,loyaltyEarnRate,loyaltyPointValue,locale,negativeStockPolicy,maxItemDiscountPercent,maxBillDiscountPercent,billAgeWarningMinutes,billAgeDangerMinutes,billAgeCriticalMinutes,aiProviderType,aiModel,aiRateLimitPerHour,aiMaxTokensPerRequest,aiMaxConversationTokens,createdAt,updatedAt,deletedAt]);
 
 @override
 String toString() {
-  return 'CompanySettingsModel(id: $id, companyId: $companyId, requirePinOnSwitch: $requirePinOnSwitch, autoLockTimeoutMinutes: $autoLockTimeoutMinutes, loyaltyEarnRate: $loyaltyEarnRate, loyaltyPointValue: $loyaltyPointValue, locale: $locale, negativeStockPolicy: $negativeStockPolicy, maxItemDiscountPercent: $maxItemDiscountPercent, maxBillDiscountPercent: $maxBillDiscountPercent, billAgeWarningMinutes: $billAgeWarningMinutes, billAgeDangerMinutes: $billAgeDangerMinutes, billAgeCriticalMinutes: $billAgeCriticalMinutes, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'CompanySettingsModel(id: $id, companyId: $companyId, requirePinOnSwitch: $requirePinOnSwitch, autoLockTimeoutMinutes: $autoLockTimeoutMinutes, loyaltyEarnRate: $loyaltyEarnRate, loyaltyPointValue: $loyaltyPointValue, locale: $locale, negativeStockPolicy: $negativeStockPolicy, maxItemDiscountPercent: $maxItemDiscountPercent, maxBillDiscountPercent: $maxBillDiscountPercent, billAgeWarningMinutes: $billAgeWarningMinutes, billAgeDangerMinutes: $billAgeDangerMinutes, billAgeCriticalMinutes: $billAgeCriticalMinutes, aiProviderType: $aiProviderType, aiModel: $aiModel, aiRateLimitPerHour: $aiRateLimitPerHour, aiMaxTokensPerRequest: $aiMaxTokensPerRequest, aiMaxConversationTokens: $aiMaxConversationTokens, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -46,7 +47,7 @@ abstract mixin class $CompanySettingsModelCopyWith<$Res>  {
   factory $CompanySettingsModelCopyWith(CompanySettingsModel value, $Res Function(CompanySettingsModel) _then) = _$CompanySettingsModelCopyWithImpl;
 @useResult
 $Res call({
- String id, String companyId, bool requirePinOnSwitch, int? autoLockTimeoutMinutes, int loyaltyEarnRate, int loyaltyPointValue, String locale, NegativeStockPolicy negativeStockPolicy, int maxItemDiscountPercent, int maxBillDiscountPercent, int billAgeWarningMinutes, int billAgeDangerMinutes, int billAgeCriticalMinutes, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String companyId, bool requirePinOnSwitch, int? autoLockTimeoutMinutes, int loyaltyEarnRate, int loyaltyPointValue, String locale, NegativeStockPolicy negativeStockPolicy, int maxItemDiscountPercent, int maxBillDiscountPercent, int billAgeWarningMinutes, int billAgeDangerMinutes, int billAgeCriticalMinutes, AiProviderType aiProviderType, String? aiModel, int aiRateLimitPerHour, int aiMaxTokensPerRequest, int aiMaxConversationTokens, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -63,7 +64,7 @@ class _$CompanySettingsModelCopyWithImpl<$Res>
 
 /// Create a copy of CompanySettingsModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? companyId = null,Object? requirePinOnSwitch = null,Object? autoLockTimeoutMinutes = freezed,Object? loyaltyEarnRate = null,Object? loyaltyPointValue = null,Object? locale = null,Object? negativeStockPolicy = null,Object? maxItemDiscountPercent = null,Object? maxBillDiscountPercent = null,Object? billAgeWarningMinutes = null,Object? billAgeDangerMinutes = null,Object? billAgeCriticalMinutes = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? companyId = null,Object? requirePinOnSwitch = null,Object? autoLockTimeoutMinutes = freezed,Object? loyaltyEarnRate = null,Object? loyaltyPointValue = null,Object? locale = null,Object? negativeStockPolicy = null,Object? maxItemDiscountPercent = null,Object? maxBillDiscountPercent = null,Object? billAgeWarningMinutes = null,Object? billAgeDangerMinutes = null,Object? billAgeCriticalMinutes = null,Object? aiProviderType = null,Object? aiModel = freezed,Object? aiRateLimitPerHour = null,Object? aiMaxTokensPerRequest = null,Object? aiMaxConversationTokens = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,companyId: null == companyId ? _self.companyId : companyId // ignore: cast_nullable_to_non_nullable
@@ -78,6 +79,11 @@ as int,maxBillDiscountPercent: null == maxBillDiscountPercent ? _self.maxBillDis
 as int,billAgeWarningMinutes: null == billAgeWarningMinutes ? _self.billAgeWarningMinutes : billAgeWarningMinutes // ignore: cast_nullable_to_non_nullable
 as int,billAgeDangerMinutes: null == billAgeDangerMinutes ? _self.billAgeDangerMinutes : billAgeDangerMinutes // ignore: cast_nullable_to_non_nullable
 as int,billAgeCriticalMinutes: null == billAgeCriticalMinutes ? _self.billAgeCriticalMinutes : billAgeCriticalMinutes // ignore: cast_nullable_to_non_nullable
+as int,aiProviderType: null == aiProviderType ? _self.aiProviderType : aiProviderType // ignore: cast_nullable_to_non_nullable
+as AiProviderType,aiModel: freezed == aiModel ? _self.aiModel : aiModel // ignore: cast_nullable_to_non_nullable
+as String?,aiRateLimitPerHour: null == aiRateLimitPerHour ? _self.aiRateLimitPerHour : aiRateLimitPerHour // ignore: cast_nullable_to_non_nullable
+as int,aiMaxTokensPerRequest: null == aiMaxTokensPerRequest ? _self.aiMaxTokensPerRequest : aiMaxTokensPerRequest // ignore: cast_nullable_to_non_nullable
+as int,aiMaxConversationTokens: null == aiMaxConversationTokens ? _self.aiMaxConversationTokens : aiMaxConversationTokens // ignore: cast_nullable_to_non_nullable
 as int,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
@@ -166,10 +172,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String companyId,  bool requirePinOnSwitch,  int? autoLockTimeoutMinutes,  int loyaltyEarnRate,  int loyaltyPointValue,  String locale,  NegativeStockPolicy negativeStockPolicy,  int maxItemDiscountPercent,  int maxBillDiscountPercent,  int billAgeWarningMinutes,  int billAgeDangerMinutes,  int billAgeCriticalMinutes,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String companyId,  bool requirePinOnSwitch,  int? autoLockTimeoutMinutes,  int loyaltyEarnRate,  int loyaltyPointValue,  String locale,  NegativeStockPolicy negativeStockPolicy,  int maxItemDiscountPercent,  int maxBillDiscountPercent,  int billAgeWarningMinutes,  int billAgeDangerMinutes,  int billAgeCriticalMinutes,  AiProviderType aiProviderType,  String? aiModel,  int aiRateLimitPerHour,  int aiMaxTokensPerRequest,  int aiMaxConversationTokens,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CompanySettingsModel() when $default != null:
-return $default(_that.id,_that.companyId,_that.requirePinOnSwitch,_that.autoLockTimeoutMinutes,_that.loyaltyEarnRate,_that.loyaltyPointValue,_that.locale,_that.negativeStockPolicy,_that.maxItemDiscountPercent,_that.maxBillDiscountPercent,_that.billAgeWarningMinutes,_that.billAgeDangerMinutes,_that.billAgeCriticalMinutes,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.companyId,_that.requirePinOnSwitch,_that.autoLockTimeoutMinutes,_that.loyaltyEarnRate,_that.loyaltyPointValue,_that.locale,_that.negativeStockPolicy,_that.maxItemDiscountPercent,_that.maxBillDiscountPercent,_that.billAgeWarningMinutes,_that.billAgeDangerMinutes,_that.billAgeCriticalMinutes,_that.aiProviderType,_that.aiModel,_that.aiRateLimitPerHour,_that.aiMaxTokensPerRequest,_that.aiMaxConversationTokens,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   return orElse();
 
 }
@@ -187,10 +193,10 @@ return $default(_that.id,_that.companyId,_that.requirePinOnSwitch,_that.autoLock
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String companyId,  bool requirePinOnSwitch,  int? autoLockTimeoutMinutes,  int loyaltyEarnRate,  int loyaltyPointValue,  String locale,  NegativeStockPolicy negativeStockPolicy,  int maxItemDiscountPercent,  int maxBillDiscountPercent,  int billAgeWarningMinutes,  int billAgeDangerMinutes,  int billAgeCriticalMinutes,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String companyId,  bool requirePinOnSwitch,  int? autoLockTimeoutMinutes,  int loyaltyEarnRate,  int loyaltyPointValue,  String locale,  NegativeStockPolicy negativeStockPolicy,  int maxItemDiscountPercent,  int maxBillDiscountPercent,  int billAgeWarningMinutes,  int billAgeDangerMinutes,  int billAgeCriticalMinutes,  AiProviderType aiProviderType,  String? aiModel,  int aiRateLimitPerHour,  int aiMaxTokensPerRequest,  int aiMaxConversationTokens,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
 switch (_that) {
 case _CompanySettingsModel():
-return $default(_that.id,_that.companyId,_that.requirePinOnSwitch,_that.autoLockTimeoutMinutes,_that.loyaltyEarnRate,_that.loyaltyPointValue,_that.locale,_that.negativeStockPolicy,_that.maxItemDiscountPercent,_that.maxBillDiscountPercent,_that.billAgeWarningMinutes,_that.billAgeDangerMinutes,_that.billAgeCriticalMinutes,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.companyId,_that.requirePinOnSwitch,_that.autoLockTimeoutMinutes,_that.loyaltyEarnRate,_that.loyaltyPointValue,_that.locale,_that.negativeStockPolicy,_that.maxItemDiscountPercent,_that.maxBillDiscountPercent,_that.billAgeWarningMinutes,_that.billAgeDangerMinutes,_that.billAgeCriticalMinutes,_that.aiProviderType,_that.aiModel,_that.aiRateLimitPerHour,_that.aiMaxTokensPerRequest,_that.aiMaxConversationTokens,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -207,10 +213,10 @@ return $default(_that.id,_that.companyId,_that.requirePinOnSwitch,_that.autoLock
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String companyId,  bool requirePinOnSwitch,  int? autoLockTimeoutMinutes,  int loyaltyEarnRate,  int loyaltyPointValue,  String locale,  NegativeStockPolicy negativeStockPolicy,  int maxItemDiscountPercent,  int maxBillDiscountPercent,  int billAgeWarningMinutes,  int billAgeDangerMinutes,  int billAgeCriticalMinutes,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String companyId,  bool requirePinOnSwitch,  int? autoLockTimeoutMinutes,  int loyaltyEarnRate,  int loyaltyPointValue,  String locale,  NegativeStockPolicy negativeStockPolicy,  int maxItemDiscountPercent,  int maxBillDiscountPercent,  int billAgeWarningMinutes,  int billAgeDangerMinutes,  int billAgeCriticalMinutes,  AiProviderType aiProviderType,  String? aiModel,  int aiRateLimitPerHour,  int aiMaxTokensPerRequest,  int aiMaxConversationTokens,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _CompanySettingsModel() when $default != null:
-return $default(_that.id,_that.companyId,_that.requirePinOnSwitch,_that.autoLockTimeoutMinutes,_that.loyaltyEarnRate,_that.loyaltyPointValue,_that.locale,_that.negativeStockPolicy,_that.maxItemDiscountPercent,_that.maxBillDiscountPercent,_that.billAgeWarningMinutes,_that.billAgeDangerMinutes,_that.billAgeCriticalMinutes,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.companyId,_that.requirePinOnSwitch,_that.autoLockTimeoutMinutes,_that.loyaltyEarnRate,_that.loyaltyPointValue,_that.locale,_that.negativeStockPolicy,_that.maxItemDiscountPercent,_that.maxBillDiscountPercent,_that.billAgeWarningMinutes,_that.billAgeDangerMinutes,_that.billAgeCriticalMinutes,_that.aiProviderType,_that.aiModel,_that.aiRateLimitPerHour,_that.aiMaxTokensPerRequest,_that.aiMaxConversationTokens,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   return null;
 
 }
@@ -222,7 +228,7 @@ return $default(_that.id,_that.companyId,_that.requirePinOnSwitch,_that.autoLock
 
 
 class _CompanySettingsModel implements CompanySettingsModel {
-  const _CompanySettingsModel({required this.id, required this.companyId, this.requirePinOnSwitch = true, this.autoLockTimeoutMinutes, this.loyaltyEarnRate = 0, this.loyaltyPointValue = 0, this.locale = 'cs', this.negativeStockPolicy = NegativeStockPolicy.allow, this.maxItemDiscountPercent = 2000, this.maxBillDiscountPercent = 2000, this.billAgeWarningMinutes = 15, this.billAgeDangerMinutes = 30, this.billAgeCriticalMinutes = 45, required this.createdAt, required this.updatedAt, this.deletedAt});
+  const _CompanySettingsModel({required this.id, required this.companyId, this.requirePinOnSwitch = true, this.autoLockTimeoutMinutes, this.loyaltyEarnRate = 0, this.loyaltyPointValue = 0, this.locale = 'cs', this.negativeStockPolicy = NegativeStockPolicy.allow, this.maxItemDiscountPercent = 2000, this.maxBillDiscountPercent = 2000, this.billAgeWarningMinutes = 15, this.billAgeDangerMinutes = 30, this.billAgeCriticalMinutes = 45, this.aiProviderType = AiProviderType.none, this.aiModel, this.aiRateLimitPerHour = 60, this.aiMaxTokensPerRequest = 4096, this.aiMaxConversationTokens = 16000, required this.createdAt, required this.updatedAt, this.deletedAt});
   
 
 @override final  String id;
@@ -239,6 +245,12 @@ class _CompanySettingsModel implements CompanySettingsModel {
 @override@JsonKey() final  int billAgeWarningMinutes;
 @override@JsonKey() final  int billAgeDangerMinutes;
 @override@JsonKey() final  int billAgeCriticalMinutes;
+// AI assistant
+@override@JsonKey() final  AiProviderType aiProviderType;
+@override final  String? aiModel;
+@override@JsonKey() final  int aiRateLimitPerHour;
+@override@JsonKey() final  int aiMaxTokensPerRequest;
+@override@JsonKey() final  int aiMaxConversationTokens;
 @override final  DateTime createdAt;
 @override final  DateTime updatedAt;
 @override final  DateTime? deletedAt;
@@ -253,16 +265,16 @@ _$CompanySettingsModelCopyWith<_CompanySettingsModel> get copyWith => __$Company
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CompanySettingsModel&&(identical(other.id, id) || other.id == id)&&(identical(other.companyId, companyId) || other.companyId == companyId)&&(identical(other.requirePinOnSwitch, requirePinOnSwitch) || other.requirePinOnSwitch == requirePinOnSwitch)&&(identical(other.autoLockTimeoutMinutes, autoLockTimeoutMinutes) || other.autoLockTimeoutMinutes == autoLockTimeoutMinutes)&&(identical(other.loyaltyEarnRate, loyaltyEarnRate) || other.loyaltyEarnRate == loyaltyEarnRate)&&(identical(other.loyaltyPointValue, loyaltyPointValue) || other.loyaltyPointValue == loyaltyPointValue)&&(identical(other.locale, locale) || other.locale == locale)&&(identical(other.negativeStockPolicy, negativeStockPolicy) || other.negativeStockPolicy == negativeStockPolicy)&&(identical(other.maxItemDiscountPercent, maxItemDiscountPercent) || other.maxItemDiscountPercent == maxItemDiscountPercent)&&(identical(other.maxBillDiscountPercent, maxBillDiscountPercent) || other.maxBillDiscountPercent == maxBillDiscountPercent)&&(identical(other.billAgeWarningMinutes, billAgeWarningMinutes) || other.billAgeWarningMinutes == billAgeWarningMinutes)&&(identical(other.billAgeDangerMinutes, billAgeDangerMinutes) || other.billAgeDangerMinutes == billAgeDangerMinutes)&&(identical(other.billAgeCriticalMinutes, billAgeCriticalMinutes) || other.billAgeCriticalMinutes == billAgeCriticalMinutes)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CompanySettingsModel&&(identical(other.id, id) || other.id == id)&&(identical(other.companyId, companyId) || other.companyId == companyId)&&(identical(other.requirePinOnSwitch, requirePinOnSwitch) || other.requirePinOnSwitch == requirePinOnSwitch)&&(identical(other.autoLockTimeoutMinutes, autoLockTimeoutMinutes) || other.autoLockTimeoutMinutes == autoLockTimeoutMinutes)&&(identical(other.loyaltyEarnRate, loyaltyEarnRate) || other.loyaltyEarnRate == loyaltyEarnRate)&&(identical(other.loyaltyPointValue, loyaltyPointValue) || other.loyaltyPointValue == loyaltyPointValue)&&(identical(other.locale, locale) || other.locale == locale)&&(identical(other.negativeStockPolicy, negativeStockPolicy) || other.negativeStockPolicy == negativeStockPolicy)&&(identical(other.maxItemDiscountPercent, maxItemDiscountPercent) || other.maxItemDiscountPercent == maxItemDiscountPercent)&&(identical(other.maxBillDiscountPercent, maxBillDiscountPercent) || other.maxBillDiscountPercent == maxBillDiscountPercent)&&(identical(other.billAgeWarningMinutes, billAgeWarningMinutes) || other.billAgeWarningMinutes == billAgeWarningMinutes)&&(identical(other.billAgeDangerMinutes, billAgeDangerMinutes) || other.billAgeDangerMinutes == billAgeDangerMinutes)&&(identical(other.billAgeCriticalMinutes, billAgeCriticalMinutes) || other.billAgeCriticalMinutes == billAgeCriticalMinutes)&&(identical(other.aiProviderType, aiProviderType) || other.aiProviderType == aiProviderType)&&(identical(other.aiModel, aiModel) || other.aiModel == aiModel)&&(identical(other.aiRateLimitPerHour, aiRateLimitPerHour) || other.aiRateLimitPerHour == aiRateLimitPerHour)&&(identical(other.aiMaxTokensPerRequest, aiMaxTokensPerRequest) || other.aiMaxTokensPerRequest == aiMaxTokensPerRequest)&&(identical(other.aiMaxConversationTokens, aiMaxConversationTokens) || other.aiMaxConversationTokens == aiMaxConversationTokens)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,companyId,requirePinOnSwitch,autoLockTimeoutMinutes,loyaltyEarnRate,loyaltyPointValue,locale,negativeStockPolicy,maxItemDiscountPercent,maxBillDiscountPercent,billAgeWarningMinutes,billAgeDangerMinutes,billAgeCriticalMinutes,createdAt,updatedAt,deletedAt);
+int get hashCode => Object.hashAll([runtimeType,id,companyId,requirePinOnSwitch,autoLockTimeoutMinutes,loyaltyEarnRate,loyaltyPointValue,locale,negativeStockPolicy,maxItemDiscountPercent,maxBillDiscountPercent,billAgeWarningMinutes,billAgeDangerMinutes,billAgeCriticalMinutes,aiProviderType,aiModel,aiRateLimitPerHour,aiMaxTokensPerRequest,aiMaxConversationTokens,createdAt,updatedAt,deletedAt]);
 
 @override
 String toString() {
-  return 'CompanySettingsModel(id: $id, companyId: $companyId, requirePinOnSwitch: $requirePinOnSwitch, autoLockTimeoutMinutes: $autoLockTimeoutMinutes, loyaltyEarnRate: $loyaltyEarnRate, loyaltyPointValue: $loyaltyPointValue, locale: $locale, negativeStockPolicy: $negativeStockPolicy, maxItemDiscountPercent: $maxItemDiscountPercent, maxBillDiscountPercent: $maxBillDiscountPercent, billAgeWarningMinutes: $billAgeWarningMinutes, billAgeDangerMinutes: $billAgeDangerMinutes, billAgeCriticalMinutes: $billAgeCriticalMinutes, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'CompanySettingsModel(id: $id, companyId: $companyId, requirePinOnSwitch: $requirePinOnSwitch, autoLockTimeoutMinutes: $autoLockTimeoutMinutes, loyaltyEarnRate: $loyaltyEarnRate, loyaltyPointValue: $loyaltyPointValue, locale: $locale, negativeStockPolicy: $negativeStockPolicy, maxItemDiscountPercent: $maxItemDiscountPercent, maxBillDiscountPercent: $maxBillDiscountPercent, billAgeWarningMinutes: $billAgeWarningMinutes, billAgeDangerMinutes: $billAgeDangerMinutes, billAgeCriticalMinutes: $billAgeCriticalMinutes, aiProviderType: $aiProviderType, aiModel: $aiModel, aiRateLimitPerHour: $aiRateLimitPerHour, aiMaxTokensPerRequest: $aiMaxTokensPerRequest, aiMaxConversationTokens: $aiMaxConversationTokens, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -273,7 +285,7 @@ abstract mixin class _$CompanySettingsModelCopyWith<$Res> implements $CompanySet
   factory _$CompanySettingsModelCopyWith(_CompanySettingsModel value, $Res Function(_CompanySettingsModel) _then) = __$CompanySettingsModelCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String companyId, bool requirePinOnSwitch, int? autoLockTimeoutMinutes, int loyaltyEarnRate, int loyaltyPointValue, String locale, NegativeStockPolicy negativeStockPolicy, int maxItemDiscountPercent, int maxBillDiscountPercent, int billAgeWarningMinutes, int billAgeDangerMinutes, int billAgeCriticalMinutes, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String companyId, bool requirePinOnSwitch, int? autoLockTimeoutMinutes, int loyaltyEarnRate, int loyaltyPointValue, String locale, NegativeStockPolicy negativeStockPolicy, int maxItemDiscountPercent, int maxBillDiscountPercent, int billAgeWarningMinutes, int billAgeDangerMinutes, int billAgeCriticalMinutes, AiProviderType aiProviderType, String? aiModel, int aiRateLimitPerHour, int aiMaxTokensPerRequest, int aiMaxConversationTokens, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -290,7 +302,7 @@ class __$CompanySettingsModelCopyWithImpl<$Res>
 
 /// Create a copy of CompanySettingsModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? companyId = null,Object? requirePinOnSwitch = null,Object? autoLockTimeoutMinutes = freezed,Object? loyaltyEarnRate = null,Object? loyaltyPointValue = null,Object? locale = null,Object? negativeStockPolicy = null,Object? maxItemDiscountPercent = null,Object? maxBillDiscountPercent = null,Object? billAgeWarningMinutes = null,Object? billAgeDangerMinutes = null,Object? billAgeCriticalMinutes = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? companyId = null,Object? requirePinOnSwitch = null,Object? autoLockTimeoutMinutes = freezed,Object? loyaltyEarnRate = null,Object? loyaltyPointValue = null,Object? locale = null,Object? negativeStockPolicy = null,Object? maxItemDiscountPercent = null,Object? maxBillDiscountPercent = null,Object? billAgeWarningMinutes = null,Object? billAgeDangerMinutes = null,Object? billAgeCriticalMinutes = null,Object? aiProviderType = null,Object? aiModel = freezed,Object? aiRateLimitPerHour = null,Object? aiMaxTokensPerRequest = null,Object? aiMaxConversationTokens = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_CompanySettingsModel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,companyId: null == companyId ? _self.companyId : companyId // ignore: cast_nullable_to_non_nullable
@@ -305,6 +317,11 @@ as int,maxBillDiscountPercent: null == maxBillDiscountPercent ? _self.maxBillDis
 as int,billAgeWarningMinutes: null == billAgeWarningMinutes ? _self.billAgeWarningMinutes : billAgeWarningMinutes // ignore: cast_nullable_to_non_nullable
 as int,billAgeDangerMinutes: null == billAgeDangerMinutes ? _self.billAgeDangerMinutes : billAgeDangerMinutes // ignore: cast_nullable_to_non_nullable
 as int,billAgeCriticalMinutes: null == billAgeCriticalMinutes ? _self.billAgeCriticalMinutes : billAgeCriticalMinutes // ignore: cast_nullable_to_non_nullable
+as int,aiProviderType: null == aiProviderType ? _self.aiProviderType : aiProviderType // ignore: cast_nullable_to_non_nullable
+as AiProviderType,aiModel: freezed == aiModel ? _self.aiModel : aiModel // ignore: cast_nullable_to_non_nullable
+as String?,aiRateLimitPerHour: null == aiRateLimitPerHour ? _self.aiRateLimitPerHour : aiRateLimitPerHour // ignore: cast_nullable_to_non_nullable
+as int,aiMaxTokensPerRequest: null == aiMaxTokensPerRequest ? _self.aiMaxTokensPerRequest : aiMaxTokensPerRequest // ignore: cast_nullable_to_non_nullable
+as int,aiMaxConversationTokens: null == aiMaxConversationTokens ? _self.aiMaxConversationTokens : aiMaxConversationTokens // ignore: cast_nullable_to_non_nullable
 as int,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable

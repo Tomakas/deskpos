@@ -179,22 +179,25 @@ class _DialogGridEditorState extends ConsumerState<DialogGridEditor> {
     String label = l.sellEmptySlot;
     Color color = theme.colorScheme.surfaceContainerHighest;
 
+    Gradient? gradient;
     if (layoutItem != null) {
       if (layoutItem.type == LayoutItemType.item) {
         final item =
             allItems.where((i) => i.id == layoutItem.itemId).firstOrNull;
         label = layoutItem.label ?? item?.name ?? '?';
         color = layoutItem.color != null
-            ? parseHexColor(layoutItem.color)
+            ? parsePrimaryColor(layoutItem.color)
             : theme.colorScheme.primaryContainer;
+        gradient = parseGradient(layoutItem.color);
       } else {
         final cat = allCategories
             .where((c) => c.id == layoutItem.categoryId)
             .firstOrNull;
         label = layoutItem.label ?? cat?.name ?? '?';
         color = layoutItem.color != null
-            ? parseHexColor(layoutItem.color)
+            ? parsePrimaryColor(layoutItem.color)
             : theme.colorScheme.secondaryContainer;
+        gradient = parseGradient(layoutItem.color);
       }
     }
 
@@ -212,10 +215,16 @@ class _DialogGridEditorState extends ConsumerState<DialogGridEditor> {
 
     return Padding(
       padding: const EdgeInsets.all(2),
-      child: Material(
-        color: color,
-        borderRadius: BorderRadius.circular(8),
-        child: InkWell(
+      child: Container(
+        decoration: BoxDecoration(
+          color: gradient == null ? color : null,
+          gradient: gradient,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        clipBehavior: Clip.hardEdge,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
           onTap: () {
             // [0,0] on sub-pages is always back button
             if (_currentPage > 0 && row == 0 && col == 0 &&
@@ -299,6 +308,7 @@ class _DialogGridEditorState extends ConsumerState<DialogGridEditor> {
                   ],
                 ),
         ),
+      ),
       ),
     );
   }

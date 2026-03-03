@@ -407,7 +407,7 @@ BEGIN
         WHEN 'pm:card'    THEN CASE p_locale WHEN 'cs' THEN 'Karta' ELSE 'Card' END
         WHEN 'pm:bank'    THEN CASE p_locale WHEN 'cs' THEN 'Převod' ELSE 'Bank Transfer' END
         WHEN 'pm:credit'  THEN CASE p_locale WHEN 'cs' THEN 'Zákaznický kredit' ELSE 'Customer Credit' END
-        WHEN 'pm:voucher' THEN CASE p_locale WHEN 'cs' THEN 'Poukázky' ELSE 'Gift Vouchers' END
+        WHEN 'pm:voucher' THEN CASE p_locale WHEN 'cs' THEN 'Vouchery' ELSE 'Vouchers' END
         WHEN 'pm:mealTicket' THEN CASE p_locale WHEN 'cs' THEN 'Stravenky' ELSE 'Meal Tickets' END
       END,
       (v_rec.data->>'type')::payment_type,
@@ -938,6 +938,16 @@ BEGIN
     v_r          int;
     v_li_idx     int;
     v_start_col  int;
+    v_cat_color   text := '#6D4C41';
+    v_item_colors text[] := ARRAY[
+      'linear:135:#1E88E5,#00ACC1',  -- Blue→Cyan
+      'linear:135:#FDD835,#FB8C00',  -- Yellow→Orange
+      'linear:135:#E53935,#FF5722',  -- Red→Deep Orange
+      'linear:135:#43A047,#C0CA33',  -- Green→Lime
+      'linear:135:#EC407A,#AB47BC',  -- Pink→Purple
+      'linear:135:#FB8C00,#FF5722',  -- Orange→Deep Orange
+      'linear:135:#AB47BC,#5C6BC0'   -- Purple→Indigo
+    ];
   BEGIN
     -- Collect category refs that have sellable items, in sort_order
     SELECT array_agg(ref ORDER BY sort_order)
@@ -967,21 +977,21 @@ BEGIN
           AND i.item_type != 'modifier';
 
         -- Page 0: category at (row, 0)
-        INSERT INTO layout_items (id, company_id, register_id, page, grid_row, grid_col, type, category_id, client_created_at, client_updated_at)
-        VALUES (gen_random_uuid()::text, v_company_id, v_register_id, 0, v_idx - 1, 0, 'category'::layout_item_type, v_cat_id_cur, v_now, v_now);
+        INSERT INTO layout_items (id, company_id, register_id, page, grid_row, grid_col, type, category_id, color, client_created_at, client_updated_at)
+        VALUES (gen_random_uuid()::text, v_company_id, v_register_id, 0, v_idx - 1, 0, 'category'::layout_item_type, v_cat_id_cur, v_cat_color, v_now, v_now);
 
         -- Page 0: items at (row, 1..7)
         IF v_sellable_items IS NOT NULL THEN
           FOR v_c IN 1..least(v_grid_cols - 1, array_length(v_sellable_items, 1))
           LOOP
-            INSERT INTO layout_items (id, company_id, register_id, page, grid_row, grid_col, type, item_id, client_created_at, client_updated_at)
-            VALUES (gen_random_uuid()::text, v_company_id, v_register_id, 0, v_idx - 1, v_c, 'item'::layout_item_type, v_sellable_items[v_c], v_now, v_now);
+            INSERT INTO layout_items (id, company_id, register_id, page, grid_row, grid_col, type, item_id, color, client_created_at, client_updated_at)
+            VALUES (gen_random_uuid()::text, v_company_id, v_register_id, 0, v_idx - 1, v_c, 'item'::layout_item_type, v_sellable_items[v_c], v_item_colors[((v_idx - 1) % array_length(v_item_colors, 1)) + 1], v_now, v_now);
           END LOOP;
 
           -- Subpage: category at (0,0), then all items
           IF array_length(v_sellable_items, 1) > 0 THEN
-            INSERT INTO layout_items (id, company_id, register_id, page, grid_row, grid_col, type, category_id, client_created_at, client_updated_at)
-            VALUES (gen_random_uuid()::text, v_company_id, v_register_id, v_page_counter, 0, 0, 'category'::layout_item_type, v_cat_id_cur, v_now, v_now);
+            INSERT INTO layout_items (id, company_id, register_id, page, grid_row, grid_col, type, category_id, color, client_created_at, client_updated_at)
+            VALUES (gen_random_uuid()::text, v_company_id, v_register_id, v_page_counter, 0, 0, 'category'::layout_item_type, v_cat_id_cur, v_cat_color, v_now, v_now);
 
             v_li_idx := 1;  -- 1-based index into v_sellable_items
             FOR v_r IN 0..v_grid_rows - 1
@@ -1408,7 +1418,7 @@ BEGIN
                             client_created_at, client_updated_at)
         VALUES (
           v_order_id, v_company_id, v_bill_id, v_register_id, v_order_user, v_order_number,
-          (CASE WHEN v_bill_status = 'cancelled' THEN 'cancelled' ELSE v_prep_status END)::prep_status,
+          (CASE WHEN v_bill_status = 'cancelled' THEN 'voided' ELSE v_prep_status END)::prep_status,
           v_order_count, v_order_gross::int, v_order_net::int, v_order_tax::int,
           CASE WHEN v_prep_status IN ('delivered', 'ready', 'created') THEN v_bill_time ELSE NULL END,
           CASE WHEN v_prep_status IN ('delivered', 'ready') THEN v_bill_time + interval '5 minutes' ELSE NULL END,

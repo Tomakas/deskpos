@@ -127,6 +127,11 @@ CompanySettingsModel companySettingsFromEntity(CompanySetting e) => CompanySetti
       billAgeWarningMinutes: e.billAgeWarningMinutes,
       billAgeDangerMinutes: e.billAgeDangerMinutes,
       billAgeCriticalMinutes: e.billAgeCriticalMinutes,
+      aiProviderType: e.aiProviderType,
+      aiModel: e.aiModel,
+      aiRateLimitPerHour: e.aiRateLimitPerHour,
+      aiMaxTokensPerRequest: e.aiMaxTokensPerRequest,
+      aiMaxConversationTokens: e.aiMaxConversationTokens,
       createdAt: e.createdAt,
       updatedAt: e.updatedAt,
       deletedAt: e.deletedAt,
@@ -147,6 +152,11 @@ CompanySettingsCompanion companySettingsToCompanion(CompanySettingsModel m) =>
       billAgeWarningMinutes: Value(m.billAgeWarningMinutes),
       billAgeDangerMinutes: Value(m.billAgeDangerMinutes),
       billAgeCriticalMinutes: Value(m.billAgeCriticalMinutes),
+      aiProviderType: Value(m.aiProviderType),
+      aiModel: Value(m.aiModel),
+      aiRateLimitPerHour: Value(m.aiRateLimitPerHour),
+      aiMaxTokensPerRequest: Value(m.aiMaxTokensPerRequest),
+      aiMaxConversationTokens: Value(m.aiMaxConversationTokens),
     );
 
 // --- Currency ---
