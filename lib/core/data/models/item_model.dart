@@ -2,6 +2,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../enums/item_type.dart';
 import '../enums/negative_stock_policy.dart';
+import '../enums/prep_area.dart';
 import '../enums/unit_type.dart';
 import 'company_scoped_model.dart';
 
@@ -32,6 +33,8 @@ abstract class ItemModel with _$ItemModel implements CompanyScopedModel {
     String? supplierId,
     String? parentId,
     NegativeStockPolicy? negativeStockPolicy,
+    PrepArea? prepArea,
+    String? color,
     required DateTime createdAt,
     required DateTime updatedAt,
     DateTime? deletedAt,

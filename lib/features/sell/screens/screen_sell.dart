@@ -23,6 +23,7 @@ import '../../../core/data/models/layout_item_model.dart';
 import '../../../core/data/models/order_model.dart';
 import '../../../core/data/models/register_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
+import '../../../core/data/providers/printing_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/data/providers/sync_providers.dart';
 import '../../../core/data/repositories/order_repository.dart';
@@ -30,6 +31,7 @@ import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/logging/app_logger.dart';
+import '../../../core/utils/file_opener.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/pos_gradients.dart';
 import '../../../core/utils/formatters.dart';
@@ -796,12 +798,13 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
         );
       }
       final cat = allCategories.where((c) => c.id == layoutItem.categoryId).firstOrNull;
+      final catColor = cat?.color ?? layoutItem.color;
       return _ItemButton(
         label: layoutItem.label ?? cat?.name ?? '?',
-        color: layoutItem.color != null
-            ? parsePrimaryColor(layoutItem.color)
+        color: catColor != null
+            ? parsePrimaryColor(catColor)
             : Theme.of(context).colorScheme.secondaryContainer,
-        gradient: parseGradient(layoutItem.color),
+        gradient: parseGradient(catColor),
         isCategory: true,
         cellHeight: cellHeight,
         onTap: () => _onCategoryTap(register.id, layoutItem),
@@ -856,29 +859,33 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
       }
     }
 
+    // Derive color: item.color > category.itemColor > layoutItem.color > theme default
+    final itemCat = allCategories.where((c) => c.id == item.categoryId).firstOrNull;
+    final derivedColor = item.color ?? itemCat?.itemColor ?? layoutItem.color;
+
     return _ItemButton(
       label: layoutItem.label ?? item.name,
       subtitle: hasVariants ? null : (item.unitPrice != null ? ref.moneyValue(item.unitPrice!) : '???'),
-      color: layoutItem.color != null
-          ? parsePrimaryColor(layoutItem.color)
+      color: derivedColor != null
+          ? parsePrimaryColor(derivedColor)
           : Theme.of(context).colorScheme.primaryContainer,
-      gradient: parseGradient(layoutItem.color),
+      gradient: parseGradient(derivedColor),
       cellHeight: cellHeight,
       stockBadge: stockBadge,
       badgeLevel: badgeLevel,
       onTap: item.isSellable ? () => _addToCart(ref, item, companyId,
           cellWidth: cellWidth,
           cellHeight: cellHeight,
-          cellColor: layoutItem.color != null
-              ? parsePrimaryColor(layoutItem.color)
+          cellColor: derivedColor != null
+              ? parsePrimaryColor(derivedColor)
               : Theme.of(context).colorScheme.primaryContainer,
       ) : null,
       onLongPress: item.isSellable ? () => _addToCart(ref, item, companyId,
           forceQuantityDialog: true,
           cellWidth: cellWidth,
           cellHeight: cellHeight,
-          cellColor: layoutItem.color != null
-              ? parsePrimaryColor(layoutItem.color)
+          cellColor: derivedColor != null
+              ? parsePrimaryColor(derivedColor)
               : Theme.of(context).colorScheme.primaryContainer,
       ) : null,
     );
@@ -1350,6 +1357,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
           settings?.negativeStockPolicy ?? NegativeStockPolicy.allow;
 
       bool anySuccess = false;
+      final createdOrderIds = <String>[];
 
       for (var i = 0; i < groups.length; i++) {
         final orderNumber = await _nextOrderNumber(ref);
@@ -1371,6 +1379,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
           );
           if (result is Success<OrderModel>) {
             anySuccess = true;
+            createdOrderIds.add(result.value.id);
           }
         } on InsufficientStockException catch (e) {
           if (!context.mounted) return;
@@ -1389,6 +1398,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
             );
             if (retryResult is Success<OrderModel>) {
               anySuccess = true;
+              createdOrderIds.add(retryResult.value.id);
             }
           } else {
             break;
@@ -1398,6 +1408,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
 
       if (anySuccess) {
         await billRepo.updateTotals(widget.billId!);
+        await _printOrderTickets(widget.billId!, createdOrderIds);
         if (!context.mounted) return;
         context.pop();
       }
@@ -1451,13 +1462,14 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
       // Create order(s)
       final groups = _splitCartIntoGroups();
       bool stockFailed = false;
+      final createdOrderIds = <String>[];
       for (var i = 0; i < groups.length; i++) {
         final orderNumber = await _nextOrderNumber(ref);
         if (!mounted) return;
         final orderItems = await _buildOrderItemsFromGroup(ref, groups[i]);
         if (!mounted) return;
         try {
-          await orderRepo.createOrderWithItems(
+          final result = await orderRepo.createOrderWithItems(
             companyId: company.id,
             billId: billId,
             userId: user.id,
@@ -1467,11 +1479,14 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
             registerId: register?.id,
             negativeStockPolicy: negativeStockPolicy,
           );
+          if (result is Success<OrderModel>) {
+            createdOrderIds.add(result.value.id);
+          }
         } on InsufficientStockException catch (e) {
           if (!context.mounted) return;
           final stockResult = await _handleStockException(context, e);
           if (stockResult == _StockAction.retry) {
-            await orderRepo.createOrderWithItems(
+            final retryResult = await orderRepo.createOrderWithItems(
               companyId: company.id,
               billId: billId,
               userId: user.id,
@@ -1482,6 +1497,9 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
               negativeStockPolicy: negativeStockPolicy,
               skipStockCheck: true,
             );
+            if (retryResult is Success<OrderModel>) {
+              createdOrderIds.add(retryResult.value.id);
+            }
           } else {
             stockFailed = true;
             break;
@@ -1495,6 +1513,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
       }
 
       await billRepo.updateTotals(billId);
+      await _printOrderTickets(billId, createdOrderIds);
 
       if (!context.mounted) return;
 
@@ -1582,13 +1601,14 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
       // Create order(s) with cart items
       final groups = _splitCartIntoGroups();
       bool stockFailed = false;
+      final createdOrderIds = <String>[];
       for (var i = 0; i < groups.length; i++) {
         final orderNumber = await _nextOrderNumber(ref);
         if (!mounted) return;
         final orderItems = await _buildOrderItemsFromGroup(ref, groups[i]);
         if (!mounted) return;
         try {
-          await orderRepo.createOrderWithItems(
+          final result = await orderRepo.createOrderWithItems(
             companyId: company.id,
             billId: bill.id,
             userId: user.id,
@@ -1598,11 +1618,14 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
             registerId: register?.id,
             negativeStockPolicy: negativeStockPolicy,
           );
+          if (result is Success<OrderModel>) {
+            createdOrderIds.add(result.value.id);
+          }
         } on InsufficientStockException catch (e) {
           if (!context.mounted) return;
           final stockResult = await _handleStockException(context, e);
           if (stockResult == _StockAction.retry) {
-            await orderRepo.createOrderWithItems(
+            final retryResult = await orderRepo.createOrderWithItems(
               companyId: company.id,
               billId: bill.id,
               userId: user.id,
@@ -1613,6 +1636,9 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
               negativeStockPolicy: negativeStockPolicy,
               skipStockCheck: true,
             );
+            if (retryResult is Success<OrderModel>) {
+              createdOrderIds.add(retryResult.value.id);
+            }
           } else {
             stockFailed = true;
             break;
@@ -1626,6 +1652,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
       }
 
       await billRepo.updateTotals(bill.id);
+      await _printOrderTickets(bill.id, createdOrderIds);
 
       if (!context.mounted) return;
       if (_isRetailMode) {
@@ -1635,6 +1662,34 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
       }
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
+    }
+  }
+
+  Future<void> _printOrderTickets(String billId, List<String> orderIds) async {
+    final company = ref.read(currentCompanyProvider);
+    if (company == null || !company.autoPrintOrderTickets) return;
+    if (orderIds.isEmpty) return;
+
+    try {
+      final l = context.l10n;
+      final service = ref.read(printingServiceProvider);
+      final locale = Localizations.localeOf(context).toString();
+      final tickets = await service.buildOrderTickets(
+        billId: billId,
+        orderIds: orderIds,
+        unitLocalizer: (u) => localizedUnitType(l, u),
+        kitchenLabel: l.prepAreaKitchen.toUpperCase(),
+        barLabel: l.prepAreaBar.toUpperCase(),
+      );
+      for (final ticket in tickets) {
+        final pdfBytes = await service.generateOrderTicketPdf(ticket, locale);
+        await FileOpener.shareBytes(
+          'bon_${ticket.orderNumber}_${ticket.stationLabel}.pdf',
+          pdfBytes,
+        );
+      }
+    } catch (e) {
+      AppLogger.error('Auto-print order tickets failed: $e');
     }
   }
 

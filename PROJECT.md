@@ -800,7 +800,7 @@ lib/
 │   │   ├── realtime_service.dart      # Supabase Broadcast from Database (38 tabulek, <2s)
 │   │   ├── broadcast_channel.dart     # Supabase Realtime Broadcast wrapper (pairing, display)
 │   │   └── sync_lifecycle_manager.dart # Orchestrace start/stop/initial push/drain + realtime
-│   ├── theme/                         # AppColorsExtension (sémantické barvy light/dark), PosButtonStyles, helpers
+│   ├── theme/                         # AppColorsExtension (sémantické barvy light/dark), PosButtonStyles, PosGradients, helpers
 │   ├── logging/                       # AppLogger (dart:developer + debugPrint), LogFileWriter
 │   └── l10n/                          # Extension context.l10n
 ├── features/                          # Funkční moduly (UI only)
@@ -3060,9 +3060,11 @@ POS aplikace je **pracovní nástroj**, ne marketingový produkt. Design optimal
 
 **AppColorsExtension** (`lib/core/theme/app_colors.dart`) — `ThemeExtension` se dvěma instancemi (`lightAppColors`, `darkAppColors`). Definuje sémantické barvy: success/warning/danger + on-varianty, statusCreated/Ready/Delivered/Voided, billOpened/Paid/Cancelled/Refunded, activeIndicator/inactiveIndicator, positive/balanced/surplus, searchHighlight. Přístup přes `context.appColors`.
 
-**Seed color:** Konfigurovatelný přes `AccentColorNotifier` (uloženo v `SharedPreferences`, klíč `accent_color`). Výchozí Teal `#00897B`, 10 presetů v `kAccentPresets`. Globální theme (`app.dart` → `_buildTheme(Brightness, AppColorsExtension, Color)`) generuje `ColorScheme` přes `colorSchemeSeed`.
+**Seed color:** Konfigurovatelný přes `AccentColorNotifier` (uloženo v `SharedPreferences`, klíč `accent_color`). Výchozí Teal `#00897B`, 10 presetů v `kAccentPresets`. Globální theme (`app.dart` → `_buildTheme(Brightness, AppColorsExtension, Color)`) generuje `ColorScheme` přes `ColorScheme.fromSeed()`.
 
 **Font:** Inter (variable, bundled v `assets/fonts/Inter-Variable.ttf`).
+
+**PosGradients** (`lib/core/theme/pos_gradients.dart`) — `sidePanel(ColorScheme)`: horizontální gradient (`surfaceContainerLow` → `surfaceContainerHighest`) pro boční panely (ScreenSell košík, ScreenBills pravý panel).
 
 **Pravidlo:** Žádné hardcoded `Colors.*` v UI kódu — vždy `context.appColors.*` nebo `Theme.of(context).colorScheme.*`. Výjimka: `Colors.white`/`Colors.black` jako foreground na self-colored pozadích (floor map bill circles).
 
@@ -3072,12 +3074,11 @@ Globální theme (`app.dart` → `_buildTheme`) definuje styl pro `FilledButton`
 
 | Vlastnost | Hodnota |
 |-----------|---------|
-| Výška | 40–54 px (dle kontextu: FilterChips 40, dialog akce 44, payment 48, panelové 54) |
-| Min. šířka | žádná (tlačítka se přizpůsobí obsahu) |
+| Výška | 40–56 px (dle kontextu: FilterChips 40, dialog akce 44, payment 48, panelové 56) |
+| Min. velikost | 60 × 52 px (globální theme `minimumSize`) |
 | Padding | 6 px horizontálně (tlačítka i chipy) |
-| Border radius | 8 px |
+| Border radius | 12 px |
 | Font | Inter, 15 px, weight 600 |
-| Pressed stav | Ztmavení + posun 1px / scale 0.98, 80-120ms |
 
 ### PosDialogActions
 
@@ -3095,10 +3096,11 @@ Centrální widget pro akční lištu dialogů (`lib/core/widgets/pos_dialog_act
 
 | Role | Widget | Styl |
 |------|--------|------|
-| Potvrzení / pozitivní | `FilledButton` | `PosButtonStyles.confirm(context)` (zelená) |
+| Potvrzení / pozitivní | `FilledButton` | `PosButtonStyles.confirm(context)` (zelená), `confirmWith` (s custom padding/shape) |
 | Neutrální akce | `FilledButton` / `FilledButton.tonal` | výchozí theme |
 | Zrušit / Zavřít / Zpět | `OutlinedButton` | výchozí (žádný barevný override) |
-| Destruktivní | `FilledButton` / `OutlinedButton` | `destructiveFilled` / `destructiveOutlined` |
+| Destruktivní | `FilledButton` / `OutlinedButton` | `destructiveFilled` / `destructiveOutlined`, `destructiveFilledWith` (s custom padding/shape) |
+| Varování | `FilledButton` | `PosButtonStyles.warningFilled(context)` (oranžová) |
 
 ### Příklady podle obrazovek
 
@@ -3151,7 +3153,7 @@ Layout: **Left: Expanded(flex: 4), Right: fixed 290px collapsible AnimatedContai
 - **Tabulka:** Stůl, Host, Počet hostů, Celkem, Poslední objednávka (relativní čas), Obsluha
 - **Barva řádku** = status účtu (opened=modrá, paid=zelená, cancelled=růžová, refunded=oranžová v rámci zelené skupiny)
 - **Sloupec Host:** Zobrazuje jméno přiřazeného zákazníka (customer_id → customers)
-- **Sloupec Poslední objednávka:** Relativní čas (< 1min, Xmin, Xh Ym) — aktualizuje se reaktivně ze streamu. Pro otevřené účty barevně kódováno dle stáří: modrá (< warning), žlutá (warning–danger), oranžová (danger–critical), červená (> critical nebo bez objednávek). Účty bez objednávek zobrazují lokalizovaný text „žádná" červeně
+- **Sloupec Poslední objednávka:** Relativní čas (< 1min, Xmin, Xh Ym) — aktualizuje se reaktivně ze streamu. Pro otevřené účty barevně kódováno dle stáří: modrá (< warning), oranžová (warning–critical), červená (> critical nebo bez objednávek). Účty bez objednávek zobrazují lokalizovaný text „žádná" červeně
 - **Session scoping:** Při aktivní register session se zobrazují pouze účty patřící do aktuální session (`registerSessionId == activeSession.id`). Bez aktivní session se zobrazují všechny účty.
 - **Bottom bar:** FilterChip pro filtrování podle statusu (Otevřené, Zaplacené — gated `orders.view_paid`, Stornované — gated `orders.view_cancelled`) — 3 chipy
   - **Výchozí stav:** Pouze "Otevřené" vybrané
@@ -3164,14 +3166,14 @@ Layout: **Left: Expanded(flex: 4), Right: fixed 290px collapsible AnimatedContai
 - **Skrytí/zobrazení:** Panel je sbalovací (`AnimatedContainer` width 290↔0). Toggle „ucho" (tab-styled) je v pravém okraji section tab baru (chevron ikona).
 
 - **Layout tlačítek:** Vertikální `Column` (ikona nahoře, text dole) — kompaktní, touch-friendly.
-- **Řada 1:** RYCHLÝ ÚČET (tonal, → `/sell`) + VYTVOŘIT ÚČET (tonal, → DialogNewBill). Oba disabled bez aktivní session.
+- **Řada 1:** RYCHLÝ ÚČET (primary filled, → `/sell`) + VYTVOŘIT ÚČET (primary filled, → DialogNewBill). Oba disabled bez aktivní session.
 - **Řada 2:** POKLADNÍ DENÍK (tonal, → DialogCashJournal, disabled bez session) + KATALOG (tonal, → `/catalog`, vyžaduje `products.*`)
 - **Řada 3:** OBJEDNÁVKY (tonal, → `/orders`, vyžaduje `orders.view`) + NASTAVENÍ (tonal, → `/settings`, vyžaduje příslušná settings oprávnění)
 - **Řada 4:** SKLAD (tonal, → `/inventory`) + DALŠÍ (tonal, PopupMenuButton: Statistiky → `/statistics`; Vouchery → `/vouchers`; Rezervace → `/reservations`; Data → `/data`). Vouchery a další položky vyžadují příslušná oprávnění.
-- **Řada 5:** MAPA (tonal, toggle seznam/mapa — přepíná mezi tabulkou a FloorMapView) + Session toggle:
+- **Řada 5:** MAPA (outlined, toggle seznam/mapa — přepíná mezi tabulkou a FloorMapView) + Session toggle:
   - Žádná aktivní session → **"Otevřít"** (zelená, FilledButton) → DialogOpeningCash
-  - Aktivní session → **"Uzavřít"** (tonal) → DialogClosingSession
-- **Info panel** (expandovaný, border 8px radius): Datum/čas (EEEE d.M.yyyy HH:mm:ss), Stav (Aktivní/Offline dle session), Sync (Připojeno/Odpojeno), Aktivní obsluha (username), Přihlášení uživatelé (seznam), Stav pokladny (opening_cash v Kč nebo „-"), Název pokladny (register name), Statistika objednávek dle PrepStatus (created/ready/delivered/voided počty — zobrazuje se při aktivní session), Tržby (celkový obrat a počet prodejů za aktuální session)
+  - Aktivní session → **"Uzavřít"** (červená outlined) → DialogClosingSession
+- **Info panel** (expandovaný, bez pozadí — prosvítá gradient panelu): Datum/čas (EEEE d.M.yyyy HH:mm:ss), Stav (Aktivní/Offline dle session), Sync (Připojeno/Odpojeno), Aktivní obsluha (username), Přihlášení uživatelé (seznam), Stav pokladny (opening_cash v Kč nebo „-"), Název pokladny (register name), Statistika objednávek dle PrepStatus (created/ready/delivered/voided počty — zobrazuje se při aktivní session), Tržby (celkový obrat a počet prodejů za aktuální session)
 - **Bottom:** PŘEPNOUT OBSLUHU (tonal) + ODHLÁSIT (červená outlined)
 
 **Režim mapy (FloorMapView):**
@@ -3289,7 +3291,7 @@ Layout: **Left cart: fixed 280px SizedBox, Right grid: Expanded**
 
 **Levý panel (280px) — Košík:**
 - Header: Souhrn položek
-- Seznam: Vlastní card layout — každá položka v `InkWell` + `Container` s `surfaceContainerHigh` pozadím a zaoblenými rohy (8px). Hlavní řádek: `{qty}x {název}  {cena}` baseline-aligned v jednom `Row`. Modifikátory odsazené pod názvem (`+ název  +cena`, bodySmall, muted). Poznámky kurzívou pod modifikátory. Tap → dialog pro poznámku/+1, long press → dekrementace/odebrání.
+- Seznam: Vlastní card layout — každá položka v `InkWell` + `Container` s `surfaceContainerHigh` pozadím, zaoblenými rohy (12px) a 3px primary left accent strip. Hlavní řádek: `{qty}x {název}  {cena}` baseline-aligned v jednom `Row`. Modifikátory odsazené pod názvem (`+ název  +cena`, bodySmall, muted). Poznámky kurzívou pod modifikátory. Tap → dialog pro poznámku/+1, long press → dekrementace/odebrání.
 - Volitelný oddělovač (vizuální čára) — při odeslání se skupiny rozdělí na samostatné ordery.
 - Bottom: Celkem, Zrušit (červená), akční tlačítko:
   - **Rychlý prodej** (`billId = null`): **"Zaplatit"** (zelená) — vytvoří bill + order + otevře DialogPayment
@@ -3734,7 +3736,7 @@ Pravidla:
 
 Projekt využívá **Riverpod** jako Service Locator a DI kontejner.
 
-**Klíčové Globální Providery (7 souborů v `core/data/providers/`):**
+**Klíčové Globální Providery (8 souborů v `core/data/providers/`):**
 
 | Soubor | Klíčové providery |
 |--------|-------------------|
@@ -3745,6 +3747,7 @@ Projekt využívá **Riverpod** jako Service Locator a DI kontejner.
 | `sync_providers.dart` | `supabaseAuthServiceProvider`, `supabaseAuthStateProvider`, `isSupabaseAuthenticatedProvider`, `outboxProcessorProvider`, `syncServiceProvider`, `realtimeServiceProvider`, `syncLifecycleManagerProvider`, `customerDisplayChannelProvider`, `pairingChannelProvider`, `pendingPairingRequestProvider`, `pairingListenerProvider`, `syncLifecycleWatcherProvider` |
 | `printing_providers.dart` | `printingServiceProvider` |
 | `app_version_provider.dart` | `appVersionProvider` — verze aplikace z package_info_plus |
+| `theme_providers.dart` | `sharedPreferencesProvider` (overridden v main), `themeModeProvider` (`StateNotifier<ThemeMode>`, default system), `accentColorProvider` (`StateNotifier<int>`, default Teal) |
 
 ### Git Workflow
 

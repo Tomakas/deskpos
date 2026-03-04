@@ -5,13 +5,13 @@ import 'repository_providers.dart';
 
 /// Reactive set of permission codes for the active user
 final userPermissionCodesProvider = StreamProvider<Set<String>>((ref) {
-  final user = ref.watch(activeUserProvider);
-  final company = ref.watch(currentCompanyProvider);
-  if (user == null || company == null) return Stream.value({});
+  final userId = ref.watch(activeUserProvider.select((u) => u?.id));
+  final companyId = ref.watch(currentCompanyProvider.select((c) => c?.id));
+  if (userId == null || companyId == null) return Stream.value({});
 
   return ref.watch(permissionRepositoryProvider).watchUserPermissionCodes(
-        company.id,
-        user.id,
+        companyId,
+        userId,
       );
 });
 

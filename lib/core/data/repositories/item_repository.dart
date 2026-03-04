@@ -66,6 +66,8 @@ class ItemRepository
         supplierId: Value(m.supplierId),
         parentId: Value(m.parentId),
         negativeStockPolicy: Value(m.negativeStockPolicy),
+        prepArea: Value(m.prepArea),
+        color: Value(m.color),
         updatedAt: Value(DateTime.now()),
       );
 

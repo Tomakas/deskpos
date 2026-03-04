@@ -25,6 +25,7 @@ abstract class CompanyModel with _$CompanyModel {
     required String authUserId,
     @Default(false) bool isDemo,
     DateTime? demoExpiresAt,
+    @Default(false) bool autoPrintOrderTickets,
     required DateTime createdAt,
     required DateTime updatedAt,
     DateTime? deletedAt,

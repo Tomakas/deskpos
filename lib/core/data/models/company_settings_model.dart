@@ -24,6 +24,7 @@ abstract class CompanySettingsModel with _$CompanySettingsModel implements Compa
     @Default(30) int billAgeDangerMinutes,
     @Default(45) int billAgeCriticalMinutes,
     // AI assistant
+    @Default(false) bool aiEnabled,
     @Default(AiProviderType.none) AiProviderType aiProviderType,
     String? aiModel,
     @Default(60) int aiRateLimitPerHour,

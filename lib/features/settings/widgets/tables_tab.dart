@@ -268,7 +268,9 @@ class _TablesTabState extends ConsumerState<TablesTab> {
     final l = context.l10n;
     final nameCtrl = TextEditingController(text: existing?.name ?? '');
     final capacityCtrl = TextEditingController(text: '${existing?.capacity ?? 0}');
-    var sectionId = existing?.sectionId;
+    var sectionId = existing?.sectionId
+        ?? sections.where((s) => s.isDefault).firstOrNull?.id
+        ?? sections.firstOrNull?.id;
     String? selectedColor = existing?.color;
     var isActive = existing?.isActive ?? true;
 
@@ -305,11 +307,8 @@ class _TablesTabState extends ConsumerState<TablesTab> {
             DropdownButtonFormField<String?>(
               initialValue: sectionId,
               decoration: InputDecoration(labelText: l.fieldSection),
-              items: [
-                const DropdownMenuItem(value: null, child: Text('-')),
-                ...sections.map((s) =>
-                    DropdownMenuItem(value: s.id, child: Text(s.name))),
-              ],
+              items: sections.map((s) =>
+                    DropdownMenuItem(value: s.id, child: Text(s.name))).toList(),
               onChanged: (v) => setDialogState(() => sectionId = v),
             ),
             const SizedBox(height: 12),
@@ -318,13 +317,9 @@ class _TablesTabState extends ConsumerState<TablesTab> {
               decoration: InputDecoration(labelText: l.fieldCapacity),
               keyboardType: TextInputType.number,
             ),
-            const SizedBox(height: 16),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text(l.fieldColor, style: Theme.of(ctx).textTheme.bodySmall),
-            ),
-            const SizedBox(height: 8),
-            PosColorPalette(
+            const SizedBox(height: 12),
+            PosColorField(
+              label: l.fieldColor,
               selectedColor: selectedColor,
               onColorSelected: (c) => setDialogState(() => selectedColor = c),
             ),

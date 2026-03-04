@@ -192,13 +192,9 @@ class _SectionsTabState extends ConsumerState<SectionsTab> {
               controller: nameCtrl,
               decoration: InputDecoration(labelText: l.fieldName),
             ),
-            const SizedBox(height: 16),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text(l.fieldColor, style: Theme.of(ctx).textTheme.bodySmall),
-            ),
-            const SizedBox(height: 8),
-            PosColorPalette(
+            const SizedBox(height: 12),
+            PosColorField(
+              label: l.fieldColor,
               selectedColor: selectedColor,
               onColorSelected: (c) => setDialogState(() => selectedColor = c),
             ),

@@ -4322,6 +4322,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsAiModelHint => 'e.g. gpt-4o';
 
   @override
+  String get settingsAiEnabled => 'AI Assistant enabled';
+
+  @override
   String get settingsAiRateLimit => 'Rate limit (req/hour)';
 
   @override
@@ -4427,4 +4430,48 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsAccentColor => 'Accent color';
+
+  @override
+  String get fieldPrepArea => 'Prep area';
+
+  @override
+  String get prepAreaKitchen => 'Kitchen';
+
+  @override
+  String get prepAreaBar => 'Bar';
+
+  @override
+  String get prepAreaAll => 'All';
+
+  @override
+  String get prepAreaNone => 'None';
+
+  @override
+  String get fieldDefaultSaleTax => 'Default sale tax';
+
+  @override
+  String get fieldDefaultPurchaseTax => 'Default purchase tax';
+
+  @override
+  String get fieldDefaultIsSellable => 'Default sellable';
+
+  @override
+  String get fieldCategoryColor => 'Category color';
+
+  @override
+  String get fieldItemColor => 'Default item color';
+
+  @override
+  String get inheritFromCategory => 'Apply category defaults?';
+
+  @override
+  String inheritFromCategoryDesc(String name) {
+    return 'Apply defaults from category \"$name\":';
+  }
+
+  @override
+  String get autoPrintOrderTickets => 'Auto-print order tickets';
+
+  @override
+  String get orderTicketTitle => 'ORDER';
 }

@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$CategoryModel {
 
- String get id; String get companyId; String get name; bool get isActive; String? get parentId; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+ String get id; String get companyId; String get name; bool get isActive; String? get parentId; PrepArea? get prepArea; String? get defaultSaleTaxRateId; String? get defaultPurchaseTaxRateId; bool? get defaultIsSellable; String? get color; String? get itemColor; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
 /// Create a copy of CategoryModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $CategoryModelCopyWith<CategoryModel> get copyWith => _$CategoryModelCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CategoryModel&&(identical(other.id, id) || other.id == id)&&(identical(other.companyId, companyId) || other.companyId == companyId)&&(identical(other.name, name) || other.name == name)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.parentId, parentId) || other.parentId == parentId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CategoryModel&&(identical(other.id, id) || other.id == id)&&(identical(other.companyId, companyId) || other.companyId == companyId)&&(identical(other.name, name) || other.name == name)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.parentId, parentId) || other.parentId == parentId)&&(identical(other.prepArea, prepArea) || other.prepArea == prepArea)&&(identical(other.defaultSaleTaxRateId, defaultSaleTaxRateId) || other.defaultSaleTaxRateId == defaultSaleTaxRateId)&&(identical(other.defaultPurchaseTaxRateId, defaultPurchaseTaxRateId) || other.defaultPurchaseTaxRateId == defaultPurchaseTaxRateId)&&(identical(other.defaultIsSellable, defaultIsSellable) || other.defaultIsSellable == defaultIsSellable)&&(identical(other.color, color) || other.color == color)&&(identical(other.itemColor, itemColor) || other.itemColor == itemColor)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,companyId,name,isActive,parentId,createdAt,updatedAt,deletedAt);
+int get hashCode => Object.hash(runtimeType,id,companyId,name,isActive,parentId,prepArea,defaultSaleTaxRateId,defaultPurchaseTaxRateId,defaultIsSellable,color,itemColor,createdAt,updatedAt,deletedAt);
 
 @override
 String toString() {
-  return 'CategoryModel(id: $id, companyId: $companyId, name: $name, isActive: $isActive, parentId: $parentId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'CategoryModel(id: $id, companyId: $companyId, name: $name, isActive: $isActive, parentId: $parentId, prepArea: $prepArea, defaultSaleTaxRateId: $defaultSaleTaxRateId, defaultPurchaseTaxRateId: $defaultPurchaseTaxRateId, defaultIsSellable: $defaultIsSellable, color: $color, itemColor: $itemColor, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $CategoryModelCopyWith<$Res>  {
   factory $CategoryModelCopyWith(CategoryModel value, $Res Function(CategoryModel) _then) = _$CategoryModelCopyWithImpl;
 @useResult
 $Res call({
- String id, String companyId, String name, bool isActive, String? parentId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String companyId, String name, bool isActive, String? parentId, PrepArea? prepArea, String? defaultSaleTaxRateId, String? defaultPurchaseTaxRateId, bool? defaultIsSellable, String? color, String? itemColor, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -62,13 +62,19 @@ class _$CategoryModelCopyWithImpl<$Res>
 
 /// Create a copy of CategoryModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? companyId = null,Object? name = null,Object? isActive = null,Object? parentId = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? companyId = null,Object? name = null,Object? isActive = null,Object? parentId = freezed,Object? prepArea = freezed,Object? defaultSaleTaxRateId = freezed,Object? defaultPurchaseTaxRateId = freezed,Object? defaultIsSellable = freezed,Object? color = freezed,Object? itemColor = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,companyId: null == companyId ? _self.companyId : companyId // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
 as bool,parentId: freezed == parentId ? _self.parentId : parentId // ignore: cast_nullable_to_non_nullable
+as String?,prepArea: freezed == prepArea ? _self.prepArea : prepArea // ignore: cast_nullable_to_non_nullable
+as PrepArea?,defaultSaleTaxRateId: freezed == defaultSaleTaxRateId ? _self.defaultSaleTaxRateId : defaultSaleTaxRateId // ignore: cast_nullable_to_non_nullable
+as String?,defaultPurchaseTaxRateId: freezed == defaultPurchaseTaxRateId ? _self.defaultPurchaseTaxRateId : defaultPurchaseTaxRateId // ignore: cast_nullable_to_non_nullable
+as String?,defaultIsSellable: freezed == defaultIsSellable ? _self.defaultIsSellable : defaultIsSellable // ignore: cast_nullable_to_non_nullable
+as bool?,color: freezed == color ? _self.color : color // ignore: cast_nullable_to_non_nullable
+as String?,itemColor: freezed == itemColor ? _self.itemColor : itemColor // ignore: cast_nullable_to_non_nullable
 as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
@@ -157,10 +163,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String companyId,  String name,  bool isActive,  String? parentId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String companyId,  String name,  bool isActive,  String? parentId,  PrepArea? prepArea,  String? defaultSaleTaxRateId,  String? defaultPurchaseTaxRateId,  bool? defaultIsSellable,  String? color,  String? itemColor,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CategoryModel() when $default != null:
-return $default(_that.id,_that.companyId,_that.name,_that.isActive,_that.parentId,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.companyId,_that.name,_that.isActive,_that.parentId,_that.prepArea,_that.defaultSaleTaxRateId,_that.defaultPurchaseTaxRateId,_that.defaultIsSellable,_that.color,_that.itemColor,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   return orElse();
 
 }
@@ -178,10 +184,10 @@ return $default(_that.id,_that.companyId,_that.name,_that.isActive,_that.parentI
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String companyId,  String name,  bool isActive,  String? parentId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String companyId,  String name,  bool isActive,  String? parentId,  PrepArea? prepArea,  String? defaultSaleTaxRateId,  String? defaultPurchaseTaxRateId,  bool? defaultIsSellable,  String? color,  String? itemColor,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
 switch (_that) {
 case _CategoryModel():
-return $default(_that.id,_that.companyId,_that.name,_that.isActive,_that.parentId,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.companyId,_that.name,_that.isActive,_that.parentId,_that.prepArea,_that.defaultSaleTaxRateId,_that.defaultPurchaseTaxRateId,_that.defaultIsSellable,_that.color,_that.itemColor,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -198,10 +204,10 @@ return $default(_that.id,_that.companyId,_that.name,_that.isActive,_that.parentI
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String companyId,  String name,  bool isActive,  String? parentId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String companyId,  String name,  bool isActive,  String? parentId,  PrepArea? prepArea,  String? defaultSaleTaxRateId,  String? defaultPurchaseTaxRateId,  bool? defaultIsSellable,  String? color,  String? itemColor,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _CategoryModel() when $default != null:
-return $default(_that.id,_that.companyId,_that.name,_that.isActive,_that.parentId,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.companyId,_that.name,_that.isActive,_that.parentId,_that.prepArea,_that.defaultSaleTaxRateId,_that.defaultPurchaseTaxRateId,_that.defaultIsSellable,_that.color,_that.itemColor,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   return null;
 
 }
@@ -213,7 +219,7 @@ return $default(_that.id,_that.companyId,_that.name,_that.isActive,_that.parentI
 
 
 class _CategoryModel implements CategoryModel {
-  const _CategoryModel({required this.id, required this.companyId, required this.name, this.isActive = true, this.parentId, required this.createdAt, required this.updatedAt, this.deletedAt});
+  const _CategoryModel({required this.id, required this.companyId, required this.name, this.isActive = true, this.parentId, this.prepArea, this.defaultSaleTaxRateId, this.defaultPurchaseTaxRateId, this.defaultIsSellable, this.color, this.itemColor, required this.createdAt, required this.updatedAt, this.deletedAt});
   
 
 @override final  String id;
@@ -221,6 +227,12 @@ class _CategoryModel implements CategoryModel {
 @override final  String name;
 @override@JsonKey() final  bool isActive;
 @override final  String? parentId;
+@override final  PrepArea? prepArea;
+@override final  String? defaultSaleTaxRateId;
+@override final  String? defaultPurchaseTaxRateId;
+@override final  bool? defaultIsSellable;
+@override final  String? color;
+@override final  String? itemColor;
 @override final  DateTime createdAt;
 @override final  DateTime updatedAt;
 @override final  DateTime? deletedAt;
@@ -235,16 +247,16 @@ _$CategoryModelCopyWith<_CategoryModel> get copyWith => __$CategoryModelCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CategoryModel&&(identical(other.id, id) || other.id == id)&&(identical(other.companyId, companyId) || other.companyId == companyId)&&(identical(other.name, name) || other.name == name)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.parentId, parentId) || other.parentId == parentId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CategoryModel&&(identical(other.id, id) || other.id == id)&&(identical(other.companyId, companyId) || other.companyId == companyId)&&(identical(other.name, name) || other.name == name)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.parentId, parentId) || other.parentId == parentId)&&(identical(other.prepArea, prepArea) || other.prepArea == prepArea)&&(identical(other.defaultSaleTaxRateId, defaultSaleTaxRateId) || other.defaultSaleTaxRateId == defaultSaleTaxRateId)&&(identical(other.defaultPurchaseTaxRateId, defaultPurchaseTaxRateId) || other.defaultPurchaseTaxRateId == defaultPurchaseTaxRateId)&&(identical(other.defaultIsSellable, defaultIsSellable) || other.defaultIsSellable == defaultIsSellable)&&(identical(other.color, color) || other.color == color)&&(identical(other.itemColor, itemColor) || other.itemColor == itemColor)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,companyId,name,isActive,parentId,createdAt,updatedAt,deletedAt);
+int get hashCode => Object.hash(runtimeType,id,companyId,name,isActive,parentId,prepArea,defaultSaleTaxRateId,defaultPurchaseTaxRateId,defaultIsSellable,color,itemColor,createdAt,updatedAt,deletedAt);
 
 @override
 String toString() {
-  return 'CategoryModel(id: $id, companyId: $companyId, name: $name, isActive: $isActive, parentId: $parentId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'CategoryModel(id: $id, companyId: $companyId, name: $name, isActive: $isActive, parentId: $parentId, prepArea: $prepArea, defaultSaleTaxRateId: $defaultSaleTaxRateId, defaultPurchaseTaxRateId: $defaultPurchaseTaxRateId, defaultIsSellable: $defaultIsSellable, color: $color, itemColor: $itemColor, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -255,7 +267,7 @@ abstract mixin class _$CategoryModelCopyWith<$Res> implements $CategoryModelCopy
   factory _$CategoryModelCopyWith(_CategoryModel value, $Res Function(_CategoryModel) _then) = __$CategoryModelCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String companyId, String name, bool isActive, String? parentId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String companyId, String name, bool isActive, String? parentId, PrepArea? prepArea, String? defaultSaleTaxRateId, String? defaultPurchaseTaxRateId, bool? defaultIsSellable, String? color, String? itemColor, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -272,13 +284,19 @@ class __$CategoryModelCopyWithImpl<$Res>
 
 /// Create a copy of CategoryModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? companyId = null,Object? name = null,Object? isActive = null,Object? parentId = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? companyId = null,Object? name = null,Object? isActive = null,Object? parentId = freezed,Object? prepArea = freezed,Object? defaultSaleTaxRateId = freezed,Object? defaultPurchaseTaxRateId = freezed,Object? defaultIsSellable = freezed,Object? color = freezed,Object? itemColor = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_CategoryModel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,companyId: null == companyId ? _self.companyId : companyId // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
 as bool,parentId: freezed == parentId ? _self.parentId : parentId // ignore: cast_nullable_to_non_nullable
+as String?,prepArea: freezed == prepArea ? _self.prepArea : prepArea // ignore: cast_nullable_to_non_nullable
+as PrepArea?,defaultSaleTaxRateId: freezed == defaultSaleTaxRateId ? _self.defaultSaleTaxRateId : defaultSaleTaxRateId // ignore: cast_nullable_to_non_nullable
+as String?,defaultPurchaseTaxRateId: freezed == defaultPurchaseTaxRateId ? _self.defaultPurchaseTaxRateId : defaultPurchaseTaxRateId // ignore: cast_nullable_to_non_nullable
+as String?,defaultIsSellable: freezed == defaultIsSellable ? _self.defaultIsSellable : defaultIsSellable // ignore: cast_nullable_to_non_nullable
+as bool?,color: freezed == color ? _self.color : color // ignore: cast_nullable_to_non_nullable
+as String?,itemColor: freezed == itemColor ? _self.itemColor : itemColor // ignore: cast_nullable_to_non_nullable
 as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable

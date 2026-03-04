@@ -116,7 +116,7 @@ Deno.serve(async (req) => {
     const { data: settings, error: settingsError } = await serviceClient
       .from("company_settings")
       .select(
-        "ai_provider_type, ai_model, ai_rate_limit_per_hour, ai_max_tokens_per_request"
+        "ai_enabled, ai_provider_type, ai_model, ai_rate_limit_per_hour, ai_max_tokens_per_request"
       )
       .eq("company_id", companyId)
       .is("deleted_at", null)
@@ -125,6 +125,10 @@ Deno.serve(async (req) => {
 
     if (settingsError || !settings) {
       return respond({ error: "Company settings not found" }, 400);
+    }
+
+    if (!settings.ai_enabled) {
+      return respond({ error: "AI assistant is disabled" }, 400);
     }
 
     const providerType = settings.ai_provider_type as string;

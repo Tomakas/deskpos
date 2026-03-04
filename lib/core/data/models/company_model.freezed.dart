@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$CompanyModel {
 
- String get id; String get name; CompanyStatus get status; String? get businessId; String? get address; String? get phone; String? get email; String? get vatNumber; String? get country; String? get city; String? get postalCode; String? get timezone; BusinessType? get businessType; String get defaultCurrencyId; String get authUserId; bool get isDemo; DateTime? get demoExpiresAt; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+ String get id; String get name; CompanyStatus get status; String? get businessId; String? get address; String? get phone; String? get email; String? get vatNumber; String? get country; String? get city; String? get postalCode; String? get timezone; BusinessType? get businessType; String get defaultCurrencyId; String get authUserId; bool get isDemo; DateTime? get demoExpiresAt; bool get autoPrintOrderTickets; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
 /// Create a copy of CompanyModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $CompanyModelCopyWith<CompanyModel> get copyWith => _$CompanyModelCopyWithImpl<C
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CompanyModel&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.status, status) || other.status == status)&&(identical(other.businessId, businessId) || other.businessId == businessId)&&(identical(other.address, address) || other.address == address)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.email, email) || other.email == email)&&(identical(other.vatNumber, vatNumber) || other.vatNumber == vatNumber)&&(identical(other.country, country) || other.country == country)&&(identical(other.city, city) || other.city == city)&&(identical(other.postalCode, postalCode) || other.postalCode == postalCode)&&(identical(other.timezone, timezone) || other.timezone == timezone)&&(identical(other.businessType, businessType) || other.businessType == businessType)&&(identical(other.defaultCurrencyId, defaultCurrencyId) || other.defaultCurrencyId == defaultCurrencyId)&&(identical(other.authUserId, authUserId) || other.authUserId == authUserId)&&(identical(other.isDemo, isDemo) || other.isDemo == isDemo)&&(identical(other.demoExpiresAt, demoExpiresAt) || other.demoExpiresAt == demoExpiresAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CompanyModel&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.status, status) || other.status == status)&&(identical(other.businessId, businessId) || other.businessId == businessId)&&(identical(other.address, address) || other.address == address)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.email, email) || other.email == email)&&(identical(other.vatNumber, vatNumber) || other.vatNumber == vatNumber)&&(identical(other.country, country) || other.country == country)&&(identical(other.city, city) || other.city == city)&&(identical(other.postalCode, postalCode) || other.postalCode == postalCode)&&(identical(other.timezone, timezone) || other.timezone == timezone)&&(identical(other.businessType, businessType) || other.businessType == businessType)&&(identical(other.defaultCurrencyId, defaultCurrencyId) || other.defaultCurrencyId == defaultCurrencyId)&&(identical(other.authUserId, authUserId) || other.authUserId == authUserId)&&(identical(other.isDemo, isDemo) || other.isDemo == isDemo)&&(identical(other.demoExpiresAt, demoExpiresAt) || other.demoExpiresAt == demoExpiresAt)&&(identical(other.autoPrintOrderTickets, autoPrintOrderTickets) || other.autoPrintOrderTickets == autoPrintOrderTickets)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 
 @override
-int get hashCode => Object.hashAll([runtimeType,id,name,status,businessId,address,phone,email,vatNumber,country,city,postalCode,timezone,businessType,defaultCurrencyId,authUserId,isDemo,demoExpiresAt,createdAt,updatedAt,deletedAt]);
+int get hashCode => Object.hashAll([runtimeType,id,name,status,businessId,address,phone,email,vatNumber,country,city,postalCode,timezone,businessType,defaultCurrencyId,authUserId,isDemo,demoExpiresAt,autoPrintOrderTickets,createdAt,updatedAt,deletedAt]);
 
 @override
 String toString() {
-  return 'CompanyModel(id: $id, name: $name, status: $status, businessId: $businessId, address: $address, phone: $phone, email: $email, vatNumber: $vatNumber, country: $country, city: $city, postalCode: $postalCode, timezone: $timezone, businessType: $businessType, defaultCurrencyId: $defaultCurrencyId, authUserId: $authUserId, isDemo: $isDemo, demoExpiresAt: $demoExpiresAt, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'CompanyModel(id: $id, name: $name, status: $status, businessId: $businessId, address: $address, phone: $phone, email: $email, vatNumber: $vatNumber, country: $country, city: $city, postalCode: $postalCode, timezone: $timezone, businessType: $businessType, defaultCurrencyId: $defaultCurrencyId, authUserId: $authUserId, isDemo: $isDemo, demoExpiresAt: $demoExpiresAt, autoPrintOrderTickets: $autoPrintOrderTickets, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $CompanyModelCopyWith<$Res>  {
   factory $CompanyModelCopyWith(CompanyModel value, $Res Function(CompanyModel) _then) = _$CompanyModelCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, CompanyStatus status, String? businessId, String? address, String? phone, String? email, String? vatNumber, String? country, String? city, String? postalCode, String? timezone, BusinessType? businessType, String defaultCurrencyId, String authUserId, bool isDemo, DateTime? demoExpiresAt, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String name, CompanyStatus status, String? businessId, String? address, String? phone, String? email, String? vatNumber, String? country, String? city, String? postalCode, String? timezone, BusinessType? businessType, String defaultCurrencyId, String authUserId, bool isDemo, DateTime? demoExpiresAt, bool autoPrintOrderTickets, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -62,7 +62,7 @@ class _$CompanyModelCopyWithImpl<$Res>
 
 /// Create a copy of CompanyModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? status = null,Object? businessId = freezed,Object? address = freezed,Object? phone = freezed,Object? email = freezed,Object? vatNumber = freezed,Object? country = freezed,Object? city = freezed,Object? postalCode = freezed,Object? timezone = freezed,Object? businessType = freezed,Object? defaultCurrencyId = null,Object? authUserId = null,Object? isDemo = null,Object? demoExpiresAt = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? status = null,Object? businessId = freezed,Object? address = freezed,Object? phone = freezed,Object? email = freezed,Object? vatNumber = freezed,Object? country = freezed,Object? city = freezed,Object? postalCode = freezed,Object? timezone = freezed,Object? businessType = freezed,Object? defaultCurrencyId = null,Object? authUserId = null,Object? isDemo = null,Object? demoExpiresAt = freezed,Object? autoPrintOrderTickets = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -81,7 +81,8 @@ as BusinessType?,defaultCurrencyId: null == defaultCurrencyId ? _self.defaultCur
 as String,authUserId: null == authUserId ? _self.authUserId : authUserId // ignore: cast_nullable_to_non_nullable
 as String,isDemo: null == isDemo ? _self.isDemo : isDemo // ignore: cast_nullable_to_non_nullable
 as bool,demoExpiresAt: freezed == demoExpiresAt ? _self.demoExpiresAt : demoExpiresAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,autoPrintOrderTickets: null == autoPrintOrderTickets ? _self.autoPrintOrderTickets : autoPrintOrderTickets // ignore: cast_nullable_to_non_nullable
+as bool,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
@@ -169,10 +170,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  CompanyStatus status,  String? businessId,  String? address,  String? phone,  String? email,  String? vatNumber,  String? country,  String? city,  String? postalCode,  String? timezone,  BusinessType? businessType,  String defaultCurrencyId,  String authUserId,  bool isDemo,  DateTime? demoExpiresAt,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  CompanyStatus status,  String? businessId,  String? address,  String? phone,  String? email,  String? vatNumber,  String? country,  String? city,  String? postalCode,  String? timezone,  BusinessType? businessType,  String defaultCurrencyId,  String authUserId,  bool isDemo,  DateTime? demoExpiresAt,  bool autoPrintOrderTickets,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CompanyModel() when $default != null:
-return $default(_that.id,_that.name,_that.status,_that.businessId,_that.address,_that.phone,_that.email,_that.vatNumber,_that.country,_that.city,_that.postalCode,_that.timezone,_that.businessType,_that.defaultCurrencyId,_that.authUserId,_that.isDemo,_that.demoExpiresAt,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.name,_that.status,_that.businessId,_that.address,_that.phone,_that.email,_that.vatNumber,_that.country,_that.city,_that.postalCode,_that.timezone,_that.businessType,_that.defaultCurrencyId,_that.authUserId,_that.isDemo,_that.demoExpiresAt,_that.autoPrintOrderTickets,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   return orElse();
 
 }
@@ -190,10 +191,10 @@ return $default(_that.id,_that.name,_that.status,_that.businessId,_that.address,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  CompanyStatus status,  String? businessId,  String? address,  String? phone,  String? email,  String? vatNumber,  String? country,  String? city,  String? postalCode,  String? timezone,  BusinessType? businessType,  String defaultCurrencyId,  String authUserId,  bool isDemo,  DateTime? demoExpiresAt,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  CompanyStatus status,  String? businessId,  String? address,  String? phone,  String? email,  String? vatNumber,  String? country,  String? city,  String? postalCode,  String? timezone,  BusinessType? businessType,  String defaultCurrencyId,  String authUserId,  bool isDemo,  DateTime? demoExpiresAt,  bool autoPrintOrderTickets,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
 switch (_that) {
 case _CompanyModel():
-return $default(_that.id,_that.name,_that.status,_that.businessId,_that.address,_that.phone,_that.email,_that.vatNumber,_that.country,_that.city,_that.postalCode,_that.timezone,_that.businessType,_that.defaultCurrencyId,_that.authUserId,_that.isDemo,_that.demoExpiresAt,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.name,_that.status,_that.businessId,_that.address,_that.phone,_that.email,_that.vatNumber,_that.country,_that.city,_that.postalCode,_that.timezone,_that.businessType,_that.defaultCurrencyId,_that.authUserId,_that.isDemo,_that.demoExpiresAt,_that.autoPrintOrderTickets,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -210,10 +211,10 @@ return $default(_that.id,_that.name,_that.status,_that.businessId,_that.address,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  CompanyStatus status,  String? businessId,  String? address,  String? phone,  String? email,  String? vatNumber,  String? country,  String? city,  String? postalCode,  String? timezone,  BusinessType? businessType,  String defaultCurrencyId,  String authUserId,  bool isDemo,  DateTime? demoExpiresAt,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  CompanyStatus status,  String? businessId,  String? address,  String? phone,  String? email,  String? vatNumber,  String? country,  String? city,  String? postalCode,  String? timezone,  BusinessType? businessType,  String defaultCurrencyId,  String authUserId,  bool isDemo,  DateTime? demoExpiresAt,  bool autoPrintOrderTickets,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _CompanyModel() when $default != null:
-return $default(_that.id,_that.name,_that.status,_that.businessId,_that.address,_that.phone,_that.email,_that.vatNumber,_that.country,_that.city,_that.postalCode,_that.timezone,_that.businessType,_that.defaultCurrencyId,_that.authUserId,_that.isDemo,_that.demoExpiresAt,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.name,_that.status,_that.businessId,_that.address,_that.phone,_that.email,_that.vatNumber,_that.country,_that.city,_that.postalCode,_that.timezone,_that.businessType,_that.defaultCurrencyId,_that.authUserId,_that.isDemo,_that.demoExpiresAt,_that.autoPrintOrderTickets,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   return null;
 
 }
@@ -225,7 +226,7 @@ return $default(_that.id,_that.name,_that.status,_that.businessId,_that.address,
 
 
 class _CompanyModel implements CompanyModel {
-  const _CompanyModel({required this.id, required this.name, required this.status, this.businessId, this.address, this.phone, this.email, this.vatNumber, this.country, this.city, this.postalCode, this.timezone, this.businessType, required this.defaultCurrencyId, required this.authUserId, this.isDemo = false, this.demoExpiresAt, required this.createdAt, required this.updatedAt, this.deletedAt});
+  const _CompanyModel({required this.id, required this.name, required this.status, this.businessId, this.address, this.phone, this.email, this.vatNumber, this.country, this.city, this.postalCode, this.timezone, this.businessType, required this.defaultCurrencyId, required this.authUserId, this.isDemo = false, this.demoExpiresAt, this.autoPrintOrderTickets = false, required this.createdAt, required this.updatedAt, this.deletedAt});
   
 
 @override final  String id;
@@ -245,6 +246,7 @@ class _CompanyModel implements CompanyModel {
 @override final  String authUserId;
 @override@JsonKey() final  bool isDemo;
 @override final  DateTime? demoExpiresAt;
+@override@JsonKey() final  bool autoPrintOrderTickets;
 @override final  DateTime createdAt;
 @override final  DateTime updatedAt;
 @override final  DateTime? deletedAt;
@@ -259,16 +261,16 @@ _$CompanyModelCopyWith<_CompanyModel> get copyWith => __$CompanyModelCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CompanyModel&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.status, status) || other.status == status)&&(identical(other.businessId, businessId) || other.businessId == businessId)&&(identical(other.address, address) || other.address == address)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.email, email) || other.email == email)&&(identical(other.vatNumber, vatNumber) || other.vatNumber == vatNumber)&&(identical(other.country, country) || other.country == country)&&(identical(other.city, city) || other.city == city)&&(identical(other.postalCode, postalCode) || other.postalCode == postalCode)&&(identical(other.timezone, timezone) || other.timezone == timezone)&&(identical(other.businessType, businessType) || other.businessType == businessType)&&(identical(other.defaultCurrencyId, defaultCurrencyId) || other.defaultCurrencyId == defaultCurrencyId)&&(identical(other.authUserId, authUserId) || other.authUserId == authUserId)&&(identical(other.isDemo, isDemo) || other.isDemo == isDemo)&&(identical(other.demoExpiresAt, demoExpiresAt) || other.demoExpiresAt == demoExpiresAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CompanyModel&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.status, status) || other.status == status)&&(identical(other.businessId, businessId) || other.businessId == businessId)&&(identical(other.address, address) || other.address == address)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.email, email) || other.email == email)&&(identical(other.vatNumber, vatNumber) || other.vatNumber == vatNumber)&&(identical(other.country, country) || other.country == country)&&(identical(other.city, city) || other.city == city)&&(identical(other.postalCode, postalCode) || other.postalCode == postalCode)&&(identical(other.timezone, timezone) || other.timezone == timezone)&&(identical(other.businessType, businessType) || other.businessType == businessType)&&(identical(other.defaultCurrencyId, defaultCurrencyId) || other.defaultCurrencyId == defaultCurrencyId)&&(identical(other.authUserId, authUserId) || other.authUserId == authUserId)&&(identical(other.isDemo, isDemo) || other.isDemo == isDemo)&&(identical(other.demoExpiresAt, demoExpiresAt) || other.demoExpiresAt == demoExpiresAt)&&(identical(other.autoPrintOrderTickets, autoPrintOrderTickets) || other.autoPrintOrderTickets == autoPrintOrderTickets)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 
 @override
-int get hashCode => Object.hashAll([runtimeType,id,name,status,businessId,address,phone,email,vatNumber,country,city,postalCode,timezone,businessType,defaultCurrencyId,authUserId,isDemo,demoExpiresAt,createdAt,updatedAt,deletedAt]);
+int get hashCode => Object.hashAll([runtimeType,id,name,status,businessId,address,phone,email,vatNumber,country,city,postalCode,timezone,businessType,defaultCurrencyId,authUserId,isDemo,demoExpiresAt,autoPrintOrderTickets,createdAt,updatedAt,deletedAt]);
 
 @override
 String toString() {
-  return 'CompanyModel(id: $id, name: $name, status: $status, businessId: $businessId, address: $address, phone: $phone, email: $email, vatNumber: $vatNumber, country: $country, city: $city, postalCode: $postalCode, timezone: $timezone, businessType: $businessType, defaultCurrencyId: $defaultCurrencyId, authUserId: $authUserId, isDemo: $isDemo, demoExpiresAt: $demoExpiresAt, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'CompanyModel(id: $id, name: $name, status: $status, businessId: $businessId, address: $address, phone: $phone, email: $email, vatNumber: $vatNumber, country: $country, city: $city, postalCode: $postalCode, timezone: $timezone, businessType: $businessType, defaultCurrencyId: $defaultCurrencyId, authUserId: $authUserId, isDemo: $isDemo, demoExpiresAt: $demoExpiresAt, autoPrintOrderTickets: $autoPrintOrderTickets, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -279,7 +281,7 @@ abstract mixin class _$CompanyModelCopyWith<$Res> implements $CompanyModelCopyWi
   factory _$CompanyModelCopyWith(_CompanyModel value, $Res Function(_CompanyModel) _then) = __$CompanyModelCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, CompanyStatus status, String? businessId, String? address, String? phone, String? email, String? vatNumber, String? country, String? city, String? postalCode, String? timezone, BusinessType? businessType, String defaultCurrencyId, String authUserId, bool isDemo, DateTime? demoExpiresAt, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String name, CompanyStatus status, String? businessId, String? address, String? phone, String? email, String? vatNumber, String? country, String? city, String? postalCode, String? timezone, BusinessType? businessType, String defaultCurrencyId, String authUserId, bool isDemo, DateTime? demoExpiresAt, bool autoPrintOrderTickets, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -296,7 +298,7 @@ class __$CompanyModelCopyWithImpl<$Res>
 
 /// Create a copy of CompanyModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? status = null,Object? businessId = freezed,Object? address = freezed,Object? phone = freezed,Object? email = freezed,Object? vatNumber = freezed,Object? country = freezed,Object? city = freezed,Object? postalCode = freezed,Object? timezone = freezed,Object? businessType = freezed,Object? defaultCurrencyId = null,Object? authUserId = null,Object? isDemo = null,Object? demoExpiresAt = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? status = null,Object? businessId = freezed,Object? address = freezed,Object? phone = freezed,Object? email = freezed,Object? vatNumber = freezed,Object? country = freezed,Object? city = freezed,Object? postalCode = freezed,Object? timezone = freezed,Object? businessType = freezed,Object? defaultCurrencyId = null,Object? authUserId = null,Object? isDemo = null,Object? demoExpiresAt = freezed,Object? autoPrintOrderTickets = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_CompanyModel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -315,7 +317,8 @@ as BusinessType?,defaultCurrencyId: null == defaultCurrencyId ? _self.defaultCur
 as String,authUserId: null == authUserId ? _self.authUserId : authUserId // ignore: cast_nullable_to_non_nullable
 as String,isDemo: null == isDemo ? _self.isDemo : isDemo // ignore: cast_nullable_to_non_nullable
 as bool,demoExpiresAt: freezed == demoExpiresAt ? _self.demoExpiresAt : demoExpiresAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,autoPrintOrderTickets: null == autoPrintOrderTickets ? _self.autoPrintOrderTickets : autoPrintOrderTickets // ignore: cast_nullable_to_non_nullable
+as bool,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,

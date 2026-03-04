@@ -3,9 +3,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/data/enums/prep_area.dart';
 import '../../../core/data/enums/prep_status.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/data/models/bill_model.dart';
+import '../../../core/data/models/item_model.dart';
 import '../../../core/data/models/customer_model.dart';
 import '../../../core/data/models/order_item_model.dart';
 import '../../../core/data/models/order_model.dart';
@@ -47,6 +49,9 @@ class _ScreenKdsState extends ConsumerState<ScreenKds> {
     PrepStatus.created,
     PrepStatus.ready,
   };
+  PrepArea? _prepAreaFilter; // null = show all
+  Map<String, ItemModel> _catalogItemsMap = {};
+  StreamSubscription<List<ItemModel>>? _catalogSub;
   Timer? _ticker;
   bool _isBumping = false;
   final Map<String, List<OrderItemModel>> _itemsCache = {};
@@ -58,11 +63,28 @@ class _ScreenKdsState extends ConsumerState<ScreenKds> {
     _ticker = Timer.periodic(const Duration(seconds: 15), (_) {
       if (mounted) setState(() {});
     });
+    _initCatalogSubscription();
+  }
+
+  void _initCatalogSubscription() {
+    final company = ref.read(currentCompanyProvider);
+    if (company == null) return;
+    _catalogSub = ref
+        .read(itemRepositoryProvider)
+        .watchAll(company.id)
+        .listen((items) {
+      if (mounted) {
+        setState(() {
+          _catalogItemsMap = {for (final i in items) i.id: i};
+        });
+      }
+    });
   }
 
   @override
   void dispose() {
     _ticker?.cancel();
+    _catalogSub?.cancel();
     _searchCtrl.dispose();
     super.dispose();
   }
@@ -201,6 +223,8 @@ class _ScreenKdsState extends ConsumerState<ScreenKds> {
                   itemBuilder: (_, i) => _KdsOrderCard(
                     order: orders[i],
                     searchQuery: _searchQuery,
+                    prepAreaFilter: _prepAreaFilter,
+                    catalogItemsMap: _catalogItemsMap,
                     onBump: ref.watch(hasPermissionProvider('orders.bump'))
                         ? () => _bumpOrder(orders[i]) : null,
                     onUnbump: ref.watch(hasPermissionProvider('orders.bump_back'))
@@ -214,6 +238,11 @@ class _ScreenKdsState extends ConsumerState<ScreenKds> {
                 );
               },
             ),
+          ),
+          // PrepArea filter bar
+          _KdsPrepAreaFilterBar(
+            selected: _prepAreaFilter,
+            onChanged: (pa) => setState(() => _prepAreaFilter = pa),
           ),
           // Status filter bar
           _KdsStatusFilterBar(
@@ -237,6 +266,14 @@ class _ScreenKdsState extends ConsumerState<ScreenKds> {
     }
   }
 
+  bool _itemMatchesPrepArea(OrderItemModel oi) {
+    if (_prepAreaFilter == null) return true;
+    final catalogItem = _catalogItemsMap[oi.itemId];
+    final pa = catalogItem?.prepArea;
+    // null or 'all' → shows everywhere; 'none' → only in "All" view
+    return pa == null || pa == PrepArea.all || pa == _prepAreaFilter;
+  }
+
   List<OrderModel> _applyFilters(List<OrderModel> orders) {
     var result = _statusFilter.isEmpty
         ? orders
@@ -251,6 +288,15 @@ class _ScreenKdsState extends ConsumerState<ScreenKds> {
               (_itemsCache[o.id] ?? [])
                   .any((item) => normalizeSearch(item.itemName).contains(q)))
           .toList();
+    }
+
+    // PrepArea filter: hide orders that have no matching items
+    if (_prepAreaFilter != null) {
+      result = result.where((order) {
+        final items = _itemsCache[order.id] ?? [];
+        if (items.isEmpty) return true; // still loading
+        return items.any(_itemMatchesPrepArea);
+      }).toList();
     }
 
     result.sort((a, b) => _sortAscending
@@ -427,6 +473,8 @@ class _KdsOrderCard extends ConsumerWidget {
   const _KdsOrderCard({
     required this.order,
     required this.searchQuery,
+    this.prepAreaFilter,
+    this.catalogItemsMap = const {},
     this.onBump,
     this.onUnbump,
     required this.onItemBump,
@@ -435,6 +483,8 @@ class _KdsOrderCard extends ConsumerWidget {
   });
   final OrderModel order;
   final String searchQuery;
+  final PrepArea? prepAreaFilter;
+  final Map<String, ItemModel> catalogItemsMap;
   final VoidCallback? onBump;
   final VoidCallback? onUnbump;
   final void Function(OrderItemModel) onItemBump;
@@ -464,7 +514,14 @@ class _KdsOrderCard extends ConsumerWidget {
           stream:
               ref.watch(orderRepositoryProvider).watchOrderItems(order.id),
           builder: (context, snap) {
-            final items = snap.data ?? [];
+            final allItems = snap.data ?? [];
+            // Filter items by prepArea if filter is active
+            final items = prepAreaFilter == null
+                ? allItems
+                : allItems.where((oi) {
+                    final pa = catalogItemsMap[oi.itemId]?.prepArea;
+                    return pa == null || pa == PrepArea.all || pa == prepAreaFilter;
+                  }).toList();
 
             // Find lowest active item status for the order-level button
             final activeItems = items.where((i) =>
@@ -1175,6 +1232,58 @@ Color _urgencyColor(int minutes, AppColorsExtension colors) {
   return colors.danger;
 }
 
+
+// ---------------------------------------------------------------------------
+// KDS PrepArea Filter Bar
+// ---------------------------------------------------------------------------
+class _KdsPrepAreaFilterBar extends StatelessWidget {
+  const _KdsPrepAreaFilterBar({
+    required this.selected,
+    required this.onChanged,
+  });
+  final PrepArea? selected;
+  final ValueChanged<PrepArea?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    final chips = <(PrepArea?, String)>[
+      (null, l.prepAreaAll),
+      (PrepArea.kitchen, l.prepAreaKitchen),
+      (PrepArea.bar, l.prepAreaBar),
+    ];
+
+    return Container(
+      height: 52,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        border:
+            Border(top: BorderSide(color: Theme.of(context).dividerColor)),
+      ),
+      child: Row(
+        children: [
+          for (var i = 0; i < chips.length; i++) ...[
+            if (i > 0) const SizedBox(width: 8),
+            Expanded(
+              child: SizedBox(
+                height: 40,
+                child: FilterChip(
+                  label: SizedBox(
+                    width: double.infinity,
+                    child: Text(chips[i].$2,
+                        textAlign: TextAlign.center),
+                  ),
+                  selected: chips[i].$1 == selected,
+                  onSelected: (_) => onChanged(chips[i].$1),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
 
 // ---------------------------------------------------------------------------
 // KDS Status Filter Bar (toggle-based, matching ScreenOrders)

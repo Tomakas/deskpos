@@ -23,6 +23,7 @@ class Companies extends Table with SyncColumnsMixin {
   TextColumn get authUserId => text()();
   BoolColumn get isDemo => boolean().withDefault(const Constant(false))();
   DateTimeColumn get demoExpiresAt => dateTime().nullable()();
+  BoolColumn get autoPrintOrderTickets => boolean().withDefault(const Constant(false))();
 
   @override
   Set<Column> get primaryKey => {id};

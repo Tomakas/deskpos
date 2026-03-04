@@ -901,9 +901,8 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
                       ],
                     ),
                     const SizedBox(height: 12),
-                    Text(l.floorMapElementColor, style: Theme.of(context).textTheme.bodySmall),
-                    const SizedBox(height: 8),
-                    PosColorPalette(
+                    PosColorField(
+                      label: l.floorMapElementColor,
                       selectedColor: tableColor,
                       onColorSelected: (c) => setDialogState(() => tableColor = c),
                     ),
@@ -1002,12 +1001,10 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
                       ],
                     ),
                     const SizedBox(height: 12),
-                    Text(l.floorMapElementColor, style: Theme.of(context).textTheme.bodySmall),
-                    const SizedBox(height: 8),
-                    PosColorPalette(
+                    PosColorField(
+                      label: l.floorMapElementColor,
                       selectedColor: elementColor,
                       onColorSelected: (c) => setDialogState(() => elementColor = c),
-
                     ),
                     const SizedBox(height: 4),
                     _StyleChipRow(
@@ -1213,9 +1210,8 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  Text(l.floorMapElementColor, style: Theme.of(context).textTheme.bodySmall),
-                  const SizedBox(height: 8),
-                  PosColorPalette(
+                  PosColorField(
+                    label: l.floorMapElementColor,
                     selectedColor: tableColor,
                     onColorSelected: (c) => setDialogState(() => tableColor = c),
                   ),
@@ -1391,9 +1387,8 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  Text(l.floorMapElementColor, style: Theme.of(context).textTheme.bodySmall),
-                  const SizedBox(height: 8),
-                  PosColorPalette(
+                  PosColorField(
+                    label: l.floorMapElementColor,
                     selectedColor: elementColor,
                     onColorSelected: (c) => setDialogState(() => elementColor = c),
                   ),

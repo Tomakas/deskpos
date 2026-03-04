@@ -60,6 +60,12 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
         name: Value(json['name'] as String),
         isActive: Value(json['is_active'] as bool? ?? true),
         parentId: Value(json['parent_id'] as String?),
+        prepArea: Value(_tryEnumFromName(PrepArea.values, json['prep_area'])),
+        defaultSaleTaxRateId: Value(json['default_sale_tax_rate_id'] as String?),
+        defaultPurchaseTaxRateId: Value(json['default_purchase_tax_rate_id'] as String?),
+        defaultIsSellable: Value(json['default_is_sellable'] as bool?),
+        color: Value(json['color'] as String?),
+        itemColor: Value(json['item_color'] as String?),
         createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
         updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
         deletedAt: Value(_parseDateTime(json['deleted_at'])),
@@ -96,6 +102,8 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
               ? NegativeStockPolicy.values.byName(json['negative_stock_policy'] as String)
               : null,
         ),
+        prepArea: Value(_tryEnumFromName(PrepArea.values, json['prep_area'])),
+        color: Value(json['color'] as String?),
         createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
         updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
         deletedAt: Value(_parseDateTime(json['deleted_at'])),
@@ -460,6 +468,7 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
         billAgeWarningMinutes: Value(json['bill_age_warning_minutes'] as int? ?? 15),
         billAgeDangerMinutes: Value(json['bill_age_danger_minutes'] as int? ?? 30),
         billAgeCriticalMinutes: Value(json['bill_age_critical_minutes'] as int? ?? 45),
+        aiEnabled: Value(json['ai_enabled'] as bool? ?? false),
         aiProviderType: Value(
           json['ai_provider_type'] != null
               ? AiProviderType.values.byName(json['ai_provider_type'] as String)
@@ -496,6 +505,7 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
         authUserId: Value(json['auth_user_id'] as String),
         isDemo: Value(json['is_demo'] as bool? ?? false),
         demoExpiresAt: Value(_parseDateTime(json['demo_expires_at'])),
+        autoPrintOrderTickets: Value(json['auto_print_order_tickets'] as bool? ?? false),
         createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
         updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
         deletedAt: Value(_parseDateTime(json['deleted_at'])),

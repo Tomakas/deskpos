@@ -969,7 +969,7 @@ class _RightPanel extends ConsumerWidget {
                           canVouchers: canVouchers,
                           canData: canData,
                           hasSession: hasSession,
-                          canAi: ref.read(hasPermissionProvider('ai.use')),
+                          canAi: ref.read(hasPermissionProvider('ai.use')) && (ref.read(aiEnabledProvider).valueOrNull ?? false),
                         ),
                         child: Column(
                           mainAxisSize: MainAxisSize.min,

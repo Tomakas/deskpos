@@ -12,6 +12,7 @@ export 'item_type.dart';
 export 'layout_item_type.dart';
 export 'negative_stock_policy.dart';
 export 'payment_type.dart';
+export 'prep_area.dart';
 export 'prep_status.dart';
 export 'purchase_price_strategy.dart';
 export 'reservation_status.dart';

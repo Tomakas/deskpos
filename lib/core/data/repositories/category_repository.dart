@@ -47,6 +47,12 @@ class CategoryRepository
         name: Value(m.name),
         isActive: Value(m.isActive),
         parentId: Value(m.parentId),
+        prepArea: Value(m.prepArea),
+        defaultSaleTaxRateId: Value(m.defaultSaleTaxRateId),
+        defaultPurchaseTaxRateId: Value(m.defaultPurchaseTaxRateId),
+        defaultIsSellable: Value(m.defaultIsSellable),
+        color: Value(m.color),
+        itemColor: Value(m.itemColor),
         updatedAt: Value(DateTime.now()),
       );
 

@@ -1730,6 +1730,7 @@
   "settingsAiProviderAnthropic": "Anthropic",
   "settingsAiModel": "Model",
   "settingsAiModelHint": "e.g. gpt-4o",
+  "settingsAiEnabled": "AI Assistant enabled",
   "settingsAiRateLimit": "Rate limit (req/hour)",
   "aiCopyConversation": "Copy conversation",
   "aiWelcomeName": "Hi, I'm Maty!",
@@ -1764,5 +1765,25 @@
   "settingsThemeSystem": "System",
   "settingsThemeLight": "Light",
   "settingsThemeDark": "Dark",
-  "settingsAccentColor": "Accent color"
+  "settingsAccentColor": "Accent color",
+
+  "fieldPrepArea": "Prep area",
+  "prepAreaKitchen": "Kitchen",
+  "prepAreaBar": "Bar",
+  "prepAreaAll": "All",
+  "prepAreaNone": "None",
+  "fieldDefaultSaleTax": "Default sale tax",
+  "fieldDefaultPurchaseTax": "Default purchase tax",
+  "fieldDefaultIsSellable": "Default sellable",
+  "fieldCategoryColor": "Category color",
+  "fieldItemColor": "Default item color",
+  "inheritFromCategory": "Apply category defaults?",
+  "inheritFromCategoryDesc": "Apply defaults from category \"{name}\":",
+  "@inheritFromCategoryDesc": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "autoPrintOrderTickets": "Auto-print order tickets",
+  "orderTicketTitle": "ORDER"
 }

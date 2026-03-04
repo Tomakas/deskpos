@@ -5,6 +5,7 @@ import 'package:uuid/uuid.dart';
 import '../../../core/data/enums/item_type.dart';
 import '../../../core/data/enums/layout_item_type.dart';
 import '../../../core/data/enums/negative_stock_policy.dart';
+import '../../../core/data/enums/prep_area.dart';
 import '../../../core/data/enums/unit_type.dart';
 import '../../../core/data/models/category_model.dart';
 import '../../../core/data/models/item_model.dart';
@@ -505,8 +506,7 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
             ? minorUnitsToInputString(existing!.purchasePrice!, currency, locale: locale)
             : '');
     var categoryId = existing?.categoryId;
-    var taxRateId = existing?.saleTaxRateId ??
-        (taxRates.where((t) => t.isDefault).firstOrNull?.id);
+    var taxRateId = existing?.saleTaxRateId;
     var itemType = existing?.itemType ?? ItemType.product;
     var unit = existing?.unit ?? UnitType.ks;
     var isActive = existing?.isActive ?? true;
@@ -517,9 +517,10 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
         text: existing?.minQuantity?.toString() ?? '');
     var supplierId = existing?.supplierId;
     var manufacturerId = existing?.manufacturerId;
-    var purchaseTaxRateId = existing?.purchaseTaxRateId ??
-        (taxRates.where((t) => t.isDefault).firstOrNull?.id);
+    var purchaseTaxRateId = existing?.purchaseTaxRateId;
     var parentId = existing?.parentId;
+    var prepArea = existing?.prepArea;
+    var itemColor = existing?.color;
 
     final result = await showDialog<Object>(
       context: context,
@@ -563,12 +564,47 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
                   child: DropdownButtonFormField<String?>(
                     initialValue: categoryId,
                     decoration: InputDecoration(labelText: l.fieldCategory),
-                    items: [
-                      const DropdownMenuItem(value: null, child: Text('-')),
-                      ...categories
-                          .map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))),
-                    ],
-                    onChanged: (v) => setDialogState(() => categoryId = v),
+                    items: categories
+                        .map((c) => DropdownMenuItem(value: c.id, child: Text(c.name)))
+                        .toList(),
+                    onChanged: (v) async {
+                      setDialogState(() => categoryId = v);
+                      if (v == null) return;
+                      final cat = categories.where((c) => c.id == v).firstOrNull;
+                      if (cat == null) return;
+                      final hasDefaults = cat.defaultSaleTaxRateId != null ||
+                          cat.defaultPurchaseTaxRateId != null ||
+                          cat.prepArea != null ||
+                          cat.itemColor != null;
+                      if (!hasDefaults) return;
+
+                      // If no inheritable fields are filled yet, apply silently
+                      final hasExistingValues = taxRateId != null ||
+                          purchaseTaxRateId != null ||
+                          prepArea != null ||
+                          itemColor != null;
+
+                      if (!hasExistingValues) {
+                        setDialogState(() {
+                          if (cat.defaultSaleTaxRateId != null) taxRateId = cat.defaultSaleTaxRateId;
+                          if (cat.defaultPurchaseTaxRateId != null) purchaseTaxRateId = cat.defaultPurchaseTaxRateId;
+                          if (cat.prepArea != null) prepArea = cat.prepArea;
+                          if (cat.itemColor != null) itemColor = cat.itemColor;
+                        });
+                        return;
+                      }
+
+                      // Fields already have values — ask user what to overwrite
+                      if (!ctx.mounted) return;
+                      final applied = await _showInheritDialog(ctx, l, cat, taxRates);
+                      if (applied == null || !ctx.mounted) return;
+                      setDialogState(() {
+                        if (applied.contains('taxRateId')) taxRateId = cat.defaultSaleTaxRateId;
+                        if (applied.contains('purchaseTaxRateId')) purchaseTaxRateId = cat.defaultPurchaseTaxRateId;
+                        if (applied.contains('prepArea')) prepArea = cat.prepArea;
+                        if (applied.contains('itemColor')) itemColor = cat.itemColor;
+                      });
+                    },
                   ),
                 ),
               ],
@@ -618,11 +654,9 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
                     child: DropdownButtonFormField<String?>(
                       initialValue: purchaseTaxRateId,
                       decoration: InputDecoration(labelText: l.fieldPurchaseTaxRate),
-                      items: [
-                        const DropdownMenuItem(value: null, child: Text('-')),
-                        ...taxRates
-                            .map((t) => DropdownMenuItem(value: t.id, child: Text(t.label))),
-                      ],
+                      items: taxRates
+                          .map((t) => DropdownMenuItem(value: t.id, child: Text(t.label)))
+                          .toList(),
                       onChanged: (v) => setDialogState(() => purchaseTaxRateId = v),
                     ),
                   ),
@@ -638,11 +672,9 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
                   child: DropdownButtonFormField<String?>(
                     initialValue: supplierId,
                     decoration: InputDecoration(labelText: l.fieldSupplier),
-                    items: [
-                      const DropdownMenuItem(value: null, child: Text('-')),
-                      ...suppliers
-                          .map((s) => DropdownMenuItem(value: s.id, child: Text(s.supplierName))),
-                    ],
+                    items: suppliers
+                        .map((s) => DropdownMenuItem(value: s.id, child: Text(s.supplierName)))
+                        .toList(),
                     onChanged: (v) => setDialogState(() => supplierId = v),
                   ),
                 ),
@@ -651,11 +683,9 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
                   child: DropdownButtonFormField<String?>(
                     initialValue: manufacturerId,
                     decoration: InputDecoration(labelText: l.fieldManufacturer),
-                    items: [
-                      const DropdownMenuItem(value: null, child: Text('-')),
-                      ...manufacturers
-                          .map((m) => DropdownMenuItem(value: m.id, child: Text(m.name))),
-                    ],
+                    items: manufacturers
+                        .map((m) => DropdownMenuItem(value: m.id, child: Text(m.name)))
+                        .toList(),
                     onChanged: (v) => setDialogState(() => manufacturerId = v),
                   ),
                 ),
@@ -760,23 +790,49 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
                     child: DropdownButtonFormField<NegativeStockPolicy?>(
                       initialValue: negativeStockPolicy,
                       decoration: InputDecoration(labelText: l.fieldNegativeStockPolicy),
-                      items: [
-                        DropdownMenuItem<NegativeStockPolicy?>(
-                          value: null,
-                          child: Text(l.negativeStockPolicyDefault),
-                        ),
-                        for (final p in NegativeStockPolicy.values)
-                          DropdownMenuItem<NegativeStockPolicy?>(
-                            value: p,
-                            child: Text(_policyLabel(l, p)),
-                          ),
-                      ],
+                      items: NegativeStockPolicy.values
+                          .map((p) => DropdownMenuItem<NegativeStockPolicy?>(
+                                value: p,
+                                child: Text(_policyLabel(l, p)),
+                              ))
+                          .toList(),
                       onChanged: (v) => setDialogState(() => negativeStockPolicy = v),
                     ),
                   ),
                 ],
               ),
             ],
+            const SizedBox(height: 12),
+            // PrepArea + Color
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: DropdownButtonFormField<PrepArea?>(
+                    initialValue: prepArea,
+                    decoration: InputDecoration(labelText: l.fieldPrepArea),
+                    items: PrepArea.values.map((pa) => DropdownMenuItem<PrepArea?>(
+                        value: pa,
+                        child: Text(switch (pa) {
+                          PrepArea.kitchen => l.prepAreaKitchen,
+                          PrepArea.bar => l.prepAreaBar,
+                          PrepArea.all => l.prepAreaAll,
+                          PrepArea.none => l.prepAreaNone,
+                        }),
+                      )).toList(),
+                    onChanged: (v) => setDialogState(() => prepArea = v),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: PosColorField(
+                    label: l.fieldColor,
+                    selectedColor: itemColor,
+                    onColorSelected: (c) => setDialogState(() => itemColor = c),
+                  ),
+                ),
+              ],
+            ),
             // Variants section — only for existing products
             if (existing != null && existing.itemType == ItemType.product)
               _VariantsExpansionTile(
@@ -831,6 +887,8 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
         manufacturerId: manufacturerId,
         supplierId: supplierId,
         parentId: parentId,
+        prepArea: prepArea,
+        color: itemColor,
       ));
     } else {
       final createdItem = ItemModel(
@@ -855,6 +913,8 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
         manufacturerId: manufacturerId,
         supplierId: supplierId,
         parentId: parentId,
+        prepArea: prepArea,
+        color: itemColor,
         createdAt: now,
         updatedAt: now,
       );
@@ -1011,6 +1071,88 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
       NegativeStockPolicy.warn => l.negativeStockPolicyWarn,
       NegativeStockPolicy.block => l.negativeStockPolicyBlock,
     };
+  }
+
+  /// Shows a dialog letting the user pick which category defaults to inherit.
+  ///
+  /// Returns a set of field keys to apply, or null if cancelled.
+  Future<Set<String>?> _showInheritDialog(
+    BuildContext context,
+    AppLocalizations l,
+    CategoryModel cat,
+    List<TaxRateModel> taxRates,
+  ) async {
+    String taxLabel(String? id) =>
+        taxRates.where((t) => t.id == id).firstOrNull?.label ?? '-';
+    String prepAreaLabel(PrepArea pa) => switch (pa) {
+      PrepArea.kitchen => l.prepAreaKitchen,
+      PrepArea.bar => l.prepAreaBar,
+      PrepArea.all => l.prepAreaAll,
+      PrepArea.none => l.prepAreaNone,
+    };
+
+    // Build available defaults
+    final options = <String, String>{};
+    if (cat.defaultSaleTaxRateId != null) {
+      options['taxRateId'] = '${l.fieldDefaultSaleTax}: ${taxLabel(cat.defaultSaleTaxRateId)}';
+    }
+    if (cat.defaultPurchaseTaxRateId != null) {
+      options['purchaseTaxRateId'] = '${l.fieldDefaultPurchaseTax}: ${taxLabel(cat.defaultPurchaseTaxRateId)}';
+    }
+    if (cat.prepArea != null) {
+      options['prepArea'] = '${l.fieldPrepArea}: ${prepAreaLabel(cat.prepArea!)}';
+    }
+    if (cat.itemColor != null) {
+      options['itemColor'] = l.fieldItemColor;
+    }
+    if (options.isEmpty) return null;
+
+    final selected = Set<String>.from(options.keys);
+
+    return showDialog<Set<String>>(
+      context: context,
+      builder: (_) => StatefulBuilder(
+        builder: (ctx, setDialogState) => PosDialogShell(
+          title: l.inheritFromCategory,
+          maxWidth: 400,
+          scrollable: true,
+          bottomActions: PosDialogActions(
+            actions: [
+              OutlinedButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text(l.actionCancel),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(ctx, selected),
+                child: Text(l.actionConfirm),
+              ),
+            ],
+          ),
+          children: [
+            Text(
+              l.inheritFromCategoryDesc(cat.name),
+              style: Theme.of(ctx).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 12),
+            for (final entry in options.entries)
+              SwitchListTile(
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                title: Text(entry.value),
+                value: selected.contains(entry.key),
+                onChanged: (v) => setDialogState(() {
+                  if (v) {
+                    selected.add(entry.key);
+                  } else {
+                    selected.remove(entry.key);
+                  }
+                }),
+              ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
   }
 }
 

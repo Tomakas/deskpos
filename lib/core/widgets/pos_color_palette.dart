@@ -2,7 +2,10 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../l10n/app_localizations_ext.dart';
 import '../logging/app_logger.dart';
+import 'pos_dialog_actions.dart';
+import 'pos_dialog_shell.dart';
 
 /// Shared preset colors used across color pickers in the app.
 const kColorPresets = [
@@ -113,9 +116,105 @@ const _kGap = 4.0;
 ///
 /// [selectedColor] is the currently selected hex string (or gradient string).
 /// [onColorSelected] is called with the chosen value.
-class PosColorPalette extends StatelessWidget {
-  const PosColorPalette({
+/// A form-field-style color picker that opens a dialog with the full palette.
+///
+/// Shows a color swatch preview when a color is selected, label inside
+/// the box when empty (consistent with TextField / DropdownButtonFormField).
+class PosColorField extends StatelessWidget {
+  const PosColorField({
     super.key,
+    required this.label,
+    required this.selectedColor,
+    required this.onColorSelected,
+  });
+
+  final String label;
+  final String? selectedColor;
+  final ValueChanged<String?> onColorSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasColor = selectedColor != null;
+    return InkWell(
+      onTap: () async {
+        final result = await showDialog<String>(
+          context: context,
+          builder: (_) => _ColorPickerDialog(
+            title: label,
+            selectedColor: selectedColor,
+          ),
+        );
+        // null = cancelled (no change), '' = cleared, other = selected color
+        if (result == null) return;
+        onColorSelected(result.isEmpty ? null : result);
+      },
+      borderRadius: BorderRadius.circular(4),
+      child: InputDecorator(
+        decoration: InputDecoration(labelText: label),
+        isEmpty: !hasColor,
+        child: hasColor
+            ? Container(
+                height: 24,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(4),
+                  color: !isGradient(selectedColor)
+                      ? parseHexColor(selectedColor)
+                      : null,
+                  gradient: parseGradient(selectedColor),
+                  border: Border.all(
+                    color: Theme.of(context).dividerColor,
+                  ),
+                ),
+              )
+            : null,
+      ),
+    );
+  }
+}
+
+class _ColorPickerDialog extends StatelessWidget {
+  const _ColorPickerDialog({
+    required this.title,
+    required this.selectedColor,
+  });
+
+  final String title;
+  final String? selectedColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return PosDialogShell(
+      title: title,
+      maxWidth: 500,
+      scrollable: true,
+      bottomActions: PosDialogActions(
+        actions: [
+          if (selectedColor != null)
+            OutlinedButton(
+              onPressed: () => Navigator.pop(context, ''),
+              child: Text(context.l10n.filterReset),
+            ),
+          OutlinedButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(context.l10n.actionCancel),
+          ),
+        ],
+      ),
+      children: [
+        _PosColorGrid(
+          selectedColor: selectedColor,
+          onColorSelected: (c) => Navigator.pop(context, c),
+        ),
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+}
+
+/// Raw color palette grid — used inside [_ColorPickerDialog] and
+/// standalone where a dialog-in-dialog is needed (e.g. variant color picker).
+class _PosColorGrid extends StatelessWidget {
+  const _PosColorGrid({
     required this.selectedColor,
     required this.onColorSelected,
   });
@@ -196,6 +295,26 @@ class PosColorPalette extends StatelessWidget {
           ],
         ],
       ),
+    );
+  }
+}
+
+/// Legacy palette widget — kept for standalone usage (variant color picker dialog).
+class PosColorPalette extends StatelessWidget {
+  const PosColorPalette({
+    super.key,
+    required this.selectedColor,
+    required this.onColorSelected,
+  });
+
+  final String? selectedColor;
+  final ValueChanged<String?> onColorSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return _PosColorGrid(
+      selectedColor: selectedColor,
+      onColorSelected: onColorSelected,
     );
   }
 }

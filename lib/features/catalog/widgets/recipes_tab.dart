@@ -233,12 +233,9 @@ class _RecipesTabState extends ConsumerState<RecipesTab> {
             DropdownButtonFormField<String?>(
               initialValue: parentProductId,
               decoration: InputDecoration(labelText: l.fieldParentProduct),
-              items: [
-                const DropdownMenuItem(value: null, child: Text('-')),
-                ...recipeItems.map(
+              items: recipeItems.map(
                   (i) => DropdownMenuItem(value: i.id, child: Text(i.name)),
-                ),
-              ],
+                ).toList(),
               onChanged: isNew
                   ? (v) => setDialogState(() => parentProductId = v)
                   : null,
@@ -272,12 +269,9 @@ class _RecipesTabState extends ConsumerState<RecipesTab> {
                                     labelText: l.fieldComponent,
                                     isDense: true,
                                   ),
-                                  items: [
-                                    const DropdownMenuItem(value: null, child: Text('-')),
-                                    ...items.map(
+                                  items: items.map(
                                       (it) => DropdownMenuItem(value: it.id, child: Text(it.name)),
-                                    ),
-                                  ],
+                                    ).toList(),
                                   onChanged: (v) => setDialogState(() => comp.itemId = v),
                                 ),
                               ),

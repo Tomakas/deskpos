@@ -137,15 +137,12 @@ class _DialogStockDocumentState extends ConsumerState<DialogStockDocument> {
                     return DropdownButtonFormField<String>(
                       decoration: InputDecoration(labelText: l.stockDocumentSupplier),
                       initialValue: _selectedSupplierId,
-                      items: [
-                        DropdownMenuItem<String>(value: null, child: Text('-')),
-                        ...suppliers.map(
+                      items: suppliers.map(
                           (s) => DropdownMenuItem(
                             value: s.id,
                             child: Text(s.supplierName),
                           ),
-                        ),
-                      ],
+                        ).toList(),
                       onChanged: (v) => setState(() => _selectedSupplierId = v),
                     );
                   },

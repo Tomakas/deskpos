@@ -26,6 +26,7 @@ class CompanySettings extends Table with SyncColumnsMixin {
   IntColumn get billAgeCriticalMinutes => integer().withDefault(const Constant(45))();
 
   // AI assistant
+  BoolColumn get aiEnabled => boolean().withDefault(const Constant(false))();
   TextColumn get aiProviderType =>
       textEnum<AiProviderType>().withDefault(Constant(AiProviderType.none.name))();
   TextColumn get aiModel => text().nullable()();

@@ -1730,6 +1730,7 @@
   "settingsAiProviderAnthropic": "Anthropic",
   "settingsAiModel": "Model",
   "settingsAiModelHint": "např. gpt-4o",
+  "settingsAiEnabled": "AI Asistent zapnutý",
   "settingsAiRateLimit": "Limit požadavků (za hodinu)",
   "aiCopyConversation": "Kopírovat konverzaci",
   "aiWelcomeName": "Ahoj, jsem Maty!",
@@ -1764,5 +1765,25 @@
   "settingsThemeSystem": "Systém",
   "settingsThemeLight": "Světlý",
   "settingsThemeDark": "Tmavý",
-  "settingsAccentColor": "Barva akcentu"
+  "settingsAccentColor": "Barva akcentu",
+
+  "fieldPrepArea": "Přípravna",
+  "prepAreaKitchen": "Kuchyně",
+  "prepAreaBar": "Bar",
+  "prepAreaAll": "Vše",
+  "prepAreaNone": "Žádná",
+  "fieldDefaultSaleTax": "Výchozí prodejní daň",
+  "fieldDefaultPurchaseTax": "Výchozí nákupní daň",
+  "fieldDefaultIsSellable": "Výchozí v prodeji",
+  "fieldCategoryColor": "Barva kategorie",
+  "fieldItemColor": "Výchozí barva položky",
+  "inheritFromCategory": "Přepsat dle kategorie?",
+  "inheritFromCategoryDesc": "Přepsat dle výchozích hodnot kategorie \"{name}\":",
+  "@inheritFromCategoryDesc": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "autoPrintOrderTickets": "Automatický tisk objednávek",
+  "orderTicketTitle": "OBJEDNÁVKA"
 }

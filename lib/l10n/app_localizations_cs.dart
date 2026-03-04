@@ -4320,6 +4320,9 @@ class AppLocalizationsCs extends AppLocalizations {
   String get settingsAiModelHint => 'např. gpt-4o';
 
   @override
+  String get settingsAiEnabled => 'AI Asistent zapnutý';
+
+  @override
   String get settingsAiRateLimit => 'Limit požadavků (za hodinu)';
 
   @override
@@ -4425,4 +4428,48 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get settingsAccentColor => 'Barva akcentu';
+
+  @override
+  String get fieldPrepArea => 'Přípravna';
+
+  @override
+  String get prepAreaKitchen => 'Kuchyně';
+
+  @override
+  String get prepAreaBar => 'Bar';
+
+  @override
+  String get prepAreaAll => 'Vše';
+
+  @override
+  String get prepAreaNone => 'Žádná';
+
+  @override
+  String get fieldDefaultSaleTax => 'Výchozí prodejní daň';
+
+  @override
+  String get fieldDefaultPurchaseTax => 'Výchozí nákupní daň';
+
+  @override
+  String get fieldDefaultIsSellable => 'Výchozí v prodeji';
+
+  @override
+  String get fieldCategoryColor => 'Barva kategorie';
+
+  @override
+  String get fieldItemColor => 'Výchozí barva položky';
+
+  @override
+  String get inheritFromCategory => 'Přepsat dle kategorie?';
+
+  @override
+  String inheritFromCategoryDesc(String name) {
+    return 'Přepsat dle výchozích hodnot kategorie \"$name\":';
+  }
+
+  @override
+  String get autoPrintOrderTickets => 'Automatický tisk objednávek';
+
+  @override
+  String get orderTicketTitle => 'OBJEDNÁVKA';
 }

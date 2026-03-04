@@ -8406,6 +8406,12 @@ abstract class AppLocalizations {
   /// **'např. gpt-4o'**
   String get settingsAiModelHint;
 
+  /// No description provided for @settingsAiEnabled.
+  ///
+  /// In cs, this message translates to:
+  /// **'AI Asistent zapnutý'**
+  String get settingsAiEnabled;
+
   /// No description provided for @settingsAiRateLimit.
   ///
   /// In cs, this message translates to:
@@ -8603,6 +8609,90 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Barva akcentu'**
   String get settingsAccentColor;
+
+  /// No description provided for @fieldPrepArea.
+  ///
+  /// In cs, this message translates to:
+  /// **'Přípravna'**
+  String get fieldPrepArea;
+
+  /// No description provided for @prepAreaKitchen.
+  ///
+  /// In cs, this message translates to:
+  /// **'Kuchyně'**
+  String get prepAreaKitchen;
+
+  /// No description provided for @prepAreaBar.
+  ///
+  /// In cs, this message translates to:
+  /// **'Bar'**
+  String get prepAreaBar;
+
+  /// No description provided for @prepAreaAll.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vše'**
+  String get prepAreaAll;
+
+  /// No description provided for @prepAreaNone.
+  ///
+  /// In cs, this message translates to:
+  /// **'Žádná'**
+  String get prepAreaNone;
+
+  /// No description provided for @fieldDefaultSaleTax.
+  ///
+  /// In cs, this message translates to:
+  /// **'Výchozí prodejní daň'**
+  String get fieldDefaultSaleTax;
+
+  /// No description provided for @fieldDefaultPurchaseTax.
+  ///
+  /// In cs, this message translates to:
+  /// **'Výchozí nákupní daň'**
+  String get fieldDefaultPurchaseTax;
+
+  /// No description provided for @fieldDefaultIsSellable.
+  ///
+  /// In cs, this message translates to:
+  /// **'Výchozí v prodeji'**
+  String get fieldDefaultIsSellable;
+
+  /// No description provided for @fieldCategoryColor.
+  ///
+  /// In cs, this message translates to:
+  /// **'Barva kategorie'**
+  String get fieldCategoryColor;
+
+  /// No description provided for @fieldItemColor.
+  ///
+  /// In cs, this message translates to:
+  /// **'Výchozí barva položky'**
+  String get fieldItemColor;
+
+  /// No description provided for @inheritFromCategory.
+  ///
+  /// In cs, this message translates to:
+  /// **'Přepsat dle kategorie?'**
+  String get inheritFromCategory;
+
+  /// No description provided for @inheritFromCategoryDesc.
+  ///
+  /// In cs, this message translates to:
+  /// **'Přepsat dle výchozích hodnot kategorie \"{name}\":'**
+  String inheritFromCategoryDesc(String name);
+
+  /// No description provided for @autoPrintOrderTickets.
+  ///
+  /// In cs, this message translates to:
+  /// **'Automatický tisk objednávek'**
+  String get autoPrintOrderTickets;
+
+  /// No description provided for @orderTicketTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'OBJEDNÁVKA'**
+  String get orderTicketTitle;
 }
 
 class _AppLocalizationsDelegate

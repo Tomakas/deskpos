@@ -105,6 +105,12 @@ Map<String, dynamic> categoryToSupabaseJson(CategoryModel m) => {
       'name': m.name,
       'is_active': m.isActive,
       'parent_id': m.parentId,
+      'prep_area': m.prepArea?.name,
+      'default_sale_tax_rate_id': m.defaultSaleTaxRateId,
+      'default_purchase_tax_rate_id': m.defaultPurchaseTaxRateId,
+      'default_is_sellable': m.defaultIsSellable,
+      'color': m.color,
+      'item_color': m.itemColor,
     };
 
 Map<String, dynamic> itemToSupabaseJson(ItemModel m) => {
@@ -135,6 +141,8 @@ Map<String, dynamic> itemToSupabaseJson(ItemModel m) => {
       'supplier_id': m.supplierId,
       'parent_id': m.parentId,
       'negative_stock_policy': m.negativeStockPolicy?.name,
+      'prep_area': m.prepArea?.name,
+      'color': m.color,
     };
 
 Map<String, dynamic> supplierToSupabaseJson(SupplierModel m) => {
@@ -453,6 +461,7 @@ Map<String, dynamic> companySettingsToSupabaseJson(CompanySettingsModel m) => {
       'bill_age_warning_minutes': m.billAgeWarningMinutes,
       'bill_age_danger_minutes': m.billAgeDangerMinutes,
       'bill_age_critical_minutes': m.billAgeCriticalMinutes,
+      'ai_enabled': m.aiEnabled,
       'ai_provider_type': m.aiProviderType.name,
       'ai_model': m.aiModel,
       'ai_rate_limit_per_hour': m.aiRateLimitPerHour,
@@ -476,6 +485,7 @@ Map<String, dynamic> companyToSupabaseJson(CompanyModel m) => {
       'business_type': m.businessType?.name,
       'default_currency_id': m.defaultCurrencyId,
       'auth_user_id': m.authUserId,
+      'auto_print_order_tickets': m.autoPrintOrderTickets,
       'client_created_at': toIso8601Utc(m.createdAt),
       'client_updated_at': toIso8601Utc(m.updatedAt),
       'deleted_at': toIso8601Utc(m.deletedAt),

@@ -112,11 +112,20 @@ class FloorMapView extends ConsumerWidget {
                       billsByTable.putIfAbsent(bill.tableId, () => []).add(bill);
                     }
 
+                    final defaultSectionId = sections.firstOrNull?.id;
+
                     // Bills on this section's tables
                     final sectionBills = <BillModel>[];
                     for (final table in placedTables) {
                       sectionBills.addAll(billsByTable[table.id] ?? []);
                     }
+
+                    // Tableless bills belonging to this section (or default section if null)
+                    final tablelessBills = openBills.where((b) =>
+                        b.tableId == null &&
+                        (b.sectionId == effectiveSectionId ||
+                         (b.sectionId == null && effectiveSectionId == defaultSectionId)),
+                    ).toList();
 
                     if (placedTables.isEmpty && placedElements.isEmpty) {
                       return Center(
@@ -242,6 +251,23 @@ class FloorMapView extends ConsumerWidget {
                                       cellH: cellH,
                                       diameter: billDiameter,
                                       lastOrderTime: lastOrderTimes[bill.id],
+                                      warningMin: warnMin,
+                                      criticalMin: criticalMin,
+                                    ),
+                                  // Tableless bills in top-left corner
+                                  for (var i = 0; i < tablelessBills.length; i++)
+                                    _buildBillCircle(
+                                      context: context,
+                                      bill: tablelessBills[i].copyWith(
+                                        mapPosX: (i * (billDiameter + 4) / cellW * 100 + billDiameter / cellW * 50).round(),
+                                        mapPosY: (billDiameter / cellH * 50).round(),
+                                      ),
+                                      placedTables: placedTables,
+                                      billsByTable: billsByTable,
+                                      cellW: cellW,
+                                      cellH: cellH,
+                                      diameter: billDiameter,
+                                      lastOrderTime: lastOrderTimes[tablelessBills[i].id],
                                       warningMin: warnMin,
                                       criticalMin: criticalMin,
                                     ),
@@ -444,7 +470,8 @@ class _BillCircle extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
     final currency = ref.watch(currentCurrencyProvider).value;
-    final borderColor = Color.lerp(ageColor, Colors.black, 0.25)!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final fillColor = isDark ? const Color(0xFF455A64) : const Color(0xFF607D8B);
 
     return Opacity(
       opacity: opacity,
@@ -453,15 +480,8 @@ class _BillCircle extends ConsumerWidget {
         height: diameter,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: ageColor,
-          border: Border.all(color: borderColor, width: 2),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.25),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
+          color: fillColor,
+          border: Border.all(color: ageColor, width: 3),
         ),
         child: Padding(
           padding: EdgeInsets.all(diameter * 0.12),
@@ -624,6 +644,7 @@ class _MapElementCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = element.color != null ? parsePrimaryColor(element.color) : null;
+    final gradient = element.fillStyle == 2 ? parseGradient(element.color) : null;
     final customShape = element.shape == TableShape.triangle || element.shape == TableShape.diamond;
     final radius = switch (element.shape) {
       TableShape.round => BorderRadius.circular(999),
@@ -664,7 +685,9 @@ class _MapElementCell extends StatelessWidget {
               : null,
           child: ClipPath(
             clipper: _ShapeClipper(element.shape),
-            child: ColoredBox(color: fillColor ?? Colors.transparent, child: content),
+            child: gradient != null
+                ? DecoratedBox(decoration: BoxDecoration(gradient: gradient), child: content)
+                : ColoredBox(color: fillColor ?? Colors.transparent, child: content),
           ),
         ),
       );
@@ -674,7 +697,8 @@ class _MapElementCell extends StatelessWidget {
       padding: const EdgeInsets.all(2),
       child: Container(
         decoration: BoxDecoration(
-          color: fillColor,
+          color: gradient == null ? fillColor : null,
+          gradient: gradient,
           border: _borderForStyle(color, element.borderStyle),
           borderRadius: radius,
         ),

@@ -68,6 +68,7 @@ CREATE INDEX idx_ai_undo_logs_message
 -- =========================================================================
 
 ALTER TABLE company_settings
+  ADD COLUMN IF NOT EXISTS ai_enabled boolean NOT NULL DEFAULT false,
   ADD COLUMN IF NOT EXISTS ai_provider_type text NOT NULL DEFAULT 'none',
   ADD COLUMN IF NOT EXISTS ai_model text,
   ADD COLUMN IF NOT EXISTS ai_rate_limit_per_hour integer NOT NULL DEFAULT 60,

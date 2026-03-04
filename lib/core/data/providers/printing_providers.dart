@@ -13,4 +13,5 @@ final printingServiceProvider = Provider<PrintingService>((ref) => PrintingServi
       userRepo: ref.watch(userRepositoryProvider),
       orderItemModifierRepo: ref.watch(orderItemModifierRepositoryProvider),
       currencyRepo: ref.watch(currencyRepositoryProvider),
+      itemRepo: ref.watch(itemRepositoryProvider),
     ));

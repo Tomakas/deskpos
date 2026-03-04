@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../core/data/enums/prep_area.dart';
 import '../../../core/data/models/category_model.dart';
+import '../../../core/data/models/tax_rate_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
@@ -10,6 +12,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/search_utils.dart';
 import '../../../core/widgets/highlighted_text.dart';
+import '../../../core/widgets/pos_color_palette.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_table.dart';
@@ -238,6 +241,14 @@ class _CatalogCategoriesTabState extends ConsumerState<CatalogCategoriesTab> {
     setState(() => _filterActive = active);
   }
 
+  String _prepAreaLabel(AppLocalizations l, PrepArea? pa) => switch (pa) {
+    PrepArea.kitchen => l.prepAreaKitchen,
+    PrepArea.bar => l.prepAreaBar,
+    PrepArea.all => l.prepAreaAll,
+    PrepArea.none => l.prepAreaNone,
+    null => '-',
+  };
+
   Future<void> _showEditDialog(
     BuildContext context,
     WidgetRef ref,
@@ -245,67 +256,138 @@ class _CatalogCategoriesTabState extends ConsumerState<CatalogCategoriesTab> {
     CategoryModel? existing,
   ) async {
     final l = context.l10n;
+    final company = ref.read(currentCompanyProvider)!;
     final nameCtrl = TextEditingController(text: existing?.name ?? '');
     var isActive = existing?.isActive ?? true;
     var parentId = existing?.parentId;
+    var prepArea = existing?.prepArea;
+    var defaultSaleTaxRateId = existing?.defaultSaleTaxRateId;
+    var defaultPurchaseTaxRateId = existing?.defaultPurchaseTaxRateId;
+    var defaultIsSellable = existing?.defaultIsSellable;
+    var color = existing?.color;
+    var itemColor = existing?.itemColor;
 
     final parentOptions = allCategories.where((c) => c.id != existing?.id).toList();
 
     final result = await showDialog<Object>(
       context: context,
-      builder: (_) => StatefulBuilder(
-        builder: (ctx, setDialogState) => PosDialogShell(
-          title: existing == null ? l.actionAdd : l.actionEdit,
-          maxWidth: 350,
-          scrollable: true,
-          bottomActions: PosDialogActions(
-            leading: existing != null
-                ? OutlinedButton(
-                    style: PosButtonStyles.destructiveOutlined(ctx),
-                    onPressed: () async {
-                      if (!await confirmDelete(ctx, l) || !ctx.mounted) return;
-                      await ref.read(categoryRepositoryProvider).delete(existing.id);
-                      if (ctx.mounted) Navigator.pop(ctx);
-                    },
-                    child: Text(l.actionDelete),
-                  )
-                : null,
-            actions: [
-              OutlinedButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.actionCancel)),
-              FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.actionSave)),
-            ],
-          ),
-          children: [
-            TextField(
-              controller: nameCtrl,
-              decoration: InputDecoration(labelText: l.fieldName),
-            ),
-            const SizedBox(height: 12),
-            DropdownButtonFormField<String?>(
-              initialValue: parentId,
-              decoration: InputDecoration(labelText: l.fieldParentCategory),
-              items: [
-                const DropdownMenuItem(value: null, child: Text('-')),
-                ...parentOptions
-                    .map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))),
+      builder: (_) => StreamBuilder<List<TaxRateModel>>(
+        stream: ref.watch(taxRateRepositoryProvider).watchAll(company.id),
+        builder: (ctx, taxSnap) {
+          final taxRates = taxSnap.data ?? [];
+          return StatefulBuilder(
+            builder: (ctx, setDialogState) => PosDialogShell(
+              title: existing == null ? l.actionAdd : l.actionEdit,
+              maxWidth: 500,
+              scrollable: true,
+              bottomActions: PosDialogActions(
+                leading: existing != null
+                    ? OutlinedButton(
+                        style: PosButtonStyles.destructiveOutlined(ctx),
+                        onPressed: () async {
+                          if (!await confirmDelete(ctx, l) || !ctx.mounted) return;
+                          await ref.read(categoryRepositoryProvider).delete(existing.id);
+                          if (ctx.mounted) Navigator.pop(ctx);
+                        },
+                        child: Text(l.actionDelete),
+                      )
+                    : null,
+                actions: [
+                  OutlinedButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.actionCancel)),
+                  FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.actionSave)),
+                ],
+              ),
+              children: [
+                TextField(
+                  controller: nameCtrl,
+                  decoration: InputDecoration(labelText: l.fieldName),
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String?>(
+                  initialValue: parentId,
+                  decoration: InputDecoration(labelText: l.fieldParentCategory),
+                  items: parentOptions
+                      .map((c) => DropdownMenuItem(value: c.id, child: Text(c.name)))
+                      .toList(),
+                  onChanged: (v) => setDialogState(() => parentId = v),
+                ),
+                const SizedBox(height: 12),
+                SwitchListTile(
+                  title: Text(l.fieldActive),
+                  value: isActive,
+                  onChanged: (v) => setDialogState(() => isActive = v),
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<PrepArea?>(
+                  initialValue: prepArea,
+                  decoration: InputDecoration(labelText: l.fieldPrepArea),
+                  items: PrepArea.values.map((pa) => DropdownMenuItem<PrepArea?>(
+                    value: pa,
+                    child: Text(_prepAreaLabel(l, pa)),
+                  )).toList(),
+                  onChanged: (v) => setDialogState(() => prepArea = v),
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String?>(
+                  initialValue: defaultSaleTaxRateId,
+                  decoration: InputDecoration(labelText: l.fieldDefaultSaleTax),
+                  items: taxRates.map((tr) => DropdownMenuItem(
+                    value: tr.id,
+                    child: Text(tr.label),
+                  )).toList(),
+                  onChanged: (v) => setDialogState(() => defaultSaleTaxRateId = v),
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String?>(
+                  initialValue: defaultPurchaseTaxRateId,
+                  decoration: InputDecoration(labelText: l.fieldDefaultPurchaseTax),
+                  items: taxRates.map((tr) => DropdownMenuItem(
+                    value: tr.id,
+                    child: Text(tr.label),
+                  )).toList(),
+                  onChanged: (v) => setDialogState(() => defaultPurchaseTaxRateId = v),
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<bool?>(
+                  initialValue: defaultIsSellable,
+                  decoration: InputDecoration(labelText: l.fieldDefaultIsSellable),
+                  items: [
+                    DropdownMenuItem<bool?>(value: true, child: Text(l.yes)),
+                    DropdownMenuItem<bool?>(value: false, child: Text(l.no)),
+                  ],
+                  onChanged: (v) => setDialogState(() => defaultIsSellable = v),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: PosColorField(
+                        label: l.fieldCategoryColor,
+                        selectedColor: color,
+                        onColorSelected: (c) => setDialogState(() => color = c),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: PosColorField(
+                        label: l.fieldItemColor,
+                        selectedColor: itemColor,
+                        onColorSelected: (c) => setDialogState(() => itemColor = c),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
               ],
-              onChanged: (v) => setDialogState(() => parentId = v),
             ),
-            const SizedBox(height: 12),
-            SwitchListTile(
-              title: Text(l.fieldActive),
-              value: isActive,
-              onChanged: (v) => setDialogState(() => isActive = v),
-            ),
-            const SizedBox(height: 24),
-          ],
-        ),
+          );
+        },
       ),
     );
 
     if (result != true || nameCtrl.text.trim().isEmpty || !mounted) return;
 
-    final company = ref.read(currentCompanyProvider)!;
     final repo = ref.read(categoryRepositoryProvider);
     final now = DateTime.now();
 
@@ -314,6 +396,12 @@ class _CatalogCategoriesTabState extends ConsumerState<CatalogCategoriesTab> {
         name: nameCtrl.text.trim(),
         isActive: isActive,
         parentId: parentId,
+        prepArea: prepArea,
+        defaultSaleTaxRateId: defaultSaleTaxRateId,
+        defaultPurchaseTaxRateId: defaultPurchaseTaxRateId,
+        defaultIsSellable: defaultIsSellable,
+        color: color,
+        itemColor: itemColor,
       ));
     } else {
       await repo.create(CategoryModel(
@@ -322,6 +410,12 @@ class _CatalogCategoriesTabState extends ConsumerState<CatalogCategoriesTab> {
         name: nameCtrl.text.trim(),
         isActive: isActive,
         parentId: parentId,
+        prepArea: prepArea,
+        defaultSaleTaxRateId: defaultSaleTaxRateId,
+        defaultPurchaseTaxRateId: defaultPurchaseTaxRateId,
+        defaultIsSellable: defaultIsSellable,
+        color: color,
+        itemColor: itemColor,
         createdAt: now,
         updatedAt: now,
       ));

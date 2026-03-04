@@ -115,6 +115,13 @@ class _AiSettingsTabState extends ConsumerState<AiSettingsTab> {
               style: Theme.of(context).textTheme.titleMedium,
             ),
           ),
+          SwitchListTile(
+            title: Text(l.settingsAiEnabled),
+            value: s.aiEnabled,
+            onChanged: (value) {
+              _updateSettings(s.copyWith(aiEnabled: value));
+            },
+          ),
           ListTile(
             title: Text(l.settingsAiProvider),
             trailing: SizedBox(

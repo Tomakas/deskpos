@@ -81,6 +81,7 @@ class CompanyRepository {
           timezone: Value(model.timezone),
           businessType: Value(model.businessType),
           defaultCurrencyId: Value(model.defaultCurrencyId),
+          autoPrintOrderTickets: Value(model.autoPrintOrderTickets),
           updatedAt: Value(DateTime.now()),
         ));
         final entity = await (_db.select(_db.companies)

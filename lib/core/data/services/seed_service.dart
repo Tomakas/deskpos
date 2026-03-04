@@ -9,6 +9,7 @@ import '../enums/company_status.dart';
 import '../enums/hardware_type.dart';
 import '../enums/item_type.dart';
 import '../enums/payment_type.dart';
+import '../enums/prep_area.dart';
 import '../enums/sell_mode.dart';
 import '../enums/role_name.dart';
 import '../enums/table_shape.dart';
@@ -424,14 +425,23 @@ class SeedService {
     final catWine = _id();
     final catOther = _id();
 
+    // Look up tax rates for default assignments
+    final taxRateEntities = await (_db.select(_db.taxRates)
+          ..where((t) => t.companyId.equals(companyId) & t.deletedAt.isNull())
+          ..orderBy([(t) => OrderingTerm.desc(t.rate)]))
+        .get();
+    // Find reduced rate (12%) for food categories, standard (21%) for alcohol
+    final reducedTaxId = taxRateEntities.where((t) => t.rate == 1200).firstOrNull?.id;
+    final standardTaxId = taxRateEntities.where((t) => t.rate == 2100).firstOrNull?.id;
+
     final categories = [
-      CategoryModel(id: catMain, companyId: companyId, name: t('Hlavní jídla', 'Main Courses'), createdAt: now, updatedAt: now),
-      CategoryModel(id: catStarters, companyId: companyId, name: t('Předkrmy', 'Starters'), createdAt: now, updatedAt: now),
-      CategoryModel(id: catDesserts, companyId: companyId, name: t('Dezerty', 'Desserts'), createdAt: now, updatedAt: now),
-      CategoryModel(id: catSoftDrinks, companyId: companyId, name: t('Nealko', 'Soft Drinks'), createdAt: now, updatedAt: now),
-      CategoryModel(id: catBeer, companyId: companyId, name: t('Pivo', 'Beer'), createdAt: now, updatedAt: now),
-      CategoryModel(id: catWine, companyId: companyId, name: t('Víno', 'Wine'), createdAt: now, updatedAt: now),
-      CategoryModel(id: catOther, companyId: companyId, name: t('Ostatní', 'Other'), createdAt: now, updatedAt: now),
+      CategoryModel(id: catMain, companyId: companyId, name: t('Hlavní jídla', 'Main Courses'), prepArea: PrepArea.kitchen, defaultSaleTaxRateId: reducedTaxId, defaultPurchaseTaxRateId: reducedTaxId, defaultIsSellable: true, color: '#E53935', itemColor: 'linear:135:#EF5350,#C62828', createdAt: now, updatedAt: now),
+      CategoryModel(id: catStarters, companyId: companyId, name: t('Předkrmy', 'Starters'), prepArea: PrepArea.kitchen, defaultSaleTaxRateId: reducedTaxId, defaultPurchaseTaxRateId: reducedTaxId, defaultIsSellable: true, color: '#FB8C00', itemColor: 'linear:135:#FFB74D,#E65100', createdAt: now, updatedAt: now),
+      CategoryModel(id: catDesserts, companyId: companyId, name: t('Dezerty', 'Desserts'), prepArea: PrepArea.kitchen, defaultSaleTaxRateId: reducedTaxId, defaultPurchaseTaxRateId: reducedTaxId, defaultIsSellable: true, color: '#AB47BC', itemColor: 'linear:135:#CE93D8,#7B1FA2', createdAt: now, updatedAt: now),
+      CategoryModel(id: catSoftDrinks, companyId: companyId, name: t('Nealko', 'Soft Drinks'), prepArea: PrepArea.bar, defaultSaleTaxRateId: reducedTaxId, defaultPurchaseTaxRateId: reducedTaxId, defaultIsSellable: true, color: '#1E88E5', itemColor: 'linear:135:#42A5F5,#1565C0', createdAt: now, updatedAt: now),
+      CategoryModel(id: catBeer, companyId: companyId, name: t('Pivo', 'Beer'), prepArea: PrepArea.bar, defaultSaleTaxRateId: standardTaxId, defaultPurchaseTaxRateId: standardTaxId, defaultIsSellable: true, color: '#FFB300', itemColor: 'linear:135:#FFD54F,#FF8F00', createdAt: now, updatedAt: now),
+      CategoryModel(id: catWine, companyId: companyId, name: t('Víno', 'Wine'), prepArea: PrepArea.bar, defaultSaleTaxRateId: standardTaxId, defaultPurchaseTaxRateId: standardTaxId, defaultIsSellable: true, color: '#6D4C41', itemColor: 'linear:135:#8D6E63,#4E342E', createdAt: now, updatedAt: now),
+      CategoryModel(id: catOther, companyId: companyId, name: t('Ostatní', 'Other'), defaultSaleTaxRateId: reducedTaxId, defaultPurchaseTaxRateId: reducedTaxId, defaultIsSellable: true, color: '#546E7A', itemColor: 'linear:135:#78909C,#37474F', createdAt: now, updatedAt: now),
     ];
     for (final c in categories) {
       await _db.into(_db.categories).insert(categoryToCompanion(c));
@@ -481,12 +491,19 @@ class SeedService {
     final catHome = _id();
     final catOther = _id();
 
+    // Look up tax rates for default assignments
+    final taxRateEntities = await (_db.select(_db.taxRates)
+          ..where((t) => t.companyId.equals(companyId) & t.deletedAt.isNull())
+          ..orderBy([(t) => OrderingTerm.desc(t.rate)]))
+        .get();
+    final standardTaxId = taxRateEntities.where((t) => t.rate == 2100).firstOrNull?.id;
+
     final categories = [
-      CategoryModel(id: catFood, companyId: companyId, name: t('Potraviny', 'Food'), createdAt: now, updatedAt: now),
-      CategoryModel(id: catDrinks, companyId: companyId, name: t('Nápoje', 'Beverages'), createdAt: now, updatedAt: now),
-      CategoryModel(id: catDrogerie, companyId: companyId, name: t('Drogerie', 'Drugstore'), createdAt: now, updatedAt: now),
-      CategoryModel(id: catHome, companyId: companyId, name: t('Domácnost', 'Household'), createdAt: now, updatedAt: now),
-      CategoryModel(id: catOther, companyId: companyId, name: t('Ostatní', 'Other'), createdAt: now, updatedAt: now),
+      CategoryModel(id: catFood, companyId: companyId, name: t('Potraviny', 'Food'), defaultSaleTaxRateId: standardTaxId, defaultPurchaseTaxRateId: standardTaxId, defaultIsSellable: true, color: '#43A047', itemColor: 'linear:135:#66BB6A,#2E7D32', createdAt: now, updatedAt: now),
+      CategoryModel(id: catDrinks, companyId: companyId, name: t('Nápoje', 'Beverages'), defaultSaleTaxRateId: standardTaxId, defaultPurchaseTaxRateId: standardTaxId, defaultIsSellable: true, color: '#1E88E5', itemColor: 'linear:135:#42A5F5,#1565C0', createdAt: now, updatedAt: now),
+      CategoryModel(id: catDrogerie, companyId: companyId, name: t('Drogerie', 'Drugstore'), defaultSaleTaxRateId: standardTaxId, defaultPurchaseTaxRateId: standardTaxId, defaultIsSellable: true, color: '#AB47BC', itemColor: 'linear:135:#CE93D8,#7B1FA2', createdAt: now, updatedAt: now),
+      CategoryModel(id: catHome, companyId: companyId, name: t('Domácnost', 'Household'), defaultSaleTaxRateId: standardTaxId, defaultPurchaseTaxRateId: standardTaxId, defaultIsSellable: true, color: '#FB8C00', itemColor: 'linear:135:#FFB74D,#E65100', createdAt: now, updatedAt: now),
+      CategoryModel(id: catOther, companyId: companyId, name: t('Ostatní', 'Other'), defaultSaleTaxRateId: standardTaxId, defaultPurchaseTaxRateId: standardTaxId, defaultIsSellable: true, color: '#546E7A', itemColor: 'linear:135:#78909C,#37474F', createdAt: now, updatedAt: now),
     ];
     for (final c in categories) {
       await _db.into(_db.categories).insert(categoryToCompanion(c));

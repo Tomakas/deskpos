@@ -160,6 +160,16 @@ final currentCurrencyProvider = FutureProvider<CurrencyModel?>((ref) async {
   return currencyRepo.getById(company.defaultCurrencyId);
 });
 
+/// Whether the AI assistant is enabled in company settings (reactive via stream).
+final aiEnabledProvider = StreamProvider<bool>((ref) {
+  final companyId = ref.watch(currentCompanyProvider.select((c) => c?.id));
+  if (companyId == null) return Stream.value(false);
+  return ref
+      .watch(companySettingsRepositoryProvider)
+      .watchByCompany(companyId)
+      .map((s) => s?.aiEnabled ?? false);
+});
+
 /// Provides the app locale string from company settings (reactive via stream).
 final appLocaleProvider = StreamProvider<String>((ref) {
   final company = ref.watch(currentCompanyProvider);

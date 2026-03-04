@@ -343,10 +343,7 @@ class _DialogReservationEditState extends ConsumerState<DialogReservationEdit> {
                       return DropdownButtonFormField<String?>(
                         initialValue: _tableId,
                         decoration: InputDecoration(labelText: l.reservationTable),
-                        items: [
-                          DropdownMenuItem<String?>(value: null, child: Text('-')),
-                          ...tables.map((t) => DropdownMenuItem(value: t.id, child: Text(t.name))),
-                        ],
+                        items: tables.map((t) => DropdownMenuItem(value: t.id, child: Text(t.name))).toList(),
                         onChanged: (v) => setState(() => _tableId = v),
                       );
                     },

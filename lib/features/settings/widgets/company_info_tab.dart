@@ -640,6 +640,24 @@ class _CompanyInfoTabState extends ConsumerState<CompanyInfoTab> {
               ),
             ),
           ],
+          // Auto-print order tickets section
+          const SizedBox(height: 24),
+          Builder(builder: (_) {
+            final company = ref.watch(currentCompanyProvider);
+            return SwitchListTile(
+              title: Text(l.autoPrintOrderTickets),
+              value: company?.autoPrintOrderTickets ?? false,
+              onChanged: (v) async {
+                if (company == null) return;
+                final updated = company.copyWith(autoPrintOrderTickets: v);
+                final companyRepo = ref.read(companyRepositoryProvider);
+                final result = await companyRepo.update(updated);
+                if (result is Success<CompanyModel> && mounted) {
+                  ref.read(currentCompanyProvider.notifier).state = updated;
+                }
+              },
+            );
+          }),
         ],
       ),
     );

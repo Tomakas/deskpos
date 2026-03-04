@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import '../../data/enums/item_type.dart';
 import '../../data/enums/negative_stock_policy.dart';
+import '../../data/enums/prep_area.dart';
 import '../../data/enums/unit_type.dart';
 import 'sync_columns_mixin.dart';
 
@@ -29,6 +30,8 @@ class Items extends Table with SyncColumnsMixin {
   TextColumn get supplierId => text().nullable()();
   TextColumn get parentId => text().nullable()();
   TextColumn get negativeStockPolicy => textEnum<NegativeStockPolicy>().nullable()();
+  TextColumn get prepArea => textEnum<PrepArea>().nullable()();
+  TextColumn get color => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};

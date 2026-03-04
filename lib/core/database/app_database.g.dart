@@ -5429,6 +5429,71 @@ class $CategoriesTable extends Categories
     requiredDuringInsert: false,
   );
   @override
+  late final GeneratedColumnWithTypeConverter<PrepArea?, String> prepArea =
+      GeneratedColumn<String>(
+        'prep_area',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      ).withConverter<PrepArea?>($CategoriesTable.$converterprepArean);
+  static const VerificationMeta _defaultSaleTaxRateIdMeta =
+      const VerificationMeta('defaultSaleTaxRateId');
+  @override
+  late final GeneratedColumn<String> defaultSaleTaxRateId =
+      GeneratedColumn<String>(
+        'default_sale_tax_rate_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _defaultPurchaseTaxRateIdMeta =
+      const VerificationMeta('defaultPurchaseTaxRateId');
+  @override
+  late final GeneratedColumn<String> defaultPurchaseTaxRateId =
+      GeneratedColumn<String>(
+        'default_purchase_tax_rate_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _defaultIsSellableMeta = const VerificationMeta(
+    'defaultIsSellable',
+  );
+  @override
+  late final GeneratedColumn<bool> defaultIsSellable = GeneratedColumn<bool>(
+    'default_is_sellable',
+    aliasedName,
+    true,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("default_is_sellable" IN (0, 1))',
+    ),
+  );
+  static const VerificationMeta _colorMeta = const VerificationMeta('color');
+  @override
+  late final GeneratedColumn<String> color = GeneratedColumn<String>(
+    'color',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _itemColorMeta = const VerificationMeta(
+    'itemColor',
+  );
+  @override
+  late final GeneratedColumn<String> itemColor = GeneratedColumn<String>(
+    'item_color',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
   List<GeneratedColumn> get $columns => [
     lastSyncedAt,
     version,
@@ -5442,6 +5507,12 @@ class $CategoriesTable extends Categories
     name,
     isActive,
     parentId,
+    prepArea,
+    defaultSaleTaxRateId,
+    defaultPurchaseTaxRateId,
+    defaultIsSellable,
+    color,
+    itemColor,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -5539,6 +5610,45 @@ class $CategoriesTable extends Categories
         parentId.isAcceptableOrUnknown(data['parent_id']!, _parentIdMeta),
       );
     }
+    if (data.containsKey('default_sale_tax_rate_id')) {
+      context.handle(
+        _defaultSaleTaxRateIdMeta,
+        defaultSaleTaxRateId.isAcceptableOrUnknown(
+          data['default_sale_tax_rate_id']!,
+          _defaultSaleTaxRateIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('default_purchase_tax_rate_id')) {
+      context.handle(
+        _defaultPurchaseTaxRateIdMeta,
+        defaultPurchaseTaxRateId.isAcceptableOrUnknown(
+          data['default_purchase_tax_rate_id']!,
+          _defaultPurchaseTaxRateIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('default_is_sellable')) {
+      context.handle(
+        _defaultIsSellableMeta,
+        defaultIsSellable.isAcceptableOrUnknown(
+          data['default_is_sellable']!,
+          _defaultIsSellableMeta,
+        ),
+      );
+    }
+    if (data.containsKey('color')) {
+      context.handle(
+        _colorMeta,
+        color.isAcceptableOrUnknown(data['color']!, _colorMeta),
+      );
+    }
+    if (data.containsKey('item_color')) {
+      context.handle(
+        _itemColorMeta,
+        itemColor.isAcceptableOrUnknown(data['item_color']!, _itemColorMeta),
+      );
+    }
     return context;
   }
 
@@ -5596,6 +5706,32 @@ class $CategoriesTable extends Categories
         DriftSqlType.string,
         data['${effectivePrefix}parent_id'],
       ),
+      prepArea: $CategoriesTable.$converterprepArean.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}prep_area'],
+        ),
+      ),
+      defaultSaleTaxRateId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}default_sale_tax_rate_id'],
+      ),
+      defaultPurchaseTaxRateId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}default_purchase_tax_rate_id'],
+      ),
+      defaultIsSellable: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}default_is_sellable'],
+      ),
+      color: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}color'],
+      ),
+      itemColor: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}item_color'],
+      ),
     );
   }
 
@@ -5603,6 +5739,11 @@ class $CategoriesTable extends Categories
   $CategoriesTable createAlias(String alias) {
     return $CategoriesTable(attachedDatabase, alias);
   }
+
+  static JsonTypeConverter2<PrepArea, String, String> $converterprepArea =
+      const EnumNameConverter<PrepArea>(PrepArea.values);
+  static JsonTypeConverter2<PrepArea?, String?, String?> $converterprepArean =
+      JsonTypeConverter2.asNullable($converterprepArea);
 }
 
 class Category extends DataClass implements Insertable<Category> {
@@ -5618,6 +5759,12 @@ class Category extends DataClass implements Insertable<Category> {
   final String name;
   final bool isActive;
   final String? parentId;
+  final PrepArea? prepArea;
+  final String? defaultSaleTaxRateId;
+  final String? defaultPurchaseTaxRateId;
+  final bool? defaultIsSellable;
+  final String? color;
+  final String? itemColor;
   const Category({
     this.lastSyncedAt,
     required this.version,
@@ -5631,6 +5778,12 @@ class Category extends DataClass implements Insertable<Category> {
     required this.name,
     required this.isActive,
     this.parentId,
+    this.prepArea,
+    this.defaultSaleTaxRateId,
+    this.defaultPurchaseTaxRateId,
+    this.defaultIsSellable,
+    this.color,
+    this.itemColor,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -5656,6 +5809,28 @@ class Category extends DataClass implements Insertable<Category> {
     map['is_active'] = Variable<bool>(isActive);
     if (!nullToAbsent || parentId != null) {
       map['parent_id'] = Variable<String>(parentId);
+    }
+    if (!nullToAbsent || prepArea != null) {
+      map['prep_area'] = Variable<String>(
+        $CategoriesTable.$converterprepArean.toSql(prepArea),
+      );
+    }
+    if (!nullToAbsent || defaultSaleTaxRateId != null) {
+      map['default_sale_tax_rate_id'] = Variable<String>(defaultSaleTaxRateId);
+    }
+    if (!nullToAbsent || defaultPurchaseTaxRateId != null) {
+      map['default_purchase_tax_rate_id'] = Variable<String>(
+        defaultPurchaseTaxRateId,
+      );
+    }
+    if (!nullToAbsent || defaultIsSellable != null) {
+      map['default_is_sellable'] = Variable<bool>(defaultIsSellable);
+    }
+    if (!nullToAbsent || color != null) {
+      map['color'] = Variable<String>(color);
+    }
+    if (!nullToAbsent || itemColor != null) {
+      map['item_color'] = Variable<String>(itemColor);
     }
     return map;
   }
@@ -5684,6 +5859,24 @@ class Category extends DataClass implements Insertable<Category> {
       parentId: parentId == null && nullToAbsent
           ? const Value.absent()
           : Value(parentId),
+      prepArea: prepArea == null && nullToAbsent
+          ? const Value.absent()
+          : Value(prepArea),
+      defaultSaleTaxRateId: defaultSaleTaxRateId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(defaultSaleTaxRateId),
+      defaultPurchaseTaxRateId: defaultPurchaseTaxRateId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(defaultPurchaseTaxRateId),
+      defaultIsSellable: defaultIsSellable == null && nullToAbsent
+          ? const Value.absent()
+          : Value(defaultIsSellable),
+      color: color == null && nullToAbsent
+          ? const Value.absent()
+          : Value(color),
+      itemColor: itemColor == null && nullToAbsent
+          ? const Value.absent()
+          : Value(itemColor),
     );
   }
 
@@ -5705,6 +5898,18 @@ class Category extends DataClass implements Insertable<Category> {
       name: serializer.fromJson<String>(json['name']),
       isActive: serializer.fromJson<bool>(json['isActive']),
       parentId: serializer.fromJson<String?>(json['parentId']),
+      prepArea: $CategoriesTable.$converterprepArean.fromJson(
+        serializer.fromJson<String?>(json['prepArea']),
+      ),
+      defaultSaleTaxRateId: serializer.fromJson<String?>(
+        json['defaultSaleTaxRateId'],
+      ),
+      defaultPurchaseTaxRateId: serializer.fromJson<String?>(
+        json['defaultPurchaseTaxRateId'],
+      ),
+      defaultIsSellable: serializer.fromJson<bool?>(json['defaultIsSellable']),
+      color: serializer.fromJson<String?>(json['color']),
+      itemColor: serializer.fromJson<String?>(json['itemColor']),
     );
   }
   @override
@@ -5723,6 +5928,16 @@ class Category extends DataClass implements Insertable<Category> {
       'name': serializer.toJson<String>(name),
       'isActive': serializer.toJson<bool>(isActive),
       'parentId': serializer.toJson<String?>(parentId),
+      'prepArea': serializer.toJson<String?>(
+        $CategoriesTable.$converterprepArean.toJson(prepArea),
+      ),
+      'defaultSaleTaxRateId': serializer.toJson<String?>(defaultSaleTaxRateId),
+      'defaultPurchaseTaxRateId': serializer.toJson<String?>(
+        defaultPurchaseTaxRateId,
+      ),
+      'defaultIsSellable': serializer.toJson<bool?>(defaultIsSellable),
+      'color': serializer.toJson<String?>(color),
+      'itemColor': serializer.toJson<String?>(itemColor),
     };
   }
 
@@ -5739,6 +5954,12 @@ class Category extends DataClass implements Insertable<Category> {
     String? name,
     bool? isActive,
     Value<String?> parentId = const Value.absent(),
+    Value<PrepArea?> prepArea = const Value.absent(),
+    Value<String?> defaultSaleTaxRateId = const Value.absent(),
+    Value<String?> defaultPurchaseTaxRateId = const Value.absent(),
+    Value<bool?> defaultIsSellable = const Value.absent(),
+    Value<String?> color = const Value.absent(),
+    Value<String?> itemColor = const Value.absent(),
   }) => Category(
     lastSyncedAt: lastSyncedAt.present ? lastSyncedAt.value : this.lastSyncedAt,
     version: version ?? this.version,
@@ -5756,6 +5977,18 @@ class Category extends DataClass implements Insertable<Category> {
     name: name ?? this.name,
     isActive: isActive ?? this.isActive,
     parentId: parentId.present ? parentId.value : this.parentId,
+    prepArea: prepArea.present ? prepArea.value : this.prepArea,
+    defaultSaleTaxRateId: defaultSaleTaxRateId.present
+        ? defaultSaleTaxRateId.value
+        : this.defaultSaleTaxRateId,
+    defaultPurchaseTaxRateId: defaultPurchaseTaxRateId.present
+        ? defaultPurchaseTaxRateId.value
+        : this.defaultPurchaseTaxRateId,
+    defaultIsSellable: defaultIsSellable.present
+        ? defaultIsSellable.value
+        : this.defaultIsSellable,
+    color: color.present ? color.value : this.color,
+    itemColor: itemColor.present ? itemColor.value : this.itemColor,
   );
   Category copyWithCompanion(CategoriesCompanion data) {
     return Category(
@@ -5777,6 +6010,18 @@ class Category extends DataClass implements Insertable<Category> {
       name: data.name.present ? data.name.value : this.name,
       isActive: data.isActive.present ? data.isActive.value : this.isActive,
       parentId: data.parentId.present ? data.parentId.value : this.parentId,
+      prepArea: data.prepArea.present ? data.prepArea.value : this.prepArea,
+      defaultSaleTaxRateId: data.defaultSaleTaxRateId.present
+          ? data.defaultSaleTaxRateId.value
+          : this.defaultSaleTaxRateId,
+      defaultPurchaseTaxRateId: data.defaultPurchaseTaxRateId.present
+          ? data.defaultPurchaseTaxRateId.value
+          : this.defaultPurchaseTaxRateId,
+      defaultIsSellable: data.defaultIsSellable.present
+          ? data.defaultIsSellable.value
+          : this.defaultIsSellable,
+      color: data.color.present ? data.color.value : this.color,
+      itemColor: data.itemColor.present ? data.itemColor.value : this.itemColor,
     );
   }
 
@@ -5794,7 +6039,13 @@ class Category extends DataClass implements Insertable<Category> {
           ..write('companyId: $companyId, ')
           ..write('name: $name, ')
           ..write('isActive: $isActive, ')
-          ..write('parentId: $parentId')
+          ..write('parentId: $parentId, ')
+          ..write('prepArea: $prepArea, ')
+          ..write('defaultSaleTaxRateId: $defaultSaleTaxRateId, ')
+          ..write('defaultPurchaseTaxRateId: $defaultPurchaseTaxRateId, ')
+          ..write('defaultIsSellable: $defaultIsSellable, ')
+          ..write('color: $color, ')
+          ..write('itemColor: $itemColor')
           ..write(')'))
         .toString();
   }
@@ -5813,6 +6064,12 @@ class Category extends DataClass implements Insertable<Category> {
     name,
     isActive,
     parentId,
+    prepArea,
+    defaultSaleTaxRateId,
+    defaultPurchaseTaxRateId,
+    defaultIsSellable,
+    color,
+    itemColor,
   );
   @override
   bool operator ==(Object other) =>
@@ -5829,7 +6086,13 @@ class Category extends DataClass implements Insertable<Category> {
           other.companyId == this.companyId &&
           other.name == this.name &&
           other.isActive == this.isActive &&
-          other.parentId == this.parentId);
+          other.parentId == this.parentId &&
+          other.prepArea == this.prepArea &&
+          other.defaultSaleTaxRateId == this.defaultSaleTaxRateId &&
+          other.defaultPurchaseTaxRateId == this.defaultPurchaseTaxRateId &&
+          other.defaultIsSellable == this.defaultIsSellable &&
+          other.color == this.color &&
+          other.itemColor == this.itemColor);
 }
 
 class CategoriesCompanion extends UpdateCompanion<Category> {
@@ -5845,6 +6108,12 @@ class CategoriesCompanion extends UpdateCompanion<Category> {
   final Value<String> name;
   final Value<bool> isActive;
   final Value<String?> parentId;
+  final Value<PrepArea?> prepArea;
+  final Value<String?> defaultSaleTaxRateId;
+  final Value<String?> defaultPurchaseTaxRateId;
+  final Value<bool?> defaultIsSellable;
+  final Value<String?> color;
+  final Value<String?> itemColor;
   final Value<int> rowid;
   const CategoriesCompanion({
     this.lastSyncedAt = const Value.absent(),
@@ -5859,6 +6128,12 @@ class CategoriesCompanion extends UpdateCompanion<Category> {
     this.name = const Value.absent(),
     this.isActive = const Value.absent(),
     this.parentId = const Value.absent(),
+    this.prepArea = const Value.absent(),
+    this.defaultSaleTaxRateId = const Value.absent(),
+    this.defaultPurchaseTaxRateId = const Value.absent(),
+    this.defaultIsSellable = const Value.absent(),
+    this.color = const Value.absent(),
+    this.itemColor = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   CategoriesCompanion.insert({
@@ -5874,6 +6149,12 @@ class CategoriesCompanion extends UpdateCompanion<Category> {
     required String name,
     this.isActive = const Value.absent(),
     this.parentId = const Value.absent(),
+    this.prepArea = const Value.absent(),
+    this.defaultSaleTaxRateId = const Value.absent(),
+    this.defaultPurchaseTaxRateId = const Value.absent(),
+    this.defaultIsSellable = const Value.absent(),
+    this.color = const Value.absent(),
+    this.itemColor = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        companyId = Value(companyId),
@@ -5891,6 +6172,12 @@ class CategoriesCompanion extends UpdateCompanion<Category> {
     Expression<String>? name,
     Expression<bool>? isActive,
     Expression<String>? parentId,
+    Expression<String>? prepArea,
+    Expression<String>? defaultSaleTaxRateId,
+    Expression<String>? defaultPurchaseTaxRateId,
+    Expression<bool>? defaultIsSellable,
+    Expression<String>? color,
+    Expression<String>? itemColor,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -5906,6 +6193,14 @@ class CategoriesCompanion extends UpdateCompanion<Category> {
       if (name != null) 'name': name,
       if (isActive != null) 'is_active': isActive,
       if (parentId != null) 'parent_id': parentId,
+      if (prepArea != null) 'prep_area': prepArea,
+      if (defaultSaleTaxRateId != null)
+        'default_sale_tax_rate_id': defaultSaleTaxRateId,
+      if (defaultPurchaseTaxRateId != null)
+        'default_purchase_tax_rate_id': defaultPurchaseTaxRateId,
+      if (defaultIsSellable != null) 'default_is_sellable': defaultIsSellable,
+      if (color != null) 'color': color,
+      if (itemColor != null) 'item_color': itemColor,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -5923,6 +6218,12 @@ class CategoriesCompanion extends UpdateCompanion<Category> {
     Value<String>? name,
     Value<bool>? isActive,
     Value<String?>? parentId,
+    Value<PrepArea?>? prepArea,
+    Value<String?>? defaultSaleTaxRateId,
+    Value<String?>? defaultPurchaseTaxRateId,
+    Value<bool?>? defaultIsSellable,
+    Value<String?>? color,
+    Value<String?>? itemColor,
     Value<int>? rowid,
   }) {
     return CategoriesCompanion(
@@ -5938,6 +6239,13 @@ class CategoriesCompanion extends UpdateCompanion<Category> {
       name: name ?? this.name,
       isActive: isActive ?? this.isActive,
       parentId: parentId ?? this.parentId,
+      prepArea: prepArea ?? this.prepArea,
+      defaultSaleTaxRateId: defaultSaleTaxRateId ?? this.defaultSaleTaxRateId,
+      defaultPurchaseTaxRateId:
+          defaultPurchaseTaxRateId ?? this.defaultPurchaseTaxRateId,
+      defaultIsSellable: defaultIsSellable ?? this.defaultIsSellable,
+      color: color ?? this.color,
+      itemColor: itemColor ?? this.itemColor,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -5981,6 +6289,30 @@ class CategoriesCompanion extends UpdateCompanion<Category> {
     if (parentId.present) {
       map['parent_id'] = Variable<String>(parentId.value);
     }
+    if (prepArea.present) {
+      map['prep_area'] = Variable<String>(
+        $CategoriesTable.$converterprepArean.toSql(prepArea.value),
+      );
+    }
+    if (defaultSaleTaxRateId.present) {
+      map['default_sale_tax_rate_id'] = Variable<String>(
+        defaultSaleTaxRateId.value,
+      );
+    }
+    if (defaultPurchaseTaxRateId.present) {
+      map['default_purchase_tax_rate_id'] = Variable<String>(
+        defaultPurchaseTaxRateId.value,
+      );
+    }
+    if (defaultIsSellable.present) {
+      map['default_is_sellable'] = Variable<bool>(defaultIsSellable.value);
+    }
+    if (color.present) {
+      map['color'] = Variable<String>(color.value);
+    }
+    if (itemColor.present) {
+      map['item_color'] = Variable<String>(itemColor.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -6002,6 +6334,12 @@ class CategoriesCompanion extends UpdateCompanion<Category> {
           ..write('name: $name, ')
           ..write('isActive: $isActive, ')
           ..write('parentId: $parentId, ')
+          ..write('prepArea: $prepArea, ')
+          ..write('defaultSaleTaxRateId: $defaultSaleTaxRateId, ')
+          ..write('defaultPurchaseTaxRateId: $defaultPurchaseTaxRateId, ')
+          ..write('defaultIsSellable: $defaultIsSellable, ')
+          ..write('color: $color, ')
+          ..write('itemColor: $itemColor, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -6273,6 +6611,21 @@ class $CompaniesTable extends Companies
         type: DriftSqlType.dateTime,
         requiredDuringInsert: false,
       );
+  static const VerificationMeta _autoPrintOrderTicketsMeta =
+      const VerificationMeta('autoPrintOrderTickets');
+  @override
+  late final GeneratedColumn<bool> autoPrintOrderTickets =
+      GeneratedColumn<bool>(
+        'auto_print_order_tickets',
+        aliasedName,
+        false,
+        type: DriftSqlType.bool,
+        requiredDuringInsert: false,
+        defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("auto_print_order_tickets" IN (0, 1))',
+        ),
+        defaultValue: const Constant(false),
+      );
   @override
   List<GeneratedColumn> get $columns => [
     lastSyncedAt,
@@ -6299,6 +6652,7 @@ class $CompaniesTable extends Companies
     authUserId,
     isDemo,
     demoExpiresAt,
+    autoPrintOrderTickets,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -6467,6 +6821,15 @@ class $CompaniesTable extends Companies
         ),
       );
     }
+    if (data.containsKey('auto_print_order_tickets')) {
+      context.handle(
+        _autoPrintOrderTicketsMeta,
+        autoPrintOrderTickets.isAcceptableOrUnknown(
+          data['auto_print_order_tickets']!,
+          _autoPrintOrderTicketsMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -6576,6 +6939,10 @@ class $CompaniesTable extends Companies
         DriftSqlType.dateTime,
         data['${effectivePrefix}demo_expires_at'],
       ),
+      autoPrintOrderTickets: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}auto_print_order_tickets'],
+      )!,
     );
   }
 
@@ -6621,6 +6988,7 @@ class Company extends DataClass implements Insertable<Company> {
   final String authUserId;
   final bool isDemo;
   final DateTime? demoExpiresAt;
+  final bool autoPrintOrderTickets;
   const Company({
     this.lastSyncedAt,
     required this.version,
@@ -6646,6 +7014,7 @@ class Company extends DataClass implements Insertable<Company> {
     required this.authUserId,
     required this.isDemo,
     this.demoExpiresAt,
+    required this.autoPrintOrderTickets,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -6710,6 +7079,7 @@ class Company extends DataClass implements Insertable<Company> {
     if (!nullToAbsent || demoExpiresAt != null) {
       map['demo_expires_at'] = Variable<DateTime>(demoExpiresAt);
     }
+    map['auto_print_order_tickets'] = Variable<bool>(autoPrintOrderTickets);
     return map;
   }
 
@@ -6767,6 +7137,7 @@ class Company extends DataClass implements Insertable<Company> {
       demoExpiresAt: demoExpiresAt == null && nullToAbsent
           ? const Value.absent()
           : Value(demoExpiresAt),
+      autoPrintOrderTickets: Value(autoPrintOrderTickets),
     );
   }
 
@@ -6804,6 +7175,9 @@ class Company extends DataClass implements Insertable<Company> {
       authUserId: serializer.fromJson<String>(json['authUserId']),
       isDemo: serializer.fromJson<bool>(json['isDemo']),
       demoExpiresAt: serializer.fromJson<DateTime?>(json['demoExpiresAt']),
+      autoPrintOrderTickets: serializer.fromJson<bool>(
+        json['autoPrintOrderTickets'],
+      ),
     );
   }
   @override
@@ -6838,6 +7212,7 @@ class Company extends DataClass implements Insertable<Company> {
       'authUserId': serializer.toJson<String>(authUserId),
       'isDemo': serializer.toJson<bool>(isDemo),
       'demoExpiresAt': serializer.toJson<DateTime?>(demoExpiresAt),
+      'autoPrintOrderTickets': serializer.toJson<bool>(autoPrintOrderTickets),
     };
   }
 
@@ -6866,6 +7241,7 @@ class Company extends DataClass implements Insertable<Company> {
     String? authUserId,
     bool? isDemo,
     Value<DateTime?> demoExpiresAt = const Value.absent(),
+    bool? autoPrintOrderTickets,
   }) => Company(
     lastSyncedAt: lastSyncedAt.present ? lastSyncedAt.value : this.lastSyncedAt,
     version: version ?? this.version,
@@ -6897,6 +7273,7 @@ class Company extends DataClass implements Insertable<Company> {
     demoExpiresAt: demoExpiresAt.present
         ? demoExpiresAt.value
         : this.demoExpiresAt,
+    autoPrintOrderTickets: autoPrintOrderTickets ?? this.autoPrintOrderTickets,
   );
   Company copyWithCompanion(CompaniesCompanion data) {
     return Company(
@@ -6942,6 +7319,9 @@ class Company extends DataClass implements Insertable<Company> {
       demoExpiresAt: data.demoExpiresAt.present
           ? data.demoExpiresAt.value
           : this.demoExpiresAt,
+      autoPrintOrderTickets: data.autoPrintOrderTickets.present
+          ? data.autoPrintOrderTickets.value
+          : this.autoPrintOrderTickets,
     );
   }
 
@@ -6971,7 +7351,8 @@ class Company extends DataClass implements Insertable<Company> {
           ..write('defaultCurrencyId: $defaultCurrencyId, ')
           ..write('authUserId: $authUserId, ')
           ..write('isDemo: $isDemo, ')
-          ..write('demoExpiresAt: $demoExpiresAt')
+          ..write('demoExpiresAt: $demoExpiresAt, ')
+          ..write('autoPrintOrderTickets: $autoPrintOrderTickets')
           ..write(')'))
         .toString();
   }
@@ -7002,6 +7383,7 @@ class Company extends DataClass implements Insertable<Company> {
     authUserId,
     isDemo,
     demoExpiresAt,
+    autoPrintOrderTickets,
   ]);
   @override
   bool operator ==(Object other) =>
@@ -7030,7 +7412,8 @@ class Company extends DataClass implements Insertable<Company> {
           other.defaultCurrencyId == this.defaultCurrencyId &&
           other.authUserId == this.authUserId &&
           other.isDemo == this.isDemo &&
-          other.demoExpiresAt == this.demoExpiresAt);
+          other.demoExpiresAt == this.demoExpiresAt &&
+          other.autoPrintOrderTickets == this.autoPrintOrderTickets);
 }
 
 class CompaniesCompanion extends UpdateCompanion<Company> {
@@ -7058,6 +7441,7 @@ class CompaniesCompanion extends UpdateCompanion<Company> {
   final Value<String> authUserId;
   final Value<bool> isDemo;
   final Value<DateTime?> demoExpiresAt;
+  final Value<bool> autoPrintOrderTickets;
   final Value<int> rowid;
   const CompaniesCompanion({
     this.lastSyncedAt = const Value.absent(),
@@ -7084,6 +7468,7 @@ class CompaniesCompanion extends UpdateCompanion<Company> {
     this.authUserId = const Value.absent(),
     this.isDemo = const Value.absent(),
     this.demoExpiresAt = const Value.absent(),
+    this.autoPrintOrderTickets = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   CompaniesCompanion.insert({
@@ -7111,6 +7496,7 @@ class CompaniesCompanion extends UpdateCompanion<Company> {
     required String authUserId,
     this.isDemo = const Value.absent(),
     this.demoExpiresAt = const Value.absent(),
+    this.autoPrintOrderTickets = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        name = Value(name),
@@ -7142,6 +7528,7 @@ class CompaniesCompanion extends UpdateCompanion<Company> {
     Expression<String>? authUserId,
     Expression<bool>? isDemo,
     Expression<DateTime>? demoExpiresAt,
+    Expression<bool>? autoPrintOrderTickets,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -7169,6 +7556,8 @@ class CompaniesCompanion extends UpdateCompanion<Company> {
       if (authUserId != null) 'auth_user_id': authUserId,
       if (isDemo != null) 'is_demo': isDemo,
       if (demoExpiresAt != null) 'demo_expires_at': demoExpiresAt,
+      if (autoPrintOrderTickets != null)
+        'auto_print_order_tickets': autoPrintOrderTickets,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -7198,6 +7587,7 @@ class CompaniesCompanion extends UpdateCompanion<Company> {
     Value<String>? authUserId,
     Value<bool>? isDemo,
     Value<DateTime?>? demoExpiresAt,
+    Value<bool>? autoPrintOrderTickets,
     Value<int>? rowid,
   }) {
     return CompaniesCompanion(
@@ -7225,6 +7615,8 @@ class CompaniesCompanion extends UpdateCompanion<Company> {
       authUserId: authUserId ?? this.authUserId,
       isDemo: isDemo ?? this.isDemo,
       demoExpiresAt: demoExpiresAt ?? this.demoExpiresAt,
+      autoPrintOrderTickets:
+          autoPrintOrderTickets ?? this.autoPrintOrderTickets,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -7308,6 +7700,11 @@ class CompaniesCompanion extends UpdateCompanion<Company> {
     if (demoExpiresAt.present) {
       map['demo_expires_at'] = Variable<DateTime>(demoExpiresAt.value);
     }
+    if (autoPrintOrderTickets.present) {
+      map['auto_print_order_tickets'] = Variable<bool>(
+        autoPrintOrderTickets.value,
+      );
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -7341,6 +7738,7 @@ class CompaniesCompanion extends UpdateCompanion<Company> {
           ..write('authUserId: $authUserId, ')
           ..write('isDemo: $isDemo, ')
           ..write('demoExpiresAt: $demoExpiresAt, ')
+          ..write('autoPrintOrderTickets: $autoPrintOrderTickets, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -10352,6 +10750,21 @@ class $CompanySettingsTable extends CompanySettings
     requiredDuringInsert: false,
     defaultValue: const Constant(45),
   );
+  static const VerificationMeta _aiEnabledMeta = const VerificationMeta(
+    'aiEnabled',
+  );
+  @override
+  late final GeneratedColumn<bool> aiEnabled = GeneratedColumn<bool>(
+    'ai_enabled',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("ai_enabled" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   @override
   late final GeneratedColumnWithTypeConverter<AiProviderType, String>
   aiProviderType =
@@ -10432,6 +10845,7 @@ class $CompanySettingsTable extends CompanySettings
     billAgeWarningMinutes,
     billAgeDangerMinutes,
     billAgeCriticalMinutes,
+    aiEnabled,
     aiProviderType,
     aiModel,
     aiRateLimitPerHour,
@@ -10601,6 +11015,12 @@ class $CompanySettingsTable extends CompanySettings
         ),
       );
     }
+    if (data.containsKey('ai_enabled')) {
+      context.handle(
+        _aiEnabledMeta,
+        aiEnabled.isAcceptableOrUnknown(data['ai_enabled']!, _aiEnabledMeta),
+      );
+    }
     if (data.containsKey('ai_model')) {
       context.handle(
         _aiModelMeta,
@@ -10726,6 +11146,10 @@ class $CompanySettingsTable extends CompanySettings
         DriftSqlType.int,
         data['${effectivePrefix}bill_age_critical_minutes'],
       )!,
+      aiEnabled: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}ai_enabled'],
+      )!,
       aiProviderType: $CompanySettingsTable.$converteraiProviderType.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.string,
@@ -10787,6 +11211,7 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
   final int billAgeWarningMinutes;
   final int billAgeDangerMinutes;
   final int billAgeCriticalMinutes;
+  final bool aiEnabled;
   final AiProviderType aiProviderType;
   final String? aiModel;
   final int aiRateLimitPerHour;
@@ -10813,6 +11238,7 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
     required this.billAgeWarningMinutes,
     required this.billAgeDangerMinutes,
     required this.billAgeCriticalMinutes,
+    required this.aiEnabled,
     required this.aiProviderType,
     this.aiModel,
     required this.aiRateLimitPerHour,
@@ -10858,6 +11284,7 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
     map['bill_age_warning_minutes'] = Variable<int>(billAgeWarningMinutes);
     map['bill_age_danger_minutes'] = Variable<int>(billAgeDangerMinutes);
     map['bill_age_critical_minutes'] = Variable<int>(billAgeCriticalMinutes);
+    map['ai_enabled'] = Variable<bool>(aiEnabled);
     {
       map['ai_provider_type'] = Variable<String>(
         $CompanySettingsTable.$converteraiProviderType.toSql(aiProviderType),
@@ -10904,6 +11331,7 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
       billAgeWarningMinutes: Value(billAgeWarningMinutes),
       billAgeDangerMinutes: Value(billAgeDangerMinutes),
       billAgeCriticalMinutes: Value(billAgeCriticalMinutes),
+      aiEnabled: Value(aiEnabled),
       aiProviderType: Value(aiProviderType),
       aiModel: aiModel == null && nullToAbsent
           ? const Value.absent()
@@ -10953,6 +11381,7 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
       billAgeCriticalMinutes: serializer.fromJson<int>(
         json['billAgeCriticalMinutes'],
       ),
+      aiEnabled: serializer.fromJson<bool>(json['aiEnabled']),
       aiProviderType: $CompanySettingsTable.$converteraiProviderType.fromJson(
         serializer.fromJson<String>(json['aiProviderType']),
       ),
@@ -10994,6 +11423,7 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
       'billAgeWarningMinutes': serializer.toJson<int>(billAgeWarningMinutes),
       'billAgeDangerMinutes': serializer.toJson<int>(billAgeDangerMinutes),
       'billAgeCriticalMinutes': serializer.toJson<int>(billAgeCriticalMinutes),
+      'aiEnabled': serializer.toJson<bool>(aiEnabled),
       'aiProviderType': serializer.toJson<String>(
         $CompanySettingsTable.$converteraiProviderType.toJson(aiProviderType),
       ),
@@ -11027,6 +11457,7 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
     int? billAgeWarningMinutes,
     int? billAgeDangerMinutes,
     int? billAgeCriticalMinutes,
+    bool? aiEnabled,
     AiProviderType? aiProviderType,
     Value<String?> aiModel = const Value.absent(),
     int? aiRateLimitPerHour,
@@ -11062,6 +11493,7 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
     billAgeDangerMinutes: billAgeDangerMinutes ?? this.billAgeDangerMinutes,
     billAgeCriticalMinutes:
         billAgeCriticalMinutes ?? this.billAgeCriticalMinutes,
+    aiEnabled: aiEnabled ?? this.aiEnabled,
     aiProviderType: aiProviderType ?? this.aiProviderType,
     aiModel: aiModel.present ? aiModel.value : this.aiModel,
     aiRateLimitPerHour: aiRateLimitPerHour ?? this.aiRateLimitPerHour,
@@ -11117,6 +11549,7 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
       billAgeCriticalMinutes: data.billAgeCriticalMinutes.present
           ? data.billAgeCriticalMinutes.value
           : this.billAgeCriticalMinutes,
+      aiEnabled: data.aiEnabled.present ? data.aiEnabled.value : this.aiEnabled,
       aiProviderType: data.aiProviderType.present
           ? data.aiProviderType.value
           : this.aiProviderType,
@@ -11156,6 +11589,7 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
           ..write('billAgeWarningMinutes: $billAgeWarningMinutes, ')
           ..write('billAgeDangerMinutes: $billAgeDangerMinutes, ')
           ..write('billAgeCriticalMinutes: $billAgeCriticalMinutes, ')
+          ..write('aiEnabled: $aiEnabled, ')
           ..write('aiProviderType: $aiProviderType, ')
           ..write('aiModel: $aiModel, ')
           ..write('aiRateLimitPerHour: $aiRateLimitPerHour, ')
@@ -11187,6 +11621,7 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
     billAgeWarningMinutes,
     billAgeDangerMinutes,
     billAgeCriticalMinutes,
+    aiEnabled,
     aiProviderType,
     aiModel,
     aiRateLimitPerHour,
@@ -11217,6 +11652,7 @@ class CompanySetting extends DataClass implements Insertable<CompanySetting> {
           other.billAgeWarningMinutes == this.billAgeWarningMinutes &&
           other.billAgeDangerMinutes == this.billAgeDangerMinutes &&
           other.billAgeCriticalMinutes == this.billAgeCriticalMinutes &&
+          other.aiEnabled == this.aiEnabled &&
           other.aiProviderType == this.aiProviderType &&
           other.aiModel == this.aiModel &&
           other.aiRateLimitPerHour == this.aiRateLimitPerHour &&
@@ -11245,6 +11681,7 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
   final Value<int> billAgeWarningMinutes;
   final Value<int> billAgeDangerMinutes;
   final Value<int> billAgeCriticalMinutes;
+  final Value<bool> aiEnabled;
   final Value<AiProviderType> aiProviderType;
   final Value<String?> aiModel;
   final Value<int> aiRateLimitPerHour;
@@ -11272,6 +11709,7 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
     this.billAgeWarningMinutes = const Value.absent(),
     this.billAgeDangerMinutes = const Value.absent(),
     this.billAgeCriticalMinutes = const Value.absent(),
+    this.aiEnabled = const Value.absent(),
     this.aiProviderType = const Value.absent(),
     this.aiModel = const Value.absent(),
     this.aiRateLimitPerHour = const Value.absent(),
@@ -11300,6 +11738,7 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
     this.billAgeWarningMinutes = const Value.absent(),
     this.billAgeDangerMinutes = const Value.absent(),
     this.billAgeCriticalMinutes = const Value.absent(),
+    this.aiEnabled = const Value.absent(),
     this.aiProviderType = const Value.absent(),
     this.aiModel = const Value.absent(),
     this.aiRateLimitPerHour = const Value.absent(),
@@ -11329,6 +11768,7 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
     Expression<int>? billAgeWarningMinutes,
     Expression<int>? billAgeDangerMinutes,
     Expression<int>? billAgeCriticalMinutes,
+    Expression<bool>? aiEnabled,
     Expression<String>? aiProviderType,
     Expression<String>? aiModel,
     Expression<int>? aiRateLimitPerHour,
@@ -11365,6 +11805,7 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
         'bill_age_danger_minutes': billAgeDangerMinutes,
       if (billAgeCriticalMinutes != null)
         'bill_age_critical_minutes': billAgeCriticalMinutes,
+      if (aiEnabled != null) 'ai_enabled': aiEnabled,
       if (aiProviderType != null) 'ai_provider_type': aiProviderType,
       if (aiModel != null) 'ai_model': aiModel,
       if (aiRateLimitPerHour != null)
@@ -11398,6 +11839,7 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
     Value<int>? billAgeWarningMinutes,
     Value<int>? billAgeDangerMinutes,
     Value<int>? billAgeCriticalMinutes,
+    Value<bool>? aiEnabled,
     Value<AiProviderType>? aiProviderType,
     Value<String?>? aiModel,
     Value<int>? aiRateLimitPerHour,
@@ -11431,6 +11873,7 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
       billAgeDangerMinutes: billAgeDangerMinutes ?? this.billAgeDangerMinutes,
       billAgeCriticalMinutes:
           billAgeCriticalMinutes ?? this.billAgeCriticalMinutes,
+      aiEnabled: aiEnabled ?? this.aiEnabled,
       aiProviderType: aiProviderType ?? this.aiProviderType,
       aiModel: aiModel ?? this.aiModel,
       aiRateLimitPerHour: aiRateLimitPerHour ?? this.aiRateLimitPerHour,
@@ -11521,6 +11964,9 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
         billAgeCriticalMinutes.value,
       );
     }
+    if (aiEnabled.present) {
+      map['ai_enabled'] = Variable<bool>(aiEnabled.value);
+    }
     if (aiProviderType.present) {
       map['ai_provider_type'] = Variable<String>(
         $CompanySettingsTable.$converteraiProviderType.toSql(
@@ -11573,6 +12019,7 @@ class CompanySettingsCompanion extends UpdateCompanion<CompanySetting> {
           ..write('billAgeWarningMinutes: $billAgeWarningMinutes, ')
           ..write('billAgeDangerMinutes: $billAgeDangerMinutes, ')
           ..write('billAgeCriticalMinutes: $billAgeCriticalMinutes, ')
+          ..write('aiEnabled: $aiEnabled, ')
           ..write('aiProviderType: $aiProviderType, ')
           ..write('aiModel: $aiModel, ')
           ..write('aiRateLimitPerHour: $aiRateLimitPerHour, ')
@@ -14559,6 +15006,24 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
         $ItemsTable.$converternegativeStockPolicyn,
       );
   @override
+  late final GeneratedColumnWithTypeConverter<PrepArea?, String> prepArea =
+      GeneratedColumn<String>(
+        'prep_area',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      ).withConverter<PrepArea?>($ItemsTable.$converterprepArean);
+  static const VerificationMeta _colorMeta = const VerificationMeta('color');
+  @override
+  late final GeneratedColumn<String> color = GeneratedColumn<String>(
+    'color',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
   List<GeneratedColumn> get $columns => [
     lastSyncedAt,
     version,
@@ -14589,6 +15054,8 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
     supplierId,
     parentId,
     negativeStockPolicy,
+    prepArea,
+    color,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -14791,6 +15258,12 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
         parentId.isAcceptableOrUnknown(data['parent_id']!, _parentIdMeta),
       );
     }
+    if (data.containsKey('color')) {
+      context.handle(
+        _colorMeta,
+        color.isAcceptableOrUnknown(data['color']!, _colorMeta),
+      );
+    }
     return context;
   }
 
@@ -14922,6 +15395,16 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
           data['${effectivePrefix}negative_stock_policy'],
         ),
       ),
+      prepArea: $ItemsTable.$converterprepArean.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}prep_area'],
+        ),
+      ),
+      color: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}color'],
+      ),
     );
   }
 
@@ -14942,6 +15425,10 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
   $converternegativeStockPolicyn = JsonTypeConverter2.asNullable(
     $converternegativeStockPolicy,
   );
+  static JsonTypeConverter2<PrepArea, String, String> $converterprepArea =
+      const EnumNameConverter<PrepArea>(PrepArea.values);
+  static JsonTypeConverter2<PrepArea?, String?, String?> $converterprepArean =
+      JsonTypeConverter2.asNullable($converterprepArea);
 }
 
 class Item extends DataClass implements Insertable<Item> {
@@ -14974,6 +15461,8 @@ class Item extends DataClass implements Insertable<Item> {
   final String? supplierId;
   final String? parentId;
   final NegativeStockPolicy? negativeStockPolicy;
+  final PrepArea? prepArea;
+  final String? color;
   const Item({
     this.lastSyncedAt,
     required this.version,
@@ -15004,6 +15493,8 @@ class Item extends DataClass implements Insertable<Item> {
     this.supplierId,
     this.parentId,
     this.negativeStockPolicy,
+    this.prepArea,
+    this.color,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -15079,6 +15570,14 @@ class Item extends DataClass implements Insertable<Item> {
         $ItemsTable.$converternegativeStockPolicyn.toSql(negativeStockPolicy),
       );
     }
+    if (!nullToAbsent || prepArea != null) {
+      map['prep_area'] = Variable<String>(
+        $ItemsTable.$converterprepArean.toSql(prepArea),
+      );
+    }
+    if (!nullToAbsent || color != null) {
+      map['color'] = Variable<String>(color);
+    }
     return map;
   }
 
@@ -15145,6 +15644,12 @@ class Item extends DataClass implements Insertable<Item> {
       negativeStockPolicy: negativeStockPolicy == null && nullToAbsent
           ? const Value.absent()
           : Value(negativeStockPolicy),
+      prepArea: prepArea == null && nullToAbsent
+          ? const Value.absent()
+          : Value(prepArea),
+      color: color == null && nullToAbsent
+          ? const Value.absent()
+          : Value(color),
     );
   }
 
@@ -15191,6 +15696,10 @@ class Item extends DataClass implements Insertable<Item> {
       negativeStockPolicy: $ItemsTable.$converternegativeStockPolicyn.fromJson(
         serializer.fromJson<String?>(json['negativeStockPolicy']),
       ),
+      prepArea: $ItemsTable.$converterprepArean.fromJson(
+        serializer.fromJson<String?>(json['prepArea']),
+      ),
+      color: serializer.fromJson<String?>(json['color']),
     );
   }
   @override
@@ -15232,6 +15741,10 @@ class Item extends DataClass implements Insertable<Item> {
       'negativeStockPolicy': serializer.toJson<String?>(
         $ItemsTable.$converternegativeStockPolicyn.toJson(negativeStockPolicy),
       ),
+      'prepArea': serializer.toJson<String?>(
+        $ItemsTable.$converterprepArean.toJson(prepArea),
+      ),
+      'color': serializer.toJson<String?>(color),
     };
   }
 
@@ -15265,6 +15778,8 @@ class Item extends DataClass implements Insertable<Item> {
     Value<String?> supplierId = const Value.absent(),
     Value<String?> parentId = const Value.absent(),
     Value<NegativeStockPolicy?> negativeStockPolicy = const Value.absent(),
+    Value<PrepArea?> prepArea = const Value.absent(),
+    Value<String?> color = const Value.absent(),
   }) => Item(
     lastSyncedAt: lastSyncedAt.present ? lastSyncedAt.value : this.lastSyncedAt,
     version: version ?? this.version,
@@ -15309,6 +15824,8 @@ class Item extends DataClass implements Insertable<Item> {
     negativeStockPolicy: negativeStockPolicy.present
         ? negativeStockPolicy.value
         : this.negativeStockPolicy,
+    prepArea: prepArea.present ? prepArea.value : this.prepArea,
+    color: color.present ? color.value : this.color,
   );
   Item copyWithCompanion(ItemsCompanion data) {
     return Item(
@@ -15369,6 +15886,8 @@ class Item extends DataClass implements Insertable<Item> {
       negativeStockPolicy: data.negativeStockPolicy.present
           ? data.negativeStockPolicy.value
           : this.negativeStockPolicy,
+      prepArea: data.prepArea.present ? data.prepArea.value : this.prepArea,
+      color: data.color.present ? data.color.value : this.color,
     );
   }
 
@@ -15403,7 +15922,9 @@ class Item extends DataClass implements Insertable<Item> {
           ..write('manufacturerId: $manufacturerId, ')
           ..write('supplierId: $supplierId, ')
           ..write('parentId: $parentId, ')
-          ..write('negativeStockPolicy: $negativeStockPolicy')
+          ..write('negativeStockPolicy: $negativeStockPolicy, ')
+          ..write('prepArea: $prepArea, ')
+          ..write('color: $color')
           ..write(')'))
         .toString();
   }
@@ -15439,6 +15960,8 @@ class Item extends DataClass implements Insertable<Item> {
     supplierId,
     parentId,
     negativeStockPolicy,
+    prepArea,
+    color,
   ]);
   @override
   bool operator ==(Object other) =>
@@ -15472,7 +15995,9 @@ class Item extends DataClass implements Insertable<Item> {
           other.manufacturerId == this.manufacturerId &&
           other.supplierId == this.supplierId &&
           other.parentId == this.parentId &&
-          other.negativeStockPolicy == this.negativeStockPolicy);
+          other.negativeStockPolicy == this.negativeStockPolicy &&
+          other.prepArea == this.prepArea &&
+          other.color == this.color);
 }
 
 class ItemsCompanion extends UpdateCompanion<Item> {
@@ -15505,6 +16030,8 @@ class ItemsCompanion extends UpdateCompanion<Item> {
   final Value<String?> supplierId;
   final Value<String?> parentId;
   final Value<NegativeStockPolicy?> negativeStockPolicy;
+  final Value<PrepArea?> prepArea;
+  final Value<String?> color;
   final Value<int> rowid;
   const ItemsCompanion({
     this.lastSyncedAt = const Value.absent(),
@@ -15536,6 +16063,8 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     this.supplierId = const Value.absent(),
     this.parentId = const Value.absent(),
     this.negativeStockPolicy = const Value.absent(),
+    this.prepArea = const Value.absent(),
+    this.color = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ItemsCompanion.insert({
@@ -15568,6 +16097,8 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     this.supplierId = const Value.absent(),
     this.parentId = const Value.absent(),
     this.negativeStockPolicy = const Value.absent(),
+    this.prepArea = const Value.absent(),
+    this.color = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        companyId = Value(companyId),
@@ -15603,6 +16134,8 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     Expression<String>? supplierId,
     Expression<String>? parentId,
     Expression<String>? negativeStockPolicy,
+    Expression<String>? prepArea,
+    Expression<String>? color,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -15636,6 +16169,8 @@ class ItemsCompanion extends UpdateCompanion<Item> {
       if (parentId != null) 'parent_id': parentId,
       if (negativeStockPolicy != null)
         'negative_stock_policy': negativeStockPolicy,
+      if (prepArea != null) 'prep_area': prepArea,
+      if (color != null) 'color': color,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -15670,6 +16205,8 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     Value<String?>? supplierId,
     Value<String?>? parentId,
     Value<NegativeStockPolicy?>? negativeStockPolicy,
+    Value<PrepArea?>? prepArea,
+    Value<String?>? color,
     Value<int>? rowid,
   }) {
     return ItemsCompanion(
@@ -15702,6 +16239,8 @@ class ItemsCompanion extends UpdateCompanion<Item> {
       supplierId: supplierId ?? this.supplierId,
       parentId: parentId ?? this.parentId,
       negativeStockPolicy: negativeStockPolicy ?? this.negativeStockPolicy,
+      prepArea: prepArea ?? this.prepArea,
+      color: color ?? this.color,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -15804,6 +16343,14 @@ class ItemsCompanion extends UpdateCompanion<Item> {
         ),
       );
     }
+    if (prepArea.present) {
+      map['prep_area'] = Variable<String>(
+        $ItemsTable.$converterprepArean.toSql(prepArea.value),
+      );
+    }
+    if (color.present) {
+      map['color'] = Variable<String>(color.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -15842,6 +16389,8 @@ class ItemsCompanion extends UpdateCompanion<Item> {
           ..write('supplierId: $supplierId, ')
           ..write('parentId: $parentId, ')
           ..write('negativeStockPolicy: $negativeStockPolicy, ')
+          ..write('prepArea: $prepArea, ')
+          ..write('color: $color, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -49022,6 +49571,12 @@ typedef $$CategoriesTableCreateCompanionBuilder =
       required String name,
       Value<bool> isActive,
       Value<String?> parentId,
+      Value<PrepArea?> prepArea,
+      Value<String?> defaultSaleTaxRateId,
+      Value<String?> defaultPurchaseTaxRateId,
+      Value<bool?> defaultIsSellable,
+      Value<String?> color,
+      Value<String?> itemColor,
       Value<int> rowid,
     });
 typedef $$CategoriesTableUpdateCompanionBuilder =
@@ -49038,6 +49593,12 @@ typedef $$CategoriesTableUpdateCompanionBuilder =
       Value<String> name,
       Value<bool> isActive,
       Value<String?> parentId,
+      Value<PrepArea?> prepArea,
+      Value<String?> defaultSaleTaxRateId,
+      Value<String?> defaultPurchaseTaxRateId,
+      Value<bool?> defaultIsSellable,
+      Value<String?> color,
+      Value<String?> itemColor,
       Value<int> rowid,
     });
 
@@ -49107,6 +49668,37 @@ class $$CategoriesTableFilterComposer
 
   ColumnFilters<String> get parentId => $composableBuilder(
     column: $table.parentId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<PrepArea?, PrepArea, String> get prepArea =>
+      $composableBuilder(
+        column: $table.prepArea,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<String> get defaultSaleTaxRateId => $composableBuilder(
+    column: $table.defaultSaleTaxRateId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get defaultPurchaseTaxRateId => $composableBuilder(
+    column: $table.defaultPurchaseTaxRateId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get defaultIsSellable => $composableBuilder(
+    column: $table.defaultIsSellable,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get color => $composableBuilder(
+    column: $table.color,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get itemColor => $composableBuilder(
+    column: $table.itemColor,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -49179,6 +49771,36 @@ class $$CategoriesTableOrderingComposer
     column: $table.parentId,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get prepArea => $composableBuilder(
+    column: $table.prepArea,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get defaultSaleTaxRateId => $composableBuilder(
+    column: $table.defaultSaleTaxRateId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get defaultPurchaseTaxRateId => $composableBuilder(
+    column: $table.defaultPurchaseTaxRateId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get defaultIsSellable => $composableBuilder(
+    column: $table.defaultIsSellable,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get color => $composableBuilder(
+    column: $table.color,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get itemColor => $composableBuilder(
+    column: $table.itemColor,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$CategoriesTableAnnotationComposer
@@ -49231,6 +49853,30 @@ class $$CategoriesTableAnnotationComposer
 
   GeneratedColumn<String> get parentId =>
       $composableBuilder(column: $table.parentId, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<PrepArea?, String> get prepArea =>
+      $composableBuilder(column: $table.prepArea, builder: (column) => column);
+
+  GeneratedColumn<String> get defaultSaleTaxRateId => $composableBuilder(
+    column: $table.defaultSaleTaxRateId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get defaultPurchaseTaxRateId => $composableBuilder(
+    column: $table.defaultPurchaseTaxRateId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get defaultIsSellable => $composableBuilder(
+    column: $table.defaultIsSellable,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get color =>
+      $composableBuilder(column: $table.color, builder: (column) => column);
+
+  GeneratedColumn<String> get itemColor =>
+      $composableBuilder(column: $table.itemColor, builder: (column) => column);
 }
 
 class $$CategoriesTableTableManager
@@ -49273,6 +49919,12 @@ class $$CategoriesTableTableManager
                 Value<String> name = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
                 Value<String?> parentId = const Value.absent(),
+                Value<PrepArea?> prepArea = const Value.absent(),
+                Value<String?> defaultSaleTaxRateId = const Value.absent(),
+                Value<String?> defaultPurchaseTaxRateId = const Value.absent(),
+                Value<bool?> defaultIsSellable = const Value.absent(),
+                Value<String?> color = const Value.absent(),
+                Value<String?> itemColor = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => CategoriesCompanion(
                 lastSyncedAt: lastSyncedAt,
@@ -49287,6 +49939,12 @@ class $$CategoriesTableTableManager
                 name: name,
                 isActive: isActive,
                 parentId: parentId,
+                prepArea: prepArea,
+                defaultSaleTaxRateId: defaultSaleTaxRateId,
+                defaultPurchaseTaxRateId: defaultPurchaseTaxRateId,
+                defaultIsSellable: defaultIsSellable,
+                color: color,
+                itemColor: itemColor,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -49303,6 +49961,12 @@ class $$CategoriesTableTableManager
                 required String name,
                 Value<bool> isActive = const Value.absent(),
                 Value<String?> parentId = const Value.absent(),
+                Value<PrepArea?> prepArea = const Value.absent(),
+                Value<String?> defaultSaleTaxRateId = const Value.absent(),
+                Value<String?> defaultPurchaseTaxRateId = const Value.absent(),
+                Value<bool?> defaultIsSellable = const Value.absent(),
+                Value<String?> color = const Value.absent(),
+                Value<String?> itemColor = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => CategoriesCompanion.insert(
                 lastSyncedAt: lastSyncedAt,
@@ -49317,6 +49981,12 @@ class $$CategoriesTableTableManager
                 name: name,
                 isActive: isActive,
                 parentId: parentId,
+                prepArea: prepArea,
+                defaultSaleTaxRateId: defaultSaleTaxRateId,
+                defaultPurchaseTaxRateId: defaultPurchaseTaxRateId,
+                defaultIsSellable: defaultIsSellable,
+                color: color,
+                itemColor: itemColor,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -49367,6 +50037,7 @@ typedef $$CompaniesTableCreateCompanionBuilder =
       required String authUserId,
       Value<bool> isDemo,
       Value<DateTime?> demoExpiresAt,
+      Value<bool> autoPrintOrderTickets,
       Value<int> rowid,
     });
 typedef $$CompaniesTableUpdateCompanionBuilder =
@@ -49395,6 +50066,7 @@ typedef $$CompaniesTableUpdateCompanionBuilder =
       Value<String> authUserId,
       Value<bool> isDemo,
       Value<DateTime?> demoExpiresAt,
+      Value<bool> autoPrintOrderTickets,
       Value<int> rowid,
     });
 
@@ -49528,6 +50200,11 @@ class $$CompaniesTableFilterComposer
     column: $table.demoExpiresAt,
     builder: (column) => ColumnFilters(column),
   );
+
+  ColumnFilters<bool> get autoPrintOrderTickets => $composableBuilder(
+    column: $table.autoPrintOrderTickets,
+    builder: (column) => ColumnFilters(column),
+  );
 }
 
 class $$CompaniesTableOrderingComposer
@@ -49658,6 +50335,11 @@ class $$CompaniesTableOrderingComposer
     column: $table.demoExpiresAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get autoPrintOrderTickets => $composableBuilder(
+    column: $table.autoPrintOrderTickets,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$CompaniesTableAnnotationComposer
@@ -49759,6 +50441,11 @@ class $$CompaniesTableAnnotationComposer
     column: $table.demoExpiresAt,
     builder: (column) => column,
   );
+
+  GeneratedColumn<bool> get autoPrintOrderTickets => $composableBuilder(
+    column: $table.autoPrintOrderTickets,
+    builder: (column) => column,
+  );
 }
 
 class $$CompaniesTableTableManager
@@ -49813,6 +50500,7 @@ class $$CompaniesTableTableManager
                 Value<String> authUserId = const Value.absent(),
                 Value<bool> isDemo = const Value.absent(),
                 Value<DateTime?> demoExpiresAt = const Value.absent(),
+                Value<bool> autoPrintOrderTickets = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => CompaniesCompanion(
                 lastSyncedAt: lastSyncedAt,
@@ -49839,6 +50527,7 @@ class $$CompaniesTableTableManager
                 authUserId: authUserId,
                 isDemo: isDemo,
                 demoExpiresAt: demoExpiresAt,
+                autoPrintOrderTickets: autoPrintOrderTickets,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -49867,6 +50556,7 @@ class $$CompaniesTableTableManager
                 required String authUserId,
                 Value<bool> isDemo = const Value.absent(),
                 Value<DateTime?> demoExpiresAt = const Value.absent(),
+                Value<bool> autoPrintOrderTickets = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => CompaniesCompanion.insert(
                 lastSyncedAt: lastSyncedAt,
@@ -49893,6 +50583,7 @@ class $$CompaniesTableTableManager
                 authUserId: authUserId,
                 isDemo: isDemo,
                 demoExpiresAt: demoExpiresAt,
+                autoPrintOrderTickets: autoPrintOrderTickets,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -51219,6 +51910,7 @@ typedef $$CompanySettingsTableCreateCompanionBuilder =
       Value<int> billAgeWarningMinutes,
       Value<int> billAgeDangerMinutes,
       Value<int> billAgeCriticalMinutes,
+      Value<bool> aiEnabled,
       Value<AiProviderType> aiProviderType,
       Value<String?> aiModel,
       Value<int> aiRateLimitPerHour,
@@ -51248,6 +51940,7 @@ typedef $$CompanySettingsTableUpdateCompanionBuilder =
       Value<int> billAgeWarningMinutes,
       Value<int> billAgeDangerMinutes,
       Value<int> billAgeCriticalMinutes,
+      Value<bool> aiEnabled,
       Value<AiProviderType> aiProviderType,
       Value<String?> aiModel,
       Value<int> aiRateLimitPerHour,
@@ -51367,6 +52060,11 @@ class $$CompanySettingsTableFilterComposer
 
   ColumnFilters<int> get billAgeCriticalMinutes => $composableBuilder(
     column: $table.billAgeCriticalMinutes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get aiEnabled => $composableBuilder(
+    column: $table.aiEnabled,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -51506,6 +52204,11 @@ class $$CompanySettingsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get aiEnabled => $composableBuilder(
+    column: $table.aiEnabled,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get aiProviderType => $composableBuilder(
     column: $table.aiProviderType,
     builder: (column) => ColumnOrderings(column),
@@ -51628,6 +52331,9 @@ class $$CompanySettingsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<bool> get aiEnabled =>
+      $composableBuilder(column: $table.aiEnabled, builder: (column) => column);
+
   GeneratedColumnWithTypeConverter<AiProviderType, String> get aiProviderType =>
       $composableBuilder(
         column: $table.aiProviderType,
@@ -51711,6 +52417,7 @@ class $$CompanySettingsTableTableManager
                 Value<int> billAgeWarningMinutes = const Value.absent(),
                 Value<int> billAgeDangerMinutes = const Value.absent(),
                 Value<int> billAgeCriticalMinutes = const Value.absent(),
+                Value<bool> aiEnabled = const Value.absent(),
                 Value<AiProviderType> aiProviderType = const Value.absent(),
                 Value<String?> aiModel = const Value.absent(),
                 Value<int> aiRateLimitPerHour = const Value.absent(),
@@ -51738,6 +52445,7 @@ class $$CompanySettingsTableTableManager
                 billAgeWarningMinutes: billAgeWarningMinutes,
                 billAgeDangerMinutes: billAgeDangerMinutes,
                 billAgeCriticalMinutes: billAgeCriticalMinutes,
+                aiEnabled: aiEnabled,
                 aiProviderType: aiProviderType,
                 aiModel: aiModel,
                 aiRateLimitPerHour: aiRateLimitPerHour,
@@ -51768,6 +52476,7 @@ class $$CompanySettingsTableTableManager
                 Value<int> billAgeWarningMinutes = const Value.absent(),
                 Value<int> billAgeDangerMinutes = const Value.absent(),
                 Value<int> billAgeCriticalMinutes = const Value.absent(),
+                Value<bool> aiEnabled = const Value.absent(),
                 Value<AiProviderType> aiProviderType = const Value.absent(),
                 Value<String?> aiModel = const Value.absent(),
                 Value<int> aiRateLimitPerHour = const Value.absent(),
@@ -51795,6 +52504,7 @@ class $$CompanySettingsTableTableManager
                 billAgeWarningMinutes: billAgeWarningMinutes,
                 billAgeDangerMinutes: billAgeDangerMinutes,
                 billAgeCriticalMinutes: billAgeCriticalMinutes,
+                aiEnabled: aiEnabled,
                 aiProviderType: aiProviderType,
                 aiModel: aiModel,
                 aiRateLimitPerHour: aiRateLimitPerHour,
@@ -53149,6 +53859,8 @@ typedef $$ItemsTableCreateCompanionBuilder =
       Value<String?> supplierId,
       Value<String?> parentId,
       Value<NegativeStockPolicy?> negativeStockPolicy,
+      Value<PrepArea?> prepArea,
+      Value<String?> color,
       Value<int> rowid,
     });
 typedef $$ItemsTableUpdateCompanionBuilder =
@@ -53182,6 +53894,8 @@ typedef $$ItemsTableUpdateCompanionBuilder =
       Value<String?> supplierId,
       Value<String?> parentId,
       Value<NegativeStockPolicy?> negativeStockPolicy,
+      Value<PrepArea?> prepArea,
+      Value<String?> color,
       Value<int> rowid,
     });
 
@@ -53344,6 +54058,17 @@ class $$ItemsTableFilterComposer extends Composer<_$AppDatabase, $ItemsTable> {
     column: $table.negativeStockPolicy,
     builder: (column) => ColumnWithTypeConverterFilters(column),
   );
+
+  ColumnWithTypeConverterFilters<PrepArea?, PrepArea, String> get prepArea =>
+      $composableBuilder(
+        column: $table.prepArea,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<String> get color => $composableBuilder(
+    column: $table.color,
+    builder: (column) => ColumnFilters(column),
+  );
 }
 
 class $$ItemsTableOrderingComposer
@@ -53499,6 +54224,16 @@ class $$ItemsTableOrderingComposer
     column: $table.negativeStockPolicy,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get prepArea => $composableBuilder(
+    column: $table.prepArea,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get color => $composableBuilder(
+    column: $table.color,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$ItemsTableAnnotationComposer
@@ -53625,6 +54360,12 @@ class $$ItemsTableAnnotationComposer
     column: $table.negativeStockPolicy,
     builder: (column) => column,
   );
+
+  GeneratedColumnWithTypeConverter<PrepArea?, String> get prepArea =>
+      $composableBuilder(column: $table.prepArea, builder: (column) => column);
+
+  GeneratedColumn<String> get color =>
+      $composableBuilder(column: $table.color, builder: (column) => column);
 }
 
 class $$ItemsTableTableManager
@@ -53685,6 +54426,8 @@ class $$ItemsTableTableManager
                 Value<String?> parentId = const Value.absent(),
                 Value<NegativeStockPolicy?> negativeStockPolicy =
                     const Value.absent(),
+                Value<PrepArea?> prepArea = const Value.absent(),
+                Value<String?> color = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ItemsCompanion(
                 lastSyncedAt: lastSyncedAt,
@@ -53716,6 +54459,8 @@ class $$ItemsTableTableManager
                 supplierId: supplierId,
                 parentId: parentId,
                 negativeStockPolicy: negativeStockPolicy,
+                prepArea: prepArea,
+                color: color,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -53750,6 +54495,8 @@ class $$ItemsTableTableManager
                 Value<String?> parentId = const Value.absent(),
                 Value<NegativeStockPolicy?> negativeStockPolicy =
                     const Value.absent(),
+                Value<PrepArea?> prepArea = const Value.absent(),
+                Value<String?> color = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ItemsCompanion.insert(
                 lastSyncedAt: lastSyncedAt,
@@ -53781,6 +54528,8 @@ class $$ItemsTableTableManager
                 supplierId: supplierId,
                 parentId: parentId,
                 negativeStockPolicy: negativeStockPolicy,
+                prepArea: prepArea,
+                color: color,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

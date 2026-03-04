@@ -49,7 +49,8 @@ class AiCompanyToolHandler {
       'bill_age_danger_minutes': settings.billAgeDangerMinutes,
       'bill_age_critical_minutes': settings.billAgeCriticalMinutes,
       'negative_stock_policy': settings.negativeStockPolicy.name,
-      // AI and security settings intentionally omitted
+      'ai_enabled': settings.aiEnabled,
+      // AI provider/security settings intentionally omitted
     }));
   }
 

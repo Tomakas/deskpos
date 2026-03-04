@@ -185,19 +185,24 @@ class _DialogGridEditorState extends ConsumerState<DialogGridEditor> {
         final item =
             allItems.where((i) => i.id == layoutItem.itemId).firstOrNull;
         label = layoutItem.label ?? item?.name ?? '?';
-        color = layoutItem.color != null
-            ? parsePrimaryColor(layoutItem.color)
+        final itemCat = item?.categoryId != null
+            ? allCategories.where((c) => c.id == item!.categoryId).firstOrNull
+            : null;
+        final derivedStr = item?.color ?? itemCat?.itemColor ?? layoutItem.color;
+        color = derivedStr != null
+            ? parsePrimaryColor(derivedStr)
             : theme.colorScheme.primaryContainer;
-        gradient = parseGradient(layoutItem.color);
+        gradient = parseGradient(derivedStr);
       } else {
         final cat = allCategories
             .where((c) => c.id == layoutItem.categoryId)
             .firstOrNull;
         label = layoutItem.label ?? cat?.name ?? '?';
-        color = layoutItem.color != null
-            ? parsePrimaryColor(layoutItem.color)
+        final catColorStr = cat?.color ?? layoutItem.color;
+        color = catColorStr != null
+            ? parsePrimaryColor(catColorStr)
             : theme.colorScheme.secondaryContainer;
-        gradient = parseGradient(layoutItem.color);
+        gradient = parseGradient(catColorStr);
       }
     }
 
@@ -383,8 +388,6 @@ class _DialogGridEditorState extends ConsumerState<DialogGridEditor> {
     String? selectedItemName;
     String? selectedCategoryId = layoutItem?.type == LayoutItemType.category ? layoutItem?.categoryId : null;
     String? selectedCategoryName;
-    var selectedColor = layoutItem?.color;
-
     if (selectedItemId != null) {
       selectedItemName = allItems.where((i) => i.id == selectedItemId).firstOrNull?.name;
     }
@@ -479,9 +482,21 @@ class _DialogGridEditorState extends ConsumerState<DialogGridEditor> {
               () {
                 final hasSelection = currentName != null;
                 final theme = Theme.of(ctx);
+                // Derive color from item/category model
+                String? derivedColorStr;
+                if (isItem && selectedItemId != null) {
+                  final selItem = allItems.where((i) => i.id == selectedItemId).firstOrNull;
+                  final selItemCat = selItem?.categoryId != null
+                      ? allCategories.where((c) => c.id == selItem!.categoryId).firstOrNull
+                      : null;
+                  derivedColorStr = selItem?.color ?? selItemCat?.itemColor;
+                } else if (!isItem && selectedCategoryId != null) {
+                  final selCat = allCategories.where((c) => c.id == selectedCategoryId).firstOrNull;
+                  derivedColorStr = selCat?.color;
+                }
                 final Color tileColor;
-                if (selectedColor != null) {
-                  tileColor = parseHexColor(selectedColor);
+                if (derivedColorStr != null) {
+                  tileColor = parsePrimaryColor(derivedColorStr);
                 } else if (hasSelection) {
                   tileColor = isItem
                       ? theme.colorScheme.primaryContainer
@@ -539,12 +554,6 @@ class _DialogGridEditorState extends ConsumerState<DialogGridEditor> {
                 );
               }(),
               const SizedBox(height: 16),
-              // Color palette
-              PosColorPalette(
-                selectedColor: selectedColor,
-                onColorSelected: (c) => setDialogState(() => selectedColor = c),
-              ),
-              const SizedBox(height: 16),
             ],
           );
         },
@@ -568,7 +577,7 @@ class _DialogGridEditorState extends ConsumerState<DialogGridEditor> {
       type: selectedType,
       itemId: selectedType == LayoutItemType.item ? selectedItemId : null,
       categoryId: selectedType == LayoutItemType.category ? selectedCategoryId : null,
-      color: selectedColor,
+      color: null,
     );
 
     // If assigning a category, ensure sub-page exists

@@ -64,6 +64,7 @@ CompanyModel companyFromEntity(Company e) => CompanyModel(
       authUserId: e.authUserId,
       isDemo: e.isDemo,
       demoExpiresAt: e.demoExpiresAt,
+      autoPrintOrderTickets: e.autoPrintOrderTickets,
       createdAt: e.createdAt,
       updatedAt: e.updatedAt,
       deletedAt: e.deletedAt,
@@ -87,6 +88,7 @@ CompaniesCompanion companyToCompanion(CompanyModel m) => CompaniesCompanion.inse
       authUserId: m.authUserId,
       isDemo: Value(m.isDemo),
       demoExpiresAt: Value(m.demoExpiresAt),
+      autoPrintOrderTickets: Value(m.autoPrintOrderTickets),
     );
 
 // --- CompanyCurrency ---
@@ -127,6 +129,7 @@ CompanySettingsModel companySettingsFromEntity(CompanySetting e) => CompanySetti
       billAgeWarningMinutes: e.billAgeWarningMinutes,
       billAgeDangerMinutes: e.billAgeDangerMinutes,
       billAgeCriticalMinutes: e.billAgeCriticalMinutes,
+      aiEnabled: e.aiEnabled,
       aiProviderType: e.aiProviderType,
       aiModel: e.aiModel,
       aiRateLimitPerHour: e.aiRateLimitPerHour,
@@ -152,6 +155,7 @@ CompanySettingsCompanion companySettingsToCompanion(CompanySettingsModel m) =>
       billAgeWarningMinutes: Value(m.billAgeWarningMinutes),
       billAgeDangerMinutes: Value(m.billAgeDangerMinutes),
       billAgeCriticalMinutes: Value(m.billAgeCriticalMinutes),
+      aiEnabled: Value(m.aiEnabled),
       aiProviderType: Value(m.aiProviderType),
       aiModel: Value(m.aiModel),
       aiRateLimitPerHour: Value(m.aiRateLimitPerHour),
@@ -262,6 +266,12 @@ CategoryModel categoryFromEntity(Category e) => CategoryModel(
       name: e.name,
       isActive: e.isActive,
       parentId: e.parentId,
+      prepArea: e.prepArea,
+      defaultSaleTaxRateId: e.defaultSaleTaxRateId,
+      defaultPurchaseTaxRateId: e.defaultPurchaseTaxRateId,
+      defaultIsSellable: e.defaultIsSellable,
+      color: e.color,
+      itemColor: e.itemColor,
       createdAt: e.createdAt,
       updatedAt: e.updatedAt,
       deletedAt: e.deletedAt,
@@ -273,6 +283,12 @@ CategoriesCompanion categoryToCompanion(CategoryModel m) => CategoriesCompanion.
       name: m.name,
       isActive: Value(m.isActive),
       parentId: Value(m.parentId),
+      prepArea: Value(m.prepArea),
+      defaultSaleTaxRateId: Value(m.defaultSaleTaxRateId),
+      defaultPurchaseTaxRateId: Value(m.defaultPurchaseTaxRateId),
+      defaultIsSellable: Value(m.defaultIsSellable),
+      color: Value(m.color),
+      itemColor: Value(m.itemColor),
     );
 
 // --- Item ---
@@ -299,6 +315,8 @@ ItemModel itemFromEntity(Item e) => ItemModel(
       supplierId: e.supplierId,
       parentId: e.parentId,
       negativeStockPolicy: e.negativeStockPolicy,
+      prepArea: e.prepArea,
+      color: e.color,
       createdAt: e.createdAt,
       updatedAt: e.updatedAt,
       deletedAt: e.deletedAt,
@@ -327,6 +345,8 @@ ItemsCompanion itemToCompanion(ItemModel m) => ItemsCompanion.insert(
       supplierId: Value(m.supplierId),
       parentId: Value(m.parentId),
       negativeStockPolicy: Value(m.negativeStockPolicy),
+      prepArea: Value(m.prepArea),
+      color: Value(m.color),
     );
 
 // --- TaxRate ---
