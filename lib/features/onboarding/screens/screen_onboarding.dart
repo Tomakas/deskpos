@@ -969,14 +969,17 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
 
       if (!mounted) return;
 
-      // Close the dialog
-      Navigator.of(context).pop();
-
       // Clear pre-company locale override — company settings now own the locale
       ref.read(pendingLocaleProvider.notifier).state = null;
-      ref.invalidate(appInitProvider);
-      await ref.read(appInitProvider.future);
+
+      // Close the dialog and navigate to login in one go — invalidate
+      // appInitProvider AFTER navigation to avoid a race where the router
+      // sees AsyncLoading, redirects to /loading, and the re-evaluated
+      // provider finds currentSession == null (Windows timing) which would
+      // delete the freshly-created demo company.
+      Navigator.of(context).pop();
       if (mounted) context.go('/login');
+      ref.invalidate(appInitProvider);
     } catch (e, s) {
       AppLogger.error('Demo onboarding failed', error: e, stackTrace: s);
       if (!mounted) return;
