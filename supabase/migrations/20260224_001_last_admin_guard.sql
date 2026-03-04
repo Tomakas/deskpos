@@ -78,3 +78,5 @@ CREATE TRIGGER trg_users_guard_last_admin_delete
   BEFORE DELETE ON users
   FOR EACH ROW
   EXECUTE FUNCTION guard_last_admin_delete();
+
+NOTIFY pgrst, 'reload schema';

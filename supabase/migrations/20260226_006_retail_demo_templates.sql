@@ -918,7 +918,7 @@ BEGIN
     v_display_id,
     v_company_id,
     v_register_id,
-    '100001',
+    (100000 + floor(random() * 900000))::int::text,
     CASE p_locale WHEN 'cs' THEN 'Zákaznický displej' ELSE 'Customer Display' END,
     CASE p_locale WHEN 'cs' THEN 'Vítejte!' ELSE 'Welcome!' END,
     'customerDisplay'::display_device_type,
@@ -1946,3 +1946,5 @@ $$;
 
 -- Grant execution to authenticated users (will be called via edge function with service_role)
 GRANT EXECUTE ON FUNCTION create_demo_company(uuid, text, text, text, text) TO service_role;
+
+NOTIFY pgrst, 'reload schema';

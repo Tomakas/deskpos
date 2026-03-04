@@ -277,3 +277,5 @@ BEGIN
     v_src
   );
 END $$;
+
+NOTIFY pgrst, 'reload schema';

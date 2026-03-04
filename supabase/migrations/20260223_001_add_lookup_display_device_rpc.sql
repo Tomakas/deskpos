@@ -16,3 +16,5 @@ $$;
 
 GRANT EXECUTE ON FUNCTION public.lookup_display_device_by_code(text) TO anon;
 GRANT EXECUTE ON FUNCTION public.lookup_display_device_by_code(text) TO authenticated;
+
+NOTIFY pgrst, 'reload schema';

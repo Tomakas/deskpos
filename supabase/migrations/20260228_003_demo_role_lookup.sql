@@ -52,3 +52,5 @@ BEGIN
   );
 END;
 $outer$;
+
+NOTIFY pgrst, 'reload schema';

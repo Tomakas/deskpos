@@ -111,8 +111,27 @@ class AppDatabase extends _$AppDatabase {
 
   AppDatabase.forTesting(super.executor);
 
+  /// Bump this version whenever the schema changes during development.
+  /// Drift will call [migration] which drops and recreates all tables.
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+        onCreate: (m) => m.createAll(),
+        onUpgrade: (m, from, to) async {
+          // Development mode: destructive reset on any schema change.
+          AppLogger.info('Schema upgrade $from → $to: recreating all tables', tag: 'DB');
+          final allTables = m.database.allSchemaEntities
+              .whereType<TableInfo>()
+              .toList();
+          // Drop in reverse order to respect foreign keys
+          for (final table in allTables.reversed) {
+            await m.database.customStatement('DROP TABLE IF EXISTS ${table.actualTableName}');
+          }
+          await m.createAll();
+        },
+      );
 
   static QueryExecutor _openConnection() {
     return driftDatabase(

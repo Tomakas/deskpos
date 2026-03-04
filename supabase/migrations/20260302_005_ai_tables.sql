@@ -246,3 +246,5 @@ VALUES
 ON CONFLICT (id) DO NOTHING;
 
 COMMIT;
+
+NOTIFY pgrst, 'reload schema';
