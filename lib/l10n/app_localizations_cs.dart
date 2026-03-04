@@ -4407,4 +4407,22 @@ class AppLocalizationsCs extends AppLocalizations {
   @override
   String get billDiscountBlockedByVoucher =>
       'Na účtu je uplatněn voucher, manuální sleva na účet není možná.';
+
+  @override
+  String get settingsAppearance => 'Vzhled';
+
+  @override
+  String get settingsThemeMode => 'Motiv';
+
+  @override
+  String get settingsThemeSystem => 'Systém';
+
+  @override
+  String get settingsThemeLight => 'Světlý';
+
+  @override
+  String get settingsThemeDark => 'Tmavý';
+
+  @override
+  String get settingsAccentColor => 'Barva akcentu';
 }

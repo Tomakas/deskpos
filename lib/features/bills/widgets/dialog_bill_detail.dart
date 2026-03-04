@@ -953,7 +953,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
             bottomActions: PosDialogActions(
               actions: [
                 OutlinedButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
-                FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
+                FilledButton(style: PosButtonStyles.destructiveFilled(context), onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
               ],
             ),
             children: [
@@ -1105,7 +1105,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
         bottomActions: PosDialogActions(
           actions: [
             OutlinedButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.no)),
-            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.yes)),
+            FilledButton(style: PosButtonStyles.destructiveFilled(ctx), onPressed: () => Navigator.pop(ctx, true), child: Text(l.yes)),
           ],
         ),
         children: [
@@ -1283,7 +1283,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
         bottomActions: PosDialogActions(
           actions: [
             OutlinedButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.no)),
-            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.yes)),
+            FilledButton(style: PosButtonStyles.destructiveFilled(ctx), onPressed: () => Navigator.pop(ctx, true), child: Text(l.yes)),
           ],
         ),
         children: [
@@ -1520,7 +1520,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
           bottomActions: PosDialogActions(
             actions: [
               OutlinedButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
-              FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
+              FilledButton(style: PosButtonStyles.destructiveFilled(context), onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
             ],
           ),
           children: [
@@ -1774,6 +1774,7 @@ class _OrderSection extends ConsumerWidget {
                               ),
                               SizedBox(
                                 width: 40,
+                                height: 40,
                                 child: (item.status == PrepStatus.created ||
                                         item.status == PrepStatus.ready)
                                     ? PopupMenuButton<PrepStatus>(
@@ -1790,14 +1791,36 @@ class _OrderSection extends ConsumerWidget {
                                                 item.status, l, context, ref),
                                       )
                                     : Center(
-                                        child: Container(
-                                          width: 8,
-                                          height: 8,
-                                          decoration: BoxDecoration(
-                                            color: item.status.color(context),
-                                            shape: BoxShape.circle,
-                                          ),
-                                        ),
+                                        child: item.status == PrepStatus.delivered
+                                            ? PopupMenuButton<PrepStatus>(
+                                                icon: Icon(Icons.check, size: 14, color: item.status.color(context)),
+                                                iconSize: 14,
+                                                padding: EdgeInsets.zero,
+                                                constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                                                onSelected: (status) =>
+                                                    _changeItemStatus(context, ref, item, status),
+                                                itemBuilder: (_) => [
+                                                  PopupMenuItem(
+                                                    value: PrepStatus.ready,
+                                                    child: Row(
+                                                      mainAxisSize: MainAxisSize.min,
+                                                      children: [
+                                                        Icon(Icons.undo, size: 18, color: PrepStatus.ready.color(context)),
+                                                        const SizedBox(width: 4),
+                                                        Text(l.prepStatusReady, style: TextStyle(color: PrepStatus.ready.color(context))),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ],
+                                              )
+                                            : Container(
+                                                width: 8,
+                                                height: 8,
+                                                decoration: BoxDecoration(
+                                                  color: item.status.color(context),
+                                                  shape: BoxShape.circle,
+                                                ),
+                                              ),
                                       ),
                               ),
                             ],
@@ -2140,7 +2163,7 @@ class _OrderSection extends ConsumerWidget {
         bottomActions: PosDialogActions(
           actions: [
             OutlinedButton(onPressed: () => Navigator.pop(context, false), child: Text(l.no)),
-            FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
+            FilledButton(style: PosButtonStyles.destructiveFilled(context), onPressed: () => Navigator.pop(context, true), child: Text(l.yes)),
           ],
         ),
         children: [

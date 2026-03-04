@@ -31,6 +31,7 @@ import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/pos_gradients.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/utils/formatting_ext.dart';
 import '../../../core/utils/unit_type_l10n.dart';
@@ -398,8 +399,14 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
 
     return Container(
       decoration: BoxDecoration(
-        border: Border(right: BorderSide(color: theme.dividerColor)),
-        color: theme.colorScheme.surfaceContainerLow,
+        gradient: PosGradients.sidePanel(theme.colorScheme),
+        boxShadow: [
+          BoxShadow(
+            color: theme.shadowColor.withValues(alpha: 0.15),
+            blurRadius: 12,
+            offset: const Offset(3, 0),
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -455,7 +462,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
                       final item = entry as _CartItem;
                       final qty = ref.fmtQty(item.quantity, maxDecimals: 1);
                       return InkWell(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(12),
                         onTap: () => _showItemNoteDialog(context, item),
                         onLongPress: () {
                           setState(() {
@@ -466,10 +473,15 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
                         },
                         child: Container(
                           margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          clipBehavior: Clip.antiAlias,
                           decoration: BoxDecoration(
                             color: theme.colorScheme.surfaceContainerHigh,
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          decoration: BoxDecoration(
+                            border: Border(left: BorderSide(color: theme.colorScheme.primary, width: 3)),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -525,6 +537,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
                                 ),
                             ],
                           ),
+                        ),
                         ),
                       );
                     },
@@ -765,7 +778,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
         padding: const EdgeInsets.all(2),
         child: Material(
           color: Theme.of(context).colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(12),
           child: const SizedBox.expand(),
         ),
       );
@@ -2628,7 +2641,7 @@ class _ItemButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: gradient == null ? color : null,
           gradient: gradient,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(12),
         ),
         clipBehavior: Clip.hardEdge,
         child: Material(
@@ -2636,11 +2649,11 @@ class _ItemButton extends StatelessWidget {
           child: InkWell(
             onTap: onTap,
             onLongPress: onLongPress,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(12),
             child: Container(
               decoration: selected
                   ? BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: primaryColor, width: 2.5),
                     )
                   : null,
@@ -2681,7 +2694,7 @@ class _ItemButton extends StatelessWidget {
                   Positioned(
                     top: 2,
                     left: 2,
-                    child: Icon(Icons.check_circle, size: checkSize, color: Colors.green),
+                    child: Icon(Icons.check_circle, size: checkSize, color: context.appColors.activeIndicator),
                   ),
                 if (stockBadge != null)
                   Positioned(
@@ -2722,7 +2735,7 @@ class _StockBadge extends StatelessWidget {
       case _BadgeLevel.positive:
         badgeColor = context.appColors.success.withValues(alpha: 0.55);
       case _BadgeLevel.partial:
-        badgeColor = Colors.orange.withValues(alpha: 0.55);
+        badgeColor = context.appColors.warning.withValues(alpha: 0.55);
       case _BadgeLevel.zero:
         badgeColor = context.appColors.danger.withValues(alpha: 0.55);
     }

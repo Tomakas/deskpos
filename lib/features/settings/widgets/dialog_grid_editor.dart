@@ -300,10 +300,10 @@ class _DialogGridEditorState extends ConsumerState<DialogGridEditor> {
                       ),
                     ),
                     if (!isBackCell)
-                      const Positioned(
+                      Positioned(
                         top: 2,
                         right: 2,
-                        child: Icon(Icons.edit, size: 12, color: Colors.grey),
+                        child: Icon(Icons.edit, size: 12, color: context.appColors.inactiveIndicator),
                       ),
                   ],
                 ),

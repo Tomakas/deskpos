@@ -195,7 +195,7 @@ class _DialogCashTenderState extends ConsumerState<DialogCashTender> {
     } else if (_coversAmount) {
       changeLabel = l.cashTenderChangeLabel;
       changeValue = _fmtBase(_changeAmount);
-      changeColor = Colors.green;
+      changeColor = context.appColors.success;
     } else {
       changeLabel = l.cashTenderRemainingLabel;
       changeValue = _fmtBase(widget.amountDue - _receivedInBase);

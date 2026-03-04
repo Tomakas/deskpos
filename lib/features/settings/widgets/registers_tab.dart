@@ -246,7 +246,7 @@ class _RegistersTabState extends ConsumerState<RegistersTab> {
                                 if (register.isMain) ...[
                                   Icon(Icons.star,
                                       size: 16,
-                                      color: Colors.amber.shade700),
+                                      color: context.appColors.warning),
                                   const SizedBox(width: 4),
                                 ],
                                 Icon(Icons.point_of_sale,

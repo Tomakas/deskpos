@@ -82,7 +82,6 @@ class FloorMapView extends ConsumerWidget {
                   builder: (context, settingsSnap) {
                     final settings = settingsSnap.data;
                     final warnMin = settings?.billAgeWarningMinutes ?? 15;
-                    final dangerMin = settings?.billAgeDangerMinutes ?? 30;
                     final criticalMin = settings?.billAgeCriticalMinutes ?? 45;
 
                 return StreamBuilder<List<MapElementModel>>(
@@ -235,6 +234,7 @@ class FloorMapView extends ConsumerWidget {
                                   // Bills as draggable circles
                                   for (final bill in sectionBills)
                                     _buildBillCircle(
+                                      context: context,
                                       bill: bill,
                                       placedTables: placedTables,
                                       billsByTable: billsByTable,
@@ -243,7 +243,6 @@ class FloorMapView extends ConsumerWidget {
                                       diameter: billDiameter,
                                       lastOrderTime: lastOrderTimes[bill.id],
                                       warningMin: warnMin,
-                                      dangerMin: dangerMin,
                                       criticalMin: criticalMin,
                                     ),
                                 ],
@@ -268,6 +267,7 @@ class FloorMapView extends ConsumerWidget {
   }
 
   Widget _buildBillCircle({
+    required BuildContext context,
     required BillModel bill,
     required List<TableModel> placedTables,
     required Map<String?, List<BillModel>> billsByTable,
@@ -276,7 +276,6 @@ class FloorMapView extends ConsumerWidget {
     required double diameter,
     required DateTime? lastOrderTime,
     required int warningMin,
-    required int dangerMin,
     required int criticalMin,
   }) {
     double centerX;
@@ -301,8 +300,8 @@ class FloorMapView extends ConsumerWidget {
     final top = centerY - diameter / 2;
     final ageColor = billAgeColor(
       lastOrderTime,
+      context: context,
       warningMin: warningMin,
-      dangerMin: dangerMin,
       criticalMin: criticalMin,
     );
 

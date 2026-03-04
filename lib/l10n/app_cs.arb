@@ -1758,5 +1758,11 @@
   "summaryTotal": "Celkem",
   "receiptLoyaltyDiscount": "Věrnostní body",
   "discountBlockedByVoucher": "Položka má slevu z voucheru, manuální sleva není možná.",
-  "billDiscountBlockedByVoucher": "Na účtu je uplatněn voucher, manuální sleva na účet není možná."
+  "billDiscountBlockedByVoucher": "Na účtu je uplatněn voucher, manuální sleva na účet není možná.",
+  "settingsAppearance": "Vzhled",
+  "settingsThemeMode": "Motiv",
+  "settingsThemeSystem": "Systém",
+  "settingsThemeLight": "Světlý",
+  "settingsThemeDark": "Tmavý",
+  "settingsAccentColor": "Barva akcentu"
 }

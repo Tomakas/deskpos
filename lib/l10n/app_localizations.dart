@@ -8567,6 +8567,42 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Na účtu je uplatněn voucher, manuální sleva na účet není možná.'**
   String get billDiscountBlockedByVoucher;
+
+  /// No description provided for @settingsAppearance.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vzhled'**
+  String get settingsAppearance;
+
+  /// No description provided for @settingsThemeMode.
+  ///
+  /// In cs, this message translates to:
+  /// **'Motiv'**
+  String get settingsThemeMode;
+
+  /// No description provided for @settingsThemeSystem.
+  ///
+  /// In cs, this message translates to:
+  /// **'Systém'**
+  String get settingsThemeSystem;
+
+  /// No description provided for @settingsThemeLight.
+  ///
+  /// In cs, this message translates to:
+  /// **'Světlý'**
+  String get settingsThemeLight;
+
+  /// No description provided for @settingsThemeDark.
+  ///
+  /// In cs, this message translates to:
+  /// **'Tmavý'**
+  String get settingsThemeDark;
+
+  /// No description provided for @settingsAccentColor.
+  ///
+  /// In cs, this message translates to:
+  /// **'Barva akcentu'**
+  String get settingsAccentColor;
 }
 
 class _AppLocalizationsDelegate

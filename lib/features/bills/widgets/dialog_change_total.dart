@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/data/models/currency_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
@@ -68,7 +69,7 @@ class _DialogChangeTotalToPayState extends ConsumerState<DialogChangeTotalToPay>
     final theme = Theme.of(context);
     final difference = _amountInMinor - widget.originalAmount;
     final diffColor = difference > 0
-        ? Colors.green
+        ? context.appColors.positive
         : difference < 0
             ? theme.colorScheme.error
             : theme.colorScheme.onSurface;

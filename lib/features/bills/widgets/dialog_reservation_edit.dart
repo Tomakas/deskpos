@@ -205,9 +205,9 @@ class _DialogReservationEditState extends ConsumerState<DialogReservationEdit> {
       case ReservationStatus.confirmed:
         return theme.colorScheme.onPrimary;
       case ReservationStatus.seated:
-        return Colors.white;
+        return context.appColors.onSuccess;
       case ReservationStatus.cancelled:
-        return Colors.white;
+        return context.appColors.onDanger;
     }
   }
 

@@ -1758,5 +1758,11 @@
   "summaryTotal": "Total",
   "receiptLoyaltyDiscount": "Loyalty points",
   "discountBlockedByVoucher": "Item has a voucher discount, manual discount is not allowed.",
-  "billDiscountBlockedByVoucher": "A voucher is applied to this bill, manual bill discount is not allowed."
+  "billDiscountBlockedByVoucher": "A voucher is applied to this bill, manual bill discount is not allowed.",
+  "settingsAppearance": "Appearance",
+  "settingsThemeMode": "Theme",
+  "settingsThemeSystem": "System",
+  "settingsThemeLight": "Light",
+  "settingsThemeDark": "Dark",
+  "settingsAccentColor": "Accent color"
 }

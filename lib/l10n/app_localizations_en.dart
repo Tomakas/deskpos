@@ -4409,4 +4409,22 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get billDiscountBlockedByVoucher =>
       'A voucher is applied to this bill, manual bill discount is not allowed.';
+
+  @override
+  String get settingsAppearance => 'Appearance';
+
+  @override
+  String get settingsThemeMode => 'Theme';
+
+  @override
+  String get settingsThemeSystem => 'System';
+
+  @override
+  String get settingsThemeLight => 'Light';
+
+  @override
+  String get settingsThemeDark => 'Dark';
+
+  @override
+  String get settingsAccentColor => 'Accent color';
 }

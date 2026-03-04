@@ -16,6 +16,7 @@ import '../widgets/peripherals_tab.dart';
 import '../widgets/registers_tab.dart';
 import '../widgets/sections_tab.dart';
 import '../widgets/ai_settings_tab.dart';
+import '../widgets/appearance_tab.dart';
 import '../widgets/security_tab.dart';
 import '../widgets/tables_tab.dart';
 import '../widgets/tax_rates_tab.dart';
@@ -106,6 +107,8 @@ class _ScreenSettingsUnifiedState extends ConsumerState<ScreenSettingsUnified>
             _InnerTabDef(l.sellTitle, const RegisterTab()),
           if (p('settings_register.hardware'))
             _InnerTabDef(l.peripheralsTitle, const PeripheralsTab()),
+          if (p('settings_register.manage'))
+            _InnerTabDef(l.settingsAppearance, const AppearanceTab()),
         ];
     }
   }

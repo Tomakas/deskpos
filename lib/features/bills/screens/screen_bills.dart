@@ -23,6 +23,7 @@ import '../../../core/data/providers/sync_providers.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/pos_gradients.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/utils/formatting_ext.dart';
 import '../../../core/utils/search_utils.dart';
@@ -349,7 +350,7 @@ class _SectionTabBar extends ConsumerWidget {
           padding: EdgeInsets.only(left: canPop ? 4 : 16),
           alignment: Alignment.centerLeft,
           decoration: BoxDecoration(
-            border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor)),
+            border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor.withValues(alpha: 0.5))),
           ),
           child: Row(
             children: [
@@ -468,11 +469,11 @@ class _SectionTabBar extends ConsumerWidget {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceContainer,
+                    color: Theme.of(context).colorScheme.surfaceContainerLow,
                     border: Border(
-                      left: BorderSide(color: Theme.of(context).dividerColor),
-                      top: BorderSide(color: Theme.of(context).dividerColor),
-                      bottom: BorderSide(color: Theme.of(context).dividerColor),
+                      left: BorderSide(color: Theme.of(context).dividerColor.withValues(alpha: 0.5)),
+                      top: BorderSide(color: Theme.of(context).dividerColor.withValues(alpha: 0.5)),
+                      bottom: BorderSide(color: Theme.of(context).dividerColor.withValues(alpha: 0.5)),
                     ),
                     borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(8),
@@ -575,7 +576,6 @@ class _BillsTable extends ConsumerWidget {
     final lastOrderTimes = ref.watch(_lastOrderTimesProvider(company.id)).valueOrNull ?? {};
     final settings = ref.watch(_companySettingsProvider(company.id)).valueOrNull;
     final warnMin = settings?.billAgeWarningMinutes ?? 15;
-    final dangerMin = settings?.billAgeDangerMinutes ?? 30;
     final criticalMin = settings?.billAgeCriticalMinutes ?? 45;
 
     return StreamBuilder<List<BillModel>>(
@@ -683,7 +683,6 @@ class _BillsTable extends ConsumerWidget {
                 time: r.lastOrderTime,
                 isOpened: r.bill.status == BillStatus.opened,
                 warningMin: warnMin,
-                dangerMin: dangerMin,
                 criticalMin: criticalMin,
               ),
             ),
@@ -713,13 +712,11 @@ class _RelativeTimeCell extends StatefulWidget {
     required this.time,
     required this.isOpened,
     required this.warningMin,
-    required this.dangerMin,
     required this.criticalMin,
   });
   final DateTime? time;
   final bool isOpened;
   final int warningMin;
-  final int dangerMin;
   final int criticalMin;
 
   @override
@@ -774,8 +771,8 @@ class _RelativeTimeCellState extends State<_RelativeTimeCell> {
     }
     final color = billAgeColor(
       widget.time,
+      context: context,
       warningMin: widget.warningMin,
-      dangerMin: widget.dangerMin,
       criticalMin: widget.criticalMin,
     );
     final text = widget.time != null
@@ -813,7 +810,7 @@ class _StatusFilterBar extends ConsumerWidget {
       height: 52,
       padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        border: Border(top: BorderSide(color: Theme.of(context).dividerColor)),
+        border: Border(top: BorderSide(color: Theme.of(context).dividerColor.withValues(alpha: 0.5))),
       ),
       child: Row(
         children: [
@@ -903,8 +900,8 @@ class _RightPanel extends ConsumerWidget {
       children: [
         Container(
           decoration: BoxDecoration(
+            gradient: PosGradients.sidePanel(theme.colorScheme),
             border: Border(left: BorderSide(color: theme.dividerColor)),
-            color: theme.colorScheme.surfaceContainer,
           ),
           child: Column(
             children: [
@@ -917,6 +914,7 @@ class _RightPanel extends ConsumerWidget {
             rightIcon: Icons.note_add,
             onLeft: onQuickBill,
             onRight: onNewBill,
+            primary: true,
           ),
           // Row 2: POKLADNÍ DENÍK | KATALOG
           _ButtonRow(
@@ -945,16 +943,15 @@ class _RightPanel extends ConsumerWidget {
               children: [
                 Expanded(
                   child: SizedBox(
-                    height: 54,
+                    height: 56,
                     child: FilledButton.tonal(
                       onPressed: canInventory ? () => context.push('/inventory') : null,
-                      child: Row(
+                      child: Column(
                         mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.warehouse, size: 18),
-                          const SizedBox(width: 6),
-                          Flexible(child: Text(l.billsInventory, style: const TextStyle(fontSize: 12))),
+                          const Icon(Icons.warehouse, size: 22),
+                          const SizedBox(height: 2),
+                          Text(l.billsInventory, textAlign: TextAlign.center, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
                         ],
                       ),
                     ),
@@ -963,7 +960,7 @@ class _RightPanel extends ConsumerWidget {
                 const SizedBox(width: 6),
                 Expanded(
                   child: SizedBox(
-                    height: 54,
+                    height: 56,
                     child: Builder(builder: (btnContext) {
                       return FilledButton.tonal(
                         onPressed: () => _showMoreMenu(
@@ -974,13 +971,12 @@ class _RightPanel extends ConsumerWidget {
                           hasSession: hasSession,
                           canAi: ref.read(hasPermissionProvider('ai.use')),
                         ),
-                        child: Row(
+                        child: Column(
                           mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.more_horiz, size: 18),
-                            const SizedBox(width: 6),
-                            Flexible(child: Text(l.billsMore, style: const TextStyle(fontSize: 12))),
+                            const Icon(Icons.more_horiz, size: 22),
+                            const SizedBox(height: 2),
+                            Text(l.billsMore, textAlign: TextAlign.center, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
                           ],
                         ),
                       );
@@ -997,19 +993,19 @@ class _RightPanel extends ConsumerWidget {
               children: [
                 Expanded(
                   child: SizedBox(
-                    height: 54,
+                    height: 56,
                     child: OutlinedButton(
                       onPressed: onToggleMap,
-                      child: Row(
+                      child: Column(
                         mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(showMap ? Icons.list : Icons.map, size: 18),
-                          const SizedBox(width: 6),
-                          Flexible(child: Text(
+                          Icon(showMap ? Icons.list : Icons.map, size: 22),
+                          const SizedBox(height: 2),
+                          Text(
                             showMap ? l.billsTableList : l.billsTableMap,
-                            style: const TextStyle(fontSize: 12),
-                          )),
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                          ),
                         ],
                       ),
                     ),
@@ -1018,7 +1014,7 @@ class _RightPanel extends ConsumerWidget {
                 const SizedBox(width: 6),
                 Expanded(
                   child: SizedBox(
-                    height: 54,
+                    height: 56,
                     child: hasSession
                         ? OutlinedButton(
                             style: OutlinedButton.styleFrom(
@@ -1026,26 +1022,24 @@ class _RightPanel extends ConsumerWidget {
                               side: BorderSide(color: Theme.of(context).colorScheme.error),
                             ),
                             onPressed: onToggleSession,
-                            child: Row(
+                            child: Column(
                               mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                const Icon(Icons.lock, size: 18),
-                                const SizedBox(width: 6),
-                                Flexible(child: Text(l.registerSessionClose, style: const TextStyle(fontSize: 12))),
+                                const Icon(Icons.lock, size: 22),
+                                const SizedBox(height: 2),
+                                Text(l.registerSessionClose, textAlign: TextAlign.center, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
                               ],
                             ),
                           )
                         : FilledButton(
                             style: PosButtonStyles.confirm(context),
                             onPressed: onToggleSession,
-                            child: Row(
+                            child: Column(
                               mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                const Icon(Icons.lock_open, size: 18),
-                                const SizedBox(width: 6),
-                                Flexible(child: Text(l.registerSessionStart, style: const TextStyle(fontSize: 12))),
+                                const Icon(Icons.lock_open, size: 22),
+                                const SizedBox(height: 2),
+                                Text(l.registerSessionStart, textAlign: TextAlign.center, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
                               ],
                             ),
                           ),
@@ -1080,14 +1074,14 @@ class _RightPanel extends ConsumerWidget {
         ],
       ),
     ),
-    // Cover the left border at the top 48px where the toggle ear sits
+    // Cover the left shadow at the top 48px where the toggle ear sits
     Positioned(
       left: 0,
       top: 5,
       child: Container(
         width: 1,
         height: 38,
-        color: theme.colorScheme.surfaceContainer,
+        color: theme.colorScheme.surfaceContainerLow,
       ),
     ),
   ],
@@ -1105,6 +1099,7 @@ class _ButtonRow extends StatelessWidget {
     this.leftIcon,
     this.rightIcon,
     this.rightDanger = false,
+    this.primary = false,
   });
   final String left;
   final String right;
@@ -1113,17 +1108,18 @@ class _ButtonRow extends StatelessWidget {
   final IconData? leftIcon;
   final IconData? rightIcon;
   final bool rightDanger;
+  final bool primary;
 
   static Widget _buildChild(String label, IconData? icon) {
     if (icon == null) {
-      return Text(label, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12));
+      return Text(label, textAlign: TextAlign.center, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600));
     }
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 18),
+        Icon(icon, size: 22),
         const SizedBox(height: 2),
-        Text(label, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12)),
+        Text(label, textAlign: TextAlign.center, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
       ],
     );
   }
@@ -1136,17 +1132,22 @@ class _ButtonRow extends StatelessWidget {
         children: [
           Expanded(
             child: SizedBox(
-              height: 54,
-              child: FilledButton.tonal(
-                onPressed: onLeft,
-                child: _buildChild(left, leftIcon),
-              ),
+              height: 56,
+              child: primary
+                  ? FilledButton(
+                      onPressed: onLeft,
+                      child: _buildChild(left, leftIcon),
+                    )
+                  : FilledButton.tonal(
+                      onPressed: onLeft,
+                      child: _buildChild(left, leftIcon),
+                    ),
             ),
           ),
           const SizedBox(width: 6),
           Expanded(
             child: SizedBox(
-              height: 54,
+              height: 56,
               child: rightDanger
                   ? OutlinedButton(
                       style: OutlinedButton.styleFrom(
@@ -1156,10 +1157,15 @@ class _ButtonRow extends StatelessWidget {
                       onPressed: onRight,
                       child: _buildChild(right, rightIcon),
                     )
-                  : FilledButton.tonal(
-                      onPressed: onRight,
-                      child: _buildChild(right, rightIcon),
-                    ),
+                  : primary
+                      ? FilledButton(
+                          onPressed: onRight,
+                          child: _buildChild(right, rightIcon),
+                        )
+                      : FilledButton.tonal(
+                          onPressed: onRight,
+                          child: _buildChild(right, rightIcon),
+                        ),
             ),
           ),
         ],
@@ -1244,11 +1250,6 @@ class _InfoPanel extends ConsumerWidget {
 
     return Container(
       padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerLow,
-        border: Border.all(color: theme.dividerColor),
-        borderRadius: BorderRadius.circular(8),
-      ),
       child: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

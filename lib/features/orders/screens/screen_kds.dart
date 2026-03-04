@@ -312,6 +312,7 @@ class _ScreenKdsState extends ConsumerState<ScreenKds> {
                 onPressed: () => Navigator.pop(ctx, false),
                 child: Text(l.no)),
             FilledButton(
+                style: PosButtonStyles.destructiveFilled(ctx),
                 onPressed: () => Navigator.pop(ctx, true),
                 child: Text(l.yes)),
           ],
@@ -718,6 +719,7 @@ class _KdsItemCard extends ConsumerWidget {
                   onPressed: () => Navigator.pop(context, false),
                   child: Text(l.no)),
               FilledButton(
+                  style: PosButtonStyles.destructiveFilled(context),
                   onPressed: () => Navigator.pop(context, true),
                   child: Text(l.yes)),
             ],

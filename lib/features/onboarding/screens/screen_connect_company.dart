@@ -385,7 +385,7 @@ class _ScreenConnectCompanyState extends ConsumerState<ScreenConnectCompany> {
                       register.name.isEmpty ? register.code : register.name),
                   subtitle: Text('#${register.registerNumber}'),
                   trailing: register.isMain
-                      ? Icon(Icons.star, color: Colors.amber.shade700)
+                      ? Icon(Icons.star, color: context.appColors.warning)
                       : null,
                   onTap: () => _selectRegister(register),
                 ),

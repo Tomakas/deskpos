@@ -148,32 +148,60 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
 
 const lightAppColors = AppColorsExtension(
   // Action
-  success: Colors.green,
+  success: Color(0xFF43A047),
   onSuccess: Colors.white,
-  warning: Colors.orange,
+  warning: Color(0xFFFB8C00),
   onWarning: Colors.white,
-  danger: Colors.red,
+  danger: Color(0xFFE53935),
   onDanger: Colors.white,
   // PrepStatus
-  statusCreated: Colors.blue,
-
-  statusReady: Colors.green,
-  statusDelivered: Colors.grey,
-  statusVoided: Colors.red,
+  statusCreated: Color(0xFF1E88E5),
+  statusReady: Color(0xFF43A047),
+  statusDelivered: Color(0xFF78909C),
+  statusVoided: Color(0xFFE53935),
   // BillStatus
-  billOpened: Colors.blue,
-  billPaid: Colors.green,
-  billCancelled: Colors.pink,
-  billRefunded: Colors.orange,
+  billOpened: Color(0xFF1E88E5),
+  billPaid: Color(0xFF43A047),
+  billCancelled: Color(0xFFEC407A),
+  billRefunded: Color(0xFFFB8C00),
   // Indicators
-  activeIndicator: Colors.green,
-  inactiveIndicator: Colors.grey,
+  activeIndicator: Color(0xFF43A047),
+  inactiveIndicator: Color(0xFF9E9E9E),
   // Financial
-  positive: Colors.green,
-  balanced: Colors.green,
-  surplus: Colors.blue,
+  positive: Color(0xFF43A047),
+  balanced: Color(0xFF43A047),
+  surplus: Color(0xFF1E88E5),
   // Search
   searchHighlight: Color(0x449C27B0),
+);
+
+const darkAppColors = AppColorsExtension(
+  // Action
+  success: Color(0xFF66BB6A),
+  onSuccess: Colors.white,
+  warning: Color(0xFFFFA726),
+  onWarning: Colors.white,
+  danger: Color(0xFFEF5350),
+  onDanger: Colors.white,
+  // PrepStatus
+  statusCreated: Color(0xFF42A5F5),
+  statusReady: Color(0xFF66BB6A),
+  statusDelivered: Color(0xFF90A4AE),
+  statusVoided: Color(0xFFEF5350),
+  // BillStatus
+  billOpened: Color(0xFF42A5F5),
+  billPaid: Color(0xFF66BB6A),
+  billCancelled: Color(0xFFF06292),
+  billRefunded: Color(0xFFFFA726),
+  // Indicators
+  activeIndicator: Color(0xFF66BB6A),
+  inactiveIndicator: Color(0xFF78909C),
+  // Financial
+  positive: Color(0xFF66BB6A),
+  balanced: Color(0xFF66BB6A),
+  surplus: Color(0xFF42A5F5),
+  // Search
+  searchHighlight: Color(0x44CE93D8),
 );
 
 // ---------------------------------------------------------------------------
@@ -210,11 +238,13 @@ abstract final class PosButtonStyles {
         shape: shape,
       );
 
-  static ButtonStyle destructiveOutlined(BuildContext context) =>
-      OutlinedButton.styleFrom(
-        foregroundColor: context.appColors.danger,
-        side: BorderSide(color: context.appColors.danger),
-      );
+  static ButtonStyle destructiveOutlined(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return OutlinedButton.styleFrom(
+      foregroundColor: context.appColors.danger,
+      side: BorderSide(color: context.appColors.danger, width: isDark ? 1.5 : 1.0),
+    );
+  }
 
   static ButtonStyle warningFilled(BuildContext context) =>
       FilledButton.styleFrom(backgroundColor: context.appColors.warning);
@@ -243,21 +273,20 @@ Color valueChangeColor(num value, BuildContext context) {
 
 /// Returns a color based on how old the last order is.
 ///
-/// - null (no order) → red
-/// - ≤ [warningMin] → blue
-/// - ≤ [dangerMin] → amber/yellow
-/// - ≤ [criticalMin] → orange
-/// - > [criticalMin] → red
+/// - null (no order) → danger
+/// - ≤ [warningMin] → statusCreated (blue)
+/// - ≤ [criticalMin] → warning
+/// - > [criticalMin] → danger
 Color billAgeColor(
   DateTime? lastOrderTime, {
+  required BuildContext context,
   required int warningMin,
-  required int dangerMin,
   required int criticalMin,
 }) {
-  if (lastOrderTime == null) return Colors.red;
+  final c = context.appColors;
+  if (lastOrderTime == null) return c.danger;
   final minutes = DateTime.now().difference(lastOrderTime).inMinutes;
-  if (minutes <= warningMin) return Colors.blue;
-  if (minutes <= dangerMin) return Colors.amber.shade700;
-  if (minutes <= criticalMin) return Colors.orange;
-  return Colors.red;
+  if (minutes <= warningMin) return c.statusCreated;
+  if (minutes <= criticalMin) return c.warning;
+  return c.danger;
 }

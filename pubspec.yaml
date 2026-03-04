@@ -1,7 +1,7 @@
 name: maty
 description: "Maty — offline-first POS system"
 publish_to: 'none'
-version: 0.8.3
+version: 0.8.4
 
 environment:
   sdk: ^3.10.8
@@ -67,3 +67,7 @@ flutter:
   generate: true
   assets:
     - assets/fonts/
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-Variable.ttf

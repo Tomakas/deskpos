@@ -219,7 +219,7 @@ Funkce, které nejsou nezbytné pro základní prodej, ale rozšiřují možnost
 
 - ✅ Účtenka — PDF 80mm šířka (thermal receipt styl), generováno lokálně přes `pdf` package, otevřeno v systémovém prohlížeči. Obsahuje: hlavička firmy (název, adresa, IČO, DIČ), info účtu, položky se slevami, DPH rekapitulace, platby se spropitným, patička.
 - ✅ Z-report — PDF A4, kopíruje strukturu `DialogZReport` (session info, tržby, DPH, spropitné, slevy, počty účtů, cash reconciliation, směny).
-- ✅ Fonty — bundled Roboto TTF (české diakritické znaky) v `assets/fonts/`.
+- ✅ Fonty — bundled Inter Variable (UI) + Roboto TTF (PDF tisk, české diakritické znaky) v `assets/fonts/`.
 - ✅ Voucher — PDF 80mm šířka (thermal receipt styl), tisk z `DialogVoucherDetail`. Obsahuje: název firmy, kód voucheru, typ, hodnota, scope (s názvem produktu/kategorie), max. použití, platnost, poznámka.
 - ✅ Skladový doklad — PDF A4, hlavička (typ dokladu, číslo, datum, dodavatel, poznámka), tabulka položek (název, množství, jednotka, cena, celkem), celková hodnota.
 - ✅ Infrastruktura — `lib/core/printing/` (PdfFontLoader, ReceiptData, ReceiptPdfBuilder, ZReportPdfBuilder, InventoryPdfBuilder, VoucherPdfBuilder, StockDocumentPdfBuilder, PrintingService), provider v `lib/core/data/providers/printing_providers.dart`.
@@ -782,7 +782,7 @@ lib/
 │   │   ├── enums/                     # Dart enum definice (24 enumů + barrel)
 │   │   ├── mappers/                   # Entity ↔ Model mapování (3 soubory)
 │   │   ├── models/                    # Doménové modely (45 souborů: 43 Freezed + interface + sealed class)
-│   │   ├── providers/                 # DI registrace (Riverpod, 7 souborů)
+│   │   ├── providers/                 # DI registrace (Riverpod, 8 souborů)
 │   │   ├── repositories/              # Repozitáře (43 souborů: 42 repozitářů + 1 base abstrakce)
 │   │   ├── services/                  # SeedService (onboarding seed)
 │   │   └── utils/                     # voucher_discount_calculator.dart
@@ -800,6 +800,7 @@ lib/
 │   │   ├── realtime_service.dart      # Supabase Broadcast from Database (38 tabulek, <2s)
 │   │   ├── broadcast_channel.dart     # Supabase Realtime Broadcast wrapper (pairing, display)
 │   │   └── sync_lifecycle_manager.dart # Orchestrace start/stop/initial push/drain + realtime
+│   ├── theme/                         # AppColorsExtension (sémantické barvy light/dark), PosButtonStyles, helpers
 │   ├── logging/                       # AppLogger (dart:developer + debugPrint), LogFileWriter
 │   └── l10n/                          # Extension context.l10n
 ├── features/                          # Funkční moduly (UI only)
@@ -3051,7 +3052,19 @@ POS aplikace je **pracovní nástroj**, ne marketingový produkt. Design optimal
 
 > **Jemné rozlišení:** Pokud jsou dvě primární akce blízko sebe (např. "Vytvořit účet" × "Rychlý účet"), použije se **stejná barva, ale jiná tonalita** (plná vs tónovaná).
 
-**Stáří účtu (bill age):** `AppColors.billAgeColor(lastOrderTime, settings)` — modrá (< warningMinutes), žlutá (warning–danger), oranžová (danger–critical), červená (> critical nebo null). Práhy konfigurovatelné v `company_settings` (default 15/30/45 min). Použito v FloorMapView (kruhy účtů) a ScreenBills (sloupec Poslední objednávka).
+**Stáří účtu (bill age):** `billAgeColor(lastOrderTime, warningMin, criticalMin)` — 3 úrovně: modrá/statusCreated (< warningMin), oranžová/warning (warning–critical), červená/danger (> critical nebo null). Práhy konfigurovatelné v `company_settings` (default 15/45 min). Použito v FloorMapView (kruhy účtů) a ScreenBills (sloupec Poslední objednávka).
+
+### Dark mode & sémantické barvy
+
+**ThemeMode:** Uživatel volí System / Light / Dark v Nastavení → tab Vzhled. Výchozí `ThemeMode.system`. Uloženo v `SharedPreferences` (klíč `theme_mode`). `SharedPreferences` se načítají v `main()` před `runApp()` a předávají přes `ProviderScope.overrides` → `ThemeModeNotifier` čte uloženou hodnotu synchronně (bez bliknutí).
+
+**AppColorsExtension** (`lib/core/theme/app_colors.dart`) — `ThemeExtension` se dvěma instancemi (`lightAppColors`, `darkAppColors`). Definuje sémantické barvy: success/warning/danger + on-varianty, statusCreated/Ready/Delivered/Voided, billOpened/Paid/Cancelled/Refunded, activeIndicator/inactiveIndicator, positive/balanced/surplus, searchHighlight. Přístup přes `context.appColors`.
+
+**Seed color:** Konfigurovatelný přes `AccentColorNotifier` (uloženo v `SharedPreferences`, klíč `accent_color`). Výchozí Teal `#00897B`, 10 presetů v `kAccentPresets`. Globální theme (`app.dart` → `_buildTheme(Brightness, AppColorsExtension, Color)`) generuje `ColorScheme` přes `colorSchemeSeed`.
+
+**Font:** Inter (variable, bundled v `assets/fonts/Inter-Variable.ttf`).
+
+**Pravidlo:** Žádné hardcoded `Colors.*` v UI kódu — vždy `context.appColors.*` nebo `Theme.of(context).colorScheme.*`. Výjimka: `Colors.white`/`Colors.black` jako foreground na self-colored pozadích (floor map bill circles).
 
 ### Specifikace tlačítek
 
@@ -3063,7 +3076,7 @@ Globální theme (`app.dart` → `_buildTheme`) definuje styl pro `FilledButton`
 | Min. šířka | žádná (tlačítka se přizpůsobí obsahu) |
 | Padding | 6 px horizontálně (tlačítka i chipy) |
 | Border radius | 8 px |
-| Font | Roboto, 15 px, weight 600 |
+| Font | Inter, 15 px, weight 600 |
 | Pressed stav | Ztmavení + posun 1px / scale 0.98, 80-120ms |
 
 ### PosDialogActions
@@ -3167,7 +3180,7 @@ Layout: **Left: Expanded(flex: 4), Right: fixed 290px collapsible AnimatedContai
 - **Stoly:** Obdélník/ovál dle tvaru, barva dle sekce (25% alfa výplň, 60% alfa obrys), název stolu uprostřed
 - **Dekorativní prvky:** Barevné prvky pod stoly, textové popisky nad stoly (neinteraktivní)
 - **Otevřené účty:** Kruhy s částkou (`wholeUnitsFromMinor`) a volitelně jménem zákazníka — zobrazují se nad stoly
-  - Barva kruhu dle stáří poslední objednávky: modrá (< warning), žlutá (warning–danger), oranžová (danger–critical), červená (> critical nebo bez objednávek). Práh konfigurovatelný v `company_settings` (`bill_age_warning/danger/critical_minutes`)
+  - Barva kruhu dle stáří poslední objednávky: modrá (< warning), oranžová (warning–critical), červená (> critical nebo bez objednávek). Práh konfigurovatelný v `company_settings` (`bill_age_warning_minutes`, `bill_age_critical_minutes`)
   - Pozice: `mapPosX`/`mapPosY` (pokud uloženy), jinak automaticky rozmístěny po obvodu tvaru stolu (`_tableEdgePosition` — obdélník, ovál, trojúhelník, kosočtverec)
   - Více účtů na jednom stole: rovnoměrně rozloženy po hraně stolu
 - **Interakce:**
@@ -3298,6 +3311,8 @@ Grid konfigurace je uložena v tabulce `layout_items` (viz [Schéma](#layout-gri
 #### ScreenSettingsUnified (`/settings`)
 
 Unified settings screen s top-level taby (Firma / Provozovna / Pokladna). Každý top-level tab obsahuje vnitřní taby odpovídající příslušné screen (company sekce má 8 inner tabů vč. Fiscal stub gated `settings_company.fiscal`, oproti 7 tabům ve standalone ScreenCompanySettings). Vnitřní taby jsou individuálně permission-gated. Přístup vyžaduje alespoň jedno oprávnění z `settings_company.*`, `settings_venue.*` nebo `settings_register.*`.
+
+**Inner tab Vzhled** (`AppearanceTab`, pod Pokladna): Volba ThemeMode (System / Light / Dark) přes 3 FilterChipy + volba accent barvy z 10 presetů. Gated na `settings_register.manage`.
 
 #### ScreenCompanySettings (`/settings/company`)
 

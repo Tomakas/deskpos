@@ -309,6 +309,7 @@ class _ScreenOrdersState extends ConsumerState<ScreenOrders> {
                 onPressed: () => Navigator.pop(ctx, false),
                 child: Text(l.no)),
             FilledButton(
+                style: PosButtonStyles.destructiveFilled(ctx),
                 onPressed: () => Navigator.pop(ctx, true),
                 child: Text(l.yes)),
           ],
@@ -846,6 +847,7 @@ class _OrderItemCard extends ConsumerWidget {
                   onPressed: () => Navigator.pop(context, false),
                   child: Text(l.no)),
               FilledButton(
+                  style: PosButtonStyles.destructiveFilled(context),
                   onPressed: () => Navigator.pop(context, true),
                   child: Text(l.yes)),
             ],

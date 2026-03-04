@@ -175,7 +175,7 @@ class ReservationGanttChart extends StatelessWidget {
                                 left: nowX,
                                 top: 0,
                                 bottom: 0,
-                                child: Container(width: 2, color: Colors.red),
+                                child: Container(width: 2, color: appColors.danger),
                               ),
                           ],
                         ),
@@ -383,7 +383,7 @@ class ReservationGanttChart extends StatelessWidget {
                         fontSize: 11,
                         color: isCancelled
                             ? theme.colorScheme.onSurface
-                            : _onStatusColor(r.status, theme),
+                            : _onStatusColor(r.status, theme, appColors),
                         decoration: isCancelled ? TextDecoration.lineThrough : null,
                       ),
                       overflow: TextOverflow.clip,
@@ -416,14 +416,14 @@ class ReservationGanttChart extends StatelessWidget {
     }
   }
 
-  Color _onStatusColor(ReservationStatus status, ThemeData theme) {
+  Color _onStatusColor(ReservationStatus status, ThemeData theme, AppColorsExtension appColors) {
     switch (status) {
       case ReservationStatus.created:
         return theme.colorScheme.onSurface;
       case ReservationStatus.confirmed:
         return theme.colorScheme.onPrimary;
       case ReservationStatus.seated:
-        return Colors.white;
+        return appColors.onSuccess;
       case ReservationStatus.cancelled:
         return theme.colorScheme.onSurface;
     }

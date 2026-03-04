@@ -181,8 +181,8 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
                                   label: l.paymentPrintReceipt,
                                   onPressed: () => setState(() => _printReceipt = !_printReceipt),
                                   icon: _printReceipt
-                                      ? Icon(Icons.check_circle, size: 16, color: Colors.green.shade300)
-                                      : Icon(Icons.block, size: 16, color: Colors.red.shade300),
+                                      ? Icon(Icons.check_circle, size: 16, color: context.appColors.success)
+                                      : Icon(Icons.block, size: 16, color: context.appColors.danger),
                                 ),
                               ),
                               const SizedBox(height: 8),
@@ -341,7 +341,7 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
                                         '(${l.paymentTip(ref.money(_foreignToBase(_foreignPayAmount) - _remaining))})',
                                         style: theme.textTheme.bodySmall?.copyWith(
                                           fontStyle: FontStyle.italic,
-                                          color: Colors.green,
+                                          color: context.appColors.positive,
                                         ),
                                       ),
                                   ] else if (_customAmount != null) ...[
@@ -359,8 +359,8 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
                                         style: theme.textTheme.bodyMedium?.copyWith(
                                           fontStyle: FontStyle.italic,
                                           color: _customAmount! > _remaining
-                                              ? Colors.green
-                                              : Colors.red,
+                                              ? context.appColors.positive
+                                              : Theme.of(context).colorScheme.error,
                                         ),
                                       ),
                                     ],

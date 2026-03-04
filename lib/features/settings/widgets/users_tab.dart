@@ -446,6 +446,7 @@ class _UserEditDialogState extends ConsumerState<_UserEditDialog>
                 child: Text(l.no),
               ),
               FilledButton(
+                style: PosButtonStyles.destructiveFilled(ctx),
                 onPressed: () => Navigator.pop(ctx, true),
                 child: Text(l.yes),
               ),
