@@ -1,7 +1,7 @@
 name: maty
 description: "Maty — offline-first POS system"
 publish_to: 'none'
-version: 0.8.6
+version: 0.8.7
 
 environment:
   sdk: ^3.10.8

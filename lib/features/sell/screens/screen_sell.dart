@@ -271,7 +271,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
                 const Divider(height: 1),
                 Expanded(
                   child: _searchQuery.isNotEmpty
-                      ? _buildSearchResults(context, ref, l)
+                      ? _buildSearchResults(context, ref, reg, l)
                       : _buildGrid(context, ref, reg, l),
                 ),
               ],
@@ -680,26 +680,128 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     );
   }
 
-  Widget _buildSearchResults(BuildContext context, WidgetRef ref, AppLocalizations l) {
+  Widget _buildSearchResults(BuildContext context, WidgetRef ref, RegisterModel register, AppLocalizations l) {
     final company = ref.watch(currentCompanyProvider);
     if (company == null) return const SizedBox.shrink();
 
+    final cols = register.gridCols;
+    final rows = register.gridRows;
+    final showBadge = register.showStockBadge && _warehouseId != null;
+
     return StreamBuilder<List<ItemModel>>(
       stream: ref.watch(itemRepositoryProvider).search(company.id, _searchQuery),
-      builder: (context, snap) {
-        final items = snap.data ?? [];
-        if (items.isEmpty) {
-          return const SizedBox.shrink();
-        }
-        return ListView.builder(
-          itemCount: items.length,
-          itemBuilder: (context, i) {
-            final item = items[i];
-            return ListTile(
-              title: Text(item.name),
-              trailing: Text(item.unitPrice != null ? ref.money(item.unitPrice!) : '???'),
-              onTap: () => _addToCart(ref, item, company.id),
-              onLongPress: () => _addToCart(ref, item, company.id, forceQuantityDialog: true),
+      builder: (context, searchSnap) {
+        final searchItems = searchSnap.data ?? [];
+        if (searchItems.isEmpty) return const SizedBox.shrink();
+
+        return StreamBuilder<List<CategoryModel>>(
+          stream: ref.watch(categoryRepositoryProvider).watchAll(company.id),
+          builder: (context, catSnap) {
+            final allCategories = catSnap.data ?? [];
+            final categoriesMap = {for (final c in allCategories) c.id: c};
+
+            return StreamBuilder<List<ItemModel>>(
+              stream: ref.watch(itemRepositoryProvider).watchAll(company.id),
+              builder: (context, itemSnap) {
+                final allItems = itemSnap.data ?? [];
+
+                Widget buildResults(Map<String, double> stockMap) {
+                  return LayoutBuilder(
+                    builder: (context, constraints) {
+                      final cellW = constraints.maxWidth / cols;
+                      final cellH = constraints.maxHeight / rows;
+
+                      return GridView.builder(
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: cols,
+                          childAspectRatio: cellW / cellH,
+                        ),
+                        itemCount: searchItems.length,
+                        itemBuilder: (context, i) {
+                          final item = searchItems[i];
+
+                          final hasVariants = item.itemType == ItemType.product &&
+                              allItems.any((v) => v.parentId == item.id && v.itemType == ItemType.variant);
+
+                          // Stock badge logic
+                          String? stockBadge;
+                          _BadgeLevel? badgeLevel;
+                          if (showBadge && stockMap.isNotEmpty) {
+                            if (hasVariants) {
+                              final variants = allItems.where(
+                                (v) => v.parentId == item.id && v.itemType == ItemType.variant,
+                              ).toList();
+                              final trackedVariants = variants.where(
+                                (v) => v.isStockTracked || stockMap.containsKey(v.id),
+                              );
+                              if (trackedVariants.isNotEmpty || item.isStockTracked) {
+                                stockBadge = 'V';
+                                final checkVariants = trackedVariants.isEmpty ? variants : trackedVariants;
+                                final available = checkVariants.where((v) => (stockMap[v.id] ?? 0.0) > 0).length;
+                                if (available == checkVariants.length) {
+                                  badgeLevel = _BadgeLevel.positive;
+                                } else if (available > 0) {
+                                  badgeLevel = _BadgeLevel.partial;
+                                } else {
+                                  badgeLevel = _BadgeLevel.zero;
+                                }
+                              }
+                            } else {
+                              var isTracked = item.isStockTracked;
+                              if (!isTracked && item.itemType == ItemType.variant && item.parentId != null) {
+                                final parent = allItems.where((p) => p.id == item.parentId).firstOrNull;
+                                isTracked = parent?.isStockTracked ?? false;
+                              }
+                              if (isTracked) {
+                                final qty = stockMap[item.id] ?? 0.0;
+                                stockBadge = ref.fmtQty(qty);
+                                badgeLevel = qty > 0 ? _BadgeLevel.positive : _BadgeLevel.zero;
+                              }
+                            }
+                          }
+
+                          // Derive color: item.color > category.itemColor > theme default
+                          final itemCat = categoriesMap[item.categoryId];
+                          final derivedColor = item.color ?? itemCat?.itemColor;
+                          final cellColor = derivedColor != null
+                              ? parsePrimaryColor(derivedColor)
+                              : Theme.of(context).colorScheme.primaryContainer;
+
+                          return _ItemButton(
+                            label: item.name,
+                            subtitle: hasVariants ? null : (item.unitPrice != null ? ref.moneyValue(item.unitPrice!) : '???'),
+                            color: cellColor,
+                            gradient: parseGradient(derivedColor),
+                            cellHeight: cellH,
+                            stockBadge: stockBadge,
+                            badgeLevel: badgeLevel,
+                            onTap: item.isSellable ? () => _addToCart(ref, item, company.id,
+                                cellWidth: cellW,
+                                cellHeight: cellH,
+                                cellColor: cellColor,
+                            ) : null,
+                            onLongPress: item.isSellable ? () => _addToCart(ref, item, company.id,
+                                forceQuantityDialog: true,
+                                cellWidth: cellW,
+                                cellHeight: cellH,
+                                cellColor: cellColor,
+                            ) : null,
+                          );
+                        },
+                      );
+                    },
+                  );
+                }
+
+                if (!showBadge) return buildResults(const {});
+
+                return StreamBuilder<Map<String, double>>(
+                  stream: ref.watch(stockLevelRepositoryProvider).watchStockMap(company.id, _warehouseId!),
+                  builder: (context, stockSnap) {
+                    return buildResults(stockSnap.data ?? const {});
+                  },
+                );
+              },
             );
           },
         );
@@ -2635,6 +2737,10 @@ class _ModifierSelectionDialogState extends State<_ModifierSelectionDialog> {
             final canToggle = _canToggle(g, gi.item.id, sel);
             final disabled = !isSelected && !canToggle;
 
+            final itemColor = gi.item.color != null
+                ? parsePrimaryColor(gi.item.color!)
+                : color;
+
             return Opacity(
               opacity: disabled ? 0.5 : 1.0,
               child: SizedBox(
@@ -2645,7 +2751,8 @@ class _ModifierSelectionDialogState extends State<_ModifierSelectionDialog> {
                   subtitle: (gi.item.unitPrice ?? 0) > 0
                       ? '+${widget.moneyFormatter(gi.item.unitPrice!)}'
                       : null,
-                  color: color,
+                  color: itemColor,
+                  gradient: parseGradient(gi.item.color),
                   cellHeight: widget.cellHeight,
                   selected: isSelected,
                   onTap: disabled
