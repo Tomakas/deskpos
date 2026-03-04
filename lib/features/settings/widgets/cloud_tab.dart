@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/permission_providers.dart';
@@ -205,6 +206,14 @@ class CloudTab extends ConsumerWidget {
 
       // Delete the database files
       await deleteDatabaseFiles('maty_database');
+
+      // Clear SharedPreferences (preserve device_id)
+      final prefs = await SharedPreferences.getInstance();
+      final deviceId = prefs.getString('device_id');
+      await prefs.clear();
+      if (deviceId != null) {
+        await prefs.setString('device_id', deviceId);
+      }
 
       // Invalidate providers — marks them dirty for next read (no sync rebuild).
       // appInitProvider re-resolves company/user state from the fresh DB.
