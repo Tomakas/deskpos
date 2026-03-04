@@ -51,7 +51,7 @@ class BillRepository {
           id: id,
           companyId: companyId,
           customerId: Value(customerId),
-          customerName: Value(customerId != null ? null : customerName),
+          customerName: Value(customerName),
           sectionId: Value(sectionId),
           tableId: Value(tableId),
           registerId: Value(registerId),

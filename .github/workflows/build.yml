@@ -24,19 +24,22 @@ jobs:
       - name: Generate code
         run: dart run build_runner build --delete-conflicting-outputs
 
+      - name: Resolve version from tag
+        id: version
+        shell: pwsh
+        run: |
+          $v = "0.0.0"
+          if ($env:GITHUB_REF -match '^refs/tags/v(.+)$') { $v = $Matches[1] }
+          echo "APP_VERSION=$v" >> $env:GITHUB_OUTPUT
+
       - name: Build Windows
-        run: flutter build windows --release
+        run: flutter build windows --release --build-name=${{ steps.version.outputs.APP_VERSION }}
 
       - name: Download VC++ Redistributable
         run: powershell -ExecutionPolicy Bypass -File windows/installer/download-vcredist.ps1
 
       - name: Build installer (Inno Setup)
-        run: |
-          $version = "1.0.0"
-          if ($env:GITHUB_REF -match '^refs/tags/v(.+)$') {
-            $version = $Matches[1]
-          }
-          iscc "/DMyAppVersion=$version" windows/installer/maty.iss
+        run: iscc "/DMyAppVersion=${{ steps.version.outputs.APP_VERSION }}" windows/installer/maty.iss
 
       - name: Upload installer
         uses: actions/upload-artifact@v4
@@ -72,8 +75,15 @@ jobs:
       - name: Generate code
         run: dart run build_runner build --delete-conflicting-outputs
 
+      - name: Resolve version from tag
+        id: version
+        run: |
+          V="0.0.0"
+          if [[ "$GITHUB_REF" =~ ^refs/tags/v(.+)$ ]]; then V="${BASH_REMATCH[1]}"; fi
+          echo "APP_VERSION=$V" >> "$GITHUB_OUTPUT"
+
       - name: Build Linux
-        run: flutter build linux --release
+        run: flutter build linux --release --build-name=${{ steps.version.outputs.APP_VERSION }}
 
       - name: Upload Linux artifact
         uses: actions/upload-artifact@v4

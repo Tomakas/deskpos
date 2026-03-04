@@ -75,7 +75,9 @@ class _DialogNewBillState extends ConsumerState<DialogNewBill> {
                 tableId: _selectedTableId,
                 numberOfGuests: _guestCount,
                 customerId: _selectedCustomer?.id,
-                customerName: _selectedCustomer != null ? null : _customerName,
+                customerName: _selectedCustomer != null
+                    ? '${_selectedCustomer!.firstName} ${_selectedCustomer!.lastName}'
+                    : _customerName,
                 navigateToSell: false,
               ));
             },
@@ -90,7 +92,9 @@ class _DialogNewBillState extends ConsumerState<DialogNewBill> {
                   tableId: _selectedTableId,
                   numberOfGuests: _guestCount,
                   customerId: _selectedCustomer?.id,
-                  customerName: _selectedCustomer != null ? null : _customerName,
+                  customerName: _selectedCustomer != null
+                    ? '${_selectedCustomer!.firstName} ${_selectedCustomer!.lastName}'
+                    : _customerName,
                   navigateToSell: true,
                 ));
               },

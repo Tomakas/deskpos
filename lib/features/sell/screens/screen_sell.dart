@@ -76,6 +76,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
   String? _displayCode;
   bool _didSendThankYou = false;
   bool _isRetailMode = false;
+  bool _printTickets = false;
   String? _warehouseId;
 
   // Cached reference for use in dispose() where ref is no longer available.
@@ -178,6 +179,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
       _currentPage = 0;
       _pageStack.clear();
       _didSendThankYou = false;
+      _printTickets = false;
     });
     _pushDisplayIdle();
   }
@@ -355,7 +357,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
                   }),
                 ],
                 const SizedBox(width: 8),
-                _toolbarChip(l.sellActions, onSelected: null),
+                _buildPrintChip(l),
                 if (_currentPage > 0) ...[
                   const SizedBox(width: 8),
                   _toolbarChip(l.sellBackToCategories, selected: true, onSelected: () {
@@ -385,6 +387,33 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
           ),
           selected: selected,
           onSelected: onSelected != null ? (_) => onSelected() : null,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPrintChip(AppLocalizations l) {
+    final company = ref.watch(currentCompanyProvider);
+    final autoPrint = company?.autoPrintOrderTickets ?? false;
+    final active = autoPrint || _printTickets;
+    return Expanded(
+      child: SizedBox(
+        height: 40,
+        child: FilterChip(
+          showCheckmark: false,
+          avatar: Icon(
+            active ? Icons.check_circle : Icons.cancel,
+            size: 18,
+            color: active ? Colors.green : Colors.red.shade300,
+          ),
+          label: SizedBox(
+            width: double.infinity,
+            child: Text(l.sellPrint, textAlign: TextAlign.center),
+          ),
+          selected: active,
+          onSelected: autoPrint
+              ? null
+              : (_) => setState(() => _printTickets = !_printTickets),
         ),
       ),
     );
@@ -1667,7 +1696,8 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
 
   Future<void> _printOrderTickets(String billId, List<String> orderIds) async {
     final company = ref.read(currentCompanyProvider);
-    if (company == null || !company.autoPrintOrderTickets) return;
+    if (company == null) return;
+    if (!company.autoPrintOrderTickets && !_printTickets) return;
     if (orderIds.isEmpty) return;
 
     try {

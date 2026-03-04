@@ -488,28 +488,36 @@ class _BillCircle extends ConsumerWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
-                hasOrder
-                    ? wholeUnitsFromMinor(bill.totalGross, currency).toString()
-                    : l.billTimeNoOrder,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              if (bill.customerName != null && bill.customerName!.isNotEmpty)
-                Text(
-                  bill.customerName!,
-                  style: TextStyle(
-                    fontSize: 11,
-                    height: 1.0,
-                    color: Colors.white.withValues(alpha: 0.9),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  hasOrder
+                      ? wholeUnitsFromMinor(bill.totalGross, currency).toString()
+                      : l.billTimeNoOrder,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
                   maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              if (bill.customerName != null && bill.customerName!.isNotEmpty)
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(maxWidth: diameter * 1.4),
+                    child: Text(
+                      bill.customerName!,
+                      style: TextStyle(
+                        fontSize: 11,
+                        height: 1.0,
+                        color: Colors.white.withValues(alpha: 0.9),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
                 ),
             ],
           ),
@@ -565,7 +573,7 @@ class _MapTableCell extends StatelessWidget {
           table.name,
           textAlign: TextAlign.center,
           style: TextStyle(
-            fontSize: table.fontSize?.toDouble() ?? (cellHeight * 0.35).clamp(10.0, 24.0),
+            fontSize: table.fontSize?.toDouble() ?? (cellHeight * 0.35).clamp(10.0, 14.0),
             fontWeight: FontWeight.w600,
             color: textColor,
           ),
@@ -666,7 +674,7 @@ class _MapElementCell extends StatelessWidget {
                 element.label!,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: element.fontSize?.toDouble() ?? (cellHeight * 0.35).clamp(10.0, 24.0),
+                  fontSize: element.fontSize?.toDouble() ?? (cellHeight * 0.35).clamp(10.0, 14.0),
                   fontWeight: FontWeight.w500,
                   color: textColor,
                 ),

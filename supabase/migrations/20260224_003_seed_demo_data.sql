@@ -53,16 +53,16 @@ INSERT INTO seed_demo_data (locale, mode, entity_type, ref, data, sort_order) VA
 -- Tables (cs/gastro) — 18 tables
 INSERT INTO seed_demo_data (locale, mode, entity_type, ref, data, sort_order) VALUES
 -- Hlavní section
-('cs','gastro','tables','tbl:1','{"name":"Stůl 1","section_ref":"sec:hlavni","capacity":4,"grid_row":1,"grid_col":1,"grid_width":4,"grid_height":4,"shape":"round","font_size":14,"color":"linear:135:#1E88E5,#00ACC1","fill_style":2}',0),
-('cs','gastro','tables','tbl:2','{"name":"Stůl 2","section_ref":"sec:hlavni","capacity":4,"grid_row":7,"grid_col":1,"grid_width":4,"grid_height":4,"shape":"round","font_size":14,"color":"linear:135:#1E88E5,#00ACC1","fill_style":2}',1),
-('cs','gastro','tables','tbl:3','{"name":"Stůl 3","section_ref":"sec:hlavni","capacity":4,"grid_row":13,"grid_col":1,"grid_width":4,"grid_height":4,"shape":"round","font_size":14,"color":"linear:135:#1E88E5,#00ACC1","fill_style":2}',2),
-('cs','gastro','tables','tbl:4','{"name":"Stůl 4","section_ref":"sec:hlavni","capacity":4,"grid_row":1,"grid_col":9,"grid_width":4,"grid_height":4,"shape":"diamond","font_size":14,"color":"linear:135:#AB47BC,#5C6BC0","fill_style":2}',3),
-('cs','gastro','tables','tbl:5','{"name":"Stůl 5","section_ref":"sec:hlavni","capacity":4,"grid_row":1,"grid_col":17,"grid_width":4,"grid_height":4,"shape":"diamond","font_size":14,"color":"linear:135:#AB47BC,#5C6BC0","fill_style":2}',4),
-('cs','gastro','tables','tbl:6','{"name":"Stůl 6","section_ref":"sec:hlavni","grid_row":1,"grid_col":25,"grid_width":4,"grid_height":4,"shape":"diamond","font_size":14,"color":"linear:135:#AB47BC,#5C6BC0","fill_style":2}',5),
-('cs','gastro','tables','tbl:bar1','{"name":"Bar 1","section_ref":"sec:hlavni","grid_row":8,"grid_col":22,"grid_width":2,"grid_height":2,"font_size":14,"color":"linear:135:#43A047,#C0CA33","fill_style":2}',6),
-('cs','gastro','tables','tbl:7','{"name":"Stůl 7","section_ref":"sec:hlavni","grid_row":10,"grid_col":10,"grid_width":7,"grid_height":4,"font_size":14,"color":"linear:135:#E53935,#FF5722","fill_style":2}',7),
-('cs','gastro','tables','tbl:bar2','{"name":"Bar 2","section_ref":"sec:hlavni","grid_row":11,"grid_col":22,"grid_width":2,"grid_height":2,"font_size":14,"color":"linear:135:#43A047,#C0CA33","fill_style":2}',8),
-('cs','gastro','tables','tbl:bar3','{"name":"Bar 3","section_ref":"sec:hlavni","grid_row":14,"grid_col":22,"grid_width":2,"grid_height":2,"font_size":14,"color":"linear:135:#43A047,#C0CA33","fill_style":2}',9),
+('cs','gastro','tables','tbl:1','{"name":"Stůl 1","section_ref":"sec:hlavni","capacity":4,"grid_row":1,"grid_col":1,"grid_width":4,"grid_height":4,"shape":"round","color":"#6D4C41","fill_style":2}',0),
+('cs','gastro','tables','tbl:2','{"name":"Stůl 2","section_ref":"sec:hlavni","capacity":4,"grid_row":7,"grid_col":1,"grid_width":4,"grid_height":4,"shape":"round","color":"#6D4C41","fill_style":2}',1),
+('cs','gastro','tables','tbl:3','{"name":"Stůl 3","section_ref":"sec:hlavni","capacity":4,"grid_row":13,"grid_col":1,"grid_width":4,"grid_height":4,"shape":"round","color":"#6D4C41","fill_style":2}',2),
+('cs','gastro','tables','tbl:4','{"name":"Stůl 4","section_ref":"sec:hlavni","capacity":4,"grid_row":1,"grid_col":9,"grid_width":4,"grid_height":4,"shape":"diamond","color":"linear:135:#AB47BC,#5C6BC0","fill_style":2}',3),
+('cs','gastro','tables','tbl:5','{"name":"Stůl 5","section_ref":"sec:hlavni","capacity":4,"grid_row":1,"grid_col":17,"grid_width":4,"grid_height":4,"shape":"diamond","color":"linear:135:#AB47BC,#5C6BC0","fill_style":2}',4),
+('cs','gastro','tables','tbl:6','{"name":"Stůl 6","section_ref":"sec:hlavni","grid_row":1,"grid_col":25,"grid_width":4,"grid_height":4,"shape":"diamond","color":"linear:135:#AB47BC,#5C6BC0","fill_style":2}',5),
+('cs','gastro','tables','tbl:bar1','{"name":"Bar 1","section_ref":"sec:hlavni","grid_row":8,"grid_col":22,"grid_width":2,"grid_height":2,"color":"linear:135:#43A047,#C0CA33","fill_style":2}',6),
+('cs','gastro','tables','tbl:7','{"name":"Stůl 7","section_ref":"sec:hlavni","grid_row":10,"grid_col":10,"grid_width":7,"grid_height":4,"color":"linear:135:#6D4C41,#FF5722","fill_style":2}',7),
+('cs','gastro','tables','tbl:bar2','{"name":"Bar 2","section_ref":"sec:hlavni","grid_row":11,"grid_col":22,"grid_width":2,"grid_height":2,"color":"linear:135:#43A047,#C0CA33","fill_style":2}',8),
+('cs','gastro','tables','tbl:bar3','{"name":"Bar 3","section_ref":"sec:hlavni","grid_row":14,"grid_col":22,"grid_width":2,"grid_height":2,"color":"linear:135:#43A047,#C0CA33","fill_style":2}',9),
 -- Zahrádka section
 ('cs','gastro','tables','tbl:z1','{"name":"Stolek 1","section_ref":"sec:zahradka","capacity":2,"grid_row":14,"grid_col":2,"grid_width":2,"grid_height":2}',10),
 ('cs','gastro','tables','tbl:z2','{"name":"Stolek 2","section_ref":"sec:zahradka","capacity":2,"grid_row":14,"grid_col":8,"grid_width":2,"grid_height":2}',11),
@@ -76,13 +76,13 @@ INSERT INTO seed_demo_data (locale, mode, entity_type, ref, data, sort_order) VA
 
 -- Map elements (cs/gastro) — 8 elements, all in hlavni section
 INSERT INTO seed_demo_data (locale, mode, entity_type, ref, data, sort_order) VALUES
-('cs','gastro','map_elements','me:wall1','{"section_ref":"sec:hlavni","grid_row":0,"grid_col":6,"grid_width":1,"grid_height":11,"color":"#000000","fill_style":1,"border_style":1}',0),
-('cs','gastro','map_elements','me:bar_v','{"section_ref":"sec:hlavni","grid_row":7,"grid_col":24,"grid_width":2,"grid_height":11,"label":"BAR","color":"#795548","fill_style":2,"border_style":2}',1),
-('cs','gastro','map_elements','me:bar_h','{"section_ref":"sec:hlavni","grid_row":7,"grid_col":24,"grid_width":8,"grid_height":2,"color":"#795548","fill_style":2,"border_style":2}',2),
+('cs','gastro','map_elements','me:wall1','{"section_ref":"sec:hlavni","grid_row":0,"grid_col":6,"grid_width":1,"grid_height":11,"color":"#000000","fill_style":2,"border_style":0}',0),
+('cs','gastro','map_elements','me:bar_v','{"section_ref":"sec:hlavni","grid_row":7,"grid_col":24,"grid_width":2,"grid_height":11,"label":"BAR","color":"linear:135:#6D4C41,#FF5722","font_size":14,"fill_style":2,"border_style":2}',1),
+('cs','gastro','map_elements','me:bar_h','{"section_ref":"sec:hlavni","grid_row":7,"grid_col":25,"grid_width":7,"grid_height":2,"color":"#6D4C41","fill_style":2,"border_style":0}',2),
 ('cs','gastro','map_elements','me:shelf','{"section_ref":"sec:hlavni","grid_row":11,"grid_col":23,"grid_width":2,"grid_height":2}',3),
-('cs','gastro','map_elements','me:wall2','{"section_ref":"sec:hlavni","grid_row":13,"grid_col":6,"grid_width":1,"grid_height":7,"color":"#000000"}',5),
+('cs','gastro','map_elements','me:wall2','{"section_ref":"sec:hlavni","grid_row":13,"grid_col":6,"grid_width":1,"grid_height":7,"color":"#000000","fill_style":2,"border_style":0}',5),
 ('cs','gastro','map_elements','me:pillar','{"section_ref":"sec:hlavni","grid_row":17,"grid_col":6,"grid_width":2,"grid_height":2}',6),
-('cs','gastro','map_elements','me:exit','{"section_ref":"sec:hlavni","grid_row":19,"grid_col":11,"grid_width":9,"grid_height":1,"label":"EXIT","font_size":20,"fill_style":2,"border_style":2}',7);
+('cs','gastro','map_elements','me:exit','{"section_ref":"sec:hlavni","grid_row":18,"grid_col":11,"grid_width":9,"grid_height":2,"label":"EXIT","font_size":20,"fill_style":2,"border_style":2}',7);
 
 -- Categories (cs/gastro)
 INSERT INTO seed_demo_data (locale, mode, entity_type, ref, data, sort_order) VALUES
@@ -223,16 +223,16 @@ INSERT INTO seed_demo_data (locale, mode, entity_type, ref, data, sort_order) VA
 -- Tables (en/gastro) — 18 tables
 INSERT INTO seed_demo_data (locale, mode, entity_type, ref, data, sort_order) VALUES
 -- Main section
-('en','gastro','tables','tbl:1','{"name":"Table 1","section_ref":"sec:hlavni","capacity":4,"grid_row":1,"grid_col":1,"grid_width":4,"grid_height":4,"shape":"round","font_size":14,"color":"linear:135:#1E88E5,#00ACC1","fill_style":2}',0),
-('en','gastro','tables','tbl:2','{"name":"Table 2","section_ref":"sec:hlavni","capacity":4,"grid_row":7,"grid_col":1,"grid_width":4,"grid_height":4,"shape":"round","font_size":14,"color":"linear:135:#1E88E5,#00ACC1","fill_style":2}',1),
-('en','gastro','tables','tbl:3','{"name":"Table 3","section_ref":"sec:hlavni","capacity":4,"grid_row":13,"grid_col":1,"grid_width":4,"grid_height":4,"shape":"round","font_size":14,"color":"linear:135:#1E88E5,#00ACC1","fill_style":2}',2),
-('en','gastro','tables','tbl:4','{"name":"Table 4","section_ref":"sec:hlavni","capacity":4,"grid_row":1,"grid_col":9,"grid_width":4,"grid_height":4,"shape":"diamond","font_size":14,"color":"linear:135:#AB47BC,#5C6BC0","fill_style":2}',3),
-('en','gastro','tables','tbl:5','{"name":"Table 5","section_ref":"sec:hlavni","capacity":4,"grid_row":1,"grid_col":17,"grid_width":4,"grid_height":4,"shape":"diamond","font_size":14,"color":"linear:135:#AB47BC,#5C6BC0","fill_style":2}',4),
-('en','gastro','tables','tbl:6','{"name":"Table 6","section_ref":"sec:hlavni","grid_row":1,"grid_col":25,"grid_width":4,"grid_height":4,"shape":"diamond","font_size":14,"color":"linear:135:#AB47BC,#5C6BC0","fill_style":2}',5),
-('en','gastro','tables','tbl:bar1','{"name":"Bar 1","section_ref":"sec:hlavni","grid_row":8,"grid_col":22,"grid_width":2,"grid_height":2,"font_size":14,"color":"linear:135:#43A047,#C0CA33","fill_style":2}',6),
-('en','gastro','tables','tbl:7','{"name":"Table 7","section_ref":"sec:hlavni","grid_row":10,"grid_col":10,"grid_width":7,"grid_height":4,"font_size":14,"color":"linear:135:#E53935,#FF5722","fill_style":2}',7),
-('en','gastro','tables','tbl:bar2','{"name":"Bar 2","section_ref":"sec:hlavni","grid_row":11,"grid_col":22,"grid_width":2,"grid_height":2,"font_size":14,"color":"linear:135:#43A047,#C0CA33","fill_style":2}',8),
-('en','gastro','tables','tbl:bar3','{"name":"Bar 3","section_ref":"sec:hlavni","grid_row":14,"grid_col":22,"grid_width":2,"grid_height":2,"font_size":14,"color":"linear:135:#43A047,#C0CA33","fill_style":2}',9),
+('en','gastro','tables','tbl:1','{"name":"Table 1","section_ref":"sec:hlavni","capacity":4,"grid_row":1,"grid_col":1,"grid_width":4,"grid_height":4,"shape":"round","color":"#6D4C41","fill_style":2}',0),
+('en','gastro','tables','tbl:2','{"name":"Table 2","section_ref":"sec:hlavni","capacity":4,"grid_row":7,"grid_col":1,"grid_width":4,"grid_height":4,"shape":"round","color":"#6D4C41","fill_style":2}',1),
+('en','gastro','tables','tbl:3','{"name":"Table 3","section_ref":"sec:hlavni","capacity":4,"grid_row":13,"grid_col":1,"grid_width":4,"grid_height":4,"shape":"round","color":"#6D4C41","fill_style":2}',2),
+('en','gastro','tables','tbl:4','{"name":"Table 4","section_ref":"sec:hlavni","capacity":4,"grid_row":1,"grid_col":9,"grid_width":4,"grid_height":4,"shape":"diamond","color":"linear:135:#AB47BC,#5C6BC0","fill_style":2}',3),
+('en','gastro','tables','tbl:5','{"name":"Table 5","section_ref":"sec:hlavni","capacity":4,"grid_row":1,"grid_col":17,"grid_width":4,"grid_height":4,"shape":"diamond","color":"linear:135:#AB47BC,#5C6BC0","fill_style":2}',4),
+('en','gastro','tables','tbl:6','{"name":"Table 6","section_ref":"sec:hlavni","grid_row":1,"grid_col":25,"grid_width":4,"grid_height":4,"shape":"diamond","color":"linear:135:#AB47BC,#5C6BC0","fill_style":2}',5),
+('en','gastro','tables','tbl:bar1','{"name":"Bar 1","section_ref":"sec:hlavni","grid_row":8,"grid_col":22,"grid_width":2,"grid_height":2,"color":"linear:135:#43A047,#C0CA33","fill_style":2}',6),
+('en','gastro','tables','tbl:7','{"name":"Table 7","section_ref":"sec:hlavni","grid_row":10,"grid_col":10,"grid_width":7,"grid_height":4,"color":"linear:135:#6D4C41,#FF5722","fill_style":2}',7),
+('en','gastro','tables','tbl:bar2','{"name":"Bar 2","section_ref":"sec:hlavni","grid_row":11,"grid_col":22,"grid_width":2,"grid_height":2,"color":"linear:135:#43A047,#C0CA33","fill_style":2}',8),
+('en','gastro','tables','tbl:bar3','{"name":"Bar 3","section_ref":"sec:hlavni","grid_row":14,"grid_col":22,"grid_width":2,"grid_height":2,"color":"linear:135:#43A047,#C0CA33","fill_style":2}',9),
 -- Garden section
 ('en','gastro','tables','tbl:z1','{"name":"Table 1","section_ref":"sec:zahradka","capacity":2,"grid_row":14,"grid_col":2,"grid_width":2,"grid_height":2}',10),
 ('en','gastro','tables','tbl:z2','{"name":"Table 2","section_ref":"sec:zahradka","capacity":2,"grid_row":14,"grid_col":8,"grid_width":2,"grid_height":2}',11),
@@ -246,13 +246,13 @@ INSERT INTO seed_demo_data (locale, mode, entity_type, ref, data, sort_order) VA
 
 -- Map elements (en/gastro) — identical layout to cs, same refs
 INSERT INTO seed_demo_data (locale, mode, entity_type, ref, data, sort_order) VALUES
-('en','gastro','map_elements','me:wall1','{"section_ref":"sec:hlavni","grid_row":0,"grid_col":6,"grid_width":1,"grid_height":11,"color":"#000000","fill_style":1,"border_style":1}',0),
-('en','gastro','map_elements','me:bar_v','{"section_ref":"sec:hlavni","grid_row":7,"grid_col":24,"grid_width":2,"grid_height":11,"label":"BAR","color":"#795548","fill_style":2,"border_style":2}',1),
-('en','gastro','map_elements','me:bar_h','{"section_ref":"sec:hlavni","grid_row":7,"grid_col":24,"grid_width":8,"grid_height":2,"color":"#795548","fill_style":2,"border_style":2}',2),
+('en','gastro','map_elements','me:wall1','{"section_ref":"sec:hlavni","grid_row":0,"grid_col":6,"grid_width":1,"grid_height":11,"color":"#000000","fill_style":2,"border_style":0}',0),
+('en','gastro','map_elements','me:bar_v','{"section_ref":"sec:hlavni","grid_row":7,"grid_col":24,"grid_width":2,"grid_height":11,"label":"BAR","color":"linear:135:#6D4C41,#FF5722","font_size":14,"fill_style":2,"border_style":2}',1),
+('en','gastro','map_elements','me:bar_h','{"section_ref":"sec:hlavni","grid_row":7,"grid_col":25,"grid_width":7,"grid_height":2,"color":"#6D4C41","fill_style":2,"border_style":0}',2),
 ('en','gastro','map_elements','me:shelf','{"section_ref":"sec:hlavni","grid_row":11,"grid_col":23,"grid_width":2,"grid_height":2}',3),
-('en','gastro','map_elements','me:wall2','{"section_ref":"sec:hlavni","grid_row":13,"grid_col":6,"grid_width":1,"grid_height":7,"color":"#000000"}',5),
+('en','gastro','map_elements','me:wall2','{"section_ref":"sec:hlavni","grid_row":13,"grid_col":6,"grid_width":1,"grid_height":7,"color":"#000000","fill_style":2,"border_style":0}',5),
 ('en','gastro','map_elements','me:pillar','{"section_ref":"sec:hlavni","grid_row":17,"grid_col":6,"grid_width":2,"grid_height":2}',6),
-('en','gastro','map_elements','me:exit','{"section_ref":"sec:hlavni","grid_row":19,"grid_col":11,"grid_width":9,"grid_height":1,"label":"EXIT","font_size":20,"fill_style":2,"border_style":2}',7);
+('en','gastro','map_elements','me:exit','{"section_ref":"sec:hlavni","grid_row":18,"grid_col":11,"grid_width":9,"grid_height":2,"label":"EXIT","font_size":20,"fill_style":2,"border_style":2}',7);
 
 -- Categories (en/gastro)
 INSERT INTO seed_demo_data (locale, mode, entity_type, ref, data, sort_order) VALUES

@@ -560,6 +560,9 @@ class AppLocalizationsCs extends AppLocalizations {
   String get sellActions => 'Akce';
 
   @override
+  String get sellPrint => 'Tisk';
+
+  @override
   String get billDetailCustomer => 'Zákazník';
 
   @override

@@ -235,6 +235,7 @@
   "sellCustomer": "Zákazník",
   "sellNote": "Poznámka",
   "sellActions": "Akce",
+  "sellPrint": "Tisk",
 
   "billDetailCustomer": "Zákazník",
   "billDetailMove": "Stůl",

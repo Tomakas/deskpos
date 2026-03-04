@@ -25,6 +25,7 @@ import '../models/payment_method_model.dart';
 import '../models/register_model.dart';
 import '../models/section_model.dart';
 import '../models/supplier_model.dart';
+import '../models/map_element_model.dart';
 import '../models/table_model.dart';
 import '../models/tax_rate_model.dart';
 import '../models/user_model.dart';
@@ -387,19 +388,34 @@ class SeedService {
               .getSingleOrNull();
           final sectionId = sectionEntity?.id;
 
-          final tableNames = [
-            t('Stůl 1', 'Table 1'), t('Stůl 2', 'Table 2'),
-            t('Stůl 3', 'Table 3'), t('Stůl 4', 'Table 4'),
-            t('Stůl 5', 'Table 5'), t('Stůl 6', 'Table 6'),
-            t('Stůl 7', 'Table 7'), t('Stůl 8', 'Table 8'),
-            t('Zahradní 1', 'Patio 1'), t('Zahradní 2', 'Patio 2'),
+          final tables = [
+            TableModel(id: _id(), companyId: companyId, sectionId: sectionId, name: t('Stůl 1', 'Table 1'), capacity: 4, gridRow: 1, gridCol: 1, gridWidth: 4, gridHeight: 4, color: '#6D4C41', fillStyle: 2, borderStyle: 1, shape: TableShape.round, createdAt: now, updatedAt: now),
+            TableModel(id: _id(), companyId: companyId, sectionId: sectionId, name: t('Stůl 2', 'Table 2'), capacity: 4, gridRow: 7, gridCol: 1, gridWidth: 4, gridHeight: 4, color: '#6D4C41', fillStyle: 2, borderStyle: 1, shape: TableShape.round, createdAt: now, updatedAt: now),
+            TableModel(id: _id(), companyId: companyId, sectionId: sectionId, name: t('Stůl 3', 'Table 3'), capacity: 4, gridRow: 13, gridCol: 1, gridWidth: 4, gridHeight: 4, color: '#6D4C41', fillStyle: 2, borderStyle: 1, shape: TableShape.round, createdAt: now, updatedAt: now),
+            TableModel(id: _id(), companyId: companyId, sectionId: sectionId, name: t('Stůl 4', 'Table 4'), capacity: 4, gridRow: 1, gridCol: 9, gridWidth: 4, gridHeight: 4, color: 'linear:135:#AB47BC,#5C6BC0', fillStyle: 2, borderStyle: 1, shape: TableShape.diamond, createdAt: now, updatedAt: now),
+            TableModel(id: _id(), companyId: companyId, sectionId: sectionId, name: t('Stůl 5', 'Table 5'), capacity: 4, gridRow: 1, gridCol: 17, gridWidth: 4, gridHeight: 4, color: 'linear:135:#AB47BC,#5C6BC0', fillStyle: 2, borderStyle: 1, shape: TableShape.diamond, createdAt: now, updatedAt: now),
+            TableModel(id: _id(), companyId: companyId, sectionId: sectionId, name: t('Stůl 6', 'Table 6'), capacity: 0, gridRow: 1, gridCol: 25, gridWidth: 4, gridHeight: 4, color: 'linear:135:#AB47BC,#5C6BC0', fillStyle: 2, borderStyle: 1, shape: TableShape.diamond, createdAt: now, updatedAt: now),
+            TableModel(id: _id(), companyId: companyId, sectionId: sectionId, name: t('Stůl 7', 'Table 7'), capacity: 0, gridRow: 10, gridCol: 10, gridWidth: 7, gridHeight: 4, color: 'linear:135:#6D4C41,#FF5722', fillStyle: 2, borderStyle: 1, shape: TableShape.rectangle, createdAt: now, updatedAt: now),
+            TableModel(id: _id(), companyId: companyId, sectionId: sectionId, name: 'Bar 1', capacity: 0, gridRow: 8, gridCol: 22, gridWidth: 2, gridHeight: 2, color: 'linear:135:#43A047,#C0CA33', fillStyle: 2, borderStyle: 1, shape: TableShape.rectangle, createdAt: now, updatedAt: now),
+            TableModel(id: _id(), companyId: companyId, sectionId: sectionId, name: 'Bar 2', capacity: 0, gridRow: 11, gridCol: 22, gridWidth: 2, gridHeight: 2, color: 'linear:135:#43A047,#C0CA33', fillStyle: 2, borderStyle: 1, shape: TableShape.rectangle, createdAt: now, updatedAt: now),
+            TableModel(id: _id(), companyId: companyId, sectionId: sectionId, name: 'Bar 3', capacity: 0, gridRow: 14, gridCol: 22, gridWidth: 2, gridHeight: 2, color: 'linear:135:#43A047,#C0CA33', fillStyle: 2, borderStyle: 1, shape: TableShape.rectangle, createdAt: now, updatedAt: now),
           ];
-          for (final name in tableNames) {
-            await _db.into(_db.tables).insert(tableToCompanion(TableModel(
-              id: _id(), companyId: companyId, sectionId: sectionId,
-              name: name, capacity: 4, shape: TableShape.rectangle,
-              createdAt: now, updatedAt: now,
-            )));
+          for (final table in tables) {
+            await _db.into(_db.tables).insert(tableToCompanion(table));
+          }
+
+          // Map elements (walls, labels, decorations)
+          final mapElements = [
+            MapElementModel(id: _id(), companyId: companyId, sectionId: sectionId, gridRow: 0, gridCol: 6, gridWidth: 1, gridHeight: 11, color: '#000000', fillStyle: 2, borderStyle: 0, shape: TableShape.rectangle, createdAt: now, updatedAt: now),
+            MapElementModel(id: _id(), companyId: companyId, sectionId: sectionId, gridRow: 13, gridCol: 6, gridWidth: 1, gridHeight: 7, color: '#000000', fillStyle: 2, borderStyle: 0, shape: TableShape.rectangle, createdAt: now, updatedAt: now),
+            MapElementModel(id: _id(), companyId: companyId, sectionId: sectionId, gridRow: 7, gridCol: 25, gridWidth: 7, gridHeight: 2, color: '#6D4C41', fillStyle: 2, borderStyle: 0, shape: TableShape.rectangle, createdAt: now, updatedAt: now),
+            MapElementModel(id: _id(), companyId: companyId, sectionId: sectionId, gridRow: 7, gridCol: 24, gridWidth: 2, gridHeight: 11, label: 'BAR', color: 'linear:135:#6D4C41,#FF5722', fontSize: 14, fillStyle: 2, borderStyle: 2, shape: TableShape.rectangle, createdAt: now, updatedAt: now),
+            MapElementModel(id: _id(), companyId: companyId, sectionId: sectionId, gridRow: 11, gridCol: 23, gridWidth: 2, gridHeight: 2, fillStyle: 1, borderStyle: 1, shape: TableShape.rectangle, createdAt: now, updatedAt: now),
+            MapElementModel(id: _id(), companyId: companyId, sectionId: sectionId, gridRow: 17, gridCol: 6, gridWidth: 2, gridHeight: 2, fillStyle: 1, borderStyle: 1, shape: TableShape.rectangle, createdAt: now, updatedAt: now),
+            MapElementModel(id: _id(), companyId: companyId, sectionId: sectionId, gridRow: 18, gridCol: 11, gridWidth: 9, gridHeight: 2, label: 'EXIT', fontSize: 20, fillStyle: 2, borderStyle: 2, shape: TableShape.rectangle, createdAt: now, updatedAt: now),
+          ];
+          for (final el in mapElements) {
+            await _db.into(_db.mapElements).insert(mapElementToCompanion(el));
           }
         }
       });

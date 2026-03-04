@@ -1166,6 +1166,12 @@ abstract class AppLocalizations {
   /// **'Akce'**
   String get sellActions;
 
+  /// No description provided for @sellPrint.
+  ///
+  /// In cs, this message translates to:
+  /// **'Tisk'**
+  String get sellPrint;
+
   /// No description provided for @billDetailCustomer.
   ///
   /// In cs, this message translates to:

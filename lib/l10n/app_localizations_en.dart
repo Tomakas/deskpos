@@ -562,6 +562,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sellActions => 'Actions';
 
   @override
+  String get sellPrint => 'Print';
+
+  @override
   String get billDetailCustomer => 'Customer';
 
   @override

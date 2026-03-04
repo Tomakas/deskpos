@@ -235,6 +235,7 @@
   "sellCustomer": "Customer",
   "sellNote": "Note",
   "sellActions": "Actions",
+  "sellPrint": "Print",
 
   "billDetailCustomer": "Customer",
   "billDetailMove": "Table",
