@@ -5,6 +5,7 @@ CHANGELOG="docs/CHANGELOG.md"
 TYPES=("feat" "fix" "docs" "refactor" "perf" "test" "chore")
 TYPE_LABELS=("feat      — new feature" "fix       — bug fix" "docs      — documentation" "refactor  — code refactoring" "perf      — performance" "test      — tests" "chore     — maintenance")
 ENTRIES=()
+BACK="← Zpět"
 
 # ── Arrow-key menu ───────────────────────────────────────────────────────────
 
@@ -68,81 +69,128 @@ menu_select() {
   MENU_RESULT=$selected
 }
 
-# ── Phase 1: Collect all inputs ──────────────────────────────────────────────
+# ── Phase 1: Collect all inputs (step-based with back navigation) ────────────
 
-# Commit entries
+STEP=1
 while true; do
-  if [ ${#ENTRIES[@]} -gt 0 ]; then
-    menu_options=("── Done ──" "${TYPE_LABELS[@]}")
-    menu_select "Select type (or Done):" "${menu_options[@]}"
+  case $STEP in
 
-    if [ $MENU_RESULT -eq 0 ]; then
+    # ── Step 1: Commit entries ──────────────────────────────────────────────
+    1)
+      if [ ${#ENTRIES[@]} -gt 0 ]; then
+        echo ""
+        echo "Current entries:"
+        for entry in "${ENTRIES[@]}"; do
+          echo "  ${entry%%:*}: ${entry#*:}"
+        done
+      fi
+
+      while true; do
+        if [ ${#ENTRIES[@]} -gt 0 ]; then
+          menu_options=("── Done ──" "$BACK" "${TYPE_LABELS[@]}")
+          menu_select "Select type (or Done):" "${menu_options[@]}"
+
+          if [ $MENU_RESULT -eq 0 ]; then
+            break
+          elif [ $MENU_RESULT -eq 1 ]; then
+            removed="${ENTRIES[${#ENTRIES[@]}-1]}"
+            ENTRIES=("${ENTRIES[@]:0:${#ENTRIES[@]}-1}")
+            echo "  Removed: ${removed%%:*}: ${removed#*:}"
+            continue
+          fi
+          TYPE="${TYPES[$((MENU_RESULT - 2))]}"
+        else
+          menu_select "Select type:" "${TYPE_LABELS[@]}"
+          TYPE="${TYPES[$MENU_RESULT]}"
+        fi
+
+        printf "Description (empty = back): "
+        read -r desc
+
+        if [ -z "$desc" ]; then
+          continue
+        fi
+
+        ENTRIES+=("${TYPE}:${desc}")
+        echo "  Added: ${TYPE}: ${desc}"
+      done
+
+      STEP=2
+      ;;
+
+    # ── Step 2: Version bump ────────────────────────────────────────────────
+    2)
+      CURRENT_VERSION=$(grep -E '^version: ' pubspec.yaml | sed 's/version: //')
+      IFS='.' read -r V_MAJOR V_MINOR V_PATCH <<< "$CURRENT_VERSION"
+
+      BUMP_OPTIONS=(
+        "$BACK"
+        "patch  (${CURRENT_VERSION} → ${V_MAJOR}.${V_MINOR}.$((V_PATCH + 1)))"
+        "minor  (${CURRENT_VERSION} → ${V_MAJOR}.$((V_MINOR + 1)).0)"
+        "major  (${CURRENT_VERSION} → $((V_MAJOR + 1)).0.0)"
+        "skip"
+      )
+      menu_select "Bump version? (current: ${CURRENT_VERSION})" "${BUMP_OPTIONS[@]}"
+
+      if [ $MENU_RESULT -eq 0 ]; then
+        STEP=1; continue
+      fi
+
+      NEW_VERSION=""
+      case "$MENU_RESULT" in
+        1) NEW_VERSION="${V_MAJOR}.${V_MINOR}.$((V_PATCH + 1))" ;;
+        2) NEW_VERSION="${V_MAJOR}.$((V_MINOR + 1)).0" ;;
+        3) NEW_VERSION="$((V_MAJOR + 1)).0.0" ;;
+      esac
+
+      STEP=3
+      ;;
+
+    # ── Step 3: Push & build ────────────────────────────────────────────────
+    3)
+      PUSH_OPTIONS=("$BACK" "no" "push only" "push + build")
+      menu_select "Push to origin?" "${PUSH_OPTIONS[@]}"
+
+      if [ $MENU_RESULT -eq 0 ]; then
+        STEP=2; continue
+      fi
+
+      DO_PUSH=false
+      DO_BUILD=false
+      case "$MENU_RESULT" in
+        2) DO_PUSH=true ;;
+        3) DO_PUSH=true; DO_BUILD=true ;;
+      esac
+
+      if [ "$DO_BUILD" = true ]; then
+        STEP=4
+      else
+        break
+      fi
+      ;;
+
+    # ── Step 4: Build branch ────────────────────────────────────────────────
+    4)
+      CURRENT_BRANCH=$(git branch --show-current)
+      ALL_BRANCHES=()
+      while IFS= read -r b; do ALL_BRANCHES+=("$b"); done < <(git branch --format='%(refname:short)' | sort)
+
+      BUILD_BRANCH_OPTIONS=("$BACK" "$CURRENT_BRANCH")
+      for b in "${ALL_BRANCHES[@]}"; do
+        [ "$b" != "$CURRENT_BRANCH" ] && BUILD_BRANCH_OPTIONS+=("$b")
+      done
+
+      menu_select "Build from which branch?" "${BUILD_BRANCH_OPTIONS[@]}"
+
+      if [ $MENU_RESULT -eq 0 ]; then
+        STEP=3; continue
+      fi
+
+      BUILD_REF="${BUILD_BRANCH_OPTIONS[$MENU_RESULT]}"
       break
-    fi
-    TYPE="${TYPES[$((MENU_RESULT - 1))]}"
-  else
-    menu_select "Select type:" "${TYPE_LABELS[@]}"
-    TYPE="${TYPES[$MENU_RESULT]}"
-  fi
-
-  printf "Description: "
-  read -r desc
-
-  if [ -z "$desc" ]; then
-    echo "Description cannot be empty."
-    continue
-  fi
-
-  ENTRIES+=("${TYPE}:${desc}")
-  echo "  Added: ${TYPE}: ${desc}"
+      ;;
+  esac
 done
-
-# Version bump
-CURRENT_VERSION=$(grep -E '^version: ' pubspec.yaml | sed 's/version: //')
-IFS='.' read -r V_MAJOR V_MINOR V_PATCH <<< "$CURRENT_VERSION"
-
-BUMP_OPTIONS=(
-  "patch  (${CURRENT_VERSION} → ${V_MAJOR}.${V_MINOR}.$((V_PATCH + 1)))"
-  "minor  (${CURRENT_VERSION} → ${V_MAJOR}.$((V_MINOR + 1)).0)"
-  "major  (${CURRENT_VERSION} → $((V_MAJOR + 1)).0.0)"
-  "skip"
-)
-menu_select "Bump version? (current: ${CURRENT_VERSION})" "${BUMP_OPTIONS[@]}"
-
-NEW_VERSION=""
-case "$MENU_RESULT" in
-  0) NEW_VERSION="${V_MAJOR}.${V_MINOR}.$((V_PATCH + 1))" ;;
-  1) NEW_VERSION="${V_MAJOR}.$((V_MINOR + 1)).0" ;;
-  2) NEW_VERSION="$((V_MAJOR + 1)).0.0" ;;
-esac
-
-# Push & build
-PUSH_OPTIONS=("no" "push only" "push + build")
-menu_select "Push to origin?" "${PUSH_OPTIONS[@]}"
-
-DO_PUSH=false
-DO_BUILD=false
-case "$MENU_RESULT" in
-  1) DO_PUSH=true ;;
-  2) DO_PUSH=true; DO_BUILD=true ;;
-esac
-
-# Build branch selection
-BUILD_REF=""
-if [ "$DO_BUILD" = true ]; then
-  CURRENT_BRANCH=$(git branch --show-current)
-  ALL_BRANCHES=()
-  while IFS= read -r b; do ALL_BRANCHES+=("$b"); done < <(git branch --format='%(refname:short)' | sort)
-
-  # Current branch first, then the rest
-  BUILD_BRANCH_OPTIONS=("$CURRENT_BRANCH")
-  for b in "${ALL_BRANCHES[@]}"; do
-    [ "$b" != "$CURRENT_BRANCH" ] && BUILD_BRANCH_OPTIONS+=("$b")
-  done
-
-  menu_select "Build from which branch?" "${BUILD_BRANCH_OPTIONS[@]}"
-  BUILD_REF="${BUILD_BRANCH_OPTIONS[$MENU_RESULT]}"
-fi
 
 # ── Phase 2: Execute ─────────────────────────────────────────────────────────
 
