@@ -488,8 +488,8 @@ class SeedService {
       ItemModel(id: _id(), companyId: companyId, categoryId: catWine, name: t('Rulandské šedé 0.2l', 'Pinot Gris 0.2l'), itemType: ItemType.product, unitPrice: 6900, saleTaxRateId: taxRateId, unit: UnitType.ks, createdAt: now, updatedAt: now),
       ItemModel(id: _id(), companyId: companyId, categoryId: catWine, name: t('Frankovka 0.2l', 'Blaufränkisch 0.2l'), itemType: ItemType.product, unitPrice: 5900, saleTaxRateId: taxRateId, unit: UnitType.ks, createdAt: now, updatedAt: now),
       // Other
-      ItemModel(id: _id(), companyId: companyId, categoryId: catOther, name: t('Espresso', 'Espresso'), itemType: ItemType.product, unitPrice: 5500, saleTaxRateId: taxRateId, unit: UnitType.ks, createdAt: now, updatedAt: now),
-      ItemModel(id: _id(), companyId: companyId, categoryId: catOther, name: t('Cappuccino', 'Cappuccino'), itemType: ItemType.product, unitPrice: 6500, saleTaxRateId: taxRateId, unit: UnitType.ks, createdAt: now, updatedAt: now),
+      ItemModel(id: _id(), companyId: companyId, categoryId: catOther, name: t('Espresso', 'Espresso'), itemType: ItemType.product, unitPrice: 5500, saleTaxRateId: taxRateId, unit: UnitType.ks, prepArea: PrepArea.bar, createdAt: now, updatedAt: now),
+      ItemModel(id: _id(), companyId: companyId, categoryId: catOther, name: t('Cappuccino', 'Cappuccino'), itemType: ItemType.product, unitPrice: 6500, saleTaxRateId: taxRateId, unit: UnitType.ks, prepArea: PrepArea.bar, createdAt: now, updatedAt: now),
     ];
     for (final item in items) {
       await _db.into(_db.items).insert(itemToCompanion(item));

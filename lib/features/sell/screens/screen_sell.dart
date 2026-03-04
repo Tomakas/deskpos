@@ -271,7 +271,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
                 const Divider(height: 1),
                 Expanded(
                   child: _searchQuery.isNotEmpty
-                      ? _buildSearchResults(context, ref, reg, l)
+                      ? _buildSearchResults(context, ref, reg)
                       : _buildGrid(context, ref, reg, l),
                 ),
               ],
@@ -680,7 +680,49 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     );
   }
 
-  Widget _buildSearchResults(BuildContext context, WidgetRef ref, RegisterModel register, AppLocalizations l) {
+  ({String? badge, _BadgeLevel? level}) _computeStockBadge(
+    WidgetRef ref,
+    ItemModel item,
+    List<ItemModel> allItems,
+    Map<String, double> stockMap, {
+    required bool hasVariants,
+  }) {
+    if (hasVariants) {
+      final variants = allItems.where(
+        (v) => v.parentId == item.id && v.itemType == ItemType.variant,
+      ).toList();
+      final trackedVariants = variants.where(
+        (v) => v.isStockTracked || stockMap.containsKey(v.id),
+      );
+      if (trackedVariants.isEmpty && !item.isStockTracked) {
+        return (badge: null, level: null);
+      }
+      final checkVariants = trackedVariants.isEmpty ? variants : trackedVariants;
+      final available = checkVariants.where((v) => (stockMap[v.id] ?? 0.0) > 0).length;
+      final _BadgeLevel level;
+      if (available == checkVariants.length) {
+        level = _BadgeLevel.positive;
+      } else if (available > 0) {
+        level = _BadgeLevel.partial;
+      } else {
+        level = _BadgeLevel.zero;
+      }
+      return (badge: 'V', level: level);
+    }
+
+    var isTracked = item.isStockTracked;
+    if (!isTracked && item.itemType == ItemType.variant && item.parentId != null) {
+      final parent = allItems.where((p) => p.id == item.parentId).firstOrNull;
+      isTracked = parent?.isStockTracked ?? false;
+    }
+    if (isTracked) {
+      final qty = stockMap[item.id] ?? 0.0;
+      return (badge: ref.fmtQty(qty), level: qty > 0 ? _BadgeLevel.positive : _BadgeLevel.zero);
+    }
+    return (badge: null, level: null);
+  }
+
+  Widget _buildSearchResults(BuildContext context, WidgetRef ref, RegisterModel register) {
     final company = ref.watch(currentCompanyProvider);
     if (company == null) return const SizedBox.shrink();
 
@@ -723,42 +765,10 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
                           final hasVariants = item.itemType == ItemType.product &&
                               allItems.any((v) => v.parentId == item.id && v.itemType == ItemType.variant);
 
-                          // Stock badge logic
-                          String? stockBadge;
-                          _BadgeLevel? badgeLevel;
-                          if (showBadge && stockMap.isNotEmpty) {
-                            if (hasVariants) {
-                              final variants = allItems.where(
-                                (v) => v.parentId == item.id && v.itemType == ItemType.variant,
-                              ).toList();
-                              final trackedVariants = variants.where(
-                                (v) => v.isStockTracked || stockMap.containsKey(v.id),
-                              );
-                              if (trackedVariants.isNotEmpty || item.isStockTracked) {
-                                stockBadge = 'V';
-                                final checkVariants = trackedVariants.isEmpty ? variants : trackedVariants;
-                                final available = checkVariants.where((v) => (stockMap[v.id] ?? 0.0) > 0).length;
-                                if (available == checkVariants.length) {
-                                  badgeLevel = _BadgeLevel.positive;
-                                } else if (available > 0) {
-                                  badgeLevel = _BadgeLevel.partial;
-                                } else {
-                                  badgeLevel = _BadgeLevel.zero;
-                                }
-                              }
-                            } else {
-                              var isTracked = item.isStockTracked;
-                              if (!isTracked && item.itemType == ItemType.variant && item.parentId != null) {
-                                final parent = allItems.where((p) => p.id == item.parentId).firstOrNull;
-                                isTracked = parent?.isStockTracked ?? false;
-                              }
-                              if (isTracked) {
-                                final qty = stockMap[item.id] ?? 0.0;
-                                stockBadge = ref.fmtQty(qty);
-                                badgeLevel = qty > 0 ? _BadgeLevel.positive : _BadgeLevel.zero;
-                              }
-                            }
-                          }
+                          // Stock badge
+                          final (:badge, :level) = showBadge && stockMap.isNotEmpty
+                              ? _computeStockBadge(ref, item, allItems, stockMap, hasVariants: hasVariants)
+                              : (badge: null, level: null);
 
                           // Derive color: item.color > category.itemColor > theme default
                           final itemCat = categoriesMap[item.categoryId];
@@ -773,8 +783,8 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
                             color: cellColor,
                             gradient: parseGradient(derivedColor),
                             cellHeight: cellH,
-                            stockBadge: stockBadge,
-                            badgeLevel: badgeLevel,
+                            stockBadge: badge,
+                            badgeLevel: level,
                             onTap: item.isSellable ? () => _addToCart(ref, item, company.id,
                                 cellWidth: cellW,
                                 cellHeight: cellH,
@@ -844,6 +854,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
           stream: ref.watch(categoryRepositoryProvider).watchAll(companyId),
           builder: (context, catSnap) {
             final allCategories = catSnap.data ?? [];
+            final categoriesMap = {for (final c in allCategories) c.id: c};
 
             Widget buildGrid(Map<String, double> stockMap) {
               return LayoutBuilder(
@@ -861,7 +872,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
                             width: cellW,
                             height: cellH,
                             child: _buildCell(
-                              context, ref, layoutItems, allItems, allCategories,
+                              context, ref, layoutItems, allItems, categoriesMap,
                               r, c, register, companyId, l,
                               cellWidth: cellW,
                               cellHeight: cellH,
@@ -893,7 +904,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     WidgetRef ref,
     List<LayoutItemModel> layoutItems,
     List<ItemModel> allItems,
-    List<CategoryModel> allCategories,
+    Map<String, CategoryModel> categoriesMap,
     int row,
     int col,
     RegisterModel register,
@@ -928,7 +939,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
           onTap: () => _onCategoryTap(register.id, layoutItem),
         );
       }
-      final cat = allCategories.where((c) => c.id == layoutItem.categoryId).firstOrNull;
+      final cat = categoriesMap[layoutItem.categoryId];
       final catColor = cat?.color ?? layoutItem.color;
       return _ItemButton(
         label: layoutItem.label ?? cat?.name ?? '?',
@@ -949,49 +960,13 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     final hasVariants = item.itemType == ItemType.product &&
         allItems.any((v) => v.parentId == item.id && v.itemType == ItemType.variant);
 
-    // Stock badge logic
-    String? stockBadge;
-    _BadgeLevel? badgeLevel;
-    if (showBadge) {
-      if (hasVariants) {
-        // Variants that have stock data (either own isStockTracked or stock_levels row)
-        final variants = allItems.where(
-          (v) => v.parentId == item.id && v.itemType == ItemType.variant,
-        ).toList();
-        final trackedVariants = variants.where(
-          (v) => v.isStockTracked || stockMap.containsKey(v.id),
-        );
-        if (trackedVariants.isEmpty && !item.isStockTracked) {
-          // No stock-tracked variants — no badge
-        } else {
-          stockBadge = 'V';
-          final checkVariants = trackedVariants.isEmpty ? variants : trackedVariants;
-          final available = checkVariants.where((v) => (stockMap[v.id] ?? 0.0) > 0).length;
-          if (available == checkVariants.length) {
-            badgeLevel = _BadgeLevel.positive;
-          } else if (available > 0) {
-            badgeLevel = _BadgeLevel.partial;
-          } else {
-            badgeLevel = _BadgeLevel.zero;
-          }
-        }
-      } else {
-        // Check stock tracking on item itself, or inherited from parent for variants
-        var isTracked = item.isStockTracked;
-        if (!isTracked && item.itemType == ItemType.variant && item.parentId != null) {
-          final parent = allItems.where((p) => p.id == item.parentId).firstOrNull;
-          isTracked = parent?.isStockTracked ?? false;
-        }
-        if (isTracked) {
-          final qty = stockMap[item.id] ?? 0.0;
-          stockBadge = ref.fmtQty(qty);
-          badgeLevel = qty > 0 ? _BadgeLevel.positive : _BadgeLevel.zero;
-        }
-      }
-    }
+    // Stock badge
+    final (:badge, :level) = showBadge
+        ? _computeStockBadge(ref, item, allItems, stockMap, hasVariants: hasVariants)
+        : (badge: null, level: null);
 
     // Derive color: item.color > category.itemColor > layoutItem.color > theme default
-    final itemCat = allCategories.where((c) => c.id == item.categoryId).firstOrNull;
+    final itemCat = categoriesMap[item.categoryId];
     final derivedColor = item.color ?? itemCat?.itemColor ?? layoutItem.color;
 
     return _ItemButton(
@@ -1002,8 +977,8 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
           : Theme.of(context).colorScheme.primaryContainer,
       gradient: parseGradient(derivedColor),
       cellHeight: cellHeight,
-      stockBadge: stockBadge,
-      badgeLevel: badgeLevel,
+      stockBadge: badge,
+      badgeLevel: level,
       onTap: item.isSellable ? () => _addToCart(ref, item, companyId,
           cellWidth: cellWidth,
           cellHeight: cellHeight,
