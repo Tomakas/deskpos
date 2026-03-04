@@ -4,7 +4,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../auth/auth_service.dart';
-import '../../platform/platform_io.dart';
 import '../../auth/session_manager.dart';
 import '../models/company_model.dart';
 import '../models/currency_model.dart';
@@ -30,22 +29,13 @@ final seedServiceProvider = Provider<SeedService>((ref) {
 });
 
 /// Persistent device UUID — identifies this physical device across sessions.
-/// Stored in SharedPreferences (migrated from legacy file on first run).
+/// Stored in SharedPreferences.
 final deviceIdProvider = FutureProvider<String>((ref) async {
   final prefs = await SharedPreferences.getInstance();
 
-  // 1. Check new storage (SharedPreferences)
   final existing = prefs.getString('device_id');
   if (existing != null) return existing;
 
-  // 2. Migrate from legacy file (native only, no-op on web)
-  final legacyId = await readDeviceIdFromLegacyFile();
-  if (legacyId != null) {
-    await prefs.setString('device_id', legacyId);
-    return legacyId;
-  }
-
-  // 3. New device (web or fresh native install)
   final id = const Uuid().v7();
   await prefs.setString('device_id', id);
   return id;

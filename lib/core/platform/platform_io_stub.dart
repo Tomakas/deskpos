@@ -36,5 +36,3 @@ void exitApp() =>
 Future<void> deleteDatabaseFiles(String name) =>
     throw UnsupportedError('deleteDatabaseFiles is not supported on this platform');
 
-Future<String?> readDeviceIdFromLegacyFile() =>
-    throw UnsupportedError('readDeviceIdFromLegacyFile is not supported on this platform');

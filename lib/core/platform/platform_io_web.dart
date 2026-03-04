@@ -53,4 +53,3 @@ Future<void> deleteDatabaseFiles(String name) async {
   factory.deleteDatabase('${name}_lock');
 }
 
-Future<String?> readDeviceIdFromLegacyFile() async => null;

@@ -67,11 +67,3 @@ Future<void> deleteDatabaseFiles(String name) async {
   }
 }
 
-Future<String?> readDeviceIdFromLegacyFile() async {
-  final dir = await getApplicationDocumentsDirectory();
-  final file = File(p.join(dir.path, 'epos_device_id.txt'));
-  if (file.existsSync()) {
-    return file.readAsStringSync().trim();
-  }
-  return null;
-}
