@@ -4,11 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/data/enums/cash_movement_type.dart';
+import '../../../core/data/enums/discount_type.dart';
+import '../../../core/data/enums/display_device_type.dart';
 import '../../../core/data/enums/payment_type.dart';
 import '../../../core/data/enums/prep_status.dart';
 import '../../../core/data/enums/voucher_discount_scope.dart';
 import '../../../core/data/enums/voucher_type.dart';
 import '../../../core/data/models/bill_model.dart';
+import '../../../core/data/models/customer_display_content.dart';
 import '../../../core/data/models/company_currency_model.dart';
 import '../../../core/data/models/currency_model.dart';
 import '../../../core/data/models/customer_model.dart';
@@ -18,6 +21,7 @@ import '../../../core/data/models/payment_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/permission_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
+import '../../../core/data/providers/sync_providers.dart';
 import '../../../core/data/result.dart';
 import '../../../core/data/utils/voucher_discount_calculator.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
@@ -72,6 +76,7 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
     super.initState();
     _bill = widget.bill;
     _loadCustomer();
+    _showOnDisplay();
     final company = ref.read(currentCompanyProvider);
     if (company != null) {
       _paymentMethodsFuture = ref.read(paymentMethodRepositoryProvider).getAll(company.id);
@@ -113,6 +118,82 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
         _loyaltyEarnRate = settings.loyaltyEarnRate;
       });
     }
+  }
+
+  Future<void> _showOnDisplay() async {
+    final register = await ref.read(activeRegisterProvider.future);
+    if (!mounted || register == null) return;
+    final devices = await ref.read(displayDeviceRepositoryProvider)
+        .getByParentRegister(register.id);
+    if (!mounted) return;
+    final customerDisplay = devices
+        .where((d) => d.type == DisplayDeviceType.customerDisplay)
+        .firstOrNull;
+    if (customerDisplay == null) return;
+
+    final displayChannel = ref.read(customerDisplayChannelProvider);
+    await displayChannel.join('display:${customerDisplay.code}');
+    if (!mounted) return;
+
+    final orderRepo = ref.read(orderRepositoryProvider);
+    final modRepo = ref.read(orderItemModifierRepositoryProvider);
+    final items = await orderRepo.getOrderItemsByBill(_bill.id);
+    if (!mounted) return;
+    final activeItems = items.where((i) =>
+        i.status != PrepStatus.voided).toList();
+
+    final displayItems = <DisplayItem>[];
+    int subtotal = 0;
+    for (final item in activeItems) {
+      final mods = await modRepo.getByOrderItem(item.id);
+      final modTotal = mods.fold<int>(0, (sum, m) => sum + (m.unitPrice * m.quantity).round());
+      final effectiveUnitPrice = item.salePriceAtt + modTotal;
+      final itemSubtotal = (effectiveUnitPrice * item.quantity).round();
+
+      // Apply item-level discount
+      int itemDiscount = 0;
+      if (item.discount > 0) {
+        if (item.discountType == DiscountType.percent) {
+          itemDiscount = (itemSubtotal * item.discount / 10000).round();
+        } else {
+          itemDiscount = item.discount;
+        }
+      }
+      final totalPrice = itemSubtotal - itemDiscount - item.voucherDiscount;
+      subtotal += totalPrice;
+
+      displayItems.add(DisplayItem(
+        name: item.itemName,
+        quantity: item.quantity,
+        unitPrice: effectiveUnitPrice,
+        totalPrice: totalPrice,
+        notes: item.notes,
+        modifiers: mods.map((m) => DisplayModifier(
+          name: m.modifierItemName,
+          unitPrice: m.unitPrice,
+        )).toList(),
+      ));
+    }
+
+    // Compute actual bill-level discount amount
+    int billDiscount = 0;
+    if (_bill.discountAmount > 0) {
+      if (_bill.discountType == DiscountType.percent) {
+        billDiscount = (subtotal * _bill.discountAmount / 10000).round();
+      } else {
+        billDiscount = _bill.discountAmount;
+      }
+    }
+    billDiscount += _bill.loyaltyDiscountAmount + _bill.voucherDiscountAmount;
+
+    final content = DisplayItems(
+      items: displayItems,
+      subtotal: subtotal,
+      total: _bill.totalGross,
+      discountAmount: billDiscount,
+    );
+
+    displayChannel.send(content.toJson());
   }
 
   // EET is the only remaining item — always disabled for now

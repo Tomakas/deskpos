@@ -890,8 +890,20 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
       final mods = await modRepo.getByOrderItem(item.id);
       final modTotal = mods.fold<int>(0, (sum, m) => sum + (m.unitPrice * m.quantity).round());
       final effectiveUnitPrice = item.salePriceAtt + modTotal;
-      final totalPrice = (effectiveUnitPrice * item.quantity).round();
+      final itemSubtotal = (effectiveUnitPrice * item.quantity).round();
+
+      // Apply item-level discount
+      int itemDiscount = 0;
+      if (item.discount > 0) {
+        if (item.discountType == DiscountType.percent) {
+          itemDiscount = (itemSubtotal * item.discount / 10000).round();
+        } else {
+          itemDiscount = item.discount;
+        }
+      }
+      final totalPrice = itemSubtotal - itemDiscount - item.voucherDiscount;
       subtotal += totalPrice;
+
       displayItems.add(DisplayItem(
         name: item.itemName,
         quantity: item.quantity,
@@ -905,11 +917,22 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
       ));
     }
 
+    // Compute actual bill-level discount amount
+    int billDiscount = 0;
+    if (bill.discountAmount > 0) {
+      if (bill.discountType == DiscountType.percent) {
+        billDiscount = (subtotal * bill.discountAmount / 10000).round();
+      } else {
+        billDiscount = bill.discountAmount;
+      }
+    }
+    billDiscount += bill.loyaltyDiscountAmount + bill.voucherDiscountAmount;
+
     final content = DisplayItems(
       items: displayItems,
       subtotal: subtotal,
       total: bill.totalGross,
-      discountAmount: bill.discountAmount,
+      discountAmount: billDiscount,
     );
 
     _displayChannel.send(content.toJson());
