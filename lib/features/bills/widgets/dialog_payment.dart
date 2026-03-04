@@ -159,14 +159,15 @@ class _DialogPaymentState extends ConsumerState<DialogPayment> {
           itemDiscount = item.discount;
         }
       }
-      final totalPrice = itemSubtotal - itemDiscount - item.voucherDiscount;
-      subtotal += totalPrice;
+      final totalItemDiscount = itemDiscount + item.voucherDiscount;
+      subtotal += itemSubtotal - totalItemDiscount;
 
       displayItems.add(DisplayItem(
         name: item.itemName,
         quantity: item.quantity,
         unitPrice: effectiveUnitPrice,
-        totalPrice: totalPrice,
+        totalPrice: itemSubtotal,
+        discountAmount: totalItemDiscount,
         notes: item.notes,
         modifiers: mods.map((m) => DisplayModifier(
           name: m.modifierItemName,

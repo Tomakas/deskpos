@@ -56,6 +56,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
   bool _didSendThankYou = false;
   bool _hasCustomerDisplay = false;
   String? _displayCode;
+  DateTime? _lastDisplayedAt;
   String? _cachedCustomerId;
   Future<CustomerModel?>? _customerFuture;
   String? _cachedOrderKey;
@@ -132,6 +133,12 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
               child: Center(child: CircularProgressIndicator()),
             ),
           );
+        }
+
+        // Auto-refresh customer display when bill changes
+        if (_didShowOnDisplay && bill.updatedAt != _lastDisplayedAt) {
+          _lastDisplayedAt = bill.updatedAt;
+          _showOnDisplay(bill);
         }
 
         return Dialog(
@@ -859,6 +866,8 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
   }
 
   Future<void> _showOnDisplay(BillModel bill) async {
+    _lastDisplayedAt = bill.updatedAt;
+
     // Resolve display code if not cached
     if (_displayCode == null) {
       final register = await ref.read(activeRegisterProvider.future);
@@ -901,14 +910,15 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
           itemDiscount = item.discount;
         }
       }
-      final totalPrice = itemSubtotal - itemDiscount - item.voucherDiscount;
-      subtotal += totalPrice;
+      final totalItemDiscount = itemDiscount + item.voucherDiscount;
+      subtotal += itemSubtotal - totalItemDiscount;
 
       displayItems.add(DisplayItem(
         name: item.itemName,
         quantity: item.quantity,
         unitPrice: effectiveUnitPrice,
-        totalPrice: totalPrice,
+        totalPrice: itemSubtotal,
+        discountAmount: totalItemDiscount,
         notes: item.notes,
         modifiers: mods.map((m) => DisplayModifier(
           name: m.modifierItemName,

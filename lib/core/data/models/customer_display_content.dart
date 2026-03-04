@@ -74,6 +74,7 @@ class DisplayItem {
     this.unitLabel = 'ks',
     this.notes,
     this.modifiers = const [],
+    this.discountAmount = 0,
   });
 
   final String name;
@@ -83,6 +84,7 @@ class DisplayItem {
   final String unitLabel;
   final String? notes;
   final List<DisplayModifier> modifiers;
+  final int discountAmount;
 
   Map<String, dynamic> toJson() => {
         'name': name,
@@ -93,6 +95,7 @@ class DisplayItem {
         if (notes != null) 'notes': notes,
         if (modifiers.isNotEmpty)
           'modifiers': modifiers.map((m) => m.toJson()).toList(),
+        if (discountAmount > 0) 'discountAmount': discountAmount,
       };
 
   factory DisplayItem.fromJson(Map<String, dynamic> json) {
@@ -107,6 +110,7 @@ class DisplayItem {
               ?.map((m) => DisplayModifier.fromJson(m as Map<String, dynamic>))
               .toList() ??
           const [],
+      discountAmount: json['discountAmount'] as int? ?? 0,
     );
   }
 }

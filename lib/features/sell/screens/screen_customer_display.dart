@@ -154,7 +154,7 @@ class _ScreenCustomerDisplayState extends ConsumerState<ScreenCustomerDisplay> {
             children: [
               Text(
                 l.customerDisplayHeader,
-                style: theme.textTheme.titleLarge?.copyWith(
+                style: theme.textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: theme.colorScheme.onPrimaryContainer,
                 ),
@@ -249,16 +249,16 @@ class _DisplayItemRow extends ConsumerWidget {
     final theme = Theme.of(context);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.baseline,
         textBaseline: TextBaseline.alphabetic,
         children: [
           SizedBox(
-            width: 48,
+            width: 64,
             child: Text(
               '${ref.fmtQty(item.quantity, maxDecimals: 1)} ${item.unitLabel}',
-              style: theme.textTheme.titleMedium?.copyWith(
+              style: theme.textTheme.titleLarge?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
@@ -267,20 +267,28 @@ class _DisplayItemRow extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(item.name, style: theme.textTheme.titleMedium),
+                Text(item.name, style: theme.textTheme.titleLarge),
                 for (final mod in item.modifiers)
                   Text(
                     '+ ${mod.name}${mod.unitPrice > 0 ? '  ${ref.money(mod.unitPrice)}' : ''}',
-                    style: theme.textTheme.bodySmall?.copyWith(
+                    style: theme.textTheme.bodyLarge?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
                 if (item.notes != null && item.notes!.isNotEmpty)
                   Text(
                     item.notes!,
-                    style: theme.textTheme.bodySmall?.copyWith(
+                    style: theme.textTheme.bodyLarge?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                       fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                if (item.discountAmount > 0)
+                  Text(
+                    '${context.l10n.customerDisplayDiscount}  -${ref.money(item.discountAmount)}',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: context.appColors.positive,
                     ),
                   ),
               ],
@@ -288,7 +296,7 @@ class _DisplayItemRow extends ConsumerWidget {
           ),
           Text(
             ref.money(item.totalPrice),
-            style: theme.textTheme.titleMedium?.copyWith(
+            style: theme.textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -328,14 +336,15 @@ class _BroadcastTotalsFooter extends ConsumerWidget {
           _TotalRow(
             label: l.customerDisplaySubtotal,
             amount: content.subtotal,
-            style: theme.textTheme.titleMedium,
+            style: theme.textTheme.titleLarge,
           ),
           if (hasDiscount) ...[
             const SizedBox(height: 4),
             _TotalRow(
               label: l.customerDisplayDiscount,
               amount: -content.discountAmount,
-              style: theme.textTheme.titleMedium?.copyWith(
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
                 color: context.appColors.positive,
               ),
             ),
@@ -346,7 +355,7 @@ class _BroadcastTotalsFooter extends ConsumerWidget {
           _TotalRow(
             label: l.customerDisplayTotal,
             amount: content.total,
-            style: theme.textTheme.headlineMedium?.copyWith(
+            style: theme.textTheme.headlineLarge?.copyWith(
               fontWeight: FontWeight.bold,
             ),
           ),
