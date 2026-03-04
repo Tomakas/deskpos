@@ -10,8 +10,8 @@ const _kAccentColorKey = 'accent_color';
 // ---------------------------------------------------------------------------
 
 const kAccentPresets = <int>[
-  0xFF00897B, // Teal (default)
-  0xFF1E88E5, // Blue
+  0xFF1E88E5, // Blue (default)
+  0xFF00897B, // Teal
   0xFF3949AB, // Indigo
   0xFF8E24AA, // Purple
   0xFFD81B60, // Pink

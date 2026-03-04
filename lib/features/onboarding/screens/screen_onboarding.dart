@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -978,7 +980,11 @@ class _ScreenOnboardingState extends ConsumerState<ScreenOnboarding> {
     } catch (e, s) {
       AppLogger.error('Demo onboarding failed', error: e, stackTrace: s);
       if (!mounted) return;
-      onError('$e\n\n$s');
+      if (e is SocketException || (e is http.ClientException && e.message.contains('SocketException'))) {
+        onError(l.errorNoInternet);
+      } else {
+        onError('$e');
+      }
     }
   }
 }

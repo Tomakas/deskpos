@@ -7,6 +7,7 @@ import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/permission_providers.dart';
 import '../../../core/data/providers/database_provider.dart';
 import '../../../core/data/providers/sync_providers.dart';
+import '../../../core/data/providers/theme_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/platform/platform_io.dart';
@@ -219,6 +220,8 @@ class CloudTab extends ConsumerWidget {
       // appInitProvider re-resolves company/user state from the fresh DB.
       ref.invalidate(appDatabaseProvider);
       ref.invalidate(appInitProvider);
+      ref.invalidate(themeModeProvider);
+      ref.invalidate(accentColorProvider);
     } catch (e, s) {
       AppLogger.error('Failed to delete data', error: e, stackTrace: s);
       return;

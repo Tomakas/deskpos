@@ -139,13 +139,13 @@ INSERT INTO seed_demo_data (locale, mode, entity_type, ref, data, sort_order) VA
 
 -- Items (cs/gastro) — Modifiers (no category, 12%)
 INSERT INTO seed_demo_data (locale, mode, entity_type, ref, data, sort_order) VALUES
-('cs','gastro','items','item:mod_cheese','{"name":"Extra sýr","item_type":"modifier","unit_price":2900,"sale_tax_rate_ref":"tax:12","unit":"ks"}',30),
-('cs','gastro','items','item:mod_bacon','{"name":"Extra slanina","item_type":"modifier","unit_price":3900,"sale_tax_rate_ref":"tax:12","unit":"ks"}',31),
-('cs','gastro','items','item:mod_fries','{"name":"Příloha hranolky","item_type":"modifier","unit_price":4900,"sale_tax_rate_ref":"tax:12","unit":"ks"}',32),
-('cs','gastro','items','item:mod_ketchup','{"name":"Kečup","item_type":"modifier","unit_price":0,"sale_tax_rate_ref":"tax:12","unit":"ks"}',33),
-('cs','gastro','items','item:mod_mayo','{"name":"Majonéza","item_type":"modifier","unit_price":0,"sale_tax_rate_ref":"tax:12","unit":"ks"}',34),
-('cs','gastro','items','item:mod_bbq','{"name":"BBQ omáčka","item_type":"modifier","unit_price":1500,"sale_tax_rate_ref":"tax:12","unit":"ks"}',35),
-('cs','gastro','items','item:mod_salad','{"name":"Salát","item_type":"modifier","unit_price":3900,"sale_tax_rate_ref":"tax:12","unit":"ks"}',36);
+('cs','gastro','items','item:mod_cheese','{"name":"Extra sýr","item_type":"modifier","unit_price":2900,"sale_tax_rate_ref":"tax:12","unit":"ks","color":"#FB8C00"}',30),
+('cs','gastro','items','item:mod_bacon','{"name":"Extra slanina","item_type":"modifier","unit_price":3900,"sale_tax_rate_ref":"tax:12","unit":"ks","color":"#FB8C00"}',31),
+('cs','gastro','items','item:mod_fries','{"name":"Příloha hranolky","item_type":"modifier","unit_price":4900,"sale_tax_rate_ref":"tax:12","unit":"ks","color":"#43A047"}',32),
+('cs','gastro','items','item:mod_ketchup','{"name":"Kečup","item_type":"modifier","unit_price":0,"sale_tax_rate_ref":"tax:12","unit":"ks","color":"#E53935"}',33),
+('cs','gastro','items','item:mod_mayo','{"name":"Majonéza","item_type":"modifier","unit_price":0,"sale_tax_rate_ref":"tax:12","unit":"ks","color":"#E53935"}',34),
+('cs','gastro','items','item:mod_bbq','{"name":"BBQ omáčka","item_type":"modifier","unit_price":1500,"sale_tax_rate_ref":"tax:12","unit":"ks","color":"#E53935"}',35),
+('cs','gastro','items','item:mod_salad','{"name":"Salát","item_type":"modifier","unit_price":3900,"sale_tax_rate_ref":"tax:12","unit":"ks","color":"#43A047"}',36);
 
 -- Items (cs/gastro) — Předkrmy (12%)
 INSERT INTO seed_demo_data (locale, mode, entity_type, ref, data, sort_order) VALUES
@@ -309,13 +309,13 @@ INSERT INTO seed_demo_data (locale, mode, entity_type, ref, data, sort_order) VA
 
 -- Items (en/gastro) — Modifiers (no category, 12%)
 INSERT INTO seed_demo_data (locale, mode, entity_type, ref, data, sort_order) VALUES
-('en','gastro','items','item:mod_cheese','{"name":"Extra Cheese","item_type":"modifier","unit_price":2900,"sale_tax_rate_ref":"tax:12","unit":"ks"}',30),
-('en','gastro','items','item:mod_bacon','{"name":"Extra Bacon","item_type":"modifier","unit_price":3900,"sale_tax_rate_ref":"tax:12","unit":"ks"}',31),
-('en','gastro','items','item:mod_fries','{"name":"Side Fries","item_type":"modifier","unit_price":4900,"sale_tax_rate_ref":"tax:12","unit":"ks"}',32),
-('en','gastro','items','item:mod_ketchup','{"name":"Ketchup","item_type":"modifier","unit_price":0,"sale_tax_rate_ref":"tax:12","unit":"ks"}',33),
-('en','gastro','items','item:mod_mayo','{"name":"Mayonnaise","item_type":"modifier","unit_price":0,"sale_tax_rate_ref":"tax:12","unit":"ks"}',34),
-('en','gastro','items','item:mod_bbq','{"name":"BBQ Sauce","item_type":"modifier","unit_price":1500,"sale_tax_rate_ref":"tax:12","unit":"ks"}',35),
-('en','gastro','items','item:mod_salad','{"name":"Salad","item_type":"modifier","unit_price":3900,"sale_tax_rate_ref":"tax:12","unit":"ks"}',36);
+('en','gastro','items','item:mod_cheese','{"name":"Extra Cheese","item_type":"modifier","unit_price":2900,"sale_tax_rate_ref":"tax:12","unit":"ks","color":"#FB8C00"}',30),
+('en','gastro','items','item:mod_bacon','{"name":"Extra Bacon","item_type":"modifier","unit_price":3900,"sale_tax_rate_ref":"tax:12","unit":"ks","color":"#FB8C00"}',31),
+('en','gastro','items','item:mod_fries','{"name":"Side Fries","item_type":"modifier","unit_price":4900,"sale_tax_rate_ref":"tax:12","unit":"ks","color":"#43A047"}',32),
+('en','gastro','items','item:mod_ketchup','{"name":"Ketchup","item_type":"modifier","unit_price":0,"sale_tax_rate_ref":"tax:12","unit":"ks","color":"#E53935"}',33),
+('en','gastro','items','item:mod_mayo','{"name":"Mayonnaise","item_type":"modifier","unit_price":0,"sale_tax_rate_ref":"tax:12","unit":"ks","color":"#E53935"}',34),
+('en','gastro','items','item:mod_bbq','{"name":"BBQ Sauce","item_type":"modifier","unit_price":1500,"sale_tax_rate_ref":"tax:12","unit":"ks","color":"#E53935"}',35),
+('en','gastro','items','item:mod_salad','{"name":"Salad","item_type":"modifier","unit_price":3900,"sale_tax_rate_ref":"tax:12","unit":"ks","color":"#43A047"}',36);
 
 -- Items (en/gastro) — Starters (12%)
 INSERT INTO seed_demo_data (locale, mode, entity_type, ref, data, sort_order) VALUES

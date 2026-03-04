@@ -5288,6 +5288,12 @@ abstract class AppLocalizations {
   /// **'OK'**
   String get actionOk;
 
+  /// No description provided for @errorNoInternet.
+  ///
+  /// In cs, this message translates to:
+  /// **'Není připojení k internetu. Zkontrolujte síť a zkuste to znovu.'**
+  String get errorNoInternet;
+
   /// No description provided for @errorGeneric.
   ///
   /// In cs, this message translates to:

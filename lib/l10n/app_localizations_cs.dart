@@ -2709,6 +2709,10 @@ class AppLocalizationsCs extends AppLocalizations {
   String get actionOk => 'OK';
 
   @override
+  String get errorNoInternet =>
+      'Není připojení k internetu. Zkontrolujte síť a zkuste to znovu.';
+
+  @override
   String errorGeneric(Object error) {
     return 'Chyba: $error';
   }

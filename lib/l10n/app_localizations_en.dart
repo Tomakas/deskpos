@@ -2711,6 +2711,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get actionOk => 'OK';
 
   @override
+  String get errorNoInternet =>
+      'No internet connection. Please check your network and try again.';
+
+  @override
   String errorGeneric(Object error) {
     return 'Error: $error';
   }

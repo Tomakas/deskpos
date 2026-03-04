@@ -1109,6 +1109,7 @@
 
   "actionExitApp": "Exit App",
   "actionOk": "OK",
+  "errorNoInternet": "No internet connection. Please check your network and try again.",
   "errorGeneric": "Error: {error}",
   "@errorGeneric": {
     "placeholders": { "error": { "type": "Object" } }

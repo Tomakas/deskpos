@@ -1109,6 +1109,7 @@
 
   "actionExitApp": "Ukončit aplikaci",
   "actionOk": "OK",
+  "errorNoInternet": "Není připojení k internetu. Zkontrolujte síť a zkuste to znovu.",
   "errorGeneric": "Chyba: {error}",
   "@errorGeneric": {
     "placeholders": { "error": { "type": "Object" } }
