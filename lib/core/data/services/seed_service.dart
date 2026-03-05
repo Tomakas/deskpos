@@ -18,6 +18,7 @@ import '../enums/unit_type.dart';
 import '../mappers/entity_mappers.dart';
 import '../models/category_model.dart';
 import '../models/company_model.dart';
+import '../models/internal_account_model.dart';
 import '../models/company_settings_model.dart';
 import '../models/item_model.dart';
 import '../models/manufacturer_model.dart';
@@ -417,6 +418,25 @@ class SeedService {
           for (final el in mapElements) {
             await _db.into(_db.mapElements).insert(mapElementToCompanion(el));
           }
+        }
+
+        // --- Internal accounts ---
+        final userEntities = await (_db.select(_db.users)
+              ..where((u) => u.companyId.equals(companyId) & u.deletedAt.isNull()))
+            .get();
+
+        // Employee account for each user
+        for (final user in userEntities) {
+          await _db.into(_db.internalAccounts).insert(internalAccountToCompanion(InternalAccountModel(
+            id: _id(), companyId: companyId, name: user.fullName, userId: user.id, isActive: true, createdAt: now, updatedAt: now,
+          )));
+        }
+
+        // General accounts
+        for (final name in [t('Odpisy', 'Write-offs'), t('Reprezentace', 'Hospitality'), t('Úplatky', 'Bribes')]) {
+          await _db.into(_db.internalAccounts).insert(internalAccountToCompanion(InternalAccountModel(
+            id: _id(), companyId: companyId, name: name, isActive: true, createdAt: now, updatedAt: now,
+          )));
         }
       });
 

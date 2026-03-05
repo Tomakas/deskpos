@@ -47,6 +47,7 @@ class DialogZReport extends ConsumerWidget {
       discountsTotal: l.zReportDiscounts,
       billCountsTitle: l.zReportBillsPaid,
       billsPaid: l.zReportBillsPaid,
+      billsTransferred: l.zReportBillsTransferred,
       billsCancelled: l.zReportBillsCancelled,
       billsRefunded: l.zReportBillsRefunded,
       openBillsAtOpen: l.zReportOpenBillsAtOpen,
@@ -172,11 +173,13 @@ class DialogZReport extends ConsumerWidget {
                 ],
 
                 // --- Bill counts ---
-                _row(context, l.zReportBillsPaid, '${data.billsPaid}'),
+                _revenueRow(context, ref, l.zReportBillsPaid, data.billsPaidAmount, data.billsPaid),
+                if (data.billsTransferred > 0)
+                  _revenueRow(context, ref, l.zReportBillsTransferred, data.billsTransferredAmount, data.billsTransferred),
                 if (data.billsCancelled > 0)
-                  _row(context, l.zReportBillsCancelled, '${data.billsCancelled}'),
+                  _revenueRow(context, ref, l.zReportBillsCancelled, data.billsCancelledAmount, data.billsCancelled),
                 if (data.billsRefunded > 0)
-                  _row(context, l.zReportBillsRefunded, '${data.billsRefunded}'),
+                  _revenueRow(context, ref, l.zReportBillsRefunded, data.billsRefundedAmount, data.billsRefunded),
                 if (data.openBillsAtOpenCount > 0)
                   _row(context, l.zReportOpenBillsAtOpen,
                        '${data.openBillsAtOpenCount} (${ref.money(data.openBillsAtOpenAmount)})'),

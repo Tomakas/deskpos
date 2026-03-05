@@ -57,7 +57,13 @@ class ClosingSessionData {
     required this.totalRevenue,
     required this.totalTips,
     required this.billsPaid,
+    required this.billsPaidAmount,
+    required this.billsTransferred,
+    required this.billsTransferredAmount,
     required this.billsCancelled,
+    required this.billsCancelledAmount,
+    required this.billsRefunded,
+    required this.billsRefundedAmount,
     required this.cashDeposits,
     required this.cashWithdrawals,
     required this.openBillsCount,
@@ -83,7 +89,13 @@ class ClosingSessionData {
   final int totalTips;
 
   final int billsPaid;
+  final int billsPaidAmount;
+  final int billsTransferred;
+  final int billsTransferredAmount;
   final int billsCancelled;
+  final int billsCancelledAmount;
+  final int billsRefunded;
+  final int billsRefundedAmount;
 
   /// Total cash deposited during session, in haléře.
   final int cashDeposits;
@@ -460,9 +472,13 @@ class _DialogClosingSessionState extends ConsumerState<DialogClosingSession> {
         _row(l.closingOpenedBy, _data.openedByUserName),
         _row(l.closingDuration, formatDuration(duration,
             hm: l.durationHoursMinutes, hOnly: l.durationHoursOnly, mOnly: l.durationMinutesOnly)),
-        _row(l.closingBillsPaid, '${_data.billsPaid}'),
+        _revenueRow(l.closingBillsPaid, _data.billsPaidAmount, _data.billsPaid, theme),
+        if (_data.billsTransferred > 0)
+          _revenueRow(l.closingBillsTransferred, _data.billsTransferredAmount, _data.billsTransferred, theme),
         if (_data.billsCancelled > 0)
-          _row(l.closingBillsCancelled, '${_data.billsCancelled}'),
+          _revenueRow(l.closingBillsCancelled, _data.billsCancelledAmount, _data.billsCancelled, theme),
+        if (_data.billsRefunded > 0)
+          _revenueRow(l.closingBillsRefunded, _data.billsRefundedAmount, _data.billsRefunded, theme),
         if (_data.openBillsCount > 0)
           _row(l.closingOpenBills, '${_data.openBillsCount} (${ref.money(_data.openBillsAmount)})'),
       ],

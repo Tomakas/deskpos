@@ -82,6 +82,8 @@ class SyncService {
     'stock_levels',
     'stock_documents',
     'stock_movements',
+    'internal_accounts',
+    'internal_account_settlements',
   ];
 
   void startAutoSync(String companyId) {
@@ -299,6 +301,8 @@ class SyncService {
     'stock_documents' => _db.stockDocuments,
     'stock_movements' => _db.stockMovements,
     'display_devices' => _db.displayDevices,
+    'internal_accounts' => _db.internalAccounts,
+    'internal_account_settlements' => _db.internalAccountSettlements,
     _ => throw ArgumentError('Unknown Drift table: $tableName'),
   };
 }

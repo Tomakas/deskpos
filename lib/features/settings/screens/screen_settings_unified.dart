@@ -10,6 +10,7 @@ import '../widgets/fiscal_tab.dart';
 import '../widgets/floor_map_editor_tab.dart';
 import '../widgets/log_tab.dart';
 import '../widgets/mode_tab.dart';
+import '../widgets/internal_accounts_tab.dart';
 import '../widgets/payment_methods_tab.dart';
 import '../widgets/register_tab.dart';
 import '../widgets/peripherals_tab.dart';
@@ -44,6 +45,7 @@ class _ScreenSettingsUnifiedState extends ConsumerState<ScreenSettingsUnified>
     ref.listenManual(hasAnyPermissionInGroupProvider('settings_company'), (_, _) => _scheduleRebuild());
     ref.listenManual(hasAnyPermissionInGroupProvider('settings_venue'), (_, _) => _scheduleRebuild());
     ref.listenManual(hasAnyPermissionInGroupProvider('settings_register'), (_, _) => _scheduleRebuild());
+    ref.listenManual(hasAnyPermissionInGroupProvider('internal_accounts'), (_, _) => _scheduleRebuild());
     // Cross-group permissions that affect settings visibility.
     ref.listenManual(hasPermissionProvider('users.view'), (_, _) => _scheduleRebuild());
   }
@@ -85,6 +87,8 @@ class _ScreenSettingsUnifiedState extends ConsumerState<ScreenSettingsUnified>
             _InnerTabDef(l.settingsTaxRates, const TaxRatesTab()),
           if (p('settings_register.payment_methods'))
             _InnerTabDef(l.settingsPaymentMethods, const PaymentMethodsTab()),
+          if (p('internal_accounts.manage'))
+            _InnerTabDef(l.settingsTabInternalAccounts, const InternalAccountsTab()),
           if (p('settings_company.view_log'))
             _InnerTabDef(l.settingsTabLog, const LogTab()),
         ];

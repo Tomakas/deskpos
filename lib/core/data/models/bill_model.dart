@@ -36,6 +36,8 @@ abstract class BillModel with _$BillModel {
     @Default(0) int loyaltyPointsEarned,
     @Default(0) int voucherDiscountAmount,
     String? voucherId,
+    String? internalAccountId,
+    String? settlementId,
     required DateTime openedAt,
     DateTime? closedAt,
     int? mapPosX,

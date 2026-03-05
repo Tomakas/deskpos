@@ -39,8 +39,13 @@ class ZReportData {
     required this.taxBreakdown,
     required this.totalDiscounts,
     required this.billsPaid,
+    required this.billsPaidAmount,
     required this.billsCancelled,
+    required this.billsCancelledAmount,
     required this.billsRefunded,
+    required this.billsRefundedAmount,
+    required this.billsTransferred,
+    required this.billsTransferredAmount,
     required this.openingCash,
     required this.closingCash,
     required this.expectedCash,
@@ -73,8 +78,13 @@ class ZReportData {
   final List<TaxBreakdownRow> taxBreakdown;
   final int totalDiscounts;
   final int billsPaid;
+  final int billsPaidAmount;
   final int billsCancelled;
+  final int billsCancelledAmount;
   final int billsRefunded;
+  final int billsRefundedAmount;
+  final int billsTransferred;
+  final int billsTransferredAmount;
 
   /// All in minor units
   final int openingCash;

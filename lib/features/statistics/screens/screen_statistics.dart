@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../../core/data/enums/bill_status.dart';
 import '../../../core/data/enums/discount_type.dart';
 import '../../../core/data/models/bill_model.dart';
+import '../../../core/data/models/internal_account_settlement_model.dart';
 import '../../../core/data/models/order_item_model.dart';
 import '../../../core/data/models/order_item_modifier_model.dart';
 import '../../../core/data/models/shift_model.dart';
@@ -35,7 +37,7 @@ import '../widgets/dialog_shift_edit.dart';
 // Section enum
 // ---------------------------------------------------------------------------
 
-enum _StatSection { dashboard, receipts, sales, orders, shifts, zReports, tips }
+enum _StatSection { dashboard, receipts, sales, orders, shifts, zReports, tips, internalAccounts }
 
 // ---------------------------------------------------------------------------
 // Sort enums
@@ -170,6 +172,31 @@ class _OrderRow {
 }
 
 // ---------------------------------------------------------------------------
+// Internal account display row
+// ---------------------------------------------------------------------------
+
+class _InternalAccountRow {
+  _InternalAccountRow({
+    required this.accountId,
+    required this.accountName,
+    required this.unsettledCount,
+    required this.unsettledAmount,
+    required this.settledCount,
+    required this.settledAmount,
+    required this.transferredCount,
+    required this.transferredAmount,
+  });
+  final String accountId;
+  final String accountName;
+  final int unsettledCount;
+  final int unsettledAmount;
+  final int settledCount;
+  final int settledAmount;
+  final int transferredCount;
+  final int transferredAmount;
+}
+
+// ---------------------------------------------------------------------------
 // Screen
 // ---------------------------------------------------------------------------
 
@@ -232,6 +259,9 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
   List<_TipRow> _tipRows = [];
   List<_OrderRow> _orderRows = [];
 
+  // Internal accounts
+  List<_InternalAccountRow> _internalAccountRows = [];
+
   // Dashboard
   DashboardData? _dashboardData;
   bool _dashboardTopProductByRevenue = false;
@@ -243,6 +273,7 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
     _StatSection.shifts: 'stats.shifts',
     _StatSection.zReports: 'stats.z_reports',
     _StatSection.tips: 'stats.tips',
+    _StatSection.internalAccounts: 'internal_accounts.manage',
   };
 
   static const _sectionAllPermissions = {
@@ -352,6 +383,8 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
         await _loadZReports(company.id);
       case _StatSection.tips:
         await _loadTips(company.id);
+      case _StatSection.internalAccounts:
+        await _loadInternalAccounts(company.id);
     }
 
     if (mounted) setState(() => _loading = false);
@@ -740,6 +773,35 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
       amount: p.tipIncludedAmount,
     )).toList();
     setState(() => _tipRows = rows);
+  }
+
+  Future<void> _loadInternalAccounts(String companyId) async {
+    final accountRepo = ref.read(internalAccountRepositoryProvider);
+    final billRepo = ref.read(billRepositoryProvider);
+    final accounts = await accountRepo.getAll(companyId);
+    if (!mounted) return;
+
+    // Get all transferred bills (across all accounts) once
+    final allTransferred = await billRepo.getByStatus(companyId, BillStatus.transferred);
+
+    final rows = <_InternalAccountRow>[];
+    for (final account in accounts) {
+      final unsettled = await billRepo.getByInternalAccount(account.id, settled: false);
+      final settled = await billRepo.getByInternalAccount(account.id, settled: true);
+      final accountTransferred = allTransferred.where((b) => b.internalAccountId == account.id).toList();
+      rows.add(_InternalAccountRow(
+        accountId: account.id,
+        accountName: account.name,
+        unsettledCount: unsettled.length,
+        unsettledAmount: unsettled.fold(0, (s, b) => s + b.totalGross),
+        settledCount: settled.length,
+        settledAmount: settled.fold(0, (s, b) => s + b.totalGross),
+        transferredCount: accountTransferred.length,
+        transferredAmount: accountTransferred.fold(0, (s, b) => s + b.totalGross),
+      ));
+    }
+    if (!mounted) return;
+    setState(() => _internalAccountRows = rows);
   }
 
   Future<void> _loadDashboard(String companyId) async {
@@ -1369,6 +1431,8 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
           current: _tipSort,
           onSelected: (v) => setState(() => _tipSort = v),
         );
+      case _StatSection.internalAccounts:
+        return;
     }
   }
 
@@ -1422,7 +1486,7 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
 
   bool get _sectionHasFilter => switch (_section) {
     _StatSection.receipts || _StatSection.sales || _StatSection.orders || _StatSection.tips => true,
-    _ => false,
+    _StatSection.internalAccounts || _StatSection.dashboard || _StatSection.shifts || _StatSection.zReports => false,
   };
 
   bool get _hasActiveFilter =>
@@ -2021,6 +2085,17 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
           (l.statsTipTotal, ref.money(totalAmount)),
           (l.statsTipAvg, ref.money(avg)),
         ];
+      case _StatSection.internalAccounts:
+        final totalUnsettled = _internalAccountRows.fold(0, (s, r) => s + r.unsettledAmount);
+        final totalSettled = _internalAccountRows.fold(0, (s, r) => s + r.settledAmount);
+        final totalTransferred = _internalAccountRows.fold(0, (s, r) => s + r.transferredAmount);
+        final totalTransferredCount = _internalAccountRows.fold(0, (s, r) => s + r.transferredCount);
+        rows = [
+          (l.internalAccountCount, '${_internalAccountRows.length}'),
+          (l.internalAccountTransferredCount, '$totalTransferredCount (${ref.money(totalTransferred)})'),
+          (l.internalAccountUnsettled, ref.money(totalUnsettled)),
+          (l.internalAccountSettled, ref.money(totalSettled)),
+        ];
     }
 
     showDialog(
@@ -2221,6 +2296,7 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
       BillStatus.paid => l.billStatusPaid,
       BillStatus.cancelled => l.billStatusCancelled,
       BillStatus.refunded => l.billStatusRefunded,
+      BillStatus.transferred => l.billStatusTransferred,
     };
   }
 
@@ -2331,6 +2407,7 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
       _StatSection.shifts => l.statsTabShifts,
       _StatSection.zReports => l.statsTabZReports,
       _StatSection.tips => l.statsTabTips,
+      _StatSection.internalAccounts => l.statsTabInternalAccounts,
     };
 
     return Scaffold(
@@ -2428,6 +2505,8 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
         return _buildZReportsTable(l);
       case _StatSection.tips:
         return _buildTipsTable(l);
+      case _StatSection.internalAccounts:
+        return _buildInternalAccountsTable(l);
     }
   }
 
@@ -2733,5 +2812,314 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
       ],
       items: data,
     );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Internal Accounts tab
+  // ---------------------------------------------------------------------------
+
+  Widget _buildInternalAccountsTable(dynamic l) {
+    return PosTable<_InternalAccountRow>(
+      emptyMessage: l.statsEmpty,
+      onRowTap: (row) => _showInternalAccountDetail(row),
+      columns: [
+        PosColumn(
+          label: l.fieldName,
+          flex: 20,
+          cellBuilder: (r) => Text(r.accountName, overflow: TextOverflow.ellipsis),
+        ),
+        PosColumn(
+          label: l.internalAccountUnsettledCount,
+          flex: 8,
+          numeric: true,
+          cellBuilder: (r) => Text('${r.unsettledCount}', textAlign: TextAlign.right),
+        ),
+        PosColumn(
+          label: l.internalAccountUnsettled,
+          flex: 12,
+          numeric: true,
+          cellBuilder: (r) => Text(ref.money(r.unsettledAmount), textAlign: TextAlign.right),
+        ),
+        PosColumn(
+          label: l.internalAccountSettledCount,
+          flex: 8,
+          numeric: true,
+          cellBuilder: (r) => Text('${r.settledCount}', textAlign: TextAlign.right),
+        ),
+        PosColumn(
+          label: l.internalAccountSettled,
+          flex: 12,
+          numeric: true,
+          cellBuilder: (r) => Text(ref.money(r.settledAmount), textAlign: TextAlign.right),
+        ),
+      ],
+      items: _internalAccountRows,
+    );
+  }
+
+  Future<void> _showInternalAccountDetail(_InternalAccountRow row) async {
+    final l = context.l10n;
+    final billRepo = ref.read(billRepositoryProvider);
+    final settlementRepo = ref.read(internalAccountSettlementRepositoryProvider);
+    final unsettled = await billRepo.getByInternalAccount(row.accountId, settled: false);
+    final settled = await billRepo.getByInternalAccount(row.accountId, settled: true);
+    if (!mounted) return;
+
+    // Pre-load settlement info for settled bills
+    final settlementCache = <String, InternalAccountSettlementModel>{};
+    for (final bill in settled) {
+      if (bill.settlementId != null && !settlementCache.containsKey(bill.settlementId)) {
+        final s = await settlementRepo.getById(bill.settlementId!);
+        if (s != null) settlementCache[bill.settlementId!] = s;
+      }
+    }
+    if (!mounted) return;
+
+    final selected = <String>{};
+    var showSettled = false;
+
+    await showDialog(
+      context: context,
+      builder: (_) => StatefulBuilder(
+        builder: (ctx, setDialogState) {
+          final bills = showSettled ? settled : unsettled;
+          return PosDialogShell(
+            title: '${row.accountName} — ${l.statsTabInternalAccounts}',
+            maxWidth: 700,
+            scrollable: true,
+            showCloseButton: true,
+            bottomActions: PosDialogActions(
+              actions: [
+                OutlinedButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: Text(l.actionClose),
+                ),
+                if (!showSettled && selected.isNotEmpty) ...[
+                  FilledButton(
+                    onPressed: () => _settleSelected(ctx, row, selected, unsettled, 'paid'),
+                    child: Text(l.internalAccountSettlePaid),
+                  ),
+                  FilledButton(
+                    onPressed: () => _settleSelected(ctx, row, selected, unsettled, 'forgiven'),
+                    child: Text(l.internalAccountSettleForgiven),
+                  ),
+                  FilledButton(
+                    onPressed: () => _settleSelectedWithDiscount(
+                        ctx, row, selected, unsettled),
+                    child: Text(l.internalAccountSettleDiscount),
+                  ),
+                ],
+              ],
+            ),
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: SizedBox(
+                        height: 40,
+                        child: FilterChip(
+                          label: SizedBox(
+                            width: double.infinity,
+                            child: Text('${l.internalAccountUnsettled} (${unsettled.length})',
+                                textAlign: TextAlign.center),
+                          ),
+                          selected: !showSettled,
+                          onSelected: (_) => setDialogState(() {
+                            showSettled = false;
+                            selected.clear();
+                          }),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: SizedBox(
+                        height: 40,
+                        child: FilterChip(
+                          label: SizedBox(
+                            width: double.infinity,
+                            child: Text('${l.internalAccountSettled} (${settled.length})',
+                                textAlign: TextAlign.center),
+                          ),
+                          selected: showSettled,
+                          onSelected: (_) => setDialogState(() {
+                            showSettled = true;
+                            selected.clear();
+                          }),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (bills.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Text(l.statsEmpty),
+                ),
+              if (!showSettled)
+                for (final bill in bills)
+                  CheckboxListTile(
+                    value: selected.contains(bill.id),
+                    onChanged: (v) => setDialogState(() {
+                      if (v == true) {
+                        selected.add(bill.id);
+                      } else {
+                        selected.remove(bill.id);
+                      }
+                    }),
+                    title: Text('${bill.billNumber}  ${ref.money(bill.totalGross)}'),
+                    subtitle: bill.closedAt != null
+                        ? Text(ref.fmtDateTime(bill.closedAt!))
+                        : null,
+                  ),
+              if (showSettled)
+                for (final bill in bills)
+                  ListTile(
+                    title: Text('${bill.billNumber}  ${ref.money(bill.totalGross)}'),
+                    subtitle: Text.rich(TextSpan(children: [
+                      if (bill.closedAt != null)
+                        TextSpan(text: ref.fmtDateTime(bill.closedAt!)),
+                      if (bill.settlementId != null && settlementCache.containsKey(bill.settlementId)) ...[
+                        const TextSpan(text: '  ·  '),
+                        TextSpan(text: _settlementLabel(l, settlementCache[bill.settlementId!]!)),
+                      ],
+                    ])),
+                    enabled: false,
+                  ),
+            ],
+          );
+        },
+      ),
+    );
+
+    // Refresh after dialog closes
+    final company = ref.read(currentCompanyProvider);
+    if (company != null && mounted) {
+      await _loadInternalAccounts(company.id);
+      if (mounted) setState(() {});
+    }
+  }
+
+  String _settlementLabel(dynamic l, InternalAccountSettlementModel s) {
+    if (s.forgivenAmount > 0 && s.settledAmount == 0) {
+      return l.internalAccountSettledAsForgiven;
+    }
+    if (s.discountAmount > 0) {
+      return l.internalAccountSettledWithDiscount(ref.money(s.discountAmount));
+    }
+    return l.internalAccountSettledAsPaid;
+  }
+
+  Future<void> _settleSelected(
+    BuildContext ctx,
+    _InternalAccountRow row,
+    Set<String> selected,
+    List<BillModel> unsettled,
+    String type,
+  ) async {
+    final selectedBills = unsettled.where((b) => selected.contains(b.id)).toList();
+    final totalAmount = selectedBills.fold(0, (s, b) => s + b.totalGross);
+    final user = ref.read(activeUserProvider);
+    final company = ref.read(currentCompanyProvider)!;
+    final now = DateTime.now();
+
+    final settlement = InternalAccountSettlementModel(
+      id: const Uuid().v7(),
+      companyId: company.id,
+      internalAccountId: row.accountId,
+      settledByUserId: user?.id ?? '',
+      settledAt: now,
+      totalAmount: totalAmount,
+      settledAmount: type == 'paid' ? totalAmount : 0,
+      forgivenAmount: type == 'forgiven' ? totalAmount : 0,
+      discountAmount: 0,
+      createdAt: now,
+      updatedAt: now,
+    );
+
+    await ref.read(internalAccountSettlementRepositoryProvider).create(settlement);
+    await ref.read(billRepositoryProvider).settleBills(
+      selected.toList(),
+      settlement.id,
+    );
+
+    if (ctx.mounted) Navigator.pop(ctx);
+  }
+
+  Future<void> _settleSelectedWithDiscount(
+    BuildContext ctx,
+    _InternalAccountRow row,
+    Set<String> selected,
+    List<BillModel> unsettled,
+  ) async {
+    final l = context.l10n;
+    final selectedBills = unsettled.where((b) => selected.contains(b.id)).toList();
+    final totalAmount = selectedBills.fold(0, (s, b) => s + b.totalGross);
+
+    final discountCtrl = TextEditingController();
+    final discountAmount = await showDialog<int>(
+      context: ctx,
+      builder: (_) => PosDialogShell(
+        title: l.internalAccountSettleDiscount,
+        maxWidth: 300,
+        scrollable: true,
+        bottomActions: PosDialogActions(
+          actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(l.actionCancel),
+            ),
+            FilledButton(
+              onPressed: () {
+                final v = int.tryParse(discountCtrl.text) ?? 0;
+                Navigator.pop(ctx, v * 100); // Convert to cents
+              },
+              child: Text(l.actionConfirm),
+            ),
+          ],
+        ),
+        children: [
+          Text('${l.statsSummary}: ${ref.money(totalAmount)}'),
+          const SizedBox(height: 12),
+          TextField(
+            controller: discountCtrl,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(labelText: l.internalAccountDiscountAmount),
+          ),
+        ],
+      ),
+    );
+
+    if (discountAmount == null || !ctx.mounted) return;
+
+    final user = ref.read(activeUserProvider);
+    final company = ref.read(currentCompanyProvider)!;
+    final now = DateTime.now();
+    final settledAmount = totalAmount - discountAmount;
+
+    final settlement = InternalAccountSettlementModel(
+      id: const Uuid().v7(),
+      companyId: company.id,
+      internalAccountId: row.accountId,
+      settledByUserId: user?.id ?? '',
+      settledAt: now,
+      totalAmount: totalAmount,
+      settledAmount: settledAmount > 0 ? settledAmount : 0,
+      forgivenAmount: 0,
+      discountAmount: discountAmount,
+      createdAt: now,
+      updatedAt: now,
+    );
+
+    await ref.read(internalAccountSettlementRepositoryProvider).create(settlement);
+    await ref.read(billRepositoryProvider).settleBills(
+      selected.toList(),
+      settlement.id,
+    );
+
+    if (ctx.mounted) Navigator.pop(ctx);
   }
 }

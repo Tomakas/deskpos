@@ -50,22 +50,19 @@ class AiBillOrderToolHandler {
     String companyId,
   ) async {
     final status = args['status'] as String?;
-    final days = (args['days'] as num?)?.toInt();
+    final days = (args['days'] as num?)?.toInt() ?? 30; // Default to 30 days for AI
 
-    var bills = await _billRepo.getByCompany(companyId);
+    final since = DateTime.now().subtract(Duration(days: days));
+    final to = DateTime.now();
 
-    // Filter by status
+    var bills = await _billRepo.getPaidOrRefundedInRange(companyId, since, to);
+
+    // Filter by status if requested (beyond paid/refunded)
     if (status != null) {
       bills = bills.where((b) => b.status.name == status).toList();
     }
 
-    // Filter by date range
-    if (days != null) {
-      final since = DateTime.now().subtract(Duration(days: days));
-      bills = bills.where((b) => b.openedAt.isAfter(since)).toList();
-    }
-
-    // Limit to most recent 50
+    // Limit to most recent 50 to avoid context overflow
     if (bills.length > 50) {
       bills = bills.sublist(0, 50);
     }

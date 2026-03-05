@@ -45,6 +45,8 @@ const ALLOWED_TABLES = new Set([
   "stock_movements",
   "company_currencies",
   "session_currency_cash",
+  "internal_accounts",
+  "internal_account_settlements",
 ]);
 
 interface IngestRequest {

@@ -10,6 +10,8 @@ import 'tables/ai_messages.dart';
 import 'tables/ai_undo_logs.dart';
 import 'tables/bills.dart';
 import 'tables/cash_movements.dart';
+import 'tables/internal_accounts.dart';
+import 'tables/internal_account_settlements.dart';
 import 'tables/categories.dart';
 import 'tables/customer_transactions.dart';
 import 'tables/customers.dart';
@@ -62,6 +64,8 @@ part 'app_database.g.dart';
   AiUndoLogs,
   Bills,
   CashMovements,
+  InternalAccounts,
+  InternalAccountSettlements,
   Categories,
   Companies,
   CompanyCurrencies,
@@ -114,7 +118,7 @@ class AppDatabase extends _$AppDatabase {
   /// Bump this version whenever the schema changes during development.
   /// Drift will call [migration] which drops and recreates all tables.
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(

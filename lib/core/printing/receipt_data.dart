@@ -209,6 +209,7 @@ class ZReportLabels {
     required this.discountsTotal,
     required this.billCountsTitle,
     required this.billsPaid,
+    required this.billsTransferred,
     required this.billsCancelled,
     required this.billsRefunded,
     required this.openBillsAtOpen,
@@ -248,6 +249,7 @@ class ZReportLabels {
   final String discountsTotal;
   final String billCountsTitle;
   final String billsPaid;
+  final String billsTransferred;
   final String billsCancelled;
   final String billsRefunded;
   final String openBillsAtOpen;

@@ -24,6 +24,7 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
     required this.billPaid,
     required this.billCancelled,
     required this.billRefunded,
+    required this.billTransferred,
     // Indicators
     required this.activeIndicator,
     required this.inactiveIndicator,
@@ -55,6 +56,7 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
   final Color billPaid;
   final Color billCancelled;
   final Color billRefunded;
+  final Color billTransferred;
 
   // Indicators
   final Color activeIndicator;
@@ -85,6 +87,7 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
     Color? billPaid,
     Color? billCancelled,
     Color? billRefunded,
+    Color? billTransferred,
     Color? activeIndicator,
     Color? inactiveIndicator,
     Color? positive,
@@ -108,6 +111,7 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
       billPaid: billPaid ?? this.billPaid,
       billCancelled: billCancelled ?? this.billCancelled,
       billRefunded: billRefunded ?? this.billRefunded,
+      billTransferred: billTransferred ?? this.billTransferred,
       activeIndicator: activeIndicator ?? this.activeIndicator,
       inactiveIndicator: inactiveIndicator ?? this.inactiveIndicator,
       positive: positive ?? this.positive,
@@ -136,6 +140,7 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
       billPaid: Color.lerp(billPaid, other.billPaid, t)!,
       billCancelled: Color.lerp(billCancelled, other.billCancelled, t)!,
       billRefunded: Color.lerp(billRefunded, other.billRefunded, t)!,
+      billTransferred: Color.lerp(billTransferred, other.billTransferred, t)!,
       activeIndicator: Color.lerp(activeIndicator, other.activeIndicator, t)!,
       inactiveIndicator: Color.lerp(inactiveIndicator, other.inactiveIndicator, t)!,
       positive: Color.lerp(positive, other.positive, t)!,
@@ -164,6 +169,7 @@ const lightAppColors = AppColorsExtension(
   billPaid: Color(0xFF43A047),
   billCancelled: Color(0xFFEC407A),
   billRefunded: Color(0xFFFB8C00),
+  billTransferred: Color(0xFFFF9800),
   // Indicators
   activeIndicator: Color(0xFF43A047),
   inactiveIndicator: Color(0xFF9E9E9E),
@@ -193,6 +199,7 @@ const darkAppColors = AppColorsExtension(
   billPaid: Color(0xFF66BB6A),
   billCancelled: Color(0xFFF06292),
   billRefunded: Color(0xFFFFA726),
+  billTransferred: Color(0xFFFFB74D),
   // Indicators
   activeIndicator: Color(0xFF66BB6A),
   inactiveIndicator: Color(0xFF78909C),

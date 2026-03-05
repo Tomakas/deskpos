@@ -349,6 +349,8 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
         loyaltyPointsEarned: Value(json['loyalty_points_earned'] as int? ?? 0),
         voucherDiscountAmount: Value(json['voucher_discount_amount'] as int? ?? 0),
         voucherId: Value(json['voucher_id'] as String?),
+        internalAccountId: Value(json['internal_account_id'] as String?),
+        settlementId: Value(json['settlement_id'] as String?),
         openedAt: Value(_requireDateTime(json['opened_at'])),
         closedAt: Value(_parseDateTime(json['closed_at'])),
         mapPosX: Value(json['map_pos_x'] as int?),
@@ -935,6 +937,41 @@ Insertable fromSupabasePull(String tableName, Map<String, dynamic> json) {
         unitPrice: Value(json['unit_price'] as int),
         taxRate: Value(json['tax_rate'] as int),
         taxAmount: Value(json['tax_amount'] as int),
+        createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
+        updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
+        deletedAt: Value(_parseDateTime(json['deleted_at'])),
+        serverCreatedAt: Value(_parseDateTime(json['created_at'])),
+        serverUpdatedAt: Value(_parseDateTime(json['updated_at'])),
+        lastSyncedAt: Value(now),
+      );
+
+    case 'internal_accounts':
+      return InternalAccountsCompanion(
+        id: Value(json['id'] as String),
+        companyId: Value(json['company_id'] as String),
+        name: Value(json['name'] as String),
+        userId: Value(json['user_id'] as String?),
+        isActive: Value(json['is_active'] as bool? ?? true),
+        createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
+        updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
+        deletedAt: Value(_parseDateTime(json['deleted_at'])),
+        serverCreatedAt: Value(_parseDateTime(json['created_at'])),
+        serverUpdatedAt: Value(_parseDateTime(json['updated_at'])),
+        lastSyncedAt: Value(now),
+      );
+
+    case 'internal_account_settlements':
+      return InternalAccountSettlementsCompanion(
+        id: Value(json['id'] as String),
+        companyId: Value(json['company_id'] as String),
+        internalAccountId: Value(json['internal_account_id'] as String),
+        settledByUserId: Value(json['settled_by_user_id'] as String),
+        settledAt: Value(_requireDateTime(json['settled_at'])),
+        totalAmount: Value(json['total_amount'] as int? ?? 0),
+        settledAmount: Value(json['settled_amount'] as int? ?? 0),
+        forgivenAmount: Value(json['forgiven_amount'] as int? ?? 0),
+        discountAmount: Value(json['discount_amount'] as int? ?? 0),
+        note: Value(json['note'] as String?),
         createdAt: Value(_parseDateTime(json['client_created_at']) ?? now),
         updatedAt: Value(_parseDateTime(json['client_updated_at']) ?? now),
         deletedAt: Value(_parseDateTime(json['deleted_at'])),

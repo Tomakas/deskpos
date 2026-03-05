@@ -140,6 +140,66 @@ class BillRepository {
     return entities.map(billFromEntity).toList();
   }
 
+  Future<List<BillModel>> getTransferredInRange(String companyId, DateTime from, DateTime to) async {
+    final entities = await (_db.select(_db.bills)
+          ..where((t) =>
+              t.companyId.equals(companyId) &
+              t.status.equals(BillStatus.transferred.name) &
+              t.closedAt.isNotNull() &
+              t.closedAt.isBiggerOrEqualValue(from) &
+              t.closedAt.isSmallerOrEqualValue(to) &
+              t.deletedAt.isNull())
+          ..orderBy([(t) => OrderingTerm.desc(t.closedAt)]))
+        .get();
+    return entities.map(billFromEntity).toList();
+  }
+
+  Future<List<BillModel>> getBySession(String companyId, String sessionId) async {
+    final entities = await (_db.select(_db.bills)
+          ..where((t) =>
+              t.companyId.equals(companyId) &
+              t.registerSessionId.equals(sessionId) &
+              t.deletedAt.isNull())
+          ..orderBy([(t) => OrderingTerm.desc(t.openedAt)]))
+        .get();
+    return entities.map(billFromEntity).toList();
+  }
+
+  Future<List<BillModel>> getBySessionTimeframe(String companyId, DateTime openedAt, DateTime? closedAt) async {
+    final entities = await (_db.select(_db.bills)
+          ..where((t) =>
+              t.companyId.equals(companyId) &
+              t.closedAt.isNotNull() &
+              t.closedAt.isBiggerThanValue(openedAt) &
+              (closedAt != null
+                  ? t.closedAt.isSmallerOrEqualValue(closedAt)
+                  : const Constant(true)) &
+              t.deletedAt.isNull())
+          ..orderBy([(t) => OrderingTerm.desc(t.closedAt)]))
+        .get();
+    return entities.map(billFromEntity).toList();
+  }
+
+  Future<bool> hasAnyBills(String companyId) async {
+    final query = _db.selectOnly(_db.bills)
+      ..addColumns([_db.bills.id])
+      ..where(_db.bills.companyId.equals(companyId) & _db.bills.deletedAt.isNull())
+      ..limit(1);
+    final row = await query.getSingleOrNull();
+    return row != null;
+  }
+
+  Future<List<BillModel>> getByStatus(String companyId, BillStatus status) async {
+    final entities = await (_db.select(_db.bills)
+          ..where((t) =>
+              t.companyId.equals(companyId) &
+              t.status.equals(status.name) &
+              t.deletedAt.isNull())
+          ..orderBy([(t) => OrderingTerm.desc(t.openedAt)]))
+        .get();
+    return entities.map(billFromEntity).toList();
+  }
+
   Stream<List<BillModel>> watchByStatus(String companyId, BillStatus status) {
     return (_db.select(_db.bills)
           ..where((t) =>
@@ -657,13 +717,41 @@ class BillRepository {
     String billId, {
     required String? tableId,
     required int numberOfGuests,
+    String? customerId,
+    String? customerName,
+    bool clearCustomer = false,
   }) async {
     try {
       return await _db.transaction(() async {
+        // Guard: cannot change customer after loyalty or payment
+        if (clearCustomer || customerId != null || customerName != null) {
+          final existing = await (_db.select(_db.bills)
+                ..where((t) => t.id.equals(billId)))
+              .getSingle();
+          if (existing.loyaltyPointsUsed > 0 || existing.paidAmount > 0) {
+            return const Failure('Cannot change customer after loyalty or payment has been applied');
+          }
+        }
+
+        final Value<String?> customerIdValue;
+        final Value<String?> customerNameValue;
+        if (clearCustomer) {
+          customerIdValue = const Value(null);
+          customerNameValue = const Value(null);
+        } else if (customerId != null || customerName != null) {
+          customerIdValue = Value(customerId);
+          customerNameValue = Value(customerName);
+        } else {
+          customerIdValue = const Value.absent();
+          customerNameValue = const Value.absent();
+        }
+
         await (_db.update(_db.bills)..where((t) => t.id.equals(billId))).write(
           BillsCompanion(
             tableId: Value(tableId),
             numberOfGuests: Value(numberOfGuests),
+            customerId: customerIdValue,
+            customerName: customerNameValue,
             isTakeaway: const Value(false),
             mapPosX: const Value(null),
             mapPosY: const Value(null),
@@ -1250,5 +1338,81 @@ class BillRepository {
       operation: operation,
       payload: jsonEncode(cashMovementToSupabaseJson(m)),
     );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Internal accounts
+  // ---------------------------------------------------------------------------
+
+  /// Transfer a bill to an internal account: set status to transferred, no payment record.
+  Future<Result<BillModel>> transferToInternalAccount({
+    required String companyId,
+    required String billId,
+    required String internalAccountId,
+    String? userId,
+  }) async {
+    try {
+      final now = DateTime.now();
+
+      final updatedBill = await _db.transaction(() async {
+        // Close bill as transferred + set internalAccountId
+        await (_db.update(_db.bills)..where((t) => t.id.equals(billId))).write(
+          BillsCompanion(
+            status: const Value(BillStatus.transferred),
+            closedAt: Value(now),
+            internalAccountId: Value(internalAccountId),
+            updatedAt: Value(now),
+          ),
+        );
+
+        // Enqueue bill
+        final entity = await (_db.select(_db.bills)
+              ..where((t) => t.id.equals(billId)))
+            .getSingle();
+        final b = billFromEntity(entity);
+        await _enqueueBill('update', b);
+        return b;
+      });
+
+      return Success(updatedBill);
+    } catch (e, s) {
+      AppLogger.error('Failed to transfer bill to internal account', error: e, stackTrace: s);
+      return Failure('Failed to transfer bill to internal account: $e');
+    }
+  }
+
+  /// Get bills assigned to a specific internal account.
+  Future<List<BillModel>> getByInternalAccount(String internalAccountId, {bool? settled}) async {
+    final query = _db.select(_db.bills)
+      ..where((t) =>
+          t.internalAccountId.equals(internalAccountId) &
+          t.deletedAt.isNull());
+    if (settled == true) {
+      query.where((t) => t.settlementId.isNotNull());
+    } else if (settled == false) {
+      query.where((t) => t.settlementId.isNull());
+    }
+    query.orderBy([(t) => OrderingTerm.desc(t.closedAt)]);
+    final entities = await query.get();
+    return entities.map(billFromEntity).toList();
+  }
+
+  /// Mark bills as settled by assigning a settlementId.
+  Future<void> settleBills(List<String> billIds, String settlementId) async {
+    final now = DateTime.now();
+    await _db.transaction(() async {
+      for (final billId in billIds) {
+        await (_db.update(_db.bills)..where((t) => t.id.equals(billId))).write(
+          BillsCompanion(
+            settlementId: Value(settlementId),
+            updatedAt: Value(now),
+          ),
+        );
+        final entity = await (_db.select(_db.bills)
+              ..where((t) => t.id.equals(billId)))
+            .getSingle();
+        await _enqueueBill('update', billFromEntity(entity));
+      }
+    });
   }
 }

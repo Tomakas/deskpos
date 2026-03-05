@@ -2690,6 +2690,29 @@ class $BillsTable extends Bills with TableInfo<$BillsTable, Bill> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _internalAccountIdMeta = const VerificationMeta(
+    'internalAccountId',
+  );
+  @override
+  late final GeneratedColumn<String> internalAccountId =
+      GeneratedColumn<String>(
+        'internal_account_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _settlementIdMeta = const VerificationMeta(
+    'settlementId',
+  );
+  @override
+  late final GeneratedColumn<String> settlementId = GeneratedColumn<String>(
+    'settlement_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _openedAtMeta = const VerificationMeta(
     'openedAt',
   );
@@ -2771,6 +2794,8 @@ class $BillsTable extends Bills with TableInfo<$BillsTable, Bill> {
     loyaltyPointsEarned,
     voucherDiscountAmount,
     voucherId,
+    internalAccountId,
+    settlementId,
     openedAt,
     closedAt,
     mapPosX,
@@ -3041,6 +3066,24 @@ class $BillsTable extends Bills with TableInfo<$BillsTable, Bill> {
         voucherId.isAcceptableOrUnknown(data['voucher_id']!, _voucherIdMeta),
       );
     }
+    if (data.containsKey('internal_account_id')) {
+      context.handle(
+        _internalAccountIdMeta,
+        internalAccountId.isAcceptableOrUnknown(
+          data['internal_account_id']!,
+          _internalAccountIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('settlement_id')) {
+      context.handle(
+        _settlementIdMeta,
+        settlementId.isAcceptableOrUnknown(
+          data['settlement_id']!,
+          _settlementIdMeta,
+        ),
+      );
+    }
     if (data.containsKey('opened_at')) {
       context.handle(
         _openedAtMeta,
@@ -3220,6 +3263,14 @@ class $BillsTable extends Bills with TableInfo<$BillsTable, Bill> {
         DriftSqlType.string,
         data['${effectivePrefix}voucher_id'],
       ),
+      internalAccountId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}internal_account_id'],
+      ),
+      settlementId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}settlement_id'],
+      ),
       openedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}opened_at'],
@@ -3292,6 +3343,8 @@ class Bill extends DataClass implements Insertable<Bill> {
   final int loyaltyPointsEarned;
   final int voucherDiscountAmount;
   final String? voucherId;
+  final String? internalAccountId;
+  final String? settlementId;
   final DateTime openedAt;
   final DateTime? closedAt;
   final int? mapPosX;
@@ -3332,6 +3385,8 @@ class Bill extends DataClass implements Insertable<Bill> {
     required this.loyaltyPointsEarned,
     required this.voucherDiscountAmount,
     this.voucherId,
+    this.internalAccountId,
+    this.settlementId,
     required this.openedAt,
     this.closedAt,
     this.mapPosX,
@@ -3406,6 +3461,12 @@ class Bill extends DataClass implements Insertable<Bill> {
     map['voucher_discount_amount'] = Variable<int>(voucherDiscountAmount);
     if (!nullToAbsent || voucherId != null) {
       map['voucher_id'] = Variable<String>(voucherId);
+    }
+    if (!nullToAbsent || internalAccountId != null) {
+      map['internal_account_id'] = Variable<String>(internalAccountId);
+    }
+    if (!nullToAbsent || settlementId != null) {
+      map['settlement_id'] = Variable<String>(settlementId);
     }
     map['opened_at'] = Variable<DateTime>(openedAt);
     if (!nullToAbsent || closedAt != null) {
@@ -3483,6 +3544,12 @@ class Bill extends DataClass implements Insertable<Bill> {
       voucherId: voucherId == null && nullToAbsent
           ? const Value.absent()
           : Value(voucherId),
+      internalAccountId: internalAccountId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(internalAccountId),
+      settlementId: settlementId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(settlementId),
       openedAt: Value(openedAt),
       closedAt: closedAt == null && nullToAbsent
           ? const Value.absent()
@@ -3549,6 +3616,10 @@ class Bill extends DataClass implements Insertable<Bill> {
         json['voucherDiscountAmount'],
       ),
       voucherId: serializer.fromJson<String?>(json['voucherId']),
+      internalAccountId: serializer.fromJson<String?>(
+        json['internalAccountId'],
+      ),
+      settlementId: serializer.fromJson<String?>(json['settlementId']),
       openedAt: serializer.fromJson<DateTime>(json['openedAt']),
       closedAt: serializer.fromJson<DateTime?>(json['closedAt']),
       mapPosX: serializer.fromJson<int?>(json['mapPosX']),
@@ -3598,6 +3669,8 @@ class Bill extends DataClass implements Insertable<Bill> {
       'loyaltyPointsEarned': serializer.toJson<int>(loyaltyPointsEarned),
       'voucherDiscountAmount': serializer.toJson<int>(voucherDiscountAmount),
       'voucherId': serializer.toJson<String?>(voucherId),
+      'internalAccountId': serializer.toJson<String?>(internalAccountId),
+      'settlementId': serializer.toJson<String?>(settlementId),
       'openedAt': serializer.toJson<DateTime>(openedAt),
       'closedAt': serializer.toJson<DateTime?>(closedAt),
       'mapPosX': serializer.toJson<int?>(mapPosX),
@@ -3641,6 +3714,8 @@ class Bill extends DataClass implements Insertable<Bill> {
     int? loyaltyPointsEarned,
     int? voucherDiscountAmount,
     Value<String?> voucherId = const Value.absent(),
+    Value<String?> internalAccountId = const Value.absent(),
+    Value<String?> settlementId = const Value.absent(),
     DateTime? openedAt,
     Value<DateTime?> closedAt = const Value.absent(),
     Value<int?> mapPosX = const Value.absent(),
@@ -3689,6 +3764,10 @@ class Bill extends DataClass implements Insertable<Bill> {
     loyaltyPointsEarned: loyaltyPointsEarned ?? this.loyaltyPointsEarned,
     voucherDiscountAmount: voucherDiscountAmount ?? this.voucherDiscountAmount,
     voucherId: voucherId.present ? voucherId.value : this.voucherId,
+    internalAccountId: internalAccountId.present
+        ? internalAccountId.value
+        : this.internalAccountId,
+    settlementId: settlementId.present ? settlementId.value : this.settlementId,
     openedAt: openedAt ?? this.openedAt,
     closedAt: closedAt.present ? closedAt.value : this.closedAt,
     mapPosX: mapPosX.present ? mapPosX.value : this.mapPosX,
@@ -3779,6 +3858,12 @@ class Bill extends DataClass implements Insertable<Bill> {
           ? data.voucherDiscountAmount.value
           : this.voucherDiscountAmount,
       voucherId: data.voucherId.present ? data.voucherId.value : this.voucherId,
+      internalAccountId: data.internalAccountId.present
+          ? data.internalAccountId.value
+          : this.internalAccountId,
+      settlementId: data.settlementId.present
+          ? data.settlementId.value
+          : this.settlementId,
       openedAt: data.openedAt.present ? data.openedAt.value : this.openedAt,
       closedAt: data.closedAt.present ? data.closedAt.value : this.closedAt,
       mapPosX: data.mapPosX.present ? data.mapPosX.value : this.mapPosX,
@@ -3824,6 +3909,8 @@ class Bill extends DataClass implements Insertable<Bill> {
           ..write('loyaltyPointsEarned: $loyaltyPointsEarned, ')
           ..write('voucherDiscountAmount: $voucherDiscountAmount, ')
           ..write('voucherId: $voucherId, ')
+          ..write('internalAccountId: $internalAccountId, ')
+          ..write('settlementId: $settlementId, ')
           ..write('openedAt: $openedAt, ')
           ..write('closedAt: $closedAt, ')
           ..write('mapPosX: $mapPosX, ')
@@ -3869,6 +3956,8 @@ class Bill extends DataClass implements Insertable<Bill> {
     loyaltyPointsEarned,
     voucherDiscountAmount,
     voucherId,
+    internalAccountId,
+    settlementId,
     openedAt,
     closedAt,
     mapPosX,
@@ -3913,6 +4002,8 @@ class Bill extends DataClass implements Insertable<Bill> {
           other.loyaltyPointsEarned == this.loyaltyPointsEarned &&
           other.voucherDiscountAmount == this.voucherDiscountAmount &&
           other.voucherId == this.voucherId &&
+          other.internalAccountId == this.internalAccountId &&
+          other.settlementId == this.settlementId &&
           other.openedAt == this.openedAt &&
           other.closedAt == this.closedAt &&
           other.mapPosX == this.mapPosX &&
@@ -3955,6 +4046,8 @@ class BillsCompanion extends UpdateCompanion<Bill> {
   final Value<int> loyaltyPointsEarned;
   final Value<int> voucherDiscountAmount;
   final Value<String?> voucherId;
+  final Value<String?> internalAccountId;
+  final Value<String?> settlementId;
   final Value<DateTime> openedAt;
   final Value<DateTime?> closedAt;
   final Value<int?> mapPosX;
@@ -3996,6 +4089,8 @@ class BillsCompanion extends UpdateCompanion<Bill> {
     this.loyaltyPointsEarned = const Value.absent(),
     this.voucherDiscountAmount = const Value.absent(),
     this.voucherId = const Value.absent(),
+    this.internalAccountId = const Value.absent(),
+    this.settlementId = const Value.absent(),
     this.openedAt = const Value.absent(),
     this.closedAt = const Value.absent(),
     this.mapPosX = const Value.absent(),
@@ -4038,6 +4133,8 @@ class BillsCompanion extends UpdateCompanion<Bill> {
     this.loyaltyPointsEarned = const Value.absent(),
     this.voucherDiscountAmount = const Value.absent(),
     this.voucherId = const Value.absent(),
+    this.internalAccountId = const Value.absent(),
+    this.settlementId = const Value.absent(),
     required DateTime openedAt,
     this.closedAt = const Value.absent(),
     this.mapPosX = const Value.absent(),
@@ -4086,6 +4183,8 @@ class BillsCompanion extends UpdateCompanion<Bill> {
     Expression<int>? loyaltyPointsEarned,
     Expression<int>? voucherDiscountAmount,
     Expression<String>? voucherId,
+    Expression<String>? internalAccountId,
+    Expression<String>? settlementId,
     Expression<DateTime>? openedAt,
     Expression<DateTime>? closedAt,
     Expression<int>? mapPosX,
@@ -4131,6 +4230,8 @@ class BillsCompanion extends UpdateCompanion<Bill> {
       if (voucherDiscountAmount != null)
         'voucher_discount_amount': voucherDiscountAmount,
       if (voucherId != null) 'voucher_id': voucherId,
+      if (internalAccountId != null) 'internal_account_id': internalAccountId,
+      if (settlementId != null) 'settlement_id': settlementId,
       if (openedAt != null) 'opened_at': openedAt,
       if (closedAt != null) 'closed_at': closedAt,
       if (mapPosX != null) 'map_pos_x': mapPosX,
@@ -4175,6 +4276,8 @@ class BillsCompanion extends UpdateCompanion<Bill> {
     Value<int>? loyaltyPointsEarned,
     Value<int>? voucherDiscountAmount,
     Value<String?>? voucherId,
+    Value<String?>? internalAccountId,
+    Value<String?>? settlementId,
     Value<DateTime>? openedAt,
     Value<DateTime?>? closedAt,
     Value<int?>? mapPosX,
@@ -4219,6 +4322,8 @@ class BillsCompanion extends UpdateCompanion<Bill> {
       voucherDiscountAmount:
           voucherDiscountAmount ?? this.voucherDiscountAmount,
       voucherId: voucherId ?? this.voucherId,
+      internalAccountId: internalAccountId ?? this.internalAccountId,
+      settlementId: settlementId ?? this.settlementId,
       openedAt: openedAt ?? this.openedAt,
       closedAt: closedAt ?? this.closedAt,
       mapPosX: mapPosX ?? this.mapPosX,
@@ -4343,6 +4448,12 @@ class BillsCompanion extends UpdateCompanion<Bill> {
     if (voucherId.present) {
       map['voucher_id'] = Variable<String>(voucherId.value);
     }
+    if (internalAccountId.present) {
+      map['internal_account_id'] = Variable<String>(internalAccountId.value);
+    }
+    if (settlementId.present) {
+      map['settlement_id'] = Variable<String>(settlementId.value);
+    }
     if (openedAt.present) {
       map['opened_at'] = Variable<DateTime>(openedAt.value);
     }
@@ -4399,6 +4510,8 @@ class BillsCompanion extends UpdateCompanion<Bill> {
           ..write('loyaltyPointsEarned: $loyaltyPointsEarned, ')
           ..write('voucherDiscountAmount: $voucherDiscountAmount, ')
           ..write('voucherId: $voucherId, ')
+          ..write('internalAccountId: $internalAccountId, ')
+          ..write('settlementId: $settlementId, ')
           ..write('openedAt: $openedAt, ')
           ..write('closedAt: $closedAt, ')
           ..write('mapPosX: $mapPosX, ')
@@ -5279,6 +5392,1718 @@ class CashMovementsCompanion extends UpdateCompanion<CashMovement> {
           ..write('amount: $amount, ')
           ..write('reason: $reason, ')
           ..write('currencyId: $currencyId, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $InternalAccountsTable extends InternalAccounts
+    with TableInfo<$InternalAccountsTable, InternalAccount> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $InternalAccountsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _lastSyncedAtMeta = const VerificationMeta(
+    'lastSyncedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> lastSyncedAt = GeneratedColumn<DateTime>(
+    'last_synced_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _versionMeta = const VerificationMeta(
+    'version',
+  );
+  @override
+  late final GeneratedColumn<int> version = GeneratedColumn<int>(
+    'version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _serverCreatedAtMeta = const VerificationMeta(
+    'serverCreatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> serverCreatedAt =
+      GeneratedColumn<DateTime>(
+        'server_created_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _serverUpdatedAtMeta = const VerificationMeta(
+    'serverUpdatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> serverUpdatedAt =
+      GeneratedColumn<DateTime>(
+        'server_updated_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _companyIdMeta = const VerificationMeta(
+    'companyId',
+  );
+  @override
+  late final GeneratedColumn<String> companyId = GeneratedColumn<String>(
+    'company_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _isActiveMeta = const VerificationMeta(
+    'isActive',
+  );
+  @override
+  late final GeneratedColumn<bool> isActive = GeneratedColumn<bool>(
+    'is_active',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_active" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    lastSyncedAt,
+    version,
+    serverCreatedAt,
+    serverUpdatedAt,
+    createdAt,
+    updatedAt,
+    deletedAt,
+    id,
+    companyId,
+    name,
+    userId,
+    isActive,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'internal_accounts';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<InternalAccount> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('last_synced_at')) {
+      context.handle(
+        _lastSyncedAtMeta,
+        lastSyncedAt.isAcceptableOrUnknown(
+          data['last_synced_at']!,
+          _lastSyncedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('version')) {
+      context.handle(
+        _versionMeta,
+        version.isAcceptableOrUnknown(data['version']!, _versionMeta),
+      );
+    }
+    if (data.containsKey('server_created_at')) {
+      context.handle(
+        _serverCreatedAtMeta,
+        serverCreatedAt.isAcceptableOrUnknown(
+          data['server_created_at']!,
+          _serverCreatedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('server_updated_at')) {
+      context.handle(
+        _serverUpdatedAtMeta,
+        serverUpdatedAt.isAcceptableOrUnknown(
+          data['server_updated_at']!,
+          _serverUpdatedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('company_id')) {
+      context.handle(
+        _companyIdMeta,
+        companyId.isAcceptableOrUnknown(data['company_id']!, _companyIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_companyIdMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
+    }
+    if (data.containsKey('is_active')) {
+      context.handle(
+        _isActiveMeta,
+        isActive.isAcceptableOrUnknown(data['is_active']!, _isActiveMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  InternalAccount map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return InternalAccount(
+      lastSyncedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_synced_at'],
+      ),
+      version: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}version'],
+      )!,
+      serverCreatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}server_created_at'],
+      ),
+      serverUpdatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}server_updated_at'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      companyId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}company_id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_id'],
+      ),
+      isActive: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_active'],
+      )!,
+    );
+  }
+
+  @override
+  $InternalAccountsTable createAlias(String alias) {
+    return $InternalAccountsTable(attachedDatabase, alias);
+  }
+}
+
+class InternalAccount extends DataClass implements Insertable<InternalAccount> {
+  final DateTime? lastSyncedAt;
+  final int version;
+  final DateTime? serverCreatedAt;
+  final DateTime? serverUpdatedAt;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  final String id;
+  final String companyId;
+  final String name;
+  final String? userId;
+  final bool isActive;
+  const InternalAccount({
+    this.lastSyncedAt,
+    required this.version,
+    this.serverCreatedAt,
+    this.serverUpdatedAt,
+    required this.createdAt,
+    required this.updatedAt,
+    this.deletedAt,
+    required this.id,
+    required this.companyId,
+    required this.name,
+    this.userId,
+    required this.isActive,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (!nullToAbsent || lastSyncedAt != null) {
+      map['last_synced_at'] = Variable<DateTime>(lastSyncedAt);
+    }
+    map['version'] = Variable<int>(version);
+    if (!nullToAbsent || serverCreatedAt != null) {
+      map['server_created_at'] = Variable<DateTime>(serverCreatedAt);
+    }
+    if (!nullToAbsent || serverUpdatedAt != null) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    map['id'] = Variable<String>(id);
+    map['company_id'] = Variable<String>(companyId);
+    map['name'] = Variable<String>(name);
+    if (!nullToAbsent || userId != null) {
+      map['user_id'] = Variable<String>(userId);
+    }
+    map['is_active'] = Variable<bool>(isActive);
+    return map;
+  }
+
+  InternalAccountsCompanion toCompanion(bool nullToAbsent) {
+    return InternalAccountsCompanion(
+      lastSyncedAt: lastSyncedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastSyncedAt),
+      version: Value(version),
+      serverCreatedAt: serverCreatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(serverCreatedAt),
+      serverUpdatedAt: serverUpdatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(serverUpdatedAt),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+      id: Value(id),
+      companyId: Value(companyId),
+      name: Value(name),
+      userId: userId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(userId),
+      isActive: Value(isActive),
+    );
+  }
+
+  factory InternalAccount.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return InternalAccount(
+      lastSyncedAt: serializer.fromJson<DateTime?>(json['lastSyncedAt']),
+      version: serializer.fromJson<int>(json['version']),
+      serverCreatedAt: serializer.fromJson<DateTime?>(json['serverCreatedAt']),
+      serverUpdatedAt: serializer.fromJson<DateTime?>(json['serverUpdatedAt']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      id: serializer.fromJson<String>(json['id']),
+      companyId: serializer.fromJson<String>(json['companyId']),
+      name: serializer.fromJson<String>(json['name']),
+      userId: serializer.fromJson<String?>(json['userId']),
+      isActive: serializer.fromJson<bool>(json['isActive']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'lastSyncedAt': serializer.toJson<DateTime?>(lastSyncedAt),
+      'version': serializer.toJson<int>(version),
+      'serverCreatedAt': serializer.toJson<DateTime?>(serverCreatedAt),
+      'serverUpdatedAt': serializer.toJson<DateTime?>(serverUpdatedAt),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'id': serializer.toJson<String>(id),
+      'companyId': serializer.toJson<String>(companyId),
+      'name': serializer.toJson<String>(name),
+      'userId': serializer.toJson<String?>(userId),
+      'isActive': serializer.toJson<bool>(isActive),
+    };
+  }
+
+  InternalAccount copyWith({
+    Value<DateTime?> lastSyncedAt = const Value.absent(),
+    int? version,
+    Value<DateTime?> serverCreatedAt = const Value.absent(),
+    Value<DateTime?> serverUpdatedAt = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+    String? id,
+    String? companyId,
+    String? name,
+    Value<String?> userId = const Value.absent(),
+    bool? isActive,
+  }) => InternalAccount(
+    lastSyncedAt: lastSyncedAt.present ? lastSyncedAt.value : this.lastSyncedAt,
+    version: version ?? this.version,
+    serverCreatedAt: serverCreatedAt.present
+        ? serverCreatedAt.value
+        : this.serverCreatedAt,
+    serverUpdatedAt: serverUpdatedAt.present
+        ? serverUpdatedAt.value
+        : this.serverUpdatedAt,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+    id: id ?? this.id,
+    companyId: companyId ?? this.companyId,
+    name: name ?? this.name,
+    userId: userId.present ? userId.value : this.userId,
+    isActive: isActive ?? this.isActive,
+  );
+  InternalAccount copyWithCompanion(InternalAccountsCompanion data) {
+    return InternalAccount(
+      lastSyncedAt: data.lastSyncedAt.present
+          ? data.lastSyncedAt.value
+          : this.lastSyncedAt,
+      version: data.version.present ? data.version.value : this.version,
+      serverCreatedAt: data.serverCreatedAt.present
+          ? data.serverCreatedAt.value
+          : this.serverCreatedAt,
+      serverUpdatedAt: data.serverUpdatedAt.present
+          ? data.serverUpdatedAt.value
+          : this.serverUpdatedAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      id: data.id.present ? data.id.value : this.id,
+      companyId: data.companyId.present ? data.companyId.value : this.companyId,
+      name: data.name.present ? data.name.value : this.name,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      isActive: data.isActive.present ? data.isActive.value : this.isActive,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('InternalAccount(')
+          ..write('lastSyncedAt: $lastSyncedAt, ')
+          ..write('version: $version, ')
+          ..write('serverCreatedAt: $serverCreatedAt, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('id: $id, ')
+          ..write('companyId: $companyId, ')
+          ..write('name: $name, ')
+          ..write('userId: $userId, ')
+          ..write('isActive: $isActive')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    lastSyncedAt,
+    version,
+    serverCreatedAt,
+    serverUpdatedAt,
+    createdAt,
+    updatedAt,
+    deletedAt,
+    id,
+    companyId,
+    name,
+    userId,
+    isActive,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is InternalAccount &&
+          other.lastSyncedAt == this.lastSyncedAt &&
+          other.version == this.version &&
+          other.serverCreatedAt == this.serverCreatedAt &&
+          other.serverUpdatedAt == this.serverUpdatedAt &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt &&
+          other.id == this.id &&
+          other.companyId == this.companyId &&
+          other.name == this.name &&
+          other.userId == this.userId &&
+          other.isActive == this.isActive);
+}
+
+class InternalAccountsCompanion extends UpdateCompanion<InternalAccount> {
+  final Value<DateTime?> lastSyncedAt;
+  final Value<int> version;
+  final Value<DateTime?> serverCreatedAt;
+  final Value<DateTime?> serverUpdatedAt;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<String> id;
+  final Value<String> companyId;
+  final Value<String> name;
+  final Value<String?> userId;
+  final Value<bool> isActive;
+  final Value<int> rowid;
+  const InternalAccountsCompanion({
+    this.lastSyncedAt = const Value.absent(),
+    this.version = const Value.absent(),
+    this.serverCreatedAt = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.id = const Value.absent(),
+    this.companyId = const Value.absent(),
+    this.name = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.isActive = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  InternalAccountsCompanion.insert({
+    this.lastSyncedAt = const Value.absent(),
+    this.version = const Value.absent(),
+    this.serverCreatedAt = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    required String id,
+    required String companyId,
+    required String name,
+    this.userId = const Value.absent(),
+    this.isActive = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       companyId = Value(companyId),
+       name = Value(name);
+  static Insertable<InternalAccount> custom({
+    Expression<DateTime>? lastSyncedAt,
+    Expression<int>? version,
+    Expression<DateTime>? serverCreatedAt,
+    Expression<DateTime>? serverUpdatedAt,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<String>? id,
+    Expression<String>? companyId,
+    Expression<String>? name,
+    Expression<String>? userId,
+    Expression<bool>? isActive,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (lastSyncedAt != null) 'last_synced_at': lastSyncedAt,
+      if (version != null) 'version': version,
+      if (serverCreatedAt != null) 'server_created_at': serverCreatedAt,
+      if (serverUpdatedAt != null) 'server_updated_at': serverUpdatedAt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (id != null) 'id': id,
+      if (companyId != null) 'company_id': companyId,
+      if (name != null) 'name': name,
+      if (userId != null) 'user_id': userId,
+      if (isActive != null) 'is_active': isActive,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  InternalAccountsCompanion copyWith({
+    Value<DateTime?>? lastSyncedAt,
+    Value<int>? version,
+    Value<DateTime?>? serverCreatedAt,
+    Value<DateTime?>? serverUpdatedAt,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? deletedAt,
+    Value<String>? id,
+    Value<String>? companyId,
+    Value<String>? name,
+    Value<String?>? userId,
+    Value<bool>? isActive,
+    Value<int>? rowid,
+  }) {
+    return InternalAccountsCompanion(
+      lastSyncedAt: lastSyncedAt ?? this.lastSyncedAt,
+      version: version ?? this.version,
+      serverCreatedAt: serverCreatedAt ?? this.serverCreatedAt,
+      serverUpdatedAt: serverUpdatedAt ?? this.serverUpdatedAt,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      id: id ?? this.id,
+      companyId: companyId ?? this.companyId,
+      name: name ?? this.name,
+      userId: userId ?? this.userId,
+      isActive: isActive ?? this.isActive,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (lastSyncedAt.present) {
+      map['last_synced_at'] = Variable<DateTime>(lastSyncedAt.value);
+    }
+    if (version.present) {
+      map['version'] = Variable<int>(version.value);
+    }
+    if (serverCreatedAt.present) {
+      map['server_created_at'] = Variable<DateTime>(serverCreatedAt.value);
+    }
+    if (serverUpdatedAt.present) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (companyId.present) {
+      map['company_id'] = Variable<String>(companyId.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (isActive.present) {
+      map['is_active'] = Variable<bool>(isActive.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('InternalAccountsCompanion(')
+          ..write('lastSyncedAt: $lastSyncedAt, ')
+          ..write('version: $version, ')
+          ..write('serverCreatedAt: $serverCreatedAt, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('id: $id, ')
+          ..write('companyId: $companyId, ')
+          ..write('name: $name, ')
+          ..write('userId: $userId, ')
+          ..write('isActive: $isActive, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $InternalAccountSettlementsTable extends InternalAccountSettlements
+    with
+        TableInfo<$InternalAccountSettlementsTable, InternalAccountSettlement> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $InternalAccountSettlementsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _lastSyncedAtMeta = const VerificationMeta(
+    'lastSyncedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> lastSyncedAt = GeneratedColumn<DateTime>(
+    'last_synced_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _versionMeta = const VerificationMeta(
+    'version',
+  );
+  @override
+  late final GeneratedColumn<int> version = GeneratedColumn<int>(
+    'version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _serverCreatedAtMeta = const VerificationMeta(
+    'serverCreatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> serverCreatedAt =
+      GeneratedColumn<DateTime>(
+        'server_created_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _serverUpdatedAtMeta = const VerificationMeta(
+    'serverUpdatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> serverUpdatedAt =
+      GeneratedColumn<DateTime>(
+        'server_updated_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _companyIdMeta = const VerificationMeta(
+    'companyId',
+  );
+  @override
+  late final GeneratedColumn<String> companyId = GeneratedColumn<String>(
+    'company_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _internalAccountIdMeta = const VerificationMeta(
+    'internalAccountId',
+  );
+  @override
+  late final GeneratedColumn<String> internalAccountId =
+      GeneratedColumn<String>(
+        'internal_account_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _settledByUserIdMeta = const VerificationMeta(
+    'settledByUserId',
+  );
+  @override
+  late final GeneratedColumn<String> settledByUserId = GeneratedColumn<String>(
+    'settled_by_user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _settledAtMeta = const VerificationMeta(
+    'settledAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> settledAt = GeneratedColumn<DateTime>(
+    'settled_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _totalAmountMeta = const VerificationMeta(
+    'totalAmount',
+  );
+  @override
+  late final GeneratedColumn<int> totalAmount = GeneratedColumn<int>(
+    'total_amount',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _settledAmountMeta = const VerificationMeta(
+    'settledAmount',
+  );
+  @override
+  late final GeneratedColumn<int> settledAmount = GeneratedColumn<int>(
+    'settled_amount',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _forgivenAmountMeta = const VerificationMeta(
+    'forgivenAmount',
+  );
+  @override
+  late final GeneratedColumn<int> forgivenAmount = GeneratedColumn<int>(
+    'forgiven_amount',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _discountAmountMeta = const VerificationMeta(
+    'discountAmount',
+  );
+  @override
+  late final GeneratedColumn<int> discountAmount = GeneratedColumn<int>(
+    'discount_amount',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+    'note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    lastSyncedAt,
+    version,
+    serverCreatedAt,
+    serverUpdatedAt,
+    createdAt,
+    updatedAt,
+    deletedAt,
+    id,
+    companyId,
+    internalAccountId,
+    settledByUserId,
+    settledAt,
+    totalAmount,
+    settledAmount,
+    forgivenAmount,
+    discountAmount,
+    note,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'internal_account_settlements';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<InternalAccountSettlement> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('last_synced_at')) {
+      context.handle(
+        _lastSyncedAtMeta,
+        lastSyncedAt.isAcceptableOrUnknown(
+          data['last_synced_at']!,
+          _lastSyncedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('version')) {
+      context.handle(
+        _versionMeta,
+        version.isAcceptableOrUnknown(data['version']!, _versionMeta),
+      );
+    }
+    if (data.containsKey('server_created_at')) {
+      context.handle(
+        _serverCreatedAtMeta,
+        serverCreatedAt.isAcceptableOrUnknown(
+          data['server_created_at']!,
+          _serverCreatedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('server_updated_at')) {
+      context.handle(
+        _serverUpdatedAtMeta,
+        serverUpdatedAt.isAcceptableOrUnknown(
+          data['server_updated_at']!,
+          _serverUpdatedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('company_id')) {
+      context.handle(
+        _companyIdMeta,
+        companyId.isAcceptableOrUnknown(data['company_id']!, _companyIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_companyIdMeta);
+    }
+    if (data.containsKey('internal_account_id')) {
+      context.handle(
+        _internalAccountIdMeta,
+        internalAccountId.isAcceptableOrUnknown(
+          data['internal_account_id']!,
+          _internalAccountIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_internalAccountIdMeta);
+    }
+    if (data.containsKey('settled_by_user_id')) {
+      context.handle(
+        _settledByUserIdMeta,
+        settledByUserId.isAcceptableOrUnknown(
+          data['settled_by_user_id']!,
+          _settledByUserIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_settledByUserIdMeta);
+    }
+    if (data.containsKey('settled_at')) {
+      context.handle(
+        _settledAtMeta,
+        settledAt.isAcceptableOrUnknown(data['settled_at']!, _settledAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_settledAtMeta);
+    }
+    if (data.containsKey('total_amount')) {
+      context.handle(
+        _totalAmountMeta,
+        totalAmount.isAcceptableOrUnknown(
+          data['total_amount']!,
+          _totalAmountMeta,
+        ),
+      );
+    }
+    if (data.containsKey('settled_amount')) {
+      context.handle(
+        _settledAmountMeta,
+        settledAmount.isAcceptableOrUnknown(
+          data['settled_amount']!,
+          _settledAmountMeta,
+        ),
+      );
+    }
+    if (data.containsKey('forgiven_amount')) {
+      context.handle(
+        _forgivenAmountMeta,
+        forgivenAmount.isAcceptableOrUnknown(
+          data['forgiven_amount']!,
+          _forgivenAmountMeta,
+        ),
+      );
+    }
+    if (data.containsKey('discount_amount')) {
+      context.handle(
+        _discountAmountMeta,
+        discountAmount.isAcceptableOrUnknown(
+          data['discount_amount']!,
+          _discountAmountMeta,
+        ),
+      );
+    }
+    if (data.containsKey('note')) {
+      context.handle(
+        _noteMeta,
+        note.isAcceptableOrUnknown(data['note']!, _noteMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  InternalAccountSettlement map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return InternalAccountSettlement(
+      lastSyncedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_synced_at'],
+      ),
+      version: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}version'],
+      )!,
+      serverCreatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}server_created_at'],
+      ),
+      serverUpdatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}server_updated_at'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      companyId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}company_id'],
+      )!,
+      internalAccountId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}internal_account_id'],
+      )!,
+      settledByUserId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}settled_by_user_id'],
+      )!,
+      settledAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}settled_at'],
+      )!,
+      totalAmount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}total_amount'],
+      )!,
+      settledAmount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}settled_amount'],
+      )!,
+      forgivenAmount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}forgiven_amount'],
+      )!,
+      discountAmount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}discount_amount'],
+      )!,
+      note: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}note'],
+      ),
+    );
+  }
+
+  @override
+  $InternalAccountSettlementsTable createAlias(String alias) {
+    return $InternalAccountSettlementsTable(attachedDatabase, alias);
+  }
+}
+
+class InternalAccountSettlement extends DataClass
+    implements Insertable<InternalAccountSettlement> {
+  final DateTime? lastSyncedAt;
+  final int version;
+  final DateTime? serverCreatedAt;
+  final DateTime? serverUpdatedAt;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  final String id;
+  final String companyId;
+  final String internalAccountId;
+  final String settledByUserId;
+  final DateTime settledAt;
+  final int totalAmount;
+  final int settledAmount;
+  final int forgivenAmount;
+  final int discountAmount;
+  final String? note;
+  const InternalAccountSettlement({
+    this.lastSyncedAt,
+    required this.version,
+    this.serverCreatedAt,
+    this.serverUpdatedAt,
+    required this.createdAt,
+    required this.updatedAt,
+    this.deletedAt,
+    required this.id,
+    required this.companyId,
+    required this.internalAccountId,
+    required this.settledByUserId,
+    required this.settledAt,
+    required this.totalAmount,
+    required this.settledAmount,
+    required this.forgivenAmount,
+    required this.discountAmount,
+    this.note,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (!nullToAbsent || lastSyncedAt != null) {
+      map['last_synced_at'] = Variable<DateTime>(lastSyncedAt);
+    }
+    map['version'] = Variable<int>(version);
+    if (!nullToAbsent || serverCreatedAt != null) {
+      map['server_created_at'] = Variable<DateTime>(serverCreatedAt);
+    }
+    if (!nullToAbsent || serverUpdatedAt != null) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    map['id'] = Variable<String>(id);
+    map['company_id'] = Variable<String>(companyId);
+    map['internal_account_id'] = Variable<String>(internalAccountId);
+    map['settled_by_user_id'] = Variable<String>(settledByUserId);
+    map['settled_at'] = Variable<DateTime>(settledAt);
+    map['total_amount'] = Variable<int>(totalAmount);
+    map['settled_amount'] = Variable<int>(settledAmount);
+    map['forgiven_amount'] = Variable<int>(forgivenAmount);
+    map['discount_amount'] = Variable<int>(discountAmount);
+    if (!nullToAbsent || note != null) {
+      map['note'] = Variable<String>(note);
+    }
+    return map;
+  }
+
+  InternalAccountSettlementsCompanion toCompanion(bool nullToAbsent) {
+    return InternalAccountSettlementsCompanion(
+      lastSyncedAt: lastSyncedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastSyncedAt),
+      version: Value(version),
+      serverCreatedAt: serverCreatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(serverCreatedAt),
+      serverUpdatedAt: serverUpdatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(serverUpdatedAt),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+      id: Value(id),
+      companyId: Value(companyId),
+      internalAccountId: Value(internalAccountId),
+      settledByUserId: Value(settledByUserId),
+      settledAt: Value(settledAt),
+      totalAmount: Value(totalAmount),
+      settledAmount: Value(settledAmount),
+      forgivenAmount: Value(forgivenAmount),
+      discountAmount: Value(discountAmount),
+      note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+    );
+  }
+
+  factory InternalAccountSettlement.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return InternalAccountSettlement(
+      lastSyncedAt: serializer.fromJson<DateTime?>(json['lastSyncedAt']),
+      version: serializer.fromJson<int>(json['version']),
+      serverCreatedAt: serializer.fromJson<DateTime?>(json['serverCreatedAt']),
+      serverUpdatedAt: serializer.fromJson<DateTime?>(json['serverUpdatedAt']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      id: serializer.fromJson<String>(json['id']),
+      companyId: serializer.fromJson<String>(json['companyId']),
+      internalAccountId: serializer.fromJson<String>(json['internalAccountId']),
+      settledByUserId: serializer.fromJson<String>(json['settledByUserId']),
+      settledAt: serializer.fromJson<DateTime>(json['settledAt']),
+      totalAmount: serializer.fromJson<int>(json['totalAmount']),
+      settledAmount: serializer.fromJson<int>(json['settledAmount']),
+      forgivenAmount: serializer.fromJson<int>(json['forgivenAmount']),
+      discountAmount: serializer.fromJson<int>(json['discountAmount']),
+      note: serializer.fromJson<String?>(json['note']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'lastSyncedAt': serializer.toJson<DateTime?>(lastSyncedAt),
+      'version': serializer.toJson<int>(version),
+      'serverCreatedAt': serializer.toJson<DateTime?>(serverCreatedAt),
+      'serverUpdatedAt': serializer.toJson<DateTime?>(serverUpdatedAt),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'id': serializer.toJson<String>(id),
+      'companyId': serializer.toJson<String>(companyId),
+      'internalAccountId': serializer.toJson<String>(internalAccountId),
+      'settledByUserId': serializer.toJson<String>(settledByUserId),
+      'settledAt': serializer.toJson<DateTime>(settledAt),
+      'totalAmount': serializer.toJson<int>(totalAmount),
+      'settledAmount': serializer.toJson<int>(settledAmount),
+      'forgivenAmount': serializer.toJson<int>(forgivenAmount),
+      'discountAmount': serializer.toJson<int>(discountAmount),
+      'note': serializer.toJson<String?>(note),
+    };
+  }
+
+  InternalAccountSettlement copyWith({
+    Value<DateTime?> lastSyncedAt = const Value.absent(),
+    int? version,
+    Value<DateTime?> serverCreatedAt = const Value.absent(),
+    Value<DateTime?> serverUpdatedAt = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+    String? id,
+    String? companyId,
+    String? internalAccountId,
+    String? settledByUserId,
+    DateTime? settledAt,
+    int? totalAmount,
+    int? settledAmount,
+    int? forgivenAmount,
+    int? discountAmount,
+    Value<String?> note = const Value.absent(),
+  }) => InternalAccountSettlement(
+    lastSyncedAt: lastSyncedAt.present ? lastSyncedAt.value : this.lastSyncedAt,
+    version: version ?? this.version,
+    serverCreatedAt: serverCreatedAt.present
+        ? serverCreatedAt.value
+        : this.serverCreatedAt,
+    serverUpdatedAt: serverUpdatedAt.present
+        ? serverUpdatedAt.value
+        : this.serverUpdatedAt,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+    id: id ?? this.id,
+    companyId: companyId ?? this.companyId,
+    internalAccountId: internalAccountId ?? this.internalAccountId,
+    settledByUserId: settledByUserId ?? this.settledByUserId,
+    settledAt: settledAt ?? this.settledAt,
+    totalAmount: totalAmount ?? this.totalAmount,
+    settledAmount: settledAmount ?? this.settledAmount,
+    forgivenAmount: forgivenAmount ?? this.forgivenAmount,
+    discountAmount: discountAmount ?? this.discountAmount,
+    note: note.present ? note.value : this.note,
+  );
+  InternalAccountSettlement copyWithCompanion(
+    InternalAccountSettlementsCompanion data,
+  ) {
+    return InternalAccountSettlement(
+      lastSyncedAt: data.lastSyncedAt.present
+          ? data.lastSyncedAt.value
+          : this.lastSyncedAt,
+      version: data.version.present ? data.version.value : this.version,
+      serverCreatedAt: data.serverCreatedAt.present
+          ? data.serverCreatedAt.value
+          : this.serverCreatedAt,
+      serverUpdatedAt: data.serverUpdatedAt.present
+          ? data.serverUpdatedAt.value
+          : this.serverUpdatedAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      id: data.id.present ? data.id.value : this.id,
+      companyId: data.companyId.present ? data.companyId.value : this.companyId,
+      internalAccountId: data.internalAccountId.present
+          ? data.internalAccountId.value
+          : this.internalAccountId,
+      settledByUserId: data.settledByUserId.present
+          ? data.settledByUserId.value
+          : this.settledByUserId,
+      settledAt: data.settledAt.present ? data.settledAt.value : this.settledAt,
+      totalAmount: data.totalAmount.present
+          ? data.totalAmount.value
+          : this.totalAmount,
+      settledAmount: data.settledAmount.present
+          ? data.settledAmount.value
+          : this.settledAmount,
+      forgivenAmount: data.forgivenAmount.present
+          ? data.forgivenAmount.value
+          : this.forgivenAmount,
+      discountAmount: data.discountAmount.present
+          ? data.discountAmount.value
+          : this.discountAmount,
+      note: data.note.present ? data.note.value : this.note,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('InternalAccountSettlement(')
+          ..write('lastSyncedAt: $lastSyncedAt, ')
+          ..write('version: $version, ')
+          ..write('serverCreatedAt: $serverCreatedAt, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('id: $id, ')
+          ..write('companyId: $companyId, ')
+          ..write('internalAccountId: $internalAccountId, ')
+          ..write('settledByUserId: $settledByUserId, ')
+          ..write('settledAt: $settledAt, ')
+          ..write('totalAmount: $totalAmount, ')
+          ..write('settledAmount: $settledAmount, ')
+          ..write('forgivenAmount: $forgivenAmount, ')
+          ..write('discountAmount: $discountAmount, ')
+          ..write('note: $note')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    lastSyncedAt,
+    version,
+    serverCreatedAt,
+    serverUpdatedAt,
+    createdAt,
+    updatedAt,
+    deletedAt,
+    id,
+    companyId,
+    internalAccountId,
+    settledByUserId,
+    settledAt,
+    totalAmount,
+    settledAmount,
+    forgivenAmount,
+    discountAmount,
+    note,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is InternalAccountSettlement &&
+          other.lastSyncedAt == this.lastSyncedAt &&
+          other.version == this.version &&
+          other.serverCreatedAt == this.serverCreatedAt &&
+          other.serverUpdatedAt == this.serverUpdatedAt &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt &&
+          other.id == this.id &&
+          other.companyId == this.companyId &&
+          other.internalAccountId == this.internalAccountId &&
+          other.settledByUserId == this.settledByUserId &&
+          other.settledAt == this.settledAt &&
+          other.totalAmount == this.totalAmount &&
+          other.settledAmount == this.settledAmount &&
+          other.forgivenAmount == this.forgivenAmount &&
+          other.discountAmount == this.discountAmount &&
+          other.note == this.note);
+}
+
+class InternalAccountSettlementsCompanion
+    extends UpdateCompanion<InternalAccountSettlement> {
+  final Value<DateTime?> lastSyncedAt;
+  final Value<int> version;
+  final Value<DateTime?> serverCreatedAt;
+  final Value<DateTime?> serverUpdatedAt;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<String> id;
+  final Value<String> companyId;
+  final Value<String> internalAccountId;
+  final Value<String> settledByUserId;
+  final Value<DateTime> settledAt;
+  final Value<int> totalAmount;
+  final Value<int> settledAmount;
+  final Value<int> forgivenAmount;
+  final Value<int> discountAmount;
+  final Value<String?> note;
+  final Value<int> rowid;
+  const InternalAccountSettlementsCompanion({
+    this.lastSyncedAt = const Value.absent(),
+    this.version = const Value.absent(),
+    this.serverCreatedAt = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.id = const Value.absent(),
+    this.companyId = const Value.absent(),
+    this.internalAccountId = const Value.absent(),
+    this.settledByUserId = const Value.absent(),
+    this.settledAt = const Value.absent(),
+    this.totalAmount = const Value.absent(),
+    this.settledAmount = const Value.absent(),
+    this.forgivenAmount = const Value.absent(),
+    this.discountAmount = const Value.absent(),
+    this.note = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  InternalAccountSettlementsCompanion.insert({
+    this.lastSyncedAt = const Value.absent(),
+    this.version = const Value.absent(),
+    this.serverCreatedAt = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    required String id,
+    required String companyId,
+    required String internalAccountId,
+    required String settledByUserId,
+    required DateTime settledAt,
+    this.totalAmount = const Value.absent(),
+    this.settledAmount = const Value.absent(),
+    this.forgivenAmount = const Value.absent(),
+    this.discountAmount = const Value.absent(),
+    this.note = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       companyId = Value(companyId),
+       internalAccountId = Value(internalAccountId),
+       settledByUserId = Value(settledByUserId),
+       settledAt = Value(settledAt);
+  static Insertable<InternalAccountSettlement> custom({
+    Expression<DateTime>? lastSyncedAt,
+    Expression<int>? version,
+    Expression<DateTime>? serverCreatedAt,
+    Expression<DateTime>? serverUpdatedAt,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<String>? id,
+    Expression<String>? companyId,
+    Expression<String>? internalAccountId,
+    Expression<String>? settledByUserId,
+    Expression<DateTime>? settledAt,
+    Expression<int>? totalAmount,
+    Expression<int>? settledAmount,
+    Expression<int>? forgivenAmount,
+    Expression<int>? discountAmount,
+    Expression<String>? note,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (lastSyncedAt != null) 'last_synced_at': lastSyncedAt,
+      if (version != null) 'version': version,
+      if (serverCreatedAt != null) 'server_created_at': serverCreatedAt,
+      if (serverUpdatedAt != null) 'server_updated_at': serverUpdatedAt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (id != null) 'id': id,
+      if (companyId != null) 'company_id': companyId,
+      if (internalAccountId != null) 'internal_account_id': internalAccountId,
+      if (settledByUserId != null) 'settled_by_user_id': settledByUserId,
+      if (settledAt != null) 'settled_at': settledAt,
+      if (totalAmount != null) 'total_amount': totalAmount,
+      if (settledAmount != null) 'settled_amount': settledAmount,
+      if (forgivenAmount != null) 'forgiven_amount': forgivenAmount,
+      if (discountAmount != null) 'discount_amount': discountAmount,
+      if (note != null) 'note': note,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  InternalAccountSettlementsCompanion copyWith({
+    Value<DateTime?>? lastSyncedAt,
+    Value<int>? version,
+    Value<DateTime?>? serverCreatedAt,
+    Value<DateTime?>? serverUpdatedAt,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? deletedAt,
+    Value<String>? id,
+    Value<String>? companyId,
+    Value<String>? internalAccountId,
+    Value<String>? settledByUserId,
+    Value<DateTime>? settledAt,
+    Value<int>? totalAmount,
+    Value<int>? settledAmount,
+    Value<int>? forgivenAmount,
+    Value<int>? discountAmount,
+    Value<String?>? note,
+    Value<int>? rowid,
+  }) {
+    return InternalAccountSettlementsCompanion(
+      lastSyncedAt: lastSyncedAt ?? this.lastSyncedAt,
+      version: version ?? this.version,
+      serverCreatedAt: serverCreatedAt ?? this.serverCreatedAt,
+      serverUpdatedAt: serverUpdatedAt ?? this.serverUpdatedAt,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      id: id ?? this.id,
+      companyId: companyId ?? this.companyId,
+      internalAccountId: internalAccountId ?? this.internalAccountId,
+      settledByUserId: settledByUserId ?? this.settledByUserId,
+      settledAt: settledAt ?? this.settledAt,
+      totalAmount: totalAmount ?? this.totalAmount,
+      settledAmount: settledAmount ?? this.settledAmount,
+      forgivenAmount: forgivenAmount ?? this.forgivenAmount,
+      discountAmount: discountAmount ?? this.discountAmount,
+      note: note ?? this.note,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (lastSyncedAt.present) {
+      map['last_synced_at'] = Variable<DateTime>(lastSyncedAt.value);
+    }
+    if (version.present) {
+      map['version'] = Variable<int>(version.value);
+    }
+    if (serverCreatedAt.present) {
+      map['server_created_at'] = Variable<DateTime>(serverCreatedAt.value);
+    }
+    if (serverUpdatedAt.present) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (companyId.present) {
+      map['company_id'] = Variable<String>(companyId.value);
+    }
+    if (internalAccountId.present) {
+      map['internal_account_id'] = Variable<String>(internalAccountId.value);
+    }
+    if (settledByUserId.present) {
+      map['settled_by_user_id'] = Variable<String>(settledByUserId.value);
+    }
+    if (settledAt.present) {
+      map['settled_at'] = Variable<DateTime>(settledAt.value);
+    }
+    if (totalAmount.present) {
+      map['total_amount'] = Variable<int>(totalAmount.value);
+    }
+    if (settledAmount.present) {
+      map['settled_amount'] = Variable<int>(settledAmount.value);
+    }
+    if (forgivenAmount.present) {
+      map['forgiven_amount'] = Variable<int>(forgivenAmount.value);
+    }
+    if (discountAmount.present) {
+      map['discount_amount'] = Variable<int>(discountAmount.value);
+    }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('InternalAccountSettlementsCompanion(')
+          ..write('lastSyncedAt: $lastSyncedAt, ')
+          ..write('version: $version, ')
+          ..write('serverCreatedAt: $serverCreatedAt, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('id: $id, ')
+          ..write('companyId: $companyId, ')
+          ..write('internalAccountId: $internalAccountId, ')
+          ..write('settledByUserId: $settledByUserId, ')
+          ..write('settledAt: $settledAt, ')
+          ..write('totalAmount: $totalAmount, ')
+          ..write('settledAmount: $settledAmount, ')
+          ..write('forgivenAmount: $forgivenAmount, ')
+          ..write('discountAmount: $discountAmount, ')
+          ..write('note: $note, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -46819,6 +48644,11 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $AiUndoLogsTable aiUndoLogs = $AiUndoLogsTable(this);
   late final $BillsTable bills = $BillsTable(this);
   late final $CashMovementsTable cashMovements = $CashMovementsTable(this);
+  late final $InternalAccountsTable internalAccounts = $InternalAccountsTable(
+    this,
+  );
+  late final $InternalAccountSettlementsTable internalAccountSettlements =
+      $InternalAccountSettlementsTable(this);
   late final $CategoriesTable categories = $CategoriesTable(this);
   late final $CompaniesTable companies = $CompaniesTable(this);
   late final $CompanyCurrenciesTable companyCurrencies =
@@ -46900,6 +48730,14 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final Index idxCashMovementsCompanyUpdated = Index(
     'idx_cash_movements_company_updated',
     'CREATE INDEX idx_cash_movements_company_updated ON cash_movements (company_id, updated_at)',
+  );
+  late final Index idxInternalAccountsCompanyUpdated = Index(
+    'idx_internal_accounts_company_updated',
+    'CREATE INDEX idx_internal_accounts_company_updated ON internal_accounts (company_id, updated_at)',
+  );
+  late final Index idxInternalAccountSettlementsCompanyUpdated = Index(
+    'idx_internal_account_settlements_company_updated',
+    'CREATE INDEX idx_internal_account_settlements_company_updated ON internal_account_settlements (company_id, updated_at)',
   );
   late final Index idxCategoriesCompanyUpdated = Index(
     'idx_categories_company_updated',
@@ -47103,6 +48941,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     aiUndoLogs,
     bills,
     cashMovements,
+    internalAccounts,
+    internalAccountSettlements,
     categories,
     companies,
     companyCurrencies,
@@ -47152,6 +48992,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     idxAiUndoLogsMessage,
     idxBillsCompanyUpdated,
     idxCashMovementsCompanyUpdated,
+    idxInternalAccountsCompanyUpdated,
+    idxInternalAccountSettlementsCompanyUpdated,
     idxCategoriesCompanyUpdated,
     idxCompaniesUpdatedAt,
     idxCompanyCurrenciesCompanyUpdated,
@@ -48303,6 +50145,8 @@ typedef $$BillsTableCreateCompanionBuilder =
       Value<int> loyaltyPointsEarned,
       Value<int> voucherDiscountAmount,
       Value<String?> voucherId,
+      Value<String?> internalAccountId,
+      Value<String?> settlementId,
       required DateTime openedAt,
       Value<DateTime?> closedAt,
       Value<int?> mapPosX,
@@ -48346,6 +50190,8 @@ typedef $$BillsTableUpdateCompanionBuilder =
       Value<int> loyaltyPointsEarned,
       Value<int> voucherDiscountAmount,
       Value<String?> voucherId,
+      Value<String?> internalAccountId,
+      Value<String?> settlementId,
       Value<DateTime> openedAt,
       Value<DateTime?> closedAt,
       Value<int?> mapPosX,
@@ -48535,6 +50381,16 @@ class $$BillsTableFilterComposer extends Composer<_$AppDatabase, $BillsTable> {
 
   ColumnFilters<String> get voucherId => $composableBuilder(
     column: $table.voucherId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get internalAccountId => $composableBuilder(
+    column: $table.internalAccountId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get settlementId => $composableBuilder(
+    column: $table.settlementId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -48743,6 +50599,16 @@ class $$BillsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get internalAccountId => $composableBuilder(
+    column: $table.internalAccountId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get settlementId => $composableBuilder(
+    column: $table.settlementId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get openedAt => $composableBuilder(
     column: $table.openedAt,
     builder: (column) => ColumnOrderings(column),
@@ -48927,6 +50793,16 @@ class $$BillsTableAnnotationComposer
   GeneratedColumn<String> get voucherId =>
       $composableBuilder(column: $table.voucherId, builder: (column) => column);
 
+  GeneratedColumn<String> get internalAccountId => $composableBuilder(
+    column: $table.internalAccountId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get settlementId => $composableBuilder(
+    column: $table.settlementId,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<DateTime> get openedAt =>
       $composableBuilder(column: $table.openedAt, builder: (column) => column);
 
@@ -49003,6 +50879,8 @@ class $$BillsTableTableManager
                 Value<int> loyaltyPointsEarned = const Value.absent(),
                 Value<int> voucherDiscountAmount = const Value.absent(),
                 Value<String?> voucherId = const Value.absent(),
+                Value<String?> internalAccountId = const Value.absent(),
+                Value<String?> settlementId = const Value.absent(),
                 Value<DateTime> openedAt = const Value.absent(),
                 Value<DateTime?> closedAt = const Value.absent(),
                 Value<int?> mapPosX = const Value.absent(),
@@ -49044,6 +50922,8 @@ class $$BillsTableTableManager
                 loyaltyPointsEarned: loyaltyPointsEarned,
                 voucherDiscountAmount: voucherDiscountAmount,
                 voucherId: voucherId,
+                internalAccountId: internalAccountId,
+                settlementId: settlementId,
                 openedAt: openedAt,
                 closedAt: closedAt,
                 mapPosX: mapPosX,
@@ -49087,6 +50967,8 @@ class $$BillsTableTableManager
                 Value<int> loyaltyPointsEarned = const Value.absent(),
                 Value<int> voucherDiscountAmount = const Value.absent(),
                 Value<String?> voucherId = const Value.absent(),
+                Value<String?> internalAccountId = const Value.absent(),
+                Value<String?> settlementId = const Value.absent(),
                 required DateTime openedAt,
                 Value<DateTime?> closedAt = const Value.absent(),
                 Value<int?> mapPosX = const Value.absent(),
@@ -49128,6 +51010,8 @@ class $$BillsTableTableManager
                 loyaltyPointsEarned: loyaltyPointsEarned,
                 voucherDiscountAmount: voucherDiscountAmount,
                 voucherId: voucherId,
+                internalAccountId: internalAccountId,
+                settlementId: settlementId,
                 openedAt: openedAt,
                 closedAt: closedAt,
                 mapPosX: mapPosX,
@@ -49555,6 +51439,816 @@ typedef $$CashMovementsTableProcessedTableManager =
         BaseReferences<_$AppDatabase, $CashMovementsTable, CashMovement>,
       ),
       CashMovement,
+      PrefetchHooks Function()
+    >;
+typedef $$InternalAccountsTableCreateCompanionBuilder =
+    InternalAccountsCompanion Function({
+      Value<DateTime?> lastSyncedAt,
+      Value<int> version,
+      Value<DateTime?> serverCreatedAt,
+      Value<DateTime?> serverUpdatedAt,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      required String id,
+      required String companyId,
+      required String name,
+      Value<String?> userId,
+      Value<bool> isActive,
+      Value<int> rowid,
+    });
+typedef $$InternalAccountsTableUpdateCompanionBuilder =
+    InternalAccountsCompanion Function({
+      Value<DateTime?> lastSyncedAt,
+      Value<int> version,
+      Value<DateTime?> serverCreatedAt,
+      Value<DateTime?> serverUpdatedAt,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<String> id,
+      Value<String> companyId,
+      Value<String> name,
+      Value<String?> userId,
+      Value<bool> isActive,
+      Value<int> rowid,
+    });
+
+class $$InternalAccountsTableFilterComposer
+    extends Composer<_$AppDatabase, $InternalAccountsTable> {
+  $$InternalAccountsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<DateTime> get lastSyncedAt => $composableBuilder(
+    column: $table.lastSyncedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get version => $composableBuilder(
+    column: $table.version,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get serverCreatedAt => $composableBuilder(
+    column: $table.serverCreatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get companyId => $composableBuilder(
+    column: $table.companyId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isActive => $composableBuilder(
+    column: $table.isActive,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$InternalAccountsTableOrderingComposer
+    extends Composer<_$AppDatabase, $InternalAccountsTable> {
+  $$InternalAccountsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<DateTime> get lastSyncedAt => $composableBuilder(
+    column: $table.lastSyncedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get version => $composableBuilder(
+    column: $table.version,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get serverCreatedAt => $composableBuilder(
+    column: $table.serverCreatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get companyId => $composableBuilder(
+    column: $table.companyId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isActive => $composableBuilder(
+    column: $table.isActive,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$InternalAccountsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $InternalAccountsTable> {
+  $$InternalAccountsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<DateTime> get lastSyncedAt => $composableBuilder(
+    column: $table.lastSyncedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get version =>
+      $composableBuilder(column: $table.version, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get serverCreatedAt => $composableBuilder(
+    column: $table.serverCreatedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get companyId =>
+      $composableBuilder(column: $table.companyId, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<bool> get isActive =>
+      $composableBuilder(column: $table.isActive, builder: (column) => column);
+}
+
+class $$InternalAccountsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $InternalAccountsTable,
+          InternalAccount,
+          $$InternalAccountsTableFilterComposer,
+          $$InternalAccountsTableOrderingComposer,
+          $$InternalAccountsTableAnnotationComposer,
+          $$InternalAccountsTableCreateCompanionBuilder,
+          $$InternalAccountsTableUpdateCompanionBuilder,
+          (
+            InternalAccount,
+            BaseReferences<
+              _$AppDatabase,
+              $InternalAccountsTable,
+              InternalAccount
+            >,
+          ),
+          InternalAccount,
+          PrefetchHooks Function()
+        > {
+  $$InternalAccountsTableTableManager(
+    _$AppDatabase db,
+    $InternalAccountsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$InternalAccountsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$InternalAccountsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$InternalAccountsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<DateTime?> lastSyncedAt = const Value.absent(),
+                Value<int> version = const Value.absent(),
+                Value<DateTime?> serverCreatedAt = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<String> id = const Value.absent(),
+                Value<String> companyId = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String?> userId = const Value.absent(),
+                Value<bool> isActive = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => InternalAccountsCompanion(
+                lastSyncedAt: lastSyncedAt,
+                version: version,
+                serverCreatedAt: serverCreatedAt,
+                serverUpdatedAt: serverUpdatedAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                id: id,
+                companyId: companyId,
+                name: name,
+                userId: userId,
+                isActive: isActive,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                Value<DateTime?> lastSyncedAt = const Value.absent(),
+                Value<int> version = const Value.absent(),
+                Value<DateTime?> serverCreatedAt = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                required String id,
+                required String companyId,
+                required String name,
+                Value<String?> userId = const Value.absent(),
+                Value<bool> isActive = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => InternalAccountsCompanion.insert(
+                lastSyncedAt: lastSyncedAt,
+                version: version,
+                serverCreatedAt: serverCreatedAt,
+                serverUpdatedAt: serverUpdatedAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                id: id,
+                companyId: companyId,
+                name: name,
+                userId: userId,
+                isActive: isActive,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$InternalAccountsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $InternalAccountsTable,
+      InternalAccount,
+      $$InternalAccountsTableFilterComposer,
+      $$InternalAccountsTableOrderingComposer,
+      $$InternalAccountsTableAnnotationComposer,
+      $$InternalAccountsTableCreateCompanionBuilder,
+      $$InternalAccountsTableUpdateCompanionBuilder,
+      (
+        InternalAccount,
+        BaseReferences<_$AppDatabase, $InternalAccountsTable, InternalAccount>,
+      ),
+      InternalAccount,
+      PrefetchHooks Function()
+    >;
+typedef $$InternalAccountSettlementsTableCreateCompanionBuilder =
+    InternalAccountSettlementsCompanion Function({
+      Value<DateTime?> lastSyncedAt,
+      Value<int> version,
+      Value<DateTime?> serverCreatedAt,
+      Value<DateTime?> serverUpdatedAt,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      required String id,
+      required String companyId,
+      required String internalAccountId,
+      required String settledByUserId,
+      required DateTime settledAt,
+      Value<int> totalAmount,
+      Value<int> settledAmount,
+      Value<int> forgivenAmount,
+      Value<int> discountAmount,
+      Value<String?> note,
+      Value<int> rowid,
+    });
+typedef $$InternalAccountSettlementsTableUpdateCompanionBuilder =
+    InternalAccountSettlementsCompanion Function({
+      Value<DateTime?> lastSyncedAt,
+      Value<int> version,
+      Value<DateTime?> serverCreatedAt,
+      Value<DateTime?> serverUpdatedAt,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<String> id,
+      Value<String> companyId,
+      Value<String> internalAccountId,
+      Value<String> settledByUserId,
+      Value<DateTime> settledAt,
+      Value<int> totalAmount,
+      Value<int> settledAmount,
+      Value<int> forgivenAmount,
+      Value<int> discountAmount,
+      Value<String?> note,
+      Value<int> rowid,
+    });
+
+class $$InternalAccountSettlementsTableFilterComposer
+    extends Composer<_$AppDatabase, $InternalAccountSettlementsTable> {
+  $$InternalAccountSettlementsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<DateTime> get lastSyncedAt => $composableBuilder(
+    column: $table.lastSyncedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get version => $composableBuilder(
+    column: $table.version,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get serverCreatedAt => $composableBuilder(
+    column: $table.serverCreatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get companyId => $composableBuilder(
+    column: $table.companyId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get internalAccountId => $composableBuilder(
+    column: $table.internalAccountId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get settledByUserId => $composableBuilder(
+    column: $table.settledByUserId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get settledAt => $composableBuilder(
+    column: $table.settledAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get totalAmount => $composableBuilder(
+    column: $table.totalAmount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get settledAmount => $composableBuilder(
+    column: $table.settledAmount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get forgivenAmount => $composableBuilder(
+    column: $table.forgivenAmount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get discountAmount => $composableBuilder(
+    column: $table.discountAmount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$InternalAccountSettlementsTableOrderingComposer
+    extends Composer<_$AppDatabase, $InternalAccountSettlementsTable> {
+  $$InternalAccountSettlementsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<DateTime> get lastSyncedAt => $composableBuilder(
+    column: $table.lastSyncedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get version => $composableBuilder(
+    column: $table.version,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get serverCreatedAt => $composableBuilder(
+    column: $table.serverCreatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get companyId => $composableBuilder(
+    column: $table.companyId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get internalAccountId => $composableBuilder(
+    column: $table.internalAccountId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get settledByUserId => $composableBuilder(
+    column: $table.settledByUserId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get settledAt => $composableBuilder(
+    column: $table.settledAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get totalAmount => $composableBuilder(
+    column: $table.totalAmount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get settledAmount => $composableBuilder(
+    column: $table.settledAmount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get forgivenAmount => $composableBuilder(
+    column: $table.forgivenAmount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get discountAmount => $composableBuilder(
+    column: $table.discountAmount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$InternalAccountSettlementsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $InternalAccountSettlementsTable> {
+  $$InternalAccountSettlementsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<DateTime> get lastSyncedAt => $composableBuilder(
+    column: $table.lastSyncedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get version =>
+      $composableBuilder(column: $table.version, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get serverCreatedAt => $composableBuilder(
+    column: $table.serverCreatedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get companyId =>
+      $composableBuilder(column: $table.companyId, builder: (column) => column);
+
+  GeneratedColumn<String> get internalAccountId => $composableBuilder(
+    column: $table.internalAccountId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get settledByUserId => $composableBuilder(
+    column: $table.settledByUserId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get settledAt =>
+      $composableBuilder(column: $table.settledAt, builder: (column) => column);
+
+  GeneratedColumn<int> get totalAmount => $composableBuilder(
+    column: $table.totalAmount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get settledAmount => $composableBuilder(
+    column: $table.settledAmount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get forgivenAmount => $composableBuilder(
+    column: $table.forgivenAmount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get discountAmount => $composableBuilder(
+    column: $table.discountAmount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get note =>
+      $composableBuilder(column: $table.note, builder: (column) => column);
+}
+
+class $$InternalAccountSettlementsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $InternalAccountSettlementsTable,
+          InternalAccountSettlement,
+          $$InternalAccountSettlementsTableFilterComposer,
+          $$InternalAccountSettlementsTableOrderingComposer,
+          $$InternalAccountSettlementsTableAnnotationComposer,
+          $$InternalAccountSettlementsTableCreateCompanionBuilder,
+          $$InternalAccountSettlementsTableUpdateCompanionBuilder,
+          (
+            InternalAccountSettlement,
+            BaseReferences<
+              _$AppDatabase,
+              $InternalAccountSettlementsTable,
+              InternalAccountSettlement
+            >,
+          ),
+          InternalAccountSettlement,
+          PrefetchHooks Function()
+        > {
+  $$InternalAccountSettlementsTableTableManager(
+    _$AppDatabase db,
+    $InternalAccountSettlementsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$InternalAccountSettlementsTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$InternalAccountSettlementsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$InternalAccountSettlementsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<DateTime?> lastSyncedAt = const Value.absent(),
+                Value<int> version = const Value.absent(),
+                Value<DateTime?> serverCreatedAt = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<String> id = const Value.absent(),
+                Value<String> companyId = const Value.absent(),
+                Value<String> internalAccountId = const Value.absent(),
+                Value<String> settledByUserId = const Value.absent(),
+                Value<DateTime> settledAt = const Value.absent(),
+                Value<int> totalAmount = const Value.absent(),
+                Value<int> settledAmount = const Value.absent(),
+                Value<int> forgivenAmount = const Value.absent(),
+                Value<int> discountAmount = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => InternalAccountSettlementsCompanion(
+                lastSyncedAt: lastSyncedAt,
+                version: version,
+                serverCreatedAt: serverCreatedAt,
+                serverUpdatedAt: serverUpdatedAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                id: id,
+                companyId: companyId,
+                internalAccountId: internalAccountId,
+                settledByUserId: settledByUserId,
+                settledAt: settledAt,
+                totalAmount: totalAmount,
+                settledAmount: settledAmount,
+                forgivenAmount: forgivenAmount,
+                discountAmount: discountAmount,
+                note: note,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                Value<DateTime?> lastSyncedAt = const Value.absent(),
+                Value<int> version = const Value.absent(),
+                Value<DateTime?> serverCreatedAt = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                required String id,
+                required String companyId,
+                required String internalAccountId,
+                required String settledByUserId,
+                required DateTime settledAt,
+                Value<int> totalAmount = const Value.absent(),
+                Value<int> settledAmount = const Value.absent(),
+                Value<int> forgivenAmount = const Value.absent(),
+                Value<int> discountAmount = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => InternalAccountSettlementsCompanion.insert(
+                lastSyncedAt: lastSyncedAt,
+                version: version,
+                serverCreatedAt: serverCreatedAt,
+                serverUpdatedAt: serverUpdatedAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                id: id,
+                companyId: companyId,
+                internalAccountId: internalAccountId,
+                settledByUserId: settledByUserId,
+                settledAt: settledAt,
+                totalAmount: totalAmount,
+                settledAmount: settledAmount,
+                forgivenAmount: forgivenAmount,
+                discountAmount: discountAmount,
+                note: note,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$InternalAccountSettlementsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $InternalAccountSettlementsTable,
+      InternalAccountSettlement,
+      $$InternalAccountSettlementsTableFilterComposer,
+      $$InternalAccountSettlementsTableOrderingComposer,
+      $$InternalAccountSettlementsTableAnnotationComposer,
+      $$InternalAccountSettlementsTableCreateCompanionBuilder,
+      $$InternalAccountSettlementsTableUpdateCompanionBuilder,
+      (
+        InternalAccountSettlement,
+        BaseReferences<
+          _$AppDatabase,
+          $InternalAccountSettlementsTable,
+          InternalAccountSettlement
+        >,
+      ),
+      InternalAccountSettlement,
       PrefetchHooks Function()
     >;
 typedef $$CategoriesTableCreateCompanionBuilder =
@@ -68306,6 +71000,14 @@ class $AppDatabaseManager {
       $$BillsTableTableManager(_db, _db.bills);
   $$CashMovementsTableTableManager get cashMovements =>
       $$CashMovementsTableTableManager(_db, _db.cashMovements);
+  $$InternalAccountsTableTableManager get internalAccounts =>
+      $$InternalAccountsTableTableManager(_db, _db.internalAccounts);
+  $$InternalAccountSettlementsTableTableManager
+  get internalAccountSettlements =>
+      $$InternalAccountSettlementsTableTableManager(
+        _db,
+        _db.internalAccountSettlements,
+      );
   $$CategoriesTableTableManager get categories =>
       $$CategoriesTableTableManager(_db, _db.categories);
   $$CompaniesTableTableManager get companies =>

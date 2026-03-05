@@ -3,6 +3,8 @@ import 'package:drift/drift.dart';
 import '../../database/app_database.dart';
 import '../models/bill_model.dart';
 import '../models/cash_movement_model.dart';
+import '../models/internal_account_model.dart';
+import '../models/internal_account_settlement_model.dart';
 import '../models/category_model.dart';
 import '../models/company_currency_model.dart';
 import '../models/display_device_model.dart';
@@ -465,6 +467,8 @@ BillModel billFromEntity(Bill e) => BillModel(
       loyaltyPointsEarned: e.loyaltyPointsEarned,
       voucherDiscountAmount: e.voucherDiscountAmount,
       voucherId: e.voucherId,
+      internalAccountId: e.internalAccountId,
+      settlementId: e.settlementId,
       openedAt: e.openedAt,
       closedAt: e.closedAt,
       mapPosX: e.mapPosX,
@@ -1184,4 +1188,58 @@ OrderItemModifiersCompanion orderItemModifierToCompanion(OrderItemModifierModel 
       unitPrice: m.unitPrice,
       taxRate: m.taxRate,
       taxAmount: m.taxAmount,
+    );
+
+// --- InternalAccount ---
+InternalAccountModel internalAccountFromEntity(InternalAccount e) => InternalAccountModel(
+      id: e.id,
+      companyId: e.companyId,
+      name: e.name,
+      userId: e.userId,
+      isActive: e.isActive,
+      createdAt: e.createdAt,
+      updatedAt: e.updatedAt,
+      deletedAt: e.deletedAt,
+    );
+
+InternalAccountsCompanion internalAccountToCompanion(InternalAccountModel m) =>
+    InternalAccountsCompanion.insert(
+      id: m.id,
+      companyId: m.companyId,
+      name: m.name,
+      userId: Value(m.userId),
+      isActive: Value(m.isActive),
+    );
+
+// --- InternalAccountSettlement ---
+InternalAccountSettlementModel internalAccountSettlementFromEntity(InternalAccountSettlement e) =>
+    InternalAccountSettlementModel(
+      id: e.id,
+      companyId: e.companyId,
+      internalAccountId: e.internalAccountId,
+      settledByUserId: e.settledByUserId,
+      settledAt: e.settledAt,
+      totalAmount: e.totalAmount,
+      settledAmount: e.settledAmount,
+      forgivenAmount: e.forgivenAmount,
+      discountAmount: e.discountAmount,
+      note: e.note,
+      createdAt: e.createdAt,
+      updatedAt: e.updatedAt,
+      deletedAt: e.deletedAt,
+    );
+
+InternalAccountSettlementsCompanion internalAccountSettlementToCompanion(
+        InternalAccountSettlementModel m) =>
+    InternalAccountSettlementsCompanion.insert(
+      id: m.id,
+      companyId: m.companyId,
+      internalAccountId: m.internalAccountId,
+      settledByUserId: m.settledByUserId,
+      settledAt: m.settledAt,
+      totalAmount: Value(m.totalAmount),
+      settledAmount: Value(m.settledAmount),
+      forgivenAmount: Value(m.forgivenAmount),
+      discountAmount: Value(m.discountAmount),
+      note: Value(m.note),
     );

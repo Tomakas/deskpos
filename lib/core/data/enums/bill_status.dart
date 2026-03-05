@@ -7,6 +7,7 @@ enum BillStatus {
   paid,
   cancelled,
   refunded,
+  transferred,
 }
 
 extension BillStatusColor on BillStatus {
@@ -17,6 +18,7 @@ extension BillStatusColor on BillStatus {
       BillStatus.paid => c.billPaid,
       BillStatus.cancelled => c.billCancelled,
       BillStatus.refunded => c.billRefunded,
+      BillStatus.transferred => c.billTransferred,
     };
   }
 }

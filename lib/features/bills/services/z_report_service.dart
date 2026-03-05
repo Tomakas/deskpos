@@ -61,11 +61,17 @@ class ZReportService {
         ? (register.name.isNotEmpty ? register.name : register.code)
         : null;
 
-    // Get all bills for company, filter by closedAt within session range
-    final allBills = await billRepo.getByCompany(session.companyId);
-    final sessionBills = allBills.where((b) =>
-        b.closedAt != null && b.closedAt!.isAfter(session.openedAt) &&
-        (session.closedAt == null || !b.closedAt!.isAfter(session.closedAt!))).toList();
+    // Get all bills for this session (prefer by registerSessionId, fallback to timeframe)
+    List<BillModel> sessionBills;
+    if (session.id.isNotEmpty) {
+      sessionBills = await billRepo.getBySession(session.companyId, sessionId);
+    } else {
+      sessionBills = await billRepo.getBySessionTimeframe(
+        session.companyId,
+        session.openedAt,
+        session.closedAt,
+      );
+    }
 
     // Get all payment methods
     final allMethods = await paymentMethodRepo.getAll(session.companyId);
@@ -78,7 +84,11 @@ class ZReportService {
     final tipsByUserId = <String, int>{};
 
     for (final bill in sessionBills) {
-      if (bill.status == BillStatus.cancelled) continue;
+      if (bill.status == BillStatus.cancelled || bill.status == BillStatus.transferred) continue;
+      // Filter by timeframe if sessionBills was generic (just in case)
+      if (bill.closedAt == null || bill.closedAt!.isBefore(session.openedAt)) continue;
+      if (session.closedAt != null && bill.closedAt!.isAfter(session.closedAt!)) continue;
+
       final payments = await paymentRepo.getByBill(bill.id);
       for (final p in payments) {
         final method = methodMap[p.paymentMethodId];
@@ -148,10 +158,19 @@ class ZReportService {
         .where((b) => b.status == BillStatus.paid)
         .fold(0, (sum, b) => sum + b.discountAmount);
 
-    // Bill counts
-    final billsPaid = sessionBills.where((b) => b.status == BillStatus.paid).length;
-    final billsCancelled = sessionBills.where((b) => b.status == BillStatus.cancelled).length;
-    final billsRefunded = sessionBills.where((b) => b.status == BillStatus.refunded).length;
+    // Bill counts and amounts
+    final countPaid = sessionBills.where((b) => b.status == BillStatus.paid).toList();
+    final countCancelled = sessionBills.where((b) => b.status == BillStatus.cancelled).toList();
+    final countRefunded = sessionBills.where((b) => b.status == BillStatus.refunded).toList();
+    final countTransferred = sessionBills.where((b) => b.status == BillStatus.transferred).toList();
+    final billsPaid = countPaid.length;
+    final billsPaidAmount = countPaid.fold(0, (s, b) => s + b.totalGross);
+    final billsCancelled = countCancelled.length;
+    final billsCancelledAmount = countCancelled.fold(0, (s, b) => s + b.totalGross);
+    final billsRefunded = countRefunded.length;
+    final billsRefundedAmount = countRefunded.fold(0, (s, b) => s + b.totalGross);
+    final billsTransferred = countTransferred.length;
+    final billsTransferredAmount = countTransferred.fold(0, (s, b) => s + b.totalGross);
 
     // Cash movements (exclude handover — it's a post-close transfer, not session accounting)
     final cashMovements = await cashMovementRepo.getBySession(sessionId);
@@ -209,8 +228,13 @@ class ZReportService {
       taxBreakdown: taxBreakdown,
       totalDiscounts: totalDiscounts,
       billsPaid: billsPaid,
+      billsPaidAmount: billsPaidAmount,
       billsCancelled: billsCancelled,
+      billsCancelledAmount: billsCancelledAmount,
       billsRefunded: billsRefunded,
+      billsRefundedAmount: billsRefundedAmount,
+      billsTransferred: billsTransferred,
+      billsTransferredAmount: billsTransferredAmount,
       openingCash: openingCash,
       closingCash: closingCash,
       expectedCash: expectedCash,
@@ -251,8 +275,11 @@ class ZReportService {
       }
     }
 
-    // Get all bills for company
-    final allBills = await billRepo.getByCompany(companyId);
+    // Get all bills for company in range (paid/refunded + transferred for counting)
+    final allBills = await billRepo.getPaidOrRefundedInRange(companyId, dateFrom, dateTo);
+    final transferredBills = await billRepo.getTransferredInRange(companyId, dateFrom, dateTo);
+    allBills.addAll(transferredBills);
+
     // Index bills by registerSessionId for O(1) lookup
     final sessionIds = {for (final s in sessionsInRange) s.id};
     final billsBySession = <String, List<BillModel>>{};
@@ -273,8 +300,13 @@ class ZReportService {
     final tipsByUserId = <String, int>{};
     int totalDiscounts = 0;
     int billsPaid = 0;
+    int billsPaidAmount = 0;
     int billsCancelled = 0;
+    int billsCancelledAmount = 0;
     int billsRefunded = 0;
+    int billsRefundedAmount = 0;
+    int billsTransferred = 0;
+    int billsTransferredAmount = 0;
     int totalOpeningCash = 0;
     int totalClosingCash = 0;
     int totalCashDeposits = 0;
@@ -298,13 +330,15 @@ class ZReportService {
       final sessionBills = billsBySession[session.id] ?? [];
 
       for (final bill in sessionBills) {
-        if (bill.status == BillStatus.cancelled) {
-          billsCancelled++;
+        if (bill.status == BillStatus.cancelled || bill.status == BillStatus.transferred) {
+          if (bill.status == BillStatus.cancelled) { billsCancelled++; billsCancelledAmount += bill.totalGross; }
+          if (bill.status == BillStatus.transferred) { billsTransferred++; billsTransferredAmount += bill.totalGross; }
           continue;
         }
-        if (bill.status == BillStatus.refunded) billsRefunded++;
+        if (bill.status == BillStatus.refunded) { billsRefunded++; billsRefundedAmount += bill.totalGross; }
         if (bill.status == BillStatus.paid) {
           billsPaid++;
+          billsPaidAmount += bill.totalGross;
           totalDiscounts += bill.discountAmount;
           registerBillsPaid[regId] = (registerBillsPaid[regId] ?? 0) + 1;
         }
@@ -511,8 +545,13 @@ class ZReportService {
       taxBreakdown: taxBreakdown,
       totalDiscounts: totalDiscounts,
       billsPaid: billsPaid,
+      billsPaidAmount: billsPaidAmount,
       billsCancelled: billsCancelled,
+      billsCancelledAmount: billsCancelledAmount,
       billsRefunded: billsRefunded,
+      billsRefundedAmount: billsRefundedAmount,
+      billsTransferred: billsTransferred,
+      billsTransferredAmount: billsTransferredAmount,
       openingCash: totalOpeningCash,
       closingCash: totalClosingCash,
       expectedCash: totalExpectedCash,
@@ -586,7 +625,7 @@ class ZReportService {
     final foreignRevenue = <String, int>{};
     final foreignCount = <String, int>{};
     for (final bill in sessionBills) {
-      if (bill.status == BillStatus.cancelled) continue;
+      if (bill.status == BillStatus.cancelled || bill.status == BillStatus.transferred) continue;
       final payments = await paymentRepo.getByBill(bill.id);
       for (final p in payments) {
         if (p.foreignCurrencyId != null && p.foreignAmount != null) {
@@ -649,7 +688,7 @@ class ZReportService {
     final foreignRevenue = <String, int>{};
     final foreignCount = <String, int>{};
     for (final bill in allBills) {
-      if (bill.status == BillStatus.cancelled) continue;
+      if (bill.status == BillStatus.cancelled || bill.status == BillStatus.transferred) continue;
       if (bill.registerSessionId == null || !sessionIdSet.contains(bill.registerSessionId)) continue;
       final payments = await paymentRepo.getByBill(bill.id);
       for (final p in payments) {

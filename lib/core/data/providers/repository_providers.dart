@@ -4,6 +4,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../repositories/bill_repository.dart';
 import '../repositories/cash_movement_repository.dart';
+import '../repositories/internal_account_repository.dart';
+import '../repositories/internal_account_settlement_repository.dart';
 import '../repositories/display_device_repository.dart';
 import '../repositories/category_repository.dart';
 import '../repositories/company_currency_repository.dart';
@@ -312,6 +314,22 @@ final stockDocumentRepositoryProvider = Provider<StockDocumentRepository>((ref) 
     syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
     stockLevelRepo: ref.watch(stockLevelRepositoryProvider),
     stockMovementRepo: ref.watch(stockMovementRepositoryProvider),
+  );
+});
+
+// --- Internal account repositories ---
+
+final internalAccountRepositoryProvider = Provider<InternalAccountRepository>((ref) {
+  return InternalAccountRepository(
+    ref.watch(appDatabaseProvider),
+    syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
+  );
+});
+
+final internalAccountSettlementRepositoryProvider = Provider<InternalAccountSettlementRepository>((ref) {
+  return InternalAccountSettlementRepository(
+    ref.watch(appDatabaseProvider),
+    syncQueueRepo: ref.watch(syncQueueRepositoryProvider),
   );
 });
 

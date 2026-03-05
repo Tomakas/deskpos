@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/data/enums/bill_status.dart';
+import '../../../core/logging/app_logger.dart';
 import '../../../core/data/enums/discount_type.dart';
 import '../../../core/data/enums/payment_type.dart';
 import '../../../core/data/enums/display_device_type.dart';
@@ -13,6 +14,7 @@ import '../../../core/data/enums/voucher_type.dart';
 import '../../../core/data/utils/voucher_discount_calculator.dart';
 import '../../../core/data/models/bill_model.dart';
 import '../../../core/data/models/customer_display_content.dart';
+import '../../../core/data/models/internal_account_model.dart';
 import '../../../core/data/models/customer_model.dart';
 import '../../../core/data/models/order_item_model.dart';
 import '../../../core/data/models/order_item_modifier_model.dart';
@@ -31,8 +33,8 @@ import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/utils/formatting_ext.dart';
 import '../../../core/utils/unit_type_l10n.dart';
 import '../../shared/session_helpers.dart' as helpers;
-import 'dialog_customer_search.dart';
 import 'dialog_discount.dart';
+import 'dialog_select_internal_account.dart';
 import 'dialog_merge_bill.dart';
 import 'dialog_new_bill.dart';
 import 'dialog_payment.dart';
@@ -671,22 +673,15 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
 
   Widget _buildRightButtons(BuildContext context, WidgetRef ref, BillModel bill, AppLocalizations l) {
     final isOpened = bill.status == BillStatus.opened;
-    final canAssignCustomer = ref.watch(hasPermissionProvider('orders.assign_customer'));
     final canTransfer = ref.watch(hasPermissionProvider('orders.transfer'));
     final canMerge = ref.watch(hasPermissionProvider('orders.merge'));
     final canSplit = ref.watch(hasPermissionProvider('orders.split'));
     final canDiscount = ref.watch(hasPermissionProvider('discounts.apply_bill')) ||
         ref.watch(hasPermissionProvider('discounts.apply_bill_limited'));
     final canVoucher = ref.watch(hasPermissionProvider('vouchers.redeem'));
+    final canInternalTransfer = ref.watch(hasPermissionProvider('internal_accounts.transfer'));
 
     final buttons = <Widget>[
-      if (canAssignCustomer)
-        Expanded(
-          child: _SideButton(
-            label: l.billDetailCustomer,
-            onPressed: isOpened && !_isProcessing ? () => _selectCustomer(context, ref, bill) : null,
-          ),
-        ),
       if (canTransfer)
         Expanded(
           child: _SideButton(
@@ -727,6 +722,15 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
                 ? () => bill.voucherId != null
                     ? _removeVoucher(context, ref, bill)
                     : _applyVoucher(context, ref, bill)
+                : null,
+          ),
+        ),
+      if (canInternalTransfer)
+        Expanded(
+          child: _SideButton(
+            label: l.internalAccountTransfer,
+            onPressed: isOpened && !_isProcessing
+                ? () => _transferToInternalAccount(context, ref, bill)
                 : null,
           ),
         ),
@@ -1363,45 +1367,62 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
     }
   }
 
-  Future<void> _selectCustomer(BuildContext context, WidgetRef ref, BillModel bill) async {
-    final billRepo = ref.read(billRepositoryProvider);
-    final result = await showCustomerSearchDialogRaw(
-      context,
-      ref,
-      showRemoveButton: bill.customerId != null || bill.customerName != null,
-      currentCustomerName: bill.customerName,
-      currentCustomerId: bill.customerId,
+  Future<void> _transferToInternalAccount(
+      BuildContext context, WidgetRef ref, BillModel bill) async {
+    final account = await showDialog<InternalAccountModel>(
+      context: context,
+      builder: (_) => const DialogSelectInternalAccount(),
     );
-    if (result == null) return;
-    if (!mounted) return;
-    if (result is CustomerModel) {
-      await billRepo.updateCustomer(bill.id, result.id, customerName: '${result.firstName} ${result.lastName}');
-    } else if (result is String) {
-      // Free-text customer name
-      await billRepo.updateCustomerName(bill.id, result);
-    } else {
-      // _RemoveCustomer sentinel
-      await billRepo.updateCustomer(bill.id, null);
+    if (account == null || !context.mounted) return;
+
+    setState(() => _isProcessing = true);
+
+    final user = ref.read(activeUserProvider);
+
+    final result = await ref.read(billRepositoryProvider).transferToInternalAccount(
+      companyId: bill.companyId,
+      billId: bill.id,
+      internalAccountId: account.id,
+      userId: user?.id,
+    );
+
+    if (!context.mounted) return;
+    setState(() => _isProcessing = false);
+
+    if (result case Success()) {
+      Navigator.pop(context);
+    } else if (result case Failure(:final message)) {
+      AppLogger.error('Transfer to internal account failed: $message', tag: 'INTERNAL');
     }
   }
 
   Future<void> _moveBill(BuildContext context, WidgetRef ref, BillModel bill) async {
     final l = context.l10n;
     final billRepo = ref.read(billRepositoryProvider);
+    final customerLocked = bill.loyaltyPointsUsed > 0 || bill.paidAmount > 0;
+    final hadCustomer = bill.customerId != null || bill.customerName != null;
     final result = await showDialog<NewBillResult>(
       context: context,
       builder: (_) => DialogNewBill(
         title: l.billDetailMoveTitle,
         initialTableId: bill.tableId,
         initialNumberOfGuests: bill.numberOfGuests,
+        initialCustomerId: bill.customerId,
+        initialCustomerName: bill.customerName,
+        customerLocked: customerLocked,
       ),
     );
     if (result == null) return;
     if (!mounted) return;
+    final hasCustomerResult = result.customerId != null || result.customerName != null;
+    final clearCustomer = hadCustomer && !hasCustomerResult;
     await billRepo.moveBill(
       bill.id,
       tableId: result.tableId,
       numberOfGuests: result.numberOfGuests,
+      customerId: result.customerId,
+      customerName: result.customerName,
+      clearCustomer: clearCustomer,
     );
   }
 

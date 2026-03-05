@@ -119,6 +119,9 @@ class AppLocalizationsCs extends AppLocalizations {
   String get billsFilterCancelled => 'Stornované';
 
   @override
+  String get billsFilterTransferred => 'Převedené';
+
+  @override
   String get billsQuickBill => 'Rychlý účet';
 
   @override
@@ -643,7 +646,7 @@ class AppLocalizationsCs extends AppLocalizations {
   String get moreReports => 'Reporty';
 
   @override
-  String get moreStatistics => 'Statistiky';
+  String get moreStatistics => 'Přehledy';
 
   @override
   String get moreReservations => 'Rezervace';
@@ -929,7 +932,13 @@ class AppLocalizationsCs extends AppLocalizations {
   String get closingBillsPaid => 'Zaplacené účty';
 
   @override
+  String get closingBillsTransferred => 'Převedené účty';
+
+  @override
   String get closingBillsCancelled => 'Stornované účty';
+
+  @override
+  String get closingBillsRefunded => 'Refundované účty';
 
   @override
   String get closingRevenueTitle => 'Tržba dle plateb';
@@ -1035,6 +1044,9 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get billStatusRefunded => 'Refundovaný';
+
+  @override
+  String get billStatusTransferred => 'Převedený';
 
   @override
   String get refundTitle => 'Refund';
@@ -1152,6 +1164,9 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get zReportBillsPaid => 'Zaplacené účty';
+
+  @override
+  String get zReportBillsTransferred => 'Převedené účty';
 
   @override
   String get zReportBillsCancelled => 'Stornované účty';
@@ -2971,7 +2986,7 @@ class AppLocalizationsCs extends AppLocalizations {
   String get periodNextYear => 'Příští rok';
 
   @override
-  String get statsTitle => 'Statistiky';
+  String get statsTitle => 'Přehledy';
 
   @override
   String get statsTabReceipts => 'Účtenky';
@@ -3536,7 +3551,7 @@ class AppLocalizationsCs extends AppLocalizations {
   String get permGroupVenue => 'Provoz';
 
   @override
-  String get permGroupStats => 'Statistiky a reporty';
+  String get permGroupStats => 'Přehledy a reporty';
 
   @override
   String get permGroupPrinting => 'Tisk';
@@ -3701,7 +3716,7 @@ class AppLocalizationsCs extends AppLocalizations {
   String get currencySelectorBack => 'Zpět';
 
   @override
-  String get statsTabDashboard => 'Přehled';
+  String get statsTabDashboard => 'Nástěnka';
 
   @override
   String get dashboardRevenue => 'Tržba';
@@ -4365,7 +4380,7 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get aiWelcomeStats =>
-      'Statistiky — prodeje, tržby, spropitné, objednávky, směny, Z-reporty';
+      'Přehledy — prodeje, tržby, spropitné, objednávky, směny, Z-reporty';
 
   @override
   String get aiWelcomeStock =>
@@ -4479,4 +4494,84 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get orderTicketTitle => 'OBJEDNÁVKA';
+
+  @override
+  String get settingsTabInternalAccounts => 'Interní účty';
+
+  @override
+  String get internalAccountAddGeneral => 'Obecný';
+
+  @override
+  String get internalAccountAddEmployee => 'Zaměstnanecký';
+
+  @override
+  String get internalAccountSelectUser => 'Vybrat uživatele';
+
+  @override
+  String get internalAccountUser => 'Uživatel';
+
+  @override
+  String get internalAccountSelectTitle => 'Vybrat interní účet';
+
+  @override
+  String get internalAccountEmpty => 'Žádné interní účty k dispozici';
+
+  @override
+  String get internalAccountTransfer => 'Interní účet';
+
+  @override
+  String get statsTabInternalAccounts => 'Interní účty';
+
+  @override
+  String get internalAccountCount => 'Účtů';
+
+  @override
+  String get internalAccountUnsettled => 'Nevyúčtované';
+
+  @override
+  String get internalAccountSettled => 'Vyúčtované';
+
+  @override
+  String get internalAccountUnsettledCount => 'Nevyúčtováno';
+
+  @override
+  String get internalAccountSettledCount => 'Vyúčtováno';
+
+  @override
+  String get internalAccountSettlePaid => 'Zaplaceno';
+
+  @override
+  String get internalAccountSettleForgiven => 'Odpuštěno';
+
+  @override
+  String get internalAccountSettleDiscount => 'Sleva';
+
+  @override
+  String get internalAccountDiscountAmount => 'Výše slevy';
+
+  @override
+  String get internalAccountSettledAsPaid => 'Zaplaceno';
+
+  @override
+  String get internalAccountSettledAsForgiven => 'Odpuštěno';
+
+  @override
+  String internalAccountSettledWithDiscount(Object amount) {
+    return 'Sleva $amount';
+  }
+
+  @override
+  String get internalAccountTransferredCount => 'Převedeno';
+
+  @override
+  String get internalAccountTransferredAmount => 'Převedená částka';
+
+  @override
+  String get permGroupInternalAccounts => 'Interní účty';
+
+  @override
+  String get permInternalAccountsManage => 'Správa interních účtů';
+
+  @override
+  String get permInternalAccountsTransfer => 'Převod účtu na interní účet';
 }

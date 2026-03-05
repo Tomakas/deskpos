@@ -157,11 +157,13 @@ class ZReportPdfBuilder {
           // --- Bill counts ---
           pw.Text(labels.billCountsTitle, style: sectionStyle),
           pw.SizedBox(height: 6),
-          _row(labels.billsPaid, '${data.billsPaid}', baseStyle),
+          _countRow(labels.billsPaid, data.billsPaidAmount, data.billsPaid, baseStyle, smallStyle),
+          if (data.billsTransferred > 0)
+            _countRow(labels.billsTransferred, data.billsTransferredAmount, data.billsTransferred, baseStyle, smallStyle),
           if (data.billsCancelled > 0)
-            _row(labels.billsCancelled, '${data.billsCancelled}', baseStyle),
+            _countRow(labels.billsCancelled, data.billsCancelledAmount, data.billsCancelled, baseStyle, smallStyle),
           if (data.billsRefunded > 0)
-            _row(labels.billsRefunded, '${data.billsRefunded}', baseStyle),
+            _countRow(labels.billsRefunded, data.billsRefundedAmount, data.billsRefunded, baseStyle, smallStyle),
           if (data.openBillsAtOpenCount > 0)
             _row(labels.openBillsAtOpen,
                 '${data.openBillsAtOpenCount} (${_fmtMoney(data.openBillsAtOpenAmount)})',
@@ -221,6 +223,25 @@ class ZReportPdfBuilder {
     );
 
     return doc.save();
+  }
+
+  pw.Widget _countRow(String label, int amount, int count, pw.TextStyle style, pw.TextStyle smallStyle) {
+    return pw.Padding(
+      padding: const pw.EdgeInsets.symmetric(vertical: 1),
+      child: pw.Row(
+        children: [
+          pw.Expanded(child: pw.Text(label, style: style)),
+          pw.SizedBox(
+            width: 100,
+            child: pw.Text(_fmtMoney(amount), style: style, textAlign: pw.TextAlign.right),
+          ),
+          pw.SizedBox(
+            width: 50,
+            child: pw.Text('${count}x', style: smallStyle, textAlign: pw.TextAlign.right),
+          ),
+        ],
+      ),
+    );
   }
 
   pw.Widget _row(String label, String value, pw.TextStyle style) {

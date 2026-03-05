@@ -802,6 +802,8 @@ class _StatusFilterBar extends ConsumerWidget {
       (BillStatus.opened, l.billsFilterOpened, BillStatus.opened.color(context)),
       if (canViewPaid)
         (BillStatus.paid, l.billsFilterPaid, BillStatus.paid.color(context)),
+      if (canViewPaid)
+        (BillStatus.transferred, l.billsFilterTransferred, BillStatus.transferred.color(context)),
       if (canViewCancelled)
         (BillStatus.cancelled, l.billsFilterCancelled, BillStatus.cancelled.color(context)),
     ];

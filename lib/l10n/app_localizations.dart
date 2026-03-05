@@ -314,6 +314,12 @@ abstract class AppLocalizations {
   /// **'Stornované'**
   String get billsFilterCancelled;
 
+  /// No description provided for @billsFilterTransferred.
+  ///
+  /// In cs, this message translates to:
+  /// **'Převedené'**
+  String get billsFilterTransferred;
+
   /// No description provided for @billsQuickBill.
   ///
   /// In cs, this message translates to:
@@ -1319,7 +1325,7 @@ abstract class AppLocalizations {
   /// No description provided for @moreStatistics.
   ///
   /// In cs, this message translates to:
-  /// **'Statistiky'**
+  /// **'Přehledy'**
   String get moreStatistics;
 
   /// No description provided for @moreReservations.
@@ -1874,11 +1880,23 @@ abstract class AppLocalizations {
   /// **'Zaplacené účty'**
   String get closingBillsPaid;
 
+  /// No description provided for @closingBillsTransferred.
+  ///
+  /// In cs, this message translates to:
+  /// **'Převedené účty'**
+  String get closingBillsTransferred;
+
   /// No description provided for @closingBillsCancelled.
   ///
   /// In cs, this message translates to:
   /// **'Stornované účty'**
   String get closingBillsCancelled;
+
+  /// No description provided for @closingBillsRefunded.
+  ///
+  /// In cs, this message translates to:
+  /// **'Refundované účty'**
+  String get closingBillsRefunded;
 
   /// No description provided for @closingRevenueTitle.
   ///
@@ -2077,6 +2095,12 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Refundovaný'**
   String get billStatusRefunded;
+
+  /// No description provided for @billStatusTransferred.
+  ///
+  /// In cs, this message translates to:
+  /// **'Převedený'**
+  String get billStatusTransferred;
 
   /// No description provided for @refundTitle.
   ///
@@ -2311,6 +2335,12 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Zaplacené účty'**
   String get zReportBillsPaid;
+
+  /// No description provided for @zReportBillsTransferred.
+  ///
+  /// In cs, this message translates to:
+  /// **'Převedené účty'**
+  String get zReportBillsTransferred;
 
   /// No description provided for @zReportBillsCancelled.
   ///
@@ -5789,7 +5819,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsTitle.
   ///
   /// In cs, this message translates to:
-  /// **'Statistiky'**
+  /// **'Přehledy'**
   String get statsTitle;
 
   /// No description provided for @statsTabReceipts.
@@ -6917,7 +6947,7 @@ abstract class AppLocalizations {
   /// No description provided for @permGroupStats.
   ///
   /// In cs, this message translates to:
-  /// **'Statistiky a reporty'**
+  /// **'Přehledy a reporty'**
   String get permGroupStats;
 
   /// No description provided for @permGroupPrinting.
@@ -7215,7 +7245,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsTabDashboard.
   ///
   /// In cs, this message translates to:
-  /// **'Přehled'**
+  /// **'Nástěnka'**
   String get statsTabDashboard;
 
   /// No description provided for @dashboardRevenue.
@@ -8487,7 +8517,7 @@ abstract class AppLocalizations {
   /// No description provided for @aiWelcomeStats.
   ///
   /// In cs, this message translates to:
-  /// **'Statistiky — prodeje, tržby, spropitné, objednávky, směny, Z-reporty'**
+  /// **'Přehledy — prodeje, tržby, spropitné, objednávky, směny, Z-reporty'**
   String get aiWelcomeStats;
 
   /// No description provided for @aiWelcomeStock.
@@ -8705,6 +8735,162 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'OBJEDNÁVKA'**
   String get orderTicketTitle;
+
+  /// No description provided for @settingsTabInternalAccounts.
+  ///
+  /// In cs, this message translates to:
+  /// **'Interní účty'**
+  String get settingsTabInternalAccounts;
+
+  /// No description provided for @internalAccountAddGeneral.
+  ///
+  /// In cs, this message translates to:
+  /// **'Obecný'**
+  String get internalAccountAddGeneral;
+
+  /// No description provided for @internalAccountAddEmployee.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zaměstnanecký'**
+  String get internalAccountAddEmployee;
+
+  /// No description provided for @internalAccountSelectUser.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vybrat uživatele'**
+  String get internalAccountSelectUser;
+
+  /// No description provided for @internalAccountUser.
+  ///
+  /// In cs, this message translates to:
+  /// **'Uživatel'**
+  String get internalAccountUser;
+
+  /// No description provided for @internalAccountSelectTitle.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vybrat interní účet'**
+  String get internalAccountSelectTitle;
+
+  /// No description provided for @internalAccountEmpty.
+  ///
+  /// In cs, this message translates to:
+  /// **'Žádné interní účty k dispozici'**
+  String get internalAccountEmpty;
+
+  /// No description provided for @internalAccountTransfer.
+  ///
+  /// In cs, this message translates to:
+  /// **'Interní účet'**
+  String get internalAccountTransfer;
+
+  /// No description provided for @statsTabInternalAccounts.
+  ///
+  /// In cs, this message translates to:
+  /// **'Interní účty'**
+  String get statsTabInternalAccounts;
+
+  /// No description provided for @internalAccountCount.
+  ///
+  /// In cs, this message translates to:
+  /// **'Účtů'**
+  String get internalAccountCount;
+
+  /// No description provided for @internalAccountUnsettled.
+  ///
+  /// In cs, this message translates to:
+  /// **'Nevyúčtované'**
+  String get internalAccountUnsettled;
+
+  /// No description provided for @internalAccountSettled.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vyúčtované'**
+  String get internalAccountSettled;
+
+  /// No description provided for @internalAccountUnsettledCount.
+  ///
+  /// In cs, this message translates to:
+  /// **'Nevyúčtováno'**
+  String get internalAccountUnsettledCount;
+
+  /// No description provided for @internalAccountSettledCount.
+  ///
+  /// In cs, this message translates to:
+  /// **'Vyúčtováno'**
+  String get internalAccountSettledCount;
+
+  /// No description provided for @internalAccountSettlePaid.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zaplaceno'**
+  String get internalAccountSettlePaid;
+
+  /// No description provided for @internalAccountSettleForgiven.
+  ///
+  /// In cs, this message translates to:
+  /// **'Odpuštěno'**
+  String get internalAccountSettleForgiven;
+
+  /// No description provided for @internalAccountSettleDiscount.
+  ///
+  /// In cs, this message translates to:
+  /// **'Sleva'**
+  String get internalAccountSettleDiscount;
+
+  /// No description provided for @internalAccountDiscountAmount.
+  ///
+  /// In cs, this message translates to:
+  /// **'Výše slevy'**
+  String get internalAccountDiscountAmount;
+
+  /// No description provided for @internalAccountSettledAsPaid.
+  ///
+  /// In cs, this message translates to:
+  /// **'Zaplaceno'**
+  String get internalAccountSettledAsPaid;
+
+  /// No description provided for @internalAccountSettledAsForgiven.
+  ///
+  /// In cs, this message translates to:
+  /// **'Odpuštěno'**
+  String get internalAccountSettledAsForgiven;
+
+  /// No description provided for @internalAccountSettledWithDiscount.
+  ///
+  /// In cs, this message translates to:
+  /// **'Sleva {amount}'**
+  String internalAccountSettledWithDiscount(Object amount);
+
+  /// No description provided for @internalAccountTransferredCount.
+  ///
+  /// In cs, this message translates to:
+  /// **'Převedeno'**
+  String get internalAccountTransferredCount;
+
+  /// No description provided for @internalAccountTransferredAmount.
+  ///
+  /// In cs, this message translates to:
+  /// **'Převedená částka'**
+  String get internalAccountTransferredAmount;
+
+  /// No description provided for @permGroupInternalAccounts.
+  ///
+  /// In cs, this message translates to:
+  /// **'Interní účty'**
+  String get permGroupInternalAccounts;
+
+  /// No description provided for @permInternalAccountsManage.
+  ///
+  /// In cs, this message translates to:
+  /// **'Správa interních účtů'**
+  String get permInternalAccountsManage;
+
+  /// No description provided for @permInternalAccountsTransfer.
+  ///
+  /// In cs, this message translates to:
+  /// **'Převod účtu na interní účet'**
+  String get permInternalAccountsTransfer;
 }
 
 class _AppLocalizationsDelegate

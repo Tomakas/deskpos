@@ -7,9 +7,12 @@ import '../../../core/data/models/table_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
+import '../../../core/utils/formatting_ext.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
+import '../../catalog/widgets/dialog_customer_credit.dart';
+import '../../shared/session_helpers.dart' as helpers;
 import 'dialog_customer_search.dart';
 
 class DialogNewBill extends ConsumerStatefulWidget {
@@ -18,11 +21,17 @@ class DialogNewBill extends ConsumerStatefulWidget {
     this.title,
     this.initialTableId,
     this.initialNumberOfGuests = 1,
+    this.initialCustomerId,
+    this.initialCustomerName,
+    this.customerLocked = false,
   });
 
   final String? title;
   final String? initialTableId;
   final int initialNumberOfGuests;
+  final String? initialCustomerId;
+  final String? initialCustomerName;
+  final bool customerLocked;
 
   @override
   ConsumerState<DialogNewBill> createState() => _DialogNewBillState();
@@ -40,6 +49,22 @@ class _DialogNewBillState extends ConsumerState<DialogNewBill> {
   void initState() {
     super.initState();
     _guestCount = widget.initialNumberOfGuests;
+    if (widget.initialCustomerId != null) {
+      _loadInitialCustomer(widget.initialCustomerId!);
+    } else if (widget.initialCustomerName != null) {
+      _customerName = widget.initialCustomerName;
+      _customerNameCtrl.text = widget.initialCustomerName!;
+    }
+  }
+
+  Future<void> _loadInitialCustomer(String customerId) async {
+    final customer = await ref.read(customerRepositoryProvider).getById(customerId);
+    if (mounted && customer != null) {
+      setState(() {
+        _selectedCustomer = customer;
+        _customerNameCtrl.text = '${customer.firstName} ${customer.lastName}';
+      });
+    }
   }
 
   @override
@@ -247,37 +272,43 @@ class _DialogNewBillState extends ConsumerState<DialogNewBill> {
                       ),
                       const SizedBox(height: 12),
                       // Customer
-                      _FormRow(
-                        label: '${l.newBillCustomer}:',
-                        child: TextField(
-                          controller: _customerNameCtrl,
-                          decoration: InputDecoration(
-                            isDense: true,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            suffixIcon: IconButton(
-                              icon: const Icon(Icons.search, size: 20),
-                              tooltip: l.customerSearch,
-                              onPressed: () async {
-                                final result = await showCustomerDbSearchDialog(context, ref);
-                                if (result != null && mounted) {
-                                  setState(() {
-                                    _selectedCustomer = result;
-                                    _customerName = null;
-                                    _customerNameCtrl.text =
-                                        '${result.firstName} ${result.lastName}';
-                                  });
-                                }
-                              },
+                      if (_selectedCustomer != null)
+                        _buildCustomerCard(context)
+                      else
+                        _FormRow(
+                          label: '${l.newBillCustomer}:',
+                          child: TextField(
+                            controller: _customerNameCtrl,
+                            enabled: !widget.customerLocked,
+                            decoration: InputDecoration(
+                              isDense: true,
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              suffixIcon: IconButton(
+                                icon: const Icon(Icons.search, size: 20),
+                                tooltip: l.customerSearch,
+                                onPressed: widget.customerLocked
+                                    ? null
+                                    : () async {
+                                        final result = await showCustomerDbSearchDialog(context, ref);
+                                        if (result != null && mounted) {
+                                          setState(() {
+                                            _selectedCustomer = result;
+                                            _customerName = null;
+                                            _customerNameCtrl.text =
+                                                '${result.firstName} ${result.lastName}';
+                                          });
+                                        }
+                                      },
+                              ),
                             ),
+                            onChanged: (value) {
+                              setState(() {
+                                _customerName = value.trim().isEmpty ? null : value.trim();
+                                _selectedCustomer = null;
+                              });
+                            },
                           ),
-                          onChanged: (value) {
-                            setState(() {
-                              _customerName = value.trim().isEmpty ? null : value.trim();
-                              _selectedCustomer = null;
-                            });
-                          },
                         ),
-                      ),
                     ],
                   );
                 },
@@ -285,6 +316,84 @@ class _DialogNewBillState extends ConsumerState<DialogNewBill> {
             },
           ),
       ],
+    );
+  }
+
+  Widget _buildCustomerCard(BuildContext context) {
+    final theme = Theme.of(context);
+    final l = context.l10n;
+    final c = _selectedCustomer!;
+    final contactInfo =
+        [c.email, c.phone].whereType<String>().join(' | ');
+    final loyaltyInfo = l.loyaltyCustomerInfo(
+      c.points,
+      ref.money(c.credit),
+    );
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.person, size: 32),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${c.firstName} ${c.lastName}',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                if (contactInfo.isNotEmpty)
+                  Text(
+                    contactInfo,
+                    style: theme.textTheme.bodySmall,
+                  ),
+                Text(
+                  loyaltyInfo,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.account_balance_wallet_outlined, size: 20),
+            tooltip: l.loyaltyCredit,
+            onPressed: widget.customerLocked
+                ? null
+                : () async {
+                    if (helpers.requireActiveSession(context, ref) == null) return;
+                    await showDialog<void>(
+                      context: context,
+                      builder: (_) => DialogCustomerCredit(customer: c),
+                    );
+                    _loadInitialCustomer(c.id);
+                  },
+            visualDensity: VisualDensity.compact,
+          ),
+          IconButton(
+            icon: const Icon(Icons.close, size: 20),
+            onPressed: widget.customerLocked
+                ? null
+                : () {
+                    setState(() {
+                      _selectedCustomer = null;
+                      _customerName = null;
+                      _customerNameCtrl.clear();
+                    });
+                  },
+            visualDensity: VisualDensity.compact,
+          ),
+        ],
+      ),
     );
   }
 }

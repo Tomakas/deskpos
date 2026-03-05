@@ -95,10 +95,8 @@ Future<void> showCashJournalDialog(BuildContext context, WidgetRef ref) async {
       .fold(0, (sum, m) => sum + m.amount);
 
   final billRepo = ref.read(billRepositoryProvider);
-  final allBills = await billRepo.getByCompany(company.id);
+  final sessionBills = await billRepo.getBySession(company.id, session.id);
   if (!context.mounted) return;
-  final sessionBills = allBills.where((b) =>
-      b.closedAt != null && b.closedAt!.isAfter(session.openedAt)).toList();
 
   final paymentRepo = ref.read(paymentRepositoryProvider);
   final paymentMethodRepo = ref.read(paymentMethodRepositoryProvider);
@@ -200,10 +198,8 @@ Future<void> closeSession(BuildContext context, WidgetRef ref) async {
 
   // Payment summaries: get all bills paid during this session
   final billRepo = ref.read(billRepositoryProvider);
-  final allBills = await billRepo.getByCompany(company.id);
+  final sessionBills = await billRepo.getBySession(company.id, session.id);
   if (!context.mounted) return;
-  final sessionBills = allBills.where((b) =>
-      b.closedAt != null && b.closedAt!.isAfter(session.openedAt)).toList();
 
   final paymentRepo = ref.read(paymentRepositoryProvider);
   final paymentMethodRepo = ref.read(paymentMethodRepositoryProvider);
@@ -245,11 +241,21 @@ Future<void> closeSession(BuildContext context, WidgetRef ref) async {
       .fold(0, (sum, s) => sum + s.amount);
   final expectedCash = openingCash + cashRevenue + cashDeposits - cashWithdrawals;
 
-  final billsPaid = sessionBills.where((b) => b.status == BillStatus.paid).length;
-  final billsCancelled = sessionBills.where((b) => b.status == BillStatus.cancelled).length;
+  final paidBills = sessionBills.where((b) => b.status == BillStatus.paid).toList();
+  final transferredBills = sessionBills.where((b) => b.status == BillStatus.transferred).toList();
+  final cancelledBills = sessionBills.where((b) => b.status == BillStatus.cancelled).toList();
+  final refundedBills = sessionBills.where((b) => b.status == BillStatus.refunded).toList();
+  final billsPaid = paidBills.length;
+  final billsPaidAmount = paidBills.fold(0, (s, b) => s + b.totalGross);
+  final billsTransferred = transferredBills.length;
+  final billsTransferredAmount = transferredBills.fold(0, (s, b) => s + b.totalGross);
+  final billsCancelled = cancelledBills.length;
+  final billsCancelledAmount = cancelledBills.fold(0, (s, b) => s + b.totalGross);
+  final billsRefunded = refundedBills.length;
+  final billsRefundedAmount = refundedBills.fold(0, (s, b) => s + b.totalGross);
 
   // Compute open bills across entire company
-  final openBills = allBills.where((b) => b.status == BillStatus.opened).toList();
+  final openBills = await billRepo.getByStatus(company.id, BillStatus.opened);
   final openBillsCount = openBills.length;
   final openBillsAmount = openBills.fold(0, (sum, b) => sum + b.totalGross);
 
@@ -350,7 +356,13 @@ Future<void> closeSession(BuildContext context, WidgetRef ref) async {
     totalRevenue: totalRevenue,
     totalTips: totalTips,
     billsPaid: billsPaid,
+    billsPaidAmount: billsPaidAmount,
+    billsTransferred: billsTransferred,
+    billsTransferredAmount: billsTransferredAmount,
     billsCancelled: billsCancelled,
+    billsCancelledAmount: billsCancelledAmount,
+    billsRefunded: billsRefunded,
+    billsRefundedAmount: billsRefundedAmount,
     cashDeposits: cashDeposits,
     cashWithdrawals: cashWithdrawals,
     openBillsCount: openBillsCount,
@@ -485,6 +497,7 @@ Future<void> closeSession(BuildContext context, WidgetRef ref) async {
           discountsTotal: l.zReportDiscounts,
           billCountsTitle: l.zReportBillsPaid,
           billsPaid: l.zReportBillsPaid,
+          billsTransferred: l.zReportBillsTransferred,
           billsCancelled: l.zReportBillsCancelled,
           billsRefunded: l.zReportBillsRefunded,
           openBillsAtOpen: l.zReportOpenBillsAtOpen,
@@ -563,9 +576,8 @@ Future<void> openSession(BuildContext context, WidgetRef ref) async {
   final openingCash = result.baseCash;
 
   // Snapshot open bills at session open
-  final allBillsForOpen = await ref.read(billRepositoryProvider).getByCompany(company.id);
+  final openBillsForOpen = await ref.read(billRepositoryProvider).getByStatus(company.id, BillStatus.opened);
   if (!context.mounted) return;
-  final openBillsForOpen = allBillsForOpen.where((b) => b.status == BillStatus.opened).toList();
   final openBillsForOpenAmount = openBillsForOpen.fold(0, (sum, b) => sum + b.totalGross);
 
   final openResult = await sessionRepo.openSession(

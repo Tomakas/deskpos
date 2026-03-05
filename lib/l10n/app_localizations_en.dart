@@ -119,6 +119,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get billsFilterCancelled => 'Cancelled';
 
   @override
+  String get billsFilterTransferred => 'Transferred';
+
+  @override
   String get billsQuickBill => 'Quick Bill';
 
   @override
@@ -645,7 +648,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get moreReports => 'Reports';
 
   @override
-  String get moreStatistics => 'Statistics';
+  String get moreStatistics => 'Reports';
 
   @override
   String get moreReservations => 'Reservations';
@@ -930,7 +933,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get closingBillsPaid => 'Paid Bills';
 
   @override
+  String get closingBillsTransferred => 'Transferred Bills';
+
+  @override
   String get closingBillsCancelled => 'Cancelled Bills';
+
+  @override
+  String get closingBillsRefunded => 'Refunded Bills';
 
   @override
   String get closingRevenueTitle => 'Revenue by Payment';
@@ -1037,6 +1046,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get billStatusRefunded => 'Refunded';
+
+  @override
+  String get billStatusTransferred => 'Transferred';
 
   @override
   String get refundTitle => 'Refund';
@@ -1155,6 +1167,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get zReportBillsPaid => 'Paid Bills';
+
+  @override
+  String get zReportBillsTransferred => 'Transferred Bills';
 
   @override
   String get zReportBillsCancelled => 'Cancelled Bills';
@@ -2974,7 +2989,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get periodNextYear => 'Next year';
 
   @override
-  String get statsTitle => 'Statistics';
+  String get statsTitle => 'Reports';
 
   @override
   String get statsTabReceipts => 'Receipts';
@@ -3538,7 +3553,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get permGroupVenue => 'Venue';
 
   @override
-  String get permGroupStats => 'Statistics & reports';
+  String get permGroupStats => 'Reports';
 
   @override
   String get permGroupPrinting => 'Printing';
@@ -4367,7 +4382,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aiWelcomeStats =>
-      'Statistics — sales, revenue, tips, orders, shifts, Z-reports';
+      'Reports — sales, revenue, tips, orders, shifts, Z-reports';
 
   @override
   String get aiWelcomeStock =>
@@ -4481,4 +4496,85 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get orderTicketTitle => 'ORDER';
+
+  @override
+  String get settingsTabInternalAccounts => 'Internal Accts';
+
+  @override
+  String get internalAccountAddGeneral => 'General';
+
+  @override
+  String get internalAccountAddEmployee => 'Employee';
+
+  @override
+  String get internalAccountSelectUser => 'Select user';
+
+  @override
+  String get internalAccountUser => 'User';
+
+  @override
+  String get internalAccountSelectTitle => 'Select internal account';
+
+  @override
+  String get internalAccountEmpty => 'No internal accounts available';
+
+  @override
+  String get internalAccountTransfer => 'Internal Account';
+
+  @override
+  String get statsTabInternalAccounts => 'Internal Accounts';
+
+  @override
+  String get internalAccountCount => 'Accounts';
+
+  @override
+  String get internalAccountUnsettled => 'Unsettled';
+
+  @override
+  String get internalAccountSettled => 'Settled';
+
+  @override
+  String get internalAccountUnsettledCount => 'Unsettled';
+
+  @override
+  String get internalAccountSettledCount => 'Settled';
+
+  @override
+  String get internalAccountSettlePaid => 'Paid';
+
+  @override
+  String get internalAccountSettleForgiven => 'Forgiven';
+
+  @override
+  String get internalAccountSettleDiscount => 'Discount';
+
+  @override
+  String get internalAccountDiscountAmount => 'Discount amount';
+
+  @override
+  String get internalAccountSettledAsPaid => 'Paid';
+
+  @override
+  String get internalAccountSettledAsForgiven => 'Forgiven';
+
+  @override
+  String internalAccountSettledWithDiscount(Object amount) {
+    return 'Discount $amount';
+  }
+
+  @override
+  String get internalAccountTransferredCount => 'Transferred';
+
+  @override
+  String get internalAccountTransferredAmount => 'Transferred amount';
+
+  @override
+  String get permGroupInternalAccounts => 'Internal Accounts';
+
+  @override
+  String get permInternalAccountsManage => 'Manage internal accounts';
+
+  @override
+  String get permInternalAccountsTransfer =>
+      'Transfer bill to internal account';
 }

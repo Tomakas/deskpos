@@ -2,6 +2,8 @@
 
 import '../models/bill_model.dart';
 import '../models/cash_movement_model.dart';
+import '../models/internal_account_model.dart';
+import '../models/internal_account_settlement_model.dart';
 import '../models/category_model.dart';
 import '../models/customer_model.dart';
 import '../models/customer_transaction_model.dart';
@@ -344,6 +346,8 @@ Map<String, dynamic> billToSupabaseJson(BillModel m) => {
       'loyalty_points_earned': m.loyaltyPointsEarned,
       'voucher_discount_amount': m.voucherDiscountAmount,
       'voucher_id': m.voucherId,
+      'internal_account_id': m.internalAccountId,
+      'settlement_id': m.settlementId,
       'opened_at': toIso8601Utc(m.openedAt),
       'closed_at': toIso8601Utc(m.closedAt),
       'map_pos_x': m.mapPosX,
@@ -817,4 +821,35 @@ Map<String, dynamic> orderItemModifierToSupabaseJson(OrderItemModifierModel m) =
       'unit_price': m.unitPrice,
       'tax_rate': m.taxRate,
       'tax_amount': m.taxAmount,
+    };
+
+Map<String, dynamic> internalAccountToSupabaseJson(InternalAccountModel m) => {
+      ..._baseSyncFields(
+        id: m.id,
+        companyId: m.companyId,
+        createdAt: m.createdAt,
+        updatedAt: m.updatedAt,
+        deletedAt: m.deletedAt,
+      ),
+      'name': m.name,
+      'user_id': m.userId,
+      'is_active': m.isActive,
+    };
+
+Map<String, dynamic> internalAccountSettlementToSupabaseJson(InternalAccountSettlementModel m) => {
+      ..._baseSyncFields(
+        id: m.id,
+        companyId: m.companyId,
+        createdAt: m.createdAt,
+        updatedAt: m.updatedAt,
+        deletedAt: m.deletedAt,
+      ),
+      'internal_account_id': m.internalAccountId,
+      'settled_by_user_id': m.settledByUserId,
+      'settled_at': toIso8601Utc(m.settledAt),
+      'total_amount': m.totalAmount,
+      'settled_amount': m.settledAmount,
+      'forgiven_amount': m.forgivenAmount,
+      'discount_amount': m.discountAmount,
+      'note': m.note,
     };

@@ -109,8 +109,7 @@ class _CompanyInfoTabState extends ConsumerState<CompanyInfoTab> {
 
     // Check if currency should be locked (any bills exist)
     final billRepo = ref.read(billRepositoryProvider);
-    final bills = await billRepo.getByCompany(company.id);
-    final currencyLocked = bills.isNotEmpty;
+    final currencyLocked = await billRepo.hasAnyBills(company.id);
 
     if (!mounted) return;
     final repo = ref.read(companySettingsRepositoryProvider);
