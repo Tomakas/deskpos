@@ -28,11 +28,11 @@ jobs:
         id: version
         shell: pwsh
         run: |
-          $pubspec = Get-Content pubspec.yaml -Raw | ConvertFrom-StringData
-          $fallbackVersion = (Select-String -Path pubspec.yaml -Pattern "^version:\s*(.+)$").Matches.Groups[1].Value.Trim()
-          $v = $fallbackVersion
+          $content = Get-Content pubspec.yaml -Raw
+          $match = [regex]::Match($content, "^version:\s*(.+)$", [System.Text.RegularExpressions.RegexOptions]::Multiline)
+          $v = $match.Groups[1].Value.Trim()
           if ($env:GITHUB_REF -match '^refs/tags/v(.+)$') { $v = $Matches[1] }
-          echo "APP_VERSION=$v" >> $env:GITHUB_OUTPUT
+          Add-Content -Path $env:GITHUB_OUTPUT -Value "APP_VERSION=$v"
 
       - name: Build Windows
         run: flutter build windows --release --build-name=${{ steps.version.outputs.APP_VERSION }}
