@@ -78,6 +78,7 @@ class _DialogStockDocumentState extends ConsumerState<DialogStockDocument> {
 
     return PosDialogShell(
       title: title,
+      showCloseButton: true,
       maxWidth: 700,
       maxHeight: 700,
       expandHeight: true,
@@ -463,6 +464,7 @@ class _ItemSearchDialogState extends ConsumerState<_ItemSearchDialog> {
 
     return PosDialogShell(
       title: l.stockDocumentSearchItem,
+      showCloseButton: true,
       maxWidth: 500,
       maxHeight: 500,
       children: [

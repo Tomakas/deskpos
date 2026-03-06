@@ -69,6 +69,7 @@ class _DialogVoucherRedeemState extends State<DialogVoucherRedeem> {
 
     return PosDialogShell(
       title: l.billDetailVoucher,
+      showCloseButton: true,
       maxWidth: 340,
       maxHeight: 460,
       expandHeight: true,

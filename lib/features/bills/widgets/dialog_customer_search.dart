@@ -172,6 +172,7 @@ class _DialogCustomerAssignState extends ConsumerState<_DialogCustomerAssign> {
 
     return PosDialogShell(
       title: l.billDetailCustomer,
+      showCloseButton: true,
       maxWidth: 420,
       scrollable: true,
       bottomActions: PosDialogActions(
@@ -335,6 +336,7 @@ class _DialogCustomerDbSearchState
 
     return PosDialogShell(
       title: l.customerSearch,
+      showCloseButton: true,
       maxWidth: 420,
       maxHeight: 500,
       padding: const EdgeInsets.all(16),

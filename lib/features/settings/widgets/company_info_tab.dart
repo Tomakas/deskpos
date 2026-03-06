@@ -464,7 +464,7 @@ class _CompanyInfoTabState extends ConsumerState<CompanyInfoTab> {
                         return Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                            color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
                               color: Theme.of(context).colorScheme.outlineVariant,
@@ -516,7 +516,7 @@ class _CompanyInfoTabState extends ConsumerState<CompanyInfoTab> {
                                   child: Icon(
                                     Icons.cancel,
                                     size: 18,
-                                    color: Theme.of(context).colorScheme.error.withOpacity(0.7),
+                                    color: Theme.of(context).colorScheme.error.withValues(alpha: 0.7),
                                   ),
                                 ),
                               ],

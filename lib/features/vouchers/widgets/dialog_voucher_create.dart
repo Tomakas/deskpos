@@ -63,6 +63,7 @@ class _DialogVoucherCreateState extends ConsumerState<DialogVoucherCreate> {
 
     return PosDialogShell(
       title: l.voucherCreate,
+      showCloseButton: true,
       maxWidth: 400,
       maxHeight: 600,
       expandHeight: true,
@@ -482,6 +483,7 @@ class _ItemSearchDialogState extends ConsumerState<_ItemSearchDialog> {
     final l = context.l10n;
     return PosDialogShell(
       title: l.gridEditorSelectItem,
+      showCloseButton: true,
       maxWidth: 420,
       maxHeight: 500,
       children: [
@@ -542,6 +544,7 @@ class _CategorySearchDialogState extends ConsumerState<_CategorySearchDialog> {
     final l = context.l10n;
     return PosDialogShell(
       title: l.gridEditorSelectCategory,
+      showCloseButton: true,
       maxWidth: 420,
       maxHeight: 500,
       children: [

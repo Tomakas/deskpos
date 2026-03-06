@@ -91,6 +91,7 @@ class _DialogDiscountState extends ConsumerState<DialogDiscount> {
 
     return PosDialogShell(
       title: widget.title ?? l.billDetailDiscount,
+      showCloseButton: true,
       maxWidth: 340,
       maxHeight: 460,
       expandHeight: true,

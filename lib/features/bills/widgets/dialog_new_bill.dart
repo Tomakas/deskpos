@@ -81,6 +81,7 @@ class _DialogNewBillState extends ConsumerState<DialogNewBill> {
 
     return PosDialogShell(
       title: '${widget.title ?? l.newBillTitle}:',
+      showCloseButton: true,
       titleStyle: Theme.of(context).textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.bold,
           ),

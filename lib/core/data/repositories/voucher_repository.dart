@@ -114,6 +114,35 @@ class VoucherRepository
     return Success(voucher);
   }
 
+  /// Validate voucher for local cart (before bill is created)
+  Future<Result<VoucherModel>> validateForCart(
+    String code,
+    String companyId, {
+    required int subtotalGross,
+    String? customerId,
+  }) async {
+    final voucher = await getByCode(companyId, code);
+    if (voucher == null) {
+      return const Failure('voucherInvalid');
+    }
+    if (voucher.status != VoucherStatus.active) {
+      return const Failure('voucherAlreadyUsed');
+    }
+    if (voucher.expiresAt != null && voucher.expiresAt!.isBefore(DateTime.now())) {
+      return const Failure('voucherExpiredError');
+    }
+    if (voucher.usedCount >= voucher.maxUses) {
+      return const Failure('voucherAlreadyUsed');
+    }
+    if (voucher.customerId != null && voucher.customerId != customerId) {
+      return const Failure('voucherCustomerMismatch');
+    }
+    if (voucher.minOrderValue != null && subtotalGross < voucher.minOrderValue!) {
+      return const Failure('voucherMinOrderNotMet');
+    }
+    return Success(voucher);
+  }
+
   /// Mark voucher as redeemed.
   /// [usesConsumed] is the number of item units covered by this redemption.
   Future<Result<VoucherModel>> redeem(String voucherId, String billId, {int usesConsumed = 1}) async {

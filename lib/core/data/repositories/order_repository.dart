@@ -1206,6 +1206,29 @@ class OrderRepository {
     });
   }
 
+  /// Sets [voucherDiscount] on a single order item without splitting.
+  ///
+  /// Used during voucher recalculation to update existing items in-place,
+  /// avoiding the item fragmentation that [applyVoucherToOrderItem] causes.
+  Future<void> setVoucherDiscount(String orderItemId, int amount) async {
+    final now = DateTime.now();
+    final itemEntity = await (_db.select(_db.orderItems)
+          ..where((t) => t.id.equals(orderItemId)))
+        .getSingle();
+
+    await (_db.update(_db.orderItems)..where((t) => t.id.equals(orderItemId)))
+        .write(OrderItemsCompanion(
+      voucherDiscount: Value(amount),
+      updatedAt: Value(now),
+    ));
+
+    final updated = await (_db.select(_db.orderItems)
+          ..where((t) => t.id.equals(orderItemId)))
+        .getSingle();
+    await _enqueueOrderItem('update', orderItemFromEntity(updated));
+    await _recalculateOrderTotals(itemEntity.orderId);
+  }
+
   /// Zeros out [voucherDiscount] on all items of a bill and enqueues sync.
   ///
   /// Called when a voucher is removed from an open bill. Items that were

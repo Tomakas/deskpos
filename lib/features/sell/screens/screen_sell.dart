@@ -43,9 +43,19 @@ import '../../../core/widgets/pos_numpad.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_dialog_theme.dart';
 import '../../../core/data/providers/permission_providers.dart';
+import '../../../core/data/enums/discount_type.dart';
+import '../../../core/data/enums/prep_status.dart';
+import '../../../core/data/enums/voucher_discount_scope.dart';
+import '../../../core/data/enums/voucher_type.dart';
+import '../../../core/data/models/order_item_modifier_model.dart';
+import '../../../core/data/models/voucher_model.dart';
+import '../../../core/data/utils/voucher_discount_calculator.dart';
+import '../../bills/widgets/dialog_discount.dart';
+import '../../bills/widgets/dialog_voucher_redeem.dart';
 import '../../bills/widgets/dialog_customer_search.dart';
 import '../../bills/widgets/dialog_payment.dart';
 import '../../shared/session_helpers.dart' as helpers;
+import '../../shared/voucher_helpers.dart';
 
 class ScreenSell extends ConsumerStatefulWidget {
   const ScreenSell({super.key, this.billId});
@@ -69,6 +79,11 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
   String? _orderNotes;
   String? _customerId;
   String? _customerName;
+  // Local discount/voucher state for Quick Sale
+  DiscountType _discountType = DiscountType.absolute;
+  int _discountAmount = 0;
+  VoucherModel? _voucher;
+
   final _searchController = TextEditingController();
   Timer? _debounce;
   String _searchQuery = '';
@@ -85,9 +100,31 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
   @override
   void initState() {
     super.initState();
-    _loadCustomerName();
+    _loadInitialState();
     _initDisplayBroadcast();
     _initWarehouse();
+  }
+
+  Future<void> _loadInitialState() async {
+    await _loadCustomerName();
+    if (widget.billId != null) {
+      final billRepo = ref.read(billRepositoryProvider);
+      final billResult = await billRepo.getById(widget.billId!);
+      if (billResult is Success<BillModel>) {
+        final bill = billResult.value;
+        VoucherModel? voucher;
+        if (bill.voucherId != null) {
+          voucher = await ref.read(voucherRepositoryProvider).getById(bill.voucherId!, includeDeleted: true);
+        }
+        if (mounted) {
+          setState(() {
+            _discountType = bill.discountType ?? DiscountType.absolute;
+            _discountAmount = bill.discountAmount;
+            _voucher = voucher;
+          });
+        }
+      }
+    }
   }
 
   Future<void> _initWarehouse() async {
@@ -129,6 +166,46 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     }
   }
 
+  int _computeVoucherDiscount(int subtotal) {
+    final v = _voucher;
+    if (v == null) return 0;
+    if (v.type == VoucherType.gift || v.type == VoucherType.deposit) {
+      return v.value.clamp(0, subtotal);
+    }
+    // Discount voucher — filter items by scope
+    final scope = v.discountScope ?? VoucherDiscountScope.bill;
+    // Collect matching items with effective unit price
+    final matching = <({_CartItem item, int unitPrice})>[];
+    for (final item in _cart.whereType<_CartItem>()) {
+      final matches = switch (scope) {
+        VoucherDiscountScope.bill => true,
+        VoucherDiscountScope.product => v.itemId != null && item.itemId == v.itemId,
+        VoucherDiscountScope.category => v.categoryId != null && item.categoryId == v.categoryId,
+      };
+      if (matches) {
+        matching.add((item: item, unitPrice: item.effectiveUnitPrice));
+      }
+    }
+    if (matching.isEmpty) return 0;
+
+    // Sort by unit price descending (most expensive first) and limit by maxUses
+    matching.sort((a, b) => b.unitPrice.compareTo(a.unitPrice));
+    double remainingUses = v.maxUses.toDouble();
+    int coveredTotal = 0;
+    for (final m in matching) {
+      if (remainingUses <= 0) break;
+      final take = m.item.quantity < remainingUses ? m.item.quantity : remainingUses;
+      coveredTotal += (m.unitPrice * take).round();
+      remainingUses -= take;
+    }
+
+    if (coveredTotal == 0) return 0;
+    if (v.discountType == DiscountType.percent) {
+      return (coveredTotal * v.value / 10000).round();
+    }
+    return v.value.clamp(0, coveredTotal);
+  }
+
   void _pushToDisplay() {
     if (_displayCode == null) return;
 
@@ -153,12 +230,25 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
       }
     }
 
+    // Apply bill discount if any
+    int billDiscount = 0;
+    if (_discountAmount > 0) {
+      if (_discountType == DiscountType.percent) {
+        billDiscount = (subtotal * _discountAmount / 10000).round();
+      } else {
+        billDiscount = _discountAmount;
+      }
+    }
+    final voucherDiscount = _computeVoucherDiscount(subtotal - billDiscount);
+    final totalDiscount = billDiscount + voucherDiscount;
+
     final content = items.isEmpty
         ? const DisplayIdle()
         : DisplayItems(
             items: items,
             subtotal: subtotal,
-            total: subtotal,
+            total: subtotal - totalDiscount,
+            discountAmount: totalDiscount,
           );
 
     _displayChannel.send(content.toJson());
@@ -180,6 +270,9 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
       _pageStack.clear();
       _didSendThankYou = false;
       _printTickets = false;
+      _discountType = DiscountType.absolute;
+      _discountAmount = 0;
+      _voucher = null;
     });
     _pushDisplayIdle();
   }
@@ -346,6 +439,18 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
                   onSelected: () => _selectCustomer(context),
                 ),
                 const SizedBox(width: 8),
+                _toolbarChip(
+                  _discountAmount > 0 ? l.billDetailRemoveDiscount : l.billDetailDiscount,
+                  selected: _discountAmount > 0,
+                  onSelected: () => _applyBillDiscount(context),
+                ),
+                const SizedBox(width: 8),
+                _toolbarChip(
+                  _voucher != null ? l.billDetailRemoveVoucher : l.billDetailVoucher,
+                  selected: _voucher != null,
+                  onSelected: () => _applyVoucher(context),
+                ),
+                const SizedBox(width: 8),
                 _toolbarChip(l.sellNote, selected: _orderNotes != null && _orderNotes!.isNotEmpty, onSelected: () => _showOrderNoteDialog(context)),
                 if (!_isRetailMode) ...[
                   const SizedBox(width: 8),
@@ -421,12 +526,23 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
 
   Widget _buildCart(BuildContext context, AppLocalizations l) {
     final theme = Theme.of(context);
-    int total = 0;
+    int subtotal = 0;
     for (final entry in _cart) {
       if (entry is _CartItem) {
-        total += (entry.effectiveUnitPrice * entry.quantity).round();
+        subtotal += (entry.effectiveUnitPrice * entry.quantity).round();
       }
     }
+    int billDiscount = 0;
+    if (_discountAmount > 0) {
+      if (_discountType == DiscountType.percent) {
+        billDiscount = (subtotal * _discountAmount / 10000).round();
+      } else {
+        billDiscount = _discountAmount;
+      }
+    }
+    final voucherDiscount = _computeVoucherDiscount(subtotal - billDiscount);
+    final totalDiscount = billDiscount + voucherDiscount;
+    final total = subtotal - totalDiscount;
 
     return Container(
       decoration: BoxDecoration(
@@ -578,16 +694,63 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
           // Total
           Padding(
             padding: const EdgeInsets.all(16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(l.sellTotal, style: theme.textTheme.titleMedium),
-                Text(
-                  ref.money(total),
-                  style: theme.textTheme.titleLarge,
-                ),
-              ],
-            ),
+            child: totalDiscount > 0
+                ? Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(l.summarySubtotal, style: theme.textTheme.bodyMedium),
+                          Text(ref.money(subtotal), style: theme.textTheme.bodyMedium),
+                        ],
+                      ),
+                      if (billDiscount > 0) ...[
+                        const SizedBox(height: 2),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(l.summaryBillDiscount, style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.error,
+                            )),
+                            Text('-${ref.money(billDiscount)}', style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.error,
+                            )),
+                          ],
+                        ),
+                      ],
+                      if (voucherDiscount > 0) ...[
+                        const SizedBox(height: 2),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(l.summaryVoucher, style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.tertiary,
+                            )),
+                            Text('-${ref.money(voucherDiscount)}', style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.tertiary,
+                            )),
+                          ],
+                        ),
+                      ],
+                      const SizedBox(height: 4),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(l.sellTotal, style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          )),
+                          Text(ref.money(total), style: theme.textTheme.titleLarge),
+                        ],
+                      ),
+                    ],
+                  )
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(l.sellTotal, style: theme.textTheme.titleMedium),
+                      Text(ref.money(total), style: theme.textTheme.titleLarge),
+                    ],
+                  ),
           ),
           // Actions
           if (widget.isQuickSale) ...[
@@ -1015,6 +1178,309 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     }
   }
 
+  Future<void> _applyBillDiscount(BuildContext context) async {
+    final l = context.l10n;
+    final billId = widget.billId;
+
+    if (_discountAmount > 0) {
+      // Remove discount
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => PosDialogShell(
+          title: l.billDetailRemoveDiscount,
+          maxWidth: 400,
+          scrollable: true,
+          bottomActions: PosDialogActions(
+            actions: [
+              OutlinedButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.no)),
+              FilledButton(
+                  style: PosButtonStyles.destructiveFilled(ctx),
+                  onPressed: () => Navigator.pop(ctx, true),
+                  child: Text(l.yes)),
+            ],
+          ),
+          children: [
+            Text(l.billDetailRemoveDiscountConfirm),
+            const SizedBox(height: 16),
+          ],
+        ),
+      );
+      if (confirmed != true || !mounted) return;
+
+      if (billId != null) {
+        await ref.read(billRepositoryProvider).updateDiscount(billId, DiscountType.absolute, 0);
+      }
+      setState(() {
+        _discountAmount = 0;
+        _discountType = DiscountType.absolute;
+      });
+      _pushToDisplay();
+      return;
+    }
+
+    // Apply discount
+    final hasUnlimited = ref.read(hasPermissionProvider('discounts.apply_bill'));
+    int? maxPercent;
+    if (!hasUnlimited) {
+      final company = ref.read(currentCompanyProvider);
+      if (company != null) {
+        final settings = await ref.read(companySettingsRepositoryProvider).getOrCreate(company.id);
+        maxPercent = settings.maxBillDiscountPercent;
+      }
+    }
+
+    // Compute reference amount (cart total)
+    int subtotal = 0;
+    for (final entry in _cart) {
+      if (entry is _CartItem) {
+        subtotal += (entry.effectiveUnitPrice * entry.quantity).round();
+      }
+    }
+
+    final result = await showDialog<(DiscountType, int)?>(
+      context: context,
+      builder: (_) => DialogDiscount(
+        title: l.discountTitleBill,
+        currentDiscount: _discountAmount,
+        currentDiscountType: _discountType,
+        referenceAmount: subtotal,
+        maxPercent: maxPercent,
+      ),
+    );
+
+    if (result == null || !mounted) return;
+
+    if (billId != null) {
+      await ref.read(billRepositoryProvider).updateDiscount(billId, result.$1, result.$2);
+    }
+    setState(() {
+      _discountType = result.$1;
+      _discountAmount = result.$2;
+    });
+    _pushToDisplay();
+  }
+
+  Future<void> _applyVoucher(BuildContext context) async {
+    final l = context.l10n;
+    final billId = widget.billId;
+
+    if (_voucher != null) {
+      // Remove voucher
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => PosDialogShell(
+          title: l.billDetailRemoveVoucher,
+          maxWidth: 400,
+          scrollable: true,
+          bottomActions: PosDialogActions(
+            actions: [
+              OutlinedButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.no)),
+              FilledButton(
+                  style: PosButtonStyles.destructiveFilled(ctx),
+                  onPressed: () => Navigator.pop(ctx, true),
+                  child: Text(l.yes)),
+            ],
+          ),
+          children: [
+            Text(l.billDetailRemoveVoucherConfirm),
+            const SizedBox(height: 16),
+          ],
+        ),
+      );
+      if (confirmed != true || !mounted) return;
+
+      if (billId != null) {
+        final voucherRepo = ref.read(voucherRepositoryProvider);
+        int usesToReturn = 1;
+        if (_voucher!.type == VoucherType.discount) {
+          final orderRepo = ref.read(orderRepositoryProvider);
+          final activeItems = await orderRepo.getOrderItemsByBill(billId);
+          usesToReturn = activeItems
+              .where((i) => i.voucherDiscount > 0 && i.status != PrepStatus.voided)
+              .fold<double>(0, (s, i) => s + i.quantity)
+              .ceil();
+        }
+        if (usesToReturn > 0) {
+          await voucherRepo.unredeem(_voucher!.id, usesToReturn: usesToReturn);
+        }
+        final orderRepo = ref.read(orderRepositoryProvider);
+        await orderRepo.clearVoucherDiscounts(billId);
+        await ref.read(billRepositoryProvider).removeVoucher(billId);
+      }
+
+      setState(() => _voucher = null);
+      _pushToDisplay();
+      return;
+    }
+
+    // Apply voucher
+    final code = await showDialog<String>(
+      context: context,
+      builder: (_) => const DialogVoucherRedeem(),
+    );
+    if (code == null || !mounted) return;
+
+    final company = ref.read(currentCompanyProvider);
+    if (company == null) return;
+
+    final voucherRepo = ref.read(voucherRepositoryProvider);
+    final billRepo = ref.read(billRepositoryProvider);
+
+    if (billId != null) {
+      final billResult = await billRepo.getById(billId);
+      if (billResult is! Success<BillModel>) return;
+      final bill = billResult.value;
+
+      final result = await voucherRepo.validateForBill(code, company.id, bill);
+      if (!context.mounted) return;
+      if (result is Failure) {
+        _showVoucherError(context, (result as Failure).message);
+        return;
+      }
+      final voucher = (result as Success<VoucherModel>).value;
+      await _persistVoucherToBill(context, bill, voucher);
+    } else {
+      // Quick Sale: validate against local cart
+      final subtotal = _cart.whereType<_CartItem>().fold<int>(0, (sum, item) => sum + (item.effectiveUnitPrice * item.quantity).round());
+      final result = await voucherRepo.validateForCart(
+        code,
+        company.id,
+        subtotalGross: subtotal,
+        customerId: _customerId,
+      );
+      if (!context.mounted) return;
+      if (result is Failure) {
+        _showVoucherError(context, (result as Failure).message);
+        return;
+      }
+      final voucher = (result as Success<VoucherModel>).value;
+      setState(() => _voucher = voucher);
+      _pushToDisplay();
+    }
+  }
+
+  void _showVoucherError(BuildContext context, String errorKey) {
+    final l = context.l10n;
+    final errorMsg = switch (errorKey) {
+      'voucherInvalid' => l.voucherInvalid,
+      'voucherExpiredError' => l.voucherExpiredError,
+      'voucherAlreadyUsed' => l.voucherAlreadyUsed,
+      'voucherMinOrderNotMet' => l.voucherMinOrderNotMet,
+      'voucherCustomerMismatch' => l.voucherCustomerMismatch,
+      _ => errorKey,
+    };
+    showDialog(
+      context: context,
+      builder: (_) => PosDialogShell(
+        title: '',
+        maxWidth: 400,
+        scrollable: true,
+        bottomActions: PosDialogActions(
+          actions: [
+            OutlinedButton(onPressed: () => Navigator.pop(context), child: Text(l.actionOk)),
+          ],
+        ),
+        children: [
+          Text(errorMsg),
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _persistVoucherToBill(BuildContext context, BillModel bill, VoucherModel voucher) async {
+    final l = context.l10n;
+    final isBillScope = voucher.type == VoucherType.gift ||
+        voucher.type == VoucherType.deposit ||
+        (voucher.type == VoucherType.discount &&
+            (voucher.discountScope == null || voucher.discountScope == VoucherDiscountScope.bill));
+
+    if (isBillScope && bill.discountAmount > 0) {
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (_) => PosDialogShell(
+            title: '',
+            maxWidth: 400,
+            scrollable: true,
+            bottomActions: PosDialogActions(
+              actions: [
+                OutlinedButton(onPressed: () => Navigator.pop(context), child: Text(l.actionOk)),
+              ],
+            ),
+            children: [
+              Text(l.billDiscountBlockedByVoucher),
+              const SizedBox(height: 16),
+            ],
+          ),
+        );
+      }
+      return;
+    }
+
+    int discountAmount;
+    int usesConsumed = 1;
+    if (voucher.type == VoucherType.gift || voucher.type == VoucherType.deposit) {
+      discountAmount = voucher.value.clamp(0, bill.totalGross);
+    } else {
+      final orderRepo = ref.read(orderRepositoryProvider);
+      final modifierRepo = ref.read(orderItemModifierRepositoryProvider);
+      final activeItems = await orderRepo.getOrderItemsByBill(bill.id);
+      final filtered = activeItems.where((i) => i.status != PrepStatus.voided).toList();
+      final itemIds = filtered.map((i) => i.id).toList();
+      final allMods = await modifierRepo.getByOrderItemIds(itemIds);
+      final modsByItem = <String, List<OrderItemModifierModel>>{};
+      for (final mod in allMods) {
+        modsByItem.putIfAbsent(mod.orderItemId, () => []).add(mod);
+      }
+
+      Map<String, String>? itemCategoryMap;
+      if (voucher.discountScope == VoucherDiscountScope.category && voucher.categoryId != null) {
+        final itemRepo = ref.read(itemRepositoryProvider);
+        itemCategoryMap = {};
+        final catalogIds = filtered.map((i) => i.itemId).toSet();
+        for (final catId in catalogIds) {
+          final catalogItem = await itemRepo.getById(catId, includeDeleted: true);
+          if (catalogItem?.categoryId != null) {
+            itemCategoryMap[catId] = catalogItem!.categoryId!;
+          }
+        }
+      }
+
+      final vResult = VoucherDiscountCalculator.compute(
+        voucher: voucher,
+        activeItems: filtered,
+        modsByItem: modsByItem,
+        subtotalGross: bill.subtotalGross,
+        itemCategoryMap: itemCategoryMap,
+      );
+
+      for (final attr in vResult.attributions) {
+        await orderRepo.applyVoucherToOrderItem(
+          orderItemId: attr.orderItemId,
+          coveredQty: attr.coveredQty,
+          voucherDiscountAmount: attr.discountAmount,
+        );
+      }
+      discountAmount = 0;
+      usesConsumed = vResult.attributions.fold<double>(0, (s, a) => s + a.coveredQty).ceil();
+    }
+
+    final billRepo = ref.read(billRepositoryProvider);
+    final voucherRepo = ref.read(voucherRepositoryProvider);
+    await billRepo.applyVoucher(
+      billId: bill.id,
+      voucherId: voucher.id,
+      voucherDiscountAmount: discountAmount,
+    );
+    await voucherRepo.redeem(voucher.id, bill.id, usesConsumed: usesConsumed);
+
+    if (mounted) {
+      setState(() => _voucher = voucher);
+      _pushToDisplay();
+    }
+  }
+
   Future<void> _selectCustomer(BuildContext context) async {
     final result = await showCustomerSearchDialogRaw(
       context,
@@ -1347,6 +1813,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
           itemId: item.id,
           name: item.name,
           unitPrice: resolvedUnitPrice,
+          categoryId: item.categoryId,
           unit: item.unit,
           saleTaxRateId: item.saleTaxRateId,
           modifiers: modifiers,
@@ -1514,6 +1981,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
 
       if (anySuccess) {
         await billRepo.updateTotals(widget.billId!);
+        await recalculateVoucherForBill(ref, widget.billId!);
         await _printOrderTickets(widget.billId!, createdOrderIds);
         if (!context.mounted) return;
         context.pop();
@@ -1613,9 +2081,20 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
         }
       }
 
-      if (stockFailed) {
+      if (stockFailed || createdOrderIds.isEmpty) {
         await billRepo.cancelBill(billId, userId: user.id);
         return;
+      }
+
+      // Apply local discount/voucher AFTER items are created in DB
+      if (_discountAmount > 0) {
+        await billRepo.updateDiscount(billId, _discountType, _discountAmount);
+      }
+      if (_voucher != null) {
+        final updatedBillResult = await billRepo.getById(billId);
+        if (updatedBillResult is Success<BillModel>) {
+          await _persistVoucherToBill(context, updatedBillResult.value, _voucher!);
+        }
       }
 
       await billRepo.updateTotals(billId);
@@ -1752,9 +2231,20 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
         }
       }
 
-      if (stockFailed) {
+      if (stockFailed || createdOrderIds.isEmpty) {
         await billRepo.cancelBill(bill.id, userId: user.id);
         return;
+      }
+
+      // Apply local discount/voucher AFTER items are created in DB
+      if (_discountAmount > 0) {
+        await billRepo.updateDiscount(bill.id, _discountType, _discountAmount);
+      }
+      if (_voucher != null) {
+        final updatedBillResult = await billRepo.getById(bill.id);
+        if (updatedBillResult is Success<BillModel>) {
+          await _persistVoucherToBill(context, updatedBillResult.value, _voucher!);
+        }
       }
 
       await billRepo.updateTotals(bill.id);
@@ -1945,6 +2435,7 @@ class _CartItem {
     required this.itemId,
     required this.name,
     required this.unitPrice,
+    this.categoryId,
     this.unit = UnitType.ks,
     this.saleTaxRateId,
     this.modifiers = const [],
@@ -1953,6 +2444,7 @@ class _CartItem {
   final String itemId;
   final String name;
   final int unitPrice;
+  final String? categoryId;
   final UnitType unit;
   final String? saleTaxRateId;
   final List<_CartModifier> modifiers;

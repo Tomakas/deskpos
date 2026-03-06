@@ -33,6 +33,7 @@ import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/utils/formatting_ext.dart';
 import '../../../core/utils/unit_type_l10n.dart';
 import '../../shared/session_helpers.dart' as helpers;
+import '../../shared/voucher_helpers.dart';
 import 'dialog_discount.dart';
 import 'dialog_select_internal_account.dart';
 import 'dialog_merge_bill.dart';
@@ -2151,6 +2152,7 @@ class _OrderSection extends ConsumerWidget {
       voidQuantity: isFullVoid ? null : voidQty,
     );
     await billRepo.updateTotals(order.billId);
+    await recalculateVoucherForBill(ref, order.billId);
   }
 
   Future<void> _editItemDiscount(BuildContext context, WidgetRef ref, OrderItemModel item) async {
