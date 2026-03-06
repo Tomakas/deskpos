@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../bills/widgets/dialog_receipt_preview.dart';
 import '../../../core/data/enums/bill_status.dart';
 import '../../../core/data/enums/discount_type.dart';
 import '../../../core/data/models/bill_model.dart';
@@ -2230,6 +2231,7 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
         title: l.statsReceiptDetailTitle,
         scrollable: true,
         showCloseButton: true,
+        onPrint: () => showReceiptPrintDialog(context, ref, billId),
         children: [
           // Header
           _orderDetailRow(l.statsColumnBillNumber, bill.billNumber),

@@ -1,13 +1,16 @@
 import '../../../core/data/enums/bill_status.dart';
 import '../../../core/data/enums/cash_movement_type.dart';
+import '../../../core/data/enums/discount_type.dart';
 import '../../../core/data/enums/payment_type.dart';
 import '../../../core/data/enums/prep_status.dart';
 import '../../../core/data/models/bill_model.dart';
 import '../../../core/data/models/cash_movement_model.dart';
+import '../../../core/data/models/order_item_modifier_model.dart';
 import '../../../core/data/models/register_model.dart';
 import '../../../core/data/repositories/bill_repository.dart';
 import '../../../core/data/repositories/cash_movement_repository.dart';
 import '../../../core/data/repositories/currency_repository.dart';
+import '../../../core/data/repositories/order_item_modifier_repository.dart';
 import '../../../core/data/repositories/order_repository.dart';
 import '../../../core/data/models/payment_method_model.dart';
 import '../../../core/data/repositories/payment_method_repository.dart';
@@ -17,6 +20,7 @@ import '../../../core/data/repositories/register_session_repository.dart';
 import '../../../core/data/repositories/session_currency_cash_repository.dart';
 import '../../../core/data/repositories/shift_repository.dart';
 import '../../../core/data/repositories/user_repository.dart';
+import '../../../core/data/utils/tax_calculator.dart';
 import '../models/z_report_data.dart';
 import '../widgets/dialog_closing_session.dart';
 
@@ -33,6 +37,7 @@ class ZReportService {
     required this.registerRepo,
     required this.sessionCurrencyCashRepo,
     required this.currencyRepo,
+    required this.orderItemModifierRepo,
   });
 
   final BillRepository billRepo;
@@ -46,6 +51,7 @@ class ZReportService {
   final RegisterRepository registerRepo;
   final SessionCurrencyCashRepository sessionCurrencyCashRepo;
   final CurrencyRepository currencyRepo;
+  final OrderItemModifierRepository orderItemModifierRepo;
 
   Future<ZReportData?> buildZReport(String sessionId) async {
     final session = await registerSessionRepo.getById(sessionId, includeDeleted: true);
@@ -124,32 +130,24 @@ class ZReportService {
       tipsByUser[entry.key] = (username, entry.value);
     }
 
-    // Tax breakdown: for each paid bill → order items → group by saleTaxRateAtt
-    final taxMap = <int, (int net, int tax, int gross)>{};
+    // Tax breakdown: for each paid bill → compute per-rate tax after all discounts
+    var totalTaxResult = TaxByRateResult.empty;
     final paidBills = sessionBills.where((b) => b.status == BillStatus.paid || b.status == BillStatus.refunded);
     for (final bill in paidBills) {
-      final items = await orderRepo.getOrderItemsByBill(bill.id);
-      for (final item in items) {
-        if (item.status == PrepStatus.voided) continue;
-        final rate = item.saleTaxRateAtt;
-        final itemGross = (item.salePriceAtt * item.quantity).round();
-        final itemTax = (item.saleTaxAmount * item.quantity).round();
-        final itemNet = itemGross - itemTax;
-        final existing = taxMap[rate];
-        taxMap[rate] = (
-          (existing?.$1 ?? 0) + itemNet,
-          (existing?.$2 ?? 0) + itemTax,
-          (existing?.$3 ?? 0) + itemGross,
-        );
-      }
+      final billTax = await _computeBillTaxBreakdown(bill);
+      totalTaxResult = totalTaxResult.merge(billTax);
     }
-    final taxBreakdown = taxMap.entries
-        .map((e) => TaxBreakdownRow(
-              taxRatePercent: e.key,
-              netAmount: e.value.$1,
-              taxAmount: e.value.$2,
-              grossAmount: e.value.$3,
-            ))
+    final taxBreakdown = totalTaxResult.byRate.entries
+        .map((e) {
+          final tax = e.value.tax;
+          final gross = e.value.gross;
+          return TaxBreakdownRow(
+            taxRatePercent: e.key,
+            netAmount: gross - tax,
+            taxAmount: tax,
+            grossAmount: gross,
+          );
+        })
         .toList()
       ..sort((a, b) => a.taxRatePercent.compareTo(b.taxRatePercent));
 
@@ -380,18 +378,14 @@ class ZReportService {
 
         // Tax breakdown for paid/refunded bills
         if (bill.status == BillStatus.paid || bill.status == BillStatus.refunded) {
-          final items = await orderRepo.getOrderItemsByBill(bill.id);
-          for (final item in items) {
-            if (item.status == PrepStatus.voided) continue;
-            final rate = item.saleTaxRateAtt;
-            final itemGross = (item.salePriceAtt * item.quantity).round();
-            final itemTax = (item.saleTaxAmount * item.quantity).round();
-            final itemNet = itemGross - itemTax;
+          final billTax = await _computeBillTaxBreakdown(bill);
+          for (final entry in billTax.byRate.entries) {
+            final rate = entry.key;
             final existing = taxMap[rate];
             taxMap[rate] = (
-              (existing?.$1 ?? 0) + itemNet,
-              (existing?.$2 ?? 0) + itemTax,
-              (existing?.$3 ?? 0) + itemGross,
+              (existing?.$1 ?? 0) + (entry.value.gross - entry.value.tax),
+              (existing?.$2 ?? 0) + entry.value.tax,
+              (existing?.$3 ?? 0) + entry.value.gross,
             );
           }
         }
@@ -724,5 +718,66 @@ class ZReportService {
       ));
     }
     return summaries;
+  }
+
+  /// Compute per-rate tax breakdown for a single bill, accounting for
+  /// item discounts, voucher discounts, modifiers, and bill-level discounts.
+  Future<TaxByRateResult> _computeBillTaxBreakdown(BillModel bill) async {
+    final items = await orderRepo.getOrderItemsByBill(bill.id);
+    final activeItems = items.where((i) => i.status != PrepStatus.voided).toList();
+    if (activeItems.isEmpty) return TaxByRateResult.empty;
+
+    final itemIds = activeItems.map((i) => i.id).toList();
+    final allMods = await orderItemModifierRepo.getByOrderItemIds(itemIds);
+    final modsByItem = <String, List<OrderItemModifierModel>>{};
+    for (final mod in allMods) {
+      modsByItem.putIfAbsent(mod.orderItemId, () => []).add(mod);
+    }
+
+    var accumulatedTax = TaxByRateResult.empty;
+    int subtotalGross = 0;
+    for (final item in activeItems) {
+      final baseGross = (item.salePriceAtt * item.quantity).round();
+      int totalItemGross = baseGross;
+      final modComponents = <({int gross, int rate})>[];
+      final itemMods = modsByItem[item.id] ?? [];
+      for (final mod in itemMods) {
+        final modGross = (mod.unitPrice * mod.quantity * item.quantity).round();
+        modComponents.add((gross: modGross, rate: mod.taxRate));
+        totalItemGross += modGross;
+      }
+      int itemDiscount = 0;
+      if (item.discount > 0) {
+        if (item.discountType == DiscountType.percent) {
+          itemDiscount = (totalItemGross * item.discount / 10000).round();
+        } else {
+          itemDiscount = item.discount;
+        }
+      }
+      final itemTaxResult = TaxCalculator.computeItemTax(
+        baseGross: baseGross,
+        baseRate: item.saleTaxRateAtt,
+        modifiers: modComponents,
+        totalDiscount: itemDiscount + item.voucherDiscount,
+      );
+      accumulatedTax = accumulatedTax.merge(itemTaxResult);
+      subtotalGross += totalItemGross - itemDiscount - item.voucherDiscount;
+    }
+
+    // Bill-level discount: scale tax only by real discounts, not gift/deposit vouchers
+    int billDiscount = 0;
+    if (bill.discountAmount > 0) {
+      if (bill.discountType == DiscountType.percent) {
+        billDiscount = (subtotalGross * bill.discountAmount / 10000).round();
+      } else {
+        billDiscount = bill.discountAmount;
+      }
+    }
+    final taxAdjustingDiscounts = billDiscount + bill.loyaltyDiscountAmount;
+    return TaxCalculator.applyBillDiscount(
+      itemTaxResult: accumulatedTax,
+      subtotalGross: subtotalGross,
+      billDiscount: taxAdjustingDiscounts,
+    );
   }
 }

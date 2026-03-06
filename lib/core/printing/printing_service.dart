@@ -20,6 +20,7 @@ import '../data/repositories/payment_repository.dart';
 import '../data/repositories/table_repository.dart';
 import '../data/repositories/user_repository.dart';
 import '../data/result.dart';
+import '../data/utils/tax_calculator.dart';
 import '../logging/app_logger.dart';
 import '../../features/bills/models/z_report_data.dart';
 import 'inventory_pdf_builder.dart';
@@ -151,41 +152,61 @@ class PrintingService {
       ));
     }
 
-    // 9. Build tax breakdown
-    final taxMap = <int, ({int net, int tax, int gross})>{};
+    // 9. Build tax breakdown (with modifiers, item discounts, voucher discounts, bill discounts)
+    var accumulatedTax = TaxByRateResult.empty;
     for (final item in activeItems) {
-      final itemGross = (item.salePriceAtt * item.quantity).round();
-      final itemTax = (item.saleTaxAmount * item.quantity).round();
+      final baseGross = (item.salePriceAtt * item.quantity).round();
+      int totalItemGross = baseGross;
+      final itemMods = modsByItem[item.id] ?? [];
+      final modComponents = <({int gross, int rate})>[];
+      for (final mod in itemMods) {
+        final modGross = (mod.unitPrice * mod.quantity * item.quantity).round();
+        modComponents.add((gross: modGross, rate: mod.taxRate));
+        totalItemGross += modGross;
+      }
       int itemDiscount = 0;
       if (item.discount > 0) {
         if (item.discountType == DiscountType.percent) {
-          itemDiscount = (itemGross * item.discount / 10000).round();
+          itemDiscount = (totalItemGross * item.discount / 10000).round();
         } else {
           itemDiscount = item.discount;
         }
       }
-      final gross = itemGross - itemDiscount;
-      final net = gross - itemTax;
-      final rate = item.saleTaxRateAtt;
-
-      final existing = taxMap[rate];
-      if (existing != null) {
-        taxMap[rate] = (
-          net: existing.net + net,
-          tax: existing.tax + itemTax,
-          gross: existing.gross + gross,
-        );
-      } else {
-        taxMap[rate] = (net: net, tax: itemTax, gross: gross);
-      }
+      final itemTaxResult = TaxCalculator.computeItemTax(
+        baseGross: baseGross,
+        baseRate: item.saleTaxRateAtt,
+        modifiers: modComponents,
+        totalDiscount: itemDiscount + item.voucherDiscount,
+      );
+      accumulatedTax = accumulatedTax.merge(itemTaxResult);
     }
 
-    final taxRows = taxMap.entries.map((e) => ReceiptTaxRow(
-          taxRateBasisPoints: e.key,
-          net: e.value.net,
-          tax: e.value.tax,
-          gross: e.value.gross,
-        )).toList()
+    // Apply bill-level discount (scale tax only by real discounts, not gift/deposit vouchers)
+    int receiptBillDiscount = 0;
+    if (bill.discountAmount > 0) {
+      if (bill.discountType == DiscountType.percent) {
+        receiptBillDiscount = (bill.subtotalGross * bill.discountAmount / 10000).round();
+      } else {
+        receiptBillDiscount = bill.discountAmount;
+      }
+    }
+    final taxAdjustingDiscounts = (receiptBillDiscount + bill.loyaltyDiscountAmount).toInt();
+    final finalTax = TaxCalculator.applyBillDiscount(
+      itemTaxResult: accumulatedTax,
+      subtotalGross: bill.subtotalGross,
+      billDiscount: taxAdjustingDiscounts,
+    );
+
+    final taxRows = finalTax.byRate.entries.map((e) {
+      final tax = e.value.tax;
+      final gross = e.value.gross;
+      return ReceiptTaxRow(
+        taxRateBasisPoints: e.key,
+        net: gross - tax,
+        tax: tax,
+        gross: gross,
+      );
+    }).toList()
       ..sort((a, b) => a.taxRateBasisPoints.compareTo(b.taxRateBasisPoints));
 
     // 10. Build payment data (resolve foreign currency info)

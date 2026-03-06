@@ -25,6 +25,8 @@ function respond(body: Record<string, unknown>, status = 200) {
 // Tables in reverse FK dependency order (children first, parents last).
 // Global tables survive reset: currencies, roles, permissions, role_permissions, seed_demo_data.
 const COMPANY_TABLES = [
+  "internal_account_settlements",
+  "internal_accounts",
   "stock_movements",
   "stock_documents",
   "stock_levels",

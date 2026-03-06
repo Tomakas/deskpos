@@ -17,6 +17,7 @@ import '../models/cash_movement_model.dart';
 import '../models/order_item_model.dart';
 import '../models/payment_model.dart';
 import '../result.dart';
+import '../utils/tax_calculator.dart';
 import 'customer_repository.dart';
 import 'order_repository.dart';
 import 'sync_queue_repository.dart';
@@ -262,6 +263,7 @@ class BillRepository {
 
         int subtotalGross = 0;
         int taxTotal = 0;
+        var accumulatedTax = TaxByRateResult.empty;
 
         if (activeOrderIds.isNotEmpty) {
           final items = await (_db.select(_db.orderItems)
@@ -284,28 +286,36 @@ class BillRepository {
           }
 
           for (final item in items) {
-            int itemSubtotal = (item.salePriceAtt * item.quantity).round();
-            int itemTax = (item.saleTaxAmount * item.quantity).round();
+            final baseGross = (item.salePriceAtt * item.quantity).round();
+            int itemGross = baseGross;
 
-            // Add modifier costs
+            // Build modifier components
             final itemMods = modsByItem[item.id] ?? [];
+            final modComponents = <({int gross, int rate})>[];
             for (final mod in itemMods) {
-              itemSubtotal += (mod.unitPrice * mod.quantity * item.quantity).round();
-              itemTax += (mod.taxAmount * mod.quantity * item.quantity).round();
+              final modGross = (mod.unitPrice * mod.quantity * item.quantity).round();
+              modComponents.add((gross: modGross, rate: mod.taxRate));
+              itemGross += modGross;
             }
 
             // Apply item discount (on total including modifiers)
             int itemDiscount = 0;
             if (item.discount > 0) {
               if (item.discountType == DiscountType.percent) {
-                itemDiscount = (itemSubtotal * item.discount / 10000).round();
+                itemDiscount = (itemGross * item.discount / 10000).round();
               } else {
                 itemDiscount = item.discount;
               }
             }
 
-            subtotalGross += itemSubtotal - itemDiscount - item.voucherDiscount;
-            taxTotal += itemTax;
+            final itemTaxResult = TaxCalculator.computeItemTax(
+              baseGross: baseGross,
+              baseRate: item.saleTaxRateAtt,
+              modifiers: modComponents,
+              totalDiscount: itemDiscount + item.voucherDiscount,
+            );
+            accumulatedTax = accumulatedTax.merge(itemTaxResult);
+            subtotalGross += itemGross - itemDiscount - item.voucherDiscount;
           }
         }
 
@@ -324,8 +334,18 @@ class BillRepository {
           }
         }
 
-        final subtotalNet = subtotalGross - taxTotal;
-        final totalGross = subtotalGross - billDiscount - billEntity.loyaltyDiscountAmount - billEntity.voucherDiscountAmount + billEntity.roundingAmount;
+        // Scale tax only by real discounts (bill discount + loyalty), NOT gift/deposit vouchers
+        final taxAdjustingDiscounts = billDiscount + billEntity.loyaltyDiscountAmount;
+        final finalTax = TaxCalculator.applyBillDiscount(
+          itemTaxResult: accumulatedTax,
+          subtotalGross: subtotalGross,
+          billDiscount: taxAdjustingDiscounts,
+        );
+        taxTotal = finalTax.totalTax;
+
+        final allBillDiscounts = billDiscount + billEntity.loyaltyDiscountAmount + billEntity.voucherDiscountAmount;
+        final totalGross = subtotalGross - allBillDiscounts + billEntity.roundingAmount;
+        final subtotalNet = totalGross - taxTotal;
 
         await (_db.update(_db.bills)..where((t) => t.id.equals(billId))).write(
           BillsCompanion(

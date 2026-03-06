@@ -18,6 +18,7 @@ import '../models/order_item_modifier_model.dart';
 import '../models/order_model.dart';
 import '../models/stock_movement_model.dart';
 import '../result.dart';
+import '../utils/tax_calculator.dart';
 import 'order_item_modifier_repository.dart';
 import 'stock_level_repository.dart';
 import 'stock_movement_repository.dart';
@@ -183,7 +184,11 @@ class OrderRepository {
           ..where((t) => t.billId.equals(billId) & t.deletedAt.isNull()))
         .get();
     if (orders.isEmpty) return [];
-    final orderIds = orders.map((o) => o.id).toList();
+    final orderIds = orders
+        .where((o) => !o.isStorno)
+        .map((o) => o.id)
+        .toList();
+    if (orderIds.isEmpty) return [];
     final entities = await (_db.select(_db.orderItems)
           ..where((t) => t.orderId.isIn(orderIds) & t.deletedAt.isNull()))
         .get();
@@ -204,7 +209,11 @@ class OrderRepository {
           ..where((t) => t.billId.isIn(billIds) & t.deletedAt.isNull()))
         .get();
     if (orders.isEmpty) return [];
-    final orderIds = orders.map((o) => o.id).toList();
+    final orderIds = orders
+        .where((o) => !o.isStorno)
+        .map((o) => o.id)
+        .toList();
+    if (orderIds.isEmpty) return [];
     final entities = await (_db.select(_db.orderItems)
           ..where((t) => t.orderId.isIn(orderIds) & t.deletedAt.isNull()))
         .get();
@@ -588,28 +597,37 @@ class OrderRepository {
         }
 
         // 7. Update storno order totals (including modifiers and discounts)
-        int itemSubtotal = (itemEntity.salePriceAtt * effectiveVoidQty).round();
-        int itemTax = (itemEntity.saleTaxAmount * effectiveVoidQty).round();
+        final stornoBaseGross = (itemEntity.salePriceAtt * effectiveVoidQty).round();
+        int stornoItemGross = stornoBaseGross;
+        final stornoModComponents = <({int gross, int rate})>[];
         for (final mod in voidedMods) {
-          itemSubtotal += (mod.unitPrice * mod.quantity * effectiveVoidQty).round();
-          itemTax += (mod.taxAmount * mod.quantity * effectiveVoidQty).round();
+          final modGross = (mod.unitPrice * mod.quantity * effectiveVoidQty).round();
+          stornoModComponents.add((gross: modGross, rate: mod.taxRate));
+          stornoItemGross += modGross;
         }
         // Apply discounts to storno totals
         int stornoDiscountAmount = 0;
         if (stornoDisc > 0) {
           if (itemEntity.discountType == DiscountType.percent) {
-            stornoDiscountAmount = (itemSubtotal * stornoDisc / 10000).round();
+            stornoDiscountAmount = (stornoItemGross * stornoDisc / 10000).round();
           } else {
             stornoDiscountAmount = stornoDisc;
           }
         }
-        final stornoGross = itemSubtotal - stornoDiscountAmount - stornoVoucherDisc;
+        final stornoGross = stornoItemGross - stornoDiscountAmount - stornoVoucherDisc;
+        final stornoTaxResult = TaxCalculator.computeItemTax(
+          baseGross: stornoBaseGross,
+          baseRate: itemEntity.saleTaxRateAtt,
+          modifiers: stornoModComponents,
+          totalDiscount: stornoDiscountAmount + stornoVoucherDisc,
+        );
+        final stornoTax = stornoTaxResult.totalTax;
         await (_db.update(_db.orders)..where((t) => t.id.equals(stornoOrderId))).write(
           OrdersCompanion(
             itemCount: const Value(1),
             subtotalGross: Value(stornoGross),
-            subtotalNet: Value(stornoGross - itemTax),
-            taxTotal: Value(itemTax),
+            subtotalNet: Value(stornoGross - stornoTax),
+            taxTotal: Value(stornoTax),
             deliveredAt: Value(now),
             updatedAt: Value(now),
           ),
@@ -1287,13 +1305,16 @@ class OrderRepository {
       modsByItem.putIfAbsent(mod.orderItemId, () => []).add(mod);
     }
 
-    int gross = 0, tax = 0;
+    int gross = 0;
+    var accumulatedTax = TaxByRateResult.empty;
     for (final item in items) {
-      int itemGross = (item.salePriceAtt * item.quantity).round();
-      int itemTax = (item.saleTaxAmount * item.quantity).round();
+      final baseGross = (item.salePriceAtt * item.quantity).round();
+      int itemGross = baseGross;
+      final modComponents = <({int gross, int rate})>[];
       for (final mod in modsByItem[item.id] ?? <OrderItemModifier>[]) {
-        itemGross += (mod.unitPrice * mod.quantity * item.quantity).round();
-        itemTax += (mod.taxAmount * mod.quantity * item.quantity).round();
+        final modGross = (mod.unitPrice * mod.quantity * item.quantity).round();
+        modComponents.add((gross: modGross, rate: mod.taxRate));
+        itemGross += modGross;
       }
       // Apply item discount (on total including modifiers)
       int itemDiscount = 0;
@@ -1304,9 +1325,16 @@ class OrderRepository {
           itemDiscount = item.discount;
         }
       }
+      final itemTaxResult = TaxCalculator.computeItemTax(
+        baseGross: baseGross,
+        baseRate: item.saleTaxRateAtt,
+        modifiers: modComponents,
+        totalDiscount: itemDiscount + item.voucherDiscount,
+      );
+      accumulatedTax = accumulatedTax.merge(itemTaxResult);
       gross += itemGross - itemDiscount - item.voucherDiscount;
-      tax += itemTax;
     }
+    final tax = accumulatedTax.totalTax;
     await (_db.update(_db.orders)..where((t) => t.id.equals(orderId))).write(
       OrdersCompanion(
         itemCount: Value(items.length),
