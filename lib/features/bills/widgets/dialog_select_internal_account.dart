@@ -19,16 +19,9 @@ class DialogSelectInternalAccount extends ConsumerWidget {
 
     return PosDialogShell(
       title: l.internalAccountSelectTitle,
+      showCloseButton: true,
       maxWidth: 400,
       scrollable: true,
-      bottomActions: PosDialogActions(
-        actions: [
-          OutlinedButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l.actionCancel),
-          ),
-        ],
-      ),
       children: [
         FutureBuilder<List<InternalAccountModel>>(
           future: ref.read(internalAccountRepositoryProvider).getActive(company.id),

@@ -52,110 +52,136 @@ class _CatalogCategoriesTabState extends ConsumerState<CatalogCategoriesTab> {
     final company = ref.watch(currentCompanyProvider);
     if (company == null) return const SizedBox.shrink();
 
+    final categoriesStream = ref.watch(categoryRepositoryProvider).watchAll(company.id);
+    final taxRatesStream = ref.watch(taxRateRepositoryProvider).watchAll(company.id);
+
     return StreamBuilder<List<CategoryModel>>(
-      stream: ref.watch(categoryRepositoryProvider).watchAll(company.id),
-      builder: (context, snap) {
-        final categories = snap.data ?? [];
-        final filtered = categories.where((c) {
-          if (_filterActive != null && c.isActive != _filterActive) return false;
-          if (_query.isEmpty) return true;
-          return normalizeSearch(c.name).contains(_query);
-        }).toList()
-          ..sort((a, b) {
-            final cmp = switch (_sortField) {
-              _CategoriesSortField.name => a.name.compareTo(b.name),
-            };
-            return _sortAsc ? cmp : -cmp;
-          });
-        return Column(
-          children: [
-            PosTableToolbar(
-              searchController: _searchCtrl,
-              searchHint: l.searchHint,
-              onSearchChanged: (v) => setState(() => _query = normalizeSearch(v)),
-              trailing: [
-                IconButton(
-                  icon: Icon(
-                    Icons.filter_alt_outlined,
-                    color: _hasActiveFilters
-                        ? theme.colorScheme.primary
-                        : null,
-                  ),
-                  onPressed: () => _showFilterDialog(context, l),
-                ),
-                PopupMenuButton<_CategoriesSortField>(
-                  icon: const Icon(Icons.swap_vert),
-                  onSelected: (field) {
-                    if (field == _sortField) {
-                      setState(() => _sortAsc = !_sortAsc);
-                    } else {
-                      setState(() {
-                        _sortField = field;
-                        _sortAsc = true;
-                      });
-                    }
-                  },
-                  itemBuilder: (_) => [
-                    for (final entry in {
-                      _CategoriesSortField.name: l.catalogSortName,
-                    }.entries)
-                      PopupMenuItem(
-                        value: entry.key,
-                        child: Row(
-                          children: [
-                            if (entry.key == _sortField)
-                              Icon(_sortAsc ? Icons.arrow_upward : Icons.arrow_downward, size: 16)
-                            else
-                              const SizedBox(width: 16),
-                            const SizedBox(width: 8),
-                            Text(entry.value, style: entry.key == _sortField ? const TextStyle(fontWeight: FontWeight.bold) : null),
-                          ],
-                        ),
+      stream: categoriesStream,
+      builder: (context, catSnap) {
+        return StreamBuilder<List<TaxRateModel>>(
+          stream: taxRatesStream,
+          builder: (context, taxSnap) {
+            final categories = catSnap.data ?? [];
+            final taxRates = taxSnap.data ?? [];
+
+            final filtered = categories.where((c) {
+              if (_filterActive != null && c.isActive != _filterActive) return false;
+              if (_query.isEmpty) return true;
+              return normalizeSearch(c.name).contains(_query);
+            }).toList()
+              ..sort((a, b) {
+                final cmp = switch (_sortField) {
+                  _CategoriesSortField.name => a.name.compareTo(b.name),
+                };
+                return _sortAsc ? cmp : -cmp;
+              });
+            return Column(
+              children: [
+                PosTableToolbar(
+                  searchController: _searchCtrl,
+                  searchHint: l.searchHint,
+                  onSearchChanged: (v) => setState(() => _query = normalizeSearch(v)),
+                  trailing: [
+                    IconButton(
+                      icon: Icon(
+                        Icons.filter_alt_outlined,
+                        color: _hasActiveFilters
+                            ? theme.colorScheme.primary
+                            : null,
                       ),
+                      onPressed: () => _showFilterDialog(context, l),
+                    ),
+                    PopupMenuButton<_CategoriesSortField>(
+                      icon: const Icon(Icons.swap_vert),
+                      onSelected: (field) {
+                        if (field == _sortField) {
+                          setState(() => _sortAsc = !_sortAsc);
+                        } else {
+                          setState(() {
+                            _sortField = field;
+                            _sortAsc = true;
+                          });
+                        }
+                      },
+                      itemBuilder: (_) => [
+                        for (final entry in {
+                          _CategoriesSortField.name: l.catalogSortName,
+                        }.entries)
+                          PopupMenuItem(
+                            value: entry.key,
+                            child: Row(
+                              children: [
+                                if (entry.key == _sortField)
+                                  Icon(_sortAsc ? Icons.arrow_upward : Icons.arrow_downward, size: 16)
+                                else
+                                  const SizedBox(width: 16),
+                                const SizedBox(width: 8),
+                                Text(entry.value, style: entry.key == _sortField ? const TextStyle(fontWeight: FontWeight.bold) : null),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(width: 8),
+                    FilledButton.icon(
+                      onPressed: () => _showEditDialog(context, ref, categories, null),
+                      icon: const Icon(Icons.add),
+                      label: Text(l.actionAdd),
+                    ),
                   ],
                 ),
-                const SizedBox(width: 8),
-                FilledButton.icon(
-                  onPressed: () => _showEditDialog(context, ref, categories, null),
-                  icon: const Icon(Icons.add),
-                  label: Text(l.actionAdd),
+                Expanded(
+                  child: PosTable<CategoryModel>(
+                    columns: [
+                      PosColumn(label: l.fieldName, flex: 3, cellBuilder: (c) => HighlightedText(c.name, query: _query, overflow: TextOverflow.ellipsis)),
+                      PosColumn(
+                        label: l.fieldParentCategory,
+                        flex: 2,
+                        cellBuilder: (c) => Text(
+                          categories.where((p) => p.id == c.parentId).firstOrNull?.name ?? '-',
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      PosColumn(
+                        label: l.fieldDefaultSaleTax,
+                        flex: 2,
+                        cellBuilder: (c) => Text(
+                          taxRates.where((t) => t.id == c.defaultSaleTaxRateId).firstOrNull?.label ?? '-',
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      PosColumn(
+                        label: l.fieldDefaultPurchaseTax,
+                        flex: 2,
+                        cellBuilder: (c) => Text(
+                          taxRates.where((t) => t.id == c.defaultPurchaseTaxRateId).firstOrNull?.label ?? '-',
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      PosColumn(
+                        label: l.fieldActive,
+                        flex: 1,
+                        cellBuilder: (c) => Align(
+                          alignment: Alignment.centerLeft,
+                          child: Icon(
+                            c.isActive ? Icons.check_circle : Icons.cancel,
+                            color: boolIndicatorColor(c.isActive, context),
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    ],
+                    items: filtered,
+                    onRowTap: (c) => _showEditDialog(context, ref, categories, c),
+                    onRowLongPress: (c) async {
+                      if (!await confirmDelete(context, context.l10n) || !context.mounted) return;
+                      await ref.read(categoryRepositoryProvider).delete(c.id);
+                    },
+                  ),
                 ),
               ],
-            ),
-            Expanded(
-              child: PosTable<CategoryModel>(
-                columns: [
-                  PosColumn(label: l.fieldName, flex: 3, cellBuilder: (c) => HighlightedText(c.name, query: _query, overflow: TextOverflow.ellipsis)),
-                  PosColumn(
-                    label: l.fieldParentCategory,
-                    flex: 3,
-                    cellBuilder: (c) => Text(
-                      categories.where((p) => p.id == c.parentId).firstOrNull?.name ?? '-',
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  PosColumn(
-                    label: l.fieldActive,
-                    flex: 1,
-                    cellBuilder: (c) => Align(
-                      alignment: Alignment.centerLeft,
-                      child: Icon(
-                        c.isActive ? Icons.check_circle : Icons.cancel,
-                        color: boolIndicatorColor(c.isActive, context),
-                        size: 20,
-                      ),
-                    ),
-                  ),
-                ],
-                items: filtered,
-                onRowTap: (c) => _showEditDialog(context, ref, categories, c),
-                onRowLongPress: (c) async {
-                  if (!await confirmDelete(context, context.l10n) || !context.mounted) return;
-                  await ref.read(categoryRepositoryProvider).delete(c.id);
-                },
-              ),
-            ),
-          ],
+            );
+          },
         );
       },
     );
@@ -169,14 +195,11 @@ class _CatalogCategoriesTabState extends ConsumerState<CatalogCategoriesTab> {
       builder: (_) => StatefulBuilder(
         builder: (ctx, setDialogState) => PosDialogShell(
           title: l.filterTitle,
+          showCloseButton: true,
           maxWidth: 350,
           scrollable: true,
           bottomActions: PosDialogActions(
             actions: [
-              OutlinedButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: Text(l.actionCancel),
-              ),
               FilledButton(
                 onPressed: () => Navigator.pop(ctx, true),
                 child: Text(l.actionConfirm),
@@ -278,6 +301,7 @@ class _CatalogCategoriesTabState extends ConsumerState<CatalogCategoriesTab> {
           return StatefulBuilder(
             builder: (ctx, setDialogState) => PosDialogShell(
               title: existing == null ? l.actionAdd : l.actionEdit,
+              showCloseButton: true,
               maxWidth: 500,
               scrollable: true,
               bottomActions: PosDialogActions(
@@ -293,7 +317,6 @@ class _CatalogCategoriesTabState extends ConsumerState<CatalogCategoriesTab> {
                       )
                     : null,
                 actions: [
-                  OutlinedButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.actionCancel)),
                   FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.actionSave)),
                 ],
               ),

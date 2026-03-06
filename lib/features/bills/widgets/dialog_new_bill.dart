@@ -90,10 +90,6 @@ class _DialogNewBillState extends ConsumerState<DialogNewBill> {
       bottomActions: PosDialogActions(
         expanded: true,
         actions: [
-          OutlinedButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l.actionCancel),
-          ),
           FilledButton(
             onPressed: () {
               Navigator.pop(context, NewBillResult(

@@ -109,10 +109,6 @@ class _DialogDiscountState extends ConsumerState<DialogDiscount> {
                 ? Text('-${ref.moneyValue(_cappedAbsolute)} ${ref.currencySymbol}')
                 : Text(ref.currencySymbol),
           ),
-          OutlinedButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l.wizardBack),
-          ),
           FilledButton(
             onPressed: () => Navigator.pop(
               context,

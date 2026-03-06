@@ -1975,14 +1975,11 @@ class _OrderSection extends ConsumerWidget {
       context: context,
       builder: (_) => PosDialogShell(
         title: context.l10n.sellNote,
+        showCloseButton: true,
         maxWidth: 380,
         scrollable: true,
         bottomActions: PosDialogActions(
           actions: [
-            OutlinedButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(context.l10n.actionCancel),
-            ),
             FilledButton(
               onPressed: () => Navigator.pop(context, controller.text),
               child: Text(context.l10n.actionSave),
@@ -2017,14 +2014,11 @@ class _OrderSection extends ConsumerWidget {
       context: context,
       builder: (_) => PosDialogShell(
         title: item.itemName,
+        showCloseButton: true,
         maxWidth: 380,
         scrollable: true,
         bottomActions: PosDialogActions(
           actions: [
-            OutlinedButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(context.l10n.actionCancel),
-            ),
             FilledButton(
               onPressed: () => Navigator.pop(context, controller.text),
               child: Text(context.l10n.actionSave),

@@ -67,14 +67,11 @@ class _DialogAutoArrangeState extends ConsumerState<DialogAutoArrange> {
 
     return PosDialogShell(
       title: l.autoArrangeTitle,
+      showCloseButton: true,
       maxWidth: 480,
       scrollable: true,
       bottomActions: PosDialogActions(
         actions: [
-          OutlinedButton(
-            onPressed: _isProcessing ? null : () => Navigator.pop(context),
-            child: Text(l.actionCancel),
-          ),
           FilledButton(
             onPressed: _isProcessing
                 ? null

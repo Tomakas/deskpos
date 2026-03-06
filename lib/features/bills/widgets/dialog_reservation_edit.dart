@@ -233,6 +233,7 @@ class _DialogReservationEditState extends ConsumerState<DialogReservationEdit> {
 
     return PosDialogShell(
       title: _isEdit ? l.reservationEdit : l.reservationNew,
+      showCloseButton: true,
       titleStyle: theme.textTheme.headlineSmall,
       maxWidth: 480,
       scrollable: true,
@@ -244,10 +245,6 @@ class _DialogReservationEditState extends ConsumerState<DialogReservationEdit> {
               style: PosButtonStyles.destructiveOutlined(context),
               child: Text(l.reservationDelete),
             ),
-          OutlinedButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l.actionCancel),
-          ),
           FilledButton(
             onPressed: !_isProcessing ? _save : null,
             child: Text(l.reservationSave),

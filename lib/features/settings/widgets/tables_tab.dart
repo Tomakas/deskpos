@@ -210,6 +210,7 @@ class _TablesTabState extends ConsumerState<TablesTab> {
       builder: (_) => StatefulBuilder(
         builder: (ctx, setDialogState) => PosDialogShell(
           title: l.filterTitle,
+          showCloseButton: true,
           maxWidth: 400,
           scrollable: true,
           bottomActions: PosDialogActions(
@@ -222,10 +223,6 @@ class _TablesTabState extends ConsumerState<TablesTab> {
                   });
                 },
                 child: Text(l.filterReset),
-              ),
-              OutlinedButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: Text(l.actionClose),
               ),
             ],
           ),
@@ -279,6 +276,7 @@ class _TablesTabState extends ConsumerState<TablesTab> {
       builder: (_) => StatefulBuilder(
         builder: (ctx, setDialogState) => PosDialogShell(
           title: existing == null ? l.actionAdd : l.actionEdit,
+          showCloseButton: true,
           maxWidth: 400,
           scrollable: true,
           bottomActions: PosDialogActions(
@@ -294,7 +292,6 @@ class _TablesTabState extends ConsumerState<TablesTab> {
                   )
                 : null,
             actions: [
-              OutlinedButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.actionCancel)),
               FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.actionSave)),
             ],
           ),

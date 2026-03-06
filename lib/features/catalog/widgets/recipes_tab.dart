@@ -197,6 +197,7 @@ class _RecipesTabState extends ConsumerState<RecipesTab> {
       builder: (_) => StatefulBuilder(
         builder: (ctx, setDialogState) => PosDialogShell(
           title: isNew ? l.actionAdd : l.actionEdit,
+          showCloseButton: true,
           maxWidth: 500,
           maxHeight: 500,
           expandHeight: true,
@@ -216,10 +217,6 @@ class _RecipesTabState extends ConsumerState<RecipesTab> {
                   )
                 : null,
             actions: [
-              OutlinedButton(
-                onPressed: () => Navigator.pop(ctx, false),
-                child: Text(l.actionCancel),
-              ),
               FilledButton(
                 onPressed: parentProductId != null && components.isNotEmpty
                     ? () => Navigator.pop(ctx, true)

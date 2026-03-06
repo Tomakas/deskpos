@@ -105,7 +105,7 @@ class _CatalogModifiersTabState extends ConsumerState<CatalogModifiersTab> {
                 FilledButton.icon(
                   onPressed: () => _showGroupEditDialog(context, ref, null),
                   icon: const Icon(Icons.add),
-                  label: Text(l.addModifierGroup),
+                  label: Text(l.actionAdd),
                 ),
               ],
             ),
@@ -147,6 +147,7 @@ class _CatalogModifiersTabState extends ConsumerState<CatalogModifiersTab> {
       context: context,
       builder: (ctx) => PosDialogShell(
         title: existing != null ? l.editModifierGroup : l.addModifierGroup,
+        showCloseButton: true,
         maxWidth: 500,
         scrollable: true,
         bottomActions: PosDialogActions(
@@ -162,10 +163,6 @@ class _CatalogModifiersTabState extends ConsumerState<CatalogModifiersTab> {
                 )
               : null,
           actions: [
-            OutlinedButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: Text(l.actionCancel),
-            ),
             FilledButton(
               onPressed: () async {
                 final name = nameCtrl.text.trim();
@@ -357,6 +354,7 @@ class _GroupItemsSection extends ConsumerWidget {
                         builder: (_) => StatefulBuilder(
                           builder: (fCtx, setFilterState) => PosDialogShell(
                             title: l.filterTitle,
+                            showCloseButton: true,
                             maxWidth: 400,
                             scrollable: true,
                             bottomActions: PosDialogActions(
@@ -371,10 +369,6 @@ class _GroupItemsSection extends ConsumerWidget {
                                     )
                                   : null,
                               actions: [
-                                OutlinedButton(
-                                  onPressed: () => Navigator.of(fCtx).pop(),
-                                  child: Text(l.actionCancel),
-                                ),
                                 FilledButton(
                                   onPressed: () {
                                     setDialogState(() => onlyModifiers = tempOnly);

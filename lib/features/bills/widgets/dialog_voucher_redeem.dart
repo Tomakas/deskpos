@@ -77,10 +77,6 @@ class _DialogVoucherRedeemState extends State<DialogVoucherRedeem> {
       bottomActions: PosDialogActions(
         expanded: true,
         actions: [
-          OutlinedButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l.actionCancel),
-          ),
           FilledButton(
             onPressed: _isComplete
                 ? () => Navigator.pop(context, _displayCode)

@@ -899,7 +899,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cashMovementNote => 'Note';
 
   @override
-  String get cashMovementNoteTitle => 'Cash Movement Note';
+  String get cashMovementNoteTitle => 'Movement Note';
 
   @override
   String get cashMovementNoteHint => 'Reason for movement...';

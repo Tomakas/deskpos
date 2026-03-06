@@ -44,9 +44,13 @@ class NativeLogFileWriter implements LogFileWriter {
 
   Future<void> _init() async {
     try {
-      final dir = await getApplicationDocumentsDirectory();
-      _dirPath = dir.path;
-      _filePath = '${dir.path}/$_fileName';
+      final baseDir = await getApplicationSupportDirectory();
+      final logDir = Directory('${baseDir.path}/logs');
+      if (!await logDir.exists()) {
+        await logDir.create(recursive: true);
+      }
+      _dirPath = logDir.path;
+      _filePath = '${logDir.path}/$_fileName';
       final file = File(_filePath!);
       _sink = file.openWrite(mode: FileMode.append);
       _initializing = false;

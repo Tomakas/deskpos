@@ -365,7 +365,7 @@
   "cashMovementWithdrawal": "Výběr",
   "cashMovementSale": "Prodej",
   "cashMovementNote": "Poznámka",
-  "cashMovementNoteTitle": "Poznámka ke změně hotovosti",
+  "cashMovementNoteTitle": "Poznámka ke změně",
   "cashMovementNoteHint": "Důvod pohybu...",
 
   "openingCashTitle": "Počáteční hotovost",

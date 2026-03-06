@@ -898,7 +898,7 @@ class AppLocalizationsCs extends AppLocalizations {
   String get cashMovementNote => 'Poznámka';
 
   @override
-  String get cashMovementNoteTitle => 'Poznámka ke změně hotovosti';
+  String get cashMovementNoteTitle => 'Poznámka ke změně';
 
   @override
   String get cashMovementNoteHint => 'Důvod pohybu...';

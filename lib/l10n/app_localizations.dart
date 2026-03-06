@@ -1817,7 +1817,7 @@ abstract class AppLocalizations {
   /// No description provided for @cashMovementNoteTitle.
   ///
   /// In cs, this message translates to:
-  /// **'Poznámka ke změně hotovosti'**
+  /// **'Poznámka ke změně'**
   String get cashMovementNoteTitle;
 
   /// No description provided for @cashMovementNoteHint.

@@ -139,6 +139,7 @@ class _SuppliersTabState extends ConsumerState<SuppliersTab> {
       context: context,
       builder: (_) => PosDialogShell(
         title: existing == null ? l.actionAdd : l.actionEdit,
+        showCloseButton: true,
         maxWidth: 400,
         scrollable: true,
         bottomActions: PosDialogActions(
@@ -154,7 +155,6 @@ class _SuppliersTabState extends ConsumerState<SuppliersTab> {
                 )
               : null,
           actions: [
-            OutlinedButton(onPressed: () => Navigator.pop(context, false), child: Text(l.actionCancel)),
             FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(l.actionSave)),
           ],
         ),

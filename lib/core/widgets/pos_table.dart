@@ -43,6 +43,7 @@ class PosTable<T> extends StatelessWidget {
     this.rowColor,
     this.emptyMessage,
     this.footer,
+    this.shrinkWrap = false,
   });
 
   final List<PosColumn<T>> columns;
@@ -52,6 +53,7 @@ class PosTable<T> extends StatelessWidget {
   final Color? Function(T item)? rowColor;
   final String? emptyMessage;
   final Widget? footer;
+  final bool shrinkWrap;
 
   @override
   Widget build(BuildContext context) {
@@ -60,6 +62,7 @@ class PosTable<T> extends StatelessWidget {
         theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.bold);
 
     return Column(
+      mainAxisSize: shrinkWrap ? MainAxisSize.min : MainAxisSize.max,
       children: [
         // Header
         Container(
@@ -74,15 +77,21 @@ class PosTable<T> extends StatelessWidget {
           ),
         ),
         // Body
-        Expanded(
+        Flexible(
+          flex: shrinkWrap ? 0 : 1,
+          fit: shrinkWrap ? FlexFit.loose : FlexFit.tight,
           child: items.isEmpty
-              ? Center(
+              ? Container(
+                  padding: const EdgeInsets.symmetric(vertical: 32),
+                  alignment: Alignment.center,
                   child: Text(
                     emptyMessage ?? '',
                     style: theme.textTheme.bodyMedium,
                   ),
                 )
               : ListView.builder(
+                  shrinkWrap: shrinkWrap,
+                  physics: shrinkWrap ? const NeverScrollableScrollPhysics() : null,
                   itemCount: items.length,
                   itemBuilder: (context, index) {
                     final item = items[index];
@@ -114,7 +123,7 @@ class PosTable<T> extends StatelessWidget {
                 ),
         ),
         // Footer
-        ?footer,
+        if (footer != null) footer!,
       ],
     );
   }

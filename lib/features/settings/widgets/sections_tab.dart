@@ -168,7 +168,8 @@ class _SectionsTabState extends ConsumerState<SectionsTab> {
       builder: (_) => StatefulBuilder(
         builder: (ctx, setDialogState) => PosDialogShell(
           title: existing == null ? l.actionAdd : l.actionEdit,
-          maxWidth: 350,
+          showCloseButton: true,
+          maxWidth: 400,
           scrollable: true,
           bottomActions: PosDialogActions(
             leading: existing != null
@@ -183,7 +184,6 @@ class _SectionsTabState extends ConsumerState<SectionsTab> {
                   )
                 : null,
             actions: [
-              OutlinedButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.actionCancel)),
               FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.actionSave)),
             ],
           ),

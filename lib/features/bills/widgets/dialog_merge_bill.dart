@@ -23,19 +23,12 @@ class DialogMergeBill extends ConsumerWidget {
 
     return PosDialogShell(
       title: l.mergeBillTitle,
+      showCloseButton: true,
       titleStyle: Theme.of(context).textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.bold,
           ),
       maxWidth: 420,
       maxHeight: 500,
-      bottomActions: PosDialogActions(
-        actions: [
-          OutlinedButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l.actionCancel),
-          ),
-        ],
-      ),
       children: [
         Text(
           l.mergeBillDescription,

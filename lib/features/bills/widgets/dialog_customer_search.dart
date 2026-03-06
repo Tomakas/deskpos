@@ -184,10 +184,6 @@ class _DialogCustomerAssignState extends ConsumerState<_DialogCustomerAssign> {
                   Navigator.pop(context, const _RemoveCustomer()),
               child: Text(l.customerRemove),
             ),
-          OutlinedButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l.actionCancel),
-          ),
           FilledButton(
             onPressed: _save,
             child: Text(l.actionSave),
@@ -340,14 +336,6 @@ class _DialogCustomerDbSearchState
       maxWidth: 420,
       maxHeight: 500,
       padding: const EdgeInsets.all(16),
-      bottomActions: PosDialogActions(
-        actions: [
-          OutlinedButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l.actionClose),
-          ),
-        ],
-      ),
       children: [
         TextField(
           controller: _searchCtrl,

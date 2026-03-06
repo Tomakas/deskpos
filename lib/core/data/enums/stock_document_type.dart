@@ -1,3 +1,4 @@
+
 enum StockDocumentType {
   receipt,
   waste,

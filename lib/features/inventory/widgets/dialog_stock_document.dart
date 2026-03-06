@@ -89,10 +89,6 @@ class _DialogStockDocumentState extends ConsumerState<DialogStockDocument> {
           label: Text(l.stockDocumentAddItem),
         ),
         actions: [
-          OutlinedButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l.actionCancel),
-          ),
           FilledButton(
             onPressed: _lines.isEmpty || _saving
                 ? null

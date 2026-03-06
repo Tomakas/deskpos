@@ -365,7 +365,7 @@
   "cashMovementWithdrawal": "Withdrawal",
   "cashMovementSale": "Sale",
   "cashMovementNote": "Note",
-  "cashMovementNoteTitle": "Cash Movement Note",
+  "cashMovementNoteTitle": "Movement Note",
   "cashMovementNoteHint": "Reason for movement...",
 
   "openingCashTitle": "Opening Cash",

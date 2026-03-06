@@ -65,6 +65,7 @@ class _DialogSplitBillState extends ConsumerState<DialogSplitBill> {
 
     return PosDialogShell(
       title: l.splitBillTitle,
+      showCloseButton: true,
       titleStyle: Theme.of(context).textTheme.titleLarge?.copyWith(
         fontWeight: FontWeight.bold,
       ),
@@ -130,10 +131,6 @@ class _DialogSplitBillState extends ConsumerState<DialogSplitBill> {
 
     return PosDialogActions(
       actions: [
-        OutlinedButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text(l.actionCancel),
-        ),
         FilledButton(
           onPressed: hasSelection
               ? () => _returnResult(payImmediately: true)

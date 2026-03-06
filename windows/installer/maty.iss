@@ -50,7 +50,6 @@ Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: de
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{localappdata}\com.example\{#MyAppName}"
-Type: filesandordirs; Name: "{userdocs}\{#MyAppName}"
 
 [Run]
 ; Install VC++ Redistributable silently before launching the app

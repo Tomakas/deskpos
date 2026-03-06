@@ -94,23 +94,14 @@ class _DialogStockDocumentDetailState
 
             return PosDialogShell(
               showCloseButton: true,
+              onPrint: _printing ? null : () => _print(context, doc, movements),
               title: doc.documentNumber,
               maxWidth: 700,
               maxHeight: 700,
               expandHeight: true,
-              bottomActions: PosDialogActions(
-                leading: OutlinedButton.icon(
-                  onPressed: _printing
-                      ? null
-                      : () => _print(context, doc, movements),
-                  icon: const Icon(Icons.print_outlined),
-                  label: Text(l.billDetailPrint),
-                ),
-                actions: const [],
-              ),
               children: [
                 _buildHeader(context, doc, l),
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
                 Expanded(
                   child: PosTable<StockMovementWithItem>(
                     columns: [
@@ -182,30 +173,8 @@ class _DialogStockDocumentDetailState
                     ],
                     items: movements,
                     emptyMessage: l.movementNoMovements,
-                    footer: doc.totalAmount != 0
-                        ? Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 12),
-                            decoration: BoxDecoration(
-                              border: Border(
-                                  top: BorderSide(
-                                      color:
-                                          Theme.of(context).dividerColor)),
-                            ),
-                            child: Text(
-                              '${l.documentColumnTotal}: ${ref.moneyValue(doc.totalAmount)}',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleMedium
-                                  ?.copyWith(fontWeight: FontWeight.bold),
-                              textAlign: TextAlign.end,
-                            ),
-                          )
-                        : null,
                   ),
                 ),
-                const SizedBox(height: 16),
               ],
             );
           },
@@ -224,25 +193,50 @@ class _DialogStockDocumentDetailState
       children: [
         Row(
           children: [
-            Text(typeLabel,
-                style: theme.textTheme.bodyMedium
-                    ?.copyWith(fontWeight: FontWeight.bold)),
-            const SizedBox(width: 16),
-            Text(ref.fmtDateTime(doc.documentDate),
-                style: theme.textTheme.bodyMedium),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(typeLabel,
+                          style: theme.textTheme.bodyMedium
+                              ?.copyWith(fontWeight: FontWeight.bold)),
+                      const SizedBox(width: 16),
+                      Text(ref.fmtDateTime(doc.documentDate),
+                          style: theme.textTheme.bodyMedium),
+                    ],
+                  ),
+                  if (_resolvedSupplierName != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        '${l.documentColumnSupplier}: $_resolvedSupplierName',
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            if (doc.totalAmount != 0)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(l.documentColumnTotal, style: theme.textTheme.labelSmall),
+                  Text(
+                    ref.moneyValue(doc.totalAmount),
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                ],
+              ),
           ],
         ),
-        if (_resolvedSupplierName != null)
-          Padding(
-            padding: const EdgeInsets.only(top: 4),
-            child: Text(
-              '${l.documentColumnSupplier}: $_resolvedSupplierName',
-              style: theme.textTheme.bodyMedium,
-            ),
-          ),
         if (doc.note != null && doc.note!.isNotEmpty)
           Padding(
-            padding: const EdgeInsets.only(top: 4),
+            padding: const EdgeInsets.only(top: 8),
             child: Text(
               '${l.documentColumnNote}: ${doc.note}',
               style: theme.textTheme.bodySmall?.copyWith(

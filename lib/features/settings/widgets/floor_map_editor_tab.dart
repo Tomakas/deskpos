@@ -783,14 +783,11 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
         builder: (ctx, setDialogState) {
           return PosDialogShell(
             title: isElementMode ? l.floorMapAddElement : l.floorMapAddTable,
+            showCloseButton: true,
             maxWidth: 400,
             scrollable: true,
             bottomActions: PosDialogActions(
               actions: [
-                OutlinedButton(
-                  onPressed: () => Navigator.pop(ctx),
-                  child: Text(l.actionCancel),
-                ),
                 FilledButton(
                   onPressed: () => Navigator.pop(ctx, _PlaceResult(
                     isElement: isElementMode,
@@ -1124,6 +1121,7 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
         builder: (ctx, setDialogState) {
           return PosDialogShell(
             title: l.floorMapEditTable,
+            showCloseButton: true,
             maxWidth: 400,
             scrollable: true,
             bottomActions: PosDialogActions(
@@ -1135,10 +1133,6 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
                 child: Text(l.floorMapRemoveTable),
               ),
               actions: [
-                OutlinedButton(
-                  onPressed: () => Navigator.pop(ctx),
-                  child: Text(l.actionCancel),
-                ),
                 FilledButton(
                   onPressed: () => Navigator.pop(ctx, _EditResult(
                     name: nameController.text.trim(),
@@ -1301,6 +1295,7 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
         builder: (ctx, setDialogState) {
           return PosDialogShell(
             title: l.floorMapEditElement,
+            showCloseButton: true,
             maxWidth: 400,
             scrollable: true,
             bottomActions: PosDialogActions(
@@ -1312,10 +1307,6 @@ class _FloorMapEditorTabState extends ConsumerState<FloorMapEditorTab> {
                 child: Text(l.floorMapRemoveElement),
               ),
               actions: [
-                OutlinedButton(
-                  onPressed: () => Navigator.pop(ctx),
-                  child: Text(l.actionCancel),
-                ),
                 FilledButton(
                   onPressed: () => Navigator.pop(ctx, _EditElementResult(
                     label: labelController.text.trim(),

@@ -75,17 +75,13 @@ class _DialogVoucherDetailState extends ConsumerState<DialogVoucherDetail> {
 
     return PosDialogShell(
       showCloseButton: true,
+      onPrint: _printing ? null : () => _printVoucher(context),
       title: voucher.code,
       titleStyle: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
       maxWidth: 400,
       padding: const EdgeInsets.all(20),
       scrollable: true,
       bottomActions: PosDialogActions(
-        leading: OutlinedButton.icon(
-          onPressed: _printing ? null : () => _printVoucher(context),
-          icon: const Icon(Icons.print_outlined),
-          label: Text(l.voucherPrint),
-        ),
         actions: [
           if (voucher.status == VoucherStatus.active && ref.watch(hasPermissionProvider('vouchers.manage')))
             FilledButton(

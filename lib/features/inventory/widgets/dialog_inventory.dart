@@ -73,21 +73,14 @@ class _DialogInventoryState extends ConsumerState<DialogInventory> {
 
     return PosDialogShell(
       title: l.inventoryDialogTitle,
+      showCloseButton: true,
+      onPrint: (ref.watch(hasPermissionProvider('printing.inventory_report')) && !_printing)
+          ? () => _printTemplate(context)
+          : null,
       maxWidth: 700,
       maxHeight: 700,
       bottomActions: PosDialogActions(
-        leading: ref.watch(hasPermissionProvider('printing.inventory_report'))
-            ? OutlinedButton.icon(
-                onPressed: _printing ? null : () => _printTemplate(context),
-                icon: const Icon(Icons.print_outlined),
-                label: Text(l.inventoryPrintTemplate),
-              )
-            : null,
         actions: [
-          OutlinedButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l.actionCancel),
-          ),
           FilledButton(
             onPressed: () => _save(context),
             child: Text(l.inventoryDialogSave),

@@ -527,6 +527,7 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
       builder: (_) => StatefulBuilder(
         builder: (ctx, setDialogState) => PosDialogShell(
           title: existing == null ? l.actionAdd : l.actionEdit,
+          showCloseButton: true,
           maxWidth: 600,
           scrollable: true,
           bottomActions: PosDialogActions(
@@ -542,7 +543,6 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
                   )
                 : null,
             actions: [
-              OutlinedButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.actionCancel)),
               FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.actionSave)),
             ],
           ),
@@ -1044,16 +1044,9 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
       context: context,
       builder: (_) => PosDialogShell(
         title: l.gridEditorColor,
+        showCloseButton: true,
         maxWidth: 400,
         scrollable: true,
-        bottomActions: PosDialogActions(
-          actions: [
-            OutlinedButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(l.actionCancel),
-            ),
-          ],
-        ),
         children: [
           PosColorPalette(
             selectedColor: null,
@@ -1230,14 +1223,11 @@ class _VariantsExpansionTile extends ConsumerWidget {
       context: context,
       builder: (_) => PosDialogShell(
         title: existing == null ? l.addVariant : l.editVariant,
+        showCloseButton: true,
         maxWidth: 400,
         scrollable: true,
         bottomActions: PosDialogActions(
           actions: [
-            OutlinedButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: Text(l.actionCancel),
-            ),
             FilledButton(
               onPressed: () => Navigator.pop(context, true),
               child: Text(l.actionSave),

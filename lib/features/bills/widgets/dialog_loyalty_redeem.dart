@@ -86,16 +86,13 @@ class _DialogLoyaltyRedeemState extends ConsumerState<DialogLoyaltyRedeem> {
 
     return PosDialogShell(
       title: l.loyaltyRedeem,
+      showCloseButton: true,
       maxWidth: 420,
       maxHeight: 560,
       expandHeight: true,
       bottomActions: PosDialogActions(
         expanded: true,
         actions: [
-          OutlinedButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l.actionCancel),
-          ),
           FilledButton.tonal(
             onPressed: _useMax,
             child: Text(l.loyaltyMaxPoints(_maxPoints)),

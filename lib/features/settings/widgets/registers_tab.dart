@@ -505,6 +505,7 @@ class _RegistersTabState extends ConsumerState<RegistersTab> {
       builder: (_) => StatefulBuilder(
         builder: (ctx, setDialogState) => PosDialogShell(
           title: existing == null ? l.modePOS : l.actionEdit,
+          showCloseButton: true,
           maxWidth: 400,
           scrollable: true,
           bottomActions: PosDialogActions(
@@ -523,10 +524,6 @@ class _RegistersTabState extends ConsumerState<RegistersTab> {
                   )
                 : null,
             actions: [
-              OutlinedButton(
-                onPressed: () => Navigator.pop(ctx, false),
-                child: Text(l.actionCancel),
-              ),
               FilledButton(
                 onPressed: () => Navigator.pop(ctx, true),
                 child: Text(l.actionSave),
@@ -695,14 +692,11 @@ class _RegistersTabState extends ConsumerState<RegistersTab> {
       builder: (_) => StatefulBuilder(
         builder: (ctx, setDialogState) => PosDialogShell(
           title: _displayTypeLabel(l, type),
+          showCloseButton: true,
           maxWidth: 400,
           scrollable: true,
           bottomActions: PosDialogActions(
             actions: [
-              OutlinedButton(
-                onPressed: () => Navigator.pop(ctx, false),
-                child: Text(l.actionCancel),
-              ),
               FilledButton(
                 onPressed: isCustomerDisplay && parentRegisterId == null
                     ? null
@@ -772,6 +766,7 @@ class _RegistersTabState extends ConsumerState<RegistersTab> {
       builder: (_) => StatefulBuilder(
         builder: (ctx, setDialogState) => PosDialogShell(
           title: _displayTypeLabel(l, device.type),
+          showCloseButton: true,
           maxWidth: 400,
           scrollable: true,
           bottomActions: PosDialogActions(
@@ -785,10 +780,6 @@ class _RegistersTabState extends ConsumerState<RegistersTab> {
               child: Text(l.actionDelete),
             ),
             actions: [
-              OutlinedButton(
-                onPressed: () => Navigator.pop(ctx, false),
-                child: Text(l.actionCancel),
-              ),
               FilledButton(
                 onPressed: () => Navigator.pop(ctx, true),
                 child: Text(l.actionSave),

@@ -118,14 +118,11 @@ class _DialogCashMovementState extends ConsumerState<DialogCashMovement> {
       context: context,
       builder: (dialogContext) => PosDialogShell(
         title: l.cashMovementNoteTitle,
+        showCloseButton: true,
         maxWidth: 400,
         scrollable: true,
         bottomActions: PosDialogActions(
           actions: [
-            OutlinedButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: Text(l.actionCancel),
-            ),
             FilledButton(
               onPressed: () => Navigator.pop(dialogContext, ctrl.text),
               child: Text(l.actionSave),
@@ -163,16 +160,13 @@ class _DialogCashMovementState extends ConsumerState<DialogCashMovement> {
 
     return PosDialogShell(
       title: l.cashMovementTitle,
+      showCloseButton: true,
       maxWidth: 420,
       maxHeight: widget.foreignCurrencies.isNotEmpty ? 570 : 520,
       expandHeight: true,
       bottomActions: PosDialogActions(
         expanded: true,
         actions: [
-          OutlinedButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l.actionCancel),
-          ),
           FilledButton.tonal(
             onPressed: _showNoteDialog,
             child: Row(

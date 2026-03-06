@@ -384,6 +384,7 @@ class _ScreenInventoryState extends ConsumerState<ScreenInventory> {
           final hasFilters = belowMin || zeroStock || categoryIds.isNotEmpty;
           return PosDialogShell(
             title: l.filterTitle,
+            showCloseButton: true,
             maxWidth: 400,
             scrollable: true,
             bottomActions: PosDialogActions(
@@ -402,10 +403,6 @@ class _ScreenInventoryState extends ConsumerState<ScreenInventory> {
                     )
                   : null,
               actions: [
-                OutlinedButton(
-                  onPressed: () => Navigator.of(ctx).pop(),
-                  child: Text(l.actionCancel),
-                ),
                 FilledButton(
                   onPressed: () {
                     setState(() {
@@ -473,6 +470,7 @@ class _ScreenInventoryState extends ConsumerState<ScreenInventory> {
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => PosDialogShell(
           title: l.inventoryFilterDocType,
+          showCloseButton: true,
           maxWidth: 400,
           scrollable: true,
           bottomActions: PosDialogActions(
@@ -487,10 +485,6 @@ class _ScreenInventoryState extends ConsumerState<ScreenInventory> {
                   )
                 : null,
             actions: [
-              OutlinedButton(
-                onPressed: () => Navigator.of(ctx).pop(),
-                child: Text(l.actionCancel),
-              ),
               FilledButton(
                 onPressed: () {
                   setState(() => _filterDocTypes = docTypes);
@@ -534,6 +528,7 @@ class _ScreenInventoryState extends ConsumerState<ScreenInventory> {
           final hasFilters = direction != null || source != _MovementSourceFilter.all || categoryIds.isNotEmpty;
           return PosDialogShell(
             title: l.filterTitle,
+            showCloseButton: true,
             maxWidth: 400,
             scrollable: true,
             bottomActions: PosDialogActions(
@@ -552,10 +547,6 @@ class _ScreenInventoryState extends ConsumerState<ScreenInventory> {
                     )
                   : null,
               actions: [
-                OutlinedButton(
-                  onPressed: () => Navigator.of(ctx).pop(),
-                  child: Text(l.actionCancel),
-                ),
                 FilledButton(
                   onPressed: () {
                     setState(() {
