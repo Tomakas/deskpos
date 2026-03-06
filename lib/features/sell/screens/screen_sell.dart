@@ -1471,6 +1471,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
         modsByItem: modsByItem,
         subtotalGross: bill.subtotalGross,
         itemCategoryMap: itemCategoryMap,
+        allCategories: _allCategories,
       );
 
       for (final attr in vResult.attributions) {

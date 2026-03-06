@@ -3,9 +3,11 @@ import 'dart:math';
 import '../enums/discount_type.dart';
 import '../enums/voucher_discount_scope.dart';
 import '../enums/voucher_type.dart';
+import '../models/category_model.dart';
 import '../models/order_item_model.dart';
 import '../models/order_item_modifier_model.dart';
 import '../models/voucher_model.dart';
+import 'category_tree.dart';
 
 class VoucherItemAttribution {
   const VoucherItemAttribution({
@@ -47,6 +49,7 @@ class VoucherDiscountCalculator {
     required Map<String, List<OrderItemModifierModel>> modsByItem,
     required int subtotalGross,
     Map<String, String>? itemCategoryMap,
+    List<CategoryModel>? allCategories,
   }) {
     if (voucher.type != VoucherType.discount) {
       return const VoucherDiscountResult(totalDiscount: 0, attributions: []);
@@ -68,8 +71,13 @@ class VoucherDiscountCalculator {
         case VoucherDiscountScope.category:
           if (voucher.categoryId != null && itemCategoryMap != null) {
             final itemCatId = itemCategoryMap[item.itemId];
-            if (itemCatId == voucher.categoryId) {
-              matchingItems.add(item);
+            if (itemCatId != null) {
+              final validIds = allCategories != null
+                  ? CategoryTree.getAllDescendantIds(voucher.categoryId!, allCategories)
+                  : {voucher.categoryId!};
+              if (validIds.contains(itemCatId)) {
+                matchingItems.add(item);
+              }
             }
           }
       }

@@ -303,6 +303,43 @@ Registrace (email+heslo) je povinná při vytvoření firmy — spouští 30denn
 
 ---
 
+## Technický dluh a refaktoring
+
+### TODO: Zvážit přechod na Riverpod StreamProvider pro repository streams
+
+**Kontext:** V současné době všechny obrazovky načítají data z repository přes `StreamBuilder` v UI vrstvě:
+```dart
+StreamBuilder(
+  stream: ref.watch(someRepositoryProvider).watchAll(companyId),
+  ...
+)
+```
+
+**Navrhovaný vzor:**
+```dart
+final categoriesProvider = StreamProvider.autoDispose<List<CategoryModel>>((ref) {
+  final company = ref.watch(currentCompanyProvider);
+  if (company == null) return Stream.value([]);
+  return ref.watch(categoryRepositoryProvider).watchAll(company.id);
+});
+```
+
+**Proč to zvážit:**
+- Data jsou oddělena od UI vrstvy — metody třídy i jiné obrazovky mohou přistupovat přes `ref.read(provider).value` bez `StreamBuilder`
+- Eliminuje nutnost `_allCategories` fieldů a `StreamSubscription` v state třídách (viz aktuální řešení v `_ScreenSellState`, `_ScreenInventoryState`)
+- Cache a sdílení dat mezi widgety řeší Riverpod, ne ruční state
+
+**Proč to zatím nebylo uděláno:**
+- Zavedení by znamenalo změnu vzoru napříč celou aplikací (desítky StreamBuilderů)
+- Přechod jen pro některé entity by vytvořil nekonzistenci
+
+**Doporučený postup při refaktoringu:**
+1. Definovat všechny stream providery v novém `lib/core/data/providers/stream_providers.dart`
+2. Migrovat obrazovku po obrazovce, začít od nejpoužívanějších entit (categories, items)
+3. Odstranit `_allCategories` / `_allItems` fieldy a jejich subscriptions
+
+---
+
 ## Možná rozšíření v budoucnu
 
 - **Sklad:** Multi-warehouse, upozornění na nízké zásoby, inventurní předlohy.

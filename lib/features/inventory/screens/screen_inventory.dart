@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/data/enums/stock_document_type.dart';
 import '../../../core/data/enums/stock_movement_direction.dart';
 import '../../../core/data/models/category_model.dart';
+import '../../../core/data/utils/category_tree.dart';
 import '../../../core/data/models/stock_document_model.dart';
 import '../../../core/data/models/supplier_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
@@ -92,16 +95,21 @@ class _ScreenInventoryState extends ConsumerState<ScreenInventory> {
   _MovementsSortField _movementsSortField = _MovementsSortField.date;
   bool _movementsSortAsc = false;
 
+  List<CategoryModel> _allCategories = [];
+  StreamSubscription<List<CategoryModel>>? _categoriesSubscription;
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (!_initialized) {
       _initWarehouse();
+      _initCategories();
     }
   }
 
   @override
   void dispose() {
+    _categoriesSubscription?.cancel();
     _searchController.dispose();
     super.dispose();
   }
@@ -117,6 +125,17 @@ class _ScreenInventoryState extends ConsumerState<ScreenInventory> {
         _initialized = true;
       });
     }
+  }
+
+  void _initCategories() {
+    final company = ref.read(currentCompanyProvider);
+    if (company == null) return;
+    _categoriesSubscription = ref
+        .read(categoryRepositoryProvider)
+        .watchAll(company.id)
+        .listen((cats) {
+      if (mounted) setState(() => _allCategories = cats);
+    });
   }
 
   bool _hasActiveFilters(int originalIndex) {
@@ -256,7 +275,10 @@ class _ScreenInventoryState extends ConsumerState<ScreenInventory> {
                 query: _query,
                 filterBelowMin: _filterBelowMin,
                 filterZeroStock: _filterZeroStock,
-                filterCategoryIds: _filterLevelCategoryIds,
+                filterCategoryIds: {
+                  for (final id in _filterLevelCategoryIds)
+                    ...CategoryTree.getAllDescendantIds(id, _allCategories),
+                },
                 sortField: _levelsSortField,
                 sortAsc: _levelsSortAsc,
               ),
@@ -273,7 +295,10 @@ class _ScreenInventoryState extends ConsumerState<ScreenInventory> {
                 query: _query,
                 filterDirection: _filterDirection,
                 filterSource: _filterMovementSource,
-                filterCategoryIds: _filterMovementCategoryIds,
+                filterCategoryIds: {
+                  for (final id in _filterMovementCategoryIds)
+                    ...CategoryTree.getAllDescendantIds(id, _allCategories),
+                },
                 sortField: _movementsSortField,
                 sortAsc: _movementsSortAsc,
               ),

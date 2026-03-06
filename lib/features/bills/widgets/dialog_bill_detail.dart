@@ -11,6 +11,7 @@ import '../../../core/data/enums/prep_status.dart';
 import '../../../core/data/enums/unit_type.dart';
 import '../../../core/data/enums/voucher_discount_scope.dart';
 import '../../../core/data/enums/voucher_type.dart';
+import '../../../core/data/models/category_model.dart';
 import '../../../core/data/utils/voucher_discount_calculator.dart';
 import '../../../core/data/models/bill_model.dart';
 import '../../../core/data/models/customer_display_content.dart';
@@ -1265,6 +1266,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
         }
         // Build itemId→categoryId map for category scope
         Map<String, String>? itemCategoryMap;
+        List<CategoryModel>? allCategories;
         if (voucher.discountScope == VoucherDiscountScope.category && voucher.categoryId != null) {
           final itemRepo = ref.read(itemRepositoryProvider);
           itemCategoryMap = {};
@@ -1275,6 +1277,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
               itemCategoryMap[catId] = catalogItem!.categoryId!;
             }
           }
+          allCategories = await ref.read(categoryRepositoryProvider).watchAll(bill.companyId).first;
         }
         final vResult = VoucherDiscountCalculator.compute(
           voucher: voucher,
@@ -1282,6 +1285,7 @@ class _DialogBillDetailState extends ConsumerState<DialogBillDetail> {
           modsByItem: modsByItem,
           subtotalGross: bill.subtotalGross,
           itemCategoryMap: itemCategoryMap,
+          allCategories: allCategories,
         );
         // Physically split items and apply per-item voucher discounts
         for (final attr in vResult.attributions) {

@@ -5,6 +5,7 @@ import '../../core/data/enums/prep_status.dart';
 import '../../core/data/enums/voucher_discount_scope.dart';
 import '../../core/data/enums/voucher_type.dart';
 import '../../core/data/models/order_item_modifier_model.dart';
+import '../../core/data/models/category_model.dart';
 import '../../core/data/providers/repository_providers.dart';
 import '../../core/data/result.dart';
 import '../../core/data/utils/voucher_discount_calculator.dart';
@@ -96,6 +97,7 @@ Future<void> recalculateVoucherForBill(WidgetRef ref, String billId) async {
 
     // 7. Build category map if needed
     Map<String, String>? itemCategoryMap;
+    List<CategoryModel>? allCategories;
     if (voucher.discountScope == VoucherDiscountScope.category && voucher.categoryId != null) {
       final itemRepo = ref.read(itemRepositoryProvider);
       itemCategoryMap = {};
@@ -106,6 +108,7 @@ Future<void> recalculateVoucherForBill(WidgetRef ref, String billId) async {
           itemCategoryMap[catId] = catalogItem!.categoryId!;
         }
       }
+      allCategories = await ref.read(categoryRepositoryProvider).watchAll(freshBill.companyId).first;
     }
 
     // 8. Compute new voucher discount distribution
@@ -115,6 +118,7 @@ Future<void> recalculateVoucherForBill(WidgetRef ref, String billId) async {
       modsByItem: modsByItem,
       subtotalGross: freshBill.subtotalGross,
       itemCategoryMap: itemCategoryMap,
+      allCategories: allCategories,
     );
 
     // 9. Apply per-item discounts (no splitting!)

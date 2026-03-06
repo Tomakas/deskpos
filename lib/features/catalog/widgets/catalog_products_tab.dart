@@ -24,7 +24,6 @@ import '../../../core/utils/formatting_ext.dart';
 import '../../../core/utils/search_utils.dart';
 import '../../../core/utils/unit_type_l10n.dart';
 import '../../../core/widgets/highlighted_text.dart';
-import '../../../core/widgets/pos_color_palette.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../settings/widgets/dialog_grid_editor.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
@@ -1023,9 +1022,6 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
 
     if (targetPage == null || !context.mounted) return;
 
-    final selectedColor = await _showGridColorPicker(context);
-    if (!context.mounted) return;
-
     await layoutRepo.setCell(
       companyId: companyId,
       registerId: register.id,
@@ -1034,27 +1030,7 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
       gridCol: targetCol!,
       type: LayoutItemType.item,
       itemId: item.id,
-      color: selectedColor,
-    );
-  }
-
-  Future<String?> _showGridColorPicker(BuildContext context) {
-    final l = context.l10n;
-    return showDialog<String?>(
-      context: context,
-      builder: (_) => PosDialogShell(
-        title: l.gridEditorColor,
-        showCloseButton: true,
-        maxWidth: 400,
-        scrollable: true,
-        children: [
-          PosColorPalette(
-            selectedColor: null,
-            onColorSelected: (color) => Navigator.pop(context, color),
-          ),
-          const SizedBox(height: 16),
-        ],
-      ),
+      color: null,
     );
   }
 
