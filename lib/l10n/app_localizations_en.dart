@@ -4577,4 +4577,16 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get permInternalAccountsTransfer =>
       'Transfer bill to internal account';
+
+  @override
+  String get statsTabTaxes => 'Taxes';
+
+  @override
+  String get statsTaxSummaryGross => 'Total Revenue';
+
+  @override
+  String get statsTaxSummaryNet => 'Tax Base';
+
+  @override
+  String get statsTaxSummaryVat => 'Total VAT';
 }

@@ -28,6 +28,7 @@ import '../../../core/widgets/pos_date_range_selector.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_table.dart';
+import '../../bills/models/z_report_data.dart';
 import '../../bills/providers/z_report_providers.dart';
 import '../../bills/widgets/dialog_z_report.dart';
 import '../models/dashboard_data.dart';
@@ -38,7 +39,7 @@ import '../widgets/dialog_shift_edit.dart';
 // Section enum
 // ---------------------------------------------------------------------------
 
-enum _StatSection { dashboard, receipts, sales, orders, shifts, zReports, tips, internalAccounts }
+enum _StatSection { dashboard, receipts, sales, orders, shifts, zReports, tips, internalAccounts, taxes }
 
 // ---------------------------------------------------------------------------
 // Sort enums
@@ -263,6 +264,9 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
   // Internal accounts
   List<_InternalAccountRow> _internalAccountRows = [];
 
+  // Taxes
+  ZReportData? _taxData;
+
   // Dashboard
   DashboardData? _dashboardData;
   bool _dashboardTopProductByRevenue = false;
@@ -275,6 +279,7 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
     _StatSection.zReports: 'stats.z_reports',
     _StatSection.tips: 'stats.tips',
     _StatSection.internalAccounts: 'internal_accounts.manage',
+    _StatSection.taxes: 'stats.z_reports',
   };
 
   static const _sectionAllPermissions = {
@@ -386,6 +391,8 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
         await _loadTips(company.id);
       case _StatSection.internalAccounts:
         await _loadInternalAccounts(company.id);
+      case _StatSection.taxes:
+        await _loadTaxData(company.id);
     }
 
     if (mounted) setState(() => _loading = false);
@@ -803,6 +810,13 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
     }
     if (!mounted) return;
     setState(() => _internalAccountRows = rows);
+  }
+
+  Future<void> _loadTaxData(String companyId) async {
+    final zReportService = ref.read(zReportServiceProvider);
+    final report = await zReportService.buildVenueZReport(companyId, _from!, _to!);
+    if (!mounted) return;
+    setState(() => _taxData = report);
   }
 
   Future<void> _loadDashboard(String companyId) async {
@@ -1433,6 +1447,7 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
           onSelected: (v) => setState(() => _tipSort = v),
         );
       case _StatSection.internalAccounts:
+      case _StatSection.taxes:
         return;
     }
   }
@@ -1487,7 +1502,7 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
 
   bool get _sectionHasFilter => switch (_section) {
     _StatSection.receipts || _StatSection.sales || _StatSection.orders || _StatSection.tips => true,
-    _StatSection.internalAccounts || _StatSection.dashboard || _StatSection.shifts || _StatSection.zReports => false,
+    _StatSection.internalAccounts || _StatSection.dashboard || _StatSection.shifts || _StatSection.zReports || _StatSection.taxes => false,
   };
 
   bool get _hasActiveFilter =>
@@ -2086,6 +2101,8 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
           (l.statsTipTotal, ref.money(totalAmount)),
           (l.statsTipAvg, ref.money(avg)),
         ];
+      case _StatSection.taxes:
+        return;
       case _StatSection.internalAccounts:
         final totalUnsettled = _internalAccountRows.fold(0, (s, r) => s + r.unsettledAmount);
         final totalSettled = _internalAccountRows.fold(0, (s, r) => s + r.settledAmount);
@@ -2410,6 +2427,7 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
       _StatSection.zReports => l.statsTabZReports,
       _StatSection.tips => l.statsTabTips,
       _StatSection.internalAccounts => l.statsTabInternalAccounts,
+      _StatSection.taxes => l.statsTabTaxes,
     };
 
     return Scaffold(
@@ -2449,8 +2467,8 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
                   color: Theme.of(context).colorScheme.primary)),
               ]),
             ),
-          // Toolbar (hidden for dashboard)
-          if (_section != _StatSection.dashboard)
+          // Toolbar (hidden for dashboard and taxes)
+          if (_section != _StatSection.dashboard && _section != _StatSection.taxes)
             PosTableToolbar(
               searchController: _searchCtrl,
               searchHint: l.searchHint,
@@ -2509,6 +2527,8 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
         return _buildTipsTable(l);
       case _StatSection.internalAccounts:
         return _buildInternalAccountsTable(l);
+      case _StatSection.taxes:
+        return _buildTaxTable(l);
     }
   }
 
@@ -2859,6 +2879,84 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
     );
   }
 
+  // ---------------------------------------------------------------------------
+  // Taxes tab
+  // ---------------------------------------------------------------------------
+
+  Widget _buildTaxTable(dynamic l) {
+    if (_taxData == null) return Center(child: Text(l.statsEmpty));
+
+    final rows = _taxData!.taxBreakdown;
+    final totalGross = rows.fold(0, (s, r) => s + r.grossAmount);
+    final totalNet = rows.fold(0, (s, r) => s + r.netAmount);
+    final totalTax = rows.fold(0, (s, r) => s + r.taxAmount);
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+          child: Row(
+            children: [
+              Expanded(child: _taxSummaryCard(l.statsTaxSummaryGross, ref.money(totalGross))),
+              const SizedBox(width: 8),
+              Expanded(child: _taxSummaryCard(l.statsTaxSummaryNet, ref.money(totalNet))),
+              const SizedBox(width: 8),
+              Expanded(child: _taxSummaryCard(l.statsTaxSummaryVat, ref.money(totalTax))),
+            ],
+          ),
+        ),
+        Expanded(
+          child: PosTable<TaxBreakdownRow>(
+            emptyMessage: l.statsEmpty,
+            columns: [
+              PosColumn(
+                label: l.zReportTaxRate,
+                flex: 10,
+                cellBuilder: (r) => Text(ref.fmtPercent(r.taxRatePercent / 100, maxDecimals: 0)),
+              ),
+              PosColumn(
+                label: l.zReportTaxNet,
+                flex: 15,
+                numeric: true,
+                cellBuilder: (r) => Text(ref.money(r.netAmount), textAlign: TextAlign.right),
+              ),
+              PosColumn(
+                label: l.zReportTaxAmount,
+                flex: 15,
+                numeric: true,
+                cellBuilder: (r) => Text(ref.money(r.taxAmount), textAlign: TextAlign.right),
+              ),
+              PosColumn(
+                label: l.zReportTaxGross,
+                flex: 15,
+                numeric: true,
+                cellBuilder: (r) => Text(ref.money(r.grossAmount), textAlign: TextAlign.right),
+              ),
+            ],
+            items: rows,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _taxSummaryCard(String label, String value) {
+    final theme = Theme.of(context);
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(label, style: theme.textTheme.bodySmall),
+            const SizedBox(height: 4),
+            Text(value, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future<void> _showInternalAccountDetail(_InternalAccountRow row) async {
     final l = context.l10n;
     final billRepo = ref.read(billRepositoryProvider);
@@ -2892,10 +2990,6 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
             showCloseButton: true,
             bottomActions: PosDialogActions(
               actions: [
-                OutlinedButton(
-                  onPressed: () => Navigator.pop(ctx),
-                  child: Text(l.actionClose),
-                ),
                 if (!showSettled && selected.isNotEmpty) ...[
                   FilledButton(
                     onPressed: () => _settleSelected(ctx, row, selected, unsettled, 'paid'),

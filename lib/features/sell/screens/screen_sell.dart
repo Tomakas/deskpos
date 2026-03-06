@@ -49,6 +49,7 @@ import '../../../core/data/enums/voucher_discount_scope.dart';
 import '../../../core/data/enums/voucher_type.dart';
 import '../../../core/data/models/order_item_modifier_model.dart';
 import '../../../core/data/models/voucher_model.dart';
+import '../../../core/data/utils/category_tree.dart';
 import '../../../core/data/utils/voucher_discount_calculator.dart';
 import '../../bills/widgets/dialog_discount.dart';
 import '../../bills/widgets/dialog_voucher_redeem.dart';
@@ -93,6 +94,8 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
   bool _isRetailMode = false;
   bool _printTickets = false;
   String? _warehouseId;
+  List<CategoryModel> _allCategories = [];
+  StreamSubscription<List<CategoryModel>>? _categoriesSubscription;
 
   // Cached reference for use in dispose() where ref is no longer available.
   late final _displayChannel = ref.read(customerDisplayChannelProvider);
@@ -103,6 +106,7 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     _loadInitialState();
     _initDisplayBroadcast();
     _initWarehouse();
+    _initCategories();
   }
 
   Future<void> _loadInitialState() async {
@@ -139,10 +143,22 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
     }
   }
 
+  void _initCategories() {
+    final company = ref.read(currentCompanyProvider);
+    if (company == null) return;
+    _categoriesSubscription = ref
+        .read(categoryRepositoryProvider)
+        .watchAll(company.id)
+        .listen((cats) {
+      if (mounted) setState(() => _allCategories = cats);
+    });
+  }
+
   @override
   void dispose() {
     if (!_didSendThankYou) _pushDisplayIdle();
     _debounce?.cancel();
+    _categoriesSubscription?.cancel();
     _searchController.dispose();
     super.dispose();
   }
@@ -180,7 +196,9 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
       final matches = switch (scope) {
         VoucherDiscountScope.bill => true,
         VoucherDiscountScope.product => v.itemId != null && item.itemId == v.itemId,
-        VoucherDiscountScope.category => v.categoryId != null && item.categoryId == v.categoryId,
+        VoucherDiscountScope.category => v.categoryId != null &&
+            CategoryTree.getAllDescendantIds(v.categoryId!, _allCategories)
+                .contains(item.categoryId),
       };
       if (matches) {
         matching.add((item: item, unitPrice: item.effectiveUnitPrice));

@@ -1819,5 +1819,9 @@
   "internalAccountTransferredAmount": "Převedená částka",
   "permGroupInternalAccounts": "Interní účty",
   "permInternalAccountsManage": "Správa interních účtů",
-  "permInternalAccountsTransfer": "Převod účtu na interní účet"
+  "permInternalAccountsTransfer": "Převod účtu na interní účet",
+  "statsTabTaxes": "Daně",
+  "statsTaxSummaryGross": "Celkový obrat",
+  "statsTaxSummaryNet": "Základ daně",
+  "statsTaxSummaryVat": "DPH celkem"
 }

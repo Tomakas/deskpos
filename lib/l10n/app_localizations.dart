@@ -8891,6 +8891,30 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'Převod účtu na interní účet'**
   String get permInternalAccountsTransfer;
+
+  /// No description provided for @statsTabTaxes.
+  ///
+  /// In cs, this message translates to:
+  /// **'Daně'**
+  String get statsTabTaxes;
+
+  /// No description provided for @statsTaxSummaryGross.
+  ///
+  /// In cs, this message translates to:
+  /// **'Celkový obrat'**
+  String get statsTaxSummaryGross;
+
+  /// No description provided for @statsTaxSummaryNet.
+  ///
+  /// In cs, this message translates to:
+  /// **'Základ daně'**
+  String get statsTaxSummaryNet;
+
+  /// No description provided for @statsTaxSummaryVat.
+  ///
+  /// In cs, this message translates to:
+  /// **'DPH celkem'**
+  String get statsTaxSummaryVat;
 }
 
 class _AppLocalizationsDelegate

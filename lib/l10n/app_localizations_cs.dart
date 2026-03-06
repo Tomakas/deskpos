@@ -4574,4 +4574,16 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get permInternalAccountsTransfer => 'Převod účtu na interní účet';
+
+  @override
+  String get statsTabTaxes => 'Daně';
+
+  @override
+  String get statsTaxSummaryGross => 'Celkový obrat';
+
+  @override
+  String get statsTaxSummaryNet => 'Základ daně';
+
+  @override
+  String get statsTaxSummaryVat => 'DPH celkem';
 }

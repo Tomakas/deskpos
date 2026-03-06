@@ -1819,5 +1819,9 @@
   "internalAccountTransferredAmount": "Transferred amount",
   "permGroupInternalAccounts": "Internal Accounts",
   "permInternalAccountsManage": "Manage internal accounts",
-  "permInternalAccountsTransfer": "Transfer bill to internal account"
+  "permInternalAccountsTransfer": "Transfer bill to internal account",
+  "statsTabTaxes": "Taxes",
+  "statsTaxSummaryGross": "Total Revenue",
+  "statsTaxSummaryNet": "Tax Base",
+  "statsTaxSummaryVat": "Total VAT"
 }
