@@ -9,6 +9,7 @@ import '../../../core/data/models/manufacturer_model.dart';
 import '../../../core/data/models/supplier_model.dart';
 import '../../../core/data/models/tax_rate_model.dart';
 import '../../../core/data/repositories/category_repository.dart';
+import '../../../core/data/utils/category_tree.dart';
 import '../../../core/data/repositories/item_repository.dart';
 import '../../../core/data/repositories/manufacturer_repository.dart';
 import '../../../core/data/repositories/supplier_repository.dart';
@@ -93,9 +94,14 @@ class AiCatalogToolHandler {
   ) async {
     final categoryId = args['category_id'] as String?;
     final all = await _itemRepo.watchAll(companyId).first;
-    final filtered = categoryId != null
-        ? all.where((i) => i.categoryId == categoryId).toList()
-        : all;
+    List<ItemModel> filtered;
+    if (categoryId != null) {
+      final allCats = await _categoryRepo.watchAll(companyId).first;
+      final ids = CategoryTree.getAllDescendantIds(categoryId, allCats);
+      filtered = all.where((i) => i.categoryId != null && ids.contains(i.categoryId)).toList();
+    } else {
+      filtered = all;
+    }
     final json = filtered.take(1000)
         .map((i) => {
               'id': i.id,

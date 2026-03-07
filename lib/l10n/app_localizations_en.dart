@@ -277,6 +277,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fieldDefault => 'Default';
 
   @override
+  String get fieldNone => 'None';
+
+  @override
   String get roleHelper => 'Helper';
 
   @override

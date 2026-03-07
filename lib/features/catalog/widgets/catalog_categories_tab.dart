@@ -7,6 +7,7 @@ import '../../../core/data/models/category_model.dart';
 import '../../../core/data/models/tax_rate_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
+import '../../../core/data/utils/category_tree.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
@@ -290,7 +291,14 @@ class _CatalogCategoriesTabState extends ConsumerState<CatalogCategoriesTab> {
     var color = existing?.color;
     var itemColor = existing?.itemColor;
 
-    final parentOptions = allCategories.where((c) => c.id != existing?.id).toList();
+    // To prevent circular dependencies, we cannot select current category 
+    // or any of its descendants as a parent.
+    final excludedIds = existing != null 
+        ? CategoryTree.getAllDescendantIds(existing.id, allCategories)
+        : <String>{};
+    
+    final parentOptions = allCategories.where((c) => !excludedIds.contains(c.id)).toList();
+    final sortedParentOptions = CategoryTree.getSortedDisplayList(parentOptions);
 
     final result = await showDialog<Object>(
       context: context,
@@ -329,9 +337,21 @@ class _CatalogCategoriesTabState extends ConsumerState<CatalogCategoriesTab> {
                 DropdownButtonFormField<String?>(
                   initialValue: parentId,
                   decoration: InputDecoration(labelText: l.fieldParentCategory),
-                  items: parentOptions
-                      .map((c) => DropdownMenuItem(value: c.id, child: Text(c.name)))
-                      .toList(),
+                  items: [
+                    DropdownMenuItem<String?>(value: null, child: Text(l.fieldNone)), 
+                    ...sortedParentOptions.map((item) {
+                      final prefix = item.depth > 0 ? '${'  ' * (item.depth - 1)}└─ ' : '';
+                      return DropdownMenuItem(
+                        value: item.category.id,
+                        child: Text(
+                          prefix + item.category.name,
+                          style: TextStyle(
+                            fontWeight: item.depth == 0 ? FontWeight.bold : FontWeight.normal,
+                          ),
+                        ),
+                      );
+                    }),
+                  ],
                   onChanged: (v) => setDialogState(() => parentId = v),
                 ),
                 const SizedBox(height: 12),

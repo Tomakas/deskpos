@@ -951,9 +951,9 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
                               ? _computeStockBadge(ref, item, allItems, stockMap, hasVariants: hasVariants)
                               : (badge: null, level: null);
 
-                          // Derive color: item.color > category.itemColor > theme default
-                          final itemCat = categoriesMap[item.categoryId];
-                          final derivedColor = item.color ?? itemCat?.itemColor;
+                          // Derive color: item.color > category.itemColor (recursive) > theme default
+                          final derivedColor = item.color ??
+                              CategoryTree.resolveAncestorColor(item.categoryId, categoriesMap);
                           final cellColor = derivedColor != null
                               ? parsePrimaryColor(derivedColor)
                               : Theme.of(context).colorScheme.primaryContainer;
@@ -1146,9 +1146,10 @@ class _ScreenSellState extends ConsumerState<ScreenSell> {
         ? _computeStockBadge(ref, item, allItems, stockMap, hasVariants: hasVariants)
         : (badge: null, level: null);
 
-    // Derive color: item.color > category.itemColor > layoutItem.color > theme default
-    final itemCat = categoriesMap[item.categoryId];
-    final derivedColor = item.color ?? itemCat?.itemColor ?? layoutItem.color;
+    // Derive color: item.color > category.itemColor (recursive) > layoutItem.color > theme default
+    final derivedColor = item.color ??
+        CategoryTree.resolveAncestorColor(item.categoryId, categoriesMap) ??
+        layoutItem.color;
 
     return _ItemButton(
       label: layoutItem.label ?? item.name,

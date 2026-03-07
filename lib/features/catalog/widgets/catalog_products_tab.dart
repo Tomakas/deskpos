@@ -19,11 +19,13 @@ import '../../../core/data/providers/permission_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/data/utils/category_tree.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/utils/formatting_ext.dart';
 import '../../../core/utils/search_utils.dart';
 import '../../../core/utils/unit_type_l10n.dart';
 import '../../../core/widgets/highlighted_text.dart';
+import '../../../core/widgets/pos_color_palette.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../settings/widgets/dialog_grid_editor.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
@@ -314,6 +316,8 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
 
     var resetCount = 0;
 
+    final sortedCategories = CategoryTree.getSortedDisplayList(categories);
+
     final boolItems = [
       DropdownMenuItem<bool?>(value: null, child: Text(l.filterAll, overflow: TextOverflow.ellipsis)),
       DropdownMenuItem<bool?>(value: true, child: Text(l.yes, overflow: TextOverflow.ellipsis)),
@@ -327,6 +331,7 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
           title: l.filterTitle,
           maxWidth: 500,
           scrollable: true,
+          showCloseButton: true,
           bottomActions: PosDialogActions(
             actions: [
               OutlinedButton(
@@ -344,9 +349,20 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
                 },
                 child: Text(l.filterReset),
               ),
-              OutlinedButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: Text(l.actionClose),
+              FilledButton(
+                onPressed: () {
+                  setState(() {
+                    _filterItemType = itemType;
+                    _filterCategoryId = categoryId;
+                    _filterIsActive = isActive;
+                    _filterIsOnSale = isOnSale;
+                    _filterIsStockTracked = isStockTracked;
+                    _filterSupplierId = supplierId;
+                    _filterManufacturerId = manufacturerId;
+                  });
+                  Navigator.pop(ctx);
+                },
+                child: Text(l.statsFilterApply),
               ),
             ],
           ),
@@ -380,9 +396,19 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
                         decoration: InputDecoration(labelText: l.fieldCategory),
                         items: [
                           DropdownMenuItem<String?>(value: null, child: Text(l.filterAll, overflow: TextOverflow.ellipsis)),
-                          ...categories.map(
-                            (c) => DropdownMenuItem(value: c.id, child: Text(c.name, overflow: TextOverflow.ellipsis)),
-                          ),
+                          ...sortedCategories.map((item) {
+                            final prefix = item.depth > 0 ? '${'  ' * (item.depth - 1)}└─ ' : '';
+                            return DropdownMenuItem(
+                              value: item.category.id,
+                              child: Text(
+                                prefix + item.category.name,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontWeight: item.depth == 0 ? FontWeight.bold : FontWeight.normal,
+                                ),
+                              ),
+                            );
+                          }),
                         ],
                         onChanged: (v) => setDialogState(() => categoryId = v),
                       ),
@@ -521,6 +547,8 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
     var prepArea = existing?.prepArea;
     var itemColor = existing?.color;
 
+    final sortedCategories = CategoryTree.getSortedDisplayList(categories);
+
     final result = await showDialog<Object>(
       context: context,
       builder: (_) => StatefulBuilder(
@@ -563,9 +591,21 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
                   child: DropdownButtonFormField<String?>(
                     initialValue: categoryId,
                     decoration: InputDecoration(labelText: l.fieldCategory),
-                    items: categories
-                        .map((c) => DropdownMenuItem(value: c.id, child: Text(c.name)))
-                        .toList(),
+                    items: [
+                      DropdownMenuItem<String?>(value: null, child: Text(l.filterAll)),
+                      ...sortedCategories.map((item) {
+                        final prefix = item.depth > 0 ? '${'  ' * (item.depth - 1)}└─ ' : '';
+                        return DropdownMenuItem(
+                          value: item.category.id,
+                          child: Text(
+                            prefix + item.category.name,
+                            style: TextStyle(
+                              fontWeight: item.depth == 0 ? FontWeight.bold : FontWeight.normal,
+                            ),
+                          ),
+                        );
+                      }),
+                    ],
                     onChanged: (v) async {
                       setDialogState(() => categoryId = v);
                       if (v == null) return;

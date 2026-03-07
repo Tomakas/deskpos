@@ -626,6 +626,12 @@ abstract class AppLocalizations {
   /// **'Výchozí'**
   String get fieldDefault;
 
+  /// No description provided for @fieldNone.
+  ///
+  /// In cs, this message translates to:
+  /// **'Žádná'**
+  String get fieldNone;
+
   /// No description provided for @roleHelper.
   ///
   /// In cs, this message translates to:

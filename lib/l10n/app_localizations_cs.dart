@@ -277,6 +277,9 @@ class AppLocalizationsCs extends AppLocalizations {
   String get fieldDefault => 'Výchozí';
 
   @override
+  String get fieldNone => 'Žádná';
+
+  @override
   String get roleHelper => 'Pomocník';
 
   @override

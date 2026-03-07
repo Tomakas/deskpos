@@ -111,7 +111,7 @@
   "fieldType": "Typ",
   "fieldRate": "Sazba (%)",
   "fieldDefault": "Výchozí",
-
+  "fieldNone": "Žádná",
   "roleHelper": "Pomocník",
   "roleOperator": "Obsluha",
   "roleManager": "Manažer",

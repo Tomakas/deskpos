@@ -111,7 +111,7 @@
   "fieldType": "Type",
   "fieldRate": "Rate (%)",
   "fieldDefault": "Default",
-
+  "fieldNone": "None",
   "roleHelper": "Helper",
   "roleOperator": "Operator",
   "roleManager": "Manager",
