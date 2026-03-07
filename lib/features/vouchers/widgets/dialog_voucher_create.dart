@@ -12,6 +12,7 @@ import '../../../core/data/models/item_model.dart';
 import '../../../core/data/models/voucher_model.dart';
 import '../../../core/data/providers/auth_providers.dart';
 import '../../../core/data/providers/repository_providers.dart';
+import '../../../core/data/utils/category_tree.dart';
 import '../../../core/data/repositories/order_repository.dart';
 import '../../../core/data/result.dart';
 import '../../../core/l10n/app_localizations_ext.dart';
@@ -563,15 +564,39 @@ class _CategorySearchDialogState extends ConsumerState<_CategorySearchDialog> {
           child: StreamBuilder<List<CategoryModel>>(
             stream: ref.watch(categoryRepositoryProvider).watchAll(widget.companyId),
             builder: (context, snap) {
-              final categories = (snap.data ?? []).where((c) {
-                if (!c.isActive) return false;
-                if (_query.isEmpty) return true;
-                return normalizeSearch(c.name).contains(_query);
-              }).toList();
+              final allCategories = (snap.data ?? []).where((c) => c.isActive).toList();
+              if (_query.isEmpty) {
+                // Hierarchical display when not searching
+                final sorted = CategoryTree.getSortedDisplayList(allCategories);
+                return ListView.builder(
+                  itemCount: sorted.length,
+                  itemBuilder: (context, i) {
+                    final item = sorted[i];
+                    final prefix = item.depth > 0 ? '${'  ' * (item.depth - 1)}└─ ' : '';
+                    return ListTile(
+                      contentPadding: EdgeInsets.only(
+                        left: 16.0 + item.depth * 16.0,
+                        right: 16.0,
+                      ),
+                      title: Text(
+                        prefix + item.category.name,
+                        style: TextStyle(
+                          fontWeight: item.depth == 0 ? FontWeight.bold : FontWeight.normal,
+                        ),
+                      ),
+                      onTap: () => Navigator.pop(context, item.category),
+                    );
+                  },
+                );
+              }
+              // Flat filtered list when searching
+              final filtered = allCategories
+                  .where((c) => normalizeSearch(c.name).contains(_query))
+                  .toList();
               return ListView.builder(
-                itemCount: categories.length,
+                itemCount: filtered.length,
                 itemBuilder: (context, i) {
-                  final cat = categories[i];
+                  final cat = filtered[i];
                   return ListTile(
                     title: Text(cat.name),
                     onTap: () => Navigator.pop(context, cat),

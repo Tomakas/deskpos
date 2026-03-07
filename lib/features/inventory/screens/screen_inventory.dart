@@ -457,29 +457,47 @@ class _ScreenInventoryState extends ConsumerState<ScreenInventory> {
                 title: Text(l.inventoryFilterCategory, style: Theme.of(ctx).textTheme.titleSmall),
                 dense: true,
               ),
-              StreamBuilder<List<CategoryModel>>(
-                stream: ref.read(categoryRepositoryProvider).watchAll(company.id),
-                builder: (ctx, snap) {
-                  final categories = snap.data ?? [];
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      for (final cat in categories)
-                        CheckboxListTile(
-                          title: Text(cat.name),
-                          value: categoryIds.contains(cat.id),
-                          onChanged: (v) => setDialogState(() {
-                            if (v == true) {
-                              categoryIds.add(cat.id);
-                            } else {
-                              categoryIds.remove(cat.id);
-                            }
-                          }),
+              Builder(builder: (ctx) {
+                final sorted = CategoryTree.getSortedDisplayList(_allCategories);
+                bool? checkValue(String id) {
+                  final ids = CategoryTree.getAllDescendantIds(id, _allCategories);
+                  final count = ids.where(categoryIds.contains).length;
+                  if (count == 0) return false;
+                  if (count == ids.length) return true;
+                  return null;
+                }
+                void toggle(String id) {
+                  final ids = CategoryTree.getAllDescendantIds(id, _allCategories);
+                  setDialogState(() {
+                    if (checkValue(id) == true) {
+                      categoryIds.removeAll(ids);
+                    } else {
+                      categoryIds.addAll(ids);
+                    }
+                  });
+                }
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (final item in sorted)
+                      CheckboxListTile(
+                        tristate: true,
+                        value: checkValue(item.category.id),
+                        contentPadding: EdgeInsets.only(
+                          left: 16.0 + item.depth * 24.0,
+                          right: 16.0,
                         ),
-                    ],
-                  );
-                },
-              ),
+                        title: Text(
+                          item.category.name,
+                          style: TextStyle(
+                            fontWeight: item.depth == 0 ? FontWeight.bold : FontWeight.normal,
+                          ),
+                        ),
+                        onChanged: (_) => toggle(item.category.id),
+                      ),
+                  ],
+                );
+              }),
             ],
           );
         },
@@ -638,29 +656,47 @@ class _ScreenInventoryState extends ConsumerState<ScreenInventory> {
                 title: Text(l.inventoryFilterCategory, style: Theme.of(ctx).textTheme.titleSmall),
                 dense: true,
               ),
-              StreamBuilder<List<CategoryModel>>(
-                stream: ref.read(categoryRepositoryProvider).watchAll(company.id),
-                builder: (ctx, snap) {
-                  final categories = snap.data ?? [];
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      for (final cat in categories)
-                        CheckboxListTile(
-                          title: Text(cat.name),
-                          value: categoryIds.contains(cat.id),
-                          onChanged: (v) => setDialogState(() {
-                            if (v == true) {
-                              categoryIds.add(cat.id);
-                            } else {
-                              categoryIds.remove(cat.id);
-                            }
-                          }),
+              Builder(builder: (ctx) {
+                final sorted = CategoryTree.getSortedDisplayList(_allCategories);
+                bool? checkValue(String id) {
+                  final ids = CategoryTree.getAllDescendantIds(id, _allCategories);
+                  final count = ids.where(categoryIds.contains).length;
+                  if (count == 0) return false;
+                  if (count == ids.length) return true;
+                  return null;
+                }
+                void toggle(String id) {
+                  final ids = CategoryTree.getAllDescendantIds(id, _allCategories);
+                  setDialogState(() {
+                    if (checkValue(id) == true) {
+                      categoryIds.removeAll(ids);
+                    } else {
+                      categoryIds.addAll(ids);
+                    }
+                  });
+                }
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (final item in sorted)
+                      CheckboxListTile(
+                        tristate: true,
+                        value: checkValue(item.category.id),
+                        contentPadding: EdgeInsets.only(
+                          left: 16.0 + item.depth * 24.0,
+                          right: 16.0,
                         ),
-                    ],
-                  );
-                },
-              ),
+                        title: Text(
+                          item.category.name,
+                          style: TextStyle(
+                            fontWeight: item.depth == 0 ? FontWeight.bold : FontWeight.normal,
+                          ),
+                        ),
+                        onChanged: (_) => toggle(item.category.id),
+                      ),
+                  ],
+                );
+              }),
             ],
           );
         },
