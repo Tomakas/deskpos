@@ -28,6 +28,8 @@ import '../../../core/widgets/pos_date_range_selector.dart';
 import '../../../core/widgets/pos_dialog_actions.dart';
 import '../../../core/widgets/pos_dialog_shell.dart';
 import '../../../core/widgets/pos_table.dart';
+import '../../../core/data/models/category_model.dart';
+import '../../../core/data/utils/category_tree.dart';
 import '../../bills/models/z_report_data.dart';
 import '../../bills/providers/z_report_providers.dart';
 import '../../bills/widgets/dialog_z_report.dart';
@@ -68,6 +70,7 @@ class _SalesRow {
     this.voucherDiscount = 0,
     required this.taxRate,
     required this.categoryName,
+    this.categoryId,
   });
   final DateTime closedAt;  // bill closedAt (for date/time column)
   final String billId;      // for navigation to bill detail
@@ -79,6 +82,7 @@ class _SalesRow {
   final int voucherDiscount; // voucher discount attributed to this item
   final int taxRate;   // saleTaxRateAtt (e.g. 2100 = 21%)
   final String categoryName;
+  final String? categoryId;
 }
 
 // ---------------------------------------------------------------------------
@@ -240,7 +244,7 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
   Set<String> _receiptPaymentFilter = {};
   bool? _receiptTakeawayFilter;
   bool? _receiptDiscountFilter;
-  Set<String> _salesCategoryFilter = {};
+  String? _salesCategoryFilter;
   bool? _salesDiscountFilter;
   Set<PrepStatus> _orderStatusFilter = {};
   bool? _orderStornoFilter;
@@ -252,6 +256,7 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
   Map<String, String> _customerNames = {}; // customerId → display name
   Map<String, String> _paymentMethods = {}; // billId → comma-separated method names
   List<_SalesRow> _salesRows = [];
+  List<CategoryModel> _salesCategories = [];
   int _salesTotalBillDiscount = 0;
   int _salesTotalLoyaltyDiscount = 0;
   int _salesTotalVoucherDiscount = 0;
@@ -518,7 +523,7 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
       modsByItem.putIfAbsent(mod.orderItemId, () => []).add(mod);
     }
 
-    // 5. Resolve itemId → categoryName
+    // 5. Resolve itemId → categoryName + categoryId
     final itemRepo = ref.read(itemRepositoryProvider);
     final categoryRepo = ref.read(categoryRepositoryProvider);
     final allCategories = await categoryRepo.watchAll(companyId).first;
@@ -526,10 +531,12 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
     final categoryMap = {for (final c in allCategories) c.id: c.name};
     final catalogItemIds = items.map((i) => i.itemId).toSet();
     final itemCategoryMap = <String, String>{};
+    final itemCategoryIdMap = <String, String>{};
     for (final catalogId in catalogItemIds) {
       final catalogItem = await itemRepo.getById(catalogId, includeDeleted: true);
       if (catalogItem != null && catalogItem.categoryId != null) {
         itemCategoryMap[catalogId] = categoryMap[catalogItem.categoryId!] ?? '';
+        itemCategoryIdMap[catalogId] = catalogItem.categoryId!;
       }
     }
     if (!mounted) return;
@@ -566,6 +573,7 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
           : 0;
 
       final category = itemCategoryMap[item.itemId] ?? '';
+      final categoryId = itemCategoryIdMap[item.itemId];
       final billId = orderBillMap[item.orderId] ?? '';
       final closedAt = billClosedAt[billId] ?? DateTime.now();
       // Aggregate per bill: same item + effective price + tax + category on same bill
@@ -583,6 +591,7 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
           voucherDiscount: existing.voucherDiscount + voucherDisc,
           taxRate: item.saleTaxRateAtt,
           categoryName: category,
+          categoryId: categoryId,
         );
       } else {
         map[key] = _SalesRow(
@@ -596,6 +605,7 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
           voucherDiscount: voucherDisc,
           taxRate: item.saleTaxRateAtt,
           categoryName: category,
+          categoryId: categoryId,
         );
       }
     }
@@ -626,6 +636,7 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
 
     setState(() {
       _salesRows = map.values.toList();
+      _salesCategories = allCategories;
       _salesTotalBillDiscount = totalBillDiscount;
       _salesTotalLoyaltyDiscount = totalLoyalty;
       _salesTotalVoucherDiscount = unattributedVoucher;
@@ -1231,8 +1242,9 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
 
   List<_SalesRow> get _filteredSales {
     var list = _salesRows;
-    if (_salesCategoryFilter.isNotEmpty) {
-      list = list.where((r) => _salesCategoryFilter.contains(r.categoryName)).toList();
+    if (_salesCategoryFilter != null) {
+      final ids = CategoryTree.getAllDescendantIds(_salesCategoryFilter!, _salesCategories);
+      list = list.where((r) => r.categoryId != null && ids.contains(r.categoryId)).toList();
     }
     if (_salesDiscountFilter != null) {
       list = list.where((r) {
@@ -1509,7 +1521,7 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
       _receiptPaymentFilter.isNotEmpty ||
       _receiptTakeawayFilter != null ||
       _receiptDiscountFilter != null ||
-      _salesCategoryFilter.isNotEmpty ||
+      _salesCategoryFilter != null ||
       _salesDiscountFilter != null ||
       _orderStatusFilter.isNotEmpty ||
       _orderStornoFilter != null ||
@@ -1707,9 +1719,9 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
 
   void _showSalesFilterDialog() {
     final l = context.l10n;
-    final allCategories = _salesRows.map((r) => r.categoryName).where((c) => c.isNotEmpty).toSet().toList()..sort();
+    final sortedCategories = CategoryTree.getSortedDisplayList(_salesCategories);
 
-    var selectedCategories = Set<String>.from(_salesCategoryFilter);
+    var selectedCategoryId = _salesCategoryFilter;
     var selectedDiscount = _salesDiscountFilter;
 
     showDialog(
@@ -1726,7 +1738,7 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
             FilledButton(
               onPressed: () {
                 setState(() {
-                  _salesCategoryFilter = selectedCategories;
+                  _salesCategoryFilter = selectedCategoryId;
                   _salesDiscountFilter = selectedDiscount;
                 });
                 Navigator.pop(ctx);
@@ -1735,29 +1747,28 @@ class _ScreenStatisticsState extends ConsumerState<ScreenStatistics>
             ),
           ]),
           children: [
-            if (allCategories.isNotEmpty) ...[
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Text(l.statsFilterCategory, style: const TextStyle(fontWeight: FontWeight.bold)),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 4,
-                children: [
-                  for (final name in allCategories)
-                    FilterChip(
-                      label: Text(name),
-                      selected: selectedCategories.contains(name),
-                      onSelected: (v) => setDialogState(() {
-                        if (v) {
-                          selectedCategories.add(name);
-                        } else {
-                          selectedCategories.remove(name);
-                        }
-                      }),
-                    ),
+            if (sortedCategories.isNotEmpty) ...[
+              DropdownButtonFormField<String?>(
+                initialValue: selectedCategoryId,
+                isExpanded: true,
+                decoration: InputDecoration(labelText: l.statsFilterCategory),
+                items: [
+                  DropdownMenuItem<String?>(value: null, child: Text(l.filterAll, overflow: TextOverflow.ellipsis)),
+                  ...sortedCategories.map((item) {
+                    final prefix = item.depth > 0 ? '${'  ' * (item.depth - 1)}└─ ' : '';
+                    return DropdownMenuItem(
+                      value: item.category.id,
+                      child: Text(
+                        prefix + item.category.name,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontWeight: item.depth == 0 ? FontWeight.bold : FontWeight.normal,
+                        ),
+                      ),
+                    );
+                  }),
                 ],
+                onChanged: (v) => setDialogState(() => selectedCategoryId = v),
               ),
               const SizedBox(height: 16),
             ],

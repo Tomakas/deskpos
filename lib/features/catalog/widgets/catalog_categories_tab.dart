@@ -282,7 +282,6 @@ class _CatalogCategoriesTabState extends ConsumerState<CatalogCategoriesTab> {
     final l = context.l10n;
     final company = ref.read(currentCompanyProvider)!;
     final nameCtrl = TextEditingController(text: existing?.name ?? '');
-    var isActive = existing?.isActive ?? true;
     var parentId = existing?.parentId;
     var prepArea = existing?.prepArea;
     var defaultSaleTaxRateId = existing?.defaultSaleTaxRateId;
@@ -329,76 +328,104 @@ class _CatalogCategoriesTabState extends ConsumerState<CatalogCategoriesTab> {
                 ],
               ),
               children: [
-                TextField(
-                  controller: nameCtrl,
-                  decoration: InputDecoration(labelText: l.fieldName),
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<String?>(
-                  initialValue: parentId,
-                  decoration: InputDecoration(labelText: l.fieldParentCategory),
-                  items: [
-                    DropdownMenuItem<String?>(value: null, child: Text(l.fieldNone)), 
-                    ...sortedParentOptions.map((item) {
-                      final prefix = item.depth > 0 ? '${'  ' * (item.depth - 1)}└─ ' : '';
-                      return DropdownMenuItem(
-                        value: item.category.id,
-                        child: Text(
-                          prefix + item.category.name,
-                          style: TextStyle(
-                            fontWeight: item.depth == 0 ? FontWeight.bold : FontWeight.normal,
-                          ),
-                        ),
-                      );
-                    }),
+                // Row 1: Name + Parent Category
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: nameCtrl,
+                        decoration: InputDecoration(labelText: l.fieldName),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: DropdownButtonFormField<String?>(
+                        initialValue: parentId,
+                        decoration: InputDecoration(labelText: l.fieldParentCategory),
+                        items: [
+                          DropdownMenuItem<String?>(value: null, child: Text(l.fieldNone)),
+                          ...sortedParentOptions.map((item) {
+                            final prefix = item.depth > 0 ? '${'  ' * (item.depth - 1)}└─ ' : '';
+                            return DropdownMenuItem(
+                              value: item.category.id,
+                              child: Text(
+                                prefix + item.category.name,
+                                style: TextStyle(
+                                  fontWeight: item.depth == 0 ? FontWeight.bold : FontWeight.normal,
+                                ),
+                              ),
+                            );
+                          }),
+                        ],
+                        onChanged: (v) => setDialogState(() => parentId = v),
+                      ),
+                    ),
                   ],
-                  onChanged: (v) => setDialogState(() => parentId = v),
                 ),
                 const SizedBox(height: 12),
-                SwitchListTile(
-                  title: Text(l.fieldActive),
-                  value: isActive,
-                  onChanged: (v) => setDialogState(() => isActive = v),
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<PrepArea?>(
-                  initialValue: prepArea,
-                  decoration: InputDecoration(labelText: l.fieldPrepArea),
-                  items: PrepArea.values.map((pa) => DropdownMenuItem<PrepArea?>(
-                    value: pa,
-                    child: Text(_prepAreaLabel(l, pa)),
-                  )).toList(),
-                  onChanged: (v) => setDialogState(() => prepArea = v),
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<String?>(
-                  initialValue: defaultSaleTaxRateId,
-                  decoration: InputDecoration(labelText: l.fieldDefaultSaleTax),
-                  items: taxRates.map((tr) => DropdownMenuItem(
-                    value: tr.id,
-                    child: Text(tr.label),
-                  )).toList(),
-                  onChanged: (v) => setDialogState(() => defaultSaleTaxRateId = v),
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<String?>(
-                  initialValue: defaultPurchaseTaxRateId,
-                  decoration: InputDecoration(labelText: l.fieldDefaultPurchaseTax),
-                  items: taxRates.map((tr) => DropdownMenuItem(
-                    value: tr.id,
-                    child: Text(tr.label),
-                  )).toList(),
-                  onChanged: (v) => setDialogState(() => defaultPurchaseTaxRateId = v),
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<bool?>(
-                  initialValue: defaultIsSellable,
-                  decoration: InputDecoration(labelText: l.fieldDefaultIsSellable),
-                  items: [
-                    DropdownMenuItem<bool?>(value: true, child: Text(l.yes)),
-                    DropdownMenuItem<bool?>(value: false, child: Text(l.no)),
+                // Row 2: Default Sale Tax + Default Purchase Tax
+                Row(
+                  children: [
+                    Expanded(
+                      child: DropdownButtonFormField<String?>(
+                        initialValue: defaultSaleTaxRateId,
+                        decoration: InputDecoration(labelText: l.fieldDefaultSaleTax),
+                        items: taxRates
+                            .map((tr) => DropdownMenuItem(
+                                  value: tr.id,
+                                  child: Text(tr.label),
+                                ))
+                            .toList(),
+                        onChanged: (v) => setDialogState(() => defaultSaleTaxRateId = v),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: DropdownButtonFormField<String?>(
+                        initialValue: defaultPurchaseTaxRateId,
+                        decoration: InputDecoration(labelText: l.fieldDefaultPurchaseTax),
+                        items: taxRates
+                            .map((tr) => DropdownMenuItem(
+                                  value: tr.id,
+                                  child: Text(tr.label),
+                                ))
+                            .toList(),
+                        onChanged: (v) => setDialogState(() => defaultPurchaseTaxRateId = v),
+                      ),
+                    ),
                   ],
-                  onChanged: (v) => setDialogState(() => defaultIsSellable = v),
+                ),
+                const SizedBox(height: 12),
+                // Row 3: Default Sellable + Prep Area
+                Row(
+                  children: [
+                    Expanded(
+                      child: DropdownButtonFormField<bool?>(
+                        initialValue: defaultIsSellable,
+                        decoration: InputDecoration(labelText: l.fieldDefaultIsSellable),
+                        items: [
+                          DropdownMenuItem<bool?>(value: true, child: Text(l.yes)),
+                          DropdownMenuItem<bool?>(value: false, child: Text(l.no)),
+                        ],
+                        onChanged: (v) => setDialogState(() => defaultIsSellable = v),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: DropdownButtonFormField<PrepArea?>(
+                        initialValue: prepArea,
+                        decoration: InputDecoration(labelText: l.fieldPrepArea),
+                        items: PrepArea.values
+                            .map((pa) => DropdownMenuItem<PrepArea?>(
+                                  value: pa,
+                                  child: Text(_prepAreaLabel(l, pa)),
+                                ))
+                            .toList(),
+                        onChanged: (v) => setDialogState(() => prepArea = v),
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 12),
                 Row(
@@ -437,7 +464,6 @@ class _CatalogCategoriesTabState extends ConsumerState<CatalogCategoriesTab> {
     if (existing != null) {
       await repo.update(existing.copyWith(
         name: nameCtrl.text.trim(),
-        isActive: isActive,
         parentId: parentId,
         prepArea: prepArea,
         defaultSaleTaxRateId: defaultSaleTaxRateId,
@@ -451,7 +477,7 @@ class _CatalogCategoriesTabState extends ConsumerState<CatalogCategoriesTab> {
         id: const Uuid().v7(),
         companyId: company.id,
         name: nameCtrl.text.trim(),
-        isActive: isActive,
+        isActive: true,
         parentId: parentId,
         prepArea: prepArea,
         defaultSaleTaxRateId: defaultSaleTaxRateId,

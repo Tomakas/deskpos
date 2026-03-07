@@ -122,10 +122,14 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
                         final suppliers = supplierSnap.data ?? [];
                         final manufacturers = mfgSnap.data ?? [];
 
+                        final filterCategoryIds = _filterCategoryId != null
+                            ? CategoryTree.getAllDescendantIds(_filterCategoryId!, categories)
+                            : null;
+
                         final filtered = items.where((item) {
                           // Filters
                           if (_filterItemType != null && item.itemType != _filterItemType) return false;
-                          if (_filterCategoryId != null && item.categoryId != _filterCategoryId) return false;
+                          if (filterCategoryIds != null && !filterCategoryIds.contains(item.categoryId)) return false;
                           if (_filterIsActive != null && item.isActive != _filterIsActive) return false;
                           if (_filterIsOnSale != null && item.isOnSale != _filterIsOnSale) return false;
                           if (_filterIsStockTracked != null && item.isStockTracked != _filterIsStockTracked) return false;
@@ -339,7 +343,6 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
                   setDialogState(() {
                     itemType = null;
                     categoryId = null;
-                    isActive = null;
                     isOnSale = null;
                     isStockTracked = null;
                     supplierId = null;
@@ -354,7 +357,7 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
                   setState(() {
                     _filterItemType = itemType;
                     _filterCategoryId = categoryId;
-                    _filterIsActive = isActive;
+                    _filterIsActive = null;
                     _filterIsOnSale = isOnSale;
                     _filterIsStockTracked = isStockTracked;
                     _filterSupplierId = supplierId;
@@ -416,7 +419,7 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
                   ],
                 ),
                 const SizedBox(height: 12),
-                // Row 2: On Sale + Stock Tracked + Active
+                // Row 2: On Sale + Stock Tracked
                 Row(
                   children: [
                     Expanded(
@@ -436,16 +439,6 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
                         decoration: InputDecoration(labelText: l.fieldStockTracked),
                         items: boolItems,
                         onChanged: (v) => setDialogState(() => isStockTracked = v),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: DropdownButtonFormField<bool?>(
-                        initialValue: isActive,
-                        isExpanded: true,
-                        decoration: InputDecoration(labelText: l.fieldActive),
-                        items: boolItems,
-                        onChanged: (v) => setDialogState(() => isActive = v),
                       ),
                     ),
                   ],
@@ -534,7 +527,6 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
     var taxRateId = existing?.saleTaxRateId;
     var itemType = existing?.itemType ?? ItemType.product;
     var unit = existing?.unit ?? UnitType.ks;
-    var isActive = existing?.isActive ?? true;
     var isOnSale = existing?.isOnSale ?? true;
     var isStockTracked = existing?.isStockTracked ?? false;
     var negativeStockPolicy = existing?.negativeStockPolicy;
@@ -797,11 +789,6 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
             // Switches
             if (canAvailability) ...[
               SwitchListTile(
-                title: Text(l.fieldActive),
-                value: isActive,
-                onChanged: (v) => setDialogState(() => isActive = v),
-              ),
-              SwitchListTile(
                 title: Text(l.fieldOnSale),
                 value: isOnSale,
                 onChanged: (v) => setDialogState(() => isOnSale = v),
@@ -914,7 +901,6 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
         saleTaxRateId: taxRateId,
         itemType: itemType,
         unit: unit,
-        isActive: isActive,
         sku: skuValue,
         altSku: altSkuValue,
         purchasePrice: purchasePriceCents,
@@ -940,7 +926,7 @@ class _CatalogProductsTabState extends ConsumerState<CatalogProductsTab> {
         saleTaxRateId: taxRateId,
         itemType: itemType,
         unit: unit,
-        isActive: isActive,
+        isActive: true,
         sku: skuValue,
         altSku: altSkuValue,
         purchasePrice: purchasePriceCents,
